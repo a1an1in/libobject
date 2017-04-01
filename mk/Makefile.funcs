@@ -1,0 +1,71 @@
+#
+#=====================================================================================
+#  Filename:    Makefile
+#  Description: this is Makefile's function file.      
+#  Version:     2.0
+#  Created:     11/05/2015 11:27:03 PM
+#  Author:      alan lin , a1an1in@sina.com
+#  Company:     vigor
+#=====================================================================================
+#
+
+define make_clean
+	for subdir in `find -type d `; do\
+		if [ -d $$subdir ]; then\
+			if ls $$subdir/*.cpp >/dev/null 2>&1; then\
+				echo "make clean $$subdir ...";\
+				make -C $$subdir clean;\
+				if [ $$? -ne 0 ]; then \
+					echo "make clean $$subdir is failed !"; \
+					exit 12; \
+				fi; \
+			elif ls $$subdir/*.c >/dev/null 2>&1; then\
+				echo "make clean $$subdir ...";\
+				make -C $$subdir clean;\
+				if [ $$? -ne 0 ]; then \
+					echo "make clean $$subdir is failed !"; \
+					exit 12; \
+				fi; \
+			fi;\
+		fi;\
+	done
+endef
+
+define check_output_dir
+	if [ -d bin ];then\
+		echo ;\
+	else\
+		mkdir bin;\
+	fi
+endef
+
+define build_obj
+	for subdir in `find -type d `; do\
+		if [ -d $$subdir ]; then\
+			if ls $$subdir/*.cpp >/dev/null 2>&1; then\
+				echo "Building $$subdir ...";\
+				BUILD_IN_FILES=$$BUILD_IN_FILES$$subdir"/build_in.o ";\
+				if [ ! -e "$$subdir/Makefile" ]; then\
+					cp $(PROJECT_PATH)/mk/Makefile.cpp_subdir $$subdir/Makefile;\
+				fi;\
+				make -C $$subdir; \
+				if [ $$? -ne 0 ]; then \
+					echo "Building $$subdir is failed !"; \
+					exit 12; \
+				fi; \
+			elif ls $$subdir/*.c >/dev/null 2>&1; then\
+				echo "Building $$subdir ...";\
+				BUILD_IN_FILES=$$BUILD_IN_FILES$$subdir"/build_in.o ";\
+				if [ ! -e "$$subdir/Makefile" ]; then\
+					cp $(PROJECT_PATH)/mk/Makefile.c_subdir $$subdir/Makefile;\
+				fi;\
+				make -C $$subdir; \
+				if [ $$? -ne 0 ]; then \
+					echo "Building $$subdir is failed !"; \
+					exit 12; \
+				fi; \
+			fi;\
+		fi;\
+	done
+endef
+
