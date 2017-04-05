@@ -129,7 +129,7 @@ static int __push_back(List *list,void *value)
 
 static int __insert_after(List *list,Iterator *iter, void *value)
 {
-    Linked_List *l = (Linked_List *)list;
+    Linked_List *l    = (Linked_List *)list;
     LList_Iterator *i = (LList_Iterator *)iter;
 
     dbg_str(OBJ_DETAIL,"List insert");
@@ -139,7 +139,7 @@ static int __insert_after(List *list,Iterator *iter, void *value)
 
 static int __del(List *list,Iterator *iter)
 {
-    Linked_List *l = (Linked_List *)list;
+    Linked_List *l    = (Linked_List *)list;
     LList_Iterator *i = (LList_Iterator *)iter;
 
     dbg_str(OBJ_DETAIL,"Link list del");
@@ -149,9 +149,9 @@ static int __del(List *list,Iterator *iter)
 
 static Iterator *__begin(List *list)
 {
-    Linked_List *l = (Linked_List *)list;
-    LList_Iterator *iter;
+    Linked_List *l         = (Linked_List *)list;
     allocator_t *allocator = list->obj.allocator;
+    LList_Iterator *iter;
 
     dbg_str(OBJ_DETAIL,"Linked List begin");
 
@@ -164,9 +164,9 @@ static Iterator *__begin(List *list)
 
 static Iterator *__end(List *list)
 {
-    Linked_List *l = (Linked_List *)list;
-    LList_Iterator *iter;
+    Linked_List *l         = (Linked_List *)list;
     allocator_t *allocator = list->obj.allocator;
+    LList_Iterator *iter;
 
     dbg_str(OBJ_DETAIL,"Linked List end");
     iter = OBJECT_NEW(allocator, LList_Iterator,NULL);
@@ -176,7 +176,7 @@ static Iterator *__end(List *list)
     return (Iterator *)iter;
 }
 
-static class_info_entry_t llist_list_class_info[] = {
+static class_info_entry_t llist_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"List","list",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
@@ -189,7 +189,7 @@ static class_info_entry_t llist_list_class_info[] = {
     [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","end",__end,sizeof(void *)},
     [10] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Linked_List",llist_list_class_info);
+REGISTER_CLASS("Linked_List",llist_class_info);
 
 static void llist_list_print(Iterator *iter)
 {

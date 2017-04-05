@@ -21,9 +21,6 @@ struct _map_s{
     int (*insert_wb)(Map *map,void *key,void *value,Iterator *iter);
     int (*search)(Map *map,void *key,Iterator *iter);
     int (*del)(Map *map,Iterator *iter);
-    /*
-     *void (*for_each)(Map *map,void (*func)(Map *map, char *key, void *value));
-     */
     void (*for_each)(Map *map,void (*func)(Iterator *iter));
     void (*for_each_arg2)(Map *map,void (*func)(Iterator *iter, void *arg),void *arg);
     Iterator *(*begin)(Map *map);
