@@ -1049,6 +1049,9 @@ void test_ui_text_area()
 
     event->poll_event(event, window);
 
+    /*
+     *window->unload_resources(window);
+     */
     object_destroy(window);
 
     free(set_str);

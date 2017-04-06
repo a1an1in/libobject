@@ -46,12 +46,12 @@ static int string_buf_auto_modulate(String *string, int write_len)
             dbg_str(OBJ_WARNNING,"string assign alloc error");
             return -1;
         }
-    } else if ( string->value_max_len > string->value_len &&
-               string->value_max_len < string->value_len + write_len)
+    } else if ( string->value_max_len > string->value_len + 1 &&
+               string->value_max_len < string->value_len + write_len + 1)
     {
         char *new_buf;
 
-        string->value_max_len = 2 * string->value_max_len;
+        string->value_max_len = 2 * (string->value_len + write_len + 1);
         new_buf = (char *)allocator_mem_alloc(string->obj.allocator,
                                               string->value_max_len);
         if (string->value == NULL) {
