@@ -131,9 +131,14 @@ static void *__get(String *obj, char *attrib)
 static String *__pre_alloc(String *string,uint32_t size)
 {
     dbg_str(OBJ_DETAIL,"pre_alloc, size=%d",size);
-    string->value         = (char *)allocator_mem_alloc(string->obj.allocator, size);
-    string->value_max_len = size;
-    memset(string->value, 0, size);
+
+    if (size < string->value_max_len) return string;
+    else {
+        allocator_mem_free(string->obj.allocator,string->value);
+        string->value         = (char *)allocator_mem_alloc(string->obj.allocator, size);
+        string->value_max_len = size;
+        memset(string->value, 0, size);
+    }
     return string;
 }
 
@@ -220,6 +225,7 @@ void test_obj_string()
     dbg_str(DBG_SUC, "test_obj_string begin alloc count =%d",allocator->alloc_count);
     string = OBJECT_NEW(allocator, String,set_str);
 
+    string->pre_alloc(string, 1024);
     string->assign(string,"hello world!");
     string->append_char(string,'a');
     string->append_char(string,'b');

@@ -1018,7 +1018,6 @@ void test_ui_text_area()
     Container *container;
     Graph *g;
     Subject *subject;
-    __Event *event;
     allocator_t *allocator = allocator_get_default_alloc();
     char *set_str;
     char buf[2048];
@@ -1026,7 +1025,6 @@ void test_ui_text_area()
     set_str   = gen_window_setting_str();
     window    = OBJECT_NEW(allocator, Sdl_Window,set_str);
     g         = window->graph;
-    event     = window->event;
     container = (Container *)window;
 
     object_dump(window, "Sdl_Window", buf, 2048);
@@ -1046,12 +1044,8 @@ void test_ui_text_area()
 
     window->load_resources(window);
     window->update_window(window);
-
-    event->poll_event(event, window);
-
-    /*
-     *window->unload_resources(window);
-     */
+    window->event->poll_event(window->event, window);
+    window->unload_resources(window);
     object_destroy(window);
 
     free(set_str);
