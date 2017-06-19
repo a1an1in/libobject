@@ -212,8 +212,12 @@ void test_obj_string()
     char *set_str;
     cjson_t *root, *e, *s;
     char buf[2048];
+    int alloc_count_be, alloc_count_end;
 
     dbg_str(DBG_DETAIL,"test_obj_string");
+    alloc_count_be = allocator->alloc_count;
+
+#if 0
     root = cjson_create_object();{
         cjson_add_item_to_object(root, "String", e = cjson_create_object());{
             cjson_add_string_to_object(e, "name", "alan");
@@ -222,8 +226,16 @@ void test_obj_string()
 
     set_str = cjson_print(root);
 
-    dbg_str(DBG_SUC, "test_obj_string begin alloc count =%d",allocator->alloc_count);
     string = OBJECT_NEW(allocator, String,set_str);
+    free(set_str);
+#else
+#define MAX_BUFFER_LEN 1024
+    char config[MAX_BUFFER_LEN] = {0};
+
+    object_config(config, MAX_BUFFER_LEN, "/String", OBJECT_STRING, "name", "alan") ;
+    string  = OBJECT_NEW(allocator, String,config);
+#undef MAX_BUFFER_LEN
+#endif
 
     string->pre_alloc(string, 1024);
     string->assign(string,"hello world!");
@@ -233,11 +245,11 @@ void test_obj_string()
     object_dump(string, "String", buf, 2048);
     dbg_str(DBG_DETAIL,"String dump: %s",buf);
 
-    free(set_str);
-
     object_destroy(string);
-    dbg_str(DBG_SUC, "test_obj_string end alloc count =%d",allocator->alloc_count);
+
+    alloc_count_end = allocator->alloc_count;
+    if (alloc_count_be != alloc_count_end) {
+        dbg_str(DBG_WARNNING, "there's mem leak in test_obj_string test");
+    }
 
 }
-
-
