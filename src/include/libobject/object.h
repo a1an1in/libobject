@@ -52,4 +52,7 @@ int object_destroy(void *obj);
     obj;\
 })
 
+typedef struct object_config_s{
+}object_config_t;
+
 #endif

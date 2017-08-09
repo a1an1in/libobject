@@ -214,24 +214,18 @@ static void hash_map_print(Iterator *iter)
 void test_obj_hash_map()
 {
     Iterator *iter, *next,*prev;
+    Map *map;
     allocator_t *allocator = allocator_get_default_alloc();
-    char *set_str;
     cjson_t *root, *e, *s;
-    char buf[2048];
+    char buf[2048] = {0};
+    char set_str[2048] = {0};
 
-    root = cjson_create_object();{
-        cjson_add_item_to_object(root, "Hash_Map", e = cjson_create_object());{
-            cjson_add_number_to_object(e, "key_size", 10);
-            cjson_add_number_to_object(e, "value_size", 25);
-            cjson_add_number_to_object(e, "bucket_size", 15);
-        }
-    }
-    set_str = cjson_print(root);
-
-#if 1
     dbg_str(DBG_SUC, "hash_map test begin alloc count =%d",allocator->alloc_count);
 
-    Map *map;
+    object_config2(set_str, 2048, "/Hash_Map", OBJECT_NUMBER, "key_size", "10") ;
+    object_config2(set_str, 2048, "/Hash_Map", OBJECT_NUMBER, "value_size", "25") ;
+    object_config2(set_str, 2048, "/Hash_Map", OBJECT_NUMBER, "bucket_size", "15") ;
+
     map  = OBJECT_NEW(allocator, Hash_Map,set_str);
     iter = OBJECT_NEW(allocator, Hmap_Iterator,set_str);
 
@@ -248,25 +242,11 @@ void test_obj_hash_map()
 
     map->for_each(map,hash_map_print);
 
-#else
-    Hash_Map *map;
-    map  = OBJECT_NEW(allocator, Hash_Map,set_str);
-    iter = OBJECT_NEW(allocator, Hmap_Iterator,set_str);
-
-    object_dump(map, "Hash_Map", buf, 2048);
-    dbg_str(OBJ_DETAIL,"Map dump: %s",buf);
-
-    map->insert((Map *)map,"abc","hello world");
-    map->insert((Map *)map,"test","sdfsafsdaf");
-    map->for_each((Map *)map,hash_map_print);
-
-#endif
     object_destroy(map);
     object_destroy(iter);
 
     dbg_str(DBG_SUC, "hash_map test end alloc count =%d",allocator->alloc_count);
 
-    free(set_str);
 }
 
 
