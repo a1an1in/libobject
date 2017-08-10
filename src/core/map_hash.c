@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <libdbg/debug.h>
 #include <libobject/map_hash.h>
+#include <libconfig/config.h>
 
 static int __construct(Map *map,char *init_str)
 {
@@ -216,18 +217,20 @@ void test_obj_hash_map()
     Iterator *iter, *next,*prev;
     Map *map;
     allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;
     cjson_t *root, *e, *s;
     char buf[2048] = {0};
     char set_str[2048] = {0};
 
     dbg_str(DBG_SUC, "hash_map test begin alloc count =%d",allocator->alloc_count);
 
-    object_config2(set_str, 2048, "/Hash_Map", OBJECT_NUMBER, "key_size", "10") ;
-    object_config2(set_str, 2048, "/Hash_Map", OBJECT_NUMBER, "value_size", "25") ;
-    object_config2(set_str, 2048, "/Hash_Map", OBJECT_NUMBER, "bucket_size", "15") ;
+    c = cfg_alloc(allocator); 
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "10") ;  
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "25") ;
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
 
-    map  = OBJECT_NEW(allocator, Hash_Map,set_str);
-    iter = OBJECT_NEW(allocator, Hmap_Iterator,set_str);
+    map  = OBJECT_NEW(allocator, Hash_Map,c->buf);
+    iter = OBJECT_NEW(allocator, Hmap_Iterator,NULL);
 
     object_dump(map, "Hash_Map", buf, 2048);
     dbg_str(DBG_DETAIL,"Map dump: %s",buf);
@@ -244,6 +247,8 @@ void test_obj_hash_map()
 
     object_destroy(map);
     object_destroy(iter);
+
+    cfg_destroy(c);
 
     dbg_str(DBG_SUC, "hash_map test end alloc count =%d",allocator->alloc_count);
 

@@ -108,12 +108,6 @@ static int args_process_test_obj_enemy(void *base,int argc,char **argv)
     return 0;
 }
 
-static int args_process_test_json(void *base,int argc,char **argv)
-{
-    test_json();
-    return 0;
-}
-
 static int args_process_test_sdl(void *base,int argc,char **argv)
 {
     /*
@@ -287,7 +281,6 @@ static cmd_config_t cmds[]={
     {"String", args_process_test_string,0, "test", "N/A","test"},
     {"Container", args_process_test_ui_container,0, "test", "N/A","test"},
     {"sdl", args_process_test_sdl,0, "test", "N/A","test"},
-    {"json", args_process_test_json,0, "test", "N/A","test"},
     {"Enemy", args_process_test_obj_enemy,0, "test", "N/A","obj"},
     {"Subject", args_process_test_obj_subject,0, "test", "N/A","obj"},
     {"Obj", args_process_test_obj,0, "test", "N/A","obj"},
