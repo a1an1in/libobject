@@ -19,6 +19,7 @@ int object_init(void *obj, char *type_name);
 int object_set(void *obj, char *type_name, char *set_str);
 int object_dump(void *obj, char *type_name, char *buf, int max_len);
 int object_destroy(void *obj);
+int object_config(char *config, int len, char *path, int type, char *name, void *value);
 
 #define OBJECT_ALLOC(alloc, type) \
 ({\

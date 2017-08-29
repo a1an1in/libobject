@@ -49,7 +49,7 @@
 #include <attrib_priority.h>
 #include <libbus/busd.h>
 #include <libbus/bus.h>
-#include <test.h>
+#include <libobject/test.h>
 
 #define LIBRARY_VERSION "libobject version: 2.0.0.0"
 
