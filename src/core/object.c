@@ -290,15 +290,15 @@ object_find_method_to_inherit(char *method_name,
                               void *class_name)
 {
     class_info_entry_t *entry;
-    object_deamon_t *deamon;
+    class_deamon_t *deamon;
     char *parent_class_name = NULL;
     class_info_entry_t * entry_of_parent_class; //class info entry of parent class
     int i;
 
     if (class_name == NULL) return NULL;
 
-    deamon = object_deamon_get_global_object_deamon();
-    entry  = (class_info_entry_t *)object_deamon_search_class(deamon,
+    deamon = class_deamon_get_global_class_deamon();
+    entry  = (class_info_entry_t *)class_deamon_search_class(deamon,
                                                               (char *)class_name);
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
         if (    (entry[i].type == ENTRY_TYPE_FUNC_POINTER ||
@@ -353,7 +353,7 @@ object_find_reimplement_func_pointer(char *method_name,
                                      char *end_type_name)
 {
     class_info_entry_t *entry;
-    object_deamon_t *deamon;
+    class_deamon_t *deamon;
     char *subclass_name = NULL;
     int i;
 
@@ -363,8 +363,8 @@ object_find_reimplement_func_pointer(char *method_name,
         return NULL;
     }
 
-    deamon = object_deamon_get_global_object_deamon();
-    entry  = (class_info_entry_t *)object_deamon_search_class(deamon,
+    deamon = class_deamon_get_global_class_deamon();
+    entry  = (class_info_entry_t *)class_deamon_search_class(deamon,
                                                               (char *)start_type_name);
     if (entry[0].type == ENTRY_TYPE_OBJ) {
         subclass_name = entry[0].type_name;
@@ -392,16 +392,16 @@ int object_cover_vitual_func_pointer(void *obj,
                                      char *type_name)
 {
     class_info_entry_t *entry;
-    object_deamon_t *deamon;
+    class_deamon_t *deamon;
     int i;
     int (*set)(void *obj, char *attrib, void *value);
     void *reimplement_func;
 
     if (strcmp(cur_type_name,type_name) == 0) return 0;
 
-    deamon = object_deamon_get_global_object_deamon();
+    deamon = class_deamon_get_global_class_deamon();
     entry  = (class_info_entry_t *)
-             object_deamon_search_class(deamon, (char *)cur_type_name);
+             class_deamon_search_class(deamon, (char *)cur_type_name);
 
     set    = object_get_func_pointer(entry,"set");
     if (set == NULL) {
@@ -426,7 +426,7 @@ static int __object_set(void *obj,
                         cjson_t *c,
                         int (*set)(void *obj, char *attrib, void *value)) 
 {
-    object_deamon_t *deamon;
+    class_deamon_t *deamon;
     void *class_info_addr;
     cjson_t *next;
     cjson_t *object;
@@ -437,8 +437,8 @@ static int __object_set(void *obj,
             object = c;
             if (object->string) {
                 dbg_str(OBJ_DETAIL,"object name:%s",object->string);
-                deamon          = object_deamon_get_global_object_deamon();
-                class_info_addr = object_deamon_search_class(deamon,object->string);
+                deamon          = class_deamon_get_global_class_deamon();
+                class_info_addr = class_deamon_search_class(deamon,object->string);
                 sub_set         = object_get_func_pointer(class_info_addr,"set");
             }
 
@@ -486,7 +486,7 @@ int object_set(void *obj, char *type_name, char *set_str)
 
 int __object_dump(void *obj, char *type_name, cjson_t *object) 
 {
-    object_deamon_t *deamon;
+    class_deamon_t *deamon;
     class_info_entry_t *entry;
     void *(*get)(void *obj, char *attrib);
     int len;
@@ -495,8 +495,8 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
     void *value;
     char *name;
 
-    deamon = object_deamon_get_global_object_deamon();
-    entry  = (class_info_entry_t *)object_deamon_search_class(deamon,(char *)type_name);
+    deamon = class_deamon_get_global_class_deamon();
+    entry  = (class_info_entry_t *)class_deamon_search_class(deamon,(char *)type_name);
     get    = object_get_func_pointer(entry,(char *)"get");
     if (get == NULL) {
         dbg_str(OBJ_WARNNING,"get func pointer is NULL");
@@ -570,15 +570,15 @@ int object_dump(void *obj, char *type_name, char *buf, int max_len)
 
 int __object_init(void *obj, char *cur_type_name, char *type_name) 
 {
-    object_deamon_t *deamon;
+    class_deamon_t *deamon;
     void *class_info;
     class_info_entry_t * entry_of_parent_class; //class info entry of parent class
     int (*construct)(void *obj,char *init_str);
 
     dbg_str(OBJ_DETAIL,"current obj type name =%s",cur_type_name);
 
-    deamon                = object_deamon_get_global_object_deamon();
-    class_info            = object_deamon_search_class(deamon,(char *)cur_type_name);
+    deamon                = class_deamon_get_global_class_deamon();
+    class_info            = class_deamon_search_class(deamon,(char *)cur_type_name);
     construct             = object_get_func_pointer(class_info,"construct");
     entry_of_parent_class = object_get_entry_of_parent_class(class_info);
 
@@ -619,13 +619,13 @@ int object_init(void *obj, char *type_name)
 
 int __object_destroy(void *obj, char *type_name) 
 {
-    object_deamon_t *deamon;
+    class_deamon_t *deamon;
     void *class_info, *parent_class_info;
     class_info_entry_t * entry_of_parent_class;
     int (*deconstruct)(void *obj);
 
-    deamon                = object_deamon_get_global_object_deamon();
-    class_info            = object_deamon_search_class(deamon,(char *)type_name);
+    deamon                = class_deamon_get_global_class_deamon();
+    class_info            = class_deamon_search_class(deamon,(char *)type_name);
     deconstruct           = object_get_func_pointer(class_info,"deconstruct");
     entry_of_parent_class = object_get_entry_of_parent_class(class_info);
 

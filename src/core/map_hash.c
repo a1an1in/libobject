@@ -225,6 +225,7 @@ void test_obj_hash_map()
     dbg_str(DBG_SUC, "hash_map test begin alloc count =%d",allocator->alloc_count);
 
     c = cfg_alloc(allocator); 
+    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "10") ;  
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "25") ;
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;

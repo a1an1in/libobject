@@ -1,7 +1,7 @@
 #ifndef __OBJ_H__
 #define __OBJ_H__
 
-#include <libobject/object_deamon.h>
+#include <libobject/class_deamon.h>
 #include <libobject/object.h>
 
 typedef struct obj_s Obj;

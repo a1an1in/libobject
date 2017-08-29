@@ -1,5 +1,5 @@
 /**
- * @file object_deamon.c
+ * @file class_deamon.c
  * @synopsis 
  * @author alan(a1an1in@sina.com)
  * @version 1
@@ -31,81 +31,81 @@
  */
 #include <stdio.h>
 #include <libdbg/debug.h>
-#include <libobject/object_deamon.h>
+#include <libobject/class_deamon.h>
 #include <miscellany/buffer.h>
 #include <attrib_priority.h>
 
-object_deamon_t *global_object_deamon;
+class_deamon_t *global_class_deamon;
 
-object_deamon_t * object_deamon_alloc(allocator_t *allocator)
+class_deamon_t * class_deamon_alloc(allocator_t *allocator)
 {
-    object_deamon_t *object_deamon;
+    class_deamon_t *class_deamon;
 
-    object_deamon = (object_deamon_t *)allocator_mem_alloc(allocator,sizeof(object_deamon_t));
-    if (object_deamon == NULL) {
+    class_deamon = (class_deamon_t *)allocator_mem_alloc(allocator,sizeof(class_deamon_t));
+    if (class_deamon == NULL) {
         dbg_str(OBJ_DETAIL,"allocator_mem_alloc");
-        return object_deamon;
+        return class_deamon;
     }
-    memset(object_deamon,0, sizeof(object_deamon_t));
+    memset(class_deamon,0, sizeof(class_deamon_t));
 
-    object_deamon->allocator = allocator;
+    class_deamon->allocator = allocator;
 
-    return object_deamon;
+    return class_deamon;
 }
 
-int object_deamon_set(object_deamon_t *object_deamon, char *attrib, char *value)
+int class_deamon_set(class_deamon_t *class_deamon, char *attrib, char *value)
 {
     if (!strcmp(attrib, "map_type") == 0) {
-        object_deamon->map_type = atoi(value);
+        class_deamon->map_type = atoi(value);
     } else {
-        dbg_str(OBJ_DETAIL,"object_deamon set, not support %s setting",attrib);
+        dbg_str(OBJ_DETAIL,"class_deamon set, not support %s setting",attrib);
     }
 
     return 0;
 }
 
-int object_deamon_init(object_deamon_t *object_deamon)
+int class_deamon_init(class_deamon_t *class_deamon)
 {
-    if (object_deamon->map_type == 0) {
-        object_deamon->map_type = MAP_TYPE_HASH_MAP;
+    if (class_deamon->map_type == 0) {
+        class_deamon->map_type = MAP_TYPE_HASH_MAP;
     }
-    if (object_deamon->map_value_size == 0) {
-        object_deamon->map_value_size = sizeof(void *);
+    if (class_deamon->map_value_size == 0) {
+        class_deamon->map_value_size = sizeof(void *);
     }
-    if (object_deamon->map_key_len == 0) {
-        object_deamon->map_key_len = 20;
+    if (class_deamon->map_key_len == 0) {
+        class_deamon->map_key_len = 20;
     }
 
-    object_deamon->map = (map_t *)map_alloc(object_deamon->allocator,object_deamon->map_type);
-    if (object_deamon->map == NULL) {
+    class_deamon->map = (map_t *)map_alloc(class_deamon->allocator,class_deamon->map_type);
+    if (class_deamon->map == NULL) {
         dbg_str(OBJ_ERROR,"map_alloc");
         return -1;
     }
 
-    map_init(object_deamon->map, object_deamon->map_key_len, object_deamon->map_value_size);
+    map_init(class_deamon->map, class_deamon->map_key_len, class_deamon->map_value_size);
 
     return 0;
 }
 
-int object_deamon_register_class(object_deamon_t *object_deamon,
+int class_deamon_register_class(class_deamon_t *class_deamon,
                                  char *class_name,
                                  void *class_info_addr)
 {
-    uint8_t addr_buf[6];
+    uint8_t addr_buf[8];
 
     addr_to_buffer(class_info_addr,addr_buf);
-    return map_insert(object_deamon->map,class_name, addr_buf);
+    return map_insert(class_deamon->map,class_name, addr_buf);
 }
 
-void * object_deamon_search_class(object_deamon_t *object_deamon, char *class_name)
+void * class_deamon_search_class(class_deamon_t *class_deamon, char *class_name)
 {
     map_iterator_t it;
     uint8_t *addr;
     int ret;
 
-    ret = map_search(object_deamon->map, class_name, &it);
+    ret = map_search(class_deamon->map, class_name, &it);
     if (ret < 0) {
-        dbg_str(OBJ_WARNNING,"object_deamon_search_method, not found %s",class_name);
+        dbg_str(OBJ_WARNNING,"class_deamon_search_method, not found %s",class_name);
         return NULL;
     }
 
@@ -114,45 +114,45 @@ void * object_deamon_search_class(object_deamon_t *object_deamon, char *class_na
     return buffer_to_addr(addr);
 }
 
-object_deamon_t *object_deamon_get_global_object_deamon()
+class_deamon_t *class_deamon_get_global_class_deamon()
 {
-    return global_object_deamon;
+    return global_class_deamon;
 }
 
-int object_deamon_destroy(object_deamon_t *object_deamon)
+int class_deamon_destroy(class_deamon_t *class_deamon)
 {
-    allocator_t *allocator = object_deamon->allocator;
+    allocator_t *allocator = class_deamon->allocator;
 
-    map_destroy(object_deamon->map);
+    map_destroy(class_deamon->map);
 
-    allocator_mem_free(allocator,object_deamon);
+    allocator_mem_free(allocator,class_deamon);
 
     return 0;
 }
 
 __attribute__((constructor(ATTRIB_PRIORITY_OBJ_DEAMON))) void
-object_deamon_constructor()
+class_deamon_constructor()
 {
-    object_deamon_t *object_deamon;
+    class_deamon_t *class_deamon;
     allocator_t *allocator = allocator_get_default_alloc();
 
-    ATTRIB_PRINT("constructor ATTRIB_PRIORITY_OBJ_DEAMON =%d, run object_deamon\n",
+    ATTRIB_PRINT("constructor ATTRIB_PRIORITY_OBJ_DEAMON =%d, run class_deamon\n",
                  ATTRIB_PRIORITY_OBJ_DEAMON);
 
-    object_deamon = object_deamon_alloc(allocator);
-    object_deamon_init(object_deamon);
+    class_deamon = class_deamon_alloc(allocator);
+    class_deamon_init(class_deamon);
 
-    global_object_deamon = object_deamon;
+    global_class_deamon = class_deamon;
 }
 
 __attribute__((destructor(ATTRIB_PRIORITY_OBJ_DEAMON))) static void
-object_deamon_destructor()
+class_deamon_destructor()
 {
-    object_deamon_t *object_deamon = object_deamon_get_global_object_deamon();
+    class_deamon_t *class_deamon = class_deamon_get_global_class_deamon();
 
-    object_deamon_destroy(object_deamon);
+    class_deamon_destroy(class_deamon);
 
     ATTRIB_PRINT("destructor ATTRIB_PRIORITY_OBJ_DEAMON =%d, alloc count =%d\n",
-                 ATTRIB_PRIORITY_OBJ_DEAMON, object_deamon->allocator->alloc_count);
+                 ATTRIB_PRIORITY_OBJ_DEAMON, class_deamon->allocator->alloc_count);
 }
 
