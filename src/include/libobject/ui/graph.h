@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <libdbg/debug.h>
-#include <libobject/obj.h>
+#include <libobject/core/obj.h>
 #include <libobject/ui/font.h>
 /*
  *#include <libui/window.h>

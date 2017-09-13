@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libdbg/debug.h>
-#include <libobject/iterator_hmap.h>
+#include <libobject/core/iterator_hmap.h>
 
 static int __construct(Iterator *iter,char *init_str)
 {

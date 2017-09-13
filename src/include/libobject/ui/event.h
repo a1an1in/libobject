@@ -1,8 +1,8 @@
 #ifndef __UI_EVENT_H__
 #define __UI_EVENT_H__
 
-#include <libobject/obj.h>
-#include <libobject/string.h>
+#include <libobject/core/obj.h>
+#include <libobject/core/string.h>
 #include <libobject/ui/graph.h>
 
 typedef struct ui_event_s __Event;

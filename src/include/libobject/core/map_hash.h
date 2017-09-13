@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 #include <libdbg/debug.h>
-#include <libobject/map.h>
+#include <libobject/core/map.h>
 #include <libdata_structure/hash_list.h>
-#include <libobject/iterator_hmap.h>
+#include <libobject/core/iterator_hmap.h>
 
 typedef struct Hash_Map_s Hash_Map;
 

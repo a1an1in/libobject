@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libdbg/debug.h>
-#include <libobject/map.h>
+#include <libobject/core/map.h>
 #include <libconfig/config.h>
 
 static int __construct(Map *map,char *init_str)

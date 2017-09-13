@@ -1,8 +1,8 @@
 #ifndef __TEXT_SDL_H__
 #define __TEXT_SDL_H__
 
-#include <libobject/obj.h>
-#include <libobject/string.h>
+#include <libobject/core/obj.h>
+#include <libobject/core/string.h>
 #include <libobject/ui/text.h>
 #include <libobject/ui/sdl_font.h>
 #include <SDL2/SDL.h>

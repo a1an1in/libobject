@@ -1,7 +1,7 @@
 #ifndef __SUBJECT_H__
 #define __SUBJECT_H__
 
-#include <libobject/obj.h>
+#include <libobject/core/obj.h>
 #include <libobject/ui/graph.h>
 
 typedef struct subject_s Subject;

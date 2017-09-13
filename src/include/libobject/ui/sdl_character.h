@@ -1,8 +1,8 @@
 #ifndef __SDL_CHARACTER_H__
 #define __SDL_CHARACTER_H__
 
-#include <libobject/obj.h>
-#include <libobject/string.h>
+#include <libobject/core/obj.h>
+#include <libobject/core/string.h>
 #include <libobject/ui/character.h>
 #include <libobject/ui/sdl_font.h>
 #include <SDL2/SDL.h>

@@ -1,9 +1,9 @@
 #ifndef __TEXT_H__
 #define __TEXT_H__
 
-#include <libobject/obj.h>
-#include <libobject/list.h>
-#include <libobject/string.h>
+#include <libobject/core/obj.h>
+#include <libobject/core/list.h>
+#include <libobject/core/string.h>
 #include <libobject/ui/graph.h>
 
 typedef struct text_s Text;

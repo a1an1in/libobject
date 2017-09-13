@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 #include <libdbg/debug.h>
-#include <libobject/obj.h>
-#include <libobject/iterator.h>
+#include <libobject/core/obj.h>
+#include <libobject/core/iterator.h>
 
 typedef struct _map_s Map;
 

@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libdbg/debug.h>
-#include <libobject/list.h>
+#include <libobject/core/list.h>
 
 static int __construct(List *list,char *init_str)
 {

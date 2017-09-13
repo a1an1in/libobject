@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libdbg/debug.h>
-#include <libobject/class_deamon.h>
+#include <libobject/core/class_deamon.h>
 #include <miscellany/buffer.h>
 #include <attrib_priority.h>
 

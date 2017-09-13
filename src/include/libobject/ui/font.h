@@ -1,8 +1,8 @@
 #ifndef __FONT_H__
 #define __FONT_H__
 
-#include <libobject/obj.h>
-#include <libobject/string.h>
+#include <libobject/core/obj.h>
+#include <libobject/core/string.h>
 /*
  *#include <libui/graph.h>
  */

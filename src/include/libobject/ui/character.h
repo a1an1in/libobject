@@ -1,8 +1,8 @@
 #ifndef __CHARACTER_H__
 #define __CHARACTER_H__
 
-#include <libobject/obj.h>
-#include <libobject/string.h>
+#include <libobject/core/obj.h>
+#include <libobject/core/string.h>
 #include <libobject/ui/graph.h>
 
 typedef struct character_s Character;

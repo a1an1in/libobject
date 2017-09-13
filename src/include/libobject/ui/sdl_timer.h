@@ -1,7 +1,7 @@
 #ifndef __SDL_TIMER_H__
 #define __SDL_TIMER_H__
 
-#include <libobject/obj.h>
+#include <libobject/core/obj.h>
 #include <libobject/ui/timer.h>
 #include <SDL2/SDL.h>
 

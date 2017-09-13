@@ -1,8 +1,8 @@
 #ifndef __OBJECT_H__
 #define __OBJECT_H__
 
-#include <libobject/class_info.h>
-#include <libobject/obj.h>
+#include <libobject/core/class_info.h>
+#include <libobject/core/obj.h>
 #include <libjson/cjson.h>
 
 #define OBJECT_FALSE   CJSON_FALSE  

@@ -1,8 +1,8 @@
 #ifndef __IMAGE_SDL_H__
 #define __IMAGE_SDL_H__
 
-#include <libobject/obj.h>
-#include <libobject/string.h>
+#include <libobject/core/obj.h>
+#include <libobject/core/string.h>
 #include <libobject/ui/image.h>
 #include <SDL2/SDL.h>
 

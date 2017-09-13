@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <libdbg/debug.h>
-#include <libobject/string.h>
+#include <libobject/core/string.h>
 #include <libobject/ui/component.h>
 #include <libobject/ui/text.h>
 #include <libobject/ui/timer.h>

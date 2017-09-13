@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libdbg/debug.h>
-#include <libobject/object.h>
+#include <libobject/core/object.h>
 
 int str_split(char *str, char *delim, char **out, int *cnt) 
 {

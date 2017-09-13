@@ -3,7 +3,7 @@
 
 #include <liballoc/allocator.h>
 #include <libdata_structure/map.h>
-#include <libobject/class_info.h>
+#include <libobject/core/class_info.h>
 #include <attrib_priority.h>
 
 #define REGISTER_CLASS(class_name, class_info) \

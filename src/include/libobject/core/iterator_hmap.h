@@ -3,12 +3,12 @@
 
 #include <stdio.h>
 #include <libdbg/debug.h>
-#include <libobject/iterator.h>
-#include <libdata_structure/link_list.h>
+#include <libobject/core/iterator.h>
+#include <libdata_structure/hash_list.h>
 
-typedef struct llist_iterator_s LList_Iterator;
+typedef struct hmap_iterator_s Hmap_Iterator;
 
-struct llist_iterator_s{
+struct hmap_iterator_s{
 	Iterator iter;
 
 	int (*construct)(Iterator *iter,char *init_str);
@@ -27,7 +27,7 @@ struct llist_iterator_s{
 #define MAX_NAME_LEN 50
     char name[MAX_NAME_LEN];
 #undef MAX_NAME_LEN
-    list_pos_t list_pos;
+    hash_map_pos_t hash_map_pos;
 
 };
 

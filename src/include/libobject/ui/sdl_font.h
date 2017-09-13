@@ -1,8 +1,8 @@
 #ifndef __FONT_SDL_H__
 #define __FONT_SDL_H__
 
-#include <libobject/obj.h>
-#include <libobject/string.h>
+#include <libobject/core/obj.h>
+#include <libobject/core/string.h>
 #include <libobject/ui/font.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>

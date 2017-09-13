@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libdbg/debug.h>
 #include <libobject/ui/subject.h>
-#include <libobject/map.h>
+#include <libobject/core/map.h>
 
 typedef struct container_s Container;
 
