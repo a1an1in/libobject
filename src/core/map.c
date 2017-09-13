@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <libdbg/debug.h>
 #include <libobject/map.h>
+#include <libconfig/config.h>
 
 static int __construct(Map *map,char *init_str)
 {
@@ -77,6 +78,9 @@ static int __set(Map *map, char *attrib, void *value)
         map->end = value;
     } else if (strcmp(attrib, "destroy") == 0) {
         map->destroy = value;
+    }
+    else if (strcmp(attrib, "name") == 0) {
+        strncpy(map->name,value,strlen(value));
     } else {
         dbg_str(OBJ_DETAIL,"map set, not support %s setting",attrib);
     }
@@ -175,12 +179,14 @@ static class_info_entry_t map_class_info[] = {
     [11] = {ENTRY_TYPE_VFUNC_POINTER,"","begin",__begin,sizeof(void *)},
     [12] = {ENTRY_TYPE_VFUNC_POINTER,"","end",__end,sizeof(void *)},
     [13] = {ENTRY_TYPE_VFUNC_POINTER,"","destroy",__destroy,sizeof(void *)},
-    [14] = {ENTRY_TYPE_END},
+    [14] = {ENTRY_TYPE_STRING,"char","name",NULL,0},
+    [15] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Map",map_class_info);
 
 void test_obj_map()
 {
+#if 0
     Map *map;
     allocator_t *allocator = allocator_get_default_alloc();
     char *set_str;
@@ -200,7 +206,28 @@ void test_obj_map()
     object_dump(map, "Map", buf, 2048);
     dbg_str(OBJ_DETAIL,"Map dump: %s",buf);
 
+    object_destroy(map);
     free(set_str);
+#else
+    Map *map;
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;
+    char *set_str;
+    cjson_t *root, *e, *s;
+    char buf[2048];
+    c = cfg_alloc(allocator); 
+    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
+    cfg_config(c, "/Map", CJSON_STRING, "name", "alan map") ;  
+
+    map = OBJECT_NEW(allocator, Map,c->buf);
+
+    object_dump(map, "Map", buf, 2048);
+    dbg_str(DBG_DETAIL,"Map dump: %s",buf);
+
+    object_destroy(map);
+    cfg_destroy(c);
+
+#endif
 
 }
 
