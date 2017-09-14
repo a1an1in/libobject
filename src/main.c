@@ -256,7 +256,19 @@ static int args_process_test_ui_button(void *base,int argc,char **argv)
     return 0;
 }
 
+static int args_process_test_event_base(void *base,int argc,char **argv)
+{
+    test_event_io();
+    /*
+     *test_obj_select_base();
+     */
+    /*
+     *test_obj_eb();
+     */
+    return 0;
+}
 static cmd_config_t cmds[]={
+    {"Event", args_process_test_event_base,0, "test", "N/A","test"},
     {"Button", args_process_test_ui_button,0, "test", "N/A","test"},
     {"Border", args_process_test_borderlayout,0, "test", "N/A","test"},
     {"Grid", args_process_test_gridlayout,0, "test", "N/A","test"},

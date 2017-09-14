@@ -33,5 +33,7 @@ extern void test_ui_label();
 extern void test_ui_box();
 extern void test_ui_button();
 extern int test_object_config();
+extern void test_obj_select_base();
+extern int test_event_io();
 
 #endif
