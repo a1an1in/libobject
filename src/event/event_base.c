@@ -68,7 +68,6 @@ static int __set(Event_Base *eb, char *attrib, void *value)
     } else if (strcmp(attrib, "del") == 0) {
         eb->del = value;
     } else if (strcmp(attrib, "dispatch") == 0) {
-        dbg_str(DBG_DETAIL,"set dispatch:%p",value);
         eb->dispatch = value;
     } else {
         dbg_str(OBJ_DETAIL,"eb set, not support %s setting",attrib);
@@ -87,7 +86,7 @@ static void *__get(Event_Base *obj, char *attrib)
     return NULL;
 }
 
-int __loop(Event_Base *eb)
+static int __loop(Event_Base *eb)
 {
     struct timeval tv;
     int count = 10;

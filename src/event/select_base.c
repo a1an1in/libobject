@@ -36,11 +36,8 @@
 
 static int __construct(Select_Base *eb,char *init_str)
 {
-    /*
-     *allocator_t *allocator = eb->base.obj.allocator;
-     */
-
     dbg_str(OBJ_DETAIL,"select constructor");
+
     eb->maxfdp = 1;
     FD_ZERO(&eb->event_readset_in);
     FD_ZERO(&eb->event_writeset_in);

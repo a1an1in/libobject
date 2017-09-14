@@ -1,13 +1,3 @@
-/*
- * XXX This sample code was once meant to show how to use the basic Libevent
- * interfaces, but it never worked on non-Unix platforms, and some of the
- * interfaces have changed since it was first written.  It should probably
- * be removed or replaced with something better.
- *
- * Compile with:
- * cc -I/usr/local/include -o event-test event-test.c -L/usr/local/lib -levent
- */
-
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -65,6 +55,5 @@ int test_event_io()
 
     eb->loop(eb);
 
-    pause();
     object_destroy(eb);
 }
