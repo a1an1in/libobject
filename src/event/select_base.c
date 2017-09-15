@@ -136,8 +136,6 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
 {
     int res=0, i, j, nfds = b->maxfdp;
 
-
-#if 1
     res = select(nfds, &b->event_readset_out,
             &b->event_writeset_out, NULL, tv);
     /*
@@ -181,9 +179,6 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
          */
         b->active_io((Event_Base *)b,i, res);
     }
-#else
-    b->active_io((Event_Base *)b,i, res);
-#endif
 
     return 0;
 }
