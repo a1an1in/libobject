@@ -453,19 +453,19 @@ static int args_process_test_object_config(void *base,int argc,char **argv)
     return 0;
 }
 
-static int args_process_test_obj(void *base,int argc,char **argv)
+static int args_process_test_Obj(void *base,int argc,char **argv)
 {
     test_obj();
     return 0;
 }
 
-static int args_process_test_obj_subject(void *base,int argc,char **argv)
+static int args_process_test_Subject(void *base,int argc,char **argv)
 {
     test_obj_subject();
     return 0;
 }
 
-static int args_process_test_obj_enemy(void *base,int argc,char **argv)
+static int args_process_test_Enemy(void *base,int argc,char **argv)
 {
     test_obj_enemy();
     return 0;
@@ -479,13 +479,13 @@ static int args_process_test_sdl(void *base,int argc,char **argv)
     return 0;
 }
 
-static int args_process_test_ui_container(void *base,int argc,char **argv)
+static int args_process_test_Container(void *base,int argc,char **argv)
 {
     test_ui_container();
     return 0;
 }
 
-static int args_process_test_string(void *base,int argc,char **argv)
+static int args_process_test_String(void *base,int argc,char **argv)
 {
     test_obj_string();
     return 0;
@@ -595,31 +595,31 @@ static int args_process_test_Text_Field(void *base,int argc,char **argv)
     return 0;
 }
 
-static int args_process_test_sdl_timer(void *base,int argc,char **argv)
+static int args_process_test_SDL_Timer(void *base,int argc,char **argv)
 {
     test_obj_sdl_timer();
     return 0;
 }
 
-static int args_process_test_gridlayout(void *base,int argc,char **argv)
+static int args_process_test_GridLayout(void *base,int argc,char **argv)
 {
     test_ui_grid_layout();
     return 0;
 }
 
-static int args_process_test_borderlayout(void *base,int argc,char **argv)
+static int args_process_test_BorderLayout(void *base,int argc,char **argv)
 {
     test_ui_border_layout();
     return 0;
 }
 
-static int args_process_test_ui_button(void *base,int argc,char **argv)
+static int args_process_test_Button(void *base,int argc,char **argv)
 {
     test_ui_button();
     return 0;
 }
 
-static int args_process_test_event_base(void *base,int argc,char **argv)
+static int args_process_test_Event_Base(void *base,int argc,char **argv)
 {
     test_event_io();
     /*
@@ -631,11 +631,11 @@ static int args_process_test_event_base(void *base,int argc,char **argv)
     return 0;
 }
 static cmd_config_t cmds[]={
-    {"Event", args_process_test_event_base,0, "test", "N/A","test"},
-    {"Button", args_process_test_ui_button,0, "test", "N/A","test"},
-    {"Border", args_process_test_borderlayout,0, "test", "N/A","test"},
-    {"Grid", args_process_test_gridlayout,0, "test", "N/A","test"},
-    {"Sdl_Timer", args_process_test_sdl_timer,0, "test", "N/A","test"},
+    {"Event", args_process_test_Event_Base,0, "test", "N/A","test"},
+    {"Button", args_process_test_Button,0, "test", "N/A","test"},
+    {"Border", args_process_test_BorderLayout,0, "test", "N/A","test"},
+    {"Grid", args_process_test_GridLayout,0, "test", "N/A","test"},
+    {"Sdl_Timer", args_process_test_SDL_Timer,0, "test", "N/A","test"},
     {"TF", args_process_test_Text_Field,0, "test", "N/A","test"},
     {"TA", args_process_test_Text_Area,0, "test", "N/A","test"},
     {"Text", args_process_test_Text,0, "test", "N/A","test"},
@@ -653,12 +653,12 @@ static cmd_config_t cmds[]={
     {"HIter", args_process_test_Hmap_Iterator,0, "test", "N/A","test"},
     {"Iter", args_process_test_Iterator,0, "test", "N/A","test"},
     {"Map", args_process_test_Map,0, "test", "N/A","test"},
-    {"String", args_process_test_string,0, "test", "N/A","test"},
-    {"Container", args_process_test_ui_container,0, "test", "N/A","test"},
+    {"String", args_process_test_String,0, "test", "N/A","test"},
+    {"Container", args_process_test_Container,0, "test", "N/A","test"},
     {"sdl", args_process_test_sdl,0, "test", "N/A","test"},
-    {"Enemy", args_process_test_obj_enemy,0, "test", "N/A","obj"},
-    {"Subject", args_process_test_obj_subject,0, "test", "N/A","obj"},
-    {"Obj", args_process_test_obj,0, "test", "N/A","obj"},
+    {"Enemy", args_process_test_Enemy,0, "test", "N/A","obj"},
+    {"Subject", args_process_test_Subject,0, "test", "N/A","obj"},
+    {"Obj", args_process_test_Obj,0, "test", "N/A","obj"},
     {"object_config", args_process_test_object_config,0, "test", "N/A","obj"},
     {"configurator", args_process_test_configurator,0, "test", "N/A","test"}, 
     {"json", args_process_test_json,0, "test", "N/A","test"}, 

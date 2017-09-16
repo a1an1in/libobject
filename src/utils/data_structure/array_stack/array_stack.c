@@ -98,10 +98,12 @@ int test_array_stack()
     int a;
 
     as = array_stack_alloc(allocator);
+    as->step = 4;
     array_stack_init(as);
 
     dbg_str(DBG_DETAIL,"as addr:%x",as);
-    array_stack_push(as, &as);
+    a = 4;
+    array_stack_push(as, &a);
     a = 5;
     array_stack_push(as, &a);
     a = 6;
@@ -118,8 +120,8 @@ int test_array_stack()
     dbg_str(DBG_DETAIL,"pop data:%x",p);
     array_stack_pop(as, &p);
     dbg_str(DBG_DETAIL,"pop data:%x",p);
-    array_stack_pop(as, &p);
-    dbg_str(DBG_DETAIL,"pop data:%x",p);
+
+    array_stack_destroy(as);
 
     return ret;
 }
