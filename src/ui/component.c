@@ -32,7 +32,7 @@
 #include <libobject/ui/component.h>
 #include <libobject/ui/window.h>
 #include <libobject/ui/event.h>
-#include <miscellany/buffer.h>
+#include <libobject/utils/miscellany/buffer.h>
 
 static int __construct(Component *component,char *init_str)
 {

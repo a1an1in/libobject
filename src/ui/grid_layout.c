@@ -34,7 +34,7 @@
 #include <libobject/ui/character.h>
 #include <libobject/ui/timer.h>
 #include <libobject/ui/label.h>
-#include <miscellany/buffer.h>
+#include <libobject/utils/miscellany/buffer.h>
 
 static int __construct(Grid_Layout *grid_layout,char *init_str)
 {

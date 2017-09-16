@@ -30,10 +30,10 @@
  * 
  */
 #include <stdio.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>
 #include <libobject/core/class_deamon.h>
-#include <miscellany/buffer.h>
-#include <attrib_priority.h>
+#include <libobject/utils/miscellany/buffer.h>
+#include <libobject/attrib_priority.h>
 
 class_deamon_t *global_class_deamon;
 

@@ -34,4 +34,4 @@
  */
 
 #include <libobject/core/object_deamon.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>

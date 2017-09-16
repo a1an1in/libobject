@@ -2,9 +2,9 @@
 #define __HASH_MAP_H__
 
 #include <stdio.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>
 #include <libobject/core/list.h>
-#include <libdata_structure/link_list.h>
+#include <libobject/utils/data_structure/link_list.h>
 #include <libobject/core/iterator_linkedlist.h>
 
 typedef struct Linked_List_s Linked_List;

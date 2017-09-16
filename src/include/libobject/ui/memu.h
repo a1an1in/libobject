@@ -2,7 +2,7 @@
 #define __MENU_H__
 
 #include <stdio.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>
 #include <libobject/ui/component.h>
 #include <libobject/ui/label.h>
 

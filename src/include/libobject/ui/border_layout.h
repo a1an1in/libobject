@@ -2,7 +2,7 @@
 #define __BORDERLAYOUT_H__
 
 #include <stdio.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>
 #include <libobject/ui/component.h>
 #include <libobject/ui/text.h>
 #include <libobject/ui/color.h>

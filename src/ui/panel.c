@@ -32,7 +32,7 @@
 #include <libobject/ui/border_layout.h>
 #include <libobject/ui/panel.h>
 #include <libobject/ui/sdl_window.h>
-#include <miscellany/buffer.h>
+#include <libobject/utils/miscellany/buffer.h>
 
 static int __construct(Panel *panel,char *init_str)
 {

@@ -2,7 +2,7 @@
 #define __ITERATOR_H__
 
 #include <stdio.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 
 typedef struct iterator_s Iterator;

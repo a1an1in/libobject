@@ -3,7 +3,7 @@
 
 #include <libobject/core/class_info.h>
 #include <libobject/core/obj.h>
-#include <libjson/cjson.h>
+#include <libobject/utils/json/cjson.h>
 
 #define OBJECT_FALSE   CJSON_FALSE  
 #define OBJECT_TRUE    CJSON_TRUE   

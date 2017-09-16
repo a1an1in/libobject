@@ -30,7 +30,7 @@
  * 
  */
 #include <stdio.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>
 #include <libobject/ui/text.h>
 #include <libobject/ui/character.h>
 #include <libobject/core/list_linked.h>

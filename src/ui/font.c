@@ -30,7 +30,7 @@
  * 
  */
 #include <stdio.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>
 #include <libobject/ui/font.h>
 
 static int __construct(Font *font,char *init_str)

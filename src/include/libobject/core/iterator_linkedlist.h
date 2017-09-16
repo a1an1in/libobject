@@ -2,9 +2,9 @@
 #define __ITERATOR_HMAP_H__
 
 #include <stdio.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>
 #include <libobject/core/iterator.h>
-#include <libdata_structure/link_list.h>
+#include <libobject/utils/data_structure/link_list.h>
 
 typedef struct llist_iterator_s LList_Iterator;
 

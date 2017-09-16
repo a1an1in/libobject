@@ -2,7 +2,7 @@
 #define __TEXT_FIELD_H__
 
 #include <stdio.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>
 #include <libobject/core/string.h>
 #include <libobject/ui/component.h>
 #include <libobject/ui/text.h>

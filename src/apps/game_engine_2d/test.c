@@ -6,7 +6,7 @@
  * @date 2016-11-21
  */
 #include <stdio.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>
 #include <libobject/ui/subject.h>
 
 typedef struct enemy_s Enemy;

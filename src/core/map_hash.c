@@ -30,9 +30,9 @@
  * 
  */
 #include <stdio.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>
 #include <libobject/core/map_hash.h>
-#include <libconfig/config.h>
+#include <libobject/utils/config/config.h>
 
 static int __construct(Map *map,char *init_str)
 {

@@ -1,10 +1,10 @@
 #ifndef __OBJ_DEAMON_H__
 #define __OBJ_DEAMON_H__
 
-#include <liballoc/allocator.h>
-#include <libdata_structure/map.h>
+#include <libobject/utils/alloc/allocator.h>
+#include <libobject/utils/data_structure/map.h>
 #include <libobject/core/class_info.h>
-#include <attrib_priority.h>
+#include <libobject/attrib_priority.h>
 
 #define REGISTER_CLASS(class_name, class_info) \
     __attribute__((constructor(ATTRIB_PRIORITY_REGISTER_CLASS))) static void\

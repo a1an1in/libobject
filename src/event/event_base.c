@@ -30,9 +30,9 @@
  * 
  */
 #include <stdio.h>
-#include <libdbg/debug.h>
+#include <libobject/utils/dbg/debug.h>
 #include <libobject/event/event_base.h>
-#include <libconfig/config.h>
+#include <libobject/utils/config/config.h>
 
 static int __construct(Event_Base *eb,char *init_str)
 {

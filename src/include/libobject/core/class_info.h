@@ -1,7 +1,7 @@
 #ifndef __CLASS_INFO_H__
 #define __CLASS_INFO_H__
 
-#include <basic_types.h>
+#include <libobject/basic_types.h>
 
 enum class_info_type_e{
 	UNDEFINED = 0, 
