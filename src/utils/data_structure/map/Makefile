@@ -1,5 +1,5 @@
 TARGET = build_in.o
-CCFLAGS += -c 
+CCFLAGS += -c -g
 
 SRCS = $(wildcard *.c)
 OBJS = $(patsubst %.c,%.o,$(SRCS))  #子目录obj

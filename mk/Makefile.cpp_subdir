@@ -2,7 +2,7 @@ TARGET = build_in.o
 #COMOBJS = ../common/proto.o   #公共模块
 CC = g++
 LD = ld
-CCFLAGS += -c 
+CCFLAGS += -c -g
 
 SRCS = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,%.o,$(SRCS))  #子目录obj
