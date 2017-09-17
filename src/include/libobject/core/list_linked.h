@@ -19,12 +19,15 @@ struct Linked_List_s{
 
 	/*virtual methods reimplement*/
     int (*push_back)(List *list,void *value);
+    int (*detach_front)(List *list,Iterator *iter);
+    int (*free_detached)(List *list,Iterator *iter);
     int (*insert_after)(List *list,Iterator *iter, void *value);
     int (*del)(List *list,Iterator *iter);
     void (*for_each)(List *list,void (*func)(Iterator *iter));
     Iterator *(*begin)(List *list);
     Iterator *(*end)(List *list);
     int (*destroy)(List *list);
+
 
 #define MAX_NAME_LEN 50
     char name[MAX_NAME_LEN];

@@ -82,6 +82,10 @@ static int __set(List *m, char *attrib, void *value)
     }
     else if (strcmp(attrib, "push_back") == 0) {
         list->push_back = value;
+    } else if (strcmp(attrib, "detach_front") == 0) {
+        list->detach_front = value;
+    } else if (strcmp(attrib, "free_detached") == 0) {
+        list->free_detached = value;
     } else if (strcmp(attrib, "insert_after") == 0) {
         list->insert_after = value;
     } else if (strcmp(attrib, "del") == 0) {
@@ -125,6 +129,30 @@ static int __push_back(List *list,void *value)
     dbg_str(OBJ_DETAIL,"Link list push back");
 
     return llist_push_back(l->llist,value);
+}
+
+static int __detach_front(List *list,Iterator *iter)
+{
+    Linked_List *l    = (Linked_List *)list;
+    LList_Iterator *i = (LList_Iterator *)iter;
+
+    i->list_pos = l->llist->begin;
+
+    llist_detach(l->llist, &(i->list_pos));
+
+    return 0;
+}
+
+static int __free_detached(List *list,Iterator *iter)
+{
+    Linked_List *l    = (Linked_List *)list;
+    LList_Iterator *i = (LList_Iterator *)iter;
+    void *p;
+
+    p = container_of(i->list_pos.list_head_p,list_t,list_head);
+    allocator_mem_free(l->llist->allocator,p);
+
+    return 0;
 }
 
 static int __insert_after(List *list,Iterator *iter, void *value)
@@ -183,11 +211,13 @@ static class_info_entry_t llist_class_info[] = {
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","push_back",__push_back,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","insert_after",__insert_after,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","begin",__begin,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","end",__end,sizeof(void *)},
-    [10] = {ENTRY_TYPE_END},
+    [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","detach_front",__detach_front,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","free_detached",__free_detached,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","insert_after",__insert_after,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
+    [10] = {ENTRY_TYPE_FUNC_POINTER,"","begin",__begin,sizeof(void *)},
+    [11] = {ENTRY_TYPE_FUNC_POINTER,"","end",__end,sizeof(void *)},
+    [12] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Linked_List",llist_class_info);
 
@@ -228,6 +258,11 @@ void test_obj_llist_list()
     list->push_back(list,"sdfsafsdaf");
     dbg_str(DBG_DETAIL,"list for each test");
     list->for_each(list,llist_list_print);
+
+    list->detach_front(list,iter);
+    dbg_str(DBG_DETAIL,"print detach list");
+    llist_list_print(iter);
+    list->free_detached(list,iter);
 
     object_destroy(list);
     object_destroy(iter);
