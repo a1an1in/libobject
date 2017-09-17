@@ -4,9 +4,10 @@
 #include <stdio.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
+#include <libobject/event/event.h>
+#include <libobject/event/timer_rbtree.h>
 
 typedef struct event_base_s Event_Base;
-typedef struct event_s event_t;
 
 /** Indicates that a timeout has occurred.  It's not necessary to pass
  * this flag to event_for new()/event_assign() to get a timeout. */
@@ -27,21 +28,6 @@ typedef struct event_s event_t;
 /** Select edge-triggered behavior, if supported by the backend. */
 #define EV_ET       0x20
 
-struct event_s{
-    uint32_t ev_fd;
-    void *fdinfo;
-    short ev_events;
-    short ev_oldevents;
-    short ev_res;       /* result passed to event callback */
-    short ev_flags;
-    uint8_t ev_pri;     /* smaller numbers are higher priority */
-    uint8_t ev_closure;
-    struct timeval ev_timeout;
-
-    void (*ev_callback)(int fd, short, void *arg);
-    void *ev_arg;
-};
-
 struct event_base_s{
 	Obj obj;
 
@@ -59,6 +45,8 @@ struct event_base_s{
      *int (*ctl)(Event_Base *, int fd, int op, short events);
      */
     int (*dispatch)(Event_Base *, struct timeval *tv);
+
+    Timer *timer;
 };
 
 #endif

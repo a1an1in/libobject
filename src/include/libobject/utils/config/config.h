@@ -1,6 +1,8 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include <libobject/utils/alloc/allocator.h>
+
 #define DEFAULT_CONFIG_BUF_LEN 1024
 typedef struct configurator_s{
     allocator_t *allocator;

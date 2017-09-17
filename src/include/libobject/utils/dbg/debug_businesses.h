@@ -18,6 +18,7 @@
 
 #ifndef __DEBUG_BUSINESSES_H__
 #define __DEBUG_BUSINESSES_H__
+
 enum debug_business_enum{
 	DBG_BUSINESS_NORMAL = 0,
 	DBG_BUSINESS_ALLOC,

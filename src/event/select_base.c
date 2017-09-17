@@ -95,7 +95,15 @@ static void *__get(Select_Base *obj, char *attrib)
 static int __add(Select_Base *b, event_t *e)
 {
     int fd = e->ev_fd;
+    Event_Base *p = (Event_Base *)b;
+    Timer *timer  = p->timer;
 
+    /*
+     *if (fd < 0) {
+     *    dbg_str(DBG_WARNNING,"not add this fd");
+     *    return 0;
+     *}
+     */
 
     b->maxfdp = b->maxfdp -1 > fd ? b->maxfdp : fd + 1; 
 
@@ -107,9 +115,11 @@ static int __add(Select_Base *b, event_t *e)
         FD_SET(fd, &b->event_writeset_in);
 
     //add for test>>
-    b->event_readset_out = b->event_readset_in;
+    b->event_readset_out  = b->event_readset_in;
     b->event_writeset_out = b->event_writeset_in;
     //<<
+    
+    timer->add(timer, e);
 
     return (0);
 }
@@ -136,16 +146,11 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
 {
     int res=0, i, j, nfds = b->maxfdp;
 
+    b->event_readset_out  = b->event_readset_in;
+    b->event_writeset_out = b->event_writeset_in;
+
     res = select(nfds, &b->event_readset_out,
             &b->event_writeset_out, NULL, tv);
-    /*
-     *res = select(nfds, &b->event_readset_out,
-     *        &b->event_writeset_out, NULL, tv);
-     */
-
-    /*
-     *EVBASE_ACQUIRE_LOCK(base, th_base_lock);
-     */
 
     if (res == -1) {
         dbg_str(DBG_WARNNING,"select error");
@@ -159,24 +164,16 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
         if (++i >= nfds)
             i = 0;
         res = 0;
-        if (FD_ISSET(i, &b->event_readset_in))
+
+        if (FD_ISSET(i, &b->event_readset_out))
             res |= EV_READ;
-        if (FD_ISSET(i, &b->event_writeset_in))
+        if (FD_ISSET(i, &b->event_writeset_out))
             res |= EV_WRITE;
-        /*
-         *if (FD_ISSET(i, &b->event_readset_out))
-         *    res |= EV_READ;
-         *if (FD_ISSET(i, &b->event_writeset_out))
-         *    res |= EV_WRITE;
-         */
 
         if (res == 0)
             continue;
 
         dbg_str(DBG_SUC,"fd %d has event", i);
-        /*
-         *evmap_io_active(base, i, res);
-         */
         b->active_io((Event_Base *)b,i, res);
     }
 
@@ -197,6 +194,11 @@ static class_info_entry_t select_base_class_info[] = {
 };
 REGISTER_CLASS("Select_Base",select_base_class_info);
 
+static void test_ev_callback(int fd, short events, void *arg)
+{
+    dbg_str(DBG_SUC,"hello world, event");
+}
+
 void test_obj_select_base()
 {
     Event_Base *eb;
@@ -204,6 +206,7 @@ void test_obj_select_base()
     char *set_str;
     char buf[2048];
     cjson_t *root, *e, *s;
+    event_t event;
 
     eb = OBJECT_NEW(allocator, Select_Base, NULL);
 
@@ -212,6 +215,12 @@ void test_obj_select_base()
     object_dump(eb, "Select_Base", buf, 2048);
     dbg_str(DBG_DETAIL,"Select_Base dump: %s",buf);
 
+    event.ev_timeout.tv_sec  = 2;
+    event.ev_timeout.tv_usec = 0;
+    event.ev_fd = -1;
+    event.ev_callback = test_ev_callback;
+
+    eb->add(eb, &event);
     eb->loop(eb);
 
     pause();

@@ -66,13 +66,16 @@ __rbtree_map_search(rbtree_map_t *map,struct rb_root *root, void *key)
 
         //result = strcmp(key, mnode->key);
         result = key_cmp_func(key, mnode->key,mnode->value_pos);
+        dbg_buf(DBG_DETAIL,"key1:", key, mnode->value_pos);
+        dbg_buf(DBG_DETAIL,"key2:", mnode->key, mnode->value_pos);
 
         if (result < 0)
             node = node->rb_left;
         else if (result > 0)
             node = node->rb_right;
-        else
+        else {
             return mnode;
+        }
     }
     return NULL;
 }
@@ -96,8 +99,14 @@ __rbtree_map_insert(rbtree_map_t *map,struct rb_root *root,
             new = &((*new)->rb_left);
         else if (result > 0)
             new = &((*new)->rb_right);
-        else
-            return 0;
+        else {
+            if (map->enable_same_key)
+                new = &((*new)->rb_left);
+            else {
+                dbg_str(DBG_WARNNING,"rbtree_map_insert same key");
+                return 0;
+            }
+        }
     }
 
     /* Add new node and rebalance tree. */
@@ -154,6 +163,8 @@ int rbtree_map_pos_equal(rbtree_map_pos_t *it1,rbtree_map_pos_t *it2)
 void *rbtree_map_pos_get_pointer(rbtree_map_pos_t *it)
 {
     struct rbtree_map_node *mnode;
+
+    if (it->rb_node_p == NULL) return NULL;
 
     mnode = rb_entry(it->rb_node_p,struct rbtree_map_node,node);
 
@@ -231,7 +242,10 @@ rbtree_map_pos_t * rbtree_map_end(rbtree_map_t *map, rbtree_map_pos_t *end)
 void rbtree_map_make_pair(rbtree_map_t *map,void *key,void *value)
 {
     sync_lock(&map->map_lock,NULL);
-    make_pair(map->pair,key,value);
+    if (map->fixed_key_len) {
+        make_pair_with_fixed_key_len(map->pair,key,map->key_size, value);
+    } else
+        make_pair(map->pair,key,value);
     sync_unlock(&map->map_lock);
 }
 
@@ -241,6 +255,7 @@ int rbtree_map_insert_data(rbtree_map_t *map, void *value)
     struct rb_root *tree_root = map->tree_root;
     uint32_t data_size = map->data_size;
     uint32_t key_size = map->key_size;
+    int ret;
 
     dbg_str(DBG_DETAIL,"rbtree_map_insert");
 
@@ -256,7 +271,11 @@ int rbtree_map_insert_data(rbtree_map_t *map, void *value)
     mnode->value_pos = key_size;
 
     sync_lock(&map->map_lock,NULL);
-    __rbtree_map_insert(map,tree_root, mnode);
+    ret = __rbtree_map_insert(map,tree_root, mnode);
+    if (ret <= 0) {
+        sync_unlock(&map->map_lock);
+        return ret;
+    }
 
     map->begin.rb_node_p = rb_first(tree_root);
     sync_unlock(&map->map_lock);
@@ -267,8 +286,14 @@ int rbtree_map_insert_data(rbtree_map_t *map, void *value)
 int rbtree_map_insert(rbtree_map_t *map,void *key,void *value)
 {
     rbtree_map_make_pair(map,key,value);
+    dbg_buf(DBG_DETAIL, "insert data:", map->pair->data, map->data_size);
 
     return  rbtree_map_insert_data(map,map->pair->data);
+}
+
+int rbtree_map_insert_with_numeric_key(rbtree_map_t *map, int key,void *value)
+{
+    return rbtree_map_insert(map, &key, value);
 }
 
 int rbtree_map_delete(rbtree_map_t *map, rbtree_map_pos_t *it)
@@ -308,6 +333,7 @@ rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it)
     sync_unlock(&map->map_lock);
 
     if(mnode == NULL){
+        dbg_str(DBG_WARNNING,"not found mnode the key searching");
         it->rb_node_p = NULL;
     }else{
         it->rb_node_p = &mnode->node;
@@ -315,6 +341,12 @@ rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it)
     it->map = map;
 
     return it;
+}
+
+rbtree_map_pos_t *
+rbtree_map_search_by_numeric_key(rbtree_map_t *map, int key, rbtree_map_pos_t *it)
+{
+    return rbtree_map_search(map, &key, it);
 }
 
 int rbtree_map_destroy(rbtree_map_t *map)

@@ -1,5 +1,5 @@
-#ifndef __EPOLL_BASE_H__
-#define __EPOLL_BASE_H__
+#ifndef __SELECT_BASE_H__
+#define __SELECT_BASE_H__
 
 #include <stdio.h>
 #include <sys/select.h>

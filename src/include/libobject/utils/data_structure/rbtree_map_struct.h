@@ -52,6 +52,8 @@ typedef struct rbtree_map_s{
 	key_cmp_fpt key_cmp_func;
 	sync_lock_t map_lock;
 	uint8_t lock_type;
+    uint8_t enable_same_key;
+    uint8_t fixed_key_len;
 	allocator_t *allocator;
 	struct rb_root *tree_root;
 	rbtree_map_pos_t begin ,end;

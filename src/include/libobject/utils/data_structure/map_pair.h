@@ -51,6 +51,14 @@ static inline void make_pair(pair_t *p,void *key,void *value)
     }
 	memcpy(p->data + p->key_len,value,p->value_len);
 }
+
+static inline void make_pair_with_fixed_key_len(pair_t *p,void *key, int len,void *value)
+{
+    memset(p->data,0, p->data_len);
+    memcpy(p->data,key,p->key_len);
+	memcpy(p->data + p->key_len,value,p->value_len);
+}
+
 static inline int destroy_pair(pair_t *p)
 {
 	free(p);
