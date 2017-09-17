@@ -135,10 +135,14 @@ static int __detach_front(List *list,Iterator *iter)
 {
     Linked_List *l    = (Linked_List *)list;
     LList_Iterator *i = (LList_Iterator *)iter;
+    void *ret;
 
     i->list_pos = l->llist->begin;
 
-    llist_detach(l->llist, &(i->list_pos));
+    ret = llist_detach(l->llist, &(i->list_pos));
+    if (ret == NULL) {
+        i->list_pos.list_head_p = NULL;
+    }
 
     return 0;
 }

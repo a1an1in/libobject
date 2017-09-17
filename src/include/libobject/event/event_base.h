@@ -55,7 +55,7 @@ struct event_base_s{
     Timer *timer;
     Map *map;
     Iterator *map_iter;
-    List *list;
+    List *active_list;
     Iterator *list_iter;
 
 };

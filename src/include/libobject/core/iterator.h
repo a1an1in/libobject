@@ -21,6 +21,8 @@ struct iterator_s{
     int (*equal)(Iterator *it1,Iterator *it2);
     void *(*get_vpointer)(Iterator *it);
     void *(*get_kpointer)(Iterator *it);
+    int (*is_null)(Iterator *it);
+    int (*clear)(Iterator *it);
     int (*destroy)(Iterator *it);
 
 	/*virtual methods reimplement*/

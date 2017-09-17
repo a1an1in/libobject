@@ -49,6 +49,10 @@ static int __set(Iterator *iter, char *attrib, void *value)
         li->equal = value;
     } else if (strcmp(attrib, "get_vpointer") == 0) {
         li->get_vpointer = value;
+    } else if (strcmp(attrib, "is_null") == 0) {
+        li->is_null = value;
+    } else if (strcmp(attrib, "clear") == 0) {
+        li->clear = value;
     } else if (strcmp(attrib, "name") == 0) {
         strncpy(li->name,value,strlen(value));
     } else {
@@ -108,6 +112,17 @@ static void *__get_vpointer(Iterator *it)
     return llist_pos_get_pointer(&((LList_Iterator *)it)->list_pos);
 }
 
+static int __is_null(Iterator *it)
+{
+    dbg_str(OBJ_DETAIL,"LList_Iterator get_vpointer");
+    return ((LList_Iterator *)it)->list_pos.list_head_p == NULL;
+}
+
+static int __clear(Iterator *it)
+{
+    ((LList_Iterator *)it)->list_pos.list_head_p = NULL;
+}
+
 static class_info_entry_t hmap_iter_class_info[] = {
     [0] = {ENTRY_TYPE_OBJ,"Iterator","iter",NULL,sizeof(void *)},
     [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
@@ -116,7 +131,9 @@ static class_info_entry_t hmap_iter_class_info[] = {
     [4] = {ENTRY_TYPE_FUNC_POINTER,"","prev",__prev,sizeof(void *)},
     [5] = {ENTRY_TYPE_FUNC_POINTER,"","equal",__equal,sizeof(void *)},
     [6] = {ENTRY_TYPE_FUNC_POINTER,"","get_vpointer",__get_vpointer,sizeof(void *)},
-    [7] = {ENTRY_TYPE_END},
+    [7] = {ENTRY_TYPE_FUNC_POINTER,"","is_null",__is_null,sizeof(void *)},
+    [8] = {ENTRY_TYPE_FUNC_POINTER,"","clear",__clear,sizeof(void *)},
+    [9] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("LList_Iterator",hmap_iter_class_info);
 

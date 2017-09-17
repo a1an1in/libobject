@@ -67,6 +67,10 @@ static int __set(Iterator *iter, char *attrib, void *value)
         iter->get_vpointer = value;
     } else if (strcmp(attrib, "get_kpointer") == 0) {
         iter->get_kpointer = value;
+    } else if (strcmp(attrib, "is_null") == 0) {
+        iter->is_null = value;
+    } else if (strcmp(attrib, "clear") == 0) {
+        iter->clear = value;
     } else if (strcmp(attrib, "destroy") == 0) {
         iter->destroy = value;
     } else if (strcmp(attrib, "name") == 0) {
@@ -125,7 +129,9 @@ static class_info_entry_t iter_class_info[] = {
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","equal",__equal,sizeof(void *)},
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","get_vpointer",__get_vpointer,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","get_kpointer",__get_vpointer,sizeof(void *)},
-    [10] = {ENTRY_TYPE_END},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","is_null",NULL,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","clear",NULL,sizeof(void *)},
+    [12] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Iterator",iter_class_info);
 
