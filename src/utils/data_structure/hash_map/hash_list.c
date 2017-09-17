@@ -140,7 +140,12 @@ int hash_map_init(hash_map_t *hmap,
 void hash_map_make_pair(hash_map_t *hmap,void *key,void *value)
 {
     sync_lock(&hmap->map_lock,NULL);
-    make_pair(hmap->pair,key,value);
+    if (hmap->key_type == 0) { /*key is string*/
+        make_pair(hmap->pair,key,value);
+    } else {
+        dbg_str(DBG_DETAIL,"hash_map_make_pair with key_type");
+        make_pair_with_fixed_key_len(hmap->pair,key,hmap->key_size, value);
+    }
     sync_unlock(&hmap->map_lock);
 }
 

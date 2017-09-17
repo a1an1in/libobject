@@ -46,47 +46,7 @@
 #include <sys/un.h>
 #include <libobject/utils/dbg/debug.h>
 
-static inline uint32_t 
-pa_pow(uint32_t x,uint32_t y)
-{
-
-    uint32_t pow_value = 1;
-    uint32_t i;
-    
-    for(i = 0;i < y; i++)
-        pow_value *= x;
-
-    return pow_value;
-}
-
-int get_index(int size, int min_data_size, int max_index)
-{
-    int i;
-    int remainder, interger;
-    int ret = -1;
-
-    for (i = 0; i < max_index; i++) {
-        interger  = size / (pa_pow(2, i) * min_data_size);
-        remainder = size % (pa_pow(2, i) * min_data_size);
-        if (interger == 0 || (interger == 1 && remainder == 0)) {
-            return i;
-        }
-    }
-
-    return ret;
-}
-
 int lab4(int argc,char **argv)
 {
-    int i;
-    int index;
-
-    for (i = 0; i < argc; i++) {
-        dbg_str(DBG_DETAIL,"arg %d, argv:%s", i, argv[i]);
-    }
-
-    index = get_index(atoi(argv[0]), 8, 24);
-    dbg_str(DBG_DETAIL,"size =%d, index=%d", atoi(argv[0]), index);
-
     return 0;
 }

@@ -4,8 +4,12 @@
 #include <stdio.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
+#include <libobject/core/map_hash.h>
+#include <libobject/core/list_linked.h>
+#include <libobject/core/iterator_linkedlist.h>
 #include <libobject/event/event.h>
 #include <libobject/event/timer_rbtree.h>
+#include <libobject/utils/miscellany/buffer.h>
 
 typedef struct event_base_s Event_Base;
 
@@ -37,16 +41,23 @@ struct event_base_s{
     void *(*get)(void *obj, char *attrib);
     int (*loop)(Event_Base *);
     int (*active_io)(Event_Base *, int fd, short events); 
-
-	/*virtual methods reimplement*/
     int (*add)(Event_Base *, event_t *e);
     int (*del)(Event_Base *, event_t *e); 
+
+	/*virtual methods reimplement*/
+    int (*add_io)(Event_Base *, event_t *e);
+    int (*del_io)(Event_Base *, event_t *e); 
     /*
      *int (*ctl)(Event_Base *, int fd, int op, short events);
      */
     int (*dispatch)(Event_Base *, struct timeval *tv);
 
     Timer *timer;
+    Map *map;
+    Iterator *map_iter;
+    List *list;
+    Iterator *list_iter;
+
 };
 
 #endif

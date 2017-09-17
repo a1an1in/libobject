@@ -65,10 +65,10 @@ static int __set(Select_Base *eb, char *attrib, void *value)
         eb->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         eb->deconstruct = value;
-    } else if (strcmp(attrib, "add") == 0) {
-        eb->add = value;
-    } else if (strcmp(attrib, "del") == 0) {
-        eb->del = value;
+    } else if (strcmp(attrib, "add_io") == 0) {
+        eb->add_io = value;
+    } else if (strcmp(attrib, "del_io") == 0) {
+        eb->del_io = value;
     } else if (strcmp(attrib, "dispatch") == 0) {
         eb->dispatch = value;
     } 
@@ -92,11 +92,10 @@ static void *__get(Select_Base *obj, char *attrib)
     return NULL;
 }
 
-static int __add(Select_Base *b, event_t *e)
+static int __add_io(Select_Base *b, event_t *e)
 {
     int fd = e->ev_fd;
     Event_Base *p = (Event_Base *)b;
-    Timer *timer  = p->timer;
 
     /*
      *if (fd < 0) {
@@ -119,12 +118,11 @@ static int __add(Select_Base *b, event_t *e)
     b->event_writeset_out = b->event_writeset_in;
     //<<
     
-    timer->add(timer, e);
 
     return (0);
 }
 
-static int __del(Select_Base *b, event_t *e) 
+static int __del_io(Select_Base *b, event_t *e) 
 {
     int fd = e->ev_fd;
     unsigned short events = e->ev_events;
@@ -155,8 +153,11 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
     if (res == -1) {
         dbg_str(DBG_WARNNING,"select error");
         return (0);
-    } else{
-        dbg_str(DBG_SUC,"select base dispatch event, res=%d, tv=%d",res, tv->tv_sec);
+    } else if (res > 0) {
+        dbg_str(DBG_SUC,"select base dispatch io events res=%d, tv=%d",res, tv->tv_sec);
+    } else {
+        dbg_str(DBG_WARNNING,"select timeout");
+        return 0;
     }
 
     i = random() % nfds;
@@ -186,8 +187,8 @@ static class_info_entry_t select_base_class_info[] = {
     [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
-    [6] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
+    [5] = {ENTRY_TYPE_FUNC_POINTER,"","add_io",__add_io,sizeof(void *)},
+    [6] = {ENTRY_TYPE_FUNC_POINTER,"","del_io",__del_io,sizeof(void *)},
     [7] = {ENTRY_TYPE_FUNC_POINTER,"","dispatch",__dispatch,sizeof(void *)},
     [8] = {ENTRY_TYPE_IFUNC_POINTER,"","active_io",NULL,sizeof(void *)},
     [9] = {ENTRY_TYPE_END},

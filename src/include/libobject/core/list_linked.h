@@ -1,5 +1,5 @@
-#ifndef __HASH_MAP_H__
-#define __HASH_MAP_H__
+#ifndef __LIST_LINKED_H__
+#define __LIST_LINKED_H__
 
 #include <stdio.h>
 #include <libobject/utils/dbg/debug.h>

@@ -59,6 +59,7 @@ typedef struct hash_map_s{
 	sync_lock_t map_lock;
 	allocator_t *allocator;
 	uint32_t node_count;
+    uint8_t key_type;
 
     pair_t *pair;
 }hash_map_t;

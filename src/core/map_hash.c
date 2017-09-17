@@ -109,6 +109,8 @@ static int __set(Map *m, char *attrib, void *value)
         map->value_size = *((uint16_t *)value);
     } else if (strcmp(attrib, "bucket_size") == 0) {
         map->bucket_size = *((uint16_t *)value);
+    } else if (strcmp(attrib, "key_type") == 0) {
+        map->key_type = *((uint8_t *)value);
     } else {
         dbg_str(OBJ_WARNNING,"map set, not support %s setting",attrib);
     }
@@ -129,6 +131,8 @@ static void *__get(Map *obj, char *attrib)
         return &map->value_size;
     } else if (strcmp(attrib, "bucket_size") == 0) {
         return &map->bucket_size;
+    } else if (strcmp(attrib, "key_type") == 0) {
+        return &map->key_type;
     } else {
         dbg_str(OBJ_WARNNING,"hash map get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
@@ -139,8 +143,12 @@ static void *__get(Map *obj, char *attrib)
 static int __insert(Map *map,void *key,void *value)
 {
     dbg_str(OBJ_DETAIL,"Hash Map insert");
+    Hash_Map *hmap = (Hash_Map *)map;
 
-    return hash_map_insert(((Hash_Map *)map)->hmap,key,value);
+    if (hmap->key_type) {
+        hmap->hmap->key_type = hmap->key_type;
+    }
+    return hash_map_insert(hmap->hmap,key,value);
 }
 
 static int __insert_wb(Map *map,void *key,void *value,Iterator *iter)
@@ -198,11 +206,12 @@ static class_info_entry_t hash_map_class_info[] = {
     [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","begin",__begin,sizeof(void *)},
     [10] = {ENTRY_TYPE_FUNC_POINTER,"","end",__end,sizeof(void *)},
-    [11] = {ENTRY_TYPE_UINT16_T,"","key_size",NULL,sizeof(short)},
-    [12] = {ENTRY_TYPE_UINT16_T,"","value_size",NULL,sizeof(short)},
-    [13] = {ENTRY_TYPE_UINT16_T,"","bucket_size",NULL,sizeof(short)},
-    [14] = {ENTRY_TYPE_FUNC_POINTER,"","for_each",NULL,sizeof(void *)},
-    [15] = {ENTRY_TYPE_END},
+    [11] = {ENTRY_TYPE_FUNC_POINTER,"","for_each",NULL,sizeof(void *)},
+    [12] = {ENTRY_TYPE_UINT16_T,"","key_size",NULL,sizeof(short)},
+    [13] = {ENTRY_TYPE_UINT16_T,"","value_size",NULL,sizeof(short)},
+    [14] = {ENTRY_TYPE_UINT16_T,"","bucket_size",NULL,sizeof(short)},
+    [15] = {ENTRY_TYPE_UINT8_T,"","key_type",NULL,sizeof(short)},
+    [16] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Hash_Map",hash_map_class_info);
 
@@ -212,7 +221,7 @@ static void hash_map_print(Iterator *iter)
     dbg_str(DBG_DETAIL,"key:%s value:%s",i->get_kpointer(iter), i->get_vpointer(iter));
 }
 
-void test_obj_hash_map()
+void test_obj_hash_map_string_key()
 {
     Iterator *iter, *next,*prev;
     Map *map;
@@ -226,9 +235,12 @@ void test_obj_hash_map()
 
     c = cfg_alloc(allocator); 
     dbg_str(DBG_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "10") ;  
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "40") ;  
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "25") ;
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
+    /*
+     *cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_type", "1") ;
+     */
 
     map  = OBJECT_NEW(allocator, Hash_Map,c->buf);
     iter = OBJECT_NEW(allocator, Hmap_Iterator,NULL);
@@ -254,5 +266,75 @@ void test_obj_hash_map()
     dbg_str(DBG_SUC, "hash_map test end alloc count =%d",allocator->alloc_count);
 
 }
+
+static void hash_map_print_with_numeric_key(Iterator *iter)
+{
+    Hmap_Iterator *i = (Hmap_Iterator *)iter;
+    int *key = (int *)i->get_kpointer(iter);
+    dbg_str(DBG_DETAIL,"key:%d value:%s", *key, i->get_vpointer(iter));
+}
+void test_obj_hash_map_numeric_key()
+{
+    Iterator *iter, *next,*prev;
+    Map *map;
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;
+    cjson_t *root, *e, *s;
+    char buf[2048] = {0};
+    char set_str[2048] = {0};
+    int key;
+    int ret;
+
+    dbg_str(DBG_SUC, "hash_map test begin alloc count =%d",allocator->alloc_count);
+
+    c = cfg_alloc(allocator); 
+    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "4") ;  
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "25") ;
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_type", "1");
+
+    map  = OBJECT_NEW(allocator, Hash_Map,c->buf);
+    iter = OBJECT_NEW(allocator, Hmap_Iterator,NULL);
+
+    object_dump(map, "Hash_Map", buf, 2048);
+    dbg_str(DBG_DETAIL,"Map dump: %s",buf);
+
+    printf("insert\n");
+    key = 1;
+    map->insert(map, &key,"hello world");
+    key = 2;
+    map->insert(map, &key,"sdfsafsdaf");
+
+    printf("for_each\n");
+    map->for_each(map,hash_map_print_with_numeric_key);
+
+    printf("search\n");
+    ret = map->search(map, &key, iter);
+    dbg_str(DBG_DETAIL,"search ret=%d",ret);
+    dbg_str(DBG_DETAIL,"search data:%s",iter->get_vpointer(iter));
+
+    printf("del\n");
+    map->del(map,iter);
+
+    printf("for_each\n");
+    map->for_each(map,hash_map_print_with_numeric_key);
+
+    object_destroy(map);
+    object_destroy(iter);
+
+    cfg_destroy(c);
+
+    dbg_str(DBG_SUC, "hash_map test end alloc count =%d",allocator->alloc_count);
+
+}
+void test_obj_hash_map()
+{
+    /*
+     *test_obj_hash_map_string_key();
+     */
+    test_obj_hash_map_numeric_key();
+}
+
 
 

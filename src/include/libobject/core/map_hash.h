@@ -37,6 +37,7 @@ struct Hash_Map_s{
     uint16_t key_size;
     uint16_t bucket_size;
     uint16_t value_size;
+    uint8_t key_type;
 };
 
 #endif

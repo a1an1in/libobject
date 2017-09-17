@@ -55,10 +55,41 @@ static int timeval_now(struct timeval *t, struct timezone *tz)
 static int __construct(Event_Base *eb,char *init_str)
 {
     allocator_t *allocator = eb->obj.allocator;
+    configurator_t * c;
+    char buf[2048];
+    /*
+     *uint8_t key_size = 4;
+     *uint16_t value_size = 4;
+     *uint16_t bucket_size = 20;
+     */
 
     dbg_str(EV_DETAIL,"eb construct, eb addr:%p",eb);
 
     eb->timer = OBJECT_NEW(allocator, Rbtree_Timer,NULL);
+
+    c = cfg_alloc(allocator); 
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "4") ;  
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "8") ;
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "20") ;
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_type", "1");
+    eb->map    = OBJECT_NEW(allocator, Hash_Map, c->buf);
+
+    eb->map_iter = OBJECT_NEW(allocator, Hmap_Iterator,NULL);
+
+    dbg_str(EV_DETAIL,"base addr:%p, map addr :%p, map_iter:%p, timer:%p",
+            eb, eb->map, eb->map_iter, eb->timer);
+
+
+    memset(c->buf, 0, c->buf_len);
+    cfg_config(c, "/List", CJSON_NUMBER, "value_size", "8") ;  
+
+    eb->list      = OBJECT_NEW(allocator, Linked_List, c->buf);
+    eb->list_iter = OBJECT_NEW(allocator, LList_Iterator,NULL);
+
+    object_dump(eb->list, "Linked_List", buf, 2048);
+    dbg_str(DBG_DETAIL,"List dump: %s",buf);
+
+    cfg_destroy(c);
 
     return 0;
 }
@@ -68,6 +99,10 @@ static int __deconstrcut(Event_Base *eb)
     dbg_str(EV_DETAIL,"eb deconstruct,eb addr:%p",eb);
 
     object_destroy(eb->timer);
+    object_destroy(eb->map_iter);
+    object_destroy(eb->map);
+    object_destroy(eb->list);
+    object_destroy(eb->list_iter);
 
     return 0;
 }
@@ -80,6 +115,10 @@ static int __set(Event_Base *eb, char *attrib, void *value)
         eb->get = value;
     } else if (strcmp(attrib, "loop") == 0) {
         eb->loop = value;
+    } else if (strcmp(attrib, "add") == 0) {
+        eb->add = value;
+    } else if (strcmp(attrib, "del") == 0) {
+        eb->del = value;
     } else if (strcmp(attrib, "active_io") == 0) {
         eb->active_io = value;
     }
@@ -87,10 +126,10 @@ static int __set(Event_Base *eb, char *attrib, void *value)
         eb->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         eb->deconstruct = value;
-    } else if (strcmp(attrib, "add") == 0) {
-        eb->add = value;
-    } else if (strcmp(attrib, "del") == 0) {
-        eb->del = value;
+    } else if (strcmp(attrib, "add_io") == 0) {
+        eb->add_io = value;
+    } else if (strcmp(attrib, "del_io") == 0) {
+        eb->del_io = value;
     } else if (strcmp(attrib, "dispatch") == 0) {
         eb->dispatch = value;
     } else {
@@ -110,38 +149,67 @@ static void *__get(Event_Base *obj, char *attrib)
     return NULL;
 }
 
-static int __active_io(Event_Base *eb, int fd, short events)
+static int __add(Event_Base *b, event_t *e)
 {
-    struct timeval tv;
-    event_t event;
-    char buf[255];
-    int len;
+    Timer *timer  = b->timer;
+    Map *map = b->map;
+    int fd = e->ev_fd;
+    char buffer[16] = {0};
 
-    dbg_str(EV_DETAIL,"event base active io event, fd = %d", fd);
+    dbg_str(EV_DETAIL,"base addr:%p, map addr :%p, map_iter:%p, timer:%p, event:%p",
+            b, b->map, b->map_iter, b->timer, e);
+    addr_to_buffer(e,buffer);
+    dbg_buf(DBG_DETAIL,"buffer:", buffer, 4);
+    map->insert(map, &fd, buffer);
 
-    len = read(fd, buf, sizeof(buf) - 1);
+    b->add_io(b,e);
+    timer->add(timer, e);
 
-    if (len == -1) {
-        perror("read");
-        return;
-    } else if (len == 0) {
-        fprintf(stderr, "Connection closed\n");
-        return;
-    }
+    return (0);
+}
 
-    buf[len] = '\0';
-    fprintf(stdout, "Read: %s\n", buf);
+static int __del(Event_Base *b, event_t *e) 
+{
+    Timer *timer  = b->timer;
 
-    /*
-     *event.ev_fd = fd;
-     *event.ev_events = EV_READ;
-     *eb->add(eb, &event);
-     */
+    b->del_io(b,e);
+    timer->del(timer, e);
 
     return 0;
 }
 
-static int __timeout_process(Event_Base *eb)
+static int __active_io(Event_Base *b, int fd, short events)
+{
+    struct timeval tv;
+    event_t *event;
+    char *p;
+    char buf[255];
+    int len;
+    Map *map = b->map;
+    Iterator *iter = b->map_iter;
+    int ret;
+
+    dbg_str(EV_SUC,"event base active io event, fd = %d", fd);
+
+    ret = map->search(map, &fd, iter);
+    dbg_str(DBG_WARNNING,"search ret=%d",ret);
+
+    if (ret < 0) {
+        dbg_str(DBG_WARNNING,"not found fd in map,ret=%d",ret);
+    } else {
+        p = iter->get_vpointer(iter);
+        dbg_buf(DBG_DETAIL,"buffer:", p, 4);
+        event = (event_t *)buffer_to_addr(p);
+        dbg_str(DBG_SUC,"event addr:%p", event);
+        event->ev_callback(fd, 0, NULL);
+
+        b->add(b, event);
+    }
+
+    return 0;
+}
+
+static int __process_timeout_events(Event_Base *eb)
 {
     Timer *timer = eb->timer;
     struct timeval now, search;
@@ -151,12 +219,22 @@ static int __timeout_process(Event_Base *eb)
     if (event != NULL) {
         timeval_now(&now, NULL);
         if (timeval_cmp(&now, &event->ev_timeout) >= 0) {
-            dbg_str(EV_DETAIL,"timeout_process, event addr:%p",event);
+            dbg_str(EV_DETAIL,"process_timeout, event addr:%p",event);
             event->ev_callback(event->ev_fd, 0, NULL);
             timer->del(timer, event);
         }
     }
 }
+
+static int __process_active_events(Event_Base *eb)
+{
+    Timer *timer = eb->timer;
+    struct timeval now, search;
+    event_t *event;
+
+    dbg_str(DBG_SUC,"process_active_events");
+}
+
 
 static int __loop(Event_Base *eb)
 {
@@ -167,7 +245,8 @@ static int __loop(Event_Base *eb)
     while(count--) {
         timer->timeout_next(timer, &tv_p);
         eb->dispatch(eb, tv_p);
-        __timeout_process(eb);
+        __process_timeout_events(eb);
+        __process_active_events(eb);
     }
 
     dbg_str(EV_WARNNING, "break Event_Base loop");
@@ -181,10 +260,12 @@ static class_info_entry_t event_base_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","active_io",__active_io,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add",NULL,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","del",NULL,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","dispatch",NULL,sizeof(void *)},
-    [10] = {ENTRY_TYPE_END},
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_io",NULL,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","del_io",NULL,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","dispatch",NULL,sizeof(void *)},
+    [12] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Event_Base",event_base_class_info);
 

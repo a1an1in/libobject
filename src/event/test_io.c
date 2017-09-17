@@ -10,7 +10,22 @@
 
 static void test_ev_callback(int fd, short events, void *arg)
 {
+    char buf[255];
+    int len;
+
     dbg_str(DBG_SUC,"hello world, event");
+    len = read(fd, buf, sizeof(buf) - 1);
+
+    if (len == -1) {
+        perror("read");
+        return;
+    } else if (len == 0) {
+        fprintf(stderr, "Connection closed\n");
+        return;
+    }
+
+    buf[len] = '\0';
+    fprintf(stdout, "Read: %s\n", buf);
 }
 int test_event_io()
 {
@@ -58,6 +73,12 @@ int test_event_io()
     event.ev_timeout.tv_sec  = 60;
     event.ev_timeout.tv_usec = 0;
     event.ev_callback = test_ev_callback;
+
+    /*
+     *dbg_str(DBG_SUC,"at main, base addr:%p, map addr :%p, search:%p, timer:%p",
+     *        eb, eb->map, eb->search, eb->timer);
+     */
+    dbg_str(DBG_SUC,"event addr:%p", &event);
 
     eb->add(eb, &event);
 
