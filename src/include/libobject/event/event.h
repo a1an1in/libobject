@@ -15,7 +15,7 @@ struct event_s{
     short ev_flags;
     uint8_t ev_pri;     /* smaller numbers are higher priority */
     uint8_t ev_closure;
-    struct timeval ev_timeout;
+    struct timeval ev_timeout, ev_tv;
 
     void (*ev_callback)(int fd, short, void *arg);
     void *ev_arg;

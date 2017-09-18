@@ -79,16 +79,6 @@ static int __construct(Event_Base *eb,char *init_str)
     dbg_str(EV_DETAIL,"base addr:%p, map addr :%p, map_iter:%p, timer:%p",
             eb, eb->map, eb->map_iter, eb->timer);
 
-
-    memset(c->buf, 0, c->buf_len);
-    cfg_config(c, "/List", CJSON_NUMBER, "value_size", "8") ;  
-
-    eb->active_list = OBJECT_NEW(allocator, Linked_List, c->buf);
-    eb->list_iter   = OBJECT_NEW(allocator, LList_Iterator,NULL);
-
-    object_dump(eb->active_list, "Linked_List", buf, 2048);
-    dbg_str(DBG_DETAIL,"List dump: %s",buf);
-
     cfg_destroy(c);
 
     return 0;
@@ -101,8 +91,6 @@ static int __deconstrcut(Event_Base *eb)
     object_destroy(eb->timer);
     object_destroy(eb->map_iter);
     object_destroy(eb->map);
-    object_destroy(eb->active_list);
-    object_destroy(eb->list_iter);
 
     return 0;
 }
@@ -158,6 +146,8 @@ static int __add(Event_Base *b, event_t *e)
 
     dbg_str(EV_DETAIL,"base addr:%p, map addr :%p, map_iter:%p, timer:%p, event:%p",
             b, b->map, b->map_iter, b->timer, e);
+
+    e->ev_tv = e->ev_timeout;
     addr_to_buffer(e,buffer);
     dbg_buf(DBG_DETAIL,"buffer:", buffer, 4);
     map->insert(map, &fd, buffer);
@@ -186,7 +176,7 @@ static int __active_io(Event_Base *b, int fd, short events)
     int len;
     Map *map = b->map;
     Iterator *iter = b->map_iter;
-    List *list = b->active_list;
+    event_t *event;
     int ret;
 
     dbg_str(EV_SUC,"event base active io event, fd = %d", fd);
@@ -199,7 +189,13 @@ static int __active_io(Event_Base *b, int fd, short events)
     } else {
         p = iter->get_vpointer(iter);
         dbg_buf(DBG_DETAIL,"buffer:", p, 4);
-        list->push_back(list, p);
+        p = iter->get_vpointer(iter);
+        event = (event_t *)buffer_to_addr(p);
+        dbg_str(DBG_SUC,"event addr:%p", event);
+        event->ev_callback(event->ev_fd, 0, NULL);
+        /*
+         *b->add(b, event);
+         */
     }
 
     return 0;
@@ -222,36 +218,6 @@ static int __process_timeout_events(Event_Base *eb)
     }
 }
 
-static int __process_active_events(Event_Base *eb)
-{
-    Timer *timer = eb->timer;
-    struct timeval now, search;
-    event_t *event;
-    List *list = eb->active_list;
-    Iterator *iter = eb->list_iter;
-    void *p;
-
-    dbg_str(DBG_SUC,"process_active_events");
-
-    iter->clear(iter);
-    if (iter->is_null(iter)) {
-        dbg_str(DBG_SUC,"clear iter suc");
-    }
-    list->detach_front(list,iter);
-    if (iter->is_null(iter)) {
-        return 0;
-    }
-    p = iter->get_vpointer(iter);
-    event = (event_t *)buffer_to_addr(p);
-    dbg_str(DBG_SUC,"event addr:%p", event);
-    event->ev_callback(event->ev_fd, 0, NULL);
-    eb->add(eb, event);
-    list->free_detached(list,iter);
-
-    return 0;
-}
-
-
 static int __loop(Event_Base *eb)
 {
     Timer *timer = eb->timer;
@@ -262,7 +228,6 @@ static int __loop(Event_Base *eb)
         timer->timeout_next(timer, &tv_p);
         eb->dispatch(eb, tv_p);
         __process_timeout_events(eb);
-        __process_active_events(eb);
     }
 
     dbg_str(EV_WARNNING, "break Event_Base loop");

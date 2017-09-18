@@ -5,8 +5,6 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/core/map_hash.h>
-#include <libobject/core/list_linked.h>
-#include <libobject/core/iterator_linkedlist.h>
 #include <libobject/event/event.h>
 #include <libobject/event/timer_rbtree.h>
 #include <libobject/utils/miscellany/buffer.h>
@@ -55,9 +53,6 @@ struct event_base_s{
     Timer *timer;
     Map *map;
     Iterator *map_iter;
-    List *active_list;
-    Iterator *list_iter;
-
 };
 
 #endif
