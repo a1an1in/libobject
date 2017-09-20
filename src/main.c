@@ -621,7 +621,9 @@ static int args_process_test_Button(void *base,int argc,char **argv)
 
 static int args_process_test_Event_Base(void *base,int argc,char **argv)
 {
-    test_event_io();
+    /*
+     *test_event_io();
+     */
     /*
      *test_obj_event_rbtree_timer();
      */
@@ -631,6 +633,7 @@ static int args_process_test_Event_Base(void *base,int argc,char **argv)
     /*
      *test_obj_eb();
      */
+    test_time();
     return 0;
 }
 static cmd_config_t cmds[]={

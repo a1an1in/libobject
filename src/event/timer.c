@@ -64,6 +64,8 @@ static int __set(Timer *timer, char *attrib, void *value)
         timer->add = value;
     } else if (strcmp(attrib, "del") == 0) {
         timer->del = value;
+    } else if (strcmp(attrib, "detanch") == 0) {
+        timer->detanch = value;
     } else if (strcmp(attrib, "timeout_next") == 0) {
         timer->timeout_next = value;
     } else if (strcmp(attrib, "first") == 0) {
@@ -87,16 +89,17 @@ static void *__get(Timer *obj, char *attrib)
 
 
 static class_info_entry_t timer_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",NULL,sizeof(void *)},
-    [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",NULL,sizeof(void *)},
-    [5] = {ENTRY_TYPE_VFUNC_POINTER,"","add",NULL,sizeof(void *)},
-    [6] = {ENTRY_TYPE_VFUNC_POINTER,"","del",NULL,sizeof(void *)},
-    [7] = {ENTRY_TYPE_VFUNC_POINTER,"","timeout_next",NULL,sizeof(void *)},
-    [8] = {ENTRY_TYPE_VFUNC_POINTER,"","first",NULL,sizeof(void *)},
-    [9] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",NULL,sizeof(void *)},
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",NULL,sizeof(void *)},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add",NULL,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","del",NULL,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","detanch",NULL,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","timeout_next",NULL,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","first",NULL,sizeof(void *)},
+    [10] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Timer",timer_class_info);
 

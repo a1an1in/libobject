@@ -9,6 +9,7 @@ typedef struct event_s event_t;
 struct event_s{
     uint32_t ev_fd;
     void *fdinfo;
+    void *ev_base;
     short ev_events;
     short ev_oldevents;
     short ev_res;       /* result passed to event callback */

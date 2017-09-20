@@ -133,6 +133,8 @@ static int __set(Rbtree_Timer *timer, char *attrib, void *value)
         timer->add = value;
     } else if (strcmp(attrib, "del") == 0) {
         timer->del = value;
+    } else if (strcmp(attrib, "detanch") == 0) {
+        timer->detanch = value;
     } else if (strcmp(attrib, "timeout_next") == 0) {
         timer->timeout_next = value;
     } else if (strcmp(attrib, "first") == 0) {
@@ -187,6 +189,20 @@ static int __del(Rbtree_Timer *timer, event_t *e)
     return 0;
 }
 
+static int __detanch(Rbtree_Timer *timer, event_t *e) 
+{
+/*
+ *    rbtree_map_t *map = timer->map;
+ *    rbtree_map_pos_t it;
+ *
+ *    dbg_str(DBG_DETAIL,"rbtree timer del");
+ *    rbtree_map_search(map, &e->ev_timeout,&it);
+ *    rbtree_map_delete(map, &it);
+ */
+
+    return 0;
+}
+
 static int __timeout_next(Rbtree_Timer *timer, struct timeval **tv)
 {
     rbtree_map_t *map = timer->map;
@@ -233,7 +249,7 @@ event_t * __first(Rbtree_Timer *timer)
         dbg_str(DBG_DETAIL,"rbtree timer, first is NULL");
         return NULL;
     } else {
-        p = (struct timeval *)rbtree_map_pos_get_pointer(&it);
+        p = (char *)rbtree_map_pos_get_pointer(&it);
         ret = (event_t *)buffer_to_addr(p);
         dbg_str(DBG_DETAIL,"rbtree timer, first event addr:%p", ret);
     }
@@ -242,16 +258,17 @@ event_t * __first(Rbtree_Timer *timer)
 }
 
 static class_info_entry_t rbtree_timer_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ,"Timer","parent",NULL,sizeof(void *)},
-    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
-    [6] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
-    [7] = {ENTRY_TYPE_FUNC_POINTER,"","timeout_next",__timeout_next,sizeof(void *)},
-    [8] = {ENTRY_TYPE_FUNC_POINTER,"","first",__first,sizeof(void *)},
-    [9] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ,"Timer","parent",NULL,sizeof(void *)},
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
+    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","detanch",__detanch,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","timeout_next",__timeout_next,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","first",__first,sizeof(void *)},
+    [10] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Rbtree_Timer",rbtree_timer_class_info);
 
