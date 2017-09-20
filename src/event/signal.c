@@ -8,6 +8,7 @@
 #include <string.h>
 #include <errno.h>
 #include <libobject/event/select_base.h>
+#include <libobject/utils/event/event_compat.h>
 
 static void
 evsig_cb(int fd, short what, void *arg)
@@ -16,9 +17,9 @@ evsig_cb(int fd, short what, void *arg)
     int n;
     int i;
     int ncaught[NSIG];
-    struct event_base *base;
+    Event_Base *eb;
 
-    base = arg;
+    eb = arg;
 
     memset(&ncaught, 0, sizeof(ncaught));
 
@@ -45,61 +46,87 @@ evsig_cb(int fd, short what, void *arg)
     }
 }
 
-int tes_event_io()
+static void signal_handler(int sig)
 {
-    struct stat st;
-    int socket;
-    Event_Base *eb;
-    const char *fifo = "event.fifo";
-    allocator_t *allocator = allocator_get_default_alloc();
-    char *set_str;
-    char buf[2048];
-    cjson_t *root, *e, *s;
-    event_t event;
-
-    eb = OBJECT_NEW(allocator, Select_Base, NULL);
-
-    dbg_str(DBG_DETAIL,"run at here, eb=%p", eb);
-
-    object_dump(eb, "Select_Base", buf, 2048);
-    dbg_str(DBG_DETAIL,"Select_Base dump: %s",buf);
-
-    if (lstat(fifo, &st) == 0) {
-        if ((st.st_mode & S_IFMT) == S_IFREG) {
-            errno = EEXIST;
-            perror("lstat");
-            exit(1);
-        }
-    }
-
-    unlink(fifo);
-    if (mkfifo(fifo, 0600) == -1) {
-        perror("mkfifo");
-        exit(1);
-    }
-
-    socket = open(fifo, O_RDWR | O_NONBLOCK, 0);
-    if (socket == -1) {
-        perror("open");
-        exit(1);
-    }
-
-
-    event.ev_fd = socket;
-    event.ev_events = EV_READ;
-    event.ev_timeout.tv_sec  = 60;
-    event.ev_timeout.tv_usec = 0;
-    event.ev_callback = evsig_cb;
+    int save_errno = errno;
+    int msg;
 
     /*
-     *dbg_str(DBG_SUC,"at main, base addr:%p, map addr :%p, search:%p, timer:%p",
-     *        eb, eb->map, eb->search, eb->timer);
+     *msg = sig;
+     *send(evsig_base_fd, (char*)&msg, 1, 0);
+     *errno = save_errno;
      */
-    dbg_str(DBG_SUC,"event addr:%p", &event);
-
-    eb->add(eb, &event);
-
-    eb->loop(eb);
-
-    object_destroy(eb);
 }
+
+
+int evsig_init(Event_Base *eb, int evsignal)
+{
+    int fds[2];
+    struct sigaction sa; 
+
+    if (pipe(fds)) {
+        dbg_str(SM_ERROR,"cannot create pipe");
+        return -1;
+    }
+
+    /*
+     *sa.sa_handler = handler;                    
+     *sa.sa_flags |= SA_RESTART;                             
+     *sigfillset(&sa.sa_mask);                                                                                                                                                     
+     */
+
+    if (sigaction(evsignal, &sa, NULL) == -1) {
+        return (-1);
+    }
+
+
+    eb->evsig.fd_snd = fds[0];
+    eb->evsig.fd_rcv = fds[1];
+
+
+    /*
+     *char command = 'c';//c --> change state
+     *if (write(fds[1], &command, 1) != 1) {
+     *    dbg_str(SM_WARNNING,"concurrent_master_notify_slave,write pipe err");
+     *}
+     */
+}
+
+
+int called = 0;
+
+    static void
+signal_cb(int fd, short event, void *arg)
+{
+    struct event *signal = arg;
+
+    printf("%s: got signal %d\n", __func__,fd);
+
+/*
+ *    if (called >= 2)
+ *        event_del(signal);
+ *
+ *    called++;
+ */
+}
+
+int test_signal()
+{
+    struct event signal_int;
+    struct event_base* base;
+
+    /* Initalize the event library */
+    base = event_base_new();
+
+    /* Initalize one event */
+    event_assign(&signal_int, base, SIGINT, EV_SIGNAL|EV_PERSIST, signal_cb,
+            &signal_int);
+
+    event_add(&signal_int, NULL);
+
+    event_base_dispatch(base);
+    event_base_distroy(base);
+
+    return (0);
+}
+

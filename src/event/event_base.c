@@ -130,14 +130,17 @@ static int __add(Event_Base *eb, event_t *event)
     dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p, map_iter:%p, timer:%p, event:%p",
             eb, eb->io_map, eb->map_iter, eb->timer, event);
 
-    event->ev_tv = event->ev_timeout;
-    addr_to_buffer(event,buffer);
-    dbg_buf(DBG_DETAIL,"buffer:", buffer, 4);
-    io_map->insert(io_map, &fd, buffer);
+    if (event->ev_events & EV_SIGNAL) {
+    } else {
+        event->ev_tv = event->ev_timeout;
+        addr_to_buffer(event,buffer);
+        dbg_buf(DBG_DETAIL,"buffer:", buffer, 4);
+        io_map->insert(io_map, &fd, buffer);
 
-    eb->add_io(eb,event);
-    timer->add(timer, event);
+        eb->add_io(eb,event);
+        timer->add(timer, event);
 
+    }
     return (0);
 }
 
@@ -149,16 +152,19 @@ static int __del(Event_Base *eb, event_t *event)
     Map *io_map = eb->io_map;
     int ret;
 
-    eb->del_io(eb,event);
-    timer->del(timer, event);
-
-    //del fd in map
-    ret = io_map->search(io_map, &fd, iter);
-    if (ret < 0) {
-        dbg_str(DBG_WARNNING,"not found fd in io_map,ret=%d",ret);
+    if (event->ev_events & EV_SIGNAL) {
     } else {
-        ret = io_map->del(io_map, iter);
-        dbg_str(DBG_WARNNING,"del fd =%d in io_map", fd);
+        eb->del_io(eb,event);
+        timer->del(timer, event);
+
+        //del fd in map
+        ret = io_map->search(io_map, &fd, iter);
+        if (ret < 0) {
+            dbg_str(DBG_WARNNING,"not found fd in io_map,ret=%d",ret);
+        } else {
+            ret = io_map->del(io_map, iter);
+            dbg_str(DBG_WARNNING,"del fd =%d in io_map", fd);
+        }
     }
 
     return 0;

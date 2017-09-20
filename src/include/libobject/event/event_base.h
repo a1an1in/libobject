@@ -30,6 +30,12 @@ typedef struct event_base_s Event_Base;
 /** Select edge-triggered behavior, if supported by the backend. */
 #define EV_ET       0x20
 
+struct evsig_s{
+    int fd_snd, fd_rcv;
+    Map *sig_map;
+    Iterator *sig_map_iter;
+};
+
 struct event_base_s{
 	Obj obj;
 
@@ -53,6 +59,7 @@ struct event_base_s{
     Timer *timer;
     Map *io_map;
     Iterator *map_iter;
+    struct evsig_s evsig;
 };
 
 #endif
