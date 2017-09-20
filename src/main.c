@@ -232,9 +232,7 @@ static int args_process_test_io_user(void *base,int argc,char **argv)
 
 static int args_process_test_evio(void *base,int argc,char **argv)
 {
-     /*
-      *test_io();
-      */
+     test_io();
     return 0;
 }
 
@@ -251,9 +249,7 @@ static int args_process_test_evsignal(void *base,int argc,char **argv)
 
 static int args_process_test_evtime(void *base,int argc,char **argv)
 {
-    /*
-     *test_time();
-     */
+    test_time();
     /*
      *test_time2();
      */
@@ -633,7 +629,6 @@ static int args_process_test_Event_Base(void *base,int argc,char **argv)
     /*
      *test_obj_eb();
      */
-    test_time();
     return 0;
 }
 static cmd_config_t cmds[]={

@@ -2,32 +2,50 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <libobject/event/select_base.h>
 
-static void test_ev_callback(int fd, short events, void *arg)
+static void
+evsig_cb(int fd, short what, void *arg)
 {
-    char buf[255];
-    int len;
+    static char signals[1024];
+    int n;
+    int i;
+    int ncaught[NSIG];
+    struct event_base *base;
 
-    dbg_str(DBG_SUC,"hello world, event");
-    len = read(fd, buf, sizeof(buf) - 1);
+    base = arg;
 
-    if (len == -1) {
-        perror("read");
-        return;
-    } else if (len == 0) {
-        fprintf(stderr, "Connection closed\n");
-        return;
+    memset(&ncaught, 0, sizeof(ncaught));
+
+    while (1) {
+        n = recv(fd, signals, sizeof(signals), 0);
+        if (n == -1) {
+            dbg_str(DBG_ERROR,"evsig_cb recv");
+            break;
+        } else if (n == 0) {
+            break;
+        }
+        for (i = 0; i < n; ++i) {
+            uint8_t sig = signals[i];
+            if (sig < NSIG)
+                ncaught[sig]++;
+        }
     }
 
-    buf[len] = '\0';
-    fprintf(stdout, "Read: %s\n", buf);
+    for (i = 0; i < NSIG; ++i) {
+        /*
+         *if (ncaught[i])
+         *    evmap_signal_active(base, i, ncaught[i]);
+         */
+    }
 }
-int test_event_io()
+
+int tes_event_io()
 {
     struct stat st;
     int socket;
@@ -71,7 +89,7 @@ int test_event_io()
     event.ev_events = EV_READ;
     event.ev_timeout.tv_sec  = 60;
     event.ev_timeout.tv_usec = 0;
-    event.ev_callback = test_ev_callback;
+    event.ev_callback = evsig_cb;
 
     /*
      *dbg_str(DBG_SUC,"at main, base addr:%p, map addr :%p, search:%p, timer:%p",

@@ -33,55 +33,7 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/event/event_base.h>
 #include <libobject/utils/config/config.h>
-
-static int timeval_cmp(struct timeval *k1,struct timeval *k2)
-{
-    if (    k1->tv_sec > k2->tv_sec || 
-            (k1->tv_sec == k2->tv_sec && k1->tv_usec > k2->tv_usec))
-    {
-        return 1;
-    } else if (k1->tv_sec == k2->tv_sec && k1->tv_usec == k2->tv_usec) {
-        return 0;
-    } else {
-        return -1;
-    }
-}
-
-static int timeval_now(struct timeval *t, struct timezone *tz)
-{
-    gettimeofday(t, tz);
-}
-
-static int timeval_add(struct timeval *k1,struct timeval *k2, struct timeval *r)
-{
-    (r)->tv_sec = (k1)->tv_sec + (k2)->tv_sec;      
-    (r)->tv_usec = (k1)->tv_usec + (k2)->tv_usec;       
-    if ((r)->tv_usec >= 1000000) {            
-        (r)->tv_sec++;                
-        (r)->tv_usec -= 1000000;          
-    }                           
-
-    return 0;
-}
-
-static int timeval_sub(struct timeval *k1,struct timeval *k2, struct timeval *r)
-{
-    (r)->tv_sec = (k1)->tv_sec - (k2)->tv_sec;      
-    (r)->tv_usec = (k1)->tv_usec - (k2)->tv_usec;   
-    if ((r)->tv_usec < 0) {               
-        (r)->tv_sec--;                
-        (r)->tv_usec += 1000000;          
-    }                           
-
-    return 0;
-}
-
-static int timeval_clear(struct timeval *t)
-{
-    t->tv_sec = t->tv_usec = 0;
-    return 0;
-}
-
+#include <libobject/utils/timeval/timeval.h>
 
 static int __construct(Event_Base *eb,char *init_str)
 {
@@ -103,12 +55,12 @@ static int __construct(Event_Base *eb,char *init_str)
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "8") ;
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "20") ;
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_type", "1");
-    eb->map    = OBJECT_NEW(allocator, Hash_Map, c->buf);
+    eb->io_map    = OBJECT_NEW(allocator, Hash_Map, c->buf);
 
     eb->map_iter = OBJECT_NEW(allocator, Hmap_Iterator,NULL);
 
-    dbg_str(EV_DETAIL,"base addr:%p, map addr :%p, map_iter:%p, timer:%p",
-            eb, eb->map, eb->map_iter, eb->timer);
+    dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p, map_iter:%p, timer:%p",
+            eb, eb->io_map, eb->map_iter, eb->timer);
 
     cfg_destroy(c);
 
@@ -121,7 +73,7 @@ static int __deconstrcut(Event_Base *eb)
 
     object_destroy(eb->timer);
     object_destroy(eb->map_iter);
-    object_destroy(eb->map);
+    object_destroy(eb->io_map);
 
     return 0;
 }
@@ -168,64 +120,83 @@ static void *__get(Event_Base *obj, char *attrib)
     return NULL;
 }
 
-static int __add(Event_Base *b, event_t *event)
+static int __add(Event_Base *eb, event_t *event)
 {
-    Timer *timer  = b->timer;
-    Map *map = b->map;
+    Timer *timer  = eb->timer;
+    Map *io_map = eb->io_map;
     int fd = event->ev_fd;
     char buffer[16] = {0};
 
-    dbg_str(EV_DETAIL,"base addr:%p, map addr :%p, map_iter:%p, timer:%p, event:%p",
-            b, b->map, b->map_iter, b->timer, event);
+    dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p, map_iter:%p, timer:%p, event:%p",
+            eb, eb->io_map, eb->map_iter, eb->timer, event);
 
     event->ev_tv = event->ev_timeout;
     addr_to_buffer(event,buffer);
     dbg_buf(DBG_DETAIL,"buffer:", buffer, 4);
-    map->insert(map, &fd, buffer);
+    io_map->insert(io_map, &fd, buffer);
 
-    b->add_io(b,event);
+    eb->add_io(eb,event);
     timer->add(timer, event);
 
     return (0);
 }
 
-static int __del(Event_Base *b, event_t *event) 
+static int __del(Event_Base *eb, event_t *event) 
 {
-    Timer *timer  = b->timer;
+    Timer *timer  = eb->timer;
+    int fd = event->ev_fd;
+    Iterator *iter = eb->map_iter;
+    Map *io_map = eb->io_map;
+    int ret;
 
-    b->del_io(b,event);
+    eb->del_io(eb,event);
     timer->del(timer, event);
+
+    //del fd in map
+    ret = io_map->search(io_map, &fd, iter);
+    if (ret < 0) {
+        dbg_str(DBG_WARNNING,"not found fd in io_map,ret=%d",ret);
+    } else {
+        ret = io_map->del(io_map, iter);
+        dbg_str(DBG_WARNNING,"del fd =%d in io_map", fd);
+    }
 
     return 0;
 }
 
-static int __active_io(Event_Base *b, int fd, short events)
+static int __active_io(Event_Base *eb, int fd, short events)
 {
+    Timer *timer = eb->timer;
     struct timeval tv;
     char *p;
     char buf[255];
     int len;
-    Map *map = b->map;
-    Iterator *iter = b->map_iter;
+    Map *io_map = eb->io_map;
+    Iterator *iter = eb->map_iter;
     event_t *event;
     int ret;
 
     dbg_str(EV_SUC,"event base active io event, fd = %d", fd);
 
-    ret = map->search(map, &fd, iter);
+    ret = io_map->search(io_map, &fd, iter);
     dbg_str(DBG_WARNNING,"search ret=%d",ret);
 
     if (ret < 0) {
-        dbg_str(DBG_WARNNING,"not found fd in map,ret=%d",ret);
+        dbg_str(DBG_WARNNING,"not found fd in io_map,ret=%d",ret);
     } else {
         p = iter->get_vpointer(iter);
         dbg_buf(DBG_DETAIL,"buffer:", p, 4);
         event = (event_t *)buffer_to_addr(p);
-        dbg_str(DBG_SUC,"event addr:%p", event);
-        event->ev_callback(event->ev_fd, 0, NULL);
-        /*
-         *b->add(b, event);
-         */
+        dbg_str(DBG_SUC,"event addr:%p, ev_callback=%p", event, event->ev_callback);
+        event->ev_callback(event->ev_fd, 0, event);
+
+        if (event->ev_events & EV_PERSIST) {
+            timer->del(timer, event);
+            event->ev_timeout = event->ev_tv;
+            timer->add(timer, event);
+        } else {
+            eb->del(eb, event);
+        } 
     }
 
     return 0;
@@ -245,7 +216,6 @@ static int __process_timeout_events(Event_Base *eb)
             event->ev_callback(event->ev_fd, 0, event);
             if (event->ev_events & EV_PERSIST) {
                 timer->del(timer, event);
-                timeval_clear(&event->ev_timeout);
                 event->ev_timeout = event->ev_tv;
                 timer->add(timer, event);
             } else {

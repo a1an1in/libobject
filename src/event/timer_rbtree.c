@@ -35,61 +35,7 @@
 #include <libobject/event/event_base.h>
 #include <libobject/event/timer_rbtree.h>
 #include <libobject/utils/miscellany/buffer.h>
-
-static int timeval_cmp(struct timeval *k1,struct timeval *k2)
-{
-    if (    k1->tv_sec > k2->tv_sec || 
-            (k1->tv_sec == k2->tv_sec && k1->tv_usec > k2->tv_usec))
-    {
-        return 1;
-    } else if (k1->tv_sec == k2->tv_sec && k1->tv_usec == k2->tv_usec) {
-        return 0;
-    } else {
-        return -1;
-    }
-}
-
-static int timeval_add(struct timeval *k1,struct timeval *k2, struct timeval *r)
-{
-    (r)->tv_sec = (k1)->tv_sec + (k2)->tv_sec;      
-    (r)->tv_usec = (k1)->tv_usec + (k2)->tv_usec;       
-    if ((r)->tv_usec >= 1000000) {            
-        (r)->tv_sec++;                
-        (r)->tv_usec -= 1000000;          
-    }                           
-
-    return 0;
-}
-
-static int timeval_sub(struct timeval *k1,struct timeval *k2, struct timeval *r)
-{
-    (r)->tv_sec = (k1)->tv_sec - (k2)->tv_sec;      
-    (r)->tv_usec = (k1)->tv_usec - (k2)->tv_usec;   
-    if ((r)->tv_usec < 0) {               
-        (r)->tv_sec--;                
-        (r)->tv_usec += 1000000;          
-    }                           
-
-    return 0;
-}
-
-static int timeval_now(struct timeval *t, struct timezone *tz)
-{
-    gettimeofday(t, tz);
-}
-
-static int timeval_clear(struct timeval *t)
-{
-    t->tv_sec = t->tv_usec = 0;
-    return 0;
-}
-
-static int timeval_print(struct timeval *t)
-{
-    dbg_str(DBG_DETAIL,"timeval tv_sec=%d, tv_usec=%d", t->tv_sec, t->tv_usec);
-
-    return 0;
-}
+#include <libobject/utils/timeval/timeval.h>
 
 static int timeval_key_cmp_func(void *key1,void *key2,uint32_t size)
 {

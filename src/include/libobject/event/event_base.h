@@ -51,7 +51,7 @@ struct event_base_s{
     int (*dispatch)(Event_Base *, struct timeval *tv);
 
     Timer *timer;
-    Map *map;
+    Map *io_map;
     Iterator *map_iter;
 };
 

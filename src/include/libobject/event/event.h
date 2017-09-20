@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <libobject/utils/dbg/debug.h>
 
-typedef struct event_s event_t;
+typedef struct event event_t;
 
-struct event_s{
+struct event{
     uint32_t ev_fd;
     void *fdinfo;
     void *ev_base;

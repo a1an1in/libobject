@@ -28,12 +28,13 @@ int event_assign(event_t *ev,
                  short events,
                  void (*callback)(int, short, void *), void *arg)
 {
-
     ev->ev_fd = fd;
     ev->ev_events = events;
     ev->ev_callback = callback;
     ev->ev_arg = arg;
     ev->ev_base = (void *)base->eb;
+
+    dbg_str(DBG_DETAIL,"ev_callback=%p", ev->ev_callback);
 
     return 0;
 }
@@ -42,8 +43,11 @@ int event_add(event_t *ev, const struct timeval *tv)
 {
     Event_Base *eb = (Event_Base *)ev->ev_base;
 
-    ev->ev_timeout.tv_sec  = tv->tv_sec;
-    ev->ev_timeout.tv_usec = tv->tv_usec;
+    if (tv != NULL) {
+        ev->ev_timeout.tv_sec  = tv->tv_sec;
+        ev->ev_timeout.tv_usec = tv->tv_usec;
+    }
+
     eb->add(eb, ev);
 
     return 0;
