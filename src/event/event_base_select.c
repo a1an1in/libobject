@@ -30,6 +30,7 @@
  * 
  */
 #include <stdio.h>
+#include <errno.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/event/select_base.h>
 #include <libobject/utils/config/config.h>
@@ -43,6 +44,8 @@ static int __construct(Select_Base *eb,char *init_str)
     FD_ZERO(&eb->event_writeset_in);
     FD_ZERO(&eb->event_readset_out);
     FD_ZERO(&eb->event_writeset_out);
+
+    evsig_init(eb);
 
     return 0;
 }
@@ -97,12 +100,10 @@ static int __add_io(Select_Base *b, event_t *e)
     int fd = e->ev_fd;
     Event_Base *p = (Event_Base *)b;
 
-    /*
-     *if (fd < 0) {
-     *    dbg_str(DBG_WARNNING,"not add this fd");
-     *    return 0;
-     *}
-     */
+    if (fd < 0) {
+        dbg_str(DBG_WARNNING,"not add this fd");
+        return 0;
+    }
 
     b->maxfdp = b->maxfdp -1 > fd ? b->maxfdp : fd + 1; 
 
@@ -147,18 +148,24 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
     b->event_readset_out  = b->event_readset_in;
     b->event_writeset_out = b->event_writeset_in;
 
+    dbg_str(DBG_DETAIL,"select base dispatch io nfds=%d",nfds);
     res = select(nfds, &b->event_readset_out,
-            &b->event_writeset_out, NULL, tv);
+                 &b->event_writeset_out, NULL, tv);
 
+    dbg_str(DBG_DETAIL,"run at here");
     if (res == -1) {
-        dbg_str(DBG_WARNNING,"select error");
+        perror("dispatch");
+        dbg_str(DBG_WARNNING,"dispatch, erro_no:%d, nfds=%d", errno, nfds);
         return (0);
     } else if (res > 0) {
-        dbg_str(DBG_SUC,"select base dispatch io events res=%d, tv=%d",res, tv->tv_sec);
+        if (tv != NULL)
+            dbg_str(DBG_SUC,"select base dispatch io events res=%d, tv=%d",res, tv->tv_sec);
     } else {
         dbg_str(DBG_WARNNING,"select timeout");
         return 0;
     }
+
+    dbg_str(DBG_DETAIL,"run at here");
 
     i = random() % nfds;
     for (j = 0; j < nfds; ++j) {
@@ -177,6 +184,7 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
         dbg_str(DBG_SUC,"fd %d has event", i);
         b->active_io((Event_Base *)b,i, res);
     }
+    dbg_str(DBG_DETAIL,"run at here");
 
     return 0;
 }

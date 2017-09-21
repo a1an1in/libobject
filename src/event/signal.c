@@ -7,8 +7,26 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdio.h>
+#include <string.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/timeb.h>
+#include <time.h>
+#include <sys/stat.h>
 #include <libobject/event/select_base.h>
 #include <libobject/utils/event/event_compat.h>
+
+static int gloable_evsig_send_fd;
+static int gloable_evsig_rcv_fd;
+
 
 static void
 evsig_cb(int fd, short what, void *arg)
@@ -21,23 +39,23 @@ evsig_cb(int fd, short what, void *arg)
 
     eb = arg;
 
+    dbg_str(DBG_SUC,"evsig_cb");
     memset(&ncaught, 0, sizeof(ncaught));
 
-    while (1) {
-        n = recv(fd, signals, sizeof(signals), 0);
-        if (n == -1) {
-            dbg_str(DBG_ERROR,"evsig_cb recv");
-            break;
-        } else if (n == 0) {
-            break;
-        }
-        for (i = 0; i < n; ++i) {
-            uint8_t sig = signals[i];
-            if (sig < NSIG)
-                ncaught[sig]++;
-        }
+    n = recv(fd, signals, sizeof(signals), 0);
+    if (n == -1) {
+        dbg_str(DBG_ERROR,"evsig_cb recv");
+    } else if (n == 0) {
     }
 
+    for (i = 0; i < n; ++i) {
+        uint8_t sig = signals[i];
+        if (sig < NSIG)
+            ncaught[sig]++;
+    }
+
+
+    dbg_str(DBG_SUC,"evsig_cb out");
     for (i = 0; i < NSIG; ++i) {
         /*
          *if (ncaught[i])
@@ -48,85 +66,178 @@ evsig_cb(int fd, short what, void *arg)
 
 static void signal_handler(int sig)
 {
-    int save_errno = errno;
-    int msg;
+    char msg = (char) sig;
 
-    /*
-     *msg = sig;
-     *send(evsig_base_fd, (char*)&msg, 1, 0);
-     *errno = save_errno;
-     */
+    dbg_str(DBG_SUC,"signal_handler %d, gloable_evsig_send_fd =%d", signal, gloable_evsig_send_fd);
+
+    send(gloable_evsig_send_fd, (char*)&msg, 1, 0);
 }
 
+int
+evsig_socketpair(int fd[2])
+{
+    struct sockaddr_in listen_addr;
+    struct sockaddr_in connect_addr;
+    int listener    = -1;
+    int connector   = -1;
+    int acceptor    = -1;
+    int saved_errno = -1;
+    int protocol    = 0;
+    int type        = SOCK_STREAM;
+    int size;
 
-int evsig_init(Event_Base *eb, int evsignal)
+    if (!fd) {
+        return -1;
+    }
+
+    listener = socket(AF_INET, type, 0);
+    if (listener < 0)
+        return -1;
+
+    memset(&listen_addr, 0, sizeof(listen_addr));
+    listen_addr.sin_family      = AF_INET;
+    listen_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    listen_addr.sin_port        = 0;   /* kernel chooses port.  */
+    if (bind(listener, (struct sockaddr *) &listen_addr, sizeof (listen_addr)) == -1)
+        goto error;
+    if (listen(listener, 1) == -1)
+        goto error;
+
+    if ((connector = socket(AF_INET, type, 0)) < 0)
+        goto error;
+    /* We want to find out the port number to connect to.  */
+    size = sizeof(connect_addr);
+    if (getsockname(listener, (struct sockaddr *) &connect_addr, &size) == -1)
+        goto error;
+    if (size != sizeof (connect_addr))
+        goto error;
+
+    if (connect(connector, (struct sockaddr *) &connect_addr,
+                sizeof(connect_addr)) == -1)
+        goto error;
+
+    size = sizeof(listen_addr);
+    acceptor = accept(listener, (struct sockaddr *) &listen_addr, &size);
+    if (acceptor < 0)
+        goto error;
+    if (size != sizeof(listen_addr))
+        goto error;
+    /* Now check we are talking to ourself by matching port and host on the
+       two sockets.  */
+    if (getsockname(connector, (struct sockaddr *) &connect_addr, &size) == -1)
+        goto error;
+    if (size != sizeof (connect_addr)
+            || listen_addr.sin_family != connect_addr.sin_family
+            || listen_addr.sin_addr.s_addr != connect_addr.sin_addr.s_addr
+            || listen_addr.sin_port != connect_addr.sin_port)
+        goto error;
+
+    fd[0] = connector;
+    fd[1] = acceptor;
+
+    close(listener);
+
+    return 0;
+
+error:
+    if (listener != -1)
+        close(listener);
+    if (connector != -1)
+        close(connector);
+    if (acceptor != -1)
+        close(acceptor);
+
+    return -1;
+}
+int
+evsig_make_socket_closeonexec(int fd)
+{
+    int flags;
+
+    if ((flags = fcntl(fd, F_GETFD, NULL)) < 0) {
+        dbg_str(DBG_WARNNING,"fcntl(%d, F_GETFD)", fd);
+        return -1;
+    }
+    if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) == -1) {
+        dbg_str(DBG_WARNNING,"fcntl(%d, F_SETFD)", fd);
+        return -1;
+    }
+
+    return 0;
+}
+
+int
+evsig_make_socket_nonblocking(int fd)
+{
+    int flags;
+
+    if ((flags = fcntl(fd, F_GETFL, NULL)) < 0) {
+        dbg_str(DBG_WARNNING,"fcntl(%d, F_GETFL)", fd);
+        return -1;
+    }
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        dbg_str(DBG_WARNNING,"fcntl(%d, F_SETFD)", fd);
+        return -1;
+    }
+
+    return 0;
+}
+
+int evsig_init(Event_Base *eb)
 {
     int fds[2];
-    struct sigaction sa; 
+    event_t *event = &eb->evsig.fd_rcv_event;
 
+#if 0
     if (pipe(fds)) {
         dbg_str(SM_ERROR,"cannot create pipe");
         return -1;
     }
 
+#else
+    evsig_socketpair(fds);
+#endif
+
+    eb->evsig.fd_rcv = fds[1];
+    eb->evsig.fd_snd = fds[0];
+
+    dbg_str(DBG_DETAIL,"evsig_init, gloable_evsig_send_fd=%d", eb->evsig.fd_snd);
+
+    gloable_evsig_send_fd = eb->evsig.fd_snd;
+    gloable_evsig_rcv_fd = eb->evsig.fd_rcv;
+    evsig_make_socket_closeonexec(eb->evsig.fd_snd);
+    evsig_make_socket_closeonexec(eb->evsig.fd_rcv);
+    evsig_make_socket_nonblocking(eb->evsig.fd_snd);
+    evsig_make_socket_nonblocking(eb->evsig.fd_snd);
+
+    event->ev_fd        = eb->evsig.fd_rcv;
+    event->ev_events    = EV_READ | EV_PERSIST;
+    event->ev_callback  = evsig_cb;
+    event->ev_tv.tv_sec = 0;
+    event->ev_tv.tv_sec = 0;
+    eb->add(eb, event);
+
+    return 0;
+}
+
+int evsig_add(Event_Base *eb, int evsignal)
+{
+    struct sigaction sa; 
+
+#if 1
+    sa.sa_handler = signal_handler;                    
     /*
-     *sa.sa_handler = handler;                    
      *sa.sa_flags |= SA_RESTART;                             
-     *sigfillset(&sa.sa_mask);                                                                                                                                                     
      */
+    sa.sa_flags |= SA_INTERRUPT;                             
+    sigfillset(&sa.sa_mask);                      
 
     if (sigaction(evsignal, &sa, NULL) == -1) {
         return (-1);
     }
+#else 
+    signal(evsignal,signal_handler);
+#endif
 
-
-    eb->evsig.fd_snd = fds[0];
-    eb->evsig.fd_rcv = fds[1];
-
-
-    /*
-     *char command = 'c';//c --> change state
-     *if (write(fds[1], &command, 1) != 1) {
-     *    dbg_str(SM_WARNNING,"concurrent_master_notify_slave,write pipe err");
-     *}
-     */
+    return 0;
 }
-
-
-int called = 0;
-
-    static void
-signal_cb(int fd, short event, void *arg)
-{
-    struct event *signal = arg;
-
-    printf("%s: got signal %d\n", __func__,fd);
-
-/*
- *    if (called >= 2)
- *        event_del(signal);
- *
- *    called++;
- */
-}
-
-int test_signal()
-{
-    struct event signal_int;
-    struct event_base* base;
-
-    /* Initalize the event library */
-    base = event_base_new();
-
-    /* Initalize one event */
-    event_assign(&signal_int, base, SIGINT, EV_SIGNAL|EV_PERSIST, signal_cb,
-            &signal_int);
-
-    event_add(&signal_int, NULL);
-
-    event_base_dispatch(base);
-    event_base_distroy(base);
-
-    return (0);
-}
-

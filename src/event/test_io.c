@@ -68,7 +68,7 @@ int test_event_io()
 
 
     event.ev_fd = socket;
-    event.ev_events = EV_READ;
+    event.ev_events = EV_READ | EV_PERSIST;
     event.ev_timeout.tv_sec  = 60;
     event.ev_timeout.tv_usec = 0;
     event.ev_callback = test_ev_callback;

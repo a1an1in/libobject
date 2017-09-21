@@ -75,7 +75,7 @@ int test_io()
     event_assign(&evfifo,event_base, socket, EV_READ, fifo_read, &evfifo);
 
     /* Add it to the active events, without a timeout */
-    tv.tv_sec = 10;
+    tv.tv_sec = 0;
     tv.tv_usec = 0;
 
     event_add(&evfifo, &tv);

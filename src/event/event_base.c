@@ -62,6 +62,7 @@ static int __construct(Event_Base *eb,char *init_str)
     dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p, map_iter:%p, timer:%p",
             eb, eb->io_map, eb->map_iter, eb->timer);
 
+
     cfg_destroy(c);
 
     return 0;
@@ -71,6 +72,7 @@ static int __deconstrcut(Event_Base *eb)
 {
     dbg_str(EV_DETAIL,"eb deconstruct,eb addr:%p",eb);
 
+    //release evsig
     object_destroy(eb->timer);
     object_destroy(eb->map_iter);
     object_destroy(eb->io_map);
@@ -131,6 +133,7 @@ static int __add(Event_Base *eb, event_t *event)
             eb, eb->io_map, eb->map_iter, eb->timer, event);
 
     if (event->ev_events & EV_SIGNAL) {
+        evsig_add(eb, event->ev_fd);
     } else {
         event->ev_tv = event->ev_timeout;
         addr_to_buffer(event,buffer);
@@ -197,10 +200,12 @@ static int __active_io(Event_Base *eb, int fd, short events)
         event->ev_callback(event->ev_fd, 0, event);
 
         if (event->ev_events & EV_PERSIST) {
+            dbg_str(DBG_SUC,"persist event, readd io");
             timer->del(timer, event);
             event->ev_timeout = event->ev_tv;
             timer->add(timer, event);
         } else {
+            dbg_str(DBG_SUC,"del event");
             eb->del(eb, event);
         } 
     }

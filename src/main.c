@@ -238,9 +238,7 @@ static int args_process_test_evio(void *base,int argc,char **argv)
 
 static int args_process_test_evsignal(void *base,int argc,char **argv)
 {
-    /*
-     *test_signal();
-     */
+    test_signal();
     /*
      *test_signal2();
      */
@@ -310,10 +308,10 @@ static int args_process_lab(void *base,int argc,char **argv)
     /*
      *lab3();
      */
-    lab4(argc, argv);
-     /*
-      *lab5();
-      */
+    /*
+     *lab4(argc, argv);
+     */
+     lab5();
     /*
      *lab6(argc, argv);
      */

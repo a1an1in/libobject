@@ -127,8 +127,14 @@ static int __del(Rbtree_Timer *timer, event_t *e)
 {
     rbtree_map_t *map = timer->map;
     rbtree_map_pos_t it;
+    struct timeval null_tv = {0, 0};
+    int ret;
 
     dbg_str(DBG_DETAIL,"rbtree timer del");
+    ret = timeval_cmp(&e->ev_timeout, &null_tv);
+    if (ret <= 0) {
+        return ret;
+    }
     rbtree_map_search(map, &e->ev_timeout,&it);
     rbtree_map_delete(map, &it);
 
