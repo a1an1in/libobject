@@ -34,12 +34,11 @@ evsig_cb(int fd, short what, void *arg)
     static char signals[1024];
     int n;
     int i;
-    int ncaught[NSIG];
-    Event_Base *eb;
+    int ncaught[NSIG] = {0};
+    event_t *event = (event_t *)arg;
+    Event_Base *eb = (Event_Base *)event->ev_base;
 
-    eb = arg;
-
-    dbg_str(DBG_SUC,"evsig_cb");
+    dbg_str(EV_DETAIL,"evsig_cb, NSIG=%d", NSIG);
     memset(&ncaught, 0, sizeof(ncaught));
 
     n = recv(fd, signals, sizeof(signals), 0);
@@ -55,20 +54,19 @@ evsig_cb(int fd, short what, void *arg)
             ncaught[sig]++;
     }
 
-
     for (i = 0; i < NSIG; ++i) {
         if (ncaught[i]) {
             eb->active_signal(eb, i, ncaught[i]);
         }
     }
-    dbg_str(DBG_SUC,"evsig_cb out");
+    dbg_str(EV_DETAIL,"evsig_cb out");
 }
 
 static void signal_handler(int sig)
 {
     char msg = (char) sig;
 
-    dbg_str(DBG_SUC,"signal_handler %d, gloable_evsig_send_fd =%d, sig=%d", signal, gloable_evsig_send_fd, sig);
+    dbg_str(EV_DETAIL,"signal_handler %d, gloable_evsig_send_fd =%d, sig=%d", signal, gloable_evsig_send_fd, sig);
 
     send(gloable_evsig_send_fd, (char*)&msg, 1, 0);
 }
@@ -215,16 +213,18 @@ int evsig_init(Event_Base *eb)
     event->ev_callback  = evsig_cb;
     event->ev_tv.tv_sec = 0;
     event->ev_tv.tv_sec = 0;
+    event->ev_base      = eb;
     eb->add(eb, event);
 
     return 0;
 }
 
-int evsig_add(Event_Base *eb, int evsignal)
+int evsig_add(Event_Base *eb, event_t *event)
 {
     struct sigaction sa; 
+    int evsignal = event->ev_fd;
 
-#if 1
+#if 0
     sa.sa_handler = signal_handler;                    
     /*
      *sa.sa_flags |= SA_RESTART;                             

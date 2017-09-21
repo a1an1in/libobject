@@ -107,7 +107,7 @@ static int __add_io(Select_Base *b, event_t *e)
 
     b->maxfdp = b->maxfdp -1 > fd ? b->maxfdp : fd + 1; 
 
-    dbg_str(DBG_SUC,"select base add event, fd =%d, maxfdp=%d", fd, b->maxfdp);
+    dbg_str(EV_DETAIL,"select base add event, fd =%d, maxfdp=%d", fd, b->maxfdp);
 
     if (e->ev_events & EV_READ)
         FD_SET(fd, &b->event_readset_in);
@@ -128,7 +128,7 @@ static int __del_io(Select_Base *b, event_t *e)
     int fd = e->ev_fd;
     unsigned short events = e->ev_events;
 
-    dbg_str(DBG_SUC,"select base add event");
+    dbg_str(EV_DETAIL,"select base add event");
 
     //.. maxfdp
 
@@ -148,24 +148,24 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
     b->event_readset_out  = b->event_readset_in;
     b->event_writeset_out = b->event_writeset_in;
 
-    dbg_str(DBG_DETAIL,"select base dispatch io nfds=%d",nfds);
+    dbg_str(EV_DETAIL,"select base dispatch io nfds=%d",nfds);
     res = select(nfds, &b->event_readset_out,
                  &b->event_writeset_out, NULL, tv);
 
-    dbg_str(DBG_DETAIL,"run at here");
+    dbg_str(EV_DETAIL,"run at here");
     if (res == -1) {
         perror("dispatch");
         dbg_str(DBG_WARNNING,"dispatch, erro_no:%d, nfds=%d", errno, nfds);
         return (0);
     } else if (res > 0) {
         if (tv != NULL)
-            dbg_str(DBG_SUC,"select base dispatch io events res=%d, tv=%d",res, tv->tv_sec);
+            dbg_str(EV_DETAIL,"select base dispatch io events res=%d, tv=%d",res, tv->tv_sec);
     } else {
         dbg_str(DBG_WARNNING,"select timeout");
         return 0;
     }
 
-    dbg_str(DBG_DETAIL,"run at here");
+    dbg_str(EV_DETAIL,"run at here");
 
     i = random() % nfds;
     for (j = 0; j < nfds; ++j) {
@@ -181,10 +181,10 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
         if (res == 0)
             continue;
 
-        dbg_str(DBG_SUC,"fd %d has event", i);
+        dbg_str(EV_DETAIL,"fd %d has event", i);
         b->active_io((Event_Base *)b,i, res);
     }
-    dbg_str(DBG_DETAIL,"run at here");
+    dbg_str(EV_DETAIL,"run at here");
 
     return 0;
 }
@@ -205,7 +205,7 @@ REGISTER_CLASS("Select_Base",select_base_class_info);
 
 static void test_ev_callback(int fd, short events, void *arg)
 {
-    dbg_str(DBG_SUC,"hello world, event");
+    dbg_str(EV_DETAIL,"hello world, event");
 }
 
 void test_obj_select_base()
@@ -219,10 +219,10 @@ void test_obj_select_base()
 
     eb = OBJECT_NEW(allocator, Select_Base, NULL);
 
-    dbg_str(DBG_DETAIL,"run at here, eb=%p", eb);
+    dbg_str(EV_DETAIL,"run at here, eb=%p", eb);
 
     object_dump(eb, "Select_Base", buf, 2048);
-    dbg_str(DBG_DETAIL,"Select_Base dump: %s",buf);
+    dbg_str(EV_DETAIL,"Select_Base dump: %s",buf);
 
     event.ev_timeout.tv_sec  = 2;
     event.ev_timeout.tv_usec = 0;

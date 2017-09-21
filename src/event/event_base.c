@@ -126,20 +126,20 @@ static void *__get(Event_Base *obj, char *attrib)
 
 static int __add(Event_Base *eb, event_t *event)
 {
-    Timer *timer  = eb->timer;
-    Map *io_map = eb->io_map;
-    int fd = event->ev_fd;
+    Timer *timer = eb->timer;
+    Map *io_map  = eb->io_map;
+    int fd       = event->ev_fd;
     char buffer[16] = {0};
 
     dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p, map_iter:%p, timer:%p, event:%p",
             eb, eb->io_map, eb->map_iter, eb->timer, event);
 
     if (event->ev_events & EV_SIGNAL) {
-        evsig_add(eb, event->ev_fd);
+        evsig_add(eb, event);
     } else {
         event->ev_tv = event->ev_timeout;
         addr_to_buffer(event,buffer);
-        dbg_buf(DBG_DETAIL,"buffer:", buffer, 4);
+        dbg_buf(EV_DETAIL,"buffer:", buffer, 4);
         io_map->insert(io_map, &fd, buffer);
 
         eb->add_io(eb,event);
@@ -151,10 +151,10 @@ static int __add(Event_Base *eb, event_t *event)
 
 static int __del(Event_Base *eb, event_t *event) 
 {
-    Timer *timer  = eb->timer;
-    int fd = event->ev_fd;
+    Timer *timer   = eb->timer;
+    int fd         = event->ev_fd;
     Iterator *iter = eb->map_iter;
-    Map *io_map = eb->io_map;
+    Map *io_map    = eb->io_map;
     int ret;
 
     if (event->ev_events & EV_SIGNAL) {
@@ -177,17 +177,17 @@ static int __del(Event_Base *eb, event_t *event)
 
 static int __active_io(Event_Base *eb, int fd, short events)
 {
-    Timer *timer = eb->timer;
+    Timer *timer   = eb->timer;
+    Map *io_map    = eb->io_map;
+    Iterator *iter = eb->map_iter;
     struct timeval tv;
     char *p;
     char buf[255];
     int len;
-    Map *io_map = eb->io_map;
-    Iterator *iter = eb->map_iter;
     event_t *event;
     int ret;
 
-    dbg_str(EV_SUC,"event base active io event, fd = %d", fd);
+    dbg_str(EV_DETAIL,"event base active io event, fd = %d", fd);
 
     ret = io_map->search(io_map, &fd, iter);
     dbg_str(DBG_WARNNING,"search ret=%d",ret);
@@ -196,18 +196,18 @@ static int __active_io(Event_Base *eb, int fd, short events)
         dbg_str(DBG_WARNNING,"not found fd in io_map,ret=%d",ret);
     } else {
         p = iter->get_vpointer(iter);
-        dbg_buf(DBG_DETAIL,"buffer:", p, 4);
+        dbg_buf(EV_DETAIL,"buffer:", p, 4);
         event = (event_t *)buffer_to_addr(p);
-        dbg_str(DBG_SUC,"event addr:%p, ev_callback=%p", event, event->ev_callback);
+        dbg_str(EV_DETAIL,"event addr:%p, ev_callback=%p", event, event->ev_callback);
         event->ev_callback(event->ev_fd, 0, event);
 
         if (event->ev_events & EV_PERSIST) {
-            dbg_str(DBG_SUC,"persist event, readd io");
+            dbg_str(EV_DETAIL,"persist event, readd io");
             timer->del(timer, event);
             event->ev_timeout = event->ev_tv;
             timer->add(timer, event);
         } else {
-            dbg_str(DBG_SUC,"del event");
+            dbg_str(EV_DETAIL,"del event");
             eb->del(eb, event);
         } 
     }
@@ -217,7 +217,7 @@ static int __active_io(Event_Base *eb, int fd, short events)
 
 static int __active_signal(Event_Base *eb, int fd, short events)
 {
-    dbg_str(EV_SUC,"event base active signal event, signal = %d, ncount=%d", fd, events);
+    dbg_str(EV_DETAIL,"event base active signal event, signal = %d, ncount=%d", fd, events);
 
 }
 
@@ -256,7 +256,7 @@ static int __loop(Event_Base *eb)
         __process_timeout_events(eb);
     }
 
-    dbg_str(EV_WARNNING, "break Event_Base loop");
+    dbg_str(EV_WARNNING, "break Event_Base loop, __active_signal addr:%p",__active_signal);
 }
 
 static class_info_entry_t event_base_class_info[] = {

@@ -39,7 +39,7 @@ struct event_base_s{
     struct evsig_s evsig;
 };
 
-int evsig_add(Event_Base *eb, int evsignal);
+int evsig_add(Event_Base *eb, event_t *event);
 int evsig_init(Event_Base *eb);
 
 #endif
