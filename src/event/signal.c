@@ -50,25 +50,25 @@ evsig_cb(int fd, short what, void *arg)
 
     for (i = 0; i < n; ++i) {
         uint8_t sig = signals[i];
+        dbg_str(DBG_DETAIL,"sig=%d",sig);
         if (sig < NSIG)
             ncaught[sig]++;
     }
 
 
-    dbg_str(DBG_SUC,"evsig_cb out");
     for (i = 0; i < NSIG; ++i) {
-        /*
-         *if (ncaught[i])
-         *    evmap_signal_active(base, i, ncaught[i]);
-         */
+        if (ncaught[i]) {
+            eb->active_signal(eb, i, ncaught[i]);
+        }
     }
+    dbg_str(DBG_SUC,"evsig_cb out");
 }
 
 static void signal_handler(int sig)
 {
     char msg = (char) sig;
 
-    dbg_str(DBG_SUC,"signal_handler %d, gloable_evsig_send_fd =%d", signal, gloable_evsig_send_fd);
+    dbg_str(DBG_SUC,"signal_handler %d, gloable_evsig_send_fd =%d, sig=%d", signal, gloable_evsig_send_fd, sig);
 
     send(gloable_evsig_send_fd, (char*)&msg, 1, 0);
 }

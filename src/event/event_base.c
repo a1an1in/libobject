@@ -94,6 +94,8 @@ static int __set(Event_Base *eb, char *attrib, void *value)
         eb->del = value;
     } else if (strcmp(attrib, "active_io") == 0) {
         eb->active_io = value;
+    } else if (strcmp(attrib, "active_signal") == 0) {
+        eb->active_signal = value;
     }
     else if (strcmp(attrib, "construct") == 0) {
         eb->construct = value;
@@ -213,6 +215,12 @@ static int __active_io(Event_Base *eb, int fd, short events)
     return 0;
 }
 
+static int __active_signal(Event_Base *eb, int fd, short events)
+{
+    dbg_str(EV_SUC,"event base active signal event, signal = %d, ncount=%d", fd, events);
+
+}
+
 static int __process_timeout_events(Event_Base *eb)
 {
     Timer *timer = eb->timer;
@@ -257,14 +265,15 @@ static class_info_entry_t event_base_class_info[] = {
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","loop",__loop,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","active_io",__active_io,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_io",NULL,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","del_io",NULL,sizeof(void *)},
-    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","dispatch",NULL,sizeof(void *)},
-    [12] = {ENTRY_TYPE_END},
+    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","active_signal",__active_signal,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","add_io",NULL,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","del_io",NULL,sizeof(void *)},
+    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","dispatch",NULL,sizeof(void *)},
+    [13] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Event_Base",event_base_class_info);
 

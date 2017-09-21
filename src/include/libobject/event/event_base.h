@@ -21,6 +21,7 @@ struct event_base_s{
     void *(*get)(void *obj, char *attrib);
     int (*loop)(Event_Base *);
     int (*active_io)(Event_Base *, int fd, short events); 
+    int (*active_signal)(Event_Base *, int fd, short events); 
     int (*add)(Event_Base *, event_t *e);
     int (*del)(Event_Base *, event_t *e); 
 
