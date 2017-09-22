@@ -45,7 +45,9 @@ static int __construct(Select_Base *eb,char *init_str)
     FD_ZERO(&eb->event_readset_out);
     FD_ZERO(&eb->event_writeset_out);
 
-    evsig_init(eb);
+    /*
+     *evsig_init(eb);
+     */
 
     return 0;
 }
@@ -114,12 +116,6 @@ static int __add_io(Select_Base *b, event_t *e)
     if (e->ev_events & EV_WRITE)
         FD_SET(fd, &b->event_writeset_in);
 
-    //add for test>>
-    b->event_readset_out  = b->event_readset_in;
-    b->event_writeset_out = b->event_writeset_in;
-    //<<
-    
-
     return (0);
 }
 
@@ -148,11 +144,9 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
     b->event_readset_out  = b->event_readset_in;
     b->event_writeset_out = b->event_writeset_in;
 
-    dbg_str(EV_DETAIL,"select base dispatch io nfds=%d",nfds);
+    dbg_str(EV_DETAIL,"dispatch select in,  nfds=%d",nfds);
     res = select(nfds, &b->event_readset_out,
                  &b->event_writeset_out, NULL, tv);
-
-    dbg_str(EV_DETAIL,"run at here");
     if (res == -1) {
         perror("dispatch");
         dbg_str(DBG_WARNNING,"dispatch, erro_no:%d, nfds=%d", errno, nfds);
@@ -165,7 +159,6 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
         return 0;
     }
 
-    dbg_str(EV_DETAIL,"run at here");
 
     i = random() % nfds;
     for (j = 0; j < nfds; ++j) {
@@ -181,10 +174,11 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
         if (res == 0)
             continue;
 
-        dbg_str(EV_DETAIL,"fd %d has event", i);
+        dbg_str(EV_DETAIL,"fd %d has event, res=%d", i, res);
         b->active_io((Event_Base *)b,i, res);
     }
-    dbg_str(EV_DETAIL,"run at here");
+
+    dbg_str(EV_DETAIL,"dispatch select out");
 
     return 0;
 }

@@ -19,7 +19,7 @@ fifo_read(int fd, short event, void *arg)
     /* Reschedule this event */
     event_add(ev, NULL);
 
-    fprintf(stderr, "fifo_read called with fd: %d, event: %d, arg: %p\n",
+    dbg_str(DBG_VIP, "fifo_read called with fd: %d, event: %d, arg: %p\n",
         (int)fd, event, arg);
     len = read(fd, buf, sizeof(buf) - 1);
 
@@ -31,18 +31,39 @@ fifo_read(int fd, short event, void *arg)
         return;
     }
 
-    dbg_str(DBG_SUC,"Read: %s", buf);
+    dbg_str(DBG_DETAIL,"Read: %s", buf);
 }
-int test_io()
-{
-    struct event evfifo;
-    struct stat st;
-    const char *fifo = "event.fifo";
-    int socket;
-    struct event_base *event_base;
-    struct timeval tv;
 
-    if (lstat(fifo, &st) == 0) {
+static void
+pipe_read(int fd, short event, void *arg)
+{
+    char buf[255];
+    int len;
+    struct event *ev = arg;
+
+    /* Reschedule this event */
+    event_add(ev, NULL);
+
+    dbg_str(DBG_VIP, "pipe_read called with fd: %d, event: %d, arg: %p\n",
+        (int)fd, event, arg);
+    len = read(fd, buf, sizeof(buf) - 1);
+
+    if (len == -1) {
+        perror("read");
+        return;
+    } else if (len == 0) {
+        fprintf(stderr, "Connection closed\n");
+        return;
+    }
+
+    dbg_str(DBG_DETAIL,"Read: %s", buf);
+}
+static int create_fifo(char *name) 
+{
+    struct stat st;
+    int socket;
+
+    if (lstat(name, &st) == 0) {
         if ((st.st_mode & S_IFMT) == S_IFREG) {
             errno = EEXIST;
             perror("lstat");
@@ -50,31 +71,44 @@ int test_io()
         }
     }
 
-    unlink(fifo);
-    if (mkfifo(fifo, 0600) == -1) {
-        perror("mkfifo");
+    unlink(name);
+    if (mkfifo(name, 0600) == -1) {
+        perror("mkname");
         exit(1);
     }
 
     /* Linux pipes are broken, we need O_RDWR instead of O_RDONLY */
-    socket = open(fifo, O_RDWR | O_NONBLOCK, 0);
+    socket = open(name, O_RDWR | O_NONBLOCK, 0);
 
     if (socket == -1) {
         perror("open");
         exit(1);
     }
+}
+static int create_pipe(int fds[2])
+{
+    if (pipe(fds)) {
+        dbg_str(SM_ERROR,"cannot create pipe");
+        return -1;
+    }
 
-    fprintf(stderr, "Write data to %s\n", fifo);
+    return 0;
+}
+
+int test_sigle_io()
+{
+    struct event evfifo;
+    int socket;
+    struct event_base *event_base;
+    struct timeval tv;
+
+    socket = create_fifo((char *)"event.fifo");
     /* Initalize the event library */
     event_base = event_base_new();
 
     /* Initalize one event */
-    /*
-     *event_assign(&evfifo,event_base, socket, EV_READ | EV_PERSIST, fifo_read, &evfifo);
-     */
-    event_assign(&evfifo,event_base, socket, EV_READ, fifo_read, &evfifo);
+    event_assign(&evfifo,event_base, socket, EV_READ | EV_PERSIST, fifo_read, &evfifo);
 
-    /* Add it to the active events, without a timeout */
     tv.tv_sec = 0;
     tv.tv_usec = 0;
 
@@ -87,3 +121,44 @@ int test_io()
     return (0);
 }
 
+int test_multi_ios()
+{
+    struct event evfifo1, evfifo2, evpipe;
+    int fds[2] = {-1};
+    int socket1, socket2;
+    struct event_base *event_base;
+    struct timeval tv;
+
+    socket1 = create_fifo((char *)"event.fifo1");
+    socket2 = create_fifo((char *)"event.fifo2");
+
+    create_pipe(fds);
+
+    /* Initalize the event library */
+    event_base = event_base_new();
+
+    /* Initalize one event */
+    event_assign(&evfifo1,event_base, socket1, EV_READ | EV_PERSIST, fifo_read, &evfifo1);
+    event_assign(&evfifo2,event_base, socket2, EV_READ | EV_PERSIST, fifo_read, &evfifo2);
+    event_assign(&evpipe,event_base, fds[1], EV_READ | EV_PERSIST, pipe_read, &evpipe);
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+
+    event_add(&evfifo1, &tv);
+    event_add(&evfifo2, &tv);
+    event_add(&evpipe, &tv);
+
+    event_base_dispatch(event_base);
+
+    event_base_distroy(event_base);
+
+    return (0);
+}
+int test_io()
+{
+    /*
+     *test_sigle_io();
+     */
+    test_multi_ios();
+}

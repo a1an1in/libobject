@@ -1,9 +1,3 @@
-/*
- * Compile with:
- * cc -I/usr/local/include -o signal-test \
- *   signal-test.c -L/usr/local/lib -levent
- */
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/queue.h>

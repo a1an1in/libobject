@@ -44,6 +44,7 @@ evsig_cb(int fd, short what, void *arg)
     n = recv(fd, signals, sizeof(signals), 0);
     if (n == -1) {
         dbg_str(DBG_ERROR,"evsig_cb recv");
+        return ;
     } else if (n == 0) {
     }
 
@@ -186,7 +187,7 @@ int evsig_init(Event_Base *eb)
     int fds[2];
     event_t *event = &eb->evsig.fd_rcv_event;
 
-#if 0
+#if 1
     if (pipe(fds)) {
         dbg_str(SM_ERROR,"cannot create pipe");
         return -1;
@@ -199,14 +200,16 @@ int evsig_init(Event_Base *eb)
     eb->evsig.fd_rcv = fds[1];
     eb->evsig.fd_snd = fds[0];
 
-    dbg_str(DBG_DETAIL,"evsig_init, gloable_evsig_send_fd=%d", eb->evsig.fd_snd);
+    dbg_str(DBG_DETAIL,"evsig_init, gloable_evsig_send_fd=%d, fd_rcv =%d", eb->evsig.fd_snd, eb->evsig.fd_rcv);
 
     gloable_evsig_send_fd = eb->evsig.fd_snd;
     gloable_evsig_rcv_fd = eb->evsig.fd_rcv;
-    evsig_make_socket_closeonexec(eb->evsig.fd_snd);
-    evsig_make_socket_closeonexec(eb->evsig.fd_rcv);
+    /*
+     *evsig_make_socket_closeonexec(eb->evsig.fd_snd);
+     *evsig_make_socket_closeonexec(eb->evsig.fd_rcv);
+     */
     evsig_make_socket_nonblocking(eb->evsig.fd_snd);
-    evsig_make_socket_nonblocking(eb->evsig.fd_snd);
+    evsig_make_socket_nonblocking(eb->evsig.fd_rcv);
 
     event->ev_fd        = eb->evsig.fd_rcv;
     event->ev_events    = EV_READ | EV_PERSIST;

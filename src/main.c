@@ -232,7 +232,8 @@ static int args_process_test_io_user(void *base,int argc,char **argv)
 
 static int args_process_test_evio(void *base,int argc,char **argv)
 {
-     test_io();
+    test_io();
+
     return 0;
 }
 
