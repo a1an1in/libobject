@@ -48,6 +48,8 @@ static int __construct(Event_Base *eb,char *init_str)
 
     dbg_str(EV_DETAIL,"eb construct, eb addr:%p",eb);
 
+    eb->break_flag = 0;
+
     eb->timer = OBJECT_NEW(allocator, Rbtree_Timer,NULL);
 
     c = cfg_alloc(allocator); 
@@ -226,11 +228,19 @@ static int __active_signal(Event_Base *eb, int fd, short events)
     dbg_str(EV_DETAIL,"event base active signal event, signal = %d, ncount=%d", fd, events);
 
     rbtree_map_search_by_numeric_key(sig_map, fd,&it);
-    p = rbtree_map_pos_get_pointer(&it);
-    event = (event_t *)buffer_to_addr(p);
+    if (it.rb_node_p != NULL) {
+        p = rbtree_map_pos_get_pointer(&it);
+        event = (event_t *)buffer_to_addr(p);
 
-    event->ev_callback(event->ev_fd, 0, event);
+        if (event != NULL) {
+            event->ev_callback(event->ev_fd, 0, event);
+        } else {
+            dbg_str(DBG_WARNNING,"active_signal, get event addr error");
+            return -1;
+        }
+    }
 
+    return 0;
 }
 
 static int __process_timeout_events(Event_Base *eb)
@@ -260,9 +270,13 @@ static int __loop(Event_Base *eb)
 {
     Timer *timer = eb->timer;
     struct timeval tv, *tv_p = &tv;
-    int count = 10;
+    static int count;
 
-    while(count--) {
+    if (count == 0) {
+        set_break_signal(eb);
+    }
+
+    while(eb->break_flag == 0) {
         timer->timeout_next(timer, &tv_p);
         eb->dispatch(eb, tv_p);
         __process_timeout_events(eb);

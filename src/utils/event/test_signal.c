@@ -35,7 +35,7 @@ int test_signal()
     event_add(&signal_int, NULL);
 
     event_base_dispatch(base);
-    event_base_distroy(base);
+    event_base_free(base);
 
     return (0);
 }

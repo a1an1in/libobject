@@ -116,7 +116,7 @@ int test_sigle_io()
 
     event_base_dispatch(event_base);
 
-    event_base_distroy(event_base);
+    event_base_free(event_base);
 
     return (0);
 }
@@ -151,7 +151,7 @@ int test_multi_ios()
 
     event_base_dispatch(event_base);
 
-    event_base_distroy(event_base);
+    event_base_free(event_base);
 
     return (0);
 }

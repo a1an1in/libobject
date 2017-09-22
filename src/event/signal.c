@@ -27,6 +27,17 @@
 static int gloable_evsig_send_fd;
 static int gloable_evsig_rcv_fd;
 
+static int numeric_key_cmp_func(void *key1,void *key2,uint32_t size)
+{
+    int k1, k2;
+
+    k1 = *((int *)key1);
+    k2 = *((int *)key2);
+
+    if (k1 > k2 ) return 1;
+    else if (k1 < k2) return -1;
+    else return 0;
+}
 
 static void
 evsig_cb(int fd, short what, void *arg)
@@ -97,13 +108,16 @@ evsig_socketpair(int fd[2])
     listen_addr.sin_family      = AF_INET;
     listen_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     listen_addr.sin_port        = 0;   /* kernel chooses port.  */
+
     if (bind(listener, (struct sockaddr *) &listen_addr, sizeof (listen_addr)) == -1)
         goto error;
+
     if (listen(listener, 1) == -1)
         goto error;
 
     if ((connector = socket(AF_INET, type, 0)) < 0)
         goto error;
+
     /* We want to find out the port number to connect to.  */
     size = sizeof(connect_addr);
     if (getsockname(listener, (struct sockaddr *) &connect_addr, &size) == -1)
@@ -121,15 +135,18 @@ evsig_socketpair(int fd[2])
         goto error;
     if (size != sizeof(listen_addr))
         goto error;
+
     /* Now check we are talking to ourself by matching port and host on the
        two sockets.  */
     if (getsockname(connector, (struct sockaddr *) &connect_addr, &size) == -1)
         goto error;
-    if (size != sizeof (connect_addr)
-            || listen_addr.sin_family != connect_addr.sin_family
-            || listen_addr.sin_addr.s_addr != connect_addr.sin_addr.s_addr
-            || listen_addr.sin_port != connect_addr.sin_port)
+    if (    size != sizeof (connect_addr) || 
+            listen_addr.sin_family != connect_addr.sin_family || 
+            listen_addr.sin_addr.s_addr != connect_addr.sin_addr.s_addr || 
+            listen_addr.sin_port != connect_addr.sin_port) 
+    {
         goto error;
+    }
 
     fd[0] = connector;
     fd[1] = acceptor;
@@ -148,6 +165,7 @@ error:
 
     return -1;
 }
+
 int
 evsig_make_socket_closeonexec(int fd)
 {
@@ -180,18 +198,6 @@ evsig_make_socket_nonblocking(int fd)
     }
 
     return 0;
-}
-
-static int numeric_key_cmp_func(void *key1,void *key2,uint32_t size)
-{
-    int k1, k2;
-
-    k1 = *((int *)key1);
-    k2 = *((int *)key2);
-
-    if (k1 > k2 ) return 1;
-    else if (k1 < k2) return -1;
-    else return 0;
 }
 
 int evsig_init(Event_Base *eb)
@@ -236,17 +242,12 @@ int evsig_init(Event_Base *eb)
     evsig->sig_map->key_cmp_func = numeric_key_cmp_func;
     rbtree_map_init(evsig->sig_map, 4,sizeof(void *)); 
 
-
-
     return 0;
 }
 
 int evsig_release(Event_Base *eb)
 {
     struct evsig_s *evsig = &eb->evsig;
-    /*
-     *allocator_t *allocator = eb->obj.allocator;
-     */
 
     rbtree_map_destroy(evsig->sig_map);
 
@@ -280,4 +281,32 @@ int evsig_add(Event_Base *eb, event_t *event)
     rbtree_map_insert_with_numeric_key(sig_map,evsignal,buffer);
 
     return 0;
+}
+
+static void
+break_signal_cb(int fd, short event_res, void *arg)
+{
+    struct event *event = (struct event *)arg;
+    Event_Base* eb = (Event_Base*)event->ev_base;
+
+    dbg_str(DBG_SUC, "signal_cb, signal no:%d", event->ev_fd);
+    eb->break_flag = 1;
+}
+
+int set_break_signal(Event_Base* eb)
+{
+    struct event *ev = &eb->break_event;
+
+    ev->ev_fd              = SIGINT;
+    ev->ev_events          = EV_SIGNAL|EV_PERSIST;
+    ev->ev_timeout.tv_sec  = 0;
+    ev->ev_timeout.tv_usec = 0;
+    ev->ev_callback        = break_signal_cb;
+    ev->ev_base            = eb;
+
+    dbg_str(DBG_VIP,"set_break_signal, fd=%d, break_flag=%d", ev->ev_fd, eb->break_flag);
+
+    eb->add(eb, ev);
+
+    return (0);
 }

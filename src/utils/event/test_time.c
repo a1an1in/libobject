@@ -68,7 +68,7 @@ int test_time()
 
     event_base_dispatch(base);
 
-    event_base_distroy(base);
+    event_base_free(base);
 
     return (0);
 }

@@ -37,9 +37,12 @@ struct event_base_s{
     Map *io_map;
     Iterator *map_iter;
     struct evsig_s evsig;
+    int break_flag;
+    event_t break_event;
 };
 
 int evsig_add(Event_Base *eb, event_t *event);
 int evsig_init(Event_Base *eb);
+int set_break_signal(Event_Base* eb);
 
 #endif

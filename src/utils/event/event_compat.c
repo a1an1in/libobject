@@ -62,7 +62,7 @@ int event_base_dispatch(struct event_base *event_base)
     return 0;
 }
 
-int event_base_distroy(struct event_base *event_base)
+int event_base_free(struct event_base *event_base)
 {
     allocator_t *allocator = allocator_get_default_alloc();
 

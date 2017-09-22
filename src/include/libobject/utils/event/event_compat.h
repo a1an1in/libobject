@@ -17,6 +17,6 @@ int event_assign(event_t *ev,
 
 int event_add(event_t *ev, const struct timeval *tv);
 int event_base_dispatch(struct event_base *event_base);
-int event_base_distroy(struct event_base *event_base);
+int event_base_free(struct event_base *event_base);
 
 #endif

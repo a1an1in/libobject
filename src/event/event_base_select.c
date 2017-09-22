@@ -103,7 +103,7 @@ static int __add_io(Select_Base *b, event_t *e)
     Event_Base *p = (Event_Base *)b;
 
     if (fd < 0) {
-        dbg_str(DBG_WARNNING,"not add this fd");
+        dbg_str(DBG_WARNNING,"not add this fd =%d", fd);
         return 0;
     }
 
