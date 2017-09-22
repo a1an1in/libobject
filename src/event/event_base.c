@@ -270,11 +270,8 @@ static int __loop(Event_Base *eb)
 {
     Timer *timer = eb->timer;
     struct timeval tv, *tv_p = &tv;
-    static int count;
 
-    if (count == 0) {
-        set_break_signal(eb);
-    }
+    set_break_signal(eb);
 
     while(eb->break_flag == 0) {
         timer->timeout_next(timer, &tv_p);
