@@ -19,7 +19,7 @@ fifo_read(int fd, short event, void *arg)
     /* Reschedule this event */
     event_add(ev, NULL);
 
-    dbg_str(DBG_VIP, "fifo_read called with fd: %d, event: %d, arg: %p\n",
+    dbg_str(DBG_VIP, "fifo_read called with fd: %d, event: %d, arg: %p",
         (int)fd, event, arg);
     len = read(fd, buf, sizeof(buf) - 1);
 
@@ -31,7 +31,7 @@ fifo_read(int fd, short event, void *arg)
         return;
     }
 
-    dbg_str(DBG_DETAIL,"Read: %s", buf);
+    printf("Read: %s", buf);
 }
 
 static void

@@ -12,16 +12,12 @@
 #include <libobject/utils/event/event_compat.h>
 #include <libobject/utils/dbg/debug.h>
 
-int called = 0;
-
 static void
-signal_cb(int fd, short event, void *arg)
+signal_cb(int fd, short event_res, void *arg)
 {
-    struct event *signal = arg;
+    struct event *event = (struct event *)arg;
 
-    dbg_str(DBG_SUC, "signal_cb, called = %d", called);
-
-    called++;
+    dbg_str(DBG_SUC, "signal_cb, signal no:%d", event->ev_fd);
 }
 
 int test_signal()
@@ -33,8 +29,8 @@ int test_signal()
     base = event_base_new();
 
     /* Initalize one event */
-    event_assign(&signal_int, base, SIGINT, EV_SIGNAL|EV_PERSIST, signal_cb,
-        &signal_int);
+    event_assign(&signal_int, base, SIGINT, EV_SIGNAL|EV_PERSIST,
+                 signal_cb, &signal_int);
 
     event_add(&signal_int, NULL);
 

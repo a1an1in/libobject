@@ -217,7 +217,19 @@ static int __active_io(Event_Base *eb, int fd, short events)
 
 static int __active_signal(Event_Base *eb, int fd, short events)
 {
+    rbtree_map_t *sig_map = eb->evsig.sig_map;
+    rbtree_map_pos_t it;
+    event_t *event;
+    char buf[16];
+    char *p = NULL;
+
     dbg_str(EV_DETAIL,"event base active signal event, signal = %d, ncount=%d", fd, events);
+
+    rbtree_map_search_by_numeric_key(sig_map, fd,&it);
+    p = rbtree_map_pos_get_pointer(&it);
+    event = (event_t *)buffer_to_addr(p);
+
+    event->ev_callback(event->ev_fd, 0, event);
 
 }
 

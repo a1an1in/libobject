@@ -182,12 +182,26 @@ evsig_make_socket_nonblocking(int fd)
     return 0;
 }
 
+static int numeric_key_cmp_func(void *key1,void *key2,uint32_t size)
+{
+    int k1, k2;
+
+    k1 = *((int *)key1);
+    k2 = *((int *)key2);
+
+    if (k1 > k2 ) return 1;
+    else if (k1 < k2) return -1;
+    else return 0;
+}
+
 int evsig_init(Event_Base *eb)
 {
     int fds[2];
     event_t *event = &eb->evsig.fd_rcv_event;
+    struct evsig_s *evsig = &eb->evsig;
+    allocator_t *allocator = eb->obj.allocator;
 
-#if 1
+#if 0
     if (pipe(fds)) {
         dbg_str(SM_ERROR,"cannot create pipe");
         return -1;
@@ -200,14 +214,13 @@ int evsig_init(Event_Base *eb)
     eb->evsig.fd_rcv = fds[1];
     eb->evsig.fd_snd = fds[0];
 
-    dbg_str(DBG_DETAIL,"evsig_init, gloable_evsig_send_fd=%d, fd_rcv =%d", eb->evsig.fd_snd, eb->evsig.fd_rcv);
+    dbg_str(DBG_DETAIL,"evsig_init, gloable_evsig_send_fd=%d, fd_rcv =%d",
+            eb->evsig.fd_snd, eb->evsig.fd_rcv);
 
     gloable_evsig_send_fd = eb->evsig.fd_snd;
     gloable_evsig_rcv_fd = eb->evsig.fd_rcv;
-    /*
-     *evsig_make_socket_closeonexec(eb->evsig.fd_snd);
-     *evsig_make_socket_closeonexec(eb->evsig.fd_rcv);
-     */
+    evsig_make_socket_closeonexec(eb->evsig.fd_snd);
+    evsig_make_socket_closeonexec(eb->evsig.fd_rcv);
     evsig_make_socket_nonblocking(eb->evsig.fd_snd);
     evsig_make_socket_nonblocking(eb->evsig.fd_rcv);
 
@@ -219,13 +232,34 @@ int evsig_init(Event_Base *eb)
     event->ev_base      = eb;
     eb->add(eb, event);
 
+    evsig->sig_map = rbtree_map_alloc(allocator);
+    evsig->sig_map->key_cmp_func = numeric_key_cmp_func;
+    rbtree_map_init(evsig->sig_map, 4,sizeof(void *)); 
+
+
+
     return 0;
+}
+
+int evsig_release(Event_Base *eb)
+{
+    struct evsig_s *evsig = &eb->evsig;
+    /*
+     *allocator_t *allocator = eb->obj.allocator;
+     */
+
+    rbtree_map_destroy(evsig->sig_map);
+
+    close(evsig->fd_rcv);
+    close(evsig->fd_snd);
 }
 
 int evsig_add(Event_Base *eb, event_t *event)
 {
     struct sigaction sa; 
     int evsignal = event->ev_fd;
+    char buffer[16] = {0};
+    rbtree_map_t *sig_map = eb->evsig.sig_map;
 
 #if 0
     sa.sa_handler = signal_handler;                    
@@ -241,6 +275,9 @@ int evsig_add(Event_Base *eb, event_t *event)
 #else 
     signal(evsignal,signal_handler);
 #endif
+
+    addr_to_buffer(event,buffer);
+    rbtree_map_insert_with_numeric_key(sig_map,evsignal,buffer);
 
     return 0;
 }
