@@ -22,7 +22,7 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <libobject/event/select_base.h>
-#include <libobject/utils/event/event_compat.h>
+#include <libobject/event/event_compat.h>
 
 static int gloable_evsig_send_fd;
 static int gloable_evsig_rcv_fd;
