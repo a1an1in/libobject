@@ -43,12 +43,23 @@ int event_add(event_t *ev, const struct timeval *tv)
 {
     Event_Base *eb = (Event_Base *)ev->ev_base;
 
+    dbg_str(DBG_DETAIL,"event add, fd=%d", ev->ev_fd);
+
     if (tv != NULL) {
         ev->ev_timeout.tv_sec  = tv->tv_sec;
         ev->ev_timeout.tv_usec = tv->tv_usec;
     }
 
     eb->add(eb, ev);
+
+    return 0;
+}
+
+int event_del(event_t *ev)
+{
+    Event_Base *eb = (Event_Base *)ev->ev_base;
+
+    eb->del(eb, ev);
 
     return 0;
 }

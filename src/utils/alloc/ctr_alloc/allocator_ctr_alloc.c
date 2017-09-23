@@ -283,10 +283,12 @@ static void __info(allocator_t *allocator)
     dbg_str(ALLOC_VIP,"query empty_pool:");
     mempool_print_list_for_each(allocator->priv.ctr_alloc.empty_pool);
 
-    dbg_str(ALLOC_VIP,"query free_slabs:");
-    for(i = 0; i < slab_array_max_num; i++) {
-        slab_print_list_for_each(allocator->priv.ctr_alloc.free_slabs[i],i);
-    }
+    /*
+     *dbg_str(ALLOC_VIP,"query free_slabs:");
+     *for(i = 0; i < slab_array_max_num; i++) {
+     *    slab_print_list_for_each(allocator->priv.ctr_alloc.free_slabs[i],i);
+     *}
+     */
 
     dbg_str(ALLOC_VIP,"query used_slabs:");
     for(i = 0; i < slab_array_max_num; i++) {

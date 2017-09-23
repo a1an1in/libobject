@@ -201,7 +201,7 @@ static int __active_io(Event_Base *eb, int fd, short events)
         dbg_buf(EV_DETAIL,"buffer:", p, 4);
         event = (event_t *)buffer_to_addr(p);
         dbg_str(EV_DETAIL,"event addr:%p, ev_callback=%p", event, event->ev_callback);
-        event->ev_callback(event->ev_fd, 0, event);
+        event->ev_callback(event->ev_fd, 0, event->ev_arg);
 
         if (event->ev_events & EV_PERSIST) {
             dbg_str(EV_DETAIL,"persist event, readd io");
@@ -279,7 +279,7 @@ static int __loop(Event_Base *eb)
         __process_timeout_events(eb);
     }
 
-    dbg_str(EV_WARNNING, "break Event_Base loop, __active_signal addr:%p",__active_signal);
+    dbg_str(EV_WARNNING, "break Event_Base loop");
 }
 
 static class_info_entry_t event_base_class_info[] = {

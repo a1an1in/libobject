@@ -59,9 +59,6 @@ int posix_thread_mutex_init(struct sync_lock_s *slock)
 }
 int posix_thread_mutex_lock(struct sync_lock_s *slock,void *arg)
 {
-    /*
-     *dbg_str(DBG_DETAIL,"posix_thread_mutex_lock");
-     */
     return pthread_mutex_lock(&slock->lock.mutex);
 }
 int posix_thread_mutex_trylock(struct sync_lock_s *slock,void *arg)
@@ -70,9 +67,6 @@ int posix_thread_mutex_trylock(struct sync_lock_s *slock,void *arg)
 }
 int posix_thread_mutex_unlock(struct sync_lock_s *slock)
 {
-    /*
-     *dbg_str(DBG_DETAIL,"posix_thread_mutex_unlock");
-     */
     return pthread_mutex_unlock(&slock->lock.mutex);
 }
 int posix_thread_mutex_lock_destroy(struct sync_lock_s *slock)
