@@ -233,7 +233,8 @@ static int __active_signal(Event_Base *eb, int fd, short events)
         event = (event_t *)buffer_to_addr(p);
 
         if (event != NULL) {
-            event->ev_callback(event->ev_fd, 0, event);
+            dbg_str(EV_DETAIL,"event=%p, ev_callback=%p", event, event->ev_callback);
+            event->ev_callback(event->ev_fd, 0, event->ev_arg);
         } else {
             dbg_str(DBG_WARNNING,"active_signal, get event addr error");
             return -1;

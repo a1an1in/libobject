@@ -78,7 +78,7 @@ static void signal_handler(int sig)
 {
     char msg = (char) sig;
 
-    dbg_str(EV_DETAIL,"signal_handler %d, gloable_evsig_send_fd =%d, sig=%d", signal, gloable_evsig_send_fd, sig);
+    dbg_str(EV_VIP,"signal_handler %d, gloable_evsig_send_fd =%d, sig=%d", signal, gloable_evsig_send_fd, sig);
 
     send(gloable_evsig_send_fd, (char*)&msg, 1, 0);
 }
@@ -232,10 +232,11 @@ int evsig_init(Event_Base *eb)
 
     event->ev_fd        = eb->evsig.fd_rcv;
     event->ev_events    = EV_READ | EV_PERSIST;
-    event->ev_callback  = evsig_cb;
     event->ev_tv.tv_sec = 0;
     event->ev_tv.tv_sec = 0;
     event->ev_base      = eb;
+    event->ev_callback  = evsig_cb;
+    event->ev_arg       = event;
     eb->add(eb, event);
 
     evsig->sig_map = rbtree_map_alloc(allocator);
@@ -303,8 +304,10 @@ int set_break_signal(Event_Base* eb)
     ev->ev_timeout.tv_usec = 0;
     ev->ev_callback        = break_signal_cb;
     ev->ev_base            = eb;
+    ev->ev_arg             = ev;
 
-    dbg_str(DBG_VIP,"set_break_signal, fd=%d, break_flag=%d", ev->ev_fd, eb->break_flag);
+    dbg_str(DBG_VIP,"set_break_signal, fd=%d, ev_callback=%p, break_flag=%d",
+            ev->ev_fd, ev->ev_callback,  eb->break_flag);
 
     eb->add(eb, ev);
 

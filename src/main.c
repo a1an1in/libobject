@@ -216,13 +216,17 @@ static int args_process_test_allocator(void *base,int argc,char **argv)
 
 static int args_process_test_tmr_user(void *base,int argc,char **argv)
 {
-    test_tmr_user();
+    /*
+     *test_tmr_user();
+     */
     return 0;
 }
 
 static int args_process_test_io_user(void *base,int argc,char **argv)
 {
-    test_io_user();
+    /*
+     *test_io_user();
+     */
     return 0;
 }
 
