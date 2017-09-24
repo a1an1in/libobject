@@ -68,7 +68,7 @@ evsig_cb(int fd, short what, void *arg)
 
     for (i = 0; i < NSIG; ++i) {
         if (ncaught[i]) {
-            eb->active_signal(eb, i, ncaught[i]);
+            eb->activate_signal(eb, i, ncaught[i]);
         }
     }
     dbg_str(EV_DETAIL,"evsig_cb out");
