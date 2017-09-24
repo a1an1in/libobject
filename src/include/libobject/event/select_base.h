@@ -22,13 +22,13 @@ struct select_base_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
-    int (*add_io)(Event_Base *, event_t *e);
-    int (*del_io)(Event_Base *, event_t *e); 
+    int (*collocate_io)(Event_Base *, event_t *e);
+    int (*reclaim_io)(Event_Base *, event_t *e); 
     int (*ctl)(Select_Base *, int fd, int op, short events);
     int (*dispatch)(Select_Base *, struct timeval *tv);
 
     /*inherit metheod from parent*/
-    int (*active_io)(Event_Base *, int fd, short events); 
+    int (*activate_io)(Event_Base *, int fd, short events); 
 
     int maxfdp; /*max fd plus 1*/
 

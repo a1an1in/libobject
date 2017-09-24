@@ -70,15 +70,15 @@ static int __set(Select_Base *eb, char *attrib, void *value)
         eb->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         eb->deconstruct = value;
-    } else if (strcmp(attrib, "add_io") == 0) {
-        eb->add_io = value;
-    } else if (strcmp(attrib, "del_io") == 0) {
-        eb->del_io = value;
+    } else if (strcmp(attrib, "collocate_io") == 0) {
+        eb->collocate_io = value;
+    } else if (strcmp(attrib, "reclaim_io") == 0) {
+        eb->reclaim_io = value;
     } else if (strcmp(attrib, "dispatch") == 0) {
         eb->dispatch = value;
     } 
-    else if (strcmp(attrib, "active_io") == 0) {
-        eb->active_io = value;
+    else if (strcmp(attrib, "activate_io") == 0) {
+        eb->activate_io = value;
     }
     else {
         dbg_str(OBJ_DETAIL,"eb set, not support %s setting",attrib);
@@ -97,7 +97,7 @@ static void *__get(Select_Base *obj, char *attrib)
     return NULL;
 }
 
-static int __add_io(Select_Base *b, event_t *e)
+static int __collocate_io(Select_Base *b, event_t *e)
 {
     int fd = e->ev_fd;
     Event_Base *p = (Event_Base *)b;
@@ -119,7 +119,7 @@ static int __add_io(Select_Base *b, event_t *e)
     return (0);
 }
 
-static int __del_io(Select_Base *b, event_t *e) 
+static int __reclaim_io(Select_Base *b, event_t *e) 
 {
     int fd = e->ev_fd;
     unsigned short events = e->ev_events;
@@ -175,7 +175,7 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
             continue;
 
         dbg_str(EV_DETAIL,"fd %d has event, res=%d", i, res);
-        b->active_io((Event_Base *)b,i, res);
+        b->activate_io((Event_Base *)b,i, res);
     }
 
     dbg_str(EV_DETAIL,"dispatch select out");
@@ -189,10 +189,10 @@ static class_info_entry_t select_base_class_info[] = {
     [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5] = {ENTRY_TYPE_FUNC_POINTER,"","add_io",__add_io,sizeof(void *)},
-    [6] = {ENTRY_TYPE_FUNC_POINTER,"","del_io",__del_io,sizeof(void *)},
+    [5] = {ENTRY_TYPE_FUNC_POINTER,"","collocate_io",__collocate_io,sizeof(void *)},
+    [6] = {ENTRY_TYPE_FUNC_POINTER,"","reclaim_io",__reclaim_io,sizeof(void *)},
     [7] = {ENTRY_TYPE_FUNC_POINTER,"","dispatch",__dispatch,sizeof(void *)},
-    [8] = {ENTRY_TYPE_IFUNC_POINTER,"","active_io",NULL,sizeof(void *)},
+    [8] = {ENTRY_TYPE_IFUNC_POINTER,"","activate_io",NULL,sizeof(void *)},
     [9] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Select_Base",select_base_class_info);

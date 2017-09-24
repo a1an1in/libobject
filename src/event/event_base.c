@@ -94,19 +94,19 @@ static int __set(Event_Base *eb, char *attrib, void *value)
         eb->add = value;
     } else if (strcmp(attrib, "del") == 0) {
         eb->del = value;
-    } else if (strcmp(attrib, "active_io") == 0) {
-        eb->active_io = value;
-    } else if (strcmp(attrib, "active_signal") == 0) {
-        eb->active_signal = value;
+    } else if (strcmp(attrib, "activate_io") == 0) {
+        eb->activate_io = value;
+    } else if (strcmp(attrib, "activate_signal") == 0) {
+        eb->activate_signal = value;
     }
     else if (strcmp(attrib, "construct") == 0) {
         eb->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         eb->deconstruct = value;
-    } else if (strcmp(attrib, "add_io") == 0) {
-        eb->add_io = value;
-    } else if (strcmp(attrib, "del_io") == 0) {
-        eb->del_io = value;
+    } else if (strcmp(attrib, "collocate_io") == 0) {
+        eb->collocate_io = value;
+    } else if (strcmp(attrib, "reclaim_io") == 0) {
+        eb->reclaim_io = value;
     } else if (strcmp(attrib, "dispatch") == 0) {
         eb->dispatch = value;
     } else {
@@ -144,7 +144,7 @@ static int __add(Event_Base *eb, event_t *event)
         dbg_buf(EV_DETAIL,"buffer:", buffer, 4);
         io_map->insert(io_map, &fd, buffer);
 
-        eb->add_io(eb,event);
+        eb->collocate_io(eb,event);
         timer->add(timer, event);
 
     }
@@ -161,7 +161,7 @@ static int __del(Event_Base *eb, event_t *event)
 
     if (event->ev_events & EV_SIGNAL) {
     } else {
-        eb->del_io(eb,event);
+        eb->reclaim_io(eb,event);
         timer->del(timer, event);
 
         //del fd in map
@@ -177,7 +177,7 @@ static int __del(Event_Base *eb, event_t *event)
     return 0;
 }
 
-static int __active_io(Event_Base *eb, int fd, short events)
+static int __activate_io(Event_Base *eb, int fd, short events)
 {
     Timer *timer   = eb->timer;
     Map *io_map    = eb->io_map;
@@ -217,7 +217,7 @@ static int __active_io(Event_Base *eb, int fd, short events)
     return 0;
 }
 
-static int __active_signal(Event_Base *eb, int fd, short events)
+static int __activate_signal(Event_Base *eb, int fd, short events)
 {
     rbtree_map_t *sig_map = eb->evsig.sig_map;
     rbtree_map_pos_t it;
@@ -236,7 +236,7 @@ static int __active_signal(Event_Base *eb, int fd, short events)
             dbg_str(EV_DETAIL,"event=%p, ev_callback=%p", event, event->ev_callback);
             event->ev_callback(event->ev_fd, 0, event->ev_arg);
         } else {
-            dbg_str(DBG_WARNNING,"active_signal, get event addr error");
+            dbg_str(DBG_WARNNING,"activate_signal, get event addr error");
             return -1;
         }
     }
@@ -288,14 +288,14 @@ static class_info_entry_t event_base_class_info[] = {
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","loop",__loop,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","active_io",__active_io,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","active_signal",__active_signal,sizeof(void *)},
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","activate_io",__activate_io,sizeof(void *)},
+    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","activate_signal",__activate_signal,sizeof(void *)},
     [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
     [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","add_io",NULL,sizeof(void *)},
-    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","del_io",NULL,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","collocate_io",NULL,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","reclaim_io",NULL,sizeof(void *)},
     [12] = {ENTRY_TYPE_VFUNC_POINTER,"","dispatch",NULL,sizeof(void *)},
     [13] = {ENTRY_TYPE_END},
 };
