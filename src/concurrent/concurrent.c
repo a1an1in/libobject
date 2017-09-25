@@ -1,9 +1,9 @@
 /**
- * @file event_base.c
- * @Synopsis  
- * @author alan lin
+ * @file concurrent.c
+ * @synopsis 
+ * @author a1an1in@sina.com
  * @version 
- * @date 2017-09-13
+ * @date 2017-09-24
  */
 /* Copyright (c) 2015-2020 alan lin <a1an1in@sina.com>
  * Redistribution and use in source and binary forms, with or without
