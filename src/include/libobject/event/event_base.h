@@ -26,7 +26,7 @@ struct event_base_s{
     int (*del)(Event_Base *, event_t *e); 
 
 	/*virtual methods reimplement*/
-    int (*collocate_io)(Event_Base *, event_t *e);
+    int (*trustee_io)(Event_Base *, event_t *e);
     int (*reclaim_io)(Event_Base *, event_t *e); 
     /*
      *int (*ctl)(Event_Base *, int fd, int op, short events);

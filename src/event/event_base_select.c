@@ -70,8 +70,8 @@ static int __set(Select_Base *eb, char *attrib, void *value)
         eb->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         eb->deconstruct = value;
-    } else if (strcmp(attrib, "collocate_io") == 0) {
-        eb->collocate_io = value;
+    } else if (strcmp(attrib, "trustee_io") == 0) {
+        eb->trustee_io = value;
     } else if (strcmp(attrib, "reclaim_io") == 0) {
         eb->reclaim_io = value;
     } else if (strcmp(attrib, "dispatch") == 0) {
@@ -97,7 +97,7 @@ static void *__get(Select_Base *obj, char *attrib)
     return NULL;
 }
 
-static int __collocate_io(Select_Base *b, event_t *e)
+static int __trustee_io(Select_Base *b, event_t *e)
 {
     int fd = e->ev_fd;
     Event_Base *p = (Event_Base *)b;
@@ -189,7 +189,7 @@ static class_info_entry_t select_base_class_info[] = {
     [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5] = {ENTRY_TYPE_FUNC_POINTER,"","collocate_io",__collocate_io,sizeof(void *)},
+    [5] = {ENTRY_TYPE_FUNC_POINTER,"","trustee_io",__trustee_io,sizeof(void *)},
     [6] = {ENTRY_TYPE_FUNC_POINTER,"","reclaim_io",__reclaim_io,sizeof(void *)},
     [7] = {ENTRY_TYPE_FUNC_POINTER,"","dispatch",__dispatch,sizeof(void *)},
     [8] = {ENTRY_TYPE_IFUNC_POINTER,"","activate_io",NULL,sizeof(void *)},

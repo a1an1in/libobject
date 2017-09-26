@@ -22,7 +22,7 @@ struct select_base_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
-    int (*collocate_io)(Event_Base *, event_t *e);
+    int (*trustee_io)(Event_Base *, event_t *e);
     int (*reclaim_io)(Event_Base *, event_t *e); 
     int (*ctl)(Select_Base *, int fd, int op, short events);
     int (*dispatch)(Select_Base *, struct timeval *tv);

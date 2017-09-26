@@ -103,8 +103,8 @@ static int __set(Event_Base *eb, char *attrib, void *value)
         eb->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         eb->deconstruct = value;
-    } else if (strcmp(attrib, "collocate_io") == 0) {
-        eb->collocate_io = value;
+    } else if (strcmp(attrib, "trustee_io") == 0) {
+        eb->trustee_io = value;
     } else if (strcmp(attrib, "reclaim_io") == 0) {
         eb->reclaim_io = value;
     } else if (strcmp(attrib, "dispatch") == 0) {
@@ -144,7 +144,7 @@ static int __add(Event_Base *eb, event_t *event)
         dbg_buf(EV_DETAIL,"buffer:", buffer, 4);
         io_map->insert(io_map, &fd, buffer);
 
-        eb->collocate_io(eb,event);
+        eb->trustee_io(eb,event);
         timer->add(timer, event);
 
     }
@@ -294,7 +294,7 @@ static class_info_entry_t event_base_class_info[] = {
     [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
     [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","collocate_io",NULL,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","trustee_io",NULL,sizeof(void *)},
     [11] = {ENTRY_TYPE_VFUNC_POINTER,"","reclaim_io",NULL,sizeof(void *)},
     [12] = {ENTRY_TYPE_VFUNC_POINTER,"","dispatch",NULL,sizeof(void *)},
     [13] = {ENTRY_TYPE_END},
