@@ -1,6 +1,5 @@
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/queue.h>
 #include <unistd.h>
 #include <sys/time.h>
 #include <signal.h>

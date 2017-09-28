@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

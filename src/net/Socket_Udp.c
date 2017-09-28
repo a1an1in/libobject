@@ -1,9 +1,9 @@
 /**
- * @socket Udp_Socket.c
+ * @file Socket_Udp.c
  * @Synopsis  
  * @author alan lin
  * @version 
- * @date 2017-09-27
+ * @date 2017-09-28
  */
 /* Copyright (c) 2015-2020 alan lin <a1an1in@sina.com>
  * Redistribution and use in source and binary forms, with or without

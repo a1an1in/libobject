@@ -45,7 +45,7 @@ static int __construct(Select_Base *eb,char *init_str)
     FD_ZERO(&eb->event_readset_out);
     FD_ZERO(&eb->event_writeset_out);
 
-    evsig_init(eb);
+    evsig_init((Event_Base *)eb);
 
     return 0;
 }

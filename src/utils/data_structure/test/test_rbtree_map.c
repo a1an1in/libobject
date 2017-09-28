@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <sys/time.h>
+#include <unistd.h>
 #include <libobject/utils/data_structure/rbtree_map.h>
 #include <libobject/utils/dbg/debug.h>
 
@@ -233,22 +235,22 @@ int test_datastructure_rbtree_map_timeval_key(void)
     rbtree_map_init(map,key_len,sizeof(struct A)); 
 
     gettimeofday(&tp, NULL);
-    printf("time %u:%u\n",tp.tv_sec,tp.tv_usec);
-    dbg_buf(DBG_DETAIL,"key:",&tp, key_len);
+    printf("time %ld:%ld\n",tp.tv_sec,tp.tv_usec);
+    dbg_buf(DBG_DETAIL,"key:", (void *)&tp, key_len);
     rbtree_map_insert(map,&tp,&t4);
     gettimeofday(&tp, NULL);
-    printf("time %u:%u\n",tp.tv_sec,tp.tv_usec);
-    dbg_buf(DBG_DETAIL,"key:",&tp, key_len);
+    printf("time %ld:%ld\n",tp.tv_sec,tp.tv_usec);
+    dbg_buf(DBG_DETAIL,"key:", (void *)&tp, key_len);
     t_bak = tp;
     rbtree_map_insert(map,&tp,&t3);
     sleep(1);
     gettimeofday(&tp, NULL);
-    printf("time %u:%u\n",tp.tv_sec,tp.tv_usec);
-    dbg_buf(DBG_DETAIL,"key:",&tp, key_len);
+    printf("time %ld:%ld\n",tp.tv_sec,tp.tv_usec);
+    dbg_buf(DBG_DETAIL,"key:", (void *)&tp, key_len);
     rbtree_map_insert(map,&tp,&t2);
     gettimeofday(&tp, NULL);
-    printf("time %u:%u\n",tp.tv_sec,tp.tv_usec);
-    dbg_buf(DBG_DETAIL,"key:",&tp, key_len);
+    printf("time %ld:%ld\n",tp.tv_sec,tp.tv_usec);
+    dbg_buf(DBG_DETAIL,"key:",(void *)&tp, key_len);
     rbtree_map_insert(map,&tp,&t1);
 
 
@@ -263,7 +265,7 @@ int test_datastructure_rbtree_map_timeval_key(void)
     }
 
     dbg_str(DBG_DETAIL,"search node key = 3");
-    dbg_buf(DBG_DETAIL,"key:",&t_bak, key_len);
+    dbg_buf(DBG_DETAIL,"key:", (void *)&t_bak, key_len);
     rbtree_map_search(map, &t_bak,&it);
     print_A((struct A*)rbtree_map_pos_get_pointer(&it));
 
