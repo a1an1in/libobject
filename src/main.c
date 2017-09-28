@@ -628,7 +628,15 @@ static int args_process_test_Event_Base(void *base,int argc,char **argv)
      */
     return 0;
 }
+
+static int args_process_test_Socket(void *base,int argc,char **argv)
+{
+    test_obj_udp_socket();
+    return 0;
+}
+
 static cmd_config_t cmds[]={
+    {"SK", args_process_test_Socket,0, "test", "N/A","test"},
     {"Event", args_process_test_Event_Base,0, "test", "N/A","test"},
     {"Button", args_process_test_Button,0, "test", "N/A","test"},
     {"Border", args_process_test_BorderLayout,0, "test", "N/A","test"},

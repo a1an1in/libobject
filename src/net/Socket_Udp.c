@@ -1,5 +1,5 @@
 /**
- * @file File.c
+ * @socket Udp_Socket.c
  * @Synopsis  
  * @author alan lin
  * @version 
@@ -34,68 +34,67 @@
 #include <libobject/event/event_base.h>
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
-#include <libobject/io/file.h>
+#include <libobject/net/socket_udp.h>
 
-static int __construct(File *file,char *init_str)
+static int __construct(Udp_Socket *socket,char *init_str)
 {
-    allocator_t *allocator = file->obj.allocator;
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(EV_DETAIL,"file construct, file addr:%p",file);
+    dbg_str(NET_DETAIL,"socket construct, socket addr:%p",socket);
 
 
     return 0;
 }
 
-static int __deconstrcut(File *file)
+static int __deconstrcut(Udp_Socket *socket)
 {
-    dbg_str(EV_DETAIL,"file deconstruct,file addr:%p",file);
+    dbg_str(NET_DETAIL,"socket deconstruct,socket addr:%p",socket);
 
     return 0;
 }
 
-static int __set(File *file, char *attrib, void *value)
+static int __set(Udp_Socket *socket, char *attrib, void *value)
 {
     if (strcmp(attrib, "set") == 0) {
-        file->set = value;
+        socket->set = value;
     } else if (strcmp(attrib, "get") == 0) {
-        file->get = value;
+        socket->get = value;
     }
     else if (strcmp(attrib, "construct") == 0) {
-        file->construct = value;
+        socket->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
-        file->deconstruct = value;
+        socket->deconstruct = value;
     } else {
-        dbg_str(EV_DETAIL,"file set, not support %s setting",attrib);
+        dbg_str(NET_DETAIL,"socket set, not support %s setting",attrib);
     }
 
     return 0;
 }
 
-static void *__get(File *obj, char *attrib)
+static void *__get(Udp_Socket *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"file get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(NET_WARNNING,"socket get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
 }
 
-static class_info_entry_t file_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
+static class_info_entry_t udp_socket_class_info[] = {
+    [0 ] = {ENTRY_TYPE_OBJ,"Socket","parent",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("File",file_class_info);
+REGISTER_CLASS("Udp_Socket",udp_socket_class_info);
 
-void test_obj_file()
+void test_obj_udp_socket()
 {
-    File *file;
+    Udp_Socket *socket;
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;
     char *set_str;
@@ -103,14 +102,16 @@ void test_obj_file()
     char buf[2048];
 
     c = cfg_alloc(allocator); 
-    dbg_str(EV_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/File", CJSON_STRING, "name", "alan file") ;  
+    dbg_str(NET_SUC, "configurator_t addr:%p",c);
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "name", "alan socket") ;  
 
-    file = OBJECT_NEW(allocator, File,c->buf);
+    socket = OBJECT_NEW(allocator, Udp_Socket,c->buf);
 
-    object_dump(file, "File", buf, 2048);
-    dbg_str(EV_DETAIL,"File dump: %s",buf);
+    object_dump(socket, "Udp_Socket", buf, 2048);
+    dbg_str(NET_DETAIL,"Udp_Socket dump: %s",buf);
 
-    object_destroy(file);
+    object_destroy(socket);
     cfg_destroy(c);
 }
+
+

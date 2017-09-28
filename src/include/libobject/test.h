@@ -80,5 +80,6 @@ extern void test_ui_button();
 extern int test_object_config();
 extern void test_obj_select_base();
 extern int test_event_io();
+extern void test_obj_udp_socket();
 
 #endif
