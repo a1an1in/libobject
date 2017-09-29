@@ -131,6 +131,7 @@ ssize_t __sendmsg(Udp_Socket *socket, const struct msghdr *msg, int flags)
 
 ssize_t __read(Udp_Socket *socket, const void *buf, size_t len)
 {
+    dbg_str(NET_DETAIL, "udp socket read");
 }
 
 ssize_t __recv(Udp_Socket *socket, void *buf, size_t len, int flags)
@@ -185,6 +186,7 @@ void test_obj_udp_socket()
     dbg_str(NET_DETAIL,"Udp_Socket dump: %s",buf);
 
     socket->write(socket, "hello world", 5);
+    socket->read(socket, NULL, 0);
 
     object_destroy(socket);
     cfg_destroy(c);

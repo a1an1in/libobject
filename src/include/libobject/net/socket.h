@@ -21,13 +21,13 @@ struct socket_s{
 	/*virtual methods reimplement*/
     int (*connect)(Socket *socket, const struct sockaddr *addr, socklen_t addrlen);
     int (*bind)(Socket *socket, const struct sockaddr *addr, socklen_t addrlen);
-    ssize_t (*read)(Socket *socket, const void *buf, size_t len);
-    ssize_t (*send)(Socket *socket, const void *buf, size_t len, int flags);
     ssize_t (*write)(Socket *socket, const void *buf, size_t len);
+    ssize_t (*send)(Socket *socket, const void *buf, size_t len, int flags);
     ssize_t (*sendto)(Socket *socket, const void *buf, size_t len, int flags,
                       const struct sockaddr *dest_addr,
                       socklen_t addrlen);
     ssize_t (*sendmsg)(Socket *socket, const struct msghdr *msg, int flags);
+    ssize_t (*read)(Socket *socket, const void *buf, size_t len);
     ssize_t (*recv)(Socket *socket, void *buf, size_t len, int flags);
     ssize_t (*recvfrom)(Socket *socket, void *buf, size_t len, int flags,
                         struct sockaddr *src_addr, 
