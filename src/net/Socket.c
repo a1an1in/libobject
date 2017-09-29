@@ -61,12 +61,31 @@ static int __set(Socket *socket, char *attrib, void *value)
         socket->set = value;
     } else if (strcmp(attrib, "get") == 0) {
         socket->get = value;
-    }
-    else if (strcmp(attrib, "construct") == 0) {
+    } else if (strcmp(attrib, "construct") == 0) {
         socket->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         socket->deconstruct = value;
-    } else {
+    }
+    else if (strcmp(attrib, "bind") == 0) {
+        socket->bind = value;
+    } else if (strcmp(attrib, "connect") == 0) {
+        socket->connect = value;
+    } else if (strcmp(attrib, "write") == 0) {
+        socket->write = value;
+    } else if (strcmp(attrib, "sendto") == 0) {
+        socket->sendto = value;
+    } else if (strcmp(attrib, "sendmsg") == 0) {
+        socket->sendmsg = value;
+    } else if (strcmp(attrib, "read") == 0) {
+        socket->read = value;
+    } else if (strcmp(attrib, "recv") == 0) {
+        socket->recv = value;
+    } else if (strcmp(attrib, "recvfrom") == 0) {
+        socket->recvfrom = value;
+    } else if (strcmp(attrib, "recvmsg") == 0) {
+        socket->recvmsg = value;
+    } 
+    else {
         dbg_str(EV_DETAIL,"socket set, not support %s setting",attrib);
     }
 
@@ -83,13 +102,23 @@ static void *__get(Socket *obj, char *attrib)
     return NULL;
 }
 
+
 static class_info_entry_t socket_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","bind",NULL,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","connect",NULL,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","write",NULL,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","sendto",NULL,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","sendmsg",NULL,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","read",NULL,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","recv",NULL,sizeof(void *)},
+    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","recvfrom",NULL,sizeof(void *)},
+    [13] = {ENTRY_TYPE_VFUNC_POINTER,"","recvmsg",NULL,sizeof(void *)},
+    [14] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Socket",socket_class_info);
 
