@@ -35,14 +35,44 @@
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
 #include <libobject/net/socket_udp.h>
+#include <netdb.h>
+#include <sys/types.h>          /* See NOTES */
+#include <sys/socket.h>
 
-static int __construct(Udp_Socket *socket,char *init_str)
+static int __construct(Udp_Socket *sk,char *init_str)
 {
     configurator_t * c;
     char buf[2048];
+    struct addrinfo  *addr, hint;
+    char *ip = "127.0.0.1";
+    char *port = "11011";
+    int skfd, err;
 
-    dbg_str(NET_DETAIL,"socket construct, socket addr:%p",socket);
+    dbg_str(NET_DETAIL,"socket construct, socket addr:%p",sk);
 
+    bzero(&hint, sizeof(hint));
+    hint.ai_family   = AF_INET;
+    hint.ai_socktype = SOCK_DGRAM;
+
+    if ((err = getaddrinfo(ip, port, &hint, &addr)) != 0){
+        printf("getaddrinfo error: %s", gai_strerror(err));
+        return -1;
+    }
+    if(addr != NULL){
+        dbg_str(NET_DETAIL,"ai_family=%d type=%d",addr->ai_family,addr->ai_socktype);
+    }else{
+        dbg_str(DBG_ERROR,"getaddrinfo err");
+        return -1;
+    }                      
+
+    if ((skfd = socket(addr->ai_family, addr->ai_socktype, 0)) == -1) {
+        perror("can't create socket file");
+        return -1;
+    }
+
+    sk->fd = skfd;
+
+    freeaddrinfo(addr);
 
     return 0;
 }
@@ -50,6 +80,8 @@ static int __construct(Udp_Socket *socket,char *init_str)
 static int __deconstrcut(Udp_Socket *socket)
 {
     dbg_str(NET_DETAIL,"socket deconstruct,socket addr:%p",socket);
+
+    close(socket->fd);
 
     return 0;
 }
@@ -101,51 +133,62 @@ static void *__get(Udp_Socket *obj, char *attrib)
     return NULL;
 }
 
-int __bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+int __bind(Udp_Socket *socket, const struct sockaddr *addr, socklen_t addrlen)
 {
-
+    return bind(socket->fd, addr, addrlen);
 }
 
 int __connect(Udp_Socket *socket, const struct sockaddr *addr, socklen_t addrlen)
 {
+    return connect(socket->fd, addr, addrlen);
 }
 
 ssize_t __write(Udp_Socket *socket, const void *buf, size_t len)
 {
     dbg_str(NET_DETAIL, "udp socket write");
+
+    return write(socket->fd, buf, len);
 }
 
 ssize_t __send(Udp_Socket *socket, const void *buf, size_t len, int flags)
 {
+    return send(socket->fd, buf, len, flags);
 }
 
 ssize_t __sendto(Udp_Socket *socket, const void *buf, size_t len, int flags,
                  const struct sockaddr *dest_addr,
                  socklen_t addrlen)
 {
+    return sendto(socket->fd, buf, len, flags, dest_addr, addrlen);
 }
 
 ssize_t __sendmsg(Udp_Socket *socket, const struct msghdr *msg, int flags)
 {
+    return sendmsg(socket->fd, msg, flags);
 }
 
-ssize_t __read(Udp_Socket *socket, const void *buf, size_t len)
+ssize_t __read(Udp_Socket *socket, void *buf, size_t len)
 {
     dbg_str(NET_DETAIL, "udp socket read");
+
+    return read(socket->fd, buf, len);
 }
 
 ssize_t __recv(Udp_Socket *socket, void *buf, size_t len, int flags)
 {
+    return recv(socket->fd, buf, len, flags);
 }
 
 ssize_t __recvfrom(Udp_Socket *socket, void *buf, size_t len, int flags,
                    struct sockaddr *src_addr, 
                    socklen_t *addrlen)
 {
+    return recvfrom(socket->fd, buf, len ,flags, src_addr, addrlen);
 }
 
 ssize_t __recvmsg(Udp_Socket *socket, struct msghdr *msg, int flags)
 {
+    return recvmsg(socket->fd, msg, flags);
 }
 
 static class_info_entry_t udp_socket_class_info[] = {

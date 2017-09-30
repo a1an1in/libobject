@@ -6,7 +6,7 @@
 #include <sys/socket.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
-
+#include <unistd.h>
 
 typedef struct socket_s Socket;
 
@@ -27,7 +27,7 @@ struct socket_s{
                       const struct sockaddr *dest_addr,
                       socklen_t addrlen);
     ssize_t (*sendmsg)(Socket *socket, const struct msghdr *msg, int flags);
-    ssize_t (*read)(Socket *socket, const void *buf, size_t len);
+    ssize_t (*read)(Socket *socket, void *buf, size_t len);
     ssize_t (*recv)(Socket *socket, void *buf, size_t len, int flags);
     ssize_t (*recvfrom)(Socket *socket, void *buf, size_t len, int flags,
                         struct sockaddr *src_addr, 
