@@ -33,6 +33,14 @@ struct udp_socket_s{
     ssize_t (*recvmsg)(Udp_Socket *socket, struct msghdr *msg, int flags);
 
     int fd;
+#define MAX_IP_STR_LEN 64
+#define MAX_PORT_STR_LEN 10
+    char local_ip[MAX_IP_STR_LEN];
+    char local_port[MAX_PORT_STR_LEN];
+    char remote_ip[MAX_IP_STR_LEN];
+    char remote_port[MAX_PORT_STR_LEN];
+#undef MAX_IP_STR_LEN
+#undef MAX_PORT_STR_LEN
 };
 
 #endif

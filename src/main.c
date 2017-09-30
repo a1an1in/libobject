@@ -173,41 +173,6 @@ static int args_process_test_ring_buffer(void *base,int argc,char **argv)
     return 0;
 }
 
-static int args_process_test_inet_tcp_server(void *base,int argc,char **argv)
-{
-    /*
-     *test_inet_server();
-     */
-    return 0;
-}
-
-static int args_process_test_inet_tcp_client_send(void *base,int argc,char **argv)
-{
-    /*
-     *test_inet_tcp_client_send();
-     */
-    return 0;
-}
-
-static int args_process_test_inet_udp_client_recieve(void *base,int argc,char **argv)
-{
-    /*
-     *test_inet_udp_client_recieve();
-     */
-    return 0;
-}
-
-static int args_process_test_inet_udp_client_send(void *base,int argc,char **argv)
-{
-    /*
-     *test_inet_udp_client_send();
-     */
-    /*
-     *test_inet_udp_client_broadcast();
-     */
-    return 0;
-}
-
 static int args_process_test_allocator(void *base,int argc,char **argv)
 {
     test_ctr_alloc();
@@ -260,38 +225,6 @@ static int args_process_test_analyzer(void *base,int argc,char **argv)
     test_pdt_proto_analyzer();
     /*
      *test_pdu_proto_analyzer();
-     */
-    return 0;
-}
-
-static int args_process_test_gclient_recv_of_inet_udp(void *base,int argc,char **argv)
-{
-    /*
-     *test_client_recv_of_inet_udp();
-     */
-    return 0;
-}
-
-static int args_process_test_gclient_recv_of_unix_udp(void *base,int argc,char **argv)
-{
-    /*
-     *test_client_recv_of_unix_udp();
-     */
-    return 0;
-}
-
-static int args_process_test_gserver_of_unix(void *base,int argc,char **argv)
-{
-    /*
-     *test_server_of_unix();
-     */
-    return 0;
-}
-
-static int args_process_test_gserver_of_inet(void *base,int argc,char **argv)
-{
-    /*
-     *test_server_of_inet();
      */
     return 0;
 }
@@ -635,8 +568,49 @@ static int args_process_test_Socket(void *base,int argc,char **argv)
     return 0;
 }
 
+static int args_process_test_Thread(void *base,int argc,char **argv)
+{
+    test_obj_thread();
+    return 0;
+}
+
+static int args_process_test_Tcp_recv(void *base,int argc,char **argv)
+{
+    /*
+     *test_inet_server();
+     */
+    return 0;
+}
+
+static int args_process_test_Tcp_send(void *base,int argc,char **argv)
+{
+    /*
+     *test_inet_tcp_client_send();
+     */
+    return 0;
+}
+
+static int args_process_test_Udp_recv(void *base,int argc,char **argv)
+{
+    test_udp_socket_recv();
+
+    return 0;
+}
+
+static int args_process_test_Udp_send(void *base,int argc,char **argv)
+{
+    test_udp_socket_send();
+
+    return 0;
+}
+
 static cmd_config_t cmds[]={
-    {"SK", args_process_test_Socket,0, "test", "N/A","test"},
+    {"udp_recv", args_process_test_Udp_recv,0, "test", "N/A","test_udp_client_recieve"},
+    {"udp_send", args_process_test_Udp_send,0, "test", "N/A","test_udp_client_send"},
+    {"tcp_send", args_process_test_Tcp_send,0, "test", "N/A","test_tcp_client_send"},
+    {"tcp_recv", args_process_test_Tcp_recv,0, "test", "N/A","test_tcp_server"},
+    {"Thread", args_process_test_Thread,0, "test", "N/A","test"},
+    {"Socket", args_process_test_Socket,0, "test", "N/A","test"},
     {"Event", args_process_test_Event_Base,0, "test", "N/A","test"},
     {"Button", args_process_test_Button,0, "test", "N/A","test"},
     {"Border", args_process_test_BorderLayout,0, "test", "N/A","test"},
@@ -680,10 +654,6 @@ static cmd_config_t cmds[]={
     {"pa_admin", args_process_test_pa_admin,0, "test", "N/A","help info"},
     {"help_test", args_process_help_test,0, "help", "N/A","help info"},
     {"lab", args_process_lab,1, "test", "N/A","test simple code"},
-    {"general_inet_server", args_process_test_gserver_of_inet,0, "test", "N/A","test general server of inet tcp"},
-    {"general_unix_server", args_process_test_gserver_of_unix,0, "test", "N/A","test general server of unix tcp"},
-    {"general_unix_client_rcv", args_process_test_gclient_recv_of_unix_udp,0, "test", "N/A","test general client of unix udp"},
-    {"general_inet_client_rcv", args_process_test_gclient_recv_of_inet_udp,0, "test", "N/A","test general client of inet udp"},
     {"analyzer", args_process_test_analyzer,0, "test", "N/A","test analyzer"},
     {"evtime", args_process_test_evtime,0, "test", "N/A","test evtime"},
     {"evsignal", args_process_test_evsignal,0, "test", "N/A","test evsignal"},
@@ -691,10 +661,6 @@ static cmd_config_t cmds[]={
     {"io_user", args_process_test_io_user,0, "test", "N/A","test io user"},
     {"tmr_user", args_process_test_tmr_user,0, "test", "N/A","test timer user"},
     {"allocator", args_process_test_allocator,0, "test", "N/A","test_allocator"},
-    {"inet_udp_client_send", args_process_test_inet_udp_client_send,0, "test", "N/A","test udp inet client send"},
-    {"inet_udp_client_recieve", args_process_test_inet_udp_client_recieve,0, "test", "N/A","test_inet_udp_client_recieve"},
-    {"inet_tcp_client_send", args_process_test_inet_tcp_client_send,0, "test", "N/A","test_inet_tcp_client_send"},
-    {"inet_tcp_server", args_process_test_inet_tcp_server,0, "test", "N/A","test_inet_tcp_server"},
     {"map", args_process_test_map,0, "test", "N/A","test_map"},
     {"ring_buffer", args_process_test_ring_buffer,0, "test", "N/A","test_ring_buffer"},
     {"vector", args_process_test_vector,0, "test", "N/A","test_vector"},
@@ -702,10 +668,6 @@ static cmd_config_t cmds[]={
     {"llist", args_process_test_llist,0, "test", "N/A","test_llist"},
     {"hash_map", args_process_test_hashlist,0, "test", "N/A","test_hashlist"},
     {"state_machine", args_process_test_state_machine,0, "test", "N/A","test_state_machine"},
-    {"unix_udp_client_recieve", args_process_test_unix_udp_client_recieve,0, "test", "N/A","test_unix_udp_client_recieve"},
-    {"unix_udp_client_send", args_process_test_unix_udp_client_send,0, "test", "N/A","test_unix_udp_client_send"},
-    {"unix_tcp_client_send", args_process_test_unix_tcp_client_send,0, "test", "N/A","test_unix_tcp_client_send"},
-    {"unix_tcp_server", args_process_test_unix_tcp_server,0, "test", "N/A","test_unix_tcp_server"},
     {"shm_read", args_process_test_share_mem_read,0, "test", "N/A","test_share_mem_read"},
     {"shm_write", args_process_test_share_mem_write,0, "test", "N/A","test_share_mem_write"},
     {"port", args_process_port,1, "config", "NN(number)","udp port,using to send/rcv msg with neighbor"},

@@ -35,26 +35,25 @@
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
 #include <libobject/net/socket_udp.h>
-#include <netdb.h>
-#include <sys/types.h>          /* See NOTES */
-#include <sys/socket.h>
+#include <libobject/core/thread.h>
 
 static int __construct(Udp_Socket *sk,char *init_str)
 {
     configurator_t * c;
     char buf[2048];
     struct addrinfo  *addr, hint;
-    char *ip = "127.0.0.1";
-    char *port = "11011";
     int skfd, err;
 
     dbg_str(NET_DETAIL,"socket construct, socket addr:%p",sk);
+
+    dbg_str(NET_DETAIL,"local_ip:%s local_port:%s remote_ip:%s remote_port:%s",
+            sk->local_ip, sk->local_port, sk->remote_ip, sk->remote_port);
 
     bzero(&hint, sizeof(hint));
     hint.ai_family   = AF_INET;
     hint.ai_socktype = SOCK_DGRAM;
 
-    if ((err = getaddrinfo(ip, port, &hint, &addr)) != 0){
+    if ((err = getaddrinfo(sk->local_ip, sk->local_port, &hint, &addr)) != 0){
         printf("getaddrinfo error: %s", gai_strerror(err));
         return -1;
     }
@@ -116,6 +115,15 @@ static int __set(Udp_Socket *socket, char *attrib, void *value)
     } else if (strcmp(attrib, "recvmsg") == 0) {
         socket->recvmsg = value;
     } 
+    else if (strcmp(attrib, "local_ip") == 0) {
+        strncpy(socket->local_ip, value, strlen(value));
+    } else if (strcmp(attrib, "local_port") == 0) {
+        strncpy(socket->local_port, value, strlen(value));
+    } else if (strcmp(attrib, "remote_ip") == 0) {
+        strncpy(socket->remote_ip, value, strlen(value));
+    } else if (strcmp(attrib, "remote_port") == 0) {
+        strncpy(socket->remote_port, value, strlen(value));
+    }
     else {
         dbg_str(NET_DETAIL,"socket set, not support %s setting",attrib);
     }
@@ -123,9 +131,16 @@ static int __set(Udp_Socket *socket, char *attrib, void *value)
     return 0;
 }
 
-static void *__get(Udp_Socket *obj, char *attrib)
+static void *__get(Udp_Socket *socket, char *attrib)
 {
-    if (strcmp(attrib, "") == 0) {
+    if (strcmp(attrib, "local_ip") == 0) {
+        return socket->local_ip;
+    } else if (strcmp(attrib, "local_port") == 0) {
+        return socket->local_port;
+    } else if (strcmp(attrib, "remote_ip") == 0) {
+        return socket->remote_ip;
+    } else if (strcmp(attrib, "remote_port") == 0) {
+        return socket->remote_port;
     } else {
         dbg_str(NET_WARNNING,"socket get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
@@ -159,6 +174,7 @@ ssize_t __sendto(Udp_Socket *socket, const void *buf, size_t len, int flags,
                  const struct sockaddr *dest_addr,
                  socklen_t addrlen)
 {
+    dbg_str(NET_DETAIL, "udp socket send to, fd=%d, buf %s",socket->fd, buf);
     return sendto(socket->fd, buf, len, flags, dest_addr, addrlen);
 }
 
@@ -169,7 +185,7 @@ ssize_t __sendmsg(Udp_Socket *socket, const struct msghdr *msg, int flags)
 
 ssize_t __read(Udp_Socket *socket, void *buf, size_t len)
 {
-    dbg_str(NET_DETAIL, "udp socket read");
+    dbg_str(NET_DETAIL, "udp socket read, fd=%d", socket->fd);
 
     return read(socket->fd, buf, len);
 }
@@ -206,7 +222,11 @@ static class_info_entry_t udp_socket_class_info[] = {
     [11] = {ENTRY_TYPE_VFUNC_POINTER,"","recv",__recv,sizeof(void *)},
     [12] = {ENTRY_TYPE_VFUNC_POINTER,"","recvfrom",__recvfrom,sizeof(void *)},
     [13] = {ENTRY_TYPE_VFUNC_POINTER,"","recvmsg",__recvmsg,sizeof(void *)},
-    [14] = {ENTRY_TYPE_END},
+    [14] = {ENTRY_TYPE_STRING,"","local_ip",NULL,sizeof(void *)},
+    [15] = {ENTRY_TYPE_STRING,"","local_port",NULL,sizeof(void *)},
+    [16] = {ENTRY_TYPE_STRING,"","remote_ip",NULL,sizeof(void *)},
+    [17] = {ENTRY_TYPE_STRING,"","remote_port",NULL,sizeof(void *)},
+    [18] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Udp_Socket",udp_socket_class_info);
 
@@ -222,6 +242,10 @@ void test_obj_udp_socket()
     c = cfg_alloc(allocator); 
     dbg_str(NET_SUC, "configurator_t addr:%p",c);
     cfg_config(c, "/Udp_Socket", CJSON_STRING, "name", "alan socket") ;  
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "local_ip", "192.168.1.122") ;  
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "local_port", "11011") ;  
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "remote_ip", "192.168.1.122") ;  
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "remote_port", "11022") ;  
 
     socket = OBJECT_NEW(allocator, Udp_Socket,c->buf);
 
@@ -235,4 +259,80 @@ void test_obj_udp_socket()
     cfg_destroy(c);
 }
 
+void test_udp_socket_send()
+{
+    Udp_Socket *socket;
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;
+    char *set_str;
+    cjson_t *root, *e, *s;
+    char buf[2048];
+    struct sockaddr_in raddr, laddr;
+
+    raddr.sin_family = AF_INET;
+    raddr.sin_port   = htons(atoi("11011"));
+    inet_pton(AF_INET,"127.0.0.1", &raddr.sin_addr); 
+    laddr.sin_family = AF_INET;
+    laddr.sin_port   = htons(atoi("11022"));
+    inet_pton(AF_INET,"127.0.0.1", &laddr.sin_addr); 
+
+    char *test_str = "hello world";
+
+    c = cfg_alloc(allocator); 
+    dbg_str(NET_SUC, "configurator_t addr:%p",c);
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "name", "alan socket") ;  
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "local_ip", "127.0.0.1") ;  
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "local_port", "11022") ;  
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "remote_ip", "127.0.0.1") ;  
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "remote_port", "11011") ;  
+
+    socket = OBJECT_NEW(allocator, Udp_Socket,c->buf);
+
+    object_dump(socket, "Udp_Socket", buf, 2048);
+    dbg_str(NET_DETAIL,"Udp_Socket dump: %s",buf);
+
+    socket->bind(socket, &laddr, sizeof(laddr)); 
+    socket->sendto(socket, test_str, strlen(test_str), 0, (struct sockaddr *)&raddr, sizeof(raddr));
+
+    while(1) sleep(1);
+
+    object_destroy(socket);
+    cfg_destroy(c);
+}
+
+void test_udp_socket_recv()
+{
+    Udp_Socket *socket;
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;
+    char *set_str;
+    cjson_t *root, *e, *s;
+    char buf[2048];
+
+    struct sockaddr_in laddr;
+    laddr.sin_family = AF_INET;
+    laddr.sin_port   = htons(atoi("11011"));
+    inet_pton(AF_INET,"127.0.0.1", &laddr.sin_addr); 
+
+    c = cfg_alloc(allocator); 
+    dbg_str(NET_SUC, "configurator_t addr:%p",c);
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "name", "alan socket") ;  
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "local_ip", "127.0.0.1") ;  
+    cfg_config(c, "/Udp_Socket", CJSON_STRING, "local_port", "11011") ;  
+
+    socket = OBJECT_NEW(allocator, Udp_Socket,c->buf);
+
+    object_dump(socket, "Udp_Socket", buf, 2048);
+    dbg_str(NET_DETAIL,"Udp_Socket dump: %s",buf);
+    socket->bind(socket, &laddr, sizeof(laddr)); 
+
+    memset(buf, 0, 2048);
+    socket->read(socket, buf, 1024);
+    dbg_str(NET_DETAIL,"recv : %s",buf);
+
+    while(1) sleep(1);
+
+    object_destroy(socket);
+    cfg_destroy(c);
+}
 

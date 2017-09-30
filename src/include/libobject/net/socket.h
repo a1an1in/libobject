@@ -2,6 +2,7 @@
 #define __SOCKET_H__
 
 #include <stdio.h>
+#include <netdb.h>
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
 #include <libobject/utils/dbg/debug.h>

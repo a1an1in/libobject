@@ -82,5 +82,8 @@ extern int test_object_config();
 extern void test_obj_select_base();
 extern int test_event_io();
 extern void test_obj_udp_socket();
+extern void test_obj_thread();
+extern void test_udp_socket_recv();
+extern void test_udp_socket_send();
 
 #endif
