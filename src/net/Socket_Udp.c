@@ -98,6 +98,7 @@ static int __set(Udp_Socket *socket, char *attrib, void *value)
     } 
     else if (strcmp(attrib, "bind") == 0) {
         socket->bind = value;
+        dbg_str(DBG_DETAIL,"set bind, addr:%p", socket->bind);
     } else if (strcmp(attrib, "connect") == 0) {
         socket->connect = value;
     } else if (strcmp(attrib, "write") == 0) {
@@ -150,6 +151,7 @@ static void *__get(Udp_Socket *socket, char *attrib)
 
 int __bind(Udp_Socket *socket, const struct sockaddr *addr, socklen_t addrlen)
 {
+    dbg_str(DBG_DETAIL,"run at here");
     return bind(socket->fd, addr, addrlen);
 }
 
@@ -261,7 +263,7 @@ void test_obj_udp_socket()
 
 void test_udp_socket_send()
 {
-    Udp_Socket *socket;
+    Socket *socket;
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;
     char *set_str;
@@ -302,7 +304,7 @@ void test_udp_socket_send()
 
 void test_udp_socket_recv()
 {
-    Udp_Socket *socket;
+    Socket *socket;
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;
     char *set_str;
@@ -324,6 +326,8 @@ void test_udp_socket_recv()
 
     object_dump(socket, "Udp_Socket", buf, 2048);
     dbg_str(NET_DETAIL,"Udp_Socket dump: %s",buf);
+    dbg_str(NET_DETAIL,"socket bind addr:%p",socket->bind);
+
     socket->bind(socket, &laddr, sizeof(laddr)); 
 
     memset(buf, 0, 2048);

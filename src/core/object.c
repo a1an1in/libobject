@@ -370,7 +370,8 @@ object_find_reimplement_func_pointer(char *method_name,
         subclass_name = entry[0].type_name;
     }
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (    entry[i].type == ENTRY_TYPE_FUNC_POINTER &&
+        if (    (entry[i].type == ENTRY_TYPE_FUNC_POINTER ||
+                entry[i].type == ENTRY_TYPE_VFUNC_POINTER) &&
                 strcmp(entry[i].value_name, method_name) == 0)
         {
             if (entry[i].value == NULL) {
