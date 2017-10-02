@@ -17,8 +17,8 @@ struct udp_socket_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
-    int (*connect)(Udp_Socket *socket, const struct sockaddr *addr, socklen_t addrlen);
-    int (*bind)(Udp_Socket *socket, const struct sockaddr *addr, socklen_t addrlen);
+    int (*connect)(Udp_Socket *socket, char *host, char *service);
+    int (*bind)(Udp_Socket *socket, char *host, char *service);
     ssize_t (*send)(Udp_Socket *socket, const void *buf, size_t len, int flags);
     ssize_t (*write)(Udp_Socket *socket, const void *buf, size_t len);
     ssize_t (*sendto)(Udp_Socket *socket, const void *buf, size_t len, int flags,
@@ -35,10 +35,10 @@ struct udp_socket_s{
     int fd;
 #define MAX_IP_STR_LEN 64
 #define MAX_PORT_STR_LEN 10
-    char local_ip[MAX_IP_STR_LEN];
-    char local_port[MAX_PORT_STR_LEN];
-    char remote_ip[MAX_IP_STR_LEN];
-    char remote_port[MAX_PORT_STR_LEN];
+    char local_host[MAX_IP_STR_LEN];
+    char local_service[MAX_PORT_STR_LEN];
+    char remote_host[MAX_IP_STR_LEN];
+    char remote_service[MAX_PORT_STR_LEN];
 #undef MAX_IP_STR_LEN
 #undef MAX_PORT_STR_LEN
 };
