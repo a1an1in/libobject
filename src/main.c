@@ -564,29 +564,15 @@ static int args_process_test_Event_Base(void *base,int argc,char **argv)
 
 static int args_process_test_Socket(void *base,int argc,char **argv)
 {
-    test_obj_udp_socket();
+    /*
+     *test_obj_udp_socket();
+     */
     return 0;
 }
 
 static int args_process_test_Thread(void *base,int argc,char **argv)
 {
     test_obj_thread();
-    return 0;
-}
-
-static int args_process_test_Tcp_recv(void *base,int argc,char **argv)
-{
-    /*
-     *test_inet_server();
-     */
-    return 0;
-}
-
-static int args_process_test_Tcp_send(void *base,int argc,char **argv)
-{
-    /*
-     *test_inet_tcp_client_send();
-     */
     return 0;
 }
 
@@ -604,11 +590,23 @@ static int args_process_test_Udp_send(void *base,int argc,char **argv)
     return 0;
 }
 
+static int args_process_test_Tcp_recv(void *base,int argc,char **argv)
+{
+    test_tcp_socket_recv();
+    return 0;
+}
+
+static int args_process_test_Tcp_send(void *base,int argc,char **argv)
+{
+    test_tcp_socket_send();
+    return 0;
+}
+
 static cmd_config_t cmds[]={
-    {"udp_recv", args_process_test_Udp_recv,0, "test", "N/A","test_udp_client_recieve"},
-    {"udp_send", args_process_test_Udp_send,0, "test", "N/A","test_udp_client_send"},
     {"tcp_send", args_process_test_Tcp_send,0, "test", "N/A","test_tcp_client_send"},
     {"tcp_recv", args_process_test_Tcp_recv,0, "test", "N/A","test_tcp_server"},
+    {"udp_recv", args_process_test_Udp_recv,0, "test", "N/A","test_udp_client_recieve"},
+    {"udp_send", args_process_test_Udp_send,0, "test", "N/A","test_udp_client_send"},
     {"Thread", args_process_test_Thread,0, "test", "N/A","test"},
     {"Socket", args_process_test_Socket,0, "test", "N/A","test"},
     {"Event", args_process_test_Event_Base,0, "test", "N/A","test"},

@@ -44,13 +44,23 @@ static int __construct(Socket *socket,char *init_str)
 
     dbg_str(EV_DETAIL,"socket construct, socket addr:%p",socket);
 
+    socket->local_host = allocator_mem_alloc(allocator, DEFAULT_MAX_IP_STR_LEN);
+    socket->local_service = allocator_mem_alloc(allocator, DEFAULT_MAX_PORT_STR_LEN);
+    socket->remote_host = allocator_mem_alloc(allocator, DEFAULT_MAX_IP_STR_LEN);
+    socket->remote_service = allocator_mem_alloc(allocator, DEFAULT_MAX_PORT_STR_LEN);
 
     return 0;
 }
 
 static int __deconstrcut(Socket *socket)
 {
+    allocator_t *allocator = socket->obj.allocator;
+
     dbg_str(EV_DETAIL,"socket deconstruct,socket addr:%p",socket);
+    allocator_mem_free(allocator, socket->local_host);
+    allocator_mem_free(allocator, socket->local_service);
+    allocator_mem_free(allocator, socket->remote_host);
+    allocator_mem_free(allocator, socket->remote_service);
 
     return 0;
 }
@@ -68,6 +78,10 @@ static int __set(Socket *socket, char *attrib, void *value)
     }
     else if (strcmp(attrib, "bind") == 0) {
         socket->bind = value;
+    } else if (strcmp(attrib, "listen") == 0) {
+        socket->listen = value;
+    } else if (strcmp(attrib, "accept") == 0) {
+        socket->accept = value;
     } else if (strcmp(attrib, "connect") == 0) {
         socket->connect = value;
     } else if (strcmp(attrib, "write") == 0) {
@@ -164,7 +178,22 @@ int __bind(Socket *socket, char *host, char *service)
     return ret;
 }
 
-int __connect(Socket *socket, char *host, char *service)
+static int __listen(Socket *socket, int backlog)
+{
+    int opt = 1;
+
+    setsockopt(socket->fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    if (listen(socket->fd, backlog) == -1) {
+        perror("listen error");
+        return -1;
+    }
+
+    return 0;
+}
+
+
+static int __connect(Socket *socket, char *host, char *service)
 {
     struct addrinfo  *addr, *addrsave, hint;
     int skfd, ret;
@@ -209,19 +238,19 @@ int __connect(Socket *socket, char *host, char *service)
     return ret;
 }
 
-ssize_t __write(Socket *socket, const void *buf, size_t len)
+static ssize_t __write(Socket *socket, const void *buf, size_t len)
 {
     dbg_str(NET_DETAIL, "socket write");
 
     return write(socket->fd, buf, len);
 }
 
-ssize_t __send(Socket *socket, const void *buf, size_t len, int flags)
+static ssize_t __send(Socket *socket, const void *buf, size_t len, int flags)
 {
     return send(socket->fd, buf, len, flags);
 }
 
-ssize_t __sendto(Socket *socket, const void *buf, size_t len, int flags,
+static ssize_t __sendto(Socket *socket, const void *buf, size_t len, int flags,
                  const struct sockaddr *dest_addr,
                  socklen_t addrlen)
 {
@@ -232,7 +261,7 @@ ssize_t __sendto(Socket *socket, const void *buf, size_t len, int flags,
      */
 }
 
-ssize_t __sendmsg(Socket *socket, const struct msghdr *msg, int flags)
+static ssize_t __sendmsg(Socket *socket, const struct msghdr *msg, int flags)
 {
     dbg_str(NET_DETAIL, "not supported now");
     /*
@@ -240,21 +269,21 @@ ssize_t __sendmsg(Socket *socket, const struct msghdr *msg, int flags)
      */
 }
 
-ssize_t __read(Socket *socket, void *buf, size_t len)
+static ssize_t __read(Socket *socket, void *buf, size_t len)
 {
     dbg_str(NET_DETAIL, "socket read, fd=%d", socket->fd);
 
     return read(socket->fd, buf, len);
 }
 
-ssize_t __recv(Socket *socket, void *buf, size_t len, int flags)
+static ssize_t __recv(Socket *socket, void *buf, size_t len, int flags)
 {
     return recv(socket->fd, buf, len, flags);
 }
 
-ssize_t __recvfrom(Socket *socket, void *buf, size_t len, int flags,
-                   struct sockaddr *src_addr, 
-                   socklen_t *addrlen)
+static ssize_t __recvfrom(Socket *socket, void *buf, size_t len, int flags,
+                          struct sockaddr *src_addr, 
+                          socklen_t *addrlen)
 {
     dbg_str(NET_DETAIL, "not supported now");
     /*
@@ -262,7 +291,7 @@ ssize_t __recvfrom(Socket *socket, void *buf, size_t len, int flags,
      */
 }
 
-ssize_t __recvmsg(Socket *socket, struct msghdr *msg, int flags)
+static ssize_t __recvmsg(Socket *socket, struct msghdr *msg, int flags)
 {
     dbg_str(NET_DETAIL, "not supported now");
     /*
@@ -277,19 +306,21 @@ static class_info_entry_t socket_class_info[] = {
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","bind",__bind,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","connect",__connect,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","write",__write,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","sendto",__sendto,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","sendmsg",__sendmsg,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","read",__read,sizeof(void *)},
-    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","recv",__recv,sizeof(void *)},
-    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","recvfrom",__recvfrom,sizeof(void *)},
-    [13] = {ENTRY_TYPE_VFUNC_POINTER,"","recvmsg",__recvmsg,sizeof(void *)},
-    [14] = {ENTRY_TYPE_STRING,"","local_host",NULL,sizeof(void *)},
-    [15] = {ENTRY_TYPE_STRING,"","local_service",NULL,sizeof(void *)},
-    [16] = {ENTRY_TYPE_STRING,"","remote_host",NULL,sizeof(void *)},
-    [17] = {ENTRY_TYPE_STRING,"","remote_service",NULL,sizeof(void *)},
-    [18] = {ENTRY_TYPE_END},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","listen",__listen,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","accept",NULL,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","connect",__connect,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","write",__write,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","sendto",__sendto,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","sendmsg",__sendmsg,sizeof(void *)},
+    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","read",__read,sizeof(void *)},
+    [13] = {ENTRY_TYPE_VFUNC_POINTER,"","recv",__recv,sizeof(void *)},
+    [14] = {ENTRY_TYPE_VFUNC_POINTER,"","recvfrom",__recvfrom,sizeof(void *)},
+    [15] = {ENTRY_TYPE_VFUNC_POINTER,"","recvmsg",__recvmsg,sizeof(void *)},
+    [16] = {ENTRY_TYPE_STRING,"","local_host",NULL,sizeof(void *)},
+    [17] = {ENTRY_TYPE_STRING,"","local_service",NULL,sizeof(void *)},
+    [18] = {ENTRY_TYPE_STRING,"","remote_host",NULL,sizeof(void *)},
+    [19] = {ENTRY_TYPE_STRING,"","remote_service",NULL,sizeof(void *)},
+    [20] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Socket",socket_class_info);
 

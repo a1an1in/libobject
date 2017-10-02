@@ -9,6 +9,9 @@
 #include <libobject/core/obj.h>
 #include <unistd.h>
 
+#define DEFAULT_MAX_IP_STR_LEN 64
+#define DEFAULT_MAX_PORT_STR_LEN 10
+
 typedef struct socket_s Socket;
 
 struct socket_s{
@@ -20,6 +23,8 @@ struct socket_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
+    int (*listen)(Socket *socket, int backlog);
+    Socket * (*accept)(Socket *socket, char *remote_host, char *remote_service);
     int (*connect)(Socket *socket, char *host, char *service);
     int (*bind)(Socket *socket, char *host, char *service);
     ssize_t (*write)(Socket *socket, const void *buf, size_t len);
@@ -36,14 +41,10 @@ struct socket_s{
     ssize_t (*recvmsg)(Socket *socket, struct msghdr *msg, int flags);
 
     int fd;
-#define MAX_IP_STR_LEN 64
-#define MAX_PORT_STR_LEN 10
-    char local_host[MAX_IP_STR_LEN];
-    char local_service[MAX_PORT_STR_LEN];
-    char remote_host[MAX_IP_STR_LEN];
-    char remote_service[MAX_PORT_STR_LEN];
-#undef MAX_IP_STR_LEN
-#undef MAX_PORT_STR_LEN
+    char *local_host;
+    char *local_service;
+    char *remote_host;
+    char *remote_service;
 
 };
 
