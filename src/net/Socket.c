@@ -85,6 +85,15 @@ static int __set(Socket *socket, char *attrib, void *value)
     } else if (strcmp(attrib, "recvmsg") == 0) {
         socket->recvmsg = value;
     } 
+    else if (strcmp(attrib, "local_host") == 0) {
+        strncpy(socket->local_host, value, strlen(value));
+    } else if (strcmp(attrib, "local_service") == 0) {
+        strncpy(socket->local_service, value, strlen(value));
+    } else if (strcmp(attrib, "remote_host") == 0) {
+        strncpy(socket->remote_host, value, strlen(value));
+    } else if (strcmp(attrib, "remote_service") == 0) {
+        strncpy(socket->remote_service, value, strlen(value));
+    }
     else {
         dbg_str(EV_DETAIL,"socket set, not support %s setting",attrib);
     }
@@ -92,16 +101,174 @@ static int __set(Socket *socket, char *attrib, void *value)
     return 0;
 }
 
-static void *__get(Socket *obj, char *attrib)
+static void *__get(Socket *socket, char *attrib)
 {
-    if (strcmp(attrib, "") == 0) {
-    } else {
+    if (strcmp(attrib, "local_host") == 0) {
+        return socket->local_host;
+    } else if (strcmp(attrib, "local_service") == 0) {
+        return socket->local_service;
+    } else if (strcmp(attrib, "remote_host") == 0) {
+        return socket->remote_host;
+    } else if (strcmp(attrib, "remote_service") == 0) {
+        return socket->remote_service;
+    }
+    else {
         dbg_str(EV_WARNNING,"socket get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
 }
 
+int __bind(Socket *socket, char *host, char *service)
+{
+    struct addrinfo  *addr, *addrsave, hint;
+    int skfd, ret;
+    char *h, *s;
+
+    bzero(&hint, sizeof(hint));
+    hint.ai_family   = AF_INET;
+    hint.ai_socktype = SOCK_DGRAM;
+
+    if (host == NULL && service == NULL) {
+        h = socket->local_host;
+        s = socket->local_service;
+    } else {
+        h = host;
+        s = service;
+    }
+
+    if ((ret = getaddrinfo(h, s, &hint, &addr)) != 0){
+        dbg_str(DBG_ERROR,"getaddrinfo error: %s", gai_strerror(ret));
+        return -1;
+    }
+    addrsave = addr;
+
+    if(addr != NULL){
+        dbg_str(NET_DETAIL,"ai_family=%d type=%d",addr->ai_family,addr->ai_socktype);
+    }else{
+        dbg_str(DBG_ERROR,"getaddrinfo err");
+        return -1;
+    }                      
+
+    do {
+        if ((ret = bind(socket->fd, addr->ai_addr, addr->ai_addrlen)) == 0)
+            break;
+    } while ((addr = addr->ai_next) != NULL);
+
+    if (addr == NULL) {
+        dbg_str(NET_WARNNING,"bind error for %s %s", host, service);
+    }
+
+    freeaddrinfo(addrsave);
+
+    return ret;
+}
+
+int __connect(Socket *socket, char *host, char *service)
+{
+    struct addrinfo  *addr, *addrsave, hint;
+    int skfd, ret;
+    char *h, *s;
+
+    bzero(&hint, sizeof(hint));
+    hint.ai_family   = AF_INET;
+    hint.ai_socktype = SOCK_DGRAM;
+
+    if (host == NULL && service == NULL) {
+        h = socket->remote_host;
+        s = socket->remote_service;
+    } else {
+        h = host;
+        s = service;
+    }
+
+    if ((ret = getaddrinfo(h, s, &hint, &addr)) != 0){
+        dbg_str(DBG_ERROR,"getaddrinfo error: %s", gai_strerror(ret));
+        return -1;
+    }
+    addrsave = addr;
+
+    if(addr != NULL){
+        dbg_str(NET_DETAIL,"ai_family=%d type=%d",addr->ai_family,addr->ai_socktype);
+    }else{
+        dbg_str(DBG_ERROR,"getaddrinfo err");
+        return -1;
+    }                      
+
+    do {
+        if ((ret = connect(socket->fd, addr->ai_addr, addr->ai_addrlen)) == 0)
+            break;
+    } while ((addr = addr->ai_next) != NULL);
+
+    if (addr == NULL) {
+        dbg_str(NET_WARNNING,"connect error for %s %s", host, service);
+    }
+
+    freeaddrinfo(addrsave);
+
+    return ret;
+}
+
+ssize_t __write(Socket *socket, const void *buf, size_t len)
+{
+    dbg_str(NET_DETAIL, "socket write");
+
+    return write(socket->fd, buf, len);
+}
+
+ssize_t __send(Socket *socket, const void *buf, size_t len, int flags)
+{
+    return send(socket->fd, buf, len, flags);
+}
+
+ssize_t __sendto(Socket *socket, const void *buf, size_t len, int flags,
+                 const struct sockaddr *dest_addr,
+                 socklen_t addrlen)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+    return -1;
+    /*
+     *return sendto(socket->fd, buf, len, flags, dest_addr, addrlen);
+     */
+}
+
+ssize_t __sendmsg(Socket *socket, const struct msghdr *msg, int flags)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+    /*
+     *return sendmsg(socket->fd, msg, flags);
+     */
+}
+
+ssize_t __read(Socket *socket, void *buf, size_t len)
+{
+    dbg_str(NET_DETAIL, "socket read, fd=%d", socket->fd);
+
+    return read(socket->fd, buf, len);
+}
+
+ssize_t __recv(Socket *socket, void *buf, size_t len, int flags)
+{
+    return recv(socket->fd, buf, len, flags);
+}
+
+ssize_t __recvfrom(Socket *socket, void *buf, size_t len, int flags,
+                   struct sockaddr *src_addr, 
+                   socklen_t *addrlen)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+    /*
+     *return recvfrom(socket->fd, buf, len ,flags, src_addr, addrlen);
+     */
+}
+
+ssize_t __recvmsg(Socket *socket, struct msghdr *msg, int flags)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+    /*
+     *return recvmsg(socket->fd, msg, flags);
+     */
+}
 
 static class_info_entry_t socket_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
@@ -109,16 +276,20 @@ static class_info_entry_t socket_class_info[] = {
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","bind",NULL,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","connect",NULL,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","write",NULL,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","sendto",NULL,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","sendmsg",NULL,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","read",NULL,sizeof(void *)},
-    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","recv",NULL,sizeof(void *)},
-    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","recvfrom",NULL,sizeof(void *)},
-    [13] = {ENTRY_TYPE_VFUNC_POINTER,"","recvmsg",NULL,sizeof(void *)},
-    [14] = {ENTRY_TYPE_END},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","bind",__bind,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","connect",__connect,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","write",__write,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","sendto",__sendto,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","sendmsg",__sendmsg,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","read",__read,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","recv",__recv,sizeof(void *)},
+    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","recvfrom",__recvfrom,sizeof(void *)},
+    [13] = {ENTRY_TYPE_VFUNC_POINTER,"","recvmsg",__recvmsg,sizeof(void *)},
+    [14] = {ENTRY_TYPE_STRING,"","local_host",NULL,sizeof(void *)},
+    [15] = {ENTRY_TYPE_STRING,"","local_service",NULL,sizeof(void *)},
+    [16] = {ENTRY_TYPE_STRING,"","remote_host",NULL,sizeof(void *)},
+    [17] = {ENTRY_TYPE_STRING,"","remote_service",NULL,sizeof(void *)},
+    [18] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Socket",socket_class_info);
 

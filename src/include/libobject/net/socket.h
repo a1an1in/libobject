@@ -35,6 +35,16 @@ struct socket_s{
                         socklen_t *addrlen);
     ssize_t (*recvmsg)(Socket *socket, struct msghdr *msg, int flags);
 
+    int fd;
+#define MAX_IP_STR_LEN 64
+#define MAX_PORT_STR_LEN 10
+    char local_host[MAX_IP_STR_LEN];
+    char local_service[MAX_PORT_STR_LEN];
+    char remote_host[MAX_IP_STR_LEN];
+    char remote_service[MAX_PORT_STR_LEN];
+#undef MAX_IP_STR_LEN
+#undef MAX_PORT_STR_LEN
+
 };
 
 #endif

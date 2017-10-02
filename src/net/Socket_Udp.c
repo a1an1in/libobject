@@ -48,7 +48,7 @@ static int __construct(Udp_Socket *sk,char *init_str)
         return -1;
     }
 
-    sk->fd = skfd;
+    sk->parent.fd = skfd;
 
     return 0;
 }
@@ -57,7 +57,7 @@ static int __deconstrcut(Udp_Socket *socket)
 {
     dbg_str(NET_DETAIL,"socket deconstruct,socket addr:%p",socket);
 
-    close(socket->fd);
+    close(socket->parent.fd);
 
     return 0;
 }
@@ -93,15 +93,17 @@ static int __set(Udp_Socket *socket, char *attrib, void *value)
     } else if (strcmp(attrib, "recvmsg") == 0) {
         socket->recvmsg = value;
     } 
-    else if (strcmp(attrib, "local_host") == 0) {
-        strncpy(socket->local_host, value, strlen(value));
-    } else if (strcmp(attrib, "local_service") == 0) {
-        strncpy(socket->local_service, value, strlen(value));
-    } else if (strcmp(attrib, "remote_host") == 0) {
-        strncpy(socket->remote_host, value, strlen(value));
-    } else if (strcmp(attrib, "remote_service") == 0) {
-        strncpy(socket->remote_service, value, strlen(value));
-    }
+    /*
+     *else if (strcmp(attrib, "local_host") == 0) {
+     *    strncpy(socket->local_host, value, strlen(value));
+     *} else if (strcmp(attrib, "local_service") == 0) {
+     *    strncpy(socket->local_service, value, strlen(value));
+     *} else if (strcmp(attrib, "remote_host") == 0) {
+     *    strncpy(socket->remote_host, value, strlen(value));
+     *} else if (strcmp(attrib, "remote_service") == 0) {
+     *    strncpy(socket->remote_service, value, strlen(value));
+     *}
+     */
     else {
         dbg_str(NET_DETAIL,"socket set, not support %s setting",attrib);
     }
@@ -111,14 +113,17 @@ static int __set(Udp_Socket *socket, char *attrib, void *value)
 
 static void *__get(Udp_Socket *socket, char *attrib)
 {
-    if (strcmp(attrib, "local_host") == 0) {
-        return socket->local_host;
-    } else if (strcmp(attrib, "local_service") == 0) {
-        return socket->local_service;
-    } else if (strcmp(attrib, "remote_host") == 0) {
-        return socket->remote_host;
-    } else if (strcmp(attrib, "remote_service") == 0) {
-        return socket->remote_service;
+    if (strcmp(attrib, "") == 0) {
+    /*
+     *} else if (strcmp(attrib, "local_host") == 0) {
+     *    return socket->local_host;
+     *} else if (strcmp(attrib, "local_service") == 0) {
+     *    return socket->local_service;
+     *} else if (strcmp(attrib, "remote_host") == 0) {
+     *    return socket->remote_host;
+     *} else if (strcmp(attrib, "remote_service") == 0) {
+     *    return socket->remote_service;
+     */
     } else {
         dbg_str(NET_WARNNING,"socket get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
@@ -126,6 +131,7 @@ static void *__get(Udp_Socket *socket, char *attrib)
     return NULL;
 }
 
+#if 0
 int __bind(Udp_Socket *socket, char *host, char *service)
 {
     struct addrinfo  *addr, *addrsave, hint;
@@ -287,6 +293,25 @@ static class_info_entry_t udp_socket_class_info[] = {
     [18] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Udp_Socket",udp_socket_class_info);
+#endif
+static class_info_entry_t udp_socket_class_info[] = {
+    [0 ] = {ENTRY_TYPE_OBJ,"Socket","parent",NULL,sizeof(void *)},
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
+    [5 ] = {ENTRY_TYPE_IFUNC_POINTER,"","bind", NULL,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_IFUNC_POINTER,"","connect",NULL,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_IFUNC_POINTER,"","write",NULL,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_IFUNC_POINTER,"","sendto",NULL,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_IFUNC_POINTER,"","sendmsg",NULL,sizeof(void *)},
+    [10] = {ENTRY_TYPE_IFUNC_POINTER,"","read",NULL,sizeof(void *)},
+    [11] = {ENTRY_TYPE_IFUNC_POINTER,"","recv",NULL,sizeof(void *)},
+    [12] = {ENTRY_TYPE_IFUNC_POINTER,"","recvfrom",NULL,sizeof(void *)},
+    [13] = {ENTRY_TYPE_IFUNC_POINTER,"","recvmsg",NULL,sizeof(void *)},
+    [14] = {ENTRY_TYPE_END},
+};
+REGISTER_CLASS("Udp_Socket",udp_socket_class_info);
 
 void test_obj_udp_socket()
 {
@@ -340,13 +365,16 @@ void test_udp_socket_recv()
     char buf[1024] = {0};
     allocator_t *allocator = allocator_get_default_alloc();
 
+    /*
+     *dbg_str(NET_DETAIL,"run at here");
+     */
     socket = OBJECT_NEW(allocator, Udp_Socket, NULL);
 
     socket->bind(socket, "127.0.0.1", "11011"); 
 
     while(1) {
         socket->read(socket, buf, 1024);
-        dbg_str(NET_DETAIL,"recv : %s",buf);
+        dbg_str(NET_SUC,"recv : %s",buf);
     }
 
     object_destroy(socket);
