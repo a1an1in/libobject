@@ -40,6 +40,7 @@
 static int __get_sockoptval_size(int optname)
 {
     int size = 0;
+
     switch(optname){
         case SO_REUSEPORT:
         case SO_KEEPALIVE:
@@ -52,6 +53,7 @@ static int __get_sockoptval_size(int optname)
 
     return size;
 }
+
 static int __construct(Socket *socket,char *init_str)
 {
     allocator_t *allocator = socket->obj.allocator;
@@ -333,6 +335,12 @@ static int __setsockopt(Socket *socket, int level, int optname, sockoptval *val)
     dbg_str(NET_DETAIL, "setsockopt level=%d, optname=%d", level, optname);
 
     size = __get_sockoptval_size(optname);
+    if (size <= 0) {
+        dbg_str(NET_WARNNING, "setsockopt level=%d, optname=%d, not supported now",
+                level, optname);
+        return -1;
+    }
+
     return setsockopt(socket->fd, level, optname, val, size);
 }
 

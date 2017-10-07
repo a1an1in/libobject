@@ -88,8 +88,8 @@ int class_deamon_init(class_deamon_t *class_deamon)
 }
 
 int class_deamon_register_class(class_deamon_t *class_deamon,
-                                 char *class_name,
-                                 void *class_info_addr)
+                                char *class_name,
+                                void *class_info_addr)
 {
     uint8_t addr_buf[8];
 

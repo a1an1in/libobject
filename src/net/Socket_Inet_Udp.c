@@ -41,7 +41,6 @@ static int __construct(Inet_Udp_Socket *sk,char *init_str)
 {
     int skfd;
 
-    dbg_str(NET_DETAIL,"socket construct, socket addr:%p",sk);
 
     if ((skfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("udp socket");
@@ -50,6 +49,7 @@ static int __construct(Inet_Udp_Socket *sk,char *init_str)
 
     sk->parent.fd = skfd;
 
+    dbg_str(NET_DETAIL,"socket construct, socket addr:%p, skfd=%d",sk, skfd);
     return 0;
 }
 
@@ -189,7 +189,7 @@ void test_udp_socket_recv()
     socket = OBJECT_NEW(allocator, Inet_Udp_Socket, NULL);
 
     socket->bind(socket, "127.0.0.1", "11011"); 
-    socket->setsockopt(socket, 0, 0, 0, 0);
+    socket->setsockopt(socket, 0, 0, NULL);
 
     while(1) {
         socket->read(socket, buf, 1024);
