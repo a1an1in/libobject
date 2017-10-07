@@ -189,6 +189,7 @@ void test_udp_socket_recv()
     socket = OBJECT_NEW(allocator, Inet_Udp_Socket, NULL);
 
     socket->bind(socket, "127.0.0.1", "11011"); 
+    socket->setsockopt(socket, 0, 0, 0, 0);
 
     while(1) {
         socket->read(socket, buf, 1024);

@@ -30,12 +30,28 @@
  * 
  */
 #include <stdio.h>
+#include <fcntl.h> 
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/event/event_base.h>
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
 #include <libobject/net/socket.h>
 
+static int __get_sockoptval_size(int optname)
+{
+    int size = 0;
+    switch(optname){
+        case SO_REUSEPORT:
+        case SO_KEEPALIVE:
+        case SO_REUSEADDR:
+            size = sizeof(int);
+            break;
+        default:
+            size = -1;
+    }
+
+    return size;
+}
 static int __construct(Socket *socket,char *init_str)
 {
     allocator_t *allocator = socket->obj.allocator;
@@ -98,6 +114,12 @@ static int __set(Socket *socket, char *attrib, void *value)
         socket->recvfrom = value;
     } else if (strcmp(attrib, "recvmsg") == 0) {
         socket->recvmsg = value;
+    } else if (strcmp(attrib, "getsockopt") == 0) {
+        socket->getsockopt = value;
+    } else if (strcmp(attrib, "setsockopt") == 0) {
+        socket->setsockopt = value;
+    } else if (strcmp(attrib, "setnonblocking") == 0) {
+        socket->setnonblocking = value;
     } 
     else if (strcmp(attrib, "local_host") == 0) {
         strncpy(socket->local_host, value, strlen(value));
@@ -299,6 +321,31 @@ static ssize_t __recvmsg(Socket *socket, struct msghdr *msg, int flags)
      */
 }
 
+static int __getsockopt(Socket *socket, int level, int optname, sockoptval *val)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+}
+
+static int __setsockopt(Socket *socket, int level, int optname, sockoptval *val)
+{
+    int size;
+
+    dbg_str(NET_DETAIL, "setsockopt level=%d, optname=%d", level, optname);
+
+    size = __get_sockoptval_size(optname);
+    return setsockopt(socket->fd, level, optname, val, size);
+}
+
+static int __setnonblocking(Socket *socket)
+{
+    if (fcntl(socket->fd, F_SETFL, (fcntl(socket->fd, F_GETFD, 0) | O_NONBLOCK)) == -1) 
+    {
+        return -1;
+    }                     
+
+    return 0;
+}
+
 static class_info_entry_t socket_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
@@ -316,11 +363,14 @@ static class_info_entry_t socket_class_info[] = {
     [13] = {ENTRY_TYPE_VFUNC_POINTER,"","recv",__recv,sizeof(void *)},
     [14] = {ENTRY_TYPE_VFUNC_POINTER,"","recvfrom",__recvfrom,sizeof(void *)},
     [15] = {ENTRY_TYPE_VFUNC_POINTER,"","recvmsg",__recvmsg,sizeof(void *)},
-    [16] = {ENTRY_TYPE_STRING,"","local_host",NULL,sizeof(void *)},
-    [17] = {ENTRY_TYPE_STRING,"","local_service",NULL,sizeof(void *)},
-    [18] = {ENTRY_TYPE_STRING,"","remote_host",NULL,sizeof(void *)},
-    [19] = {ENTRY_TYPE_STRING,"","remote_service",NULL,sizeof(void *)},
-    [20] = {ENTRY_TYPE_END},
+    [16] = {ENTRY_TYPE_VFUNC_POINTER,"","getsockopt",__getsockopt,sizeof(void *)},
+    [17] = {ENTRY_TYPE_VFUNC_POINTER,"","setsockopt",__setsockopt,sizeof(void *)},
+    [18] = {ENTRY_TYPE_VFUNC_POINTER,"","setnonblocking",__setnonblocking,sizeof(void *)},
+    [19] = {ENTRY_TYPE_STRING,"","local_host",NULL,sizeof(void *)},
+    [20] = {ENTRY_TYPE_STRING,"","local_service",NULL,sizeof(void *)},
+    [21] = {ENTRY_TYPE_STRING,"","remote_host",NULL,sizeof(void *)},
+    [22] = {ENTRY_TYPE_STRING,"","remote_service",NULL,sizeof(void *)},
+    [23] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Socket",socket_class_info);
 

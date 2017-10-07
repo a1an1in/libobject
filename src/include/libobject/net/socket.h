@@ -13,6 +13,12 @@
 #define DEFAULT_MAX_PORT_STR_LEN 10
 
 typedef struct socket_s Socket;
+typedef union sockoptval_u{
+    int int_val;
+    long long_val;
+    struct linger linger_val;
+    struct timeval timeval_val;
+}sockoptval;
 
 struct socket_s{
 	Obj obj;
@@ -39,6 +45,9 @@ struct socket_s{
                         struct sockaddr *src_addr, 
                         socklen_t *addrlen);
     ssize_t (*recvmsg)(Socket *socket, struct msghdr *msg, int flags);
+    int (*getsockopt)(Socket *socket, int level, int optname, sockoptval *val);
+    int (*setsockopt)(Socket *socket, int level, int optname, sockoptval *val);
+    int (*setnonblocking)(Socket *socket);
 
     int fd;
     char *local_host;
