@@ -1,9 +1,9 @@
 /**
- * @file concurrent.c
+ * @file Lock_Mutex.c
  * @synopsis 
  * @author a1an1in@sina.com
  * @version 
- * @date 2017-09-24
+ * @date 2017-10-07
  */
 /* Copyright (c) 2015-2020 alan lin <a1an1in@sina.com>
  * Redistribution and use in source and binary forms, with or without
@@ -30,70 +30,97 @@
  * 
  */
 #include <stdio.h>
+#include <unistd.h>
 #include <libobject/utils/dbg/debug.h>
+#include <libobject/event/event_base.h>
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
-#include <libobject/concurrent/concurrent.h>
+#include <libobject/core/lock_mutex.h>
 
-static int __construct(Concurrent *eb,char *init_str)
+static int __construct(Mutex_Lock *lock,char *init_str)
 {
-    allocator_t *allocator = eb->obj.allocator;
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(EV_DETAIL,"eb construct, eb addr:%p",eb);
+    dbg_str(DBG_DETAIL,"lock construct, lock addr:%p",lock);
 
     return 0;
 }
 
-static int __deconstrcut(Concurrent *eb)
+static int __deconstrcut(Mutex_Lock *lock)
 {
-    dbg_str(EV_DETAIL,"eb deconstruct,eb addr:%p",eb);
+    dbg_str(DBG_DETAIL,"lock deconstruct,lock addr:%p",lock);
+    int ret;
+    void *tret;
 
     return 0;
 }
 
-static int __set(Concurrent *eb, char *attrib, void *value)
+static int __set(Mutex_Lock *lock, char *attrib, void *value)
 {
     if (strcmp(attrib, "set") == 0) {
-        eb->set = value;
+        lock->set = value;
     } else if (strcmp(attrib, "get") == 0) {
-        eb->get = value;
+        lock->get = value;
     } else if (strcmp(attrib, "construct") == 0) {
-        eb->construct = value;
+        lock->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
-        eb->deconstruct = value;
-    } 
+        lock->deconstruct = value;
+    }
+    else if (strcmp(attrib, "lock") == 0) {
+        lock->lock = value;
+    } else if (strcmp(attrib, "trylock") == 0) {
+        lock->trylock = value;
+    } else if (strcmp(attrib, "unlock") == 0) {
+        lock->unlock = value;
+    }
     else {
-        dbg_str(EV_DETAIL,"eb set, not support %s setting",attrib);
+        dbg_str(DBG_DETAIL,"lock set, not support %s setting",attrib);
     }
 
     return 0;
 }
 
-static void *__get(Concurrent *obj, char *attrib)
+static void *__get(Mutex_Lock *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"eb get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARNNING,"lock get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
 }
 
-static class_info_entry_t concurent_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
-};
-REGISTER_CLASS("Concurrent",concurent_class_info);
-
-void test_obj_concurrent()
+static int __lock(Mutex_Lock *lock)
 {
-    Concurrent *eb;
+    dbg_str(DBG_DETAIL,"lock");
+}
+
+static int __trylock(Mutex_Lock *lock)
+{
+}
+
+static int __unlock(Mutex_Lock *lock)
+{
+    dbg_str(DBG_DETAIL,"unlock");
+}
+
+static class_info_entry_t lock_class_info[] = {
+    [0] = {ENTRY_TYPE_OBJ,"Lock","parent",NULL,sizeof(void *)},
+    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
+    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
+    [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
+    [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
+    [5] = {ENTRY_TYPE_VFUNC_POINTER,"","lock",__lock,sizeof(void *)},
+    [6] = {ENTRY_TYPE_VFUNC_POINTER,"","trylock",__trylock,sizeof(void *)},
+    [7] = {ENTRY_TYPE_VFUNC_POINTER,"","unlock",__unlock,sizeof(void *)},
+    [8] = {ENTRY_TYPE_END},
+};
+REGISTER_CLASS("Mutex_Lock",lock_class_info);
+
+void test_obj_mutex_lock()
+{
+    Lock *lock;
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;
     char *set_str;
@@ -101,16 +128,16 @@ void test_obj_concurrent()
     char buf[2048];
 
     c = cfg_alloc(allocator); 
-    dbg_str(EV_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Concurrent", CJSON_STRING, "name", "alan eb") ;  
+    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
 
-    eb = OBJECT_NEW(allocator, Concurrent,c->buf);
+    lock = OBJECT_NEW(allocator, Mutex_Lock, NULL);
 
-    object_dump(eb, "Concurrent", buf, 2048);
-    dbg_str(EV_DETAIL,"Concurrent dump: %s",buf);
+    object_dump(lock, "Mutex_Lock", buf, 2048);
+    dbg_str(DBG_DETAIL,"Mutex_Lock dump: %s",buf);
 
-    object_destroy(eb);
+    lock->lock(lock);
+    lock->unlock(lock);
+
+    object_destroy(lock);
     cfg_destroy(c);
 }
-
-
