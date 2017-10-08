@@ -48,10 +48,12 @@ int test_datastructure_vector()
     vector_push_back(vector,&t2);
     vector_push_back(vector,&t3);
     vector_push_back(vector,&t4);
-    vector_push_back(vector,&t1);
-    vector_push_back(vector,&t2);
-    vector_push_back(vector,&t3);
-    vector_push_back(vector,&t4);
+    /*
+     *vector_push_back(vector,&t1);
+     *vector_push_back(vector,&t2);
+     *vector_push_back(vector,&t3);
+     *vector_push_back(vector,&t4);
+     */
 
     vector_for_each(vector,(void (*)(void *))(print_vector_data));
 

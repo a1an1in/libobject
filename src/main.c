@@ -443,6 +443,12 @@ static int args_process_test_Hmap(void *base,int argc,char **argv)
     return 0;
 }
 
+static int args_process_test_Vector(void *base,int argc,char **argv)
+{
+    test_obj_vector();
+    return 0;
+}
+
 static int args_process_test_Graph(void *base,int argc,char **argv)
 {
     test_ui_graph();
@@ -633,6 +639,7 @@ static cmd_config_t cmds[]={
     {"Image", args_process_test_Image,0, "test", "N/A","test"},
     {"SDL_Window", args_process_test_SDL_Window,0, "test", "N/A","test"},
     {"Graph", args_process_test_Graph,0, "test", "N/A","test"},
+    {"Vector", args_process_test_Vector,0, "test", "N/A","test"},
     {"HMap", args_process_test_Hmap,0, "test", "N/A","test"},
     {"HIter", args_process_test_Hmap_Iterator,0, "test", "N/A","test"},
     {"Iter", args_process_test_Iterator,0, "test", "N/A","test"},

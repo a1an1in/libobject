@@ -143,6 +143,155 @@ end:
     return ret;
 }
 
+int cfg_config_num(configurator_t * c, const char *path, const char *name, int value) 
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    cjson_t *root, *object, *item;
+    char *buf;  
+    char **out;  
+    char *p;
+    int cnt, j, ret = 0;
+
+    buf = (char *)allocator_mem_alloc(allocator, strlen(path));
+    if (buf == NULL) {
+        dbg_str(OBJ_WARNNING, "oss set alloc err");
+        return -1;
+    }
+    strcpy(buf, path);
+
+    cnt = compute_slash_count((char *)path);
+    out = (char **)allocator_mem_alloc(allocator, sizeof(char *) * cnt);
+    if (out == NULL) {
+        dbg_str(OBJ_WARNNING, "oss set alloc err");
+        allocator_mem_free(allocator, buf);
+        return -1;
+    }
+
+    str_split(buf, "/", out, &cnt);
+
+    if (strlen(c->buf) != 0) {
+        object = cjson_parse(c->buf);
+    } else {
+        object = cjson_create_object();
+    }
+
+    root = object;
+
+    /*find item*/
+    for (j = 0; j < cnt; j++)  {     
+        item = cjson_get_object_item(object, out[j]);
+        if (item != NULL) {
+            object = item;
+        } else {
+            item = cjson_create_object();
+            cjson_add_item_to_object(object, out[j],item);
+            object = item;
+        }
+    } 
+
+    /*insert new number item*/
+    if (item != NULL){
+        cjson_add_number_to_object(item, name, value);
+    } else {
+        goto end;
+    }
+
+    p = cjson_print(root);
+
+    if (strlen(p) > c->buf_len) {
+        dbg_str(OBJ_WARNNING,"config buffer is too small");
+        ret = -1;
+        goto err;
+    } else {
+        strcpy(c->buf, p);
+    }
+
+    goto end;
+
+err:
+end:
+    allocator_mem_free(allocator, buf);
+    allocator_mem_free(allocator, out);
+
+    free(p);
+    cjson_delete(root);
+
+    return ret;
+}
+
+int cfg_config_str(configurator_t * c, const char *path, const char *name, void *value) 
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    cjson_t *root, *object, *item;
+    char *buf;  
+    char **out;  
+    char *p;
+    int cnt, j, ret = 0;
+
+    buf = (char *)allocator_mem_alloc(allocator, strlen(path));
+    if (buf == NULL) {
+        dbg_str(OBJ_WARNNING, "oss set alloc err");
+        return -1;
+    }
+    strcpy(buf, path);
+
+    cnt = compute_slash_count((char *)path);
+    out = (char **)allocator_mem_alloc(allocator, sizeof(char *) * cnt);
+    if (out == NULL) {
+        dbg_str(OBJ_WARNNING, "oss set alloc err");
+        allocator_mem_free(allocator, buf);
+        return -1;
+    }
+
+    str_split(buf, "/", out, &cnt);
+
+    if (strlen(c->buf) != 0) {
+        object = cjson_parse(c->buf);
+    } else {
+        object = cjson_create_object();
+    }
+
+    root = object;
+
+    for (j = 0; j < cnt; j++)  {     
+        item = cjson_get_object_item(object, out[j]);
+        if (item != NULL) {
+            object = item;
+        } else {
+            item = cjson_create_object();
+            cjson_add_item_to_object(object, out[j],item);
+            object = item;
+        }
+    } 
+
+    if (item != NULL) {
+        cjson_add_string_to_object(item, name, (char *)value);
+    } else {
+        goto end;
+    }
+
+    p = cjson_print(root);
+
+    if (strlen(p) > c->buf_len) {
+        dbg_str(OBJ_WARNNING,"config buffer is too small");
+        ret = -1;
+        goto err;
+    } else {
+        strcpy(c->buf, p);
+    }
+
+    goto end;
+
+err:
+end:
+    allocator_mem_free(allocator, buf);
+    allocator_mem_free(allocator, out);
+
+    free(p);
+    cjson_delete(root);
+
+    return ret;
+}
 int test_configurator(void)
 {
     configurator_t * c;

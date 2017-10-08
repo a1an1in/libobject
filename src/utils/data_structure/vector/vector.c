@@ -267,8 +267,8 @@ int vector_set(vector_t *vector,int index,void *data)
     sync_lock(&vector->vector_lock,NULL);
 
     memcpy(vector_head + set_pos * step,data,step);
-    if(set_pos > end_pos){
-        vector_pos_init(&vector->end,set_pos,vector);
+    if(set_pos + 1 > end_pos){
+        vector_pos_init(&vector->end,set_pos + 1,vector);
     }
 
     sync_unlock(&vector->vector_lock);
