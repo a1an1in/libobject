@@ -363,7 +363,7 @@ int __write_text(Text *text, int start_line,char *str, void *font)
             write_count++;
             line_info.head        = line_info.string->value;
             line_info.tail        = line_info.head + line_offset - 1;
-            list->insert_after(list,cur, &line_info);
+            list->add(list,cur, &line_info);
             cur->next(cur);
 
             x                     = c_witdh;
@@ -383,7 +383,7 @@ int __write_text(Text *text, int start_line,char *str, void *font)
             write_count++;
             line_info.head        = line_info.string->value;
             line_info.tail        = line_info.head + line_offset;
-            list->insert_after(list,cur, &line_info);
+            list->add(list,cur, &line_info);
             cur->next(cur);
             x                     = 0;
         } else if ( i == len - 1) {
@@ -391,7 +391,7 @@ int __write_text(Text *text, int start_line,char *str, void *font)
             write_count++;
             line_info.head        = line_info.string->value;
             line_info.tail        = line_info.head + line_offset;
-            list->insert_after(list,cur, &line_info);
+            list->add(list,cur, &line_info);
             cur->next(cur);
         }
 

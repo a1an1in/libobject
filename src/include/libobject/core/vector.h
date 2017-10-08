@@ -24,7 +24,6 @@ struct _vector_s{
     vector_t *vector;
 	uint32_t value_size;
     uint32_t capacity;
-    uint32_t size;
 };
 
 #endif

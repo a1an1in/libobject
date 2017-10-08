@@ -24,10 +24,10 @@
 llist_t *llist_alloc(allocator_t *allocator);
 int llist_set(llist_t *llist,char *attrib,void *value);
 int llist_init(llist_t *llist);
-int llist_insert(llist_t *llist, list_pos_t *pos, void *data);
+int llist_add(llist_t *llist, list_pos_t *pos, void *data);
 int llist_delete(llist_t *llist, list_pos_t *pos);
-int llist_push_back(llist_t *llist,void *data);
-int llist_pop_back(llist_t *llist);
+int llist_add_back(llist_t *llist,void *data);
+int llist_delete_back(llist_t *llist);
 int llist_destroy(llist_t *llist);
 list_t *__llist_detach(llist_t *llist, list_pos_t *pos);
 
@@ -67,11 +67,11 @@ static inline int llist_pos_equal(list_pos_t *pos1,list_pos_t *pos2)
 {
 	return pos1->list_head_p == pos2->list_head_p;
 }
-static inline int llist_push_front(llist_t *llist,void *data)
+static inline int llist_add_front(llist_t *llist,void *data)
 {
-	return llist_insert(llist,&llist->head,data);
+	return llist_add(llist,&llist->head,data);
 }
-static inline int llist_pop_front(llist_t *llist)
+static inline int llist_delete_front(llist_t *llist)
 {
 	return llist_delete(llist, &llist->begin);
 }

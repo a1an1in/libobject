@@ -41,7 +41,6 @@ static int __construct(Vector *vector,char *init_str)
 
     vector->vector = vector_create(allocator,0);
     vector_init(vector->vector, vector->value_size,vector->capacity);
-    vector->size = 0;
 
     return 0;
 }

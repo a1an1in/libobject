@@ -58,14 +58,14 @@ static int __set(List *list, char *attrib, void *value)
     } else if (strcmp(attrib, "deconstruct") == 0) {
         list->deconstruct = value;
     }
-    else if (strcmp(attrib, "push_back") == 0) {
-        list->push_back = value;
+    else if (strcmp(attrib, "add_back") == 0) {
+        list->add_back = value;
     } else if (strcmp(attrib, "detach_front") == 0) {
         list->detach_front = value;
     } else if (strcmp(attrib, "free_detached") == 0) {
         list->free_detached = value;
-    } else if (strcmp(attrib, "insert_after") == 0) {
-        list->insert_after = value;
+    } else if (strcmp(attrib, "add") == 0) {
+        list->add = value;
     } else if (strcmp(attrib, "del") == 0) {
         list->del = value;
     } else if (strcmp(attrib, "for_each") == 0) {
@@ -106,7 +106,7 @@ static void *__get(List *obj, char *attrib)
     return NULL;
 }
 
-static int __push_back(List *list,void *value)
+static int __add_back(List *list,void *value)
 {
     dbg_str(OBJ_DETAIL,"List insert");
 }
@@ -165,10 +165,10 @@ static class_info_entry_t list_class_info[] = {
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","push_back",__push_back,sizeof(void *)},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_back",__add_back,sizeof(void *)},
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","detach_front",NULL,sizeof(void *)},
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","free_detached",NULL,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","insert_after",NULL,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add",NULL,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","del",__del,sizeof(void *)},
     [10] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each",__for_each,sizeof(void *)},
     [11] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each_arg2",__for_each_arg2,sizeof(void *)},

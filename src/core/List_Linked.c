@@ -80,14 +80,14 @@ static int __set(List *m, char *attrib, void *value)
     } else if (strcmp(attrib, "deconstruct") == 0) {
         list->deconstruct = value;
     }
-    else if (strcmp(attrib, "push_back") == 0) {
-        list->push_back = value;
+    else if (strcmp(attrib, "add_back") == 0) {
+        list->add_back = value;
     } else if (strcmp(attrib, "detach_front") == 0) {
         list->detach_front = value;
     } else if (strcmp(attrib, "free_detached") == 0) {
         list->free_detached = value;
-    } else if (strcmp(attrib, "insert_after") == 0) {
-        list->insert_after = value;
+    } else if (strcmp(attrib, "add") == 0) {
+        list->add = value;
     } else if (strcmp(attrib, "del") == 0) {
         list->del = value;
     } else if (strcmp(attrib, "for_each") == 0) {
@@ -122,13 +122,33 @@ static void *__get(List *obj, char *attrib)
     return NULL;
 }
 
-static int __push_back(List *list,void *value)
+static int __add(List *list,Iterator *iter, void *value)
+{
+    Linked_List *l    = (Linked_List *)list;
+    LList_Iterator *i = (LList_Iterator *)iter;
+
+    dbg_str(OBJ_DETAIL,"List insert");
+
+    return llist_add(l->llist, &(i->list_pos), value);
+}
+
+static int __add_back(List *list,void *value)
 {
     Linked_List *l = (Linked_List *)list;
 
     dbg_str(OBJ_DETAIL,"Link list push back");
 
-    return llist_push_back(l->llist,value);
+    return llist_add_back(l->llist,value);
+}
+
+static int __del(List *list,Iterator *iter)
+{
+    Linked_List *l    = (Linked_List *)list;
+    LList_Iterator *i = (LList_Iterator *)iter;
+
+    dbg_str(OBJ_DETAIL,"Link list del");
+
+    return llist_delete(l->llist, &(i->list_pos));
 }
 
 static int __detach_front(List *list,Iterator *iter)
@@ -157,26 +177,6 @@ static int __free_detached(List *list,Iterator *iter)
     allocator_mem_free(l->llist->allocator,p);
 
     return 0;
-}
-
-static int __insert_after(List *list,Iterator *iter, void *value)
-{
-    Linked_List *l    = (Linked_List *)list;
-    LList_Iterator *i = (LList_Iterator *)iter;
-
-    dbg_str(OBJ_DETAIL,"List insert");
-
-    return llist_insert(l->llist, &(i->list_pos), value);
-}
-
-static int __del(List *list,Iterator *iter)
-{
-    Linked_List *l    = (Linked_List *)list;
-    LList_Iterator *i = (LList_Iterator *)iter;
-
-    dbg_str(OBJ_DETAIL,"Link list del");
-
-    return llist_delete(l->llist, &(i->list_pos));
 }
 
 static Iterator *__begin(List *list)
@@ -214,10 +214,10 @@ static class_info_entry_t llist_class_info[] = {
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","push_back",__push_back,sizeof(void *)},
+    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","add_back",__add_back,sizeof(void *)},
     [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","detach_front",__detach_front,sizeof(void *)},
     [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","free_detached",__free_detached,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","insert_after",__insert_after,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
     [10] = {ENTRY_TYPE_FUNC_POINTER,"","begin",__begin,sizeof(void *)},
     [11] = {ENTRY_TYPE_FUNC_POINTER,"","end",__end,sizeof(void *)},
@@ -258,8 +258,8 @@ void test_obj_llist_list()
     object_dump(list, "Linked_List", buf, 2048);
     dbg_str(DBG_DETAIL,"List dump: %s",buf);
 
-    list->push_back(list,"hello world");
-    list->push_back(list,"sdfsafsdaf");
+    list->add_back(list,"hello world");
+    list->add_back(list,"sdfsafsdaf");
     dbg_str(DBG_DETAIL,"list for each test");
     list->for_each(list,llist_list_print);
 
