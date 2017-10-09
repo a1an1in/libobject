@@ -156,6 +156,17 @@ static void print_vector_data(Vector *vector, int index)
     dbg_str(DBG_DETAIL,"t%d a =%d b=%d", index, t->a, t->b);
 }
 
+static struct test *genearte_test_instance(allocator_t *allocator, int a, int b)
+{
+    struct test *t;
+
+    t = allocator_mem_alloc(allocator, sizeof(struct test));
+    t->a = a;
+    t->b = b;
+
+    return t;
+}
+
 void test_obj_vector()
 {
     Vector *vector;
@@ -165,17 +176,18 @@ void test_obj_vector()
     cjson_t *root, *e, *s;
     char buf[2048];
     int value_size = 25;
-    struct test t0={0,2};
-    struct test t1={1,2};
-    struct test t2={2,2};
-    struct test t3={3,2};
-    struct test t4={4,2};
-    struct test t5={5,2};
-    struct test t6={6,2};
-    struct test t7={7,2};
-    struct test t8={8,2};
-    struct test t9={9,2};
-    struct test *t;
+    struct test *t, *t0, *t1, *t2, *t3, *t4, *t5, *t6, *t7, *t8, *t9;
+
+    t0 = genearte_test_instance(allocator, 0, 2);
+    t1 = genearte_test_instance(allocator, 1, 2);
+    t2 = genearte_test_instance(allocator, 2, 2);
+    t3 = genearte_test_instance(allocator, 3, 2);
+    t4 = genearte_test_instance(allocator, 4, 2);
+    t5 = genearte_test_instance(allocator, 5, 2);
+    t6 = genearte_test_instance(allocator, 6, 2);
+    t7 = genearte_test_instance(allocator, 7, 2);
+    t8 = genearte_test_instance(allocator, 8, 2);
+    t9 = genearte_test_instance(allocator, 9, 2);
 
     c = cfg_alloc(allocator); 
     dbg_str(DBG_SUC, "configurator_t addr:%p",c);
@@ -188,16 +200,16 @@ void test_obj_vector()
     object_dump(vector, "Vector", buf, 2048);
     dbg_str(DBG_DETAIL,"Vector dump: %s",buf);
 
-    vector->set_data(vector, 0, &t0);
-    vector->set_data(vector, 1, &t1);
-    vector->set_data(vector, 2, &t2);
-    vector->set_data(vector, 3, &t3);
-    vector->set_data(vector, 4, &t4);
-    vector->set_data(vector, 5, &t5);
-    vector->set_data(vector, 6, &t6);
-    vector->set_data(vector, 7, &t7);
-    vector->set_data(vector, 8, &t8);
-    vector->set_data(vector, 9, &t9);
+    vector->set_data(vector, 0, t0);
+    vector->set_data(vector, 1, t1);
+    vector->set_data(vector, 2, t2);
+    vector->set_data(vector, 3, t3);
+    vector->set_data(vector, 4, t4);
+    vector->set_data(vector, 5, t5);
+    vector->set_data(vector, 6, t6);
+    vector->set_data(vector, 7, t7);
+    vector->set_data(vector, 8, t8);
+    vector->set_data(vector, 9, t9);
 
     vector->get_data(vector, 0, (void **)&t);
     dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);

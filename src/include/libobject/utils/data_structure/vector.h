@@ -31,8 +31,13 @@ static inline int vector_pos_equal(vector_pos_t *it1,vector_pos_t *it2)
 }
 static inline void *vector_pos_get_pointer(vector_pos_t *it)
 {
-	vector_t *vector = it->vector;
-	return vector->vector_head + it->vector_pos * (vector->step);
+	vector_t *vector   = it->vector;
+    void **vector_head = vector->vector_head;
+
+    return vector_head[it->vector_pos];
+    /*
+	 *return vector->vector_head + it->vector_pos * (vector->step);
+     */
 }
 static inline void vector_for_each(vector_t *vector,void (*func)(void *))
 {
@@ -62,12 +67,12 @@ int vector_copy_forward(vector_t *vector,vector_pos_t *to,vector_pos_t *from,uin
 int vector_copy(vector_t *vector,vector_pos_t *to,vector_pos_t *from,uint32_t count);
 vector_t *vector_create(allocator_t *allocator,uint8_t lock_type);
 int vector_init(vector_t *vector,uint32_t data_size,uint32_t capacity);
-int vector_push_front(vector_t *vector,void *data);
-int vector_push_back(vector_t *vector,void *data);
-int vector_pop_front(vector_t *vector);
-int vector_pop_back(vector_t *vector);
-int vector_insert(vector_t *vector, vector_pos_t *it, void *data);
+int vector_add(vector_t *vector, vector_pos_t *it, void *data);
+int vector_add_front(vector_t *vector,void *data);
+int vector_add_back(vector_t *vector,void *data);
 int vector_delete(vector_t *vector, vector_pos_t *it);
+int vector_delete_back(vector_t *vector);
+int vector_delete_front(vector_t *vector);
 int vector_set(vector_t *vector,int index,void *data);
 void * vector_get(vector_t *vector,int index);
 int vector_destroy(vector_t *vt);
