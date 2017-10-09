@@ -93,9 +93,6 @@ static int __set(Map *m, char *attrib, void *value)
     } else if (strcmp(attrib, "del") == 0) {
         map->del = value;
     } else if (strcmp(attrib, "for_each") == 0) {
-        /*
-         *dbg_str(DBG_DETAIL,"hash map set for each addr:%p",value);
-         */
         map->for_each = value;
     } else if (strcmp(attrib, "begin") == 0) {
         map->begin = value;
@@ -200,13 +197,13 @@ static class_info_entry_t hash_map_class_info[] = {
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","insert",__insert,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","insert_wb",__insert_wb,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","search",__search,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","begin",__begin,sizeof(void *)},
-    [10] = {ENTRY_TYPE_FUNC_POINTER,"","end",__end,sizeof(void *)},
-    [11] = {ENTRY_TYPE_FUNC_POINTER,"","for_each",NULL,sizeof(void *)},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","insert",__insert,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","insert_wb",__insert_wb,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","search",__search,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","del",__del,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","begin",__begin,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","end",__end,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each",NULL,sizeof(void *)},
     [12] = {ENTRY_TYPE_UINT16_T,"","key_size",NULL,sizeof(short)},
     [13] = {ENTRY_TYPE_UINT16_T,"","value_size",NULL,sizeof(short)},
     [14] = {ENTRY_TYPE_UINT16_T,"","bucket_size",NULL,sizeof(short)},
@@ -215,10 +212,28 @@ static class_info_entry_t hash_map_class_info[] = {
 };
 REGISTER_CLASS("Hash_Map",hash_map_class_info);
 
+struct test{
+    int a;
+    int b;
+};
+static struct test *genearte_test_instance(allocator_t *allocator, int a, int b)
+{
+    struct test *t;
+
+    t = allocator_mem_alloc(allocator, sizeof(struct test));
+    t->a = a;
+    t->b = b;
+
+    return t;
+}
+
 static void hash_map_print(Iterator *iter)
 {
     Hmap_Iterator *i = (Hmap_Iterator *)iter;
-    dbg_str(DBG_DETAIL,"key:%s value:%s",i->get_kpointer(iter), i->get_vpointer(iter));
+    struct test *t;
+     
+    t = i->get_vpointer(iter);
+    dbg_str(DBG_DETAIL,"key:%s t->a=%d, t->b=%d",i->get_kpointer(iter), t->a, t->b);
 }
 
 void test_obj_hash_map_string_key()
@@ -230,17 +245,22 @@ void test_obj_hash_map_string_key()
     cjson_t *root, *e, *s;
     char buf[2048] = {0};
     char set_str[2048] = {0};
+    struct test *t, *t0, *t1, *t2, *t3, *t4, *t5;
+
+    t0 = genearte_test_instance(allocator, 0, 2);
+    t1 = genearte_test_instance(allocator, 1, 2);
+    t2 = genearte_test_instance(allocator, 2, 2);
+    t3 = genearte_test_instance(allocator, 3, 2);
+    t4 = genearte_test_instance(allocator, 4, 2);
+    t5 = genearte_test_instance(allocator, 5, 2);
 
     dbg_str(DBG_SUC, "hash_map test begin alloc count =%d",allocator->alloc_count);
 
     c = cfg_alloc(allocator); 
     dbg_str(DBG_SUC, "configurator_t addr:%p",c);
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "40") ;  
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "25") ;
+    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "8") ;
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
-    /*
-     *cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_type", "1") ;
-     */
 
     map  = OBJECT_NEW(allocator, Hash_Map,c->buf);
     iter = OBJECT_NEW(allocator, Hmap_Iterator,NULL);
@@ -248,12 +268,17 @@ void test_obj_hash_map_string_key()
     object_dump(map, "Hash_Map", buf, 2048);
     dbg_str(DBG_DETAIL,"Map dump: %s",buf);
 
-    map->insert(map,"abc","hello world");
-    map->insert(map,"test","sdfsafsdaf");
+    map->insert(map,"test0", t0);
+    map->insert(map,"test1", t1);
+    map->insert(map,"test2", t2);
+    map->insert(map,"test3", t3);
+    map->insert(map,"test4", t4);
+    map->insert(map,"test5", t5);
     map->for_each(map,hash_map_print);
 
-    map->search(map,"abc",iter);
-    dbg_str(DBG_DETAIL,"search data:%s",iter->get_vpointer(iter));
+    map->search(map,"test2",iter);
+    t = iter->get_vpointer(iter);
+    dbg_str(DBG_DETAIL,"search test2: t->a=%d, t->b=%d", t->a, t->b);
     map->del(map,iter);
 
     map->for_each(map,hash_map_print);
@@ -269,10 +294,14 @@ void test_obj_hash_map_string_key()
 
 static void hash_map_print_with_numeric_key(Iterator *iter)
 {
+    struct test *t;
     Hmap_Iterator *i = (Hmap_Iterator *)iter;
     int *key = (int *)i->get_kpointer(iter);
-    dbg_str(DBG_DETAIL,"key:%d value:%s", *key, i->get_vpointer(iter));
+
+    t = i->get_vpointer(iter);
+    dbg_str(DBG_DETAIL,"key:%d test->a=%d, t->b=%d", *key, t->a, t->b);
 }
+
 void test_obj_hash_map_numeric_key()
 {
     Iterator *iter, *next,*prev;
@@ -284,6 +313,16 @@ void test_obj_hash_map_numeric_key()
     char set_str[2048] = {0};
     int key;
     int ret;
+    struct test *t, *t0, *t1, *t2, *t3, *t4, *t5;
+
+    t0 = genearte_test_instance(allocator, 0, 2);
+    t1 = genearte_test_instance(allocator, 1, 2);
+    /*
+     *t2 = genearte_test_instance(allocator, 2, 2);
+     *t3 = genearte_test_instance(allocator, 3, 2);
+     *t4 = genearte_test_instance(allocator, 4, 2);
+     *t5 = genearte_test_instance(allocator, 5, 2);
+     */
 
     dbg_str(DBG_SUC, "hash_map test begin alloc count =%d",allocator->alloc_count);
 
@@ -301,18 +340,19 @@ void test_obj_hash_map_numeric_key()
     dbg_str(DBG_DETAIL,"Map dump: %s",buf);
 
     printf("insert\n");
+    key = 0;
+    map->insert(map, &key,t0);
     key = 1;
-    map->insert(map, &key,"hello world");
-    key = 2;
-    map->insert(map, &key,"sdfsafsdaf");
+    map->insert(map, &key,t1);
 
     printf("for_each\n");
     map->for_each(map,hash_map_print_with_numeric_key);
 
     printf("search\n");
     ret = map->search(map, &key, iter);
+    t = iter->get_vpointer(iter);
     dbg_str(DBG_DETAIL,"search ret=%d",ret);
-    dbg_str(DBG_DETAIL,"search data:%s",iter->get_vpointer(iter));
+    dbg_str(DBG_DETAIL,"search key=%d, t->a=%d, t->b=%d",key, t->a, t->b);
 
     printf("del\n");
     map->del(map,iter);

@@ -257,6 +257,13 @@ static void llist_list_print(Iterator *iter)
     LList_Iterator *i = (LList_Iterator *)iter;
     dbg_str(DBG_DETAIL,"value: %s",i->get_vpointer(iter));
 }
+static void llist_list_free_data(Iterator *iter)
+{
+    LList_Iterator *i = (LList_Iterator *)iter;
+    char *str;
+    str = i->get_vpointer(iter);
+    allocator_mem_free(iter->obj.allocator, str);
+}
 
 void test_obj_llist_list()
 {
@@ -301,6 +308,8 @@ void test_obj_llist_list()
     list->remove_back(list, (void **)&str);
     allocator_mem_free(allocator, str);
     dbg_str(DBG_DETAIL,"remove back:%s", str);
+
+    list->for_each(list,llist_list_free_data);
 
     object_destroy(list);
     object_destroy(iter);

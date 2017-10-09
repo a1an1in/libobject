@@ -323,6 +323,7 @@ int hash_map_delete(hash_map_t *hmap, hash_map_pos_t *pos)
     struct hash_map_node *mnode;
     struct hlist_head *hlist = pos->hlist;
     hash_map_pos_t next;
+    void **addr;
 
     /*
      *dbg_str(HMAP_IMPORTANT,"del hash_map ,bucket_pos:%d,cur node:%p,begin node:%p",
@@ -348,7 +349,37 @@ int hash_map_delete(hash_map_t *hmap, hash_map_pos_t *pos)
 
     mnode = container_of(pos->hlist_node_p,struct hash_map_node,hlist_node);
     if (mnode != NULL) {
-        allocator_mem_free(hmap->allocator,mnode);
+        allocator_mem_free(hmap->allocator, mnode);
+        mnode = NULL;
+    }
+    return 0;
+}
+
+int hash_map_remove(hash_map_t *hmap, hash_map_pos_t *pos, void **data)
+{
+    struct hash_map_node *mnode;
+    struct hlist_head *hlist = pos->hlist;
+    hash_map_pos_t next;
+    void **addr;
+
+    sync_lock(&hmap->map_lock,NULL);
+
+    if(hash_map_pos_equal(pos,&hmap->begin)){
+        hash_map_pos_next(pos,&next);
+        hash_map_pos_init(&hmap->begin,
+                          next.hlist_node_p, 
+                          next.bucket_pos, hlist, hmap);
+    }
+    hlist_del(pos->hlist_node_p);
+    hmap->node_count--;
+    dbg_str(HMAP_IMPORTANT,"del hash_map ,hash map count=%d,del node pos=%p",hmap->node_count,pos->hlist_node_p);
+
+    sync_unlock(&hmap->map_lock);
+
+    mnode = container_of(pos->hlist_node_p,struct hash_map_node,hlist_node);
+    if (mnode != NULL) {
+        *data = (void *)&mnode->key[mnode->value_pos];
+        allocator_mem_free(hmap->allocator, mnode);
         mnode = NULL;
     }
     return 0;
@@ -424,6 +455,6 @@ int hash_map_pos_next(hash_map_pos_t *pos,hash_map_pos_t *next)
 
 void hash_map_print_mnode(struct hash_map_node *mnode)
 {
-    dbg_buf(HMAP_DETAIL,"data:",mnode->key,mnode->data_size);
+    dbg_buf(DBG_DETAIL,"data:",mnode->key,mnode->data_size);
 }
 

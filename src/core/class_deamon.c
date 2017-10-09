@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/class_deamon.h>
+#include <libobject/core/class_info.h>
 #include <libobject/utils/miscellany/buffer.h>
 #include <libobject/attrib_priority.h>
 
@@ -91,10 +92,24 @@ int class_deamon_register_class(class_deamon_t *class_deamon,
                                 char *class_name,
                                 void *class_info_addr)
 {
-    uint8_t addr_buf[8];
+    class_info_entry_t *class_info_entry = (class_info_entry_t *)class_info_addr;
+    class_info_entry_t *new;
+    int i;
 
-    addr_to_buffer(class_info_addr,addr_buf);
-    return map_insert(class_deamon->map,class_name, addr_buf);
+    for (i = 0; class_info_entry[i].type != ENTRY_TYPE_END; i++);
+
+    if (i > 0) {
+        new = allocator_mem_alloc(class_deamon->allocator,
+                                  sizeof(class_info_entry_t) * (i + 1));
+        /*
+         *dbg_str(DBG_DETAIL,"class_deamon_register_class, class %s size=%d",class_name, i);
+         */
+        memcpy(new, class_info_addr, sizeof(class_info_entry_t) * (i + 1));
+    } else {
+        return -1;
+    }
+
+    return map_insert(class_deamon->map,class_name, new);
 }
 
 void * class_deamon_search_class(class_deamon_t *class_deamon, char *class_name)
@@ -111,7 +126,7 @@ void * class_deamon_search_class(class_deamon_t *class_deamon, char *class_name)
 
     addr = (uint8_t *)map_get_pointer(&it);
 
-    return buffer_to_addr(addr);
+    return addr;
 }
 
 class_deamon_t *class_deamon_get_global_class_deamon()
@@ -119,10 +134,17 @@ class_deamon_t *class_deamon_get_global_class_deamon()
     return global_class_deamon;
 }
 
+void __release_class(map_iterator_t *it)
+{
+    class_info_entry_t *new =  map_get_pointer(it);
+    allocator_mem_free(it->map->allocator, new);
+}
+
 int class_deamon_destroy(class_deamon_t *class_deamon)
 {
     allocator_t *allocator = class_deamon->allocator;
 
+    map_for_each(class_deamon->map,__release_class);
     map_destroy(class_deamon->map);
 
     allocator_mem_free(allocator,class_deamon);

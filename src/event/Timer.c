@@ -64,8 +64,8 @@ static int __set(Timer *timer, char *attrib, void *value)
         timer->add = value;
     } else if (strcmp(attrib, "del") == 0) {
         timer->del = value;
-    } else if (strcmp(attrib, "detanch") == 0) {
-        timer->detanch = value;
+    } else if (strcmp(attrib, "remove") == 0) {
+        timer->remove = value;
     } else if (strcmp(attrib, "timeout_next") == 0) {
         timer->timeout_next = value;
     } else if (strcmp(attrib, "first") == 0) {
@@ -96,7 +96,7 @@ static class_info_entry_t timer_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",NULL,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add",NULL,sizeof(void *)},
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","del",NULL,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","detanch",NULL,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove",NULL,sizeof(void *)},
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","timeout_next",NULL,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","first",NULL,sizeof(void *)},
     [10] = {ENTRY_TYPE_END},

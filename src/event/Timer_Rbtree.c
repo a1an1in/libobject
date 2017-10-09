@@ -79,8 +79,8 @@ static int __set(Rbtree_Timer *timer, char *attrib, void *value)
         timer->add = value;
     } else if (strcmp(attrib, "del") == 0) {
         timer->del = value;
-    } else if (strcmp(attrib, "detanch") == 0) {
-        timer->detanch = value;
+    } else if (strcmp(attrib, "remove") == 0) {
+        timer->remove = value;
     } else if (strcmp(attrib, "timeout_next") == 0) {
         timer->timeout_next = value;
     } else if (strcmp(attrib, "first") == 0) {
@@ -106,7 +106,6 @@ static int __add(Rbtree_Timer *timer, event_t *e)
 {
     rbtree_map_t *map = timer->map;
     struct timeval now, null_tv = {0, 0};
-    char buffer[16];
     int ret;
 
     dbg_str(DBG_DETAIL,"rbtree timer add, event addr : %p", e);
@@ -115,10 +114,9 @@ static int __add(Rbtree_Timer *timer, event_t *e)
         return ret;
     }
 
-    addr_to_buffer(e,buffer);
     timeval_now(&now, NULL);
     timeval_add(&e->ev_timeout, &now, &e->ev_timeout);
-    rbtree_map_insert(map,&e->ev_timeout,buffer);
+    rbtree_map_insert(map,&e->ev_timeout,e);
 
     return 0;
 }
@@ -141,16 +139,20 @@ static int __del(Rbtree_Timer *timer, event_t *e)
     return 0;
 }
 
-static int __detanch(Rbtree_Timer *timer, event_t *e) 
+static int __remove(Rbtree_Timer *timer, event_t *e) 
 {
-/*
- *    rbtree_map_t *map = timer->map;
- *    rbtree_map_pos_t it;
- *
- *    dbg_str(DBG_DETAIL,"rbtree timer del");
- *    rbtree_map_search(map, &e->ev_timeout,&it);
- *    rbtree_map_delete(map, &it);
- */
+    rbtree_map_t *map = timer->map;
+    rbtree_map_pos_t it;
+    struct timeval null_tv = {0, 0};
+    int ret;
+
+    dbg_str(DBG_DETAIL,"rbtree timer del");
+    ret = timeval_cmp(&e->ev_timeout, &null_tv);
+    if (ret <= 0) {
+        return ret;
+    }
+    rbtree_map_search(map, &e->ev_timeout,&it);
+    rbtree_map_remove(map, &it);
 
     return 0;
 }
@@ -202,8 +204,7 @@ event_t * __first(Rbtree_Timer *timer)
         dbg_str(DBG_DETAIL,"rbtree timer, first is NULL");
         return NULL;
     } else {
-        p = (char *)rbtree_map_pos_get_pointer(&it);
-        ret = (event_t *)buffer_to_addr(p);
+        ret = (event_t *)rbtree_map_pos_get_pointer(&it);
         dbg_str(DBG_DETAIL,"rbtree timer, first event addr:%p", ret);
     }
 
@@ -218,7 +219,7 @@ static class_info_entry_t rbtree_timer_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
     [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","detanch",__detanch,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","remove",__remove,sizeof(void *)},
     [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","timeout_next",__timeout_next,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","first",__first,sizeof(void *)},
     [10] = {ENTRY_TYPE_END},

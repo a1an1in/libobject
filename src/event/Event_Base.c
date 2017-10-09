@@ -75,9 +75,14 @@ static int __deconstrcut(Event_Base *eb)
     dbg_str(EV_DETAIL,"eb deconstruct,eb addr:%p",eb);
 
     //release evsig
+    
+    dbg_str(DBG_DETAIL,"run at here");
     object_destroy(eb->timer);
+    dbg_str(DBG_DETAIL,"run at here");
     object_destroy(eb->map_iter);
+    dbg_str(DBG_DETAIL,"run at here");
     object_destroy(eb->io_map);
+    dbg_str(DBG_DETAIL,"run at here");
 
     return 0;
 }
@@ -131,7 +136,7 @@ static int __add(Event_Base *eb, event_t *event)
     Timer *timer = eb->timer;
     Map *io_map  = eb->io_map;
     int fd       = event->ev_fd;
-    char buffer[16] = {0};
+    event_t *new_event;
 
     dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p, map_iter:%p, timer:%p, event:%p",
             eb, eb->io_map, eb->map_iter, eb->timer, event);
@@ -140,14 +145,12 @@ static int __add(Event_Base *eb, event_t *event)
         evsig_add(eb, event);
     } else {
         event->ev_tv = event->ev_timeout;
-        addr_to_buffer(event,buffer);
-        dbg_buf(EV_DETAIL,"buffer:", buffer, 4);
-        io_map->insert(io_map, &fd, buffer);
+        io_map->insert(io_map, &fd, event);
 
         eb->trustee_io(eb,event);
         timer->add(timer, event);
-
     }
+
     return (0);
 }
 
@@ -197,9 +200,7 @@ static int __activate_io(Event_Base *eb, int fd, short events)
     if (ret < 0) {
         dbg_str(DBG_WARNNING,"not found fd in io_map,ret=%d",ret);
     } else {
-        p = iter->get_vpointer(iter);
-        dbg_buf(EV_DETAIL,"buffer:", p, 4);
-        event = (event_t *)buffer_to_addr(p);
+        event = (event_t *)iter->get_vpointer(iter);
         dbg_str(EV_DETAIL,"event addr:%p, ev_callback=%p", event, event->ev_callback);
         event->ev_callback(event->ev_fd, 0, event->ev_arg);
 
@@ -229,8 +230,7 @@ static int __activate_signal(Event_Base *eb, int fd, short events)
 
     rbtree_map_search_by_numeric_key(sig_map, fd,&it);
     if (it.rb_node_p != NULL) {
-        p = rbtree_map_pos_get_pointer(&it);
-        event = (event_t *)buffer_to_addr(p);
+        event = (event_t *) rbtree_map_pos_get_pointer(&it);
 
         if (event != NULL) {
             dbg_str(EV_DETAIL,"event=%p, ev_callback=%p", event, event->ev_callback);
@@ -257,7 +257,7 @@ static int __process_timeout_events(Event_Base *eb)
             dbg_str(EV_DETAIL,"process_timeout, event addr:%p",event);
             event->ev_callback(event->ev_fd, 0, event);
             if (event->ev_events & EV_PERSIST) {
-                timer->del(timer, event);
+                timer->remove(timer, event);
                 event->ev_timeout = event->ev_tv;
                 timer->add(timer, event);
             } else {

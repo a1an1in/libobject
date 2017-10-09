@@ -105,7 +105,7 @@ static inline void *llist_pos_get_pointer(list_pos_t *pos)
 {
 	return (list_t *)(container_of(pos->list_head_p,list_t,list_head))->data;
 }
-static inline void llist_for_each(llist_t *llist,void (*func)(list_t *list))
+static inline void llist_for_each(llist_t *llist,void (*func)(list_pos_t *pos))
 {
 	list_t *ls;
 	list_pos_t pos,next;
@@ -114,8 +114,7 @@ static inline void llist_for_each(llist_t *llist,void (*func)(list_t *list))
 			!llist_pos_equal(&pos,&llist->head);
 			pos = next, llist_pos_next(&pos,&next))
 	{
-		ls = container_of(pos.list_head_p,list_t,list_head);
-		func(ls);
+		func(&pos);
 	}
 }
 static inline void llist_for_each_with_arg(llist_t *llist,void (*func)(list_t *list,void *arg),void *arg)

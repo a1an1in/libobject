@@ -50,7 +50,9 @@ int test_time()
 
     event_base_dispatch(base);
 
+    dbg_str(DBG_DETAIL,"run at here");
     event_base_free(base);
 
+    dbg_str(DBG_DETAIL,"test time end");
     return (0);
 }

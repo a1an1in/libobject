@@ -163,12 +163,14 @@ int rbtree_map_pos_equal(rbtree_map_pos_t *it1,rbtree_map_pos_t *it2)
 void *rbtree_map_pos_get_pointer(rbtree_map_pos_t *it)
 {
     struct rbtree_map_node *mnode;
+    void **addr;
 
     if (it->rb_node_p == NULL) return NULL;
 
     mnode = rb_entry(it->rb_node_p,struct rbtree_map_node,node);
+    addr = (void **)&mnode->key[mnode->value_pos];
 
-    return &mnode->key[mnode->value_pos];
+    return *addr;
 }
 
 rbtree_map_t * 
@@ -314,6 +316,33 @@ int rbtree_map_delete(rbtree_map_t *map, rbtree_map_pos_t *it)
     sync_unlock(&map->map_lock);
 
     if (mnode != NULL) {
+        void **addr;
+        addr = (void **)&mnode->key[mnode->value_pos];
+        allocator_mem_free(map->allocator, *addr);
+        allocator_mem_free(map->allocator,mnode);
+        mnode = NULL;
+    }
+    return 0;
+}
+
+int rbtree_map_remove(rbtree_map_t *map, rbtree_map_pos_t *it)
+{
+    struct rbtree_map_node *mnode;
+    struct rb_node *rb_node_p = it->rb_node_p;
+    struct rb_root *tree_root = map->tree_root;
+
+    mnode = rb_entry(rb_node_p,struct rbtree_map_node,node);
+
+    dbg_str(DBG_DETAIL,"delete node");
+
+    sync_lock(&map->map_lock,NULL);
+    if(rbtree_map_pos_equal(it,&map->begin)){
+        rbtree_map_pos_init(&map->begin,rb_next(rb_node_p),tree_root,map);
+    }
+    rb_erase(rb_node_p, tree_root);
+    sync_unlock(&map->map_lock);
+
+    if (mnode != NULL) {
         allocator_mem_free(map->allocator,mnode);
         mnode = NULL;
     }
@@ -370,5 +399,6 @@ int rbtree_map_destroy(rbtree_map_t *map)
     }
 
     allocator_mem_free(map->allocator,map);
+    dbg_str(DBG_DETAIL,"rbtree_map_destroy end");
 }
 

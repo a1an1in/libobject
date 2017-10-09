@@ -250,8 +250,10 @@ int evsig_release(Event_Base *eb)
 {
     struct evsig_s *evsig = &eb->evsig;
 
+    dbg_str(DBG_DETAIL,"run at here");
     rbtree_map_destroy(evsig->sig_map);
 
+    dbg_str(DBG_DETAIL,"run at here");
     close(evsig->fd_rcv);
     close(evsig->fd_snd);
 }
@@ -260,7 +262,6 @@ int evsig_add(Event_Base *eb, event_t *event)
 {
     struct sigaction sa; 
     int evsignal = event->ev_fd;
-    char buffer[16] = {0};
     rbtree_map_t *sig_map = eb->evsig.sig_map;
 
 #if 0
@@ -278,8 +279,7 @@ int evsig_add(Event_Base *eb, event_t *event)
     signal(evsignal,signal_handler);
 #endif
 
-    addr_to_buffer(event,buffer);
-    rbtree_map_insert_with_numeric_key(sig_map,evsignal,buffer);
+    rbtree_map_insert_with_numeric_key(sig_map,evsignal,event);
 
     return 0;
 }

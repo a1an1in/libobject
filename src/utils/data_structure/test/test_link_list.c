@@ -25,13 +25,32 @@ struct test{
     int a;
     int b;
 };
-void print_list_data(list_t *list)
+void print_list_data(list_pos_t *pos)
 {
+    list_t *list;
 
-    struct test *t = (struct test *)list->data;
+    struct test *t = (struct test *)llist_pos_get_pointer(pos);
 
     dbg_str(DBG_DETAIL,"a=%d,b=%d",t->a,t->b);
 }
+
+void list_free_data(list_pos_t *pos)
+{
+    struct test *t = (struct test *)llist_pos_get_pointer(pos);
+
+    allocator_mem_free(pos->llist->allocator, t);
+}
+static struct test *genearte_test_instance(allocator_t *allocator, int a, int b)
+{
+    struct test *t;
+
+    t = allocator_mem_alloc(allocator, sizeof(struct test));
+    t->a = a;
+    t->b = b;
+
+    return t;
+}
+
 int test_datastructure_link_list()
 {
     llist_t *llist;
@@ -43,7 +62,7 @@ int test_datastructure_link_list()
      *struct test t3={3,2};
      *struct test t4={4,2};
      */
-    struct test *t, *t1, *t2, *t3, *t4;
+    struct test *t, *t0, *t1, *t2, *t3;
     int ret = 0;
     /*
      *int data_size = sizeof(struct test);
@@ -51,28 +70,20 @@ int test_datastructure_link_list()
     int data_size = sizeof(void *);
     int lock_type = 1;
 
-    t1 = allocator_mem_alloc(allocator, sizeof(struct test));
-    t1->a = 1;
-    t1->b = 2;
-    t2 = allocator_mem_alloc(allocator, sizeof(struct test));
-    t2->a = 2;
-    t2->b = 2;
-    t3 = allocator_mem_alloc(allocator, sizeof(struct test));
-    t3->a = 3;
-    t3->b = 2;
-    t4 = allocator_mem_alloc(allocator, sizeof(struct test));
-    t4->a = 4;
-    t4->b = 2;
+    t0 = genearte_test_instance(allocator, 0, 2);
+    t1 = genearte_test_instance(allocator, 1, 2);
+    t2 = genearte_test_instance(allocator, 2, 2);
+    t3 = genearte_test_instance(allocator, 3, 2);
 
     llist = llist_alloc(allocator);
     llist_set(llist,"lock_type",&lock_type);
     llist_set(llist,"data_size",&data_size);
     llist_init(llist);
 
+    llist_add_front(llist,t0);
     llist_add_front(llist,t1);
     llist_add_front(llist,t2);
     llist_add_front(llist,t3);
-    llist_add_front(llist,t4);
 
     /*
      *llist_add_back(llist,t1);
@@ -82,12 +93,14 @@ int test_datastructure_link_list()
      */
 
     llist_for_each(llist,print_list_data);
+    llist_for_each(llist,list_free_data);
 
+    /*
+     *llist_remove_back(llist, (void **)&t);
+     *dbg_str(DBG_DETAIL,"llist_delete_back, a=%d,b=%d",t->a,t->b);
+     *allocator_mem_free(allocator, t);
+     */
 
-    llist_remove_back(llist, (void **)&t);
-    dbg_str(DBG_DETAIL,"llist_delete_back, a=%d,b=%d",t->a,t->b);
-
-    allocator_mem_free(allocator, t);
     llist_destroy(llist);
     return ret;
 }

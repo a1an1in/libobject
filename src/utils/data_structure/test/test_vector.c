@@ -70,7 +70,7 @@ int test_datastructure_vector()
 
     dbg_str(DBG_DETAIL,"test get");
     t = vector_get(vector,2);
-    dbg_buf(DBG_DETAIL,"get data:", t,vector->data_size);
+    dbg_buf(DBG_DETAIL,"get data:", (char *)t,vector->data_size);
 
     dbg_str(DBG_DETAIL,"test set");
     vector_set(vector,1, t5);

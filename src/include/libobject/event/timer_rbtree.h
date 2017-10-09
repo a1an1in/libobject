@@ -21,7 +21,7 @@ struct rbtree_timer_s{
 	/*virtual methods reimplement*/
     int (*add)(Rbtree_Timer *, event_t *e);
     int (*del)(Rbtree_Timer *, event_t *e); 
-    int (*detanch)(Rbtree_Timer *, event_t *e); 
+    int (*remove)(Rbtree_Timer *, event_t *e); 
     int (*timeout_next)(Rbtree_Timer *, struct timeval **tv);
     event_t * (*first)(Rbtree_Timer *); 
 

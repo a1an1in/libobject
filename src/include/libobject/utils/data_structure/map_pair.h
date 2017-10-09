@@ -43,20 +43,33 @@ static inline pair_t * create_pair(int key_len,int value_len)
 }
 static inline void make_pair(pair_t *p,void *key,void *value)
 {
+    void **addr;
+
     memset(p->data,0, p->data_len);
     if(strlen(key) >=  p->key_len) {
         memcpy(p->data,key,p->key_len);
     } else {
         memcpy(p->data,key,strlen(key));
     }
-	memcpy(p->data + p->key_len,value,p->value_len);
+
+    addr = (void **) (p->data + p->key_len);
+    *addr = value;
+    /*
+	 *memcpy(p->data + p->key_len,value,p->value_len);
+     */
 }
 
 static inline void make_pair_with_fixed_key_len(pair_t *p,void *key, int len,void *value)
 {
+    void **addr;
+
     memset(p->data,0, p->data_len);
     memcpy(p->data,key,p->key_len);
-	memcpy(p->data + p->key_len,value,p->value_len);
+    /*
+	 *memcpy(p->data + p->key_len,value,p->value_len);
+     */
+    addr = (void **) (p->data + p->key_len);
+    *addr = value;
 }
 
 static inline int destroy_pair(pair_t *p)

@@ -19,7 +19,7 @@ struct timer_s{
 	/*virtual methods reimplement*/
     int (*add)(Timer *, event_t *e);
     int (*del)(Timer *, event_t *e); 
-    int (*detanch)(Timer *, event_t *e); 
+    int (*remove)(Timer *, event_t *e); 
     event_t * (*first)(Timer *); 
     int (*timeout_next)(Timer *, struct timeval **tv);
 };

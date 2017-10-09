@@ -73,6 +73,7 @@ static inline int hash_map_pos_equal(hash_map_pos_t *pos1,hash_map_pos_t *pos2)
 static inline void *hash_map_pos_get_pointer(hash_map_pos_t *pos)
 {
 	struct hash_map_node *mnode;
+    void **data;
 
 	mnode = container_of(pos->hlist_node_p,
 			struct hash_map_node,
@@ -81,7 +82,8 @@ static inline void *hash_map_pos_get_pointer(hash_map_pos_t *pos)
 	 *dbg_buf(DBG_DETAIL,"key:",mnode->key,mnode->data_size);
 	 */
 
-	return &mnode->key[mnode->value_pos];
+    data = (void **)&mnode->key[mnode->value_pos];
+	return *data;
 }
 
 static inline void *hash_map_pos_get_kpointer(hash_map_pos_t *pos)
@@ -98,7 +100,7 @@ static inline void *hash_map_pos_get_kpointer(hash_map_pos_t *pos)
 	return mnode->key;
 }
 static inline void 
-hash_map_for_each(struct hash_map_s *hmap,void (*func)(struct hash_map_node *mnode))
+hash_map_for_each(struct hash_map_s *hmap,void (*func)(hash_map_pos_t *pos))
 {
 	hash_map_pos_t pos,next;
 	struct hash_map_node *mnode;
@@ -106,8 +108,7 @@ hash_map_for_each(struct hash_map_s *hmap,void (*func)(struct hash_map_node *mno
 	for(	hash_map_begin(hmap,&pos),hash_map_pos_next(&pos,&next); 
 			!hash_map_pos_equal(&pos,&hmap->end);
 			pos = next,hash_map_pos_next(&pos,&next)){
-		mnode = container_of(pos.hlist_node_p,struct hash_map_node,hlist_node);
-		func(mnode);
+		func(&pos);
 	}
 }
 

@@ -35,6 +35,7 @@ int rbtree_map_insert_data(rbtree_map_t *map, void *value);
 int rbtree_map_insert(rbtree_map_t *map,void *key,void *value);
 int rbtree_map_insert_with_numeric_key(rbtree_map_t *map,int key,void *value);
 int rbtree_map_delete(rbtree_map_t *map, rbtree_map_pos_t *it);
+int rbtree_map_remove(rbtree_map_t *map, rbtree_map_pos_t *it);
 rbtree_map_pos_t * rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it);
 rbtree_map_pos_t * rbtree_map_search_by_numeric_key(rbtree_map_t *map, int key, rbtree_map_pos_t *it);
 int rbtree_map_destroy(rbtree_map_t *map);
