@@ -171,8 +171,7 @@ load_subcomponent_resources_foreach_cb(Iterator *iter, void *arg)
 
     dbg_str(DBG_DETAIL,"window load_subcomponent_resources_foreach_cb");
 
-    addr = (uint8_t *)iter->get_vpointer(iter);
-    component = (Component *)buffer_to_addr(addr);
+    component = (Component *)iter->get_vpointer(iter);
     if (component->load_resources)
         component->load_resources(component, window);
 }

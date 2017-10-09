@@ -32,7 +32,6 @@
 #include <libobject/ui/component.h>
 #include <libobject/ui/window.h>
 #include <libobject/ui/event.h>
-#include <libobject/utils/miscellany/buffer.h>
 
 static int __construct(Component *component,char *init_str)
 {
@@ -165,9 +164,8 @@ load_subcomponent_resources_foreach_cb(Iterator *iter,
     void *window = (void *)arg;
     uint8_t *addr;
 
-    addr = (uint8_t *)iter->get_vpointer(iter);
+    component = (Component *)iter->get_vpointer(iter);
 
-    component = (Component *)buffer_to_addr(addr);
     if (component->load_resources)
         component->load_resources(component, window);
 }
@@ -191,9 +189,8 @@ unload_subcomponent_resources_foreach_cb(Iterator *iter, void *arg)
     void *window = (void *)arg;
     uint8_t *addr;
 
-    addr = (uint8_t *)iter->get_vpointer(iter);
+    component = (Component *)iter->get_vpointer(iter);
 
-    component = (Component *)buffer_to_addr(addr);
     if (component->unload_resources)
         component->unload_resources(component, window);
 }
@@ -216,8 +213,7 @@ static void draw_subcomponent_foreach_cb(Iterator *iter, void *arg)
     uint8_t *addr;
     Graph *g = (Graph *)arg;
 
-    addr      = (uint8_t *)iter->get_vpointer(iter);
-    component = (Component *)buffer_to_addr(addr);
+    component = (Component *)iter->get_vpointer(iter);
 
     if (component->draw) component->draw(component, g);
 }
@@ -384,8 +380,7 @@ process_subcomponent_mouse_pressed_foreach_cb(Iterator *iter,
     Component *component;
     uint8_t *addr;
 
-    addr      = (uint8_t *)iter->get_vpointer(iter);
-    component = (Component *)buffer_to_addr(addr);
+    component = (Component *)iter->get_vpointer(iter);
 	s         = (Subject *)component;
 
     if (component->is_mouse_over_component(component, event) == 0) {
@@ -453,8 +448,7 @@ process_subcomponent_mouse_moved_foreach_cb(Iterator *iter, void *arg)
     Component *component;
     uint8_t *addr;
 
-    addr = (uint8_t *)iter->get_vpointer(iter);
-    component = (Component *)buffer_to_addr(addr);
+    component = (Component *)iter->get_vpointer(iter);
 
     if (component->is_mouse_over_component(component, event) == 0) {
         if (component->mouse_entered_flag == 1) {

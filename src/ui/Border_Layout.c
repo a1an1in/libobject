@@ -34,7 +34,7 @@
 #include <libobject/ui/character.h>
 #include <libobject/ui/timer.h>
 #include <libobject/ui/label.h>
-#include <libobject/utils/miscellany/buffer.h>
+#include <libobject/utils/config/config.h>
 
 static void modulate_component_position(Border_Layout *border_layout)
 {
@@ -294,7 +294,6 @@ static int __add_component(Container *obj, void *pos, void *component)
     Border_Layout *l                 = (Border_Layout *)obj;
     Container *container             = (Container *)obj;
     Map *map                         = container->map;
-    char buffer[8]                   = {0};
     Component *c                     = (Component *)component;
     Subject *s                       = (Subject *)c;
     uint8_t rearrange_comonents_flag = 0;
@@ -528,8 +527,7 @@ static int __add_component(Container *obj, void *pos, void *component)
 
     container->update_component_position(c, &position);
 
-    addr_to_buffer(c,(uint8_t *)buffer);
-    map->insert(map, c->name, buffer);
+    map->insert(map, c->name, c);
 
     if (size_change_flag == 1) {
         modulate_component_position(l);
@@ -545,8 +543,7 @@ static void draw_subcomponent_foreach_cb(Iterator *iter, void *arg)
     uint8_t *addr;
     Graph *g = (Graph *)arg;
 
-    addr      = (uint8_t *)iter->get_vpointer(iter);
-    component = (Component *)buffer_to_addr(addr);
+    component = (Component *)iter->get_vpointer(iter);
 
     if (component->draw) component->draw(component, g);
 }
@@ -699,20 +696,21 @@ void *new_border_layout(allocator_t *allocator, int x, int y, int width, int hei
 #define MAX_BUFFER_LEN 1024
     char *set_str;
     Container *container;
+    configurator_t * c;
     char buf[MAX_BUFFER_LEN] = {0};
     int vgap = 2, hgap = 2;
 
-    object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "x", &x);
-    object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "y", &y);
-    object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "width", &width);
-    object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "height", &height);
-    object_config(buf, MAX_BUFFER_LEN, "/Component", OBJECT_STRING, "name", name) ;
-    object_config(buf, MAX_BUFFER_LEN, "/Border_Layout", OBJECT_NUMBER, "hgap", &hgap);
-    object_config(buf, MAX_BUFFER_LEN, "/Border_Layout", OBJECT_NUMBER, "vgap", &vgap);
+    c = cfg_alloc(allocator); 
+    cfg_config_num(c, "/Subject", "x", x);
+    cfg_config_num(c, "/Subject", "y", y);
+    cfg_config_num(c, "/Subject", "width", width);
+    cfg_config_num(c, "/Subject", "height", height);
+    cfg_config(c, "/Component", OBJECT_STRING, "name", name) ;
+    cfg_config_num(c, "/Border_Layout", "hgap", hgap);
+    cfg_config_num(c, "/Border_Layout", "vgap", vgap);
 
-    dbg_str(DBG_DETAIL,"\n%s",buf);
-
-    container = OBJECT_NEW(allocator, Border_Layout,buf);
+    dbg_str(DBG_DETAIL,"border init str:%s", c->buf);
+    container = OBJECT_NEW(allocator, Border_Layout,c->buf);
 
     return container;
 #undef MAX_BUFFER_LEN

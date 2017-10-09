@@ -337,7 +337,7 @@ int __write_text(Text *text, int start_line,char *str, void *font)
     List *list              = text->line_info;
     int len, i, line_offset = 0;
     Iterator *head ,*end, *cur;
-    text_line_t line_info;
+    text_line_t line_info, *text_line;
     char c;
     int c_witdh, c_height;
 
@@ -359,11 +359,13 @@ int __write_text(Text *text, int start_line,char *str, void *font)
         }
 
         if (x + c_witdh > line_width) {//line end
-            line_info.line_lenth  = x;
+            line_info.line_lenth = x;
             write_count++;
-            line_info.head        = line_info.string->value;
-            line_info.tail        = line_info.head + line_offset - 1;
-            list->add(list,cur, &line_info);
+            line_info.head = line_info.string->value;
+            line_info.tail = line_info.head + line_offset - 1;
+            text_line      = allocator_mem_alloc(allocator, sizeof(text_line_t));
+            memcpy(text_line, &line_info, sizeof(text_line_t));
+            list->add(list,cur, text_line);
             cur->next(cur);
 
             x                     = c_witdh;
@@ -379,19 +381,23 @@ int __write_text(Text *text, int start_line,char *str, void *font)
         }
 
         if (c == '\n') {
-            line_info.line_lenth  = x;
+            line_info.line_lenth = x;
             write_count++;
-            line_info.head        = line_info.string->value;
-            line_info.tail        = line_info.head + line_offset;
-            list->add(list,cur, &line_info);
+            line_info.head = line_info.string->value;
+            line_info.tail = line_info.head + line_offset;
+            text_line      = allocator_mem_alloc(allocator, sizeof(text_line_t));
+            memcpy(text_line, &line_info, sizeof(text_line_t));
+            list->add(list,cur, text_line);
             cur->next(cur);
             x                     = 0;
         } else if ( i == len - 1) {
             line_info.line_lenth  = x;
             write_count++;
-            line_info.head        = line_info.string->value;
-            line_info.tail        = line_info.head + line_offset;
-            list->add(list,cur, &line_info);
+            line_info.head = line_info.string->value;
+            line_info.tail = line_info.head + line_offset;
+            text_line      = allocator_mem_alloc(allocator, sizeof(text_line_t));
+            memcpy(text_line, &line_info, sizeof(text_line_t));
+            list->add(list,cur, text_line);
             cur->next(cur);
         }
 

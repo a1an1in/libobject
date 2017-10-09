@@ -34,7 +34,6 @@
 #include <libobject/ui/character.h>
 #include <libobject/ui/timer.h>
 #include <libobject/ui/label.h>
-#include <libobject/utils/miscellany/buffer.h>
 
 static int __construct(Grid_Layout *grid_layout,char *init_str)
 {
@@ -184,7 +183,6 @@ static int __add_component(Container *obj, void *pos, void *component)
     Grid_Layout *l       = (Grid_Layout *)obj;
     Container *container = (Container *)obj;
     Map *map             = container->map;
-    char buffer[8]       = {0};
     Component *c         = (Component *)component;
     Subject *subject     = (Subject *)c;
     uint8_t rearrange_comonents_flag = 0;
@@ -197,15 +195,13 @@ static int __add_component(Container *obj, void *pos, void *component)
 
     dbg_str(DBG_IMPORTANT, "add component name %s, component addr %p", c->name,c);
 
-    addr_to_buffer(c,(uint8_t *)buffer);
-
     position.x = get_x_axis_of_current_grid(l) + l->hgap;
     position.y = get_y_axis_of_current_grid(l) + l->vgap;
 
     dbg_str(DBG_SUC,"position x=%d, y=%d", position.x, position.y);
     container->update_component_position(c, &position);
 
-    map->insert(map, c->name, buffer);
+    map->insert(map, c->name, c);
     dbg_str(DBG_DETAIL,"grid_components:%p, cur_row:%d, cur_col:%d, c:%p",
             l->grid_components, l->cur_row, l->cur_col,c);
 
@@ -241,8 +237,7 @@ static void draw_subcomponent(Iterator *iter, void *arg)
     uint8_t *addr;
     Graph *g = (Graph *)arg;
 
-    addr      = (uint8_t *)iter->get_vpointer(iter);
-    component = (Component *)buffer_to_addr(addr);
+    component = (Component *)iter->get_vpointer(iter);
 
     if (component->draw) component->draw(component, g);
 }

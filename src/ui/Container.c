@@ -32,7 +32,6 @@
 #include <libobject/ui/container.h>
 #include <libobject/ui/component.h>
 #include <libobject/core/map_hash.h>
-#include <libobject/utils/miscellany/buffer.h>
 
 static int __construct(Container *container,char *init_str)
 {
@@ -68,8 +67,7 @@ static void release_subcomponent_foreach_cb(Iterator *iter, void *arg)
     uint8_t *addr;
     position_t *add = (position_t *)arg;
 
-    addr      = (uint8_t *)iter->get_vpointer(iter);
-    component = (Component *)buffer_to_addr(addr);
+    component = (Component *)iter->get_vpointer(iter);
 
     dbg_str(DBG_DETAIL,"release subcomponent %s",component->name);
 
@@ -158,8 +156,7 @@ static void update_subcomponent_position_foreach_cb(Iterator *iter, void *arg)
     uint8_t *addr;
     position_t *add = (position_t *)arg;
 
-    addr       = (uint8_t *)iter->get_vpointer(iter);
-    component  = (Component *)buffer_to_addr(addr);
+    component  = (Component *)iter->get_vpointer(iter);
     s          = (Subject *)component;
     c          = (Container *)component;
 
@@ -196,8 +193,7 @@ static void reset_subcomponent_position_foreach_cb(Iterator *iter, void *arg)
     uint8_t *addr;
     position_t *add = (position_t *)arg;
 
-    addr      = (uint8_t *)iter->get_vpointer(iter);
-    component = (Component *)buffer_to_addr(addr);
+    component = (Component *)iter->get_vpointer(iter);
     s         = (Subject *)component;
     c         = (Container *)component;
 
@@ -240,9 +236,6 @@ static int __add_component(Container *obj, void *pos, Component *component)
         return -1;
     }
 
-    char buffer[8] = {0};
-    addr_to_buffer(component,buffer);
-
     position_t position;
 
     position.x = ((Subject *)obj)->x;
@@ -250,7 +243,7 @@ static int __add_component(Container *obj, void *pos, Component *component)
 
     obj->update_component_position(component, &position);
 
-    obj->map->insert(obj->map, component->name, buffer);
+    obj->map->insert(obj->map, component->name, component);
 
     return 0;
 }
@@ -272,7 +265,7 @@ static Component *__search_component(Container *obj, char *key)
 
     ret  = map->search(map,key,iter);
     if (ret == 1) {
-        addr = buffer_to_addr(iter->get_vpointer(iter));
+        addr = iter->get_vpointer(iter);
         dbg_str(DBG_IMPORTANT,"search component %s addr %p",
                 iter->get_kpointer(iter), addr);
     } else {
