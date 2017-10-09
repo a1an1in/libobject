@@ -231,7 +231,6 @@ int vector_delete(vector_t *vector, vector_pos_t *it)
     {
         dbg_str(VECTOR_WARNNING,"vector is NULL");
     } else {
-        allocator_mem_free(vector->allocator, vector_head[delete_pos]);
         vector_copy(vector,it,&from,count);
         vector_pos_init(&vector->end,end_pos - 1,vector);
     }
@@ -275,9 +274,6 @@ int vector_set(vector_t *vector,int index,void *data)
 
     sync_lock(&vector->vector_lock,NULL);
 
-    if (vector_head[set_pos]) {
-        allocator_mem_free(vector->allocator, vector_head[set_pos]);
-    }
     vector_head[set_pos] = data;
     if (set_pos + 1 > end_pos) {
         vector_pos_init(&vector->end,set_pos + 1,vector);
@@ -310,14 +306,6 @@ int vector_destroy(vector_t *vector)
 	vector_pos_t pos,next;
 
     dbg_str(VECTOR_DETAIL,"vector_destroy");
-
-	for (	vector_begin(vector, &pos), vector_pos_next(&pos,&next);
-			!vector_pos_equal(&pos,&vector->end);
-			pos = next, vector_pos_next(&pos,&next))
-	{
-        index = pos.vector_pos;
-        allocator_mem_free(vector->allocator, vector_head[index]);
-	}
 
     sync_lock_destroy(&vector->vector_lock);
     allocator_mem_free(vector->allocator,vector->vector_head);

@@ -30,11 +30,8 @@ void print_vector_data(vector_pos_t *pos)
     dbg_buf(DBG_DETAIL,"data:",vector_pos_get_pointer(pos),pos->vector->step);
 }
 
-static struct test *genearte_test_instance(allocator_t *allocator, int a, int b)
+static struct test *init_test_instance(struct test *t, int a, int b)
 {
-    struct test *t;
-
-    t = allocator_mem_alloc(allocator, sizeof(struct test));
     t->a = a;
     t->b = b;
 
@@ -46,25 +43,24 @@ int test_datastructure_vector()
     vector_t *vector;
     vector_pos_t pos;
     allocator_t *allocator = allocator_get_default_alloc();
+    struct test *t, t0, t1, t2, t3, t4, t5;
+    int ret;
 
-    struct test *t, *t0, *t1, *t2, *t3, *t4, *t5;
-    int ret = 0;
-
-    t0 = genearte_test_instance(allocator, 0, 2);
-    t1 = genearte_test_instance(allocator, 1, 2);
-    t2 = genearte_test_instance(allocator, 2, 2);
-    t3 = genearte_test_instance(allocator, 3, 2);
-    t4 = genearte_test_instance(allocator, 4, 2);
-    t5 = genearte_test_instance(allocator, 5, 2);
+    init_test_instance(&t0, 0, 2);
+    init_test_instance(&t1, 1, 2);
+    init_test_instance(&t2, 2, 2);
+    init_test_instance(&t3, 3, 2);
+    init_test_instance(&t4, 4, 2);
+    init_test_instance(&t5, 5, 2);
 
     vector = vector_create(allocator,0);
     vector_init(vector,sizeof(struct test),4);
 
-    vector_add_back(vector, t0);
-    vector_add_back(vector, t1);
-    vector_add_back(vector, t2);
-    vector_add_back(vector, t3);
-    vector_add_back(vector, t4);
+    vector_add_back(vector, &t0);
+    vector_add_back(vector, &t1);
+    vector_add_back(vector, &t2);
+    vector_add_back(vector, &t3);
+    vector_add_back(vector, &t4);
 
     vector_for_each(vector,(void (*)(void *))(print_vector_data));
 
@@ -73,7 +69,7 @@ int test_datastructure_vector()
     dbg_buf(DBG_DETAIL,"get data:", (char *)t,vector->data_size);
 
     dbg_str(DBG_DETAIL,"test set");
-    vector_set(vector,1, t5);
+    vector_set(vector,1, &t5);
 
     vector_for_each(vector,(void (*)(void *))(print_vector_data));
 

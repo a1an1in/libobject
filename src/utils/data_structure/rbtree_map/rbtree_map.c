@@ -316,9 +316,6 @@ int rbtree_map_delete(rbtree_map_t *map, rbtree_map_pos_t *it)
     sync_unlock(&map->map_lock);
 
     if (mnode != NULL) {
-        void **addr;
-        addr = (void **)&mnode->key[mnode->value_pos];
-        allocator_mem_free(map->allocator, *addr);
         allocator_mem_free(map->allocator,mnode);
         mnode = NULL;
     }

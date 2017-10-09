@@ -216,11 +216,8 @@ struct test{
     int a;
     int b;
 };
-static struct test *genearte_test_instance(allocator_t *allocator, int a, int b)
+static struct test *init_test_instance(struct test *t, int a, int b)
 {
-    struct test *t;
-
-    t = allocator_mem_alloc(allocator, sizeof(struct test));
     t->a = a;
     t->b = b;
 
@@ -245,14 +242,14 @@ void test_obj_hash_map_string_key()
     cjson_t *root, *e, *s;
     char buf[2048] = {0};
     char set_str[2048] = {0};
-    struct test *t, *t0, *t1, *t2, *t3, *t4, *t5;
+    struct test *t, t0, t1, t2, t3, t4, t5;
 
-    t0 = genearte_test_instance(allocator, 0, 2);
-    t1 = genearte_test_instance(allocator, 1, 2);
-    t2 = genearte_test_instance(allocator, 2, 2);
-    t3 = genearte_test_instance(allocator, 3, 2);
-    t4 = genearte_test_instance(allocator, 4, 2);
-    t5 = genearte_test_instance(allocator, 5, 2);
+    init_test_instance(&t0, 0, 2);
+    init_test_instance(&t1, 1, 2);
+    init_test_instance(&t2, 2, 2);
+    init_test_instance(&t3, 3, 2);
+    init_test_instance(&t4, 4, 2);
+    init_test_instance(&t5, 5, 2);
 
     dbg_str(DBG_SUC, "hash_map test begin alloc count =%d",allocator->alloc_count);
 
@@ -268,12 +265,12 @@ void test_obj_hash_map_string_key()
     object_dump(map, "Hash_Map", buf, 2048);
     dbg_str(DBG_DETAIL,"Map dump: %s",buf);
 
-    map->insert(map,"test0", t0);
-    map->insert(map,"test1", t1);
-    map->insert(map,"test2", t2);
-    map->insert(map,"test3", t3);
-    map->insert(map,"test4", t4);
-    map->insert(map,"test5", t5);
+    map->insert(map,"test0", &t0);
+    map->insert(map,"test1", &t1);
+    map->insert(map,"test2", &t2);
+    map->insert(map,"test3", &t3);
+    map->insert(map,"test4", &t4);
+    map->insert(map,"test5", &t5);
     map->for_each(map,hash_map_print);
 
     map->search(map,"test2",iter);
@@ -313,16 +310,10 @@ void test_obj_hash_map_numeric_key()
     char set_str[2048] = {0};
     int key;
     int ret;
-    struct test *t, *t0, *t1, *t2, *t3, *t4, *t5;
+    struct test *t, t0, t1, t2, t3, t4, t5;
 
-    t0 = genearte_test_instance(allocator, 0, 2);
-    t1 = genearte_test_instance(allocator, 1, 2);
-    /*
-     *t2 = genearte_test_instance(allocator, 2, 2);
-     *t3 = genearte_test_instance(allocator, 3, 2);
-     *t4 = genearte_test_instance(allocator, 4, 2);
-     *t5 = genearte_test_instance(allocator, 5, 2);
-     */
+    init_test_instance(&t0, 0, 2);
+    init_test_instance(&t1, 1, 2);
 
     dbg_str(DBG_SUC, "hash_map test begin alloc count =%d",allocator->alloc_count);
 
@@ -341,9 +332,9 @@ void test_obj_hash_map_numeric_key()
 
     printf("insert\n");
     key = 0;
-    map->insert(map, &key,t0);
+    map->insert(map, &key, &t0);
     key = 1;
-    map->insert(map, &key,t1);
+    map->insert(map, &key, &t1);
 
     printf("for_each\n");
     map->for_each(map,hash_map_print_with_numeric_key);
@@ -370,10 +361,10 @@ void test_obj_hash_map_numeric_key()
 }
 void test_obj_hash_map()
 {
+    test_obj_hash_map_string_key();
     /*
-     *test_obj_hash_map_string_key();
+     *test_obj_hash_map_numeric_key();
      */
-    test_obj_hash_map_numeric_key();
 }
 
 

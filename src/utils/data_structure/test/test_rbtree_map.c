@@ -39,11 +39,8 @@ struct test{
     int a;
     int b;
 };
-static struct test *genearte_test_instance(allocator_t *allocator, int a, int b)
+static struct test *init_test_instance(struct test *t, int a, int b)
 {
-    struct test *t;
-
-    t = allocator_mem_alloc(allocator, sizeof(struct test));
     t->a = a;
     t->b = b;
 
@@ -61,12 +58,14 @@ int test_datastructure_rbtree_map_string_key(void)
     struct rbtree_map_node *mnode;
     int key_len = 2;
 
-    struct test *t, *t0, *t1, *t2, *t3, *t4, *t5;
+    struct test *t, t0, t1, t2, t3, t4, t5;
 
-    t0 = genearte_test_instance(allocator, 0, 2);
-    t1 = genearte_test_instance(allocator, 1, 2);
-    t2 = genearte_test_instance(allocator, 2, 2);
-    t3 = genearte_test_instance(allocator, 3, 2);
+    init_test_instance(&t0, 0, 2);
+    init_test_instance(&t1, 1, 2);
+    init_test_instance(&t2, 2, 2);
+    init_test_instance(&t3, 3, 2);
+    init_test_instance(&t4, 4, 2);
+    init_test_instance(&t5, 5, 2);
 
     dbg_str(DBG_DETAIL,"rbtree allocator addr:%p",allocator);
     map = rbtree_map_alloc(allocator);
@@ -74,10 +73,10 @@ int test_datastructure_rbtree_map_string_key(void)
     rbtree_map_init(map,key_len,sizeof(void *)); 
 
 
-    rbtree_map_insert(map,(char *)"00",t0);
-    rbtree_map_insert(map,(char *)"11",t1);
-    rbtree_map_insert(map,(char *)"22",t2);
-    rbtree_map_insert(map,(char *)"33",t3);
+    rbtree_map_insert(map,(char *)"00", &t0);
+    rbtree_map_insert(map,(char *)"11", &t1);
+    rbtree_map_insert(map,(char *)"22", &t2);
+    rbtree_map_insert(map,(char *)"33", &t3);
 
 
     dbg_str(DBG_DETAIL,"foreach ordinal print");
@@ -116,14 +115,14 @@ int test_datastructure_rbtree_map_numeric_key(void)
     int key_len = 4;
     int key;
 
-    struct test *t, *t0, *t1, *t2, *t3, *t4, *t5;
+    struct test *t, t0, t1, t2, t3, t4, t5;
 
-    t0 = genearte_test_instance(allocator, 0, 2);
-    t1 = genearte_test_instance(allocator, 1, 2);
-    t2 = genearte_test_instance(allocator, 2, 2);
-    t3 = genearte_test_instance(allocator, 3, 2);
-    t4 = genearte_test_instance(allocator, 4, 2);
-    t5 = genearte_test_instance(allocator, 5, 2);
+    init_test_instance(&t0, 0, 2);
+    init_test_instance(&t1, 1, 2);
+    init_test_instance(&t2, 2, 2);
+    init_test_instance(&t3, 3, 2);
+    init_test_instance(&t4, 4, 2);
+    init_test_instance(&t5, 5, 2);
 
     dbg_str(DBG_DETAIL,"rbtree allocator addr:%p",allocator);
     map = rbtree_map_alloc(allocator);
@@ -132,10 +131,10 @@ int test_datastructure_rbtree_map_numeric_key(void)
 
     rbtree_map_init(map,key_len,sizeof(void *)); 
 
-    rbtree_map_insert_with_numeric_key(map,0,t0);
-    rbtree_map_insert_with_numeric_key(map,1,t1);
-    rbtree_map_insert_with_numeric_key(map,2,t2);
-    rbtree_map_insert_with_numeric_key(map,3,t3);
+    rbtree_map_insert_with_numeric_key(map,0, &t0);
+    rbtree_map_insert_with_numeric_key(map,1, &t1);
+    rbtree_map_insert_with_numeric_key(map,2, &t2);
+    rbtree_map_insert_with_numeric_key(map,3, &t3);
 
 
     dbg_str(DBG_DETAIL,"foreach ordinal print");
@@ -171,16 +170,14 @@ int test_datastructure_rbtree_map_timeval_key(void)
     int key_len = sizeof(struct timeval);
     int key;
     struct timeval tp, t_bak, tv;
-    struct test *t, *t0, *t1, *t2, *t3, *t4, *t5;
+    struct test *t, t0, t1, t2, t3, t4, t5;
 
-    t0 = genearte_test_instance(allocator, 0, 2);
-    t1 = genearte_test_instance(allocator, 1, 2);
-    t2 = genearte_test_instance(allocator, 2, 2);
-    t3 = genearte_test_instance(allocator, 3, 2);
-    /*
-     *t4 = genearte_test_instance(allocator, 4, 2);
-     *t5 = genearte_test_instance(allocator, 5, 2);
-     */
+    init_test_instance(&t0, 0, 2);
+    init_test_instance(&t1, 1, 2);
+    init_test_instance(&t2, 2, 2);
+    init_test_instance(&t3, 3, 2);
+    init_test_instance(&t4, 4, 2);
+    init_test_instance(&t5, 5, 2);
 
     dbg_str(DBG_DETAIL,"rbtree allocator addr:%p, key_len =%d",allocator,key_len);
     map = rbtree_map_alloc(allocator);
@@ -193,23 +190,23 @@ int test_datastructure_rbtree_map_timeval_key(void)
     gettimeofday(&tp, NULL);
     printf("time %ld:%ld\n",tp.tv_sec,tp.tv_usec);
     dbg_buf(DBG_DETAIL,"key:", (void *)&tp, key_len);
-    rbtree_map_insert(map,&tp,t0);
+    rbtree_map_insert(map,&tp, &t0);
 
     gettimeofday(&tp, NULL);
     printf("time %ld:%ld\n",tp.tv_sec,tp.tv_usec);
     dbg_buf(DBG_DETAIL,"key:", (void *)&tp, key_len);
     t_bak = tp;
-    rbtree_map_insert(map,&tp,t1);
+    rbtree_map_insert(map,&tp, &t1);
 
     gettimeofday(&tp, NULL);
     printf("time %ld:%ld\n",tp.tv_sec,tp.tv_usec);
     dbg_buf(DBG_DETAIL,"key:", (void *)&tp, key_len);
-    rbtree_map_insert(map,&tp,t2);
+    rbtree_map_insert(map,&tp, &t2);
 
     gettimeofday(&tp, NULL);
     printf("time %ld:%ld\n",tp.tv_sec,tp.tv_usec);
     dbg_buf(DBG_DETAIL,"key:",(void *)&tp, key_len);
-    rbtree_map_insert(map,&tp,t3);
+    rbtree_map_insert(map,&tp, &t3);
 
 
     dbg_str(DBG_DETAIL,"foreach ordinal print");
@@ -237,12 +234,12 @@ int test_datastructure_rbtree_map_timeval_key(void)
 
 int test_datastructure_rbtree_map(void)
 {
-    /*
-     *test_datastructure_rbtree_map_string_key();
-     */
+    test_datastructure_rbtree_map_string_key();
     /*
      *test_datastructure_rbtree_map_numeric_key();
      */
-    test_datastructure_rbtree_map_timeval_key();
+    /*
+     *test_datastructure_rbtree_map_timeval_key();
+     */
 
 }
