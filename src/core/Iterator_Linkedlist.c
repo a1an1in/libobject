@@ -109,7 +109,7 @@ static int __equal(Iterator *it1,Iterator *it2)
 static void *__get_vpointer(Iterator *it)
 {
     dbg_str(OBJ_DETAIL,"LList_Iterator get_vpointer");
-    return llist_pos_get_pointer(&((LList_Iterator *)it)->list_pos);
+    return llist_pos_get_pointer(&((LList_Iterator *)it)->list_pos);;
 }
 
 static int __is_null(Iterator *it)

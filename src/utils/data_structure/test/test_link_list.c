@@ -37,37 +37,57 @@ int test_datastructure_link_list()
     llist_t *llist;
     allocator_t *allocator = allocator_get_default_alloc();
 
-    struct test t1={1,2};
-    struct test t2={2,2};
-    struct test t3={3,2};
-    struct test t4={4,2};
+    /*
+     *struct test t1={1,2};
+     *struct test t2={2,2};
+     *struct test t3={3,2};
+     *struct test t4={4,2};
+     */
+    struct test *t, *t1, *t2, *t3, *t4;
     int ret = 0;
-    int data_size = sizeof(struct test);
+    /*
+     *int data_size = sizeof(struct test);
+     */
+    int data_size = sizeof(void *);
     int lock_type = 1;
 
-    /*
-     *allocator = allocator_creator(ALLOCATOR_TYPE_CTR_MALLOC);
-     *allocator_ctr_init(allocator, 0, 0, 1024);
-     *dbg_str(DBG_CONTAINER_DETAIL,"list allocator addr:%p",allocator);
-     */
+    t1 = allocator_mem_alloc(allocator, sizeof(struct test));
+    t1->a = 1;
+    t1->b = 2;
+    t2 = allocator_mem_alloc(allocator, sizeof(struct test));
+    t2->a = 2;
+    t2->b = 2;
+    t3 = allocator_mem_alloc(allocator, sizeof(struct test));
+    t3->a = 3;
+    t3->b = 2;
+    t4 = allocator_mem_alloc(allocator, sizeof(struct test));
+    t4->a = 4;
+    t4->b = 2;
 
     llist = llist_alloc(allocator);
     llist_set(llist,"lock_type",&lock_type);
     llist_set(llist,"data_size",&data_size);
     llist_init(llist);
 
-    llist_add_front(llist,&t1);
-    llist_add_front(llist,&t2);
-    llist_add_front(llist,&t3);
-    llist_add_front(llist,&t4);
+    llist_add_front(llist,t1);
+    llist_add_front(llist,t2);
+    llist_add_front(llist,t3);
+    llist_add_front(llist,t4);
 
-    llist_add_back(llist,&t1);
-    llist_add_back(llist,&t2);
-    llist_add_back(llist,&t3);
-    llist_add_back(llist,&t4);
+    /*
+     *llist_add_back(llist,t1);
+     *llist_add_back(llist,t2);
+     *llist_add_back(llist,t3);
+     *llist_add_back(llist,t4);
+     */
 
     llist_for_each(llist,print_list_data);
 
+
+    llist_remove_back(llist, (void **)&t);
+    dbg_str(DBG_DETAIL,"llist_delete_back, a=%d,b=%d",t->a,t->b);
+
+    allocator_mem_free(allocator, t);
     llist_destroy(llist);
     return ret;
 }

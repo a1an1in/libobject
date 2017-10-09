@@ -25,9 +25,11 @@ llist_t *llist_alloc(allocator_t *allocator);
 int llist_set(llist_t *llist,char *attrib,void *value);
 int llist_init(llist_t *llist);
 int llist_add(llist_t *llist, list_pos_t *pos, void *data);
-int llist_delete(llist_t *llist, list_pos_t *pos);
 int llist_add_back(llist_t *llist,void *data);
+int llist_delete(llist_t *llist, list_pos_t *pos);
 int llist_delete_back(llist_t *llist);
+int llist_remove(llist_t *llist, list_pos_t *pos, void **data);
+int llist_remove_back(llist_t *llist, void **data);
 int llist_destroy(llist_t *llist);
 list_t *__llist_detach(llist_t *llist, list_pos_t *pos);
 

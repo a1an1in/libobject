@@ -30,7 +30,7 @@
 
 typedef struct llist_list_s{
 	struct list_head list_head;
-	uint8_t data[1];
+	void * data;
 }list_t;
 typedef struct llist_pos_s{
 	struct list_head *list_head_p;

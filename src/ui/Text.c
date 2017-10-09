@@ -57,7 +57,7 @@ int delete_nth_line(Text *text, int line_num)
     end = text->line_info->end(text->line_info);
     cur = get_iterator_of_nth_line(cur, end, line_num);
 
-    list->del(list,cur);
+    list->delete(list,cur);
 
     object_destroy(cur);
     object_destroy(end);

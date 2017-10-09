@@ -106,11 +106,9 @@ int llist_init(llist_t *llist)
 int llist_add(llist_t *llist, list_pos_t *pos, void *data)
 {
     list_t *p = NULL;
-    uint32_t data_size = llist->data_size; 
 
-    p = (list_t *)allocator_mem_alloc(llist->allocator,
-                                      sizeof(list_t) + data_size);
-    memcpy(p->data,data,data_size);
+    p = (list_t *)allocator_mem_alloc(llist->allocator, sizeof(list_t));
+    p->data = data;
 
     sync_lock(&llist->list_lock,NULL);
     list_add(&p->list_head, pos->list_head_p);
@@ -130,10 +128,9 @@ int llist_add(llist_t *llist, list_pos_t *pos, void *data)
 int llist_add_back(llist_t *llist,void *data)
 {
     list_t *p = NULL;
-    uint32_t data_size = llist->data_size; 
 
-    p = (list_t *)allocator_mem_alloc(llist->allocator,sizeof(list_t) + data_size);
-    memcpy(p->data,data,data_size);
+    p = (list_t *)allocator_mem_alloc(llist->allocator,sizeof(list_t));
+    p->data = data;
 
     sync_lock(&llist->list_lock,NULL);
     list_add_tail(&p->list_head, llist->head.list_head_p);
@@ -171,6 +168,7 @@ int llist_delete(llist_t *llist, list_pos_t *pos)
 
     sync_unlock(&llist->list_lock);
 
+    allocator_mem_free(llist->allocator,p->data);
     allocator_mem_free(llist->allocator,p);
     return 0;
 }
@@ -197,6 +195,60 @@ int llist_delete_back(llist_t *llist)
 
     sync_unlock(&llist->list_lock);
 
+    allocator_mem_free(llist->allocator,p->data);
+    allocator_mem_free(llist->allocator,p);
+    return 0;
+}
+
+int llist_remove(llist_t *llist, list_pos_t *pos, void **data)
+{
+    list_t *p;
+
+    if (llist_pos_equal(&llist->begin,&llist->head)) {
+        dbg_str(LINKLIST_WARNNING,"llist is null,llist_remove");
+        return -1;
+    }
+
+    p = container_of(pos->list_head_p,list_t,list_head);
+
+    sync_lock(&llist->list_lock,NULL);
+    if (llist_pos_equal(pos,&llist->begin)) {
+        llist_pos_init(&llist->begin,pos->list_head_p->next,llist);
+    }
+    list_del(pos->list_head_p);
+    llist->list_count--;
+    dbg_str(LINKLIST_DETAIL,"remove llist,listcount=%d",llist->list_count);
+
+    sync_unlock(&llist->list_lock);
+
+    *data = p->data;
+    allocator_mem_free(llist->allocator,p);
+    return 0;
+}
+
+int llist_remove_back(llist_t *llist, void **data)
+{
+    list_t *p;
+    struct list_head *head = llist->head.list_head_p;
+
+    if (llist_pos_equal(&llist->begin,&llist->head)) {
+        dbg_str(LINKLIST_WARNNING,"llist is null,llist_remove_back");
+        return -1;
+    }
+
+    p = container_of(head->prev,list_t,list_head);
+
+    sync_lock(&llist->list_lock,NULL);
+    list_del(head->prev);
+    llist->list_count--;
+    if (llist->list_count == 0) {
+        llist_pos_init(&llist->begin,llist->head.list_head_p,llist);
+    }
+    dbg_str(LINKLIST_DETAIL,"llist_remove_back,listcount=%d",llist->list_count);
+
+    sync_unlock(&llist->list_lock);
+
+    *data = p->data;
     allocator_mem_free(llist->allocator,p);
     return 0;
 }
