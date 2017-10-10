@@ -57,7 +57,7 @@ static int default_key_cmp_func(void *key1,void *key2,uint32_t size)
 struct rbtree_map_node * 
 __rbtree_map_search(rbtree_map_t *map,struct rb_root *root, void *key)
 {
-    struct rb_node *node = root->rb_node;
+    struct rb_node *node     = root->rb_node;
     key_cmp_fpt key_cmp_func = map->key_cmp_func;
 
     while (node) {
@@ -84,14 +84,14 @@ int
 __rbtree_map_insert(rbtree_map_t *map,struct rb_root *root, 
         struct rbtree_map_node *new_mnode)
 {
-    struct rb_node **new = &(root->rb_node), *parent = NULL;
+    struct rb_node **new     = &(root->rb_node), *parent = NULL;
     key_cmp_fpt key_cmp_func = map->key_cmp_func;
     int result;
     struct rbtree_map_node *this;
 
     /* Figure out where to put new node */
     while (*new) {
-        this = rb_entry(*new, struct rbtree_map_node, node);
+        this   = rb_entry(*new, struct rbtree_map_node, node);
         result = key_cmp_func(new_mnode->key, this->key,this->value_pos);
 
         parent = *new;
@@ -118,9 +118,9 @@ __rbtree_map_insert(rbtree_map_t *map,struct rb_root *root,
 
 rbtree_map_pos_t* 
 rbtree_map_pos_init(rbtree_map_pos_t *pos,
-        struct rb_node *node,
-        struct rb_root *tree_root,
-        rbtree_map_t *map)
+                    struct rb_node *node,
+                    struct rb_root *tree_root,
+                    rbtree_map_t *map)
 {
     pos->tree_root = tree_root;
     pos->rb_node_p = node;
@@ -213,12 +213,12 @@ int rbtree_map_init(rbtree_map_t *map,
         map->key_cmp_func = default_key_cmp_func;
     }
     map->data_size = key_size + value_size;
-    map->key_size = key_size;
+    map->key_size  = key_size;
 
     tree_root = (struct rb_root *)allocator_mem_alloc(map->allocator,
                                                       sizeof(struct rb_root));
     tree_root->rb_node = NULL;
-    map->tree_root = tree_root;
+    map->tree_root     = tree_root;
     rbtree_map_pos_init(&map->end,NULL,tree_root,map);
     rbtree_map_pos_init(&map->begin,NULL,tree_root,map);
 
@@ -255,8 +255,8 @@ int rbtree_map_insert_data(rbtree_map_t *map, void *value)
 {
     struct rbtree_map_node *mnode;
     struct rb_root *tree_root = map->tree_root;
-    uint32_t data_size = map->data_size;
-    uint32_t key_size = map->key_size;
+    uint32_t data_size        = map->data_size;
+    uint32_t key_size         = map->key_size;
     int ret;
 
     dbg_str(DBG_DETAIL,"rbtree_map_insert");
