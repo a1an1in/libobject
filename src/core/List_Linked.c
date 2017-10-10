@@ -169,7 +169,7 @@ static int __remove(List *list,Iterator *iter, void **data)
 
 static int __remove_back(List *list, void **data)
 {
-    Linked_List *l    = (Linked_List *)list;
+    Linked_List *l = (Linked_List *)list;
 
     dbg_str(OBJ_DETAIL,"Link list remove");
 
@@ -214,7 +214,7 @@ static Iterator *__begin(List *list)
 
     iter = OBJECT_NEW(allocator, LList_Iterator,NULL);
 
-    llist_begin(l->llist,&(iter->list_pos));
+    llist_begin(l->llist, &(iter->list_pos));
 
     return (Iterator *)iter;
 }
@@ -228,7 +228,7 @@ static Iterator *__end(List *list)
     dbg_str(OBJ_DETAIL,"Linked List end");
     iter = OBJECT_NEW(allocator, LList_Iterator,NULL);
 
-    llist_end(l->llist,&(iter->list_pos));
+    llist_end(l->llist, &(iter->list_pos));
 
     return (Iterator *)iter;
 }
@@ -290,7 +290,7 @@ void test_obj_llist_list()
     iter = OBJECT_NEW(allocator, LList_Iterator,NULL);
 
     object_dump(list, "Linked_List", buf, 2048);
-    dbg_str(DBG_DETAIL,"List dump: %s",buf);
+    dbg_str(DBG_DETAIL,"List dump: %s", buf);
 
     list->add_back(list,str1);
     list->add_back(list,str2);

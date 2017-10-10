@@ -24,52 +24,6 @@ struct test{
     int a;
     int b;
 };
-#if 0
-void test_datastructure_hashlist()
-{
-    hash_map_t *hmap;
-    pair_t *pair;
-    hash_map_pos_t pos;
-    struct hash_map_node *mnode;
-    allocator_t *allocator = allocator_get_default_alloc();
-
-    struct A t1 = {1,2};
-    struct A t2 = {2,2};
-    struct A t3 = {3,2};
-    struct A t4 = {4,2};
-    struct A t5 = {5,2};
-
-    pair = create_pair(2,sizeof(struct A));
-
-    hmap = hash_map_create(allocator,0);
-    hash_map_init(hmap,
-                  2,//uint32_t key_size,
-                  sizeof(struct A)+ 2,
-                  10,
-                  NULL,
-                  NULL);
-
-    make_pair(pair,"11",&t1);
-    hash_map_insert_data(hmap,pair->data);
-    make_pair(pair,"22",&t2);
-    hash_map_insert_data(hmap,pair->data);
-    make_pair(pair,"33",&t3);
-    hash_map_insert_data(hmap,pair->data);
-    make_pair(pair,"55",&t4);
-    hash_map_insert_data(hmap,pair->data);
-
-    dbg_str(DBG_DETAIL,"hash map search");
-    struct A *p;
-    hash_map_search(hmap,"33",&pos);
-    p = hash_map_pos_get_pointer(&pos);
-    dbg_str(DBG_DETAIL,"a =%d, b=%d",p->a,p->b);
-
-    dbg_str(DBG_DETAIL,"for each");
-    hash_map_for_each(hmap,hash_map_print_mnode);
-
-    hash_map_destroy(hmap);
-}
-#else
 
 static struct test *init_test_instance(struct test *t, int a, int b)
 {
@@ -127,4 +81,3 @@ void test_datastructure_hashlist()
 
     hash_map_destroy(hmap);
 }
-#endif

@@ -28,11 +28,11 @@ int event_assign(event_t *ev,
                  short events,
                  void (*callback)(int, short, void *), void *arg)
 {
-    ev->ev_fd = fd;
-    ev->ev_events = events;
+    ev->ev_fd       = fd;
+    ev->ev_events   = events;
     ev->ev_callback = callback;
-    ev->ev_arg = arg;
-    ev->ev_base = (void *)base->eb;
+    ev->ev_arg      = arg;
+    ev->ev_base     = (void *)base->eb;
 
     dbg_str(DBG_DETAIL,"ev_callback=%p", ev->ev_callback);
 

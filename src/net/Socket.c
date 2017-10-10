@@ -41,7 +41,7 @@ static int __get_sockoptval_size(int optname)
 {
     int size = 0;
 
-    switch(optname){
+    switch(optname) {
         case SO_REUSEPORT:
         case SO_KEEPALIVE:
         case SO_REUSEADDR:
@@ -181,9 +181,9 @@ int __bind(Socket *socket, char *host, char *service)
     }
     addrsave = addr;
 
-    if(addr != NULL){
+    if (addr != NULL) {
         dbg_str(NET_DETAIL,"ai_family=%d type=%d",addr->ai_family,addr->ai_socktype);
-    }else{
+    } else {
         dbg_str(DBG_ERROR,"getaddrinfo err");
         return -1;
     }                      
@@ -241,9 +241,9 @@ static int __connect(Socket *socket, char *host, char *service)
     }
     addrsave = addr;
 
-    if(addr != NULL){
-        dbg_str(NET_DETAIL,"ai_family=%d type=%d",addr->ai_family,addr->ai_socktype);
-    }else{
+    if (addr != NULL) {
+        dbg_str(NET_DETAIL,"ai_family=%d type=%d", addr->ai_family, addr->ai_socktype);
+    } else {
         dbg_str(DBG_ERROR,"getaddrinfo err");
         return -1;
     }                      

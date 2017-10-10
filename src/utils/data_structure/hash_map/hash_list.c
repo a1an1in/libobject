@@ -48,18 +48,22 @@
 #include "libobject/utils/dbg/debug.h"
 #include "libobject/utils/data_structure/hash_list.h"
 
-static inline int default_key_cmp_func(void *key1,void *key2,uint32_t size)
+static inline int 
+default_key_cmp_func(void *key1, void *key2, uint32_t size)
 {
-    return memcmp(key1,key2,size);
+    return memcmp(key1, key2, size);
 }
 
-static inline uint32_t default_hash_func(void *key,uint32_t key_size,uint32_t bucket_size)
+static inline uint32_t 
+default_hash_func(void *key, uint32_t key_size, uint32_t bucket_size)
 {
     uint32_t sum = 0;
-    uint32_t i = 0;
+    uint32_t i   = 0;
+
     for (i = 0; i < key_size; i++) {
         sum += *(uint8_t *)(key + i);
     }
+
     return sum % bucket_size;
 }
 
@@ -70,7 +74,7 @@ hash_map_t * hash_map_alloc(allocator_t *allocator)
     dbg_str(HMAP_DETAIL,"hash_map_create");
 
     map = (hash_map_t *)allocator_mem_alloc(allocator,sizeof(hash_map_t));
-    if(map == NULL){
+    if (map == NULL) {
         dbg_str(DBG_ERROR,"allocator_mem_alloc(map->allocator err");
         return NULL;
     }
@@ -80,7 +84,7 @@ hash_map_t * hash_map_alloc(allocator_t *allocator)
     return map;
 }
 
-int hash_map_set(hash_map_t *hmap,char *attrib,char *value)
+int hash_map_set(hash_map_t *hmap, char *attrib, char *value)
 {
     if (!strcmp(attrib,"lock_type")) {
         hmap->lock_type = atoi((char *)value);
@@ -193,10 +197,7 @@ int hash_map_insert_data(hash_map_t *hmap,void *data)
             &mnode->hlist_node);
     /*
      *dbg_str(HMAP_IMPORTANT,"hash_map_insert,node_count=%d,bucket_pos =%d,first =%p,next=%p,begin.hash_map_pos=%p",
-     *        hmap->node_count,
-     *        bucket_pos,
-     *        hlist[bucket_pos].first,
-     *        hlist[bucket_pos].first->next,
+     *        hmap->node_count, bucket_pos, hlist[bucket_pos].first, hlist[bucket_pos].first->next,
      *        hmap->begin.hlist_node_p);
      */
 
@@ -237,28 +238,13 @@ int hash_map_insert_data_wb(hash_map_t *hmap,void *data, hash_map_pos_t *out)
     assert(bucket_pos <= bucket_size);
 
     sync_lock(&hmap->map_lock,NULL);
-
     hlist_add_head(&mnode->hlist_node, &hlist[bucket_pos]);
     if (begin_pos->hlist_node_p == NULL || bucket_pos <= begin_pos->bucket_pos) {
         hash_map_pos_init(&hmap->begin, hlist[bucket_pos].first, bucket_pos, hlist,hmap);
-        /*
-         *dbg_str(DBG_WARNNING,"change begin pos");
-         */
     }
     ret = hmap->node_count++;
     dbg_str(HMAP_IMPORTANT,"hash_map_insert,node_count=%d,bucket_pos =%d,insert_hash_node_pos=%p",
-            hmap->node_count,
-            bucket_pos,
-            &mnode->hlist_node);
-    /*
-     *dbg_str(HMAP_IMPORTANT,"hash_map_insert,node_count=%d,bucket_pos =%d,first =%p,next=%p,begin.hash_map_pos=%p",
-     *        hmap->node_count,
-     *        bucket_pos,
-     *        hlist[bucket_pos].first,
-     *        hlist[bucket_pos].first->next,
-     *        hmap->begin.hlist_node_p);
-     */
-
+            hmap->node_count, bucket_pos, &mnode->hlist_node);
     sync_unlock(&hmap->map_lock);
 
     hash_map_pos_init(out, &mnode->hlist_node, bucket_pos, hlist,hmap);
@@ -315,6 +301,7 @@ int hash_map_search(hash_map_t *hmap, void *key,hash_map_pos_t *ret)
     }
     sync_unlock(&hmap->map_lock);
     dbg_str(HMAP_IMPORTANT,"not found key");
+
     return -1;
 }
 
@@ -343,7 +330,8 @@ int hash_map_delete(hash_map_t *hmap, hash_map_pos_t *pos)
     }
     hlist_del(pos->hlist_node_p);
     hmap->node_count--;
-    dbg_str(HMAP_IMPORTANT,"del hash_map ,hash map count=%d,del node pos=%p",hmap->node_count,pos->hlist_node_p);
+    dbg_str(HMAP_IMPORTANT,"del hash_map ,hash map count=%d,del node pos=%p",
+            hmap->node_count,pos->hlist_node_p);
 
     sync_unlock(&hmap->map_lock);
 
@@ -352,6 +340,7 @@ int hash_map_delete(hash_map_t *hmap, hash_map_pos_t *pos)
         allocator_mem_free(hmap->allocator, mnode);
         mnode = NULL;
     }
+
     return 0;
 }
 
@@ -360,10 +349,8 @@ int hash_map_remove(hash_map_t *hmap, hash_map_pos_t *pos, void **data)
     struct hash_map_node *mnode;
     struct hlist_head *hlist = pos->hlist;
     hash_map_pos_t next;
-    void **addr;
 
     sync_lock(&hmap->map_lock,NULL);
-
     if (hash_map_pos_equal(pos,&hmap->begin)) {
         hash_map_pos_next(pos,&next);
         hash_map_pos_init(&hmap->begin,
@@ -372,8 +359,8 @@ int hash_map_remove(hash_map_t *hmap, hash_map_pos_t *pos, void **data)
     }
     hlist_del(pos->hlist_node_p);
     hmap->node_count--;
-    dbg_str(HMAP_IMPORTANT,"del hash_map ,hash map count=%d,del node pos=%p",hmap->node_count,pos->hlist_node_p);
-
+    dbg_str(HMAP_IMPORTANT,"del hash_map ,hash map count=%d,del node pos=%p",
+            hmap->node_count,pos->hlist_node_p);
     sync_unlock(&hmap->map_lock);
 
     mnode = container_of(pos->hlist_node_p,struct hash_map_node,hlist_node);
@@ -382,6 +369,7 @@ int hash_map_remove(hash_map_t *hmap, hash_map_pos_t *pos, void **data)
         allocator_mem_free(hmap->allocator, mnode);
         mnode = NULL;
     }
+
     return 0;
 }
 
@@ -452,9 +440,3 @@ int hash_map_pos_next(hash_map_pos_t *pos,hash_map_pos_t *next)
 
     return ret;
 }
-
-void hash_map_print_mnode(struct hash_map_node *mnode)
-{
-    dbg_buf(DBG_DETAIL,"data:",mnode->key,mnode->data_size);
-}
-
