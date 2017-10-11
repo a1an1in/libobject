@@ -274,10 +274,9 @@ static class_info_entry_t llist_class_info[] = {
 };
 REGISTER_CLASS("Linked_List",llist_class_info);
 
-static void llist_list_print(Iterator *iter)
+static void llist_list_print(void *element)
 {
-    LList_Iterator *i = (LList_Iterator *)iter;
-    dbg_str(DBG_DETAIL,"value: %s",i->get_vpointer(iter));
+    dbg_str(DBG_DETAIL,"value: %s", element);
 }
 
 void test_obj_llist_list()

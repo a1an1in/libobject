@@ -134,16 +134,18 @@ static int __remove_back(List *list, void **data)
     dbg_str(OBJ_DETAIL,"List remove back");
 }
 
-static void __for_each(List *list,void (*func)(Iterator *iter))
+static void __for_each(List *list,void (*func)(void *element))
 {
     Iterator *cur, *end;
+    void *element;
 
     dbg_str(OBJ_IMPORTANT,"List for_each");
     cur = list->begin(list);
     end = list->end(list);
 
     for (; !end->equal(end,cur); cur->next(cur)) {
-        func(cur);
+        element = cur->get_vpointer(cur);
+        func(element);
     }
 }
 

@@ -17,7 +17,7 @@ struct _list_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
-    int (*add)(List *list,Iterator *iter, void *value);
+    int (*add)(List *list, void *value);
     int (*add_front)(List *list,void *value);
     int (*add_back)(List *list,void *value);
     int (*delete)(List *list,Iterator *iter);
@@ -26,7 +26,7 @@ struct _list_s{
     int (*remove_back)(List *list, void **data);
     int (*detach_front)(List *list,Iterator *iter);
     int (*free_detached)(List *list,Iterator *iter);
-    void (*for_each)(List *list,void (*func)(Iterator *iter));
+    void (*for_each)(List *list,void (*func)(void *element));
     void (*for_each_arg2)(List *list,void (*func)(Iterator *iter, void *arg),void *arg);
     Iterator *(*begin)(List *list);
     Iterator *(*end)(List *list);

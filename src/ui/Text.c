@@ -365,7 +365,7 @@ int __write_text(Text *text, int start_line,char *str, void *font)
             line_info.tail = line_info.head + line_offset - 1;
             text_line      = allocator_mem_alloc(allocator, sizeof(text_line_t));
             memcpy(text_line, &line_info, sizeof(text_line_t));
-            list->add(list,cur, text_line);
+            list->add(list, text_line);
             cur->next(cur);
 
             x                     = c_witdh;
@@ -387,7 +387,7 @@ int __write_text(Text *text, int start_line,char *str, void *font)
             line_info.tail = line_info.head + line_offset;
             text_line      = allocator_mem_alloc(allocator, sizeof(text_line_t));
             memcpy(text_line, &line_info, sizeof(text_line_t));
-            list->add(list,cur, text_line);
+            list->add(list, text_line);
             cur->next(cur);
             x                     = 0;
         } else if ( i == len - 1) {
@@ -397,7 +397,7 @@ int __write_text(Text *text, int start_line,char *str, void *font)
             line_info.tail = line_info.head + line_offset;
             text_line      = allocator_mem_alloc(allocator, sizeof(text_line_t));
             memcpy(text_line, &line_info, sizeof(text_line_t));
-            list->add(list,cur, text_line);
+            list->add(list, text_line);
             cur->next(cur);
         }
 
