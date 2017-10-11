@@ -48,7 +48,8 @@
 #include <libobject/utils/dbg/debug.h>
 
 int 
-vector_copy_backward(vector_t *vector, vector_pos_t *to, vector_pos_t *from, uint32_t count)
+vector_copy_backward(vector_t *vector, vector_pos_t *to,
+                     vector_pos_t *from, uint32_t count)
 {
     uint32_t from_pos, to_pos;
     void *vector_head = vector->vector_head;
@@ -67,10 +68,13 @@ vector_copy_backward(vector_t *vector, vector_pos_t *to, vector_pos_t *from, uin
         dbg_str(VECTOR_DETAIL,"to_pos=%d,from_pos=%d",to_pos,from_pos);
         memcpy(vector_head + to_pos * step, vector_head + from_pos * step, num_per * step);
     }
+
+    return 0;
 }
 
 int 
-vector_copy_forward(vector_t *vector, vector_pos_t *to, vector_pos_t *from, uint32_t count)
+vector_copy_forward(vector_t *vector, vector_pos_t *to,
+                    vector_pos_t *from, uint32_t count)
 {
     uint32_t from_pos = from->vector_pos;
     uint32_t to_pos   = to->vector_pos;
@@ -91,6 +95,8 @@ vector_copy_forward(vector_t *vector, vector_pos_t *to, vector_pos_t *from, uint
         from_pos += num_per;
         count    -= num_per;
     }
+
+    return 0;
 }
 
 int vector_copy(vector_t *vector, vector_pos_t *to, vector_pos_t *from, uint32_t count)
@@ -104,11 +110,14 @@ int vector_copy(vector_t *vector, vector_pos_t *to, vector_pos_t *from, uint32_t
     } else {//backward
         vector_copy_backward(vector,to,from,count);
     }
+
+    return 0;
 }
 
 vector_t *vector_create(allocator_t *allocator,uint8_t lock_type)
 {
     vector_t *ret = NULL;
+
     ret = (vector_t *)allocator_mem_alloc(allocator,sizeof(vector_t));
     if (ret == NULL) {
         dbg_str(VECTOR_ERROR,"allock err");
@@ -120,8 +129,8 @@ vector_t *vector_create(allocator_t *allocator,uint8_t lock_type)
 
 int vector_init(vector_t *vector,uint32_t data_size,uint32_t capacity)
 {
-
     dbg_str(VECTOR_DETAIL,"vector init");
+
     vector->step        = sizeof(void *);
     vector->data_size   = data_size;
     vector->capacity    = capacity;
@@ -144,7 +153,6 @@ int vector_init(vector_t *vector,uint32_t data_size,uint32_t capacity)
 
 int vector_add(vector_t *vector, vector_pos_t *it, void *data)
 {
-
     uint32_t insert_pos = it->vector_pos;
     uint32_t end_pos    = vector->end.vector_pos;
     uint32_t count      = end_pos - insert_pos;
@@ -327,7 +335,6 @@ int vector_remove_back(vector_t *vector, void **element)
     return 0;
 }
 
-
 int vector_set(vector_t *vector,int index,void *data)
 {
     uint32_t set_pos   = index;
@@ -366,15 +373,9 @@ void * vector_get(vector_t *vector,int index)
 
 int vector_destroy(vector_t *vector)
 {
-    void **vector_head = vector->vector_head;
-    uint32_t index;
-	vector_pos_t pos,next;
-
     dbg_str(VECTOR_DETAIL,"vector_destroy");
 
     sync_lock_destroy(&vector->vector_lock);
     allocator_mem_free(vector->allocator,vector->vector_head);
     allocator_mem_free(vector->allocator,vector);
 }
-
-

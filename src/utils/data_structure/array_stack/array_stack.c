@@ -32,7 +32,7 @@ int array_stack_init(array_stack_t *as)
     }
     
     if(as->step == 0) {
-        as->step = 8;
+        as->step = sizeof(void *);
     }
 
     as->top = (uint8_t *)allocator_mem_alloc(as->allocator,as->size);
@@ -51,8 +51,7 @@ int array_stack_push(array_stack_t *as, void *data)
     
     if(as->cur - as->top + as->step < as->size) {
         memset(as->cur, 0, as->step);
-        memcpy(as->cur, data, as->step);
-        dbg_buf(DBG_DETAIL,"array_stack_push:",data, as->step);
+        *((void **)as->cur) = data;
         as->cur += as->step;
     } else {
         ret = -1;
@@ -62,15 +61,13 @@ int array_stack_push(array_stack_t *as, void *data)
     return ret;
 }
 
-int array_stack_pop(array_stack_t *as,void *out)
+int array_stack_pop(array_stack_t *as,void **out)
 {
     int ret = 0;
 
     if(as->cur > as->top) {
-        memset(out, 0, as->step);
-        memcpy(out, as->cur - as->step, as->step);
-        dbg_buf(DBG_DETAIL,"array_stack_pop:",as->cur - as->step, as->step);
         as->cur -= as->step;
+        *out = *((void **)(as->cur));
     } else {
         dbg_str(DBG_WARNNING,"array stack is null");
         ret = -1;
@@ -94,32 +91,32 @@ int test_array_stack()
     int ret = 0;
     array_stack_t *as;
     allocator_t *allocator = allocator_get_default_alloc();
-    int p;
-    int a;
+    int *p;
+    void *a;
 
     as = array_stack_alloc(allocator);
-    as->step = 4;
+    as->step = 8;
     array_stack_init(as);
 
-    dbg_str(DBG_DETAIL,"as addr:%x",as);
-    a = 4;
-    array_stack_push(as, &a);
-    a = 5;
-    array_stack_push(as, &a);
-    a = 6;
-    array_stack_push(as, &a);
-    a = 7;
-    array_stack_push(as, &a);
+    dbg_str(DBG_DETAIL,"as addr:%p",as);
+    dbg_str(DBG_DETAIL,"push data:%d", a = (void *)4 );
+    array_stack_push(as, a);
+    dbg_str(DBG_DETAIL,"push data:%d", a = (void *)5 );
+    array_stack_push(as, a);
+    dbg_str(DBG_DETAIL,"push data:%d", a = (void *)6 );
+    array_stack_push(as, a); 
+    dbg_str(DBG_DETAIL,"push data:%d", a = (void *)7);
+    array_stack_push(as, a);
 
 
-    array_stack_pop(as, &p);
-    dbg_str(DBG_DETAIL,"pop data:%x",p);
-    array_stack_pop(as, &p);
-    dbg_str(DBG_DETAIL,"pop data:%x",p);
-    array_stack_pop(as, &p);
-    dbg_str(DBG_DETAIL,"pop data:%x",p);
-    array_stack_pop(as, &p);
-    dbg_str(DBG_DETAIL,"pop data:%x",p);
+    array_stack_pop(as, (void **)&p);
+    dbg_str(DBG_DETAIL,"pop data:%d", p);
+    array_stack_pop(as, (void **)&p);
+    dbg_str(DBG_DETAIL,"pop data:%d", p);
+    array_stack_pop(as, (void **)&p);
+    dbg_str(DBG_DETAIL,"pop data:%d", p);
+    array_stack_pop(as, (void **)&p);
+    dbg_str(DBG_DETAIL,"pop data:%d", p);
 
     array_stack_destroy(as);
 

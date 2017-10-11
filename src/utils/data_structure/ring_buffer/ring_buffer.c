@@ -166,7 +166,6 @@ int rbuf_read(ring_buffer_t *rbuf,void *value_out)
     }
     rbuf->rw_flag = RW_FLAG_READ;
 
-
     return len;
 }
 

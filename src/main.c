@@ -449,6 +449,18 @@ static int args_process_test_Vector(void *base,int argc,char **argv)
     return 0;
 }
 
+static int args_process_test_LList(void *base,int argc,char **argv)
+{
+    test_obj_llist_list();
+    return 0;
+}
+
+static int args_process_test_Stack(void *base,int argc,char **argv)
+{
+    test_obj_array_stack();
+    return 0;
+}
+
 static int args_process_test_Graph(void *base,int argc,char **argv)
 {
     test_ui_graph();
@@ -502,12 +514,6 @@ static int args_process_test_SDL_Event(void *base,int argc,char **argv)
 static int args_process_test_Label(void *base,int argc,char **argv)
 {
     test_ui_label();
-    return 0;
-}
-
-static int args_process_test_LList(void *base,int argc,char **argv)
-{
-    test_obj_llist_list();
     return 0;
 }
 
@@ -629,7 +635,6 @@ static cmd_config_t cmds[]={
     {"TF", args_process_test_Text_Field,0, "test", "N/A","test"},
     {"TA", args_process_test_Text_Area,0, "test", "N/A","test"},
     {"Text", args_process_test_Text,0, "test", "N/A","test"},
-    {"LList", args_process_test_LList,0, "test", "N/A","test"},
     {"Label", args_process_test_Label,0, "test", "N/A","test"},
     {"SDL_Event", args_process_test_SDL_Event,0, "test", "N/A","test"},
     {"SDL_Char", args_process_test_SDL_Character,0, "test", "N/A","test"},
@@ -639,8 +644,10 @@ static cmd_config_t cmds[]={
     {"Image", args_process_test_Image,0, "test", "N/A","test"},
     {"SDL_Window", args_process_test_SDL_Window,0, "test", "N/A","test"},
     {"Graph", args_process_test_Graph,0, "test", "N/A","test"},
+    {"Stack", args_process_test_Stack,0, "test", "N/A","test"},
     {"Vector", args_process_test_Vector,0, "test", "N/A","test"},
     {"HMap", args_process_test_Hmap,0, "test", "N/A","test"},
+    {"LList", args_process_test_LList,0, "test", "N/A","test"},
     {"HIter", args_process_test_Hmap_Iterator,0, "test", "N/A","test"},
     {"Iter", args_process_test_Iterator,0, "test", "N/A","test"},
     {"Map", args_process_test_Map,0, "test", "N/A","test"},

@@ -89,5 +89,6 @@ extern void test_udp_socket_send();
 extern void test_tcp_socket_recv();
 extern void test_tcp_socket_send();
 extern void test_obj_mutex_lock();
+extern int test_obj_array_stack();
 
 #endif
