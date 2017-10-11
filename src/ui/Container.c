@@ -243,7 +243,7 @@ static int __add_component(Container *obj, void *pos, Component *component)
 
     obj->update_component_position(component, &position);
 
-    obj->map->insert(obj->map, component->name, component);
+    obj->map->add(obj->map, component->name, component);
 
     return 0;
 }
@@ -251,23 +251,18 @@ static int __add_component(Container *obj, void *pos, Component *component)
 static Component *__search_component(Container *obj, char *key)
 {
     allocator_t *allocator = ((Obj *)obj)->allocator;
-    Iterator *iter;
     Map *map = obj->map;
     int ret;
-    void *buf_addr, *addr;
+    void *addr = NULL;
 
     if (obj->map_type == 0) {
         dbg_str(DBG_WARNNING,"%s is support container search op",((Obj *)obj)->name);
         return NULL;
     }
 
-    iter = OBJECT_NEW(allocator, Hmap_Iterator,NULL);
-
-    ret  = map->search(map,key,iter);
+    ret  = map->search(map, key, &addr);
     if (ret == 1) {
-        addr = iter->get_vpointer(iter);
-        dbg_str(DBG_IMPORTANT,"search component %s addr %p",
-                iter->get_kpointer(iter), addr);
+        return addr;
     } else {
         dbg_str(DBG_DETAIL,"not find component %s",key);
     }

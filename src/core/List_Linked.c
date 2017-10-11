@@ -56,6 +56,9 @@ static int __construct(List *list,char *init_str)
 
     ((Linked_List *)list)->llist = llist;
 
+    list->b = OBJECT_NEW(allocator, LList_Iterator,NULL);
+    list->e = OBJECT_NEW(allocator, LList_Iterator,NULL);
+
     return 0;
 }
 
@@ -63,6 +66,8 @@ static int __deconstrcut(List *list)
 {
     dbg_str(OBJ_DETAIL,"llist list deconstruct,list addr:%p",list);
 
+    object_destroy(list->b);
+    object_destroy(list->e);
     llist_destroy(((Linked_List *)list)->llist);
 
     return 0;
@@ -80,21 +85,25 @@ static int __set(List *m, char *attrib, void *value)
         list->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         list->deconstruct = value;
-    }
-    else if (strcmp(attrib, "add_back") == 0) {
+    } 
+    else if (strcmp(attrib, "add") == 0) {
+        list->add = value;
+    } else if (strcmp(attrib, "add_front") == 0) {
+        list->add_front = value;
+    } else if (strcmp(attrib, "add_back") == 0) {
         list->add_back = value;
+    } else if (strcmp(attrib, "remove") == 0) {
+        list->remove = value;
+    } else if (strcmp(attrib, "remove_front") == 0) {
+        list->remove_front = value;
+    } else if (strcmp(attrib, "remove_back") == 0) {
+        list->remove_back = value;
+    } else if (strcmp(attrib, "delete") == 0) {
+        list->delete = value;
     } else if (strcmp(attrib, "detach_front") == 0) {
         list->detach_front = value;
     } else if (strcmp(attrib, "free_detached") == 0) {
         list->free_detached = value;
-    } else if (strcmp(attrib, "add") == 0) {
-        list->add = value;
-    } else if (strcmp(attrib, "delete") == 0) {
-        list->delete = value;
-    } else if (strcmp(attrib, "remove") == 0) {
-        list->remove = value;
-    } else if (strcmp(attrib, "remove_back") == 0) {
-        list->remove_back = value;
     } else if (strcmp(attrib, "for_each") == 0) {
         list->for_each = value;
     } else if (strcmp(attrib, "begin") == 0) {
@@ -127,14 +136,13 @@ static void *__get(List *obj, char *attrib)
     return NULL;
 }
 
-static int __add(List *list,Iterator *iter, void *value)
+static int __add(List *list, void *value)
 {
-    Linked_List *l    = (Linked_List *)list;
-    LList_Iterator *i = (LList_Iterator *)iter;
+    Linked_List *l = (Linked_List *)list;
 
-    dbg_str(OBJ_DETAIL,"List insert");
+    dbg_str(OBJ_DETAIL,"Link list add");
 
-    return llist_add(l->llist, &(i->list_pos), value);
+    return llist_add_back(l->llist,value);
 }
 
 static int __add_back(List *list,void *value)
@@ -146,25 +154,40 @@ static int __add_back(List *list,void *value)
     return llist_add_back(l->llist,value);
 }
 
-static int __delete(List *list,Iterator *iter)
+static int __add_front(List *list,void *value)
 {
-    Linked_List *l    = (Linked_List *)list;
-    LList_Iterator *i = (LList_Iterator *)iter;
+    Linked_List *l = (Linked_List *)list;
 
-    dbg_str(OBJ_DETAIL,"Link list remove");
+    dbg_str(OBJ_DETAIL,"Link list push back");
 
-    return llist_delete(l->llist, &(i->list_pos));
+    return llist_add_front(l->llist,value);
+}
+
+static int __delete(List *list)
+{
+    Linked_List *l = (Linked_List *)list;
+    dbg_str(OBJ_DETAIL,"Link list delete");
+
+    return llist_delete(l->llist, &l->llist->begin);
 }
 
 
-static int __remove(List *list,Iterator *iter, void **data)
+static int __remove(List *list, void **data)
 {
-    Linked_List *l    = (Linked_List *)list;
-    LList_Iterator *i = (LList_Iterator *)iter;
+    Linked_List *l = (Linked_List *)list;
 
     dbg_str(OBJ_DETAIL,"Link list remove");
 
-    return llist_remove(l->llist, &(i->list_pos), data);
+    return llist_remove_front(l->llist, data);
+}
+
+static int __remove_front(List *list, void **data)
+{
+    Linked_List *l = (Linked_List *)list;
+
+    dbg_str(OBJ_DETAIL,"Link list remove front");
+
+    return llist_remove_front(l->llist, data);
 }
 
 static int __remove_back(List *list, void **data)
@@ -208,11 +231,9 @@ static Iterator *__begin(List *list)
 {
     Linked_List *l         = (Linked_List *)list;
     allocator_t *allocator = list->obj.allocator;
-    LList_Iterator *iter;
+    LList_Iterator *iter   = (LList_Iterator *)list->b;
 
     dbg_str(OBJ_DETAIL,"Linked List begin");
-
-    iter = OBJECT_NEW(allocator, LList_Iterator,NULL);
 
     llist_begin(l->llist, &(iter->list_pos));
 
@@ -223,10 +244,9 @@ static Iterator *__end(List *list)
 {
     Linked_List *l         = (Linked_List *)list;
     allocator_t *allocator = list->obj.allocator;
-    LList_Iterator *iter;
+    LList_Iterator *iter   = (LList_Iterator *)list->e;
 
     dbg_str(OBJ_DETAIL,"Linked List end");
-    iter = OBJECT_NEW(allocator, LList_Iterator,NULL);
 
     llist_end(l->llist, &(iter->list_pos));
 
@@ -239,16 +259,18 @@ static class_info_entry_t llist_class_info[] = {
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","add_back",__add_back,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","detach_front",__detach_front,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","free_detached",__free_detached,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","delete",__delete,sizeof(void *)},
-    [10] = {ENTRY_TYPE_FUNC_POINTER,"","remove",__remove,sizeof(void *)},
-    [11] = {ENTRY_TYPE_FUNC_POINTER,"","remove_back",__remove_back,sizeof(void *)},
-    [12] = {ENTRY_TYPE_FUNC_POINTER,"","begin",__begin,sizeof(void *)},
-    [13] = {ENTRY_TYPE_FUNC_POINTER,"","end",__end,sizeof(void *)},
-    [14] = {ENTRY_TYPE_END},
+    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","add_front",__add_front,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","add_back",__add_back,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","remove",__remove,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","remove_front",__remove_front,sizeof(void *)},
+    [10] = {ENTRY_TYPE_FUNC_POINTER,"","remove_back",__remove_back,sizeof(void *)},
+    [11] = {ENTRY_TYPE_FUNC_POINTER,"","delete",__delete,sizeof(void *)},
+    [12] = {ENTRY_TYPE_FUNC_POINTER,"","detach_front",__detach_front,sizeof(void *)},
+    [13] = {ENTRY_TYPE_FUNC_POINTER,"","free_detached",__free_detached,sizeof(void *)},
+    [14] = {ENTRY_TYPE_FUNC_POINTER,"","begin",__begin,sizeof(void *)},
+    [15] = {ENTRY_TYPE_FUNC_POINTER,"","end",__end,sizeof(void *)},
+    [16] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Linked_List",llist_class_info);
 
@@ -257,62 +279,50 @@ static void llist_list_print(Iterator *iter)
     LList_Iterator *i = (LList_Iterator *)iter;
     dbg_str(DBG_DETAIL,"value: %s",i->get_vpointer(iter));
 }
-static void llist_list_free_data(Iterator *iter)
-{
-    LList_Iterator *i = (LList_Iterator *)iter;
-    char *str;
-    str = i->get_vpointer(iter);
-    allocator_mem_free(iter->obj.allocator, str);
-}
 
 void test_obj_llist_list()
 {
-    Iterator *iter, *next,*prev;
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;
     char *set_str;
     char buf[2048];
-    char *str, *str1, *str2;
     List *list;
+    char *str;
+    char *str1 = "hello world1";
+    char *str2 = "hello world2";
+    char *str3 = "hello world3";
+    char *str4 = "hello world4";
+    char *str5 = "hello world5";
 
     dbg_str(DBG_DETAIL,"test_obj_llist_list");
-
-    str1 = allocator_mem_alloc(allocator, 50);
-    strcpy(str1, "hello world");
-    str2 = allocator_mem_alloc(allocator, 50);
-    strcpy(str2, "sdfsafsdaf");
 
     c = cfg_alloc(allocator); 
     dbg_str(DBG_SUC, "configurator_t addr:%p",c);
     cfg_config_num(c, "/List", "value_size", 8) ;  
 
     list = OBJECT_NEW(allocator, Linked_List,c->buf);
-    iter = OBJECT_NEW(allocator, LList_Iterator,NULL);
 
     object_dump(list, "Linked_List", buf, 2048);
     dbg_str(DBG_DETAIL,"List dump: %s", buf);
 
-    list->add_back(list,str1);
-    list->add_back(list,str2);
+    list->add_back(list,str3);
+    list->add_back(list,str4);
+    list->add_back(list,str5);
+    list->add_front(list,str2);
+    list->add_front(list,str1);
 
     dbg_str(DBG_DETAIL,"list for each test");
     list->for_each(list,llist_list_print);
 
-    /*
-     *list->detach_front(list,iter);
-     *dbg_str(DBG_DETAIL,"print detach list");
-     *llist_list_print(iter);
-     *list->free_detached(list,iter);
-     */
-
     list->remove_back(list, (void **)&str);
-    allocator_mem_free(allocator, str);
     dbg_str(DBG_DETAIL,"remove back:%s", str);
+    list->remove_front(list, (void **)&str);
+    dbg_str(DBG_DETAIL,"remove front:%s", str);
 
-    list->for_each(list,llist_list_free_data);
+    dbg_str(DBG_DETAIL,"list for each test");
+    list->for_each(list,llist_list_print);
 
     object_destroy(list);
-    object_destroy(iter);
     cfg_destroy(c);
 }
 

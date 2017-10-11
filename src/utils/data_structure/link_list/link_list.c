@@ -224,6 +224,31 @@ int llist_remove(llist_t *llist, list_pos_t *pos, void **data)
     return 0;
 }
 
+int llist_remove_front(llist_t *llist, void **data)
+{
+    list_t *p;
+    struct list_head *head = llist->head.list_head_p;
+
+    if (llist_pos_equal(&llist->begin,&llist->head)) {
+        dbg_str(LINKLIST_WARNNING,"llist is null");
+        return -1;
+    }
+
+    p = container_of(head->next,list_t,list_head);
+
+    sync_lock(&llist->list_lock,NULL);
+    list_del(head->next);
+    llist->list_count--;
+    llist_pos_init(&llist->begin, llist->head.list_head_p->next, llist);
+    dbg_str(LINKLIST_DETAIL,"llist_remove_front,listcount=%d", llist->list_count);
+    sync_unlock(&llist->list_lock);
+
+    *data = p->data;
+    allocator_mem_free(llist->allocator,p);
+
+    return 0;
+}
+
 int llist_remove_back(llist_t *llist, void **data)
 {
     list_t *p;
@@ -240,7 +265,7 @@ int llist_remove_back(llist_t *llist, void **data)
     list_del(head->prev);
     llist->list_count--;
     if (llist->list_count == 0) {
-        llist_pos_init(&llist->begin,llist->head.list_head_p,llist);
+        llist_pos_init(&llist->begin,llist->head.list_head_p->next,llist);
     }
     dbg_str(LINKLIST_DETAIL,"llist_remove_back,listcount=%d",llist->list_count);
 
@@ -248,6 +273,7 @@ int llist_remove_back(llist_t *llist, void **data)
 
     *data = p->data;
     allocator_mem_free(llist->allocator,p);
+
     return 0;
 }
 

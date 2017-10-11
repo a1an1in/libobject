@@ -29,6 +29,7 @@ int llist_add_back(llist_t *llist,void *data);
 int llist_delete(llist_t *llist, list_pos_t *pos);
 int llist_delete_back(llist_t *llist);
 int llist_remove(llist_t *llist, list_pos_t *pos, void **data);
+int llist_remove_front(llist_t *llist, void **data);
 int llist_remove_back(llist_t *llist, void **data);
 int llist_destroy(llist_t *llist);
 list_t *__llist_detach(llist_t *llist, list_pos_t *pos);
@@ -73,6 +74,7 @@ static inline int llist_add_front(llist_t *llist,void *data)
 {
 	return llist_add(llist,&llist->head,data);
 }
+
 static inline int llist_delete_front(llist_t *llist)
 {
 	return llist_delete(llist, &llist->begin);

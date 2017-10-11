@@ -60,12 +60,12 @@ static int __set(Map *map, char *attrib, void *value)
         map->deconstruct = value;
     } else if (strcmp(attrib, "name") == 0) {
         strncpy(map->name,value,strlen(value));
-    } else if (strcmp(attrib, "insert") == 0) {
-        map->insert = value;
-    } else if (strcmp(attrib, "insert_wb") == 0) {
-        map->insert_wb = value;
+    } else if (strcmp(attrib, "add") == 0) {
+        map->add = value;
     } else if (strcmp(attrib, "search") == 0) {
         map->search = value;
+    } else if (strcmp(attrib, "remove") == 0) {
+        map->remove = value;
     } else if (strcmp(attrib, "del") == 0) {
         map->del = value;
     } else if (strcmp(attrib, "for_each") == 0) {
@@ -101,36 +101,19 @@ static void *__get(Map *obj, char *attrib)
     return NULL;
 }
 
-static int __insert(Map *map,void *key,void *value)
-{
-    dbg_str(OBJ_DETAIL,"Map insert");
-}
-
-static int __insert_wb(Map *map,void *key,void *value,Iterator *iter)
-{
-    dbg_str(OBJ_DETAIL,"Map insert wb");
-}
-
-static int __search(Map *map,void *key,Iterator *iter)
-{
-    dbg_str(OBJ_DETAIL,"Map search");
-}
-
-static int __del(Map *map,Iterator *iter)
-{
-    dbg_str(OBJ_DETAIL,"Map del");
-}
-
-static void __for_each(Map *map,void (*func)(Iterator *iter))
+static void __for_each(Map *map,void (*func)(void *key, void *element))
 {
     Iterator *cur, *end;
+    void *key, *value;
 
     dbg_str(OBJ_IMPORTANT,"Map for_each");
     cur = map->begin(map);
     end = map->end(map);
 
     for (; !end->equal(end,cur); cur->next(cur)) {
-        func(cur);
+        key = cur->get_kpointer(cur);
+        value = cur->get_vpointer(cur);
+        func(key, value);
     }
 
 }
@@ -170,10 +153,10 @@ static class_info_entry_t map_class_info[] = {
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","insert",__insert,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","insert_wb",__insert_wb,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","search",__search,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","del",__del,sizeof(void *)},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add", NULL,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","search", NULL,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove", NULL,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","del", NULL,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each",__for_each,sizeof(void *)},
     [10] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each_arg2",__for_each_arg2,sizeof(void *)},
     [11] = {ENTRY_TYPE_VFUNC_POINTER,"","begin",__begin,sizeof(void *)},

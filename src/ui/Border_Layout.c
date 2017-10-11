@@ -527,7 +527,7 @@ static int __add_component(Container *obj, void *pos, void *component)
 
     container->update_component_position(c, &position);
 
-    map->insert(map, c->name, c);
+    map->add(map, c->name, c);
 
     if (size_change_flag == 1) {
         modulate_component_position(l);

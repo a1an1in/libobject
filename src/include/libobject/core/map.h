@@ -17,11 +17,11 @@ struct _map_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
-    int (*insert)(Map *map,void *key,void *value);
-    int (*insert_wb)(Map *map,void *key,void *value,Iterator *iter);
-    int (*search)(Map *map,void *key,Iterator *iter);
-    int (*del)(Map *map,Iterator *iter);
-    void (*for_each)(Map *map,void (*func)(Iterator *iter));
+    int (*add)(Map *map,void *key,void *value);
+    int (*search)(Map *map,void *key,void **element);
+    int (*remove)(Map *map,void *key,void **element);
+    int (*del)(Map *map, void *key);
+    void (*for_each)(Map *map,void (*func)(void *key, void *element));
     void (*for_each_arg2)(Map *map,void (*func)(Iterator *iter, void *arg),void *arg);
     Iterator *(*begin)(Map *map);
     Iterator *(*end)(Map *map);

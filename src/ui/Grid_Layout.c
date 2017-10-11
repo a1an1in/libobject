@@ -201,7 +201,7 @@ static int __add_component(Container *obj, void *pos, void *component)
     dbg_str(DBG_SUC,"position x=%d, y=%d", position.x, position.y);
     container->update_component_position(c, &position);
 
-    map->insert(map, c->name, c);
+    map->add(map, c->name, c);
     dbg_str(DBG_DETAIL,"grid_components:%p, cur_row:%d, cur_col:%d, c:%p",
             l->grid_components, l->cur_row, l->cur_col,c);
 

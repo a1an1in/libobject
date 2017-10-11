@@ -59,10 +59,8 @@ static int __construct(Event_Base *eb,char *init_str)
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_type", "1");
     eb->io_map    = OBJECT_NEW(allocator, Hash_Map, c->buf);
 
-    eb->map_iter = OBJECT_NEW(allocator, Hmap_Iterator,NULL);
-
-    dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p, map_iter:%p, timer:%p",
-            eb, eb->io_map, eb->map_iter, eb->timer);
+    dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p,timer:%p",
+            eb, eb->io_map, eb->timer);
 
 
     cfg_destroy(c);
@@ -76,13 +74,8 @@ static int __deconstrcut(Event_Base *eb)
 
     //release evsig
     
-    dbg_str(DBG_DETAIL,"run at here");
     object_destroy(eb->timer);
-    dbg_str(DBG_DETAIL,"run at here");
-    object_destroy(eb->map_iter);
-    dbg_str(DBG_DETAIL,"run at here");
     object_destroy(eb->io_map);
-    dbg_str(DBG_DETAIL,"run at here");
 
     return 0;
 }
@@ -138,14 +131,14 @@ static int __add(Event_Base *eb, event_t *event)
     int fd       = event->ev_fd;
     event_t *new_event;
 
-    dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p, map_iter:%p, timer:%p, event:%p",
-            eb, eb->io_map, eb->map_iter, eb->timer, event);
+    dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p, timer:%p, event:%p",
+            eb, eb->io_map, eb->timer, event);
 
     if (event->ev_events & EV_SIGNAL) {
         evsig_add(eb, event);
     } else {
         event->ev_tv = event->ev_timeout;
-        io_map->insert(io_map, &fd, event);
+        io_map->add(io_map, &fd, event);
 
         eb->trustee_io(eb,event);
         timer->add(timer, event);
@@ -158,7 +151,6 @@ static int __del(Event_Base *eb, event_t *event)
 {
     Timer *timer   = eb->timer;
     int fd         = event->ev_fd;
-    Iterator *iter = eb->map_iter;
     Map *io_map    = eb->io_map;
     int ret;
 
@@ -168,11 +160,10 @@ static int __del(Event_Base *eb, event_t *event)
         timer->del(timer, event);
 
         //del fd in map
-        ret = io_map->search(io_map, &fd, iter);
+        ret = io_map->del(io_map, &fd);
         if (ret < 0) {
             dbg_str(DBG_WARNNING,"not found fd in io_map,ret=%d",ret);
         } else {
-            ret = io_map->del(io_map, iter);
             dbg_str(DBG_WARNNING,"del fd =%d in io_map", fd);
         }
     }
@@ -184,7 +175,6 @@ static int __activate_io(Event_Base *eb, int fd, short events)
 {
     Timer *timer   = eb->timer;
     Map *io_map    = eb->io_map;
-    Iterator *iter = eb->map_iter;
     struct timeval tv;
     char *p;
     char buf[255];
@@ -194,18 +184,17 @@ static int __activate_io(Event_Base *eb, int fd, short events)
 
     dbg_str(EV_DETAIL,"event base active io event, fd = %d", fd);
 
-    ret = io_map->search(io_map, &fd, iter);
+    ret = io_map->search(io_map, &fd, (void **)&event);
     dbg_str(DBG_WARNNING,"search ret=%d",ret);
 
     if (ret < 0) {
         dbg_str(DBG_WARNNING,"not found fd in io_map,ret=%d",ret);
     } else {
-        event = (event_t *)iter->get_vpointer(iter);
-        dbg_str(EV_DETAIL,"event addr:%p, ev_callback=%p", event, event->ev_callback);
+        dbg_str(EV_DETAIL, "event addr:%p, ev_callback=%p", event, event->ev_callback);
         event->ev_callback(event->ev_fd, 0, event->ev_arg);
 
         if (event->ev_events & EV_PERSIST) {
-            dbg_str(EV_DETAIL,"persist event, readd io");
+            dbg_str(EV_DETAIL, "persist event, readd io");
             timer->del(timer, event);
             event->ev_timeout = event->ev_tv;
             timer->add(timer, event);
@@ -274,7 +263,7 @@ static int __loop(Event_Base *eb)
 
     set_break_signal(eb);
 
-    while(eb->break_flag == 0) {
+    while (eb->break_flag == 0) {
         timer->timeout_next(timer, &tv_p);
         eb->dispatch(eb, tv_p);
         __process_timeout_events(eb);
@@ -299,7 +288,7 @@ static class_info_entry_t event_base_class_info[] = {
     [12] = {ENTRY_TYPE_VFUNC_POINTER,"","dispatch",NULL,sizeof(void *)},
     [13] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Event_Base",event_base_class_info);
+REGISTER_CLASS("Event_Base", event_base_class_info);
 
 void test_obj_eb()
 {

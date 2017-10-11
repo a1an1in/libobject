@@ -18,9 +18,11 @@ struct _list_s{
 
 	/*virtual methods reimplement*/
     int (*add)(List *list,Iterator *iter, void *value);
+    int (*add_front)(List *list,void *value);
     int (*add_back)(List *list,void *value);
     int (*delete)(List *list,Iterator *iter);
-    int (*remove)(List *list,Iterator *iter, void **data);
+    int (*remove)(List *list, void **data);
+    int (*remove_front)(List *list, void **data);
     int (*remove_back)(List *list, void **data);
     int (*detach_front)(List *list,Iterator *iter);
     int (*free_detached)(List *list,Iterator *iter);
@@ -34,6 +36,7 @@ struct _list_s{
     char name[MAX_NAME_LEN];
 #undef MAX_NAME_LEN
 	int value_size;
+    Iterator *b, *e;
 
 };
 

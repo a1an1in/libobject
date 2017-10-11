@@ -84,12 +84,12 @@ static int __set(Map *m, char *attrib, void *value)
         map->deconstruct = value;
     } else if (strcmp(attrib, "name") == 0) {
         strncpy(map->name,value,strlen(value));
-    } else if (strcmp(attrib, "insert") == 0) {
-        map->insert = value;
-    } else if (strcmp(attrib, "insert_wb") == 0) {
-        map->insert_wb = value;
+    } else if (strcmp(attrib, "add") == 0) {
+        map->add = value;
     } else if (strcmp(attrib, "search") == 0) {
         map->search = value;
+    } else if (strcmp(attrib, "remove") == 0) {
+        map->remove = value;
     } else if (strcmp(attrib, "del") == 0) {
         map->del = value;
     } else if (strcmp(attrib, "for_each") == 0) {
@@ -137,9 +137,9 @@ static void *__get(Map *obj, char *attrib)
     return NULL;
 }
 
-static int __insert(Map *map,void *key,void *value)
+static int __add(Map *map,void *key,void *value)
 {
-    dbg_str(OBJ_DETAIL,"Hash Map insert");
+    dbg_str(OBJ_DETAIL,"Hash Map add");
     Hash_Map *hmap = (Hash_Map *)map;
 
     if (hmap->key_type) {
@@ -148,25 +148,53 @@ static int __insert(Map *map,void *key,void *value)
     return hash_map_insert(hmap->hmap,key,value);
 }
 
-static int __insert_wb(Map *map,void *key,void *value,Iterator *iter)
+static int __search(Map *map,void *key,void **element)
 {
-    dbg_str(OBJ_DETAIL,"Hash Map insert wb");
-    return hash_map_insert_wb(((Hash_Map *)map)->hmap,key,value,
-                              &((Hmap_Iterator *)iter)->hash_map_pos);
-}
+    hash_map_pos_t pos;
+    int ret;
 
-static int __search(Map *map,void *key,Iterator *iter)
-{
     dbg_str(OBJ_IMPORTANT,"Hash Map search");
-    return hash_map_search(((Hash_Map *)map)->hmap, key,
-                           &((Hmap_Iterator *)iter)->hash_map_pos);
+    ret = hash_map_search(((Hash_Map *)map)->hmap, key, &pos);
+    if (ret == 1 && element != NULL) {
+        *element = hash_map_pos_get_pointer(&pos);
+        return ret;
+    }
+
+    return ret;
 }
 
-static int __del(Map *map,Iterator *iter)
+static int __remove(Map *map,void *key,void **element)
 {
+    hash_map_pos_t pos;
+    int ret;
+
+    dbg_str(OBJ_IMPORTANT,"Hash Map remove");
+    ret = hash_map_search(((Hash_Map *)map)->hmap, key, &pos);
+    if (ret == 1 && element != NULL) {
+        *element = hash_map_pos_get_pointer(&pos);
+        ret = hash_map_delete(((Hash_Map *)map)->hmap, &pos);
+        return ret;
+    } else if (ret == 1) {
+        ret = hash_map_delete(((Hash_Map *)map)->hmap, &pos);
+    } else {
+        dbg_str(DBG_WARNNING,"map remove, not found key :%s", key);
+    }
+
+    return ret;
+}
+
+static int __del(Map *map, void *key)
+{
+    hash_map_pos_t pos;
+    int ret = -1;
     dbg_str(OBJ_DETAIL,"Hash Map del");
-    return hash_map_delete(((Hash_Map *)map)->hmap,
-                            &((Hmap_Iterator *)iter)->hash_map_pos);
+
+    ret = hash_map_search(((Hash_Map *)map)->hmap, key, &pos);
+    if (ret == 1) {
+        ret = hash_map_delete(((Hash_Map *)map)->hmap, &pos);
+    }
+
+    return ret;
 }
 
 static Iterator *__begin(Map *map)
@@ -197,9 +225,9 @@ static class_info_entry_t hash_map_class_info[] = {
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","insert",__insert,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","insert_wb",__insert_wb,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","search",__search,sizeof(void *)},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add",__add,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","search",__search,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove",__remove,sizeof(void *)},
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","del",__del,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","begin",__begin,sizeof(void *)},
     [10] = {ENTRY_TYPE_VFUNC_POINTER,"","end",__end,sizeof(void *)},
@@ -224,14 +252,20 @@ static struct test *init_test_instance(struct test *t, int a, int b)
     return t;
 }
 
-static void hash_map_print(Iterator *iter)
+static void hash_map_print(void *key, void *element)
 {
-    Hmap_Iterator *i = (Hmap_Iterator *)iter;
-    struct test *t;
+    struct test *t = (struct test *)element;
      
-    t = i->get_vpointer(iter);
-    dbg_str(DBG_DETAIL,"key:%s t->a=%d, t->b=%d",i->get_kpointer(iter), t->a, t->b);
+    dbg_str(DBG_DETAIL,"key:%s t->a=%d, t->b=%d", key, t->a, t->b);
 }
+
+static void hash_map_print_with_numeric_key(void *key, void *element)
+{
+    struct test *t = (struct test *)element;
+     
+    dbg_str(DBG_DETAIL,"key:%d t->a=%d, t->b=%d", *(int *)key, t->a, t->b);
+}
+
 
 void test_obj_hash_map_string_key()
 {
@@ -260,43 +294,39 @@ void test_obj_hash_map_string_key()
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
 
     map  = OBJECT_NEW(allocator, Hash_Map,c->buf);
-    iter = OBJECT_NEW(allocator, Hmap_Iterator,NULL);
 
     object_dump(map, "Hash_Map", buf, 2048);
     dbg_str(DBG_DETAIL,"Map dump: %s",buf);
 
-    map->insert(map,"test0", &t0);
-    map->insert(map,"test1", &t1);
-    map->insert(map,"test2", &t2);
-    map->insert(map,"test3", &t3);
-    map->insert(map,"test4", &t4);
-    map->insert(map,"test5", &t5);
+    map->add(map,"test0", &t0);
+    map->add(map,"test1", &t1);
+    map->add(map,"test2", &t2);
+    map->add(map,"test3", &t3);
+    map->add(map,"test4", &t4);
+    map->add(map,"test5", &t5);
     map->for_each(map,hash_map_print);
 
-    map->search(map,"test2",iter);
-    t = iter->get_vpointer(iter);
-    dbg_str(DBG_DETAIL,"search test2: t->a=%d, t->b=%d", t->a, t->b);
-    map->del(map,iter);
+    dbg_str(DBG_DETAIL,"test search:");
+    map->search(map,"test2", (void **)&t);
+    dbg_str(DBG_DETAIL,"new search test2: t->a=%d, t->b=%d", t->a, t->b);
+
+    /*
+     *dbg_str(DBG_DETAIL,"test del:");
+     *map->del(map,"test2");
+     */
+
+    dbg_str(DBG_DETAIL,"test remove:");
+    map->remove(map,"test2", (void **)&t);
+    dbg_str(DBG_DETAIL,"remove test2: t->a=%d, t->b=%d", t->a, t->b);
 
     map->for_each(map,hash_map_print);
 
     object_destroy(map);
-    object_destroy(iter);
 
     cfg_destroy(c);
 
     dbg_str(DBG_SUC, "hash_map test end alloc count =%d",allocator->alloc_count);
 
-}
-
-static void hash_map_print_with_numeric_key(Iterator *iter)
-{
-    struct test *t;
-    Hmap_Iterator *i = (Hmap_Iterator *)iter;
-    int *key = (int *)i->get_kpointer(iter);
-
-    t = i->get_vpointer(iter);
-    dbg_str(DBG_DETAIL,"key:%d test->a=%d, t->b=%d", *key, t->a, t->b);
 }
 
 void test_obj_hash_map_numeric_key()
@@ -325,35 +355,31 @@ void test_obj_hash_map_numeric_key()
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_type", "1");
 
     map  = OBJECT_NEW(allocator, Hash_Map,c->buf);
-    iter = OBJECT_NEW(allocator, Hmap_Iterator,NULL);
 
     object_dump(map, "Hash_Map", buf, 2048);
     dbg_str(DBG_DETAIL,"Map dump: %s",buf);
 
-    printf("insert\n");
+    printf("add\n");
     key = 0;
-    map->insert(map, &key, &t0);
+    map->add(map, &key, &t0);
     key = 1;
-    map->insert(map, &key, &t1);
+    map->add(map, &key, &t1);
 
     printf("for_each\n");
     map->for_each(map,hash_map_print_with_numeric_key);
 
     printf("search\n");
-    ret = map->search(map, &key, iter);
-    t = iter->get_vpointer(iter);
+    ret = map->search(map, &key, (void **)&t);
     dbg_str(DBG_DETAIL,"search ret=%d",ret);
     dbg_str(DBG_DETAIL,"search key=%d, t->a=%d, t->b=%d",key, t->a, t->b);
 
     printf("del\n");
-    map->del(map,iter);
+    map->del(map,&key);
 
     printf("for_each\n");
     map->for_each(map,hash_map_print_with_numeric_key);
 
     object_destroy(map);
-    object_destroy(iter);
-
     cfg_destroy(c);
 
     dbg_str(DBG_SUC, "hash_map test end alloc count =%d",allocator->alloc_count);
