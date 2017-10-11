@@ -64,13 +64,21 @@ static int __set(Vector *vector, char *attrib, void *value)
         vector->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         vector->deconstruct = value;
-    }
-    else if (strcmp(attrib, "set_data") == 0) {
+    } 
+    else if (strcmp(attrib, "add") == 0) {
+        vector->add = value;
+    } else if (strcmp(attrib, "add_back") == 0) {
+        vector->add_back = value;
+    } else if (strcmp(attrib, "remove") == 0) {
+        vector->remove = value;
+    } else if (strcmp(attrib, "remove_back") == 0) {
+        vector->remove_back = value;
+    } else if (strcmp(attrib, "set_data") == 0) {
         vector->set_data = value;
     } else if (strcmp(attrib, "get_data") == 0) {
         vector->get_data = value;
-    } else if (strcmp(attrib, "for_each_by_index") == 0) {
-        vector->for_each_by_index = value;
+    } else if (strcmp(attrib, "for_each") == 0) {
+        vector->for_each = value;
     }
     else if (strcmp(attrib, "value_size") == 0) {
         vector->value_size = *(uint32_t *)value;
@@ -97,6 +105,26 @@ static void *__get(Vector *vector, char *attrib)
     return NULL;
 }
 
+static int __add(Vector *vector,void *value)
+{
+    return vector_add_back(vector->vector, value);
+}
+
+static int __add_back(Vector *vector,void *value)
+{
+    return vector_add_back(vector->vector, value);
+}
+
+static int __remove(Vector *vector, int index, void **value)
+{
+    return vector_remove(vector->vector, index, value);
+}
+
+static int __remove_back(Vector *vector,void **value)
+{
+    return vector_remove_back(vector->vector, value);
+}
+
 static int __set_data(Vector *vector,int index, void *value)
 {
    return vector_set(vector->vector,index,value);
@@ -112,16 +140,19 @@ static int __get_data(Vector *vector,int index, void **value)
     return 0;
 }
 
-static void __for_each_by_index(Vector *vector,void (*func)(Vector *vector,int index))
+static void __for_each(Vector *vector,void (*func)(int index, void *element))
 {
 	vector_pos_t pos,next;
     vector_t *v = vector->vector;
+    void *element;
+    int index = 0;
 
 	for(	vector_begin(v, &pos), vector_pos_next(&pos,&next);
 			!vector_pos_equal(&pos,&v->end);
 			pos = next, vector_pos_next(&pos,&next))
 	{
-		func(vector, pos.vector_pos);
+        vector->get_data(vector, index, (void **)&element);
+		func(index++, element);
 	}
 }
 
@@ -132,12 +163,16 @@ static class_info_entry_t vector_class_info[] = {
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_data",__set_data,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","get_data",__get_data,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each_by_index",__for_each_by_index,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_UINT32_T,"","value_size",0,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_UINT32_T,"","capacity",0,sizeof(void *)},
-    [10] = {ENTRY_TYPE_END},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add",__add,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_back",__add_back,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove",__remove,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove_back",__remove_back,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_data",__set_data,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","get_data",__get_data,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each",__for_each,sizeof(void *)},
+    [12] = {ENTRY_TYPE_UINT32_T,"","value_size",0,sizeof(void *)},
+    [13] = {ENTRY_TYPE_UINT32_T,"","capacity",0,sizeof(void *)},
+    [14] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Vector",vector_class_info);
 
@@ -148,12 +183,11 @@ struct test{
     int b;
 };
 
-static void print_vector_data(Vector *vector, int index)
+static void print_vector_data(int index, void *element)
 {
-    struct test *t;
+    struct test *t = (struct test *)element;
     
-    vector->get_data(vector, index, (void **)&t);
-    dbg_str(DBG_DETAIL,"t%d a =%d b=%d", index, t->a, t->b);
+    dbg_str(DBG_DETAIL,"index=%d, a =%d b=%d", index, t->a, t->b);
 }
 
 static struct test *init_test_instance(struct test *t, int a, int b)
@@ -193,22 +227,56 @@ void test_obj_vector()
     object_dump(vector, "Vector", buf, 2048);
     dbg_str(DBG_DETAIL,"Vector dump: %s",buf);
 
-    vector->set_data(vector, 0, &t0);
-    vector->set_data(vector, 1, &t1);
-    vector->set_data(vector, 2, &t2);
-    vector->set_data(vector, 3, &t3);
-    vector->set_data(vector, 4, &t4);
-    vector->set_data(vector, 5, &t5);
+    /*
+     *vector->set_data(vector, 0, &t0);
+     *vector->set_data(vector, 1, &t1);
+     *vector->set_data(vector, 2, &t2);
+     *vector->set_data(vector, 3, &t3);
+     *vector->set_data(vector, 4, &t4);
+     *vector->set_data(vector, 5, &t5);
+     */
 
-    vector->get_data(vector, 0, (void **)&t);
-    dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+    vector->add(vector, &t0);
+    vector->add(vector, &t1);
+    vector->add(vector, &t2);
+    vector->add(vector, &t3);
+    vector->add(vector, &t4);
+    vector->add(vector, &t5);
 
     dbg_str(DBG_DETAIL,"vector for each");
-    vector->for_each_by_index(vector, print_vector_data);
+    vector->for_each(vector, print_vector_data);
+
+    vector->remove(vector, 4, (void **)&t);
+    dbg_str(DBG_DETAIL,"remove index 4, t->a=%d t->b=%d", t->a, t->b);
+    /*
+     *vector->remove_back(vector, (void **)&t);
+     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *vector->remove_back(vector, (void **)&t);
+     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *vector->remove_back(vector, (void **)&t);
+     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *vector->remove_back(vector, (void **)&t);
+     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *vector->remove_back(vector, (void **)&t);
+     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *vector->remove_back(vector, (void **)&t);
+     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *t = NULL;
+     *vector->remove_back(vector, (void **)&t);
+     *if (t != NULL)
+     *    dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     */
+
+    /*
+     *vector->get_data(vector, 1, (void **)&t);
+     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     */
+
+    dbg_str(DBG_DETAIL,"vector for each");
+    vector->for_each(vector, print_vector_data);
 
     object_destroy(vector);
     cfg_destroy(c);
 
 }
-
 

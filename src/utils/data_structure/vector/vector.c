@@ -263,6 +263,71 @@ int vector_delete_back(vector_t *vector)
     return 0;
 }
 
+int vector_remove(vector_t *vector, int index, void **element)
+{
+    uint32_t remove_pos = index;
+    uint32_t end_pos    = vector->end.vector_pos;
+    uint32_t count      = end_pos - remove_pos;
+    void **vector_head  = vector->vector_head;
+    vector_pos_t from;
+    vector_pos_t it;
+
+    vector_pos_init(&it, remove_pos, vector);
+    vector_pos_init(&from, remove_pos + 1, vector);
+
+    sync_lock(&vector->vector_lock, 0);
+
+    if (vector_pos_equal(&it,&vector->end)) {
+        dbg_str(VECTOR_WARNNING,"can't del end pos");
+    } else if (vector_pos_equal(&it, &vector->begin)&&
+             vector_pos_equal(&from,&vector->end))
+    {
+        dbg_str(VECTOR_WARNNING,"vector is NULL");
+    } else if (element != NULL) {
+        *element = vector_head[remove_pos];
+        vector_copy(vector, &it,&from,count);
+        vector_pos_init(&vector->end,end_pos - 1,vector);
+    } else {
+        vector_copy(vector, &it, &from,count);
+        vector_pos_init(&vector->end,end_pos - 1,vector);
+    }
+
+    sync_unlock(&vector->vector_lock);
+
+    return 0;
+}
+
+int vector_remove_back(vector_t *vector, void **element)
+{
+    uint32_t end_pos    = vector->end.vector_pos;
+    uint32_t remove_pos = end_pos - 1;
+    uint32_t count      = end_pos - remove_pos;
+    void **vector_head  = vector->vector_head;
+    vector_pos_t it;
+    vector_pos_t from;
+
+    vector_pos_init(&it, remove_pos, vector);
+    vector_pos_init(&from, remove_pos + 1, vector);
+
+    sync_lock(&vector->vector_lock, 0);
+
+    if (end_pos == 0) {
+        dbg_str(VECTOR_WARNNING,"vector is NULL");
+    } else if (element != NULL) {
+        *element = vector_head[remove_pos];
+        vector_copy(vector,&it,&from,count);
+        vector_pos_init(&vector->end,end_pos - 1,vector);
+    } else {
+        vector_copy(vector,&it,&from,count);
+        vector_pos_init(&vector->end,end_pos - 1,vector);
+    }
+
+    sync_unlock(&vector->vector_lock);
+
+    return 0;
+}
+
+
 int vector_set(vector_t *vector,int index,void *data)
 {
     uint32_t set_pos   = index;

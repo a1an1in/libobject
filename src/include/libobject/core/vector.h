@@ -17,9 +17,13 @@ struct _vector_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
+    int (*add)(Vector *vector,void *value);
+    int (*add_back)(Vector *vector,void *value);
+    int (*remove)(Vector *vector, int index, void **value);
+    int (*remove_back)(Vector *vector,void **value);
     int (*set_data)(Vector *vector,int index, void *value);
     int (*get_data)(Vector *vector,int index, void **value);
-    void (*for_each_by_index)(Vector *vector,void (*func)(Vector *vector,int index));
+    void (*for_each)(Vector *vector,void (*func)(int index, void *element));
 
     vector_t *vector;
 	uint32_t value_size;

@@ -70,6 +70,8 @@ int vector_init(vector_t *vector,uint32_t data_size,uint32_t capacity);
 int vector_add(vector_t *vector, vector_pos_t *it, void *data);
 int vector_add_front(vector_t *vector,void *data);
 int vector_add_back(vector_t *vector,void *data);
+int vector_remove(vector_t *vector, int index, void **element);
+int vector_remove_back(vector_t *vector, void **element);
 int vector_delete(vector_t *vector, vector_pos_t *it);
 int vector_delete_back(vector_t *vector);
 int vector_delete_front(vector_t *vector);
