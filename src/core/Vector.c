@@ -73,10 +73,10 @@ static int __set(Vector *vector, char *attrib, void *value)
         vector->remove = value;
     } else if (strcmp(attrib, "remove_back") == 0) {
         vector->remove_back = value;
-    } else if (strcmp(attrib, "set_data") == 0) {
-        vector->set_data = value;
-    } else if (strcmp(attrib, "get_data") == 0) {
-        vector->get_data = value;
+    } else if (strcmp(attrib, "set_at") == 0) {
+        vector->set_at = value;
+    } else if (strcmp(attrib, "get_at") == 0) {
+        vector->get_at = value;
     } else if (strcmp(attrib, "for_each") == 0) {
         vector->for_each = value;
     }
@@ -125,12 +125,12 @@ static int __remove_back(Vector *vector,void **value)
     return vector_remove_back(vector->vector, value);
 }
 
-static int __set_data(Vector *vector,int index, void *value)
+static int __set_at(Vector *vector,int index, void *value)
 {
    return vector_set(vector->vector,index,value);
 }
 
-static int __get_data(Vector *vector,int index, void **value)
+static int __get_at(Vector *vector,int index, void **value)
 {
     void *addr;
 
@@ -151,7 +151,7 @@ static void __for_each(Vector *vector,void (*func)(int index, void *element))
 			!vector_pos_equal(&pos,&v->end);
 			pos = next, vector_pos_next(&pos,&next))
 	{
-        vector->get_data(vector, index, (void **)&element);
+        vector->get_at(vector, index, (void **)&element);
 		func(index++, element);
 	}
 }
@@ -167,8 +167,8 @@ static class_info_entry_t vector_class_info[] = {
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_back",__add_back,sizeof(void *)},
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove",__remove,sizeof(void *)},
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove_back",__remove_back,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_data",__set_data,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","get_data",__get_data,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_at",__set_at,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","get_at",__get_at,sizeof(void *)},
     [11] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each",__for_each,sizeof(void *)},
     [12] = {ENTRY_TYPE_UINT32_T,"","value_size",0,sizeof(void *)},
     [13] = {ENTRY_TYPE_UINT32_T,"","capacity",0,sizeof(void *)},
@@ -227,27 +227,28 @@ void test_obj_vector()
     object_dump(vector, "Vector", buf, 2048);
     dbg_str(DBG_DETAIL,"Vector dump: %s",buf);
 
-    /*
-     *vector->set_data(vector, 0, &t0);
-     *vector->set_data(vector, 1, &t1);
-     *vector->set_data(vector, 2, &t2);
-     *vector->set_data(vector, 3, &t3);
-     *vector->set_data(vector, 4, &t4);
-     *vector->set_data(vector, 5, &t5);
-     */
+    vector->set_at(vector, 0, &t0);
+    vector->set_at(vector, 1, &t1);
+    vector->set_at(vector, 2, &t2);
+    vector->set_at(vector, 3, &t3);
+    vector->set_at(vector, 4, &t4);
+    vector->set_at(vector, 5, &t5);
 
-    vector->add(vector, &t0);
-    vector->add(vector, &t1);
-    vector->add(vector, &t2);
-    vector->add(vector, &t3);
-    vector->add(vector, &t4);
-    vector->add(vector, &t5);
+    /*
+     *vector->add(vector, &t0);
+     *vector->add(vector, &t1);
+     *vector->add(vector, &t2);
+     *vector->add(vector, &t3);
+     *vector->add(vector, &t4);
+     *vector->add(vector, &t5);
+     */
 
     dbg_str(DBG_DETAIL,"vector for each");
     vector->for_each(vector, print_vector_data);
 
     vector->remove(vector, 4, (void **)&t);
     dbg_str(DBG_DETAIL,"remove index 4, t->a=%d t->b=%d", t->a, t->b);
+
     /*
      *vector->remove_back(vector, (void **)&t);
      *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
@@ -268,7 +269,7 @@ void test_obj_vector()
      */
 
     /*
-     *vector->get_data(vector, 1, (void **)&t);
+     *vector->get_at(vector, 1, (void **)&t);
      *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
      */
 
