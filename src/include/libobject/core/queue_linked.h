@@ -6,6 +6,8 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/core/queue.h>
+#include <libobject/utils/data_structure/link_list.h>
+#include <libobject/core/iterator_linkedlist.h>
 
 typedef struct linked_queue_s Linked_Queue;
 
@@ -24,6 +26,8 @@ struct linked_queue_s{
     int (*remove)(Linked_Queue *queue, void **element);
     int (*remove_back)(Linked_Queue *queue, void **element);
     int (*remove_front)(Linked_Queue *queue, void **element);
+
+    llist_t *llist;
 };
 
 #endif

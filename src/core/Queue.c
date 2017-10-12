@@ -80,6 +80,12 @@ static int __set(Queue *queue, char *attrib, void *value)
         queue->remove_front = value;
     } else if (strcmp(attrib, "remove_back") == 0) {
         queue->remove_back = value;
+    } else if (strcmp(attrib, "for_each") == 0) {
+        queue->for_each = value;
+    } else if (strcmp(attrib, "begin") == 0) {
+        queue->begin = value;
+    } else if (strcmp(attrib, "end") == 0) {
+        queue->end = value;
     }
     else {
         dbg_str(DBG_DETAIL,"queue set, not support %s setting",attrib);
@@ -98,6 +104,21 @@ static void *__get(Queue *obj, char *attrib)
     return NULL;
 }
 
+static void __for_each(Queue *queue,void (*func)(void *element))
+{
+    Iterator *cur, *end;
+    void *element;
+
+    dbg_str(DBG_IMPORTANT,"queue for_each");
+    cur = queue->begin(queue);
+    end = queue->end(queue);
+
+    for (; !end->equal(end,cur); cur->next(cur)) {
+        element = cur->get_vpointer(cur);
+        func(element);
+    }
+}
+
 static class_info_entry_t queue_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
@@ -110,6 +131,9 @@ static class_info_entry_t queue_class_info[] = {
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove",NULL,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove_front",NULL,sizeof(void *)},
     [10] = {ENTRY_TYPE_VFUNC_POINTER,"","remove_back",NULL,sizeof(void *)},
-    [11] = {ENTRY_TYPE_END},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each",__for_each,sizeof(void *)},
+    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","begin",NULL,sizeof(void *)},
+    [13] = {ENTRY_TYPE_VFUNC_POINTER,"","end",NULL,sizeof(void *)},
+    [14] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Queue",queue_class_info);

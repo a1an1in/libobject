@@ -51,3 +51,9 @@ char * cmd_system(const char * command)
 
     return result;
 }
+
+/*
+ * 
+ *count *.c rows
+ *find . -name "*.c"|xargs cat|grep -v -e ^$ -e ^\s*\/\/.*$|wc -l
+ */

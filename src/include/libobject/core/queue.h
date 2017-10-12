@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
+#include <libobject/core/iterator.h>
 
 typedef struct queue_s Queue;
 
@@ -23,6 +24,11 @@ struct queue_s{
     int (*remove)(Queue *queue, void **element);
     int (*remove_back)(Queue *queue, void **element);
     int (*remove_front)(Queue *queue, void **element);
+    void (*for_each)(Queue *queue,void (*func)(void *element));
+    Iterator *(*begin)(Queue *queue);
+    Iterator *(*end)(Queue *queue);
+
+    Iterator *b, *e;
 };
 
 #endif

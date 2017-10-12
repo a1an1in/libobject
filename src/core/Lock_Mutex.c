@@ -39,9 +39,6 @@
 
 static int __construct(Mutex_Lock *lock,char *init_str)
 {
-    configurator_t * c;
-    char buf[2048];
-
     dbg_str(DBG_DETAIL,"lock construct, lock addr:%p",lock);
 
     return 0;
@@ -49,9 +46,9 @@ static int __construct(Mutex_Lock *lock,char *init_str)
 
 static int __deconstrcut(Mutex_Lock *lock)
 {
-    dbg_str(DBG_DETAIL,"lock deconstruct,lock addr:%p",lock);
     int ret;
-    void *tret;
+
+    dbg_str(DBG_DETAIL,"lock deconstruct,lock addr:%p",lock);
 
     return 0;
 }

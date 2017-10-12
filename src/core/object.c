@@ -639,7 +639,6 @@ int __object_destroy(void *obj, char *type_name)
         __object_destroy(obj, entry_of_parent_class->type_name);
     }
 
-
     return 0;
 }
 

@@ -461,6 +461,12 @@ static int args_process_test_Stack(void *base,int argc,char **argv)
     return 0;
 }
 
+static int args_process_test_Queue(void *base,int argc,char **argv)
+{
+    test_obj_linked_queue();
+    return 0;
+}
+
 static int args_process_test_Graph(void *base,int argc,char **argv)
 {
     test_ui_graph();
@@ -644,6 +650,7 @@ static cmd_config_t cmds[]={
     {"Image", args_process_test_Image,0, "test", "N/A","test"},
     {"SDL_Window", args_process_test_SDL_Window,0, "test", "N/A","test"},
     {"Graph", args_process_test_Graph,0, "test", "N/A","test"},
+    {"Queue", args_process_test_Queue,0, "test", "N/A","test"},
     {"Stack", args_process_test_Stack,0, "test", "N/A","test"},
     {"Vector", args_process_test_Vector,0, "test", "N/A","test"},
     {"HMap", args_process_test_Hmap,0, "test", "N/A","test"},

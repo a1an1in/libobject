@@ -49,7 +49,7 @@ static int __construct(Map *map,char *init_str)
     h->hmap = hash_map_alloc(allocator);
 
     hash_map_init(h->hmap,
-                  h->key_size,//uint32_t key_size,
+                  h->key_size,     //uint32_t key_size,
                   h->value_size,
                   h->bucket_size);
 
@@ -117,7 +117,6 @@ static int __set(Map *m, char *attrib, void *value)
 
 static void *__get(Map *obj, char *attrib)
 {
-
     Hash_Map *map = (Hash_Map *)obj;
 
     if (strcmp(attrib, "name") == 0) {
@@ -134,6 +133,7 @@ static void *__get(Map *obj, char *attrib)
         dbg_str(OBJ_WARNNING,"hash map get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
+
     return NULL;
 }
 
@@ -145,6 +145,7 @@ static int __add(Map *map,void *key,void *value)
     if (hmap->key_type) {
         hmap->hmap->key_type = hmap->key_type;
     }
+
     return hash_map_insert(hmap->hmap,key,value);
 }
 
