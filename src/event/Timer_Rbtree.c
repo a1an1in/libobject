@@ -157,6 +157,16 @@ static int __remove(Rbtree_Timer *timer, event_t *e)
     return 0;
 }
 
+/* --------------------------------------------------------------------------*/
+/**
+ * @Synopsis     get next timeout timeval
+ *
+ * @Param timer
+ * @Param tv
+ *
+ * @Returns   
+ */
+/* ----------------------------------------------------------------------------*/
 static int __timeout_next(Rbtree_Timer *timer, struct timeval **tv)
 {
     rbtree_map_t *map = timer->map;
@@ -191,6 +201,15 @@ static int __timeout_next(Rbtree_Timer *timer, struct timeval **tv)
     return 0;
 }
 
+/* --------------------------------------------------------------------------*/
+/**
+ * @Synopsis      get first timeout event in the timer
+ *
+ * @Param timer
+ *
+ * @Returns       return timeout event
+ */
+/* ----------------------------------------------------------------------------*/
 event_t * __first(Rbtree_Timer *timer)
 {
     rbtree_map_t *map = timer->map;
