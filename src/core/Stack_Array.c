@@ -91,6 +91,7 @@ static void *__get(Stack *obj, char *attrib)
         dbg_str(DBG_WARNNING,"stack get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
+
     return NULL;
 }
 

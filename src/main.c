@@ -167,9 +167,21 @@ static int args_process_test_vector(void *base,int argc,char **argv)
     return 0;
 }
 
+static int args_process_test_as(void *base,int argc,char **argv)
+{
+    test_array_stack();
+    return 0;
+}
+
 static int args_process_test_ring_buffer(void *base,int argc,char **argv)
 {
     test_datastructure_ring_buffer();
+    return 0;
+}
+
+static int args_process_test_heap(void *base,int argc,char **argv)
+{
+    test_heap();
     return 0;
 }
 
@@ -239,13 +251,13 @@ static int args_process_lab(void *base,int argc,char **argv)
     /*
      *lab2();
      */
-    /*
-     *lab3();
-     */
+    lab3();
     /*
      *lab4(argc, argv);
      */
-     lab5();
+     /*
+      *lab5();
+      */
     /*
      *lab6(argc, argv);
      */
@@ -337,13 +349,6 @@ static int args_process_bus_client_debug(void *base,int argc,char **argv)
      */
 
     return 3;
-}
-
-
-static int args_process_test_as(void *base,int argc,char **argv)
-{
-    test_array_stack();
-    return 0;
 }
 
 static int args_process_test_miscellany_net(void *base,int argc,char **argv)
@@ -669,7 +674,6 @@ static cmd_config_t cmds[]={
     {"json", args_process_test_json,0, "test", "N/A","test"}, 
     {"iw", args_process_test_inet_wireless,2, "test", "N/A","miscellany_net"},
     {"miscellany_net", args_process_test_miscellany_net,0, "test", "N/A","miscellany_net"},
-    {"as", args_process_test_as,0, "test", "N/A","array_stack"},
     {"buss_dbg", args_process_bus_service_debug,0, "app", "N/A","bus"},
     {"busc_dbg", args_process_bus_client_debug,3, "app", "N/A","bus"},
     {"buss", args_process_buss,0, "test", "N/A","bus"},
@@ -686,9 +690,11 @@ static cmd_config_t cmds[]={
     {"io_user", args_process_test_io_user,0, "test", "N/A","test io user"},
     {"tmr_user", args_process_test_tmr_user,0, "test", "N/A","test timer user"},
     {"allocator", args_process_test_allocator,0, "test", "N/A","test_allocator"},
-    {"map", args_process_test_map,0, "test", "N/A","test_map"},
+    {"heap", args_process_test_heap,0, "test", "N/A","test_ring_buffer"},
     {"ring_buffer", args_process_test_ring_buffer,0, "test", "N/A","test_ring_buffer"},
+    {"as", args_process_test_as,0, "test", "N/A","array_stack"},
     {"vector", args_process_test_vector,0, "test", "N/A","test_vector"},
+    {"map", args_process_test_map,0, "test", "N/A","test_map"},
     {"rbtree_map", args_process_test_rbtree_map,0, "test", "N/A","test_rbtree_map"},
     {"llist", args_process_test_llist,0, "test", "N/A","test_llist"},
     {"hash_map", args_process_test_hashlist,0, "test", "N/A","test_hashlist"},

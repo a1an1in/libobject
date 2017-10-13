@@ -45,13 +45,7 @@
 #include <signal.h>
 #include <sys/un.h>
 #include <libobject/utils/dbg/debug.h>
-
-#if 0
-typedef struct small_heap_s {
-    void *queue[1024];
-    int size;
-    int (*comparator)(void *element1, void *element2);
-}heap_t;
+#include <libobject/utils/data_structure/heap.h>
 
 int greater_than(void *element1, void *element2) 
 {
@@ -59,7 +53,7 @@ int greater_than(void *element1, void *element2)
 
     e1 = (long long) element1;
     e2 = (long long) element2;
-    return (e1 < e2) ? 1 : 0;
+    return (e1 > e2) ? 1 : 0;
 }
 
 void shiftup(heap_t *heap, int index, void *e)
@@ -73,14 +67,6 @@ void shiftup(heap_t *heap, int index, void *e)
         index = parent;
     }
     heap->queue[index] = e;
-}
-
-void heap_add(heap_t *heap, void *e){
-
-    int index = heap->size;
-
-    shiftup(heap, index, e);
-    heap->size++;
 }
 
 void shiftdown(heap_t *heap, int index, void *e)
@@ -104,6 +90,37 @@ void shiftdown(heap_t *heap, int index, void *e)
     heap->queue[index] = e;
 }
 
+heap_t *heap_alloc(allocator_t *allocator)
+{
+    heap_t *ret;
+
+    ret = (heap_t *)allocator_mem_alloc(allocator, sizeof(heap_t));
+    if (ret != NULL) {
+        memset(ret, 0, sizeof(heap_t));
+        ret->allocator = allocator;
+    }
+    
+    return ret;
+}
+
+int heap_set(heap_t *heap, char *key, void *value)
+{
+    if (strcmp(key, "comparator") == 0) {
+        heap->comparator = value;
+    } else {
+        dbg_str(DBG_DETAIL,"heap_set, not support %s setting", key);
+    }
+}
+
+void heap_add(heap_t *heap, void *e)
+{
+
+    int index = heap->size;
+
+    shiftup(heap, index, e);
+    heap->size++;
+}
+
 int heap_remove(heap_t *heap, void **element)
 {
     if (heap->size <= 0)
@@ -117,35 +134,43 @@ int heap_remove(heap_t *heap, void **element)
     return 0;
 }
 
+int heap_destroy(heap_t *heap)
+{
+    allocator_mem_free(heap->allocator, heap);
+
+    return 0;
+}
+
 int heap_size(heap_t *heap)
 {
     return heap->size;
 }
 
-int lab3()
+int test_heap()
 {
-    heap_t heap;
-
-    memset(&heap, 0, sizeof(heap_t));
-    heap.comparator = greater_than;
-    heap_add(&heap, (void *)4);
-    heap_add(&heap, (void *)3);
-    heap_add(&heap, (void *)7);
-    heap_add(&heap, (void *)2);
-
-    dbg_buf(DBG_DETAIL,"heap:", (void *)heap.queue, 20);
-    int size = heap_size(&heap);
+    heap_t *heap;
     void *element;
+    int size = 0;
+    allocator_t *allocator = allocator_get_default_alloc();
+
+    heap = heap_alloc(allocator);
+    heap_set(heap, "comparator", (void *)greater_than);
+
+    heap_add(heap, (void *)4);
+    heap_add(heap, (void *)3);
+    heap_add(heap, (void *)7);
+    heap_add(heap, (void *)2);
+
+    dbg_buf(DBG_DETAIL,"heap:", (void *)heap->queue, 30);
+    dbg_str(DBG_DETAIL,"size=%d", heap_size(heap));
+
+    size = heap_size(heap);
     for(int i=0; i< size; i++){
-        heap_remove(&heap, &element);
+        heap_remove(heap, &element);
         dbg_str(DBG_DETAIL, "%d", (long long)element);
     }
 
+    heap_destroy(heap);
     return 0;
 }
 
-
-#endif
-
-int lab3()
-{}

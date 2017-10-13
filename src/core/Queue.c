@@ -101,6 +101,7 @@ static void *__get(Queue *obj, char *attrib)
         dbg_str(DBG_WARNNING,"queue get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
+
     return NULL;
 }
 

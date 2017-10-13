@@ -169,6 +169,7 @@ int llist_delete(llist_t *llist, list_pos_t *pos)
     sync_unlock(&llist->list_lock);
 
     allocator_mem_free(llist->allocator, p);
+
     return 0;
 }
 
@@ -195,6 +196,7 @@ int llist_delete_back(llist_t *llist)
     sync_unlock(&llist->list_lock);
 
     allocator_mem_free(llist->allocator,p);
+
     return 0;
 }
 
@@ -221,6 +223,7 @@ int llist_remove(llist_t *llist, list_pos_t *pos, void **data)
 
     *data = p->data;
     allocator_mem_free(llist->allocator, p);
+
     return 0;
 }
 
