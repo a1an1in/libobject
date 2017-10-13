@@ -63,6 +63,8 @@ void shiftup(heap_t *heap, int index, void *e)
         if (heap->comparator(e, heap->queue[parent])) {
             break;
         }
+
+        /*if parent smaller than inserting child, exchange position*/
         heap->queue[index] = heap->queue[parent];
         index = parent;
     }
@@ -77,13 +79,16 @@ void shiftdown(heap_t *heap, int index, void *e)
     while (index < half) {
         int child = 2 * index + 1;
         int right = child + 1;
-        if (right < size && heap->comparator(heap->queue[child], heap->queue[right])) {
+        if (    right < size &&
+                heap->comparator(heap->queue[child], heap->queue[right])) {
             child = right;
         }
         if (heap->comparator(heap->queue[child], e)) {
             break;
         }
-        heap->queue[index] = heap->queue[child];
+
+        /*save greater child to parent*/
+        heap->queue[index] = heap->queue[child]; 
         index = child;
     }
 
@@ -107,9 +112,22 @@ int heap_set(heap_t *heap, char *key, void *value)
 {
     if (strcmp(key, "comparator") == 0) {
         heap->comparator = value;
+    } else if (strcmp(key, "capacity") == 0) {
+        heap->capacity = *(int *)value;
     } else {
         dbg_str(DBG_DETAIL,"heap_set, not support %s setting", key);
     }
+}
+
+heap_t *heap_init(heap_t *heap)
+{
+    if (heap->capacity == 0) {
+        heap->queue = (void **)allocator_mem_alloc(heap->allocator, sizeof(void *) * 64);
+    } else {
+        heap->queue = (void **)allocator_mem_alloc(heap->allocator, sizeof(void *) * heap->capacity);
+    }
+
+    return heap;
 }
 
 void heap_add(heap_t *heap, void *e)
@@ -136,6 +154,7 @@ int heap_remove(heap_t *heap, void **element)
 
 int heap_destroy(heap_t *heap)
 {
+    allocator_mem_free(heap->allocator, heap->queue);
     allocator_mem_free(heap->allocator, heap);
 
     return 0;
@@ -151,15 +170,20 @@ int test_heap()
     heap_t *heap;
     void *element;
     int size = 0;
+    int capacity = 1024;
     allocator_t *allocator = allocator_get_default_alloc();
 
     heap = heap_alloc(allocator);
     heap_set(heap, "comparator", (void *)greater_than);
+    heap_set(heap, "capacity", (void *) &capacity);
+
+    heap_init(heap);
 
     heap_add(heap, (void *)4);
     heap_add(heap, (void *)3);
     heap_add(heap, (void *)7);
     heap_add(heap, (void *)2);
+    heap_add(heap, (void *)3);
 
     dbg_buf(DBG_DETAIL,"heap:", (void *)heap->queue, 30);
     dbg_str(DBG_DETAIL,"size=%d", heap_size(heap));
