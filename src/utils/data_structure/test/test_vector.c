@@ -65,7 +65,7 @@ int test_datastructure_vector()
     vector_for_each(vector,(void (*)(void *))(print_vector_data));
 
     dbg_str(DBG_DETAIL,"test get");
-    t = vector_peek_at(vector,2);
+    vector_peek_at(vector,2, (void **)&t);
     dbg_buf(DBG_DETAIL,"get data:", (char *)t,vector->data_size);
 
     dbg_str(DBG_DETAIL,"test set");

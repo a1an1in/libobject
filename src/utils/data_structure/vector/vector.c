@@ -356,19 +356,19 @@ int vector_remove_back(vector_t *vector, void **element)
     return 0;
 }
 
-void * vector_peek_at(vector_t *vector,int index)
+int vector_peek_at(vector_t *vector,int index, void **element)
 {
     uint32_t get_pos   = index;
     void **vector_head = vector->vector_head;
-    void * ret         = NULL;
+    int ret = 0;
     
     dbg_str(VECTOR_DETAIL,"get_pos=%d",get_pos);
 
     sync_lock(&vector->vector_lock,NULL);
-    ret = vector_head[get_pos];
+    *element = vector_head[get_pos];
     sync_unlock(&vector->vector_lock);
 
-    return ret;
+    return 0;
 }
 
 int vector_destroy(vector_t *vector)

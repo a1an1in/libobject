@@ -132,12 +132,7 @@ static int __add_at(Vector *vector,int index, void *value)
 
 static int __peek_at(Vector *vector,int index, void **value)
 {
-    void *addr;
-
-    addr = vector_peek_at(vector->vector,index);
-    *value = addr;
-
-    return 0;
+    return vector_peek_at(vector->vector,index, value);
 }
 
 static void __for_each(Vector *vector,void (*func)(int index, void *element))
