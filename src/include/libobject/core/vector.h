@@ -18,11 +18,11 @@ struct _vector_s{
 
 	/*virtual methods reimplement*/
     int (*add)(Vector *vector,void *value);
+    int (*add_at)(Vector *vector,int index, void *value);
     int (*add_back)(Vector *vector,void *value);
     int (*remove)(Vector *vector, int index, void **value);
     int (*remove_back)(Vector *vector,void **value);
-    int (*set_at)(Vector *vector,int index, void *value);
-    int (*get_at)(Vector *vector,int index, void **value);
+    int (*peek_at)(Vector *vector,int index, void **value);
     void (*for_each)(Vector *vector,void (*func)(int index, void *element));
 
     vector_t *vector;

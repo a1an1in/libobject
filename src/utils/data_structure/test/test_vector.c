@@ -65,11 +65,11 @@ int test_datastructure_vector()
     vector_for_each(vector,(void (*)(void *))(print_vector_data));
 
     dbg_str(DBG_DETAIL,"test get");
-    t = vector_get(vector,2);
+    t = vector_peek_at(vector,2);
     dbg_buf(DBG_DETAIL,"get data:", (char *)t,vector->data_size);
 
     dbg_str(DBG_DETAIL,"test set");
-    vector_set(vector,1, &t5);
+    vector_add_at(vector,1, &t5);
 
     vector_for_each(vector,(void (*)(void *))(print_vector_data));
 

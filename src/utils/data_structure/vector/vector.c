@@ -176,6 +176,27 @@ int vector_add(vector_t *vector, vector_pos_t *it, void *data)
     return 0;
 }
 
+int vector_add_at(vector_t *vector,int index,void *data)
+{
+    uint32_t set_pos   = index;
+    uint32_t end_pos   = vector->end.vector_pos;
+    void **vector_head = vector->vector_head;
+    int ret  = 0;
+    
+    dbg_str(VECTOR_DETAIL,"set_pos=%d",set_pos);
+
+    sync_lock(&vector->vector_lock,NULL);
+
+    vector_head[set_pos] = data;
+    if (set_pos + 1 > end_pos) {
+        vector_pos_init(&vector->end,set_pos + 1,vector);
+    }
+
+    sync_unlock(&vector->vector_lock);
+
+    return ret;
+}
+
 int vector_add_front(vector_t *vector,void *data)
 {
     dbg_str(VECTOR_WARNNING,"not support vector_add_front");
@@ -335,28 +356,7 @@ int vector_remove_back(vector_t *vector, void **element)
     return 0;
 }
 
-int vector_set(vector_t *vector,int index,void *data)
-{
-    uint32_t set_pos   = index;
-    uint32_t end_pos   = vector->end.vector_pos;
-    void **vector_head = vector->vector_head;
-    int ret  = 0;
-    
-    dbg_str(VECTOR_DETAIL,"set_pos=%d",set_pos);
-
-    sync_lock(&vector->vector_lock,NULL);
-
-    vector_head[set_pos] = data;
-    if (set_pos + 1 > end_pos) {
-        vector_pos_init(&vector->end,set_pos + 1,vector);
-    }
-
-    sync_unlock(&vector->vector_lock);
-
-    return ret;
-}
-
-void * vector_get(vector_t *vector,int index)
+void * vector_peek_at(vector_t *vector,int index)
 {
     uint32_t get_pos   = index;
     void **vector_head = vector->vector_head;
