@@ -171,8 +171,6 @@ static class_info_entry_t vector_class_info[] = {
 };
 REGISTER_CLASS("Vector",vector_class_info);
 
-#define name_to_str(name_31415926)  (#name_31415926)
-
 struct test{
     int a;
     int b;
@@ -216,7 +214,6 @@ void test_obj_vector()
     cfg_config_num(c, "/Vector", "capacity", 4) ;  
     cfg_config_num(c, "/Vector", "value_size", value_size) ;
 
-    dbg_str(DBG_DETAIL,"value_size :%s", name_to_str(value_size)) ;
     vector = OBJECT_NEW(allocator, Vector,c->buf);
 
     object_dump(vector, "Vector", buf, 2048);

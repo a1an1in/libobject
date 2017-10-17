@@ -122,9 +122,11 @@ int heap_set(heap_t *heap, char *key, void *value)
 heap_t *heap_init(heap_t *heap)
 {
     if (heap->capacity == 0) {
-        heap->queue = (void **)allocator_mem_alloc(heap->allocator, sizeof(void *) * 64);
+        heap->queue = (void **)allocator_mem_alloc(heap->allocator,
+                                                   sizeof(void *) * 64);
     } else {
-        heap->queue = (void **)allocator_mem_alloc(heap->allocator, sizeof(void *) * heap->capacity);
+        heap->queue = (void **)allocator_mem_alloc(heap->allocator,
+                                                   sizeof(void *) * heap->capacity);
     }
 
     return heap;

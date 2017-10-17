@@ -111,7 +111,7 @@ int llist_add(llist_t *llist, list_pos_t *pos, void *data)
     p->data = data;
 
     sync_lock(&llist->list_lock, NULL);
-    list_add(&p->list_head,  pos->list_head_p);
+    list_add(&p->list_head, pos->list_head_p);
     if (llist_pos_equal(pos, &llist->head)) {
         llist_pos_init(&llist->begin, &p->list_head, llist);
     }
@@ -133,7 +133,7 @@ int llist_add_back(llist_t *llist, void *data)
     p->data = data;
 
     sync_lock(&llist->list_lock, NULL);
-    list_add_tail(&p->list_head,  llist->head.list_head_p);
+    list_add_tail(&p->list_head, llist->head.list_head_p);
     if (llist_pos_equal(&llist->head, &llist->begin)) {
         llist_pos_init(&llist->begin, llist->head.list_head_p->next, llist);//if this list is first, updata begin
     }
@@ -333,7 +333,7 @@ int llist_destroy(llist_t *llist)
 
     dbg_str(LINKLIST_IMPORTANT, "llist_destroy");
 
-    for (   llist_begin(llist, &pos),  llist_pos_next(&pos, &next);
+    for (   llist_begin(llist, &pos), llist_pos_next(&pos, &next);
             !llist_pos_equal(&pos, &llist->head);
             pos = next, llist_pos_next(&pos, &next))
     {
