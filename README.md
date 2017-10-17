@@ -3,7 +3,7 @@
 [TOC]
 
 ## Intro
-This lib is designed for object-oriented programming using c language. It contains core, event, net, concurrent, and ui (not completed) modules now. Every module supply demo which is easy.
+This lib is designed for object-oriented programming using c language. It contains core, event, net, concurrent, and ui (not completed) modules now. Every module supply demos which are easy.
 
 ## Installation
 * make so lib

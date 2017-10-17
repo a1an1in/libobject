@@ -149,7 +149,8 @@ int heap_remove(heap_t *heap, void **element)
     *element = heap->queue[0];
 
     shiftdown(heap, 0, heap->queue[heap->size - 1]);
-    heap->queue[heap->size--] = 0;
+    heap->queue[heap->size - 1] = 0;
+    heap->size--;
 
     return 0;
 }
@@ -165,6 +166,24 @@ int heap_destroy(heap_t *heap)
 int heap_size(heap_t *heap)
 {
     return heap->size;
+}
+
+int __heap_set_at(heap_t *heap, int index, void *element)
+{
+
+    heap->queue[index] = element;
+
+    return 0;
+}
+
+int heap_sort(heap_t *heap) 
+{
+    int i;
+    void *e;
+    for (i = heap->size - 1; i > 0; i = heap->size - 1 ) {
+        heap_remove(heap, &e);
+        __heap_set_at(heap, i, e);
+    }
 }
 
 int test_heap()
@@ -187,14 +206,20 @@ int test_heap()
     heap_add(heap, (void *)2);
     heap_add(heap, (void *)3);
 
-    dbg_buf(DBG_DETAIL,"heap:", (void *)heap->queue, 30);
+    dbg_buf(DBG_DETAIL,"heap:", (void *)heap->queue, 60);
     dbg_str(DBG_DETAIL,"size=%d", heap_size(heap));
 
-    size = heap_size(heap);
-    for(int i=0; i< size; i++){
-        heap_remove(heap, &element);
-        dbg_str(DBG_DETAIL, "%d", (long long)element);
-    }
+    /*
+     *size = heap_size(heap);
+     *for(int i=0; i< size; i++){
+     *    heap_remove(heap, &element);
+     *    dbg_str(DBG_DETAIL, "%d", (long long)element);
+     *}
+     */
+
+    heap_sort(heap);
+    dbg_buf(DBG_DETAIL,"heap:", (void *)heap->queue, 60);
+    dbg_str(DBG_DETAIL,"size=%d", heap_size(heap));
 
     heap_destroy(heap);
     return 0;
