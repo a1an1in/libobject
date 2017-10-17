@@ -209,17 +209,17 @@ int test_heap()
     dbg_buf(DBG_DETAIL,"heap:", (void *)heap->queue, 60);
     dbg_str(DBG_DETAIL,"size=%d", heap_size(heap));
 
-    /*
-     *size = heap_size(heap);
-     *for(int i=0; i< size; i++){
-     *    heap_remove(heap, &element);
-     *    dbg_str(DBG_DETAIL, "%d", (long long)element);
-     *}
-     */
+    size = heap_size(heap);
+    for(int i=0; i< size; i++){
+        heap_remove(heap, &element);
+        dbg_str(DBG_DETAIL, "%d", (long long)element);
+    }
 
-    heap_sort(heap);
-    dbg_buf(DBG_DETAIL,"heap:", (void *)heap->queue, 60);
-    dbg_str(DBG_DETAIL,"size=%d", heap_size(heap));
+    /*
+     *heap_sort(heap);
+     *dbg_buf(DBG_DETAIL,"heap:", (void *)heap->queue, 60);
+     *dbg_str(DBG_DETAIL,"size=%d", heap_size(heap));
+     */
 
     heap_destroy(heap);
     return 0;
