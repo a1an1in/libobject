@@ -1,5 +1,5 @@
 /**
- * @file concurrent.c
+ * @file consumer.c
  * @synopsis 
  * @author a1an1in@sina.com
  * @version 
@@ -33,55 +33,55 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
-#include <libobject/concurrent/concurrent.h>
+#include <libobject/concurrent/consumer.h>
 
-static int __construct(Concurrent *eb,char *init_str)
+static int __construct(Consumer *consumer,char *init_str)
 {
-    allocator_t *allocator = eb->obj.allocator;
+    allocator_t *allocator = consumer->obj.allocator;
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(EV_DETAIL,"eb construct, eb addr:%p",eb);
+    dbg_str(EV_DETAIL,"consumer construct, consumer addr:%p",consumer);
 
     return 0;
 }
 
-static int __deconstrcut(Concurrent *eb)
+static int __deconstrcut(Consumer *consumer)
 {
-    dbg_str(EV_DETAIL,"eb deconstruct,eb addr:%p",eb);
+    dbg_str(EV_DETAIL,"consumer deconstruct,consumer addr:%p",consumer);
 
     return 0;
 }
 
-static int __set(Concurrent *eb, char *attrib, void *value)
+static int __set(Consumer *consumer, char *attrib, void *value)
 {
     if (strcmp(attrib, "set") == 0) {
-        eb->set = value;
+        consumer->set = value;
     } else if (strcmp(attrib, "get") == 0) {
-        eb->get = value;
+        consumer->get = value;
     } else if (strcmp(attrib, "construct") == 0) {
-        eb->construct = value;
+        consumer->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
-        eb->deconstruct = value;
+        consumer->deconstruct = value;
     } 
     else {
-        dbg_str(EV_DETAIL,"eb set, not support %s setting",attrib);
+        dbg_str(EV_DETAIL,"consumer set, not support %s setting",attrib);
     }
 
     return 0;
 }
 
-static void *__get(Concurrent *obj, char *attrib)
+static void *__get(Consumer *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"eb get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARNNING,"consumer get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
 }
 
-static class_info_entry_t concurent_class_info[] = {
+static class_info_entry_t consumer_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
@@ -89,11 +89,11 @@ static class_info_entry_t concurent_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Concurrent",concurent_class_info);
+REGISTER_CLASS("Consumer",consumer_class_info);
 
-void test_obj_concurrent()
+void test_obj_consumer()
 {
-    Concurrent *eb;
+    Consumer *consumer;
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;
     char *set_str;
@@ -102,13 +102,13 @@ void test_obj_concurrent()
 
     c = cfg_alloc(allocator); 
     dbg_str(EV_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Concurrent", CJSON_STRING, "name", "alan eb") ;  
+    cfg_config(c, "/Consumer", CJSON_STRING, "name", "alan consumer") ;  
 
-    eb = OBJECT_NEW(allocator, Concurrent,c->buf);
+    consumer = OBJECT_NEW(allocator, Consumer,c->buf);
 
-    object_dump(eb, "Concurrent", buf, 2048);
-    dbg_str(EV_DETAIL,"Concurrent dump: %s",buf);
+    object_dump(consumer, "Consumer", buf, 2048);
+    dbg_str(EV_DETAIL,"Consumer dump: %s",buf);
 
-    object_destroy(eb);
+    object_destroy(consumer);
     cfg_destroy(c);
 }
