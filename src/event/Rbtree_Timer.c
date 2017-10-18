@@ -108,7 +108,7 @@ static int __add(Rbtree_Timer *timer, event_t *e)
     struct timeval now, null_tv = {0, 0};
     int ret;
 
-    dbg_str(DBG_DETAIL,"rbtree timer add, event addr : %p", e);
+    dbg_str(EV_DETAIL,"rbtree timer add, event addr : %p", e);
     ret = timeval_cmp(&e->ev_timeout, &null_tv);
     if (ret <= 0) {
         return ret;
@@ -128,7 +128,7 @@ static int __del(Rbtree_Timer *timer, event_t *e)
     struct timeval null_tv = {0, 0};
     int ret;
 
-    dbg_str(DBG_DETAIL,"rbtree timer del");
+    dbg_str(EV_DETAIL,"rbtree timer del");
     ret = timeval_cmp(&e->ev_timeout, &null_tv);
     if (ret <= 0) {
         return ret;
@@ -146,7 +146,7 @@ static int __remove(Rbtree_Timer *timer, event_t *e)
     struct timeval null_tv = {0, 0};
     int ret;
 
-    dbg_str(DBG_DETAIL,"rbtree timer del");
+    dbg_str(EV_DETAIL,"rbtree timer del");
     ret = timeval_cmp(&e->ev_timeout, &null_tv);
     if (ret <= 0) {
         return ret;
@@ -175,7 +175,7 @@ static int __timeout_next(Rbtree_Timer *timer, struct timeval **tv)
     struct timeval *key, now;
     int ret;
     
-    dbg_str(DBG_DETAIL,"rbtree timer next timeout time");
+    dbg_str(EV_DETAIL,"rbtree timer next timeout time");
 
     rbtree_map_begin(map, &it);
     if (it.rb_node_p == NULL) {
@@ -191,7 +191,7 @@ static int __timeout_next(Rbtree_Timer *timer, struct timeval **tv)
         ret = timeval_cmp(key,&now);
         if (ret > 0) {
             timeval_sub(key, &now, *tv);
-            dbg_str(DBG_DETAIL,"next timeout time in %d seconds, %d usecs", 
+            dbg_str(EV_DETAIL,"next timeout time in %d seconds, %d usecs", 
                     (int)(*tv)->tv_sec, (int)(*tv)->tv_usec);
         } else {
             timeval_clear(*tv);
@@ -220,11 +220,11 @@ event_t * __first(Rbtree_Timer *timer)
     
     rbtree_map_begin(map, &it);
     if (it.rb_node_p == NULL) {
-        dbg_str(DBG_DETAIL,"rbtree timer, first is NULL");
+        dbg_str(EV_DETAIL,"rbtree timer, first is NULL");
         return NULL;
     } else {
         ret = (event_t *)rbtree_map_pos_get_pointer(&it);
-        dbg_str(DBG_DETAIL,"rbtree timer, first event addr:%p", ret);
+        dbg_str(EV_DETAIL,"rbtree timer, first event addr:%p", ret);
     }
 
     return ret;
@@ -257,13 +257,13 @@ void test_obj_event_rbtree_timer()
     event_t event;
 
     c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
+    dbg_str(EV_SUC, "configurator_t addr:%p",c);
     cfg_config(c, "/Rbtree_Timer", CJSON_STRING, "name", "alan timer") ;  
 
     timer = OBJECT_NEW(allocator, Rbtree_Timer,c->buf);
 
     object_dump(timer, "Rbtree_Timer", buf, 2048);
-    dbg_str(DBG_DETAIL,"Rbtree_Timer dump: %s",buf);
+    dbg_str(EV_DETAIL,"Rbtree_Timer dump: %s",buf);
 
     event.ev_timeout.tv_sec  = 2;
     event.ev_timeout.tv_usec = 0;

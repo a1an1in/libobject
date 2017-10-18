@@ -75,7 +75,7 @@ hash_map_t * hash_map_alloc(allocator_t *allocator)
 
     map = (hash_map_t *)allocator_mem_alloc(allocator,sizeof(hash_map_t));
     if (map == NULL) {
-        dbg_str(DBG_ERROR,"allocator_mem_alloc(map->allocator err");
+        dbg_str(HMAP_ERROR,"allocator_mem_alloc(map->allocator err");
         return NULL;
     }
     memset(map,0,sizeof(hash_map_t));
@@ -89,7 +89,7 @@ int hash_map_set(hash_map_t *hmap, char *attrib, char *value)
     if (!strcmp(attrib,"lock_type")) {
         hmap->lock_type = atoi((char *)value);
     } else {
-        dbg_str(DBG_WARNNING,"not support attrib setting,please check");
+        dbg_str(HMAP_WARNNING,"not support attrib setting,please check");
         return -1;
     }
 }
@@ -109,7 +109,7 @@ int hash_map_init(hash_map_t *hmap,
 
     map->pair = create_pair(key_size,value_size);
     if (map->pair == NULL) {
-        dbg_str(DBG_ERROR,"hash_map_init,create_pair");
+        dbg_str(HMAP_ERROR,"hash_map_init,create_pair");
         return -1;
     }
 
@@ -128,7 +128,7 @@ int hash_map_init(hash_map_t *hmap,
     map->hlist = allocator_mem_alloc(map->allocator,
                                      sizeof(struct hlist_head)*bucket_size);
     if (map->hlist == NULL) {
-        dbg_str(DBG_ERROR,"hash map init");
+        dbg_str(HMAP_ERROR,"hash map init");
         return -1;
     }
     memset(map->hlist,0,sizeof(struct hlist_head)*bucket_size);
@@ -147,7 +147,7 @@ void hash_map_make_pair(hash_map_t *hmap,void *key,void *value)
     if (hmap->key_type == 0) { /*key is string*/
         make_pair(hmap->pair,key,value);
     } else {
-        dbg_str(DBG_DETAIL,"hash_map_make_pair with key_type");
+        dbg_str(HMAP_DETAIL,"hash_map_make_pair with key_type");
         make_pair_with_fixed_key_len(hmap->pair,key,hmap->key_size, value);
     }
     sync_unlock(&hmap->map_lock);
@@ -168,7 +168,7 @@ int hash_map_insert_data(hash_map_t *hmap,void *data)
     mnode = (struct hash_map_node *)allocator_mem_alloc(hmap->allocator,
                                                         sizeof(struct hash_map_node) + data_size);
     if (mnode == NULL) {
-        dbg_str(DBG_ERROR,"hash_map_insert,allocator_mem_alloc(map->allocator err");
+        dbg_str(HMAP_ERROR,"hash_map_insert,allocator_mem_alloc(map->allocator err");
         return -1;
     }
 
@@ -187,7 +187,7 @@ int hash_map_insert_data(hash_map_t *hmap,void *data)
     if (begin_pos->hlist_node_p == NULL || bucket_pos <= begin_pos->bucket_pos) {
         hash_map_pos_init(&hmap->begin, hlist[bucket_pos].first, bucket_pos, hlist,hmap);
         /*
-         *dbg_str(DBG_WARNNING,"change begin pos");
+         *dbg_str(HMAP_WARNNING,"change begin pos");
          */
     }
     ret = hmap->node_count++;
@@ -224,7 +224,7 @@ int hash_map_insert_data_wb(hash_map_t *hmap,void *data, hash_map_pos_t *out)
     mnode = (struct hash_map_node *)allocator_mem_alloc(hmap->allocator,
                                                         sizeof(struct hash_map_node) + data_size);
     if (mnode == NULL) {
-        dbg_str(DBG_ERROR,"hash_map_insert,allocator_mem_alloc(map->allocator err");
+        dbg_str(HMAP_ERROR,"hash_map_insert,allocator_mem_alloc(map->allocator err");
         return -1;
     }
 
@@ -321,7 +321,7 @@ int hash_map_delete(hash_map_t *hmap, hash_map_pos_t *pos)
 
     if (hash_map_pos_equal(pos,&hmap->begin)) {
         /*
-         *dbg_str(DBG_WARNNING,"del iter equal begain");
+         *dbg_str(HMAP_WARNNING,"del iter equal begain");
          */
         hash_map_pos_next(pos,&next);
         hash_map_pos_init(&hmap->begin,
@@ -410,7 +410,7 @@ int hash_map_pos_next(hash_map_pos_t *pos,hash_map_pos_t *next)
     int ret = 0;
 
     if (pos->hlist_node_p == NULL) {
-        dbg_str(DBG_WARNNING,"hlist_node_p is nULL");
+        dbg_str(HMAP_WARNNING,"hlist_node_p is nULL");
         return -1;
     }
 
@@ -435,7 +435,7 @@ int hash_map_pos_next(hash_map_pos_t *pos,hash_map_pos_t *next)
         dbg_str(HMAP_IMPORTANT,"container is null");
         hash_map_pos_init(next, NULL, bucket_pos, hlist, hmap);
     }else{
-        dbg_str(DBG_ERROR,"hash_map_iterator_next err");
+        dbg_str(HMAP_ERROR,"hash_map_iterator_next err");
     }
 
     return ret;

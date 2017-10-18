@@ -36,33 +36,31 @@
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
 #include <libobject/core/event_thread.h>
+#include <libobject/event/select_base.h>
 
-static int __construct(Thread *thread,char *init_str)
+static int __construct(Event_Thread *thread, char *init_str)
 {
-    allocator_t *allocator = thread->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
+    allocator_t *allocator = thread->parent.obj.allocator;
+    Event_Base *eb;
 
-    dbg_str(DBG_DETAIL,"thread construct, thread addr:%p",thread);
+    dbg_str(DBG_DETAIL,"Event_Thread construct, thread addr:%p",thread);
+
+    thread->eb = (Event_Base *)OBJECT_NEW(allocator, Select_Base, NULL);
 
     return 0;
 }
 
-static int __deconstrcut(Thread *thread)
+static int __deconstrcut(Event_Thread *thread)
 {
-    dbg_str(DBG_DETAIL,"thread deconstruct,thread addr:%p",thread);
-    int ret;
-    void *tret;
+    int ret = 0;
 
-    ret = pthread_join(thread->tid, &tret);
-    if (ret != 0) {
-        dbg_str(DBG_WARNNING,"can't join with thread tid=%d", thread->tid);
-    }
+    dbg_str(DBG_DETAIL,"Event thread deconstruct,thread addr:%p",thread);
+    object_destroy(thread->eb);
 
-    return 0;
+    return ret;
 }
 
-static int __set(Thread *thread, char *attrib, void *value)
+static int __set(Event_Thread *thread, char *attrib, void *value)
 {
     if (strcmp(attrib, "set") == 0) {
         thread->set = value;
@@ -72,13 +70,18 @@ static int __set(Thread *thread, char *attrib, void *value)
         thread->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         thread->deconstruct = value;
-    } else if (strcmp(attrib, "start") == 0) {
+    } else if (strcmp(attrib, "add_event") == 0) {
+        thread->add_event = value;
+    } else if (strcmp(attrib, "del_event") == 0) {
+        thread->del_event = value;
+    } /*inherited methods*/
+    else if (strcmp(attrib, "start") == 0) {
         thread->start = value;
     } else if (strcmp(attrib, "set_start_routine") == 0) {
         thread->set_start_routine = value;
     } else if (strcmp(attrib, "set_start_arg") == 0) {
         thread->set_start_arg = value;
-    }
+    } /*vitural methods*/
     else if (strcmp(attrib, "start_routine") == 0) {
         thread->start_routine = value;
     }
@@ -96,75 +99,96 @@ static void *__get(Thread *obj, char *attrib)
         dbg_str(DBG_WARNNING,"thread get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
+
     return NULL;
 }
 
-static int __start(Thread *thread)
+static int __add_event(Event_Thread *thread, void *event)
 {
-    if (thread->start_routine == NULL) {
+    dbg_str(DBG_DETAIL,"add event");
+
+    if (write(thread->ctl_write, "r", 1) != 1) {
+        dbg_str(DBG_ERROR,"ctl_write error");
         return -1;
     }
 
-    if ((pthread_create(&thread->tid, NULL, thread->start_routine, thread->arg)) != 0) {
-        dbg_str(DBG_WARNNING,"pthread start error");
-    }
-
     return 0;
 }
 
-static int __set_start_routine(Thread *thread, void *routine)
+static int __del_event(Event_Thread *thread, void *event)
 {
-    thread->start_routine = routine;
-
-    return 0;
-}
-
-static int __set_start_arg(Thread *thread, void *arg)
-{
-    thread->arg = arg;
-}
-
-static void *__start_routine(void *arg)
-{
-    dbg_str(DBG_DETAIL,"start_routine");
-
-    return NULL;
+    dbg_str(DBG_DETAIL,"del event");
 }
 
 static class_info_entry_t event_thread_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5] = {ENTRY_TYPE_FUNC_POINTER,"","start",__start,sizeof(void *)},
-    [6] = {ENTRY_TYPE_FUNC_POINTER,"","set_start_routine",__set_start_routine,sizeof(void *)},
-    [7] = {ENTRY_TYPE_FUNC_POINTER,"","set_start_arg",__set_start_arg,sizeof(void *)},
-    [8] = {ENTRY_TYPE_VFUNC_POINTER,"","start_routine",__start_routine,sizeof(void *)},
-    [9] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Thread", "parent", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "add_event", __add_event, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "del_event", __del_event, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "start", NULL, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_start_routine", NULL, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_start_arg", NULL, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "start_routine", NULL, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Thread",event_thread_class_info);
+REGISTER_CLASS("Event_Thread",event_thread_class_info);
+
+static void test_ev_callback(int fd, short events, void *arg)
+{
+    char buf[255];
+    int len;
+
+    dbg_str(DBG_SUC,"hello world, event");
+    if (read(fd, buf, 1) != 1) {
+        dbg_str(DBG_WARNNING,"ctl_read error");
+        return ;
+    }
+}
 
 static void *test_func(void *arg)
 {
-    dbg_str(DBG_SUC,"test func, arg addr:%p",arg);
-}
-void test_obj_event_thread()
-{
-    Thread *thread;
-    allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
+    Event_Thread *et = (Event_Thread *)arg;
+    Event_Base *eb   = et->eb;
+    event_t *event   = &et->ctl_read_event;
+    int fds[2]       = {0};
     char buf[2048];
 
-    c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
+    dbg_str(DBG_SUC,"test func, arg addr:%p",arg);
+
+    if (pipe(fds)) {
+        dbg_str(DBG_ERROR, "create pipe");
+        return NULL;
+    }
+
+    et->ctl_read  = fds[0];
+    et->ctl_write = fds[1];
+
+    dbg_str(DBG_DETAIL,"read fd=%d, write fd=%d", et->ctl_read, et->ctl_write);
+
     /*
-     *cfg_config(c, "/Thread", CJSON_STRING, "name", "alan thread") ;  
+     *object_dump(eb, "Select_Base", buf, 2048);
+     *dbg_str(DBG_DETAIL,"Select_Base dump: %s",buf);
      */
 
-    dbg_str(DBG_DETAIL,"thread addr:%p",thread);
+    event->ev_fd              = et->ctl_read;
+    event->ev_events          = EV_READ | EV_PERSIST;
+    event->ev_timeout.tv_sec  = 0;
+    event->ev_timeout.tv_usec = 0;
+    event->ev_callback        = test_ev_callback;
+    event->ev_arg             = event;
+    eb->add(eb, event);
+
+    eb->loop(eb);
+}
+
+void test_obj_event_thread()
+{
+    Event_Thread *thread;
+    allocator_t *allocator = allocator_get_default_alloc();
+    char buf[2048];
 
     thread = OBJECT_NEW(allocator, Event_Thread, NULL);
 
@@ -175,7 +199,11 @@ void test_obj_event_thread()
     thread->start(thread);
 
     sleep(1);
+    thread->add_event(thread, NULL);
+
+    sleep(10);
+
+    pause();
 
     object_destroy(thread);
-    cfg_destroy(c);
 }

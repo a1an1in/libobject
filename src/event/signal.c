@@ -54,14 +54,14 @@ evsig_cb(int fd, short what, void *arg)
 
     n = recv(fd, signals, sizeof(signals), 0);
     if (n == -1) {
-        dbg_str(DBG_ERROR,"evsig_cb recv");
+        dbg_str(EV_ERROR,"evsig_cb recv");
         return ;
     } else if (n == 0) {
     }
 
     for (i = 0; i < n; ++i) {
         uint8_t sig = signals[i];
-        dbg_str(DBG_DETAIL,"sig=%d",sig);
+        dbg_str(EV_DETAIL,"sig=%d",sig);
         if (sig < NSIG)
             ncaught[sig]++;
     }
@@ -78,7 +78,8 @@ static void signal_handler(int sig)
 {
     char msg = (char) sig;
 
-    dbg_str(EV_VIP,"signal_handler %d, gloable_evsig_send_fd =%d, sig=%d", signal, gloable_evsig_send_fd, sig);
+    dbg_str(EV_IMPORTANT,"signal_handler %d, gloable_evsig_send_fd =%d, sig=%d",
+            signal, gloable_evsig_send_fd, sig);
 
     send(gloable_evsig_send_fd, (char*)&msg, 1, 0);
 }
@@ -172,11 +173,11 @@ evsig_make_socket_closeonexec(int fd)
     int flags;
 
     if ((flags = fcntl(fd, F_GETFD, NULL)) < 0) {
-        dbg_str(DBG_WARNNING,"fcntl(%d, F_GETFD)", fd);
+        dbg_str(EV_WARNNING,"fcntl(%d, F_GETFD)", fd);
         return -1;
     }
     if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) == -1) {
-        dbg_str(DBG_WARNNING,"fcntl(%d, F_SETFD)", fd);
+        dbg_str(EV_WARNNING,"fcntl(%d, F_SETFD)", fd);
         return -1;
     }
 
@@ -189,11 +190,11 @@ evsig_make_socket_nonblocking(int fd)
     int flags;
 
     if ((flags = fcntl(fd, F_GETFL, NULL)) < 0) {
-        dbg_str(DBG_WARNNING,"fcntl(%d, F_GETFL)", fd);
+        dbg_str(EV_WARNNING,"fcntl(%d, F_GETFL)", fd);
         return -1;
     }
     if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-        dbg_str(DBG_WARNNING,"fcntl(%d, F_SETFD)", fd);
+        dbg_str(EV_WARNNING,"fcntl(%d, F_SETFD)", fd);
         return -1;
     }
 
@@ -220,7 +221,7 @@ int evsig_init(Event_Base *eb)
     eb->evsig.fd_rcv = fds[1];
     eb->evsig.fd_snd = fds[0];
 
-    dbg_str(DBG_DETAIL,"evsig_init, gloable_evsig_send_fd=%d, fd_rcv =%d",
+    dbg_str(EV_DETAIL,"evsig_init, gloable_evsig_send_fd=%d, fd_rcv =%d",
             eb->evsig.fd_snd, eb->evsig.fd_rcv);
 
     gloable_evsig_send_fd = eb->evsig.fd_snd;
@@ -250,10 +251,8 @@ int evsig_release(Event_Base *eb)
 {
     struct evsig_s *evsig = &eb->evsig;
 
-    dbg_str(DBG_DETAIL,"run at here");
     rbtree_map_destroy(evsig->sig_map);
 
-    dbg_str(DBG_DETAIL,"run at here");
     close(evsig->fd_rcv);
     close(evsig->fd_snd);
 }
@@ -290,7 +289,7 @@ break_signal_cb(int fd, short event_res, void *arg)
     struct event *event = (struct event *)arg;
     Event_Base* eb = (Event_Base*)event->ev_base;
 
-    dbg_str(DBG_SUC, "signal_cb, signal no:%d", event->ev_fd);
+    dbg_str(EV_SUC, "signal_cb, signal no:%d", event->ev_fd);
     eb->break_flag = 1;
 }
 
@@ -306,7 +305,7 @@ int set_break_signal(Event_Base* eb)
     ev->ev_base            = eb;
     ev->ev_arg             = ev;
 
-    dbg_str(DBG_VIP,"set_break_signal, fd=%d, ev_callback=%p, break_flag=%d",
+    dbg_str(EV_IMPORTANT,"set_break_signal, fd=%d, ev_callback=%p, break_flag=%d",
             ev->ev_fd, ev->ev_callback,  eb->break_flag);
 
     eb->add(eb, ev);

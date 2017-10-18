@@ -43,7 +43,7 @@ static int __construct(Thread *thread,char *init_str)
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(DBG_DETAIL,"thread construct, thread addr:%p",thread);
+    dbg_str(DBG_DETAIL,"Thread construct, thread addr:%p",thread);
 
     return 0;
 }

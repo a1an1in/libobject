@@ -103,7 +103,7 @@ static int __trustee_io(Select_Base *b, event_t *e)
     Event_Base *p = (Event_Base *)b;
 
     if (fd < 0) {
-        dbg_str(DBG_WARNNING,"not add this fd =%d", fd);
+        dbg_str(EV_WARNNING,"not add this fd =%d", fd);
         return 0;
     }
 
@@ -149,13 +149,13 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
                  &b->event_writeset_out, NULL, tv);
     if (res == -1) {
         perror("dispatch");
-        dbg_str(DBG_WARNNING,"dispatch, erro_no:%d, nfds=%d", errno, nfds);
+        dbg_str(EV_WARNNING,"dispatch, erro_no:%d, nfds=%d", errno, nfds);
         return (0);
     } else if (res > 0) {
         if (tv != NULL)
             dbg_str(EV_DETAIL,"select base dispatch io events res=%d, tv=%d",res, tv->tv_sec);
     } else {
-        dbg_str(DBG_WARNNING,"select timeout");
+        dbg_str(EV_WARNNING,"select timeout");
         return 0;
     }
 

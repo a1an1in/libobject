@@ -149,9 +149,9 @@ static int __add(Event_Base *eb, event_t *event)
 
 static int __del(Event_Base *eb, event_t *event) 
 {
-    Timer *timer   = eb->timer;
-    int fd         = event->ev_fd;
-    Map *io_map    = eb->io_map;
+    Timer *timer = eb->timer;
+    int fd       = event->ev_fd;
+    Map *io_map  = eb->io_map;
     int ret;
 
     if (event->ev_events & EV_SIGNAL) {
@@ -162,9 +162,9 @@ static int __del(Event_Base *eb, event_t *event)
         //del fd in map
         ret = io_map->del(io_map, &fd);
         if (ret < 0) {
-            dbg_str(DBG_WARNNING,"not found fd in io_map,ret=%d",ret);
+            dbg_str(EV_WARNNING,"not found fd in io_map,ret=%d",ret);
         } else {
-            dbg_str(DBG_WARNNING,"del fd =%d in io_map", fd);
+            dbg_str(EV_WARNNING,"del fd =%d in io_map", fd);
         }
     }
 
@@ -173,8 +173,8 @@ static int __del(Event_Base *eb, event_t *event)
 
 static int __activate_io(Event_Base *eb, int fd, short events)
 {
-    Timer *timer   = eb->timer;
-    Map *io_map    = eb->io_map;
+    Timer *timer = eb->timer;
+    Map *io_map  = eb->io_map;
     struct timeval tv;
     char *p;
     char buf[255];
@@ -185,10 +185,10 @@ static int __activate_io(Event_Base *eb, int fd, short events)
     dbg_str(EV_DETAIL,"event base active io event, fd = %d", fd);
 
     ret = io_map->search(io_map, &fd, (void **)&event);
-    dbg_str(DBG_WARNNING,"search ret=%d",ret);
+    dbg_str(EV_DETAIL,"search ret=%d",ret);
 
     if (ret < 0) {
-        dbg_str(DBG_WARNNING,"not found fd in io_map,ret=%d",ret);
+        dbg_str(EV_WARNNING,"not found fd in io_map,ret=%d",ret);
     } else {
         dbg_str(EV_DETAIL, "event addr:%p, ev_callback=%p", event, event->ev_callback);
         event->ev_callback(event->ev_fd, 0, event->ev_arg);
@@ -225,7 +225,7 @@ static int __activate_signal(Event_Base *eb, int fd, short events)
             dbg_str(EV_DETAIL,"event=%p, ev_callback=%p", event, event->ev_callback);
             event->ev_callback(event->ev_fd, 0, event->ev_arg);
         } else {
-            dbg_str(DBG_WARNNING,"activate_signal, get event addr error");
+            dbg_str(EV_WARNNING,"activate_signal, get event addr error");
             return -1;
         }
     }

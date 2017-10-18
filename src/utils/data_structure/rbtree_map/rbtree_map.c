@@ -64,10 +64,11 @@ __rbtree_map_search(rbtree_map_t *map, struct rb_root *root, void *key)
         struct rbtree_map_node *mnode = rb_entry(node, struct rbtree_map_node, node);
         int result;
 
-        //result = strcmp(key, mnode->key);
         result = key_cmp_func(key, mnode->key, mnode->value_pos);
-        dbg_buf(DBG_DETAIL, "key1:", key, mnode->value_pos);
-        dbg_buf(DBG_DETAIL, "key2:", mnode->key, mnode->value_pos);
+        /*
+         *dbg_buf(RBTMAP_DETAIL, "key1:", key, mnode->value_pos);
+         *dbg_buf(RBTMAP_DETAIL, "key2:", mnode->key, mnode->value_pos);
+         */
 
         if (result < 0)
             node = node->rb_left;
@@ -103,7 +104,7 @@ __rbtree_map_insert(rbtree_map_t *map, struct rb_root *root,
             if (map->enable_same_key)
                 new = &((*new)->rb_left);
             else {
-                dbg_str(DBG_WARNNING, "rbtree_map_insert same key");
+                dbg_str(RBTMAP_WARNNING, "rbtree_map_insert same key");
                 return 0;
             }
         }
@@ -180,7 +181,7 @@ rbtree_map_alloc(allocator_t *allocator)
 
     map = (rbtree_map_t *)allocator_mem_alloc(allocator, sizeof(rbtree_map_t));
     if (map == NULL) {
-        dbg_str(DBG_ERROR, "rbtree_map_create err");
+        dbg_str(RBTMAP_ERROR, "rbtree_map_create err");
         return NULL;
     }
     memset(map, 0, sizeof(rbtree_map_t)); 
@@ -188,7 +189,7 @@ rbtree_map_alloc(allocator_t *allocator)
     /*
      *map->lock_type = lock_type;
      */
-    dbg_str(DBG_DETAIL, "hash_map_create suc");
+    dbg_str(RBTMAP_DETAIL, "hash_map_create suc");
 
     return map;
 }
@@ -199,14 +200,14 @@ int rbtree_map_init(rbtree_map_t *map,
 {
     struct rb_root *tree_root;
 
-    dbg_str(DBG_DETAIL, "rbtree_map init");
+    dbg_str(RBTMAP_DETAIL, "rbtree_map init");
 
     /*
      *strcpy(ct->name, "rbtree_map container");
      */
     map->pair = create_pair(key_size, value_size);
     if (map->pair == NULL) {
-        dbg_str(DBG_ERROR, "hash_map_init, create_pair");
+        dbg_str(RBTMAP_ERROR, "hash_map_init, create_pair");
         return -1;
     }
 
@@ -261,13 +262,13 @@ int rbtree_map_insert_data(rbtree_map_t *map, void *value)
     uint32_t key_size     = map->key_size;
     int ret;
 
-    dbg_str(DBG_DETAIL, "rbtree_map_insert");
+    dbg_str(RBTMAP_DETAIL, "rbtree_map_insert");
 
     mnode = (struct rbtree_map_node *)
         allocator_mem_alloc(map->allocator, 
                 sizeof(struct rbtree_map_node) + data_size);
     if (mnode == NULL) {
-        dbg_str(DBG_ERROR, "rbtree_map_insert, malloc err");
+        dbg_str(RBTMAP_ERROR, "rbtree_map_insert, malloc err");
         return -1;
     }
 
@@ -290,7 +291,7 @@ int rbtree_map_insert_data(rbtree_map_t *map, void *value)
 int rbtree_map_insert(rbtree_map_t *map, void *key, void *value)
 {
     rbtree_map_make_pair(map, key, value);
-    dbg_buf(DBG_DETAIL, "insert data:", map->pair->data, map->data_size);
+    dbg_buf(RBTMAP_DETAIL, "insert data:", map->pair->data, map->data_size);
 
     return rbtree_map_insert_data(map, map->pair->data);
 }
@@ -308,7 +309,7 @@ int rbtree_map_delete(rbtree_map_t *map, rbtree_map_pos_t *it)
 
     mnode = rb_entry(rb_node_p, struct rbtree_map_node, node);
 
-    dbg_str(DBG_DETAIL, "delete node");
+    dbg_str(RBTMAP_DETAIL, "delete node");
 
     sync_lock(&map->map_lock, NULL);
     if (rbtree_map_pos_equal(it, &map->begin)) {
@@ -332,7 +333,7 @@ int rbtree_map_remove(rbtree_map_t *map, rbtree_map_pos_t *it)
 
     mnode = rb_entry(rb_node_p, struct rbtree_map_node, node);
 
-    dbg_str(DBG_DETAIL, "delete node");
+    dbg_str(RBTMAP_DETAIL, "delete node");
 
     sync_lock(&map->map_lock, NULL);
     if (rbtree_map_pos_equal(it, &map->begin)) {
@@ -354,14 +355,14 @@ rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it)
     struct rbtree_map_node *mnode;
     struct rb_root *tree_root = map->tree_root;
 
-    dbg_str(DBG_DETAIL, "rbtree_map_search");
+    dbg_str(RBTMAP_DETAIL, "rbtree_map_search");
 
     sync_lock(&map->map_lock, NULL);
     mnode = __rbtree_map_search(map, tree_root, key);
     sync_unlock(&map->map_lock);
 
     if (mnode == NULL) {
-        dbg_str(DBG_WARNNING, "not found mnode the key searching");
+        dbg_str(RBTMAP_WARNNING, "not found mnode the key searching");
         it->rb_node_p = NULL;
     } else {
         it->rb_node_p = &mnode->node;
@@ -382,7 +383,7 @@ int rbtree_map_destroy(rbtree_map_t *map)
     rbtree_map_pos_t it, end;
     struct rb_root *tree_root = map->tree_root;
 
-    dbg_str(DBG_DETAIL, "rbtree_map_destroy");
+    dbg_str(RBTMAP_DETAIL, "rbtree_map_destroy");
 
     destroy_pair(map->pair);
 
@@ -393,11 +394,11 @@ int rbtree_map_destroy(rbtree_map_t *map)
         rbtree_map_delete(map, &it);
     }
     if (rbtree_map_pos_equal(&map->end, &map->begin)) {
-        dbg_str(DBG_WARNNING, "rbtree_map_destroy, rbtree_map is NULL");
+        dbg_str(RBTMAP_IMPORTANT, "rbtree_map_destroy, rbtree_map is NULL");
         allocator_mem_free(map->allocator, tree_root);
     }
 
     allocator_mem_free(map->allocator, map);
-    dbg_str(DBG_DETAIL, "rbtree_map_destroy end");
+    dbg_str(RBTMAP_DETAIL, "rbtree_map_destroy end");
 }
 

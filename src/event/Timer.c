@@ -37,14 +37,14 @@
 
 static int __construct(Timer *timer,char *init_str)
 {
-    dbg_str(OBJ_DETAIL,"timer construct, timer addr:%p",timer);
+    dbg_str(EV_DETAIL,"timer construct, timer addr:%p",timer);
 
     return 0;
 }
 
 static int __deconstrcut(Timer *timer)
 {
-    dbg_str(OBJ_DETAIL,"timer deconstruct,timer addr:%p",timer);
+    dbg_str(EV_DETAIL,"timer deconstruct,timer addr:%p",timer);
 
     return 0;
 }
@@ -71,7 +71,7 @@ static int __set(Timer *timer, char *attrib, void *value)
     } else if (strcmp(attrib, "first") == 0) {
         timer->first = value;
     } else {
-        dbg_str(OBJ_DETAIL,"timer set, not support %s setting",attrib);
+        dbg_str(EV_DETAIL,"timer set, not support %s setting",attrib);
     }
 
     return 0;
@@ -81,7 +81,7 @@ static void *__get(Timer *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(OBJ_WARNNING,"timer get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARNNING,"timer get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;

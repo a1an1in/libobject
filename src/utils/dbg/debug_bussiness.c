@@ -8,6 +8,7 @@ debug_business_names[MAX_DEBUG_BUSINESS_NUM] = {
     "container",
     "linklist",
     "hashmap",
+    "rebtree",
     "vector",
     "concurrent",
     "net",

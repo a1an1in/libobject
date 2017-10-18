@@ -599,6 +599,12 @@ static int args_process_test_Thread(void *base,int argc,char **argv)
     return 0;
 }
 
+static int args_process_test_Event_Thread(void *base,int argc,char **argv)
+{
+    test_obj_event_thread();
+    return 0;
+}
+
 static int args_process_test_Udp_recv(void *base,int argc,char **argv)
 {
     test_udp_socket_recv();
@@ -637,6 +643,7 @@ static cmd_config_t cmds[]={
     {"udp_recv", args_process_test_Udp_recv,0, "test", "N/A","test_udp_client_recieve"},
     {"udp_send", args_process_test_Udp_send,0, "test", "N/A","test_udp_client_send"},
     {"Thread", args_process_test_Thread,0, "test", "N/A","test"},
+    {"Event_Thread", args_process_test_Event_Thread,0, "test", "N/A","test"},
     {"Socket", args_process_test_Socket,0, "test", "N/A","test"},
     {"Event", args_process_test_Event_Base,0, "test", "N/A","test"},
     {"Button", args_process_test_Button,0, "test", "N/A","test"},
