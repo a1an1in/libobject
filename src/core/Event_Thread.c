@@ -35,7 +35,7 @@
 #include <libobject/event/event_base.h>
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
-#include <libobject/core/thread.h>
+#include <libobject/core/event_thread.h>
 
 static int __construct(Thread *thread,char *init_str)
 {
@@ -131,7 +131,7 @@ static void *__start_routine(void *arg)
     return NULL;
 }
 
-static class_info_entry_t thread_class_info[] = {
+static class_info_entry_t event_thread_class_info[] = {
     [0] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
     [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
@@ -143,13 +143,13 @@ static class_info_entry_t thread_class_info[] = {
     [8] = {ENTRY_TYPE_VFUNC_POINTER,"","start_routine",__start_routine,sizeof(void *)},
     [9] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Thread",thread_class_info);
+REGISTER_CLASS("Thread",event_thread_class_info);
 
-void *test_func(void *arg)
+static void *test_func(void *arg)
 {
     dbg_str(DBG_SUC,"test func, arg addr:%p",arg);
 }
-void test_obj_thread()
+void test_obj_event_thread()
 {
     Thread *thread;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -166,7 +166,7 @@ void test_obj_thread()
 
     dbg_str(DBG_DETAIL,"thread addr:%p",thread);
 
-    thread = OBJECT_NEW(allocator, Thread, NULL);
+    thread = OBJECT_NEW(allocator, Event_Thread, NULL);
 
     object_dump(thread, "Thread", buf, 2048);
     dbg_str(DBG_DETAIL,"Thread dump: %s",buf);

@@ -33,7 +33,7 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/ui/text.h>
 #include <libobject/ui/character.h>
-#include <libobject/core/list_linked.h>
+#include <libobject/core/linked_list.h>
 
 extern char *global_text;
 

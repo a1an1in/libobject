@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
-#include <libobject/core/map_hash.h>
+#include <libobject/core/hash_map.h>
 
 typedef struct producer_s Producer;
 

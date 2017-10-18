@@ -7,7 +7,7 @@
 #include <libobject/core/obj.h>
 #include <libobject/core/queue.h>
 #include <libobject/utils/data_structure/link_list.h>
-#include <libobject/core/iterator_linkedlist.h>
+#include <libobject/core/linkedlist_iterator.h>
 
 typedef struct linked_queue_s Linked_Queue;
 

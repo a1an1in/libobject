@@ -1,14 +1,15 @@
-#ifndef __THREAD_H__
-#define __THREAD_H__
+#ifndef __EVENT_THREAD_H__
+#define __EVENT_THREAD_H__
 
 #include <stdio.h>
 #include <pthread.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
+#include <libobject/core/thread.h>
 
-typedef struct thread_s Thread;
+typedef struct event_thread_s Event_Thread;
 
-struct thread_s{
+struct event_thread_s{
 	Obj obj;
 
 	int (*construct)(Thread *,char *init_str);
@@ -21,9 +22,6 @@ struct thread_s{
 
 	/*virtual methods reimplement*/
     void *(*start_routine)(void *);
-
-    void *arg;
-    pthread_t tid;
 };
 
 #endif

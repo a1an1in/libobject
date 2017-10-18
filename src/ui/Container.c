@@ -31,7 +31,7 @@
  */
 #include <libobject/ui/container.h>
 #include <libobject/ui/component.h>
-#include <libobject/core/map_hash.h>
+#include <libobject/core/hash_map.h>
 
 static int __construct(Container *container,char *init_str)
 {
