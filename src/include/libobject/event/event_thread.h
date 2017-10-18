@@ -6,6 +6,7 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/core/thread.h>
+#include <libobject/core/queue.h>
 #include <libobject/event/event_base.h>
 
 typedef struct event_thread_s Event_Thread;
@@ -32,6 +33,7 @@ struct event_thread_s{
     int ctl_read;
     int ctl_write;
     event_t ctl_read_event;
+    Queue *ev_queue;
 };
 
 #endif

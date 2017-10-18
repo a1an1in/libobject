@@ -35,8 +35,9 @@
 #include <libobject/event/event_base.h>
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
-#include <libobject/core/event_thread.h>
+#include <libobject/event/event_thread.h>
 #include <libobject/event/select_base.h>
+#include <libobject/core/linked_queue.h>
 
 static int __construct(Event_Thread *thread, char *init_str)
 {
@@ -45,7 +46,8 @@ static int __construct(Event_Thread *thread, char *init_str)
 
     dbg_str(DBG_DETAIL,"Event_Thread construct, thread addr:%p",thread);
 
-    thread->eb = (Event_Base *)OBJECT_NEW(allocator, Select_Base, NULL);
+    thread->eb       = (Event_Base *)OBJECT_NEW(allocator, Select_Base, NULL);
+    thread->ev_queue = (Queue *)OBJECT_NEW(allocator, Linked_Queue, NULL);
 
     return 0;
 }
@@ -55,6 +57,7 @@ static int __deconstrcut(Event_Thread *thread)
     int ret = 0;
 
     dbg_str(DBG_DETAIL,"Event thread deconstruct,thread addr:%p",thread);
+    object_destroy(thread->ev_queue);
     object_destroy(thread->eb);
 
     return ret;
@@ -107,7 +110,13 @@ static int __add_event(Event_Thread *thread, void *event)
 {
     dbg_str(DBG_DETAIL,"add event");
 
-    if (write(thread->ctl_write, "r", 1) != 1) {
+    if (event != NULL) {
+        thread->ev_queue->add(thread->ev_queue, event);
+    } else {
+        return -1;
+    }
+
+    if (write(thread->ctl_write, "a", 1) != 1) {
         dbg_str(DBG_ERROR,"ctl_write error");
         return -1;
     }
@@ -136,19 +145,38 @@ static class_info_entry_t event_thread_class_info[] = {
 };
 REGISTER_CLASS("Event_Thread",event_thread_class_info);
 
-static void test_ev_callback(int fd, short events, void *arg)
+static void event_thread_ctl_ev_callback(int fd, short events, void *arg)
 {
-    char buf[255];
+    Event_Thread *event_thread = (Event_Thread *)arg;
+    Queue *ev_queue = event_thread->ev_queue;
+    Event_Base *eb  = event_thread->eb;
+    event_t *event;
+    char buf[1];
     int len;
 
     dbg_str(DBG_SUC,"hello world, event");
+
     if (read(fd, buf, 1) != 1) {
         dbg_str(DBG_WARNNING,"ctl_read error");
         return ;
     }
+
+    switch(buf[0]) {
+        case 'a': 
+            {
+                ev_queue->remove(ev_queue, (void **)&event);
+                eb->add(eb, event);
+                dbg_str(DBG_SUC,"rcv add event command, event=%p", event);
+                break;
+            }
+        default:
+            break;
+    }
+
+    return;
 }
 
-static void *test_func(void *arg)
+static void *event_thread_start_routine(void *arg)
 {
     Event_Thread *et = (Event_Thread *)arg;
     Event_Base *eb   = et->eb;
@@ -177,33 +205,59 @@ static void *test_func(void *arg)
     event->ev_events          = EV_READ | EV_PERSIST;
     event->ev_timeout.tv_sec  = 0;
     event->ev_timeout.tv_usec = 0;
-    event->ev_callback        = test_ev_callback;
-    event->ev_arg             = event;
+    event->ev_callback        = event_thread_ctl_ev_callback;
+    event->ev_arg             = arg;
     eb->add(eb, event);
 
     eb->loop(eb);
+}
+
+
+static void
+test_timeout_cb(int fd, short event, void *arg)
+{
+    struct timeval newtime, difference;
+    double elapsed;
+    static struct timeval lasttime;
+
+    gettimeofday(&newtime, NULL);
+    timeval_sub(&newtime, &lasttime, &difference);
+
+    elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
+    lasttime = newtime;
+
+    dbg_str(DBG_SUC,"timeout_cb called at %d: %.3f seconds elapsed.",
+            (int)newtime.tv_sec, elapsed);
 }
 
 void test_obj_event_thread()
 {
     Event_Thread *thread;
     allocator_t *allocator = allocator_get_default_alloc();
+    event_t event;
     char buf[2048];
 
     thread = OBJECT_NEW(allocator, Event_Thread, NULL);
 
     object_dump(thread, "Thread", buf, 2048);
     dbg_str(DBG_DETAIL,"Thread dump: %s",buf);
-    thread->set_start_routine(thread, test_func);
+    thread->set_start_routine(thread, event_thread_start_routine);
     thread->set_start_arg(thread, thread);
     thread->start(thread);
 
     sleep(1);
-    thread->add_event(thread, NULL);
+    event.ev_fd              = -1;
+    event.ev_events          = EV_READ | EV_PERSIST;
+    event.ev_timeout.tv_sec  = 2;
+    event.ev_timeout.tv_usec = 0;
+    event.ev_callback        = test_timeout_cb;
+    event.ev_arg             = &event;
+    thread->add_event(thread, (void *)&event);
 
     sleep(10);
-
     pause();
 
     object_destroy(thread);
 }
+
+

@@ -259,11 +259,12 @@ static int __process_timeout_events(Event_Base *eb)
 static int __loop(Event_Base *eb)
 {
     Timer *timer = eb->timer;
-    struct timeval tv, *tv_p = &tv;
+    struct timeval tv, *tv_p;
 
     set_break_signal(eb);
 
     while (eb->break_flag == 0) {
+        tv_p = &tv;
         timer->timeout_next(timer, &tv_p);
         eb->dispatch(eb, tv_p);
         __process_timeout_events(eb);
