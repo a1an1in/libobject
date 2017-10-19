@@ -191,9 +191,6 @@ void test_unix_udp_socket_recv()
     char buf[1024] = {0};
     allocator_t *allocator = allocator_get_default_alloc();
 
-    /*
-     *dbg_str(NET_DETAIL,"run at here");
-     */
     socket = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
 
     socket->bind(socket, UNIX_SERVER_PATH, NULL); 

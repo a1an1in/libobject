@@ -8,6 +8,7 @@
 #include <libobject/core/thread.h>
 #include <libobject/core/queue.h>
 #include <libobject/event/event_base.h>
+#include <libobject/net/socket.h>
 
 typedef struct event_thread_s Event_Thread;
 
@@ -30,10 +31,9 @@ struct event_thread_s{
     void *(*start_routine)(void *);
 
     Event_Base *eb;
-    int ctl_read;
-    int ctl_write;
-    event_t ctl_read_event;
+    event_t server_socket_event;
     Queue *ev_queue;
+    Socket *s, *c;
 };
 
 #endif

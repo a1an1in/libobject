@@ -38,6 +38,7 @@
 #include <libobject/event/event_thread.h>
 #include <libobject/event/select_base.h>
 #include <libobject/core/linked_queue.h>
+#include <libobject/net/unix_udp_socket.h>
 
 static int __construct(Event_Thread *thread, char *init_str)
 {
@@ -57,6 +58,8 @@ static int __deconstrcut(Event_Thread *thread)
     int ret = 0;
 
     dbg_str(DBG_DETAIL,"Event thread deconstruct,thread addr:%p",thread);
+    object_destroy(thread->s);
+    object_destroy(thread->c);
     object_destroy(thread->ev_queue);
     object_destroy(thread->eb);
 
@@ -108,6 +111,8 @@ static void *__get(Thread *obj, char *attrib)
 
 static int __add_event(Event_Thread *thread, void *event)
 {
+    Socket *c = thread->c;
+
     dbg_str(DBG_DETAIL,"add event");
 
     if (event != NULL) {
@@ -116,7 +121,7 @@ static int __add_event(Event_Thread *thread, void *event)
         return -1;
     }
 
-    if (write(thread->ctl_write, "a", 1) != 1) {
+    if (c->write(c, "a", 1) != 1) {
         dbg_str(DBG_ERROR,"ctl_write error");
         return -1;
     }
@@ -148,15 +153,14 @@ REGISTER_CLASS("Event_Thread",event_thread_class_info);
 static void event_thread_ctl_ev_callback(int fd, short events, void *arg)
 {
     Event_Thread *event_thread = (Event_Thread *)arg;
-    Queue *ev_queue = event_thread->ev_queue;
-    Event_Base *eb  = event_thread->eb;
+    Queue *ev_queue            = event_thread->ev_queue;
+    Event_Base *eb             = event_thread->eb;
+    Socket *s                  = event_thread->s;
     event_t *event;
     char buf[1];
     int len;
 
-    dbg_str(DBG_SUC,"hello world, event");
-
-    if (read(fd, buf, 1) != 1) {
+    if (s->read(s, buf, 1) != 1) {
         dbg_str(DBG_WARNNING,"ctl_read error");
         return ;
     }
@@ -176,32 +180,31 @@ static void event_thread_ctl_ev_callback(int fd, short events, void *arg)
     return;
 }
 
+#define UNIX_SERVER_PATH "/tmp/unix_server_02"
+#define UNIX_CLIENT_PATH "/tmp/unix_client_02"
 static void *event_thread_start_routine(void *arg)
 {
-    Event_Thread *et = (Event_Thread *)arg;
-    Event_Base *eb   = et->eb;
-    event_t *event   = &et->ctl_read_event;
-    int fds[2]       = {0};
+    Event_Thread *et       = (Event_Thread *)arg;
+    allocator_t *allocator = et->parent.obj.allocator;
+    Event_Base *eb         = et->eb;
+    event_t *event         = &et->server_socket_event;
+    int fds[2]             = {0};
+    Socket *s, *c;
     char buf[2048];
 
     dbg_str(DBG_SUC,"test func, arg addr:%p",arg);
 
-    if (pipe(fds)) {
-        dbg_str(DBG_ERROR, "create pipe");
-        return NULL;
-    }
+    s = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
+    s->bind(s, UNIX_SERVER_PATH, NULL); 
 
-    et->ctl_read  = fds[0];
-    et->ctl_write = fds[1];
+    c = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
+    c->bind(c, UNIX_CLIENT_PATH, NULL); 
+    c->connect(c, UNIX_SERVER_PATH, NULL);
 
-    dbg_str(DBG_DETAIL,"read fd=%d, write fd=%d", et->ctl_read, et->ctl_write);
+    et->s = s;
+    et->c = c;
 
-    /*
-     *object_dump(eb, "Select_Base", buf, 2048);
-     *dbg_str(DBG_DETAIL,"Select_Base dump: %s",buf);
-     */
-
-    event->ev_fd              = et->ctl_read;
+    event->ev_fd              = et->s->fd;
     event->ev_events          = EV_READ | EV_PERSIST;
     event->ev_timeout.tv_sec  = 0;
     event->ev_timeout.tv_usec = 0;
