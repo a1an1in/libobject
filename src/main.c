@@ -631,6 +631,20 @@ static int args_process_test_Tcp_send(void *base,int argc,char **argv)
     return 0;
 }
 
+static int args_process_test_Unix_Udp_send(void *base,int argc,char **argv)
+{
+    test_unix_udp_socket_send();
+
+    return 0;
+}
+
+static int args_process_test_Unix_Udp_recv(void *base,int argc,char **argv)
+{
+    test_unix_udp_socket_recv();
+
+    return 0;
+}
+
 static int args_process_test_Lock(void *base,int argc,char **argv)
 {
     test_obj_mutex_lock();
@@ -638,6 +652,8 @@ static int args_process_test_Lock(void *base,int argc,char **argv)
 }
 static cmd_config_t cmds[]={
     {"Lock", args_process_test_Lock,0, "test", "N/A","test_tcp_client_send"},
+    {"unix_udp_send", args_process_test_Unix_Udp_send,0, "test", "N/A","test_tcp_client_send"},
+    {"unix_udp_recv", args_process_test_Unix_Udp_recv,0, "test", "N/A","test_tcp_server"},
     {"tcp_send", args_process_test_Tcp_send,0, "test", "N/A","test_tcp_client_send"},
     {"tcp_recv", args_process_test_Tcp_recv,0, "test", "N/A","test_tcp_server"},
     {"udp_recv", args_process_test_Udp_recv,0, "test", "N/A","test_udp_client_recieve"},

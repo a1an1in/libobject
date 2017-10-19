@@ -34,35 +34,35 @@
 #include <libobject/event/event_base.h>
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
-#include <libobject/net/inet_udp_socket.h>
+#include <libobject/net/unix_udp_socket.h>
 #include <libobject/core/thread.h>
+#include <sys/un.h>
 
-static int __construct(Inet_Udp_Socket *sk,char *init_str)
+static int __construct(Unix_Udp_Socket *sk,char *init_str)
 {
     int skfd;
 
-
-    if ((skfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ((skfd = socket(PF_UNIX,SOCK_DGRAM,0)) < 0) {
         perror("udp socket");
         return -1;
     }
 
     sk->parent.fd = skfd;
 
-    dbg_str(NET_DETAIL,"socket construct, socket addr:%p, skfd=%d",sk, skfd);
+    dbg_str(NET_DETAIL,"unix socket construct, socket addr:%p, skfd=%d",sk, skfd);
     return 0;
 }
 
-static int __deconstrcut(Inet_Udp_Socket *socket)
+static int __deconstrcut(Unix_Udp_Socket *socket)
 {
-    dbg_str(NET_DETAIL,"socket deconstruct,socket addr:%p",socket);
+    dbg_str(NET_DETAIL,"unix socket deconstruct,socket addr:%p",socket);
 
     close(socket->parent.fd);
 
     return 0;
 }
 
-static int __set(Inet_Udp_Socket *socket, char *attrib, void *value)
+static int __set(Unix_Udp_Socket *socket, char *attrib, void *value)
 {
     if (strcmp(attrib, "set") == 0) {
         socket->set = value;
@@ -75,7 +75,6 @@ static int __set(Inet_Udp_Socket *socket, char *attrib, void *value)
     } 
     else if (strcmp(attrib, "bind") == 0) {
         socket->bind = value;
-        dbg_str(DBG_DETAIL,"set bind, addr:%p", socket->bind);
     } else if (strcmp(attrib, "connect") == 0) {
         socket->connect = value;
     } else if (strcmp(attrib, "write") == 0) {
@@ -100,7 +99,7 @@ static int __set(Inet_Udp_Socket *socket, char *attrib, void *value)
     return 0;
 }
 
-static void *__get(Inet_Udp_Socket *socket, char *attrib)
+static void *__get(Unix_Udp_Socket *socket, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
@@ -110,14 +109,51 @@ static void *__get(Inet_Udp_Socket *socket, char *attrib)
     return NULL;
 }
 
+static int __bind(Unix_Udp_Socket *socket, char *host, char *service)
+{
+     struct sockaddr_un un_addr;
+     int fd  = socket->parent.fd;
+     int ret = 0;
+
+     bzero(&un_addr,sizeof(un_addr));
+     un_addr.sun_family = PF_UNIX;
+     strcpy(un_addr.sun_path, host);
+     unlink(host);
+
+     if (bind(fd, (struct sockaddr *)&un_addr, sizeof(un_addr)) < 0) {
+         perror("fail to bind");
+         ret = -1;
+     }                         
+
+     return ret;
+}
+
+static int __connect(Unix_Udp_Socket *socket, char *host, char *service)
+{
+     struct sockaddr_un un_addr;
+     int fd  = socket->parent.fd;
+     int ret = 0;
+
+     bzero(&un_addr,sizeof(un_addr));
+     un_addr.sun_family = PF_UNIX;
+     strcpy(un_addr.sun_path, host);
+
+     if (connect(fd, (struct sockaddr *)&un_addr, sizeof(un_addr)) < 0) {
+         perror("unix udp, fail to connect");
+         ret = -1;
+     }                         
+
+     return ret;
+}
+
 static class_info_entry_t inet_udp_socket_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Socket","parent",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_IFUNC_POINTER,"","bind", NULL,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_IFUNC_POINTER,"","connect",NULL,sizeof(void *)},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","bind", __bind,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","connect",__connect,sizeof(void *)},
     [7 ] = {ENTRY_TYPE_IFUNC_POINTER,"","write",NULL,sizeof(void *)},
     [8 ] = {ENTRY_TYPE_IFUNC_POINTER,"","sendto",NULL,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_IFUNC_POINTER,"","sendmsg",NULL,sizeof(void *)},
@@ -127,49 +163,21 @@ static class_info_entry_t inet_udp_socket_class_info[] = {
     [13] = {ENTRY_TYPE_IFUNC_POINTER,"","recvmsg",NULL,sizeof(void *)},
     [14] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Inet_Udp_Socket",inet_udp_socket_class_info);
+REGISTER_CLASS("Unix_Udp_Socket",inet_udp_socket_class_info);
 
-#if 0
-void test_obj_udp_socket()
-{
-    Inet_Udp_Socket *socket;
-    allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
+#define UNIX_CLIENT_PATH "/tmp/unix_client_01"
+#define UNIX_SERVER_PATH "/tmp/unix_server_01"
 
-    c = cfg_alloc(allocator); 
-    dbg_str(NET_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Inet_Udp_Socket", CJSON_STRING, "name", "alan socket") ;  
-    cfg_config(c, "/Inet_Udp_Socket", CJSON_STRING, "local_host", "192.168.1.122") ;  
-    cfg_config(c, "/Inet_Udp_Socket", CJSON_STRING, "local_service", "11011") ;  
-    cfg_config(c, "/Inet_Udp_Socket", CJSON_STRING, "remote_host", "192.168.1.122") ;  
-    cfg_config(c, "/Inet_Udp_Socket", CJSON_STRING, "remote_service", "11022") ;  
-
-    socket = OBJECT_NEW(allocator, Inet_Udp_Socket,c->buf);
-
-    object_dump(socket, "Inet_Udp_Socket", buf, 2048);
-    dbg_str(NET_DETAIL,"Inet_Udp_Socket dump: %s",buf);
-
-    socket->write(socket, "hello world", 5);
-    socket->read(socket, NULL, 0);
-
-    object_destroy(socket);
-    cfg_destroy(c);
-}
-#endif
-
-void test_udp_socket_send()
+void test_unix_udp_socket_send()
 {
     Socket *socket;
     allocator_t *allocator = allocator_get_default_alloc();
 
     char *test_str = "hello world";
 
-    socket = OBJECT_NEW(allocator, Inet_Udp_Socket, NULL);
+    socket = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
 
-    socket->connect(socket, "127.0.0.1", "11011");
+    socket->connect(socket, UNIX_SERVER_PATH, NULL);
     socket->write(socket, test_str, strlen(test_str));
 
     while(1) sleep(1);
@@ -177,7 +185,7 @@ void test_udp_socket_send()
     object_destroy(socket);
 }
 
-void test_udp_socket_recv()
+void test_unix_udp_socket_recv()
 {
     Socket *socket;
     char buf[1024] = {0};
@@ -186,10 +194,12 @@ void test_udp_socket_recv()
     /*
      *dbg_str(NET_DETAIL,"run at here");
      */
-    socket = OBJECT_NEW(allocator, Inet_Udp_Socket, NULL);
+    socket = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
 
-    socket->bind(socket, "127.0.0.1", "11011"); 
-    socket->setsockopt(socket, 0, 0, NULL);
+    socket->bind(socket, UNIX_SERVER_PATH, NULL); 
+    /*
+     *socket->setsockopt(socket, 0, 0, NULL);
+     */
 
     while(1) {
         socket->read(socket, buf, 1024);
