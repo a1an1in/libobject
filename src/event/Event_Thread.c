@@ -35,10 +35,10 @@
 #include <libobject/event/event_base.h>
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
-#include <libobject/event/event_thread.h>
 #include <libobject/event/select_base.h>
 #include <libobject/core/linked_queue.h>
 #include <libobject/net/unix_udp_socket.h>
+#include <libobject/event/event_thread.h>
 
 static int __construct(Event_Thread *thread, char *init_str)
 {
@@ -150,7 +150,7 @@ static class_info_entry_t event_thread_class_info[] = {
 };
 REGISTER_CLASS("Event_Thread",event_thread_class_info);
 
-static void event_thread_ctl_ev_callback(int fd, short events, void *arg)
+static void event_thread_server_socket_ev_callback(int fd, short events, void *arg)
 {
     Event_Thread *event_thread = (Event_Thread *)arg;
     Queue *ev_queue            = event_thread->ev_queue;
@@ -181,7 +181,6 @@ static void event_thread_ctl_ev_callback(int fd, short events, void *arg)
 }
 
 #define UNIX_SERVER_PATH "/tmp/unix_server_02"
-#define UNIX_CLIENT_PATH "/tmp/unix_client_02"
 static void *event_thread_start_routine(void *arg)
 {
     Event_Thread *et       = (Event_Thread *)arg;
@@ -198,7 +197,6 @@ static void *event_thread_start_routine(void *arg)
     s->bind(s, UNIX_SERVER_PATH, NULL); 
 
     c = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
-    c->bind(c, UNIX_CLIENT_PATH, NULL); 
     c->connect(c, UNIX_SERVER_PATH, NULL);
 
     et->s = s;
@@ -208,7 +206,7 @@ static void *event_thread_start_routine(void *arg)
     event->ev_events          = EV_READ | EV_PERSIST;
     event->ev_timeout.tv_sec  = 0;
     event->ev_timeout.tv_usec = 0;
-    event->ev_callback        = event_thread_ctl_ev_callback;
+    event->ev_callback        = event_thread_server_socket_ev_callback;
     event->ev_arg             = arg;
     eb->add(eb, event);
 
