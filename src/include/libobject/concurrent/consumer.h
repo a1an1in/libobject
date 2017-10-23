@@ -16,6 +16,8 @@ struct consumer_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
+    int (*add_dispatcher)(Consumer *, void *);
+    int (*del_dispatcher)(Consumer *, void *);
 
 };
 

@@ -5,6 +5,8 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/core/hash_map.h>
+#include <libobject/concurrent/producer.h>
+#include <libobject/event/event.h>
 
 typedef struct worker_s Worker;
 
@@ -17,6 +19,15 @@ struct worker_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
+    int  (*assign)(Worker *worker, int fd, int ev_events,
+                   struct timeval ev_tv, void *ev_callback,
+                   void *ev_arg, void *work_callback);
+    int  (*enroll)(Worker *, void *);
+    int  (*resign)(Worker *, void *);
+
+    Producer *producer;
+    event_t event;
+    void *work_callback;
 };
 
 #endif

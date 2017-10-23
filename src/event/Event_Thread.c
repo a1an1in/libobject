@@ -134,22 +134,6 @@ static int __del_event(Event_Thread *thread, void *event)
     dbg_str(DBG_DETAIL,"del event");
 }
 
-static class_info_entry_t event_thread_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Thread", "parent", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "add_event", __add_event, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "del_event", __del_event, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "start", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_start_routine", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_start_arg", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "start_routine", NULL, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_END}, 
-};
-REGISTER_CLASS("Event_Thread",event_thread_class_info);
-
 static void event_thread_server_socket_ev_callback(int fd, short events, void *arg)
 {
     Event_Thread *event_thread = (Event_Thread *)arg;
@@ -181,7 +165,7 @@ static void event_thread_server_socket_ev_callback(int fd, short events, void *a
 }
 
 #define UNIX_SERVER_PATH "/tmp/unix_server_02"
-static void *event_thread_start_routine(void *arg)
+static void *__start_routine(void *arg)
 {
     Event_Thread *et       = (Event_Thread *)arg;
     allocator_t *allocator = et->parent.obj.allocator;
@@ -213,6 +197,23 @@ static void *event_thread_start_routine(void *arg)
     eb->loop(eb);
 }
 
+static class_info_entry_t event_thread_class_info[] = {
+    [0 ] = {ENTRY_TYPE_OBJ, "Thread", "parent", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "add_event", __add_event, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "del_event", __del_event, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "start", NULL, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_start_routine", NULL, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_start_arg", NULL, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "start_routine", __start_routine, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_END}, 
+};
+REGISTER_CLASS("Event_Thread",event_thread_class_info);
+
+
 
 static void
 test_timeout_cb(int fd, short event, void *arg)
@@ -242,8 +243,10 @@ void test_obj_event_thread()
 
     object_dump(thread, "Thread", buf, 2048);
     dbg_str(DBG_DETAIL,"Thread dump: %s",buf);
-    thread->set_start_routine(thread, event_thread_start_routine);
-    thread->set_start_arg(thread, thread);
+    /*
+     *thread->set_start_routine(thread, event_thread_start_routine);
+     *thread->set_start_arg(thread, thread);
+     */
     thread->start(thread);
 
     sleep(1);

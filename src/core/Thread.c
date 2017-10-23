@@ -101,11 +101,19 @@ static void *__get(Thread *obj, char *attrib)
 
 static int __start(Thread *thread)
 {
+    void *arg;
+
     if (thread->start_routine == NULL) {
         return -1;
     }
 
-    if ((pthread_create(&thread->tid, NULL, thread->start_routine, thread->arg)) != 0) {
+    if (thread->arg == NULL) {
+        arg = thread;
+    } else {
+        arg = thread->arg;
+    }
+
+    if ((pthread_create(&thread->tid, NULL, thread->start_routine, arg)) != 0) {
         dbg_str(DBG_WARNNING,"pthread start error");
     }
 

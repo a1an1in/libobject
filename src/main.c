@@ -650,7 +650,15 @@ static int args_process_test_Lock(void *base,int argc,char **argv)
     test_obj_mutex_lock();
     return 0;
 }
+
+static int args_process_test_Worker(void *base,int argc,char **argv)
+{
+    test_obj_worker();
+    return 0;
+}
+
 static cmd_config_t cmds[]={
+    {"Worker", args_process_test_Worker,0, "test", "N/A","test_tcp_client_send"},
     {"Lock", args_process_test_Lock,0, "test", "N/A","test_tcp_client_send"},
     {"unix_udp_send", args_process_test_Unix_Udp_send,0, "test", "N/A","test_tcp_client_send"},
     {"unix_udp_recv", args_process_test_Unix_Udp_recv,0, "test", "N/A","test_tcp_server"},

@@ -16,7 +16,10 @@ struct dispatcher_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
-
+    int (*add_producer)(Dispatcher *, void *);
+    int (*del_producer)(Dispatcher *, void *);
+    int (*add_consumer)(Dispatcher *, void *);
+    int (*del_consumer)(Dispatcher *, void *);
 };
 
 #endif

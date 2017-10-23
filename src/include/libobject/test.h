@@ -96,5 +96,6 @@ extern int test_obj_array_stack();
 extern void test_obj_linked_queue();
 extern int test_heap();
 extern void test_obj_event_thread();
+extern void test_obj_worker();
 
 #endif

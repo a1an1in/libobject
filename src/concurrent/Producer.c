@@ -34,10 +34,13 @@
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
 #include <libobject/concurrent/producer.h>
+#include <libobject/concurrent/worker.h>
 
 static int __construct(Producer *producer,char *init_str)
 {
-    allocator_t *allocator = producer->obj.allocator;
+    /*
+     *allocator_t *allocator = producer->obj.allocator;
+     */
     configurator_t * c;
     char buf[2048];
 
@@ -63,6 +66,18 @@ static int __set(Producer *producer, char *attrib, void *value)
         producer->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         producer->deconstruct = value;
+    }
+    else if (strcmp(attrib, "add_worker") == 0) {
+        producer->add_worker = value;
+    } else if (strcmp(attrib, "del_worker") == 0) {
+        producer->del_worker = value;
+    } else if (strcmp(attrib, "add_dispatcher") == 0) {
+        producer->add_dispatcher = value;
+    } else if (strcmp(attrib, "del_dispatcher") == 0) {
+        producer->del_dispatcher = value;
+    }
+    else if (strcmp(attrib, "start") == 0) {
+        producer->start = value;
     } 
     else {
         dbg_str(EV_DETAIL,"producer set, not support %s setting",attrib);
@@ -81,13 +96,41 @@ static void *__get(Producer *obj, char *attrib)
     return NULL;
 }
 
+static int __add_worker(Producer *producer, void *worker)
+{
+    Worker *w = (Worker *)worker;
+    Event_Thread *thread = &producer->parent;
+
+    w->producer = producer;
+    thread->add_event(thread, (void *)&w->event);
+
+    return 0;
+}
+
+static int __del_worker(Producer *producer, void *worker)
+{
+}
+
+static int __add_dispatcher(Producer *producer, void *worker)
+{
+}
+
+static int __del_dispatcher(Producer *producer, void *worker)
+{
+}
+
 static class_info_entry_t producer_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
+    [0 ] = {ENTRY_TYPE_OBJ,"Event_Thread","parent",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_worker",__add_worker,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","del_worker",__del_worker,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_dispatcher",__add_dispatcher,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","del_dispatcher",__del_dispatcher,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "start", NULL, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Producer",producer_class_info);
 

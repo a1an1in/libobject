@@ -33,7 +33,8 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
-#include <libobject/concurrent/Worker.h>
+#include <libobject/concurrent/worker.h>
+#include <libobject/concurrent/producer.h>
 
 static int __construct(Worker *worker,char *init_str)
 {
@@ -63,6 +64,13 @@ static int __set(Worker *worker, char *attrib, void *value)
         worker->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         worker->deconstruct = value;
+    }
+    else if (strcmp(attrib, "assign") == 0) {
+        worker->assign = value;
+    } else if (strcmp(attrib, "enroll") == 0) {
+        worker->enroll = value;
+    } else if (strcmp(attrib, "resign") == 0) {
+        worker->resign = value;
     } 
     else {
         dbg_str(EV_DETAIL,"worker set, not support %s setting",attrib);
@@ -81,22 +89,80 @@ static void *__get(Worker *obj, char *attrib)
     return NULL;
 }
 
+static int  __assign(Worker *worker, int fd, int ev_events,
+                     struct timeval ev_tv, void *ev_callback,
+                     void *ev_arg, void *work_callback)
+{
+    event_t *event = &worker->event;
+
+    event->ev_fd          = fd;
+    event->ev_events      = ev_events;
+    event->ev_timeout     = ev_tv;
+    event->ev_callback    = ev_callback;
+    event->ev_arg         = ev_arg;
+    worker->work_callback = work_callback;
+}
+
+static int __enroll(Worker *worker, void *producer)
+{
+}
+
+static int __resign(Worker *worker, void *producer)
+{
+}
+
 static class_info_entry_t worker_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "assign", __assign, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "enroll", __enroll, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "resign", __resign, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Worker", worker_class_info);
+
+static void
+test_timeout_cb(int fd, short event, void *arg)
+{
+    struct timeval newtime, difference;
+    double elapsed;
+    static struct timeval lasttime;
+
+    gettimeofday(&newtime, NULL);
+    timeval_sub(&newtime, &lasttime, &difference);
+
+    elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
+    lasttime = newtime;
+
+    dbg_str(DBG_SUC,"timeout_cb called at %d: %.3f seconds elapsed.",
+            (int)newtime.tv_sec, elapsed);
+}
 
 void test_obj_worker()
 {
     Worker *worker;
+    Producer *producer;
     allocator_t *allocator = allocator_get_default_alloc();
+    struct timeval ev_tv;
 
-    worker = OBJECT_NEW(allocator, Worker, NULL);
+    ev_tv.tv_sec  = 2;
+    ev_tv.tv_usec = 0;
 
+    producer = OBJECT_NEW(allocator, Producer, NULL);
+    producer->start(producer);
+
+    sleep(1);
+    worker   = OBJECT_NEW(allocator, Worker, NULL);
+    dbg_str(DBG_DETAIL,"run at here");
+    worker->assign(worker, -1, EV_READ | EV_PERSIST,
+                   ev_tv, test_timeout_cb, worker, NULL);
+
+    producer->add_worker(producer, worker);
+
+    pause();
     object_destroy(worker);
+    object_destroy(producer);
 }

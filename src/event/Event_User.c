@@ -34,6 +34,7 @@
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
 #include <libobject/event/event_user.h>
+#include <unistd.h>
 
 static int __construct(Event_User *event_user,char *init_str)
 {
