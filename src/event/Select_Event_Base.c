@@ -150,7 +150,10 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
     if (res == -1) {
         perror("dispatch");
         dbg_str(EV_WARNNING,"dispatch, erro_no:%d, nfds=%d", errno, nfds);
-        return (0);
+        exit(1);
+        /*
+         *return (0);
+         */
     } else if (res > 0) {
         if (tv != NULL)
             dbg_str(EV_DETAIL,"select base dispatch io events res=%d, tv=%d",res, tv->tv_sec);

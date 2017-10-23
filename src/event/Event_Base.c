@@ -131,8 +131,8 @@ static int __add(Event_Base *eb, event_t *event)
     int fd       = event->ev_fd;
     event_t *new_event;
 
-    dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p, timer:%p, event:%p",
-            eb, eb->io_map, eb->timer, event);
+    dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p, timer:%p, event:%p, ev_arg:%p",
+            eb, eb->io_map, eb->timer, event, event->ev_arg);
 
     if (event->ev_events & EV_SIGNAL) {
         evsig_add(eb, event);
@@ -244,7 +244,7 @@ static int __process_timeout_events(Event_Base *eb)
         timeval_now(&now, NULL);
         if (timeval_cmp(&now, &event->ev_timeout) >= 0) {
             dbg_str(EV_DETAIL,"process_timeout, event addr:%p",event);
-            event->ev_callback(event->ev_fd, 0, event);
+            event->ev_callback(event->ev_fd, 0, event->ev_arg);
             if (event->ev_events & EV_PERSIST) {
                 timer->remove(timer, event);
                 event->ev_timeout = event->ev_tv;

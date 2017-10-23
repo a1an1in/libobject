@@ -27,7 +27,7 @@ struct worker_s{
 
     Producer *producer;
     event_t event;
-    void *work_callback;
+    void (*work_callback)(void *);
 };
 
 #endif

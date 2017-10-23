@@ -105,6 +105,11 @@ static int  __assign(Worker *worker, int fd, int ev_events,
 
 static int __enroll(Worker *worker, void *producer)
 {
+    Producer *p = (Producer *)producer;
+
+    p->add_worker(p, worker);
+
+    return 0;
 }
 
 static int __resign(Worker *worker, void *producer)
@@ -127,9 +132,11 @@ REGISTER_CLASS("Worker", worker_class_info);
 static void
 test_timeout_cb(int fd, short event, void *arg)
 {
+    Worker *worker = (Worker *)arg;
     struct timeval newtime, difference;
     double elapsed;
     static struct timeval lasttime;
+
 
     gettimeofday(&newtime, NULL);
     timeval_sub(&newtime, &lasttime, &difference);
@@ -139,8 +146,14 @@ test_timeout_cb(int fd, short event, void *arg)
 
     dbg_str(DBG_SUC,"timeout_cb called at %d: %.3f seconds elapsed.",
             (int)newtime.tv_sec, elapsed);
+    dbg_str(DBG_DETAIL,"arg addr:%p", arg);
+    worker->work_callback(NULL);
 }
 
+static void test_work_callback(void *task)
+{
+    dbg_str(DBG_SUC,"process timer task");
+}
 void test_obj_worker()
 {
     Worker *worker;
@@ -153,14 +166,13 @@ void test_obj_worker()
 
     producer = OBJECT_NEW(allocator, Producer, NULL);
     producer->start(producer);
-
     sleep(1);
-    worker   = OBJECT_NEW(allocator, Worker, NULL);
-    dbg_str(DBG_DETAIL,"run at here");
-    worker->assign(worker, -1, EV_READ | EV_PERSIST,
-                   ev_tv, test_timeout_cb, worker, NULL);
 
-    producer->add_worker(producer, worker);
+    worker = OBJECT_NEW(allocator, Worker, NULL);
+    dbg_str(DBG_DETAIL,"worker addr:%p", worker);
+    worker->assign(worker, -1, EV_READ | EV_PERSIST,
+                   ev_tv, test_timeout_cb, worker, test_work_callback);
+    worker->enroll(worker, producer);
 
     pause();
     object_destroy(worker);
