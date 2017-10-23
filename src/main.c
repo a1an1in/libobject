@@ -653,7 +653,10 @@ static int args_process_test_Lock(void *base,int argc,char **argv)
 
 static int args_process_test_Worker(void *base,int argc,char **argv)
 {
-    test_obj_worker();
+    /*
+     *test_obj_worker();
+     */
+    test_obj_timer_worker();
     return 0;
 }
 

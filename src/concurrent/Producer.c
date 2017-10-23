@@ -36,6 +36,8 @@
 #include <libobject/concurrent/producer.h>
 #include <libobject/concurrent/worker.h>
 
+Producer *global_default_producer;
+
 static int __construct(Producer *producer,char *init_str)
 {
     /*
@@ -133,6 +135,30 @@ static class_info_entry_t producer_class_info[] = {
     [10] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Producer",producer_class_info);
+
+Producer *get_global_default_producer()
+{
+    return global_default_producer;
+}
+
+__attribute__((constructor(ATTRIB_PRIORITY_CONCURRENT))) void
+default_producer_constructor()
+{
+    Producer *producer;
+    allocator_t *allocator = allocator_get_default_alloc();
+
+    producer = OBJECT_NEW(allocator, Producer, NULL);
+    global_default_producer = producer;
+
+    producer->start(producer);
+}
+
+__attribute__((destructor(ATTRIB_PRIORITY_CONCURRENT))) void
+default_producer_destructor()
+{
+    Producer *producer = get_global_default_producer();
+    object_destroy(producer);
+}
 
 void test_obj_producer()
 {
