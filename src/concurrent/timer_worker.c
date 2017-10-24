@@ -36,23 +36,60 @@
 #include <libobject/concurrent/worker.h>
 #include <libobject/concurrent/producer.h>
 
-Worker *timer_worker(allocator_t *allocator,
-                     int fd, int ev_events,
-                     struct timeval *ev_tv, void *ev_callback,
-                     void *ev_arg, void *work_callback)
+static struct timeval lasttime;
+static void
+timer_worker_timeout_cb(int fd, short event, void *arg)
+{
+    Worker *worker = (Worker *)arg;
+    struct timeval newtime, difference;
+    double elapsed;
+
+    gettimeofday(&newtime, NULL);
+    timeval_sub(&newtime, &lasttime, &difference);
+
+    elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
+    lasttime = newtime;
+
+    dbg_str(DBG_SUC, "timeout_cb called at %d: %.3f seconds elapsed.",
+            (int)newtime.tv_sec, elapsed);
+    dbg_str(DBG_DETAIL, "arg addr:%p", arg);
+    worker->work_callback(NULL);
+
+    return;
+}
+
+Worker *
+peroid_timer_worker(allocator_t *allocator,
+                    struct timeval *ev_tv, void *opaque,
+                    void *work_callback)
 {
     Producer *producer = global_get_default_producer();
     Worker *worker = NULL;
 
-    sleep(1);
+    worker = OBJECT_NEW(allocator, Worker, NULL);
+    worker->opaque = opaque;
+
+    worker->assign(worker, -1, EV_READ | EV_PERSIST, ev_tv,
+                   timer_worker_timeout_cb, worker,
+                   work_callback);
+    worker->enroll(worker, producer);
+
+    return worker;
+}
+
+Worker *timer_worker(allocator_t *allocator,
+                      struct timeval *ev_tv, void *opaque,
+                      void *work_callback)
+{
+    Producer *producer = global_get_default_producer();
+    Worker *worker = NULL;
 
     worker = OBJECT_NEW(allocator, Worker, NULL);
+    worker->opaque = opaque;
 
-    if (ev_arg == NULL) {
-        ev_arg = worker;
-    }
-
-    worker->assign(worker, fd, ev_events, ev_tv, ev_callback, ev_arg, work_callback);
+    worker->assign(worker, -1, EV_READ, ev_tv,
+                   timer_worker_timeout_cb, worker,
+                   work_callback);
     worker->enroll(worker, producer);
 
     return worker;
@@ -61,28 +98,6 @@ Worker *timer_worker(allocator_t *allocator,
 int timer_worker_destroy(Worker *worker)
 {
     return object_destroy(worker);
-}
-
-static void
-test_timeout_cb(int fd, short event, void *arg)
-{
-    Worker *worker = (Worker *)arg;
-    struct timeval newtime, difference;
-    double elapsed;
-    static struct timeval lasttime;
-
-    gettimeofday(&newtime, NULL);
-    timeval_sub(&newtime, &lasttime, &difference);
-
-    elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
-    lasttime = newtime;
-
-    dbg_str(DBG_SUC,"timeout_cb called at %d: %.3f seconds elapsed.",
-            (int)newtime.tv_sec, elapsed);
-    dbg_str(DBG_DETAIL,"arg addr:%p", arg);
-    worker->work_callback(NULL);
-
-    return;
 }
 
 static void test_work_callback(void *task)
@@ -97,12 +112,16 @@ void test_obj_timer_worker()
     Worker *worker;
     struct timeval ev_tv;
 
+    sleep(1);
+
+    gettimeofday(&lasttime, NULL);
     ev_tv.tv_sec  = 2;
     ev_tv.tv_usec = 0;
 
-    worker = timer_worker(allocator, -1, EV_READ | EV_PERSIST,
-                          &ev_tv, test_timeout_cb, NULL,
-                          test_work_callback);
+    /*
+     *worker = peroid_timer_worker(allocator, &ev_tv, NULL, test_work_callback);
+     */
+    worker = timer_worker(allocator, &ev_tv, NULL, test_work_callback);
     pause();
     timer_worker_destroy(worker);
 }

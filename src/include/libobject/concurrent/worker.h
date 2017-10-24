@@ -27,6 +27,7 @@ struct worker_s{
 
     Producer *producer;
     event_t event;
+    void *opaque;
     void (*work_callback)(void *);
 };
 
