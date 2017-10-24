@@ -97,10 +97,12 @@ static int  __assign(Worker *worker, int fd, int ev_events,
 
     event->ev_fd          = fd;
     event->ev_events      = ev_events;
-    event->ev_timeout     = *ev_tv;
     event->ev_callback    = ev_callback;
     event->ev_arg         = ev_arg;
     worker->work_callback = work_callback;
+
+    if (ev_tv != NULL)
+        event->ev_timeout     = *ev_tv;
 }
 
 static int __enroll(Worker *worker, void *producer)

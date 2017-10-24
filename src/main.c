@@ -656,11 +656,26 @@ static int args_process_test_Worker(void *base,int argc,char **argv)
     /*
      *test_obj_worker();
      */
-    test_obj_timer_worker();
+    /*
+     *test_obj_timer_worker();
+     */
+    test_obj_io_worker();
     return 0;
 }
 
+static int args_process_test_Server(void *base,int argc,char **argv)
+{
+    test_obj_server();
+}
+
+static int args_process_test_Client(void *base,int argc,char **argv)
+{
+    test_obj_client();
+}
+
 static cmd_config_t cmds[]={
+    {"Client", args_process_test_Client,0, "test", "N/A","test_tcp_client_send"},
+    {"Server", args_process_test_Server,0, "test", "N/A","test_tcp_client_send"},
     {"Worker", args_process_test_Worker,0, "test", "N/A","test_tcp_client_send"},
     {"Lock", args_process_test_Lock,0, "test", "N/A","test_tcp_client_send"},
     {"unix_udp_send", args_process_test_Unix_Udp_send,0, "test", "N/A","test_tcp_client_send"},
