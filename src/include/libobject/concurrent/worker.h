@@ -20,7 +20,7 @@ struct worker_s{
 
 	/*virtual methods reimplement*/
     int  (*assign)(Worker *worker, int fd, int ev_events,
-                   struct timeval ev_tv, void *ev_callback,
+                   struct timeval *ev_tv, void *ev_callback,
                    void *ev_arg, void *work_callback);
     int  (*enroll)(Worker *, void *);
     int  (*resign)(Worker *, void *);

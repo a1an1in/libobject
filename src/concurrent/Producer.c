@@ -136,7 +136,7 @@ static class_info_entry_t producer_class_info[] = {
 };
 REGISTER_CLASS("Producer",producer_class_info);
 
-Producer *get_global_default_producer()
+Producer *global_get_default_producer()
 {
     return global_default_producer;
 }
@@ -156,7 +156,7 @@ default_producer_constructor()
 __attribute__((destructor(ATTRIB_PRIORITY_CONCURRENT))) void
 default_producer_destructor()
 {
-    Producer *producer = get_global_default_producer();
+    Producer *producer = global_get_default_producer();
     object_destroy(producer);
 }
 

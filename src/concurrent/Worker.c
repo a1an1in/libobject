@@ -90,14 +90,14 @@ static void *__get(Worker *obj, char *attrib)
 }
 
 static int  __assign(Worker *worker, int fd, int ev_events,
-                     struct timeval ev_tv, void *ev_callback,
+                     struct timeval *ev_tv, void *ev_callback,
                      void *ev_arg, void *work_callback)
 {
     event_t *event = &worker->event;
 
     event->ev_fd          = fd;
     event->ev_events      = ev_events;
-    event->ev_timeout     = ev_tv;
+    event->ev_timeout     = *ev_tv;
     event->ev_callback    = ev_callback;
     event->ev_arg         = ev_arg;
     worker->work_callback = work_callback;
@@ -171,7 +171,7 @@ void test_obj_worker()
     worker = OBJECT_NEW(allocator, Worker, NULL);
     dbg_str(DBG_DETAIL,"worker addr:%p", worker);
     worker->assign(worker, -1, EV_READ | EV_PERSIST,
-                   ev_tv, test_timeout_cb, worker, test_work_callback);
+                   &ev_tv, test_timeout_cb, worker, test_work_callback);
     worker->enroll(worker, producer);
 
     pause();

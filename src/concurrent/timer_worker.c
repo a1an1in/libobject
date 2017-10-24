@@ -36,6 +36,33 @@
 #include <libobject/concurrent/worker.h>
 #include <libobject/concurrent/producer.h>
 
+Worker *timer_worker(allocator_t *allocator,
+                     int fd, int ev_events,
+                     struct timeval *ev_tv, void *ev_callback,
+                     void *ev_arg, void *work_callback)
+{
+    Producer *producer = global_get_default_producer();
+    Worker *worker = NULL;
+
+    sleep(1);
+
+    worker = OBJECT_NEW(allocator, Worker, NULL);
+
+    if (ev_arg == NULL) {
+        ev_arg = worker;
+    }
+
+    worker->assign(worker, fd, ev_events, ev_tv, ev_callback, ev_arg, work_callback);
+    worker->enroll(worker, producer);
+
+    return worker;
+}
+
+int timer_worker_destroy(Worker *worker)
+{
+    return object_destroy(worker);
+}
+
 static void
 test_timeout_cb(int fd, short event, void *arg)
 {
@@ -43,7 +70,6 @@ test_timeout_cb(int fd, short event, void *arg)
     struct timeval newtime, difference;
     double elapsed;
     static struct timeval lasttime;
-
 
     gettimeofday(&newtime, NULL);
     timeval_sub(&newtime, &lasttime, &difference);
@@ -55,6 +81,8 @@ test_timeout_cb(int fd, short event, void *arg)
             (int)newtime.tv_sec, elapsed);
     dbg_str(DBG_DETAIL,"arg addr:%p", arg);
     worker->work_callback(NULL);
+
+    return;
 }
 
 static void test_work_callback(void *task)
@@ -62,9 +90,27 @@ static void test_work_callback(void *task)
     dbg_str(DBG_SUC,"process timer task");
 }
 
+#if 1
 void test_obj_timer_worker()
 {
-    Producer *producer     = get_global_default_producer();
+    allocator_t *allocator = allocator_get_default_alloc();
+    Worker *worker;
+    struct timeval ev_tv;
+
+    ev_tv.tv_sec  = 2;
+    ev_tv.tv_usec = 0;
+
+    worker = timer_worker(allocator, -1, EV_READ | EV_PERSIST,
+                          &ev_tv, test_timeout_cb, NULL,
+                          test_work_callback);
+    pause();
+    timer_worker_destroy(worker);
+}
+
+#else
+void test_obj_timer_worker()
+{
+    Producer *producer     = global_get_default_producer();
     allocator_t *allocator = allocator_get_default_alloc();
     Worker *worker;
     struct timeval ev_tv;
@@ -83,3 +129,5 @@ void test_obj_timer_worker()
     pause();
     object_destroy(worker);
 }
+
+#endif

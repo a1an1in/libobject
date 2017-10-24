@@ -30,6 +30,6 @@ struct producer_s{
     Dispatcher *dispatcher;
 };
 
-Producer *get_global_default_producer();
+Producer *global_get_default_producer();
 
 #endif
