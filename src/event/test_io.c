@@ -90,4 +90,5 @@ int test_event_io()
 
     dbg_str(DBG_SUC,"Event IO, out test");
     object_destroy(eb);
+    pause();
 }

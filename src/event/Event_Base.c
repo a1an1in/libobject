@@ -92,6 +92,7 @@ static int __deconstrcut(Event_Base *eb)
         object_destroy(list);
     } else {
         list->remove_element(list, eb);
+        dbg_str(DBG_DETAIL,"remove global_event_base_list, count=%d", list->count(list));
     }
 
     return 0;
