@@ -9,6 +9,9 @@
 #include <libobject/event/signal.h>
 #include <libobject/event/rbtree_timer.h>
 #include <libobject/utils/miscellany/buffer.h>
+#include <libobject/core/linked_list.h>
+
+extern List *global_event_base_list;
 
 typedef struct event_base_s Event_Base;
 

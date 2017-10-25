@@ -687,7 +687,7 @@ static cmd_config_t cmds[]={
     {"Thread", args_process_test_Thread,0, "test", "N/A","test"},
     {"Event_Thread", args_process_test_Event_Thread,0, "test", "N/A","test"},
     {"Socket", args_process_test_Socket,0, "test", "N/A","test"},
-    {"Event", args_process_test_Event_Base,0, "test", "N/A","test"},
+    {"Event_Base", args_process_test_Event_Base,0, "test", "N/A","test"},
     {"Button", args_process_test_Button,0, "test", "N/A","test"},
     {"Border", args_process_test_BorderLayout,0, "test", "N/A","test"},
     {"Grid", args_process_test_GridLayout,0, "test", "N/A","test"},

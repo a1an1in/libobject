@@ -195,6 +195,7 @@ static void *__start_routine(void *arg)
     eb->add(eb, event);
 
     eb->loop(eb);
+    dbg_str(DBG_SUC,"Event Thread, out start routine");
 }
 
 static class_info_entry_t event_thread_class_info[] = {

@@ -67,6 +67,7 @@ int test_event_io()
     cjson_t *root, *e, *s;
     event_t event;
 
+    dbg_str(DBG_SUC,"Event IO, in test");
     socket = create_fifo((char *)"event.fifo");
 
     eb = OBJECT_NEW(allocator, Select_Base, NULL);
@@ -87,5 +88,6 @@ int test_event_io()
 
     eb->loop(eb);
 
+    dbg_str(DBG_SUC,"Event IO, out test");
     object_destroy(eb);
 }

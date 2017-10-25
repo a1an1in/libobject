@@ -100,6 +100,8 @@ static int __set(List *m, char *attrib, void *value)
         list->remove_back = value;
     } else if (strcmp(attrib, "remove_element") == 0) {
         list->remove_element = value;
+    } else if (strcmp(attrib, "count") == 0) {
+        list->count = value;
     } else if (strcmp(attrib, "delete") == 0) {
         list->delete = value;
     } else if (strcmp(attrib, "detach_front") == 0) {
@@ -126,7 +128,6 @@ static int __set(List *m, char *attrib, void *value)
 
 static void *__get(List *obj, char *attrib)
 {
-
     Linked_List *list = (Linked_List *)obj;
 
     if (strcmp(attrib, "name") == 0) {
@@ -173,7 +174,6 @@ static int __delete(List *list)
     return llist_delete(l->llist, &l->llist->begin);
 }
 
-
 static int __remove(List *list, void **data)
 {
     Linked_List *l = (Linked_List *)list;
@@ -208,6 +208,13 @@ static int __remove_element(List *list, void *data)
     dbg_str(OBJ_DETAIL,"List remove element");
 
     return llist_remove_element(l->llist, data);
+}
+
+static int __count(List *list)
+{
+    Linked_List *l = (Linked_List *)list;
+
+    return llist_get_count(l->llist);
 }
 
 static int __detach_front(List *list,Iterator *iter)
@@ -277,12 +284,13 @@ static class_info_entry_t llist_class_info[] = {
     [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","remove_front",__remove_front,sizeof(void *)},
     [10] = {ENTRY_TYPE_FUNC_POINTER,"","remove_back",__remove_back,sizeof(void *)},
     [11] = {ENTRY_TYPE_FUNC_POINTER,"","remove_element",__remove_element,sizeof(void *)},
-    [12] = {ENTRY_TYPE_FUNC_POINTER,"","delete",__delete,sizeof(void *)},
-    [13] = {ENTRY_TYPE_FUNC_POINTER,"","detach_front",__detach_front,sizeof(void *)},
-    [14] = {ENTRY_TYPE_FUNC_POINTER,"","free_detached",__free_detached,sizeof(void *)},
-    [15] = {ENTRY_TYPE_FUNC_POINTER,"","begin",__begin,sizeof(void *)},
-    [16] = {ENTRY_TYPE_FUNC_POINTER,"","end",__end,sizeof(void *)},
-    [17] = {ENTRY_TYPE_END},
+    [12] = {ENTRY_TYPE_FUNC_POINTER,"","count",__count,sizeof(void *)},
+    [13] = {ENTRY_TYPE_FUNC_POINTER,"","delete",__delete,sizeof(void *)},
+    [14] = {ENTRY_TYPE_FUNC_POINTER,"","detach_front",__detach_front,sizeof(void *)},
+    [15] = {ENTRY_TYPE_FUNC_POINTER,"","free_detached",__free_detached,sizeof(void *)},
+    [16] = {ENTRY_TYPE_FUNC_POINTER,"","begin",__begin,sizeof(void *)},
+    [17] = {ENTRY_TYPE_FUNC_POINTER,"","end",__end,sizeof(void *)},
+    [18] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Linked_List",llist_class_info);
 
@@ -323,6 +331,7 @@ void test_obj_llist_list()
     list->add_front(list,str1);
 
     dbg_str(DBG_DETAIL,"list for each test");
+    dbg_str(DBG_DETAIL,"list count=%d", list->count(list));
     list->for_each(list,llist_list_print);
 
 #if 0
@@ -336,10 +345,12 @@ void test_obj_llist_list()
 #endif
 
     dbg_str(DBG_DETAIL,"list for each test");
+    dbg_str(DBG_DETAIL,"list count=%d", list->count(list));
     list->for_each(list,llist_list_print);
 
     object_destroy(list);
     cfg_destroy(c);
+
+    sleep(5);
+    pause();
 }
-
-

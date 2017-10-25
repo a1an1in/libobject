@@ -157,6 +157,7 @@ __attribute__((destructor(ATTRIB_PRIORITY_CONCURRENT))) void
 default_producer_destructor()
 {
     Producer *producer = global_get_default_producer();
+    dbg_str(DBG_DETAIL,"destruct default_producer_destructor");
     object_destroy(producer);
 }
 

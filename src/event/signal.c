@@ -49,7 +49,7 @@ evsig_cb(int fd, short what, void *arg)
     event_t *event = (event_t *)arg;
     Event_Base *eb = (Event_Base *)event->ev_base;
 
-    dbg_str(EV_DETAIL,"evsig_cb, NSIG=%d", NSIG);
+    dbg_str(DBG_WARNNING,"evsig_cb, NSIG=%d", NSIG);
     memset(&ncaught, 0, sizeof(ncaught));
 
     n = recv(fd, signals, sizeof(signals), 0);
@@ -74,14 +74,21 @@ evsig_cb(int fd, short what, void *arg)
     dbg_str(EV_DETAIL,"evsig_cb out");
 }
 
+static void __evsig_send(void *element, void *c)
+{
+    Event_Base *eb = (Event_Base *)element;
+    int fd         = eb->evsig.fd_snd;
+
+    dbg_str(DBG_IMPORTANT,"evsig_send, send fd=%d, signal=%d", fd, *(char *)c);
+    send(fd, (char *)c, 1, 0);
+}
+
 static void signal_handler(int sig)
 {
     char msg = (char) sig;
+    List *list = global_event_base_list;
 
-    dbg_str(EV_IMPORTANT,"signal_handler %d, gloable_evsig_send_fd =%d, sig=%d",
-            signal, gloable_evsig_send_fd, sig);
-
-    send(gloable_evsig_send_fd, (char*)&msg, 1, 0);
+    list->for_each_arg2(list, __evsig_send, (void *)&msg);
 }
 
 int

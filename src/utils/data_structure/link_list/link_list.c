@@ -62,6 +62,7 @@ llist_t *llist_alloc(allocator_t *allocator)
     memset(ret,  0,  sizeof(llist_t));
 
     ret->allocator = allocator;
+	ret->list_count = 0;
 
     return ret;
 }

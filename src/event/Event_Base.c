@@ -35,9 +35,12 @@
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
 
+List *global_event_base_list;
+
 static int __construct(Event_Base *eb,char *init_str)
 {
     allocator_t *allocator = eb->obj.allocator;
+    List **list = &global_event_base_list;
     configurator_t * c;
     char buf[2048];
     /*
@@ -62,6 +65,11 @@ static int __construct(Event_Base *eb,char *init_str)
     dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p,timer:%p",
             eb, eb->io_map, eb->timer);
 
+    if (*list == NULL) {
+        *list = OBJECT_NEW(allocator, Linked_List, NULL);
+    }
+
+    (*list)->add_back(*list, eb);
 
     cfg_destroy(c);
 
@@ -70,12 +78,21 @@ static int __construct(Event_Base *eb,char *init_str)
 
 static int __deconstrcut(Event_Base *eb)
 {
+    List *list = global_event_base_list;
+
     dbg_str(EV_DETAIL,"eb deconstruct,eb addr:%p",eb);
 
     //release evsig
     
     object_destroy(eb->timer);
     object_destroy(eb->io_map);
+
+    if (list != NULL && list->count(list) == 1) {
+        dbg_str(DBG_DETAIL,"destroy global event base list");
+        object_destroy(list);
+    } else {
+        list->remove_element(list, eb);
+    }
 
     return 0;
 }
@@ -312,5 +329,3 @@ void test_obj_eb()
     object_destroy(eb);
     cfg_destroy(c);
 }
-
-
