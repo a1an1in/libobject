@@ -131,8 +131,9 @@ void test_obj_io_worker()
     sleep(1);
 
     fd = create_fifo((char *)"event.fifo");
-    worker = io_worker(allocator, fd, NULL, 
-                       test_pipe_ev_callback, test_work_callback, NULL);
+    worker = io_worker(allocator, fd, NULL, test_pipe_ev_callback, 
+                       test_work_callback, NULL);
+    pause();
     pause();
     io_worker_destroy(worker);
 }

@@ -1,9 +1,9 @@
 /**
- * @file concurrent.c
- * @synopsis 
- * @author a1an1in@sina.com
+ * @file Client.c
+ * @Synopsis  
+ * @author alan lin
  * @version 
- * @date 2017-09-24
+ * @date 2017-10-24
  */
 /* Copyright (c) 2015-2020 alan lin <a1an1in@sina.com>
  * Redistribution and use in source and binary forms, with or without
@@ -95,20 +95,17 @@ void test_obj_client()
 {
     Client *client;
     allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
     char buf[2048];
 
-    c = cfg_alloc(allocator); 
-    dbg_str(EV_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Client", CJSON_STRING, "name", "alan client") ;  
+    dbg_str(DBG_DETAIL,"test_obj_client");
+    client = OBJECT_NEW(allocator, Client, NULL);
 
-    client = OBJECT_NEW(allocator, Client,c->buf);
-
-    object_dump(client, "Client", buf, 2048);
-    dbg_str(EV_DETAIL,"Client dump: %s",buf);
+    /*
+     *object_dump(client, "Client", buf, 2048);
+     *dbg_str(EV_DETAIL,"Client dump: %s",buf);
+     */
+    pause();
+    pause();
 
     object_destroy(client);
-    cfg_destroy(c);
 }

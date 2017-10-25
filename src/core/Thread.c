@@ -50,14 +50,17 @@ static int __construct(Thread *thread,char *init_str)
 
 static int __deconstrcut(Thread *thread)
 {
-    dbg_str(DBG_DETAIL,"thread deconstruct,thread addr:%p",thread);
     int ret;
     void *tret;
+
+    dbg_str(DBG_DETAIL,"thread deconstruct,thread addr:%p",thread);
 
     ret = pthread_join(thread->tid, &tret);
     if (ret != 0) {
         dbg_str(DBG_WARNNING,"can't join with thread tid=%d", thread->tid);
     }
+
+    dbg_str(DBG_DETAIL,"thread deconstruct, out");
 
     return 0;
 }

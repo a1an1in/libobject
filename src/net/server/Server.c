@@ -1,9 +1,9 @@
 /**
- * @file concurrent.c
- * @synopsis 
- * @author a1an1in@sina.com
+ * @file Server.c
+ * @Synopsis  
+ * @author alan lin
  * @version 
- * @date 2017-09-24
+ * @date 2017-10-24
  */
 /* Copyright (c) 2015-2020 alan lin <a1an1in@sina.com>
  * Redistribution and use in source and binary forms, with or without

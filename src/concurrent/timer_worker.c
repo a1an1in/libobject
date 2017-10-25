@@ -118,15 +118,17 @@ void test_obj_timer_worker()
     ev_tv.tv_sec  = 2;
     ev_tv.tv_usec = 0;
 
+    worker = peroid_timer_worker(allocator, &ev_tv, NULL, test_work_callback);
     /*
-     *worker = peroid_timer_worker(allocator, &ev_tv, NULL, test_work_callback);
+     *worker = timer_worker(allocator, &ev_tv, NULL, test_work_callback);
      */
-    worker = timer_worker(allocator, &ev_tv, NULL, test_work_callback);
+    pause();
     pause();
     timer_worker_destroy(worker);
 }
 
 #else
+
 void test_obj_timer_worker()
 {
     Producer *producer     = global_get_default_producer();
