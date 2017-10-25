@@ -25,12 +25,8 @@ struct test{
     int a;
     int b;
 };
-void print_list_data(list_pos_t *pos)
+void print_list_data(struct test *t)
 {
-    list_t *list;
-
-    struct test *t = (struct test *)llist_pos_get_pointer(pos);
-
     dbg_str(DBG_DETAIL,"a=%d,b=%d",t->a,t->b);
 }
 
@@ -75,8 +71,14 @@ int test_datastructure_link_list()
      *llist_add_back(llist,t4);
      */
 
+    dbg_str(DBG_DETAIL,"llist for each:");
     llist_for_each(llist,print_list_data);
 
+    dbg_str(DBG_DETAIL,"remove t2");
+    llist_remove_element(llist, &t2);
+
+    dbg_str(DBG_DETAIL,"llist for each:");
+    llist_for_each(llist,print_list_data);
     /*
      *llist_remove_back(llist, (void **)&t);
      *dbg_str(DBG_DETAIL,"llist_delete_back, a=%d,b=%d",t->a,t->b);

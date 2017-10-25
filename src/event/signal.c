@@ -283,6 +283,15 @@ int evsig_add(Event_Base *eb, event_t *event)
     return 0;
 }
 
+/* --------------------------------------------------------------------------*/
+/**
+ * @Synopsis  break event base loop singal callback
+ *
+ * @Param fd
+ * @Param event_res
+ * @Param arg
+ */
+/* ----------------------------------------------------------------------------*/
 static void
 break_signal_cb(int fd, short event_res, void *arg)
 {
