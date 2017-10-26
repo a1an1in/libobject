@@ -45,7 +45,7 @@ static int __construct(Event_Thread *thread, char *init_str)
     allocator_t *allocator = thread->parent.obj.allocator;
     Event_Base *eb;
 
-    dbg_str(DBG_DETAIL,"Event_Thread construct, thread addr:%p",thread);
+    dbg_str(EV_DETAIL,"Event_Thread construct, thread addr:%p",thread);
 
     thread->eb       = (Event_Base *)OBJECT_NEW(allocator, Select_Base, NULL);
     thread->ev_queue = (Queue *)OBJECT_NEW(allocator, Linked_Queue, NULL);
@@ -57,7 +57,7 @@ static int __deconstrcut(Event_Thread *thread)
 {
     int ret = 0;
 
-    dbg_str(DBG_DETAIL,"Event thread deconstruct,thread addr:%p",thread);
+    dbg_str(EV_DETAIL,"Event thread deconstruct,thread addr:%p",thread);
     object_destroy(thread->s);
     object_destroy(thread->c);
     object_destroy(thread->ev_queue);
@@ -92,7 +92,7 @@ static int __set(Event_Thread *thread, char *attrib, void *value)
         thread->start_routine = value;
     }
     else {
-        dbg_str(DBG_DETAIL,"thread set, not support %s setting",attrib);
+        dbg_str(EV_DETAIL,"thread set, not support %s setting",attrib);
     }
 
     return 0;
@@ -102,7 +102,7 @@ static void *__get(Thread *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"thread get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARNNING,"thread get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
 
@@ -113,7 +113,7 @@ static int __add_event(Event_Thread *thread, void *event)
 {
     Socket *c = thread->c;
 
-    dbg_str(DBG_DETAIL,"add event");
+    dbg_str(EV_DETAIL,"add event");
 
     if (event != NULL) {
         thread->ev_queue->add(thread->ev_queue, event);
@@ -122,7 +122,7 @@ static int __add_event(Event_Thread *thread, void *event)
     }
 
     if (c->write(c, "a", 1) != 1) {
-        dbg_str(DBG_ERROR,"ctl_write error");
+        dbg_str(EV_ERROR,"ctl_write error");
         return -1;
     }
 
@@ -131,7 +131,7 @@ static int __add_event(Event_Thread *thread, void *event)
 
 static int __del_event(Event_Thread *thread, void *event)
 {
-    dbg_str(DBG_DETAIL,"del event");
+    dbg_str(EV_DETAIL,"del event");
 }
 
 static void event_thread_server_socket_ev_callback(int fd, short events, void *arg)
@@ -145,7 +145,7 @@ static void event_thread_server_socket_ev_callback(int fd, short events, void *a
     int len;
 
     if (s->read(s, buf, 1) != 1) {
-        dbg_str(DBG_WARNNING,"ctl_read error");
+        dbg_str(EV_WARNNING,"ctl_read error");
         return ;
     }
 
@@ -154,7 +154,7 @@ static void event_thread_server_socket_ev_callback(int fd, short events, void *a
             {
                 ev_queue->remove(ev_queue, (void **)&event);
                 eb->add(eb, event);
-                dbg_str(DBG_SUC,"rcv add event command, event=%p", event);
+                dbg_str(EV_SUC,"rcv add event command, event=%p", event);
                 break;
             }
         default:
@@ -175,7 +175,7 @@ static void *__start_routine(void *arg)
     Socket *s, *c;
     char buf[2048];
 
-    dbg_str(DBG_SUC,"test func, arg addr:%p",arg);
+    dbg_str(EV_IMPORTANT,"Event_Thread, start_routine:%p",arg);
 
     s = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
     s->bind(s, UNIX_SERVER_PATH, NULL); 
@@ -195,7 +195,7 @@ static void *__start_routine(void *arg)
     eb->add(eb, event);
 
     eb->loop(eb);
-    dbg_str(DBG_SUC,"Event Thread, out start routine");
+    dbg_str(EV_IMPORTANT,"Event Thread, out start routine");
 }
 
 static class_info_entry_t event_thread_class_info[] = {
@@ -229,7 +229,7 @@ test_timeout_cb(int fd, short event, void *arg)
     elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
     lasttime = newtime;
 
-    dbg_str(DBG_SUC,"timeout_cb called at %d: %.3f seconds elapsed.",
+    dbg_str(EV_SUC,"timeout_cb called at %d: %.3f seconds elapsed.",
             (int)newtime.tv_sec, elapsed);
 }
 
@@ -243,7 +243,7 @@ void test_obj_event_thread()
     thread = OBJECT_NEW(allocator, Event_Thread, NULL);
 
     object_dump(thread, "Thread", buf, 2048);
-    dbg_str(DBG_DETAIL,"Thread dump: %s",buf);
+    dbg_str(EV_DETAIL,"Thread dump: %s",buf);
     /*
      *thread->set_start_routine(thread, event_thread_start_routine);
      *thread->set_start_arg(thread, thread);

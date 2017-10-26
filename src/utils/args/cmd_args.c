@@ -71,7 +71,7 @@ args_parse_args(args_processor_t *p,int argc, char *argv[])
     cmd_config_t *c; 
     uint8_t args_count;
 
-    dbg_str(DBG_DETAIL, "argc =%d",argc);
+    dbg_str(ARGS_DETAIL, "argc =%d",argc);
 
     for(i = 0; i < argc;){
         c = args_find_entry(p,argv[i]);

@@ -72,10 +72,10 @@ int test_event_io()
 
     eb = OBJECT_NEW(allocator, Select_Base, NULL);
 
-    dbg_str(DBG_DETAIL,"run at here, eb=%p", eb);
-
-    object_dump(eb, "Select_Base", buf, 2048);
-    dbg_str(DBG_DETAIL,"Select_Base dump: %s",buf);
+    /*
+     *object_dump(eb, "Select_Base", buf, 2048);
+     *dbg_str(DBG_DETAIL,"Select_Base dump: %s",buf);
+     */
 
     event.ev_fd              = socket;
     event.ev_events          = EV_READ | EV_PERSIST;

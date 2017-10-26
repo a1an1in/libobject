@@ -185,8 +185,10 @@ static int __timeout_next(Rbtree_Timer *timer, struct timeval **tv)
         key = (struct timeval *)mnode->key;
         timeval_now(&now, NULL);
 
-        timeval_print(key);
-        timeval_print(&now);
+        /*
+         *timeval_print(key);
+         *timeval_print(&now);
+         */
 
         ret = timeval_cmp(key,&now);
         if (ret > 0) {

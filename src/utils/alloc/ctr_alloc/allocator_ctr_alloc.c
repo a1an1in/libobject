@@ -71,7 +71,7 @@ static int __init(allocator_t *allocator)
     }
     allocator->alloc_count = 0;
 
-    dbg_str(ALLOC_VIP,"slab_num=%d,data_size=%d,cap=%d",
+    dbg_str(ALLOC_IMPORTANT,"slab_num=%d,data_size=%d,cap=%d",
             ctr_alloc->slab_array_max_num,
             ctr_alloc->data_min_size,
             ctr_alloc->mempool_capacity);

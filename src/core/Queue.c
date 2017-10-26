@@ -43,14 +43,14 @@ static int __construct(Queue *queue,char *init_str)
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(DBG_DETAIL,"queue construct, queue addr:%p",queue);
+    dbg_str(OBJ_DETAIL,"queue construct, queue addr:%p",queue);
 
     return 0;
 }
 
 static int __deconstrcut(Queue *queue)
 {
-    dbg_str(DBG_DETAIL,"queue deconstruct,queue addr:%p",queue);
+    dbg_str(OBJ_DETAIL,"queue deconstruct,queue addr:%p",queue);
     int ret;
     void *tret;
 
@@ -88,7 +88,7 @@ static int __set(Queue *queue, char *attrib, void *value)
         queue->end = value;
     }
     else {
-        dbg_str(DBG_DETAIL,"queue set, not support %s setting",attrib);
+        dbg_str(OBJ_DETAIL,"queue set, not support %s setting",attrib);
     }
 
     return 0;
@@ -98,7 +98,7 @@ static void *__get(Queue *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"queue get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(OBJ_WARNNING,"queue get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
 
@@ -110,7 +110,7 @@ static void __for_each(Queue *queue,void (*func)(void *element))
     Iterator *cur, *end;
     void *element;
 
-    dbg_str(DBG_IMPORTANT,"queue for_each");
+    dbg_str(OBJ_IMPORTANT,"queue for_each");
     cur = queue->begin(queue);
     end = queue->end(queue);
 

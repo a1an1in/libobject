@@ -49,7 +49,7 @@ evsig_cb(int fd, short what, void *arg)
     event_t *event = (event_t *)arg;
     Event_Base *eb = (Event_Base *)event->ev_base;
 
-    dbg_str(DBG_WARNNING,"evsig_cb, NSIG=%d", NSIG);
+    dbg_str(EV_DETAIL,"evsig_cb in");
     memset(&ncaught, 0, sizeof(ncaught));
 
     n = recv(fd, signals, sizeof(signals), 0);
@@ -79,7 +79,7 @@ static void __evsig_send(void *element, void *c)
     Event_Base *eb = (Event_Base *)element;
     int fd         = eb->evsig.fd_snd;
 
-    dbg_str(DBG_IMPORTANT,"evsig_send, send fd=%d, signal=%d", fd, *(char *)c);
+    dbg_str(EV_IMPORTANT,"evsig_send, send fd=%d, signal=%d", fd, *(char *)c);
     send(fd, (char *)c, 1, 0);
 }
 
@@ -305,7 +305,7 @@ break_signal_cb(int fd, short event_res, void *arg)
     struct event *event = (struct event *)arg;
     Event_Base* eb = (Event_Base*)event->ev_base;
 
-    dbg_str(EV_SUC, "signal_cb, signal no:%d", event->ev_fd);
+    dbg_str(EV_IMPORTANT, "signal_cb, signal no:%d", event->ev_fd);
     eb->break_flag = 1;
 }
 

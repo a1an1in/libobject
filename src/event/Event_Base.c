@@ -88,11 +88,11 @@ static int __deconstrcut(Event_Base *eb)
     object_destroy(eb->io_map);
 
     if (list != NULL && list->count(list) == 1) {
-        dbg_str(DBG_DETAIL,"destroy global event base list");
+        dbg_str(EV_DETAIL,"destroy global event base list");
         object_destroy(list);
     } else {
         list->remove_element(list, eb);
-        dbg_str(DBG_DETAIL,"remove global_event_base_list, count=%d", list->count(list));
+        dbg_str(EV_DETAIL,"remove global_event_base_list, count=%d", list->count(list));
     }
 
     return 0;
@@ -208,7 +208,9 @@ static int __activate_io(Event_Base *eb, int fd, short events)
     if (ret < 0) {
         dbg_str(EV_WARNNING,"not found fd in io_map,ret=%d",ret);
     } else {
-        dbg_str(EV_DETAIL, "event addr:%p, ev_callback=%p", event, event->ev_callback);
+        dbg_str(EV_DETAIL, "event addr:%p, ev_callback=%p",
+                event, event->ev_callback);
+
         event->ev_callback(event->ev_fd, 0, event->ev_arg);
 
         if (event->ev_events & EV_PERSIST) {

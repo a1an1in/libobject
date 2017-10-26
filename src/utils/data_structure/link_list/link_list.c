@@ -71,12 +71,12 @@ int llist_set(llist_t *llist, char *attrib, void *value)
 {
     if (!strcmp(attrib, "data_size")) {
         llist->data_size = *((int *)value);
-        dbg_str(DBG_DETAIL, "data_size=%d", llist->data_size);
+        dbg_str(LINKLIST_DETAIL, "data_size=%d", llist->data_size);
     } else if (!strcmp(attrib, "lock_type")) {
         llist->lock_type = *((int *)value);
-        dbg_str(DBG_DETAIL, "lock_type=%d", llist->lock_type);
+        dbg_str(LINKLIST_DETAIL, "lock_type=%d", llist->lock_type);
     } else {
-        dbg_str(DBG_WARNNING, "not support attrib setting, please check");
+        dbg_str(LINKLIST_WARNNING, "not support attrib setting, please check");
         return -1;
     }
 

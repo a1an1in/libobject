@@ -43,7 +43,7 @@ static int __construct(Thread *thread,char *init_str)
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(DBG_DETAIL,"Thread construct, thread addr:%p",thread);
+    dbg_str(OBJ_DETAIL,"Thread construct, thread addr:%p",thread);
 
     return 0;
 }
@@ -53,14 +53,14 @@ static int __deconstrcut(Thread *thread)
     int ret;
     void *tret;
 
-    dbg_str(DBG_DETAIL,"thread deconstruct,thread addr:%p",thread);
+    dbg_str(OBJ_DETAIL,"thread deconstruct,thread addr:%p",thread);
 
     ret = pthread_join(thread->tid, &tret);
     if (ret != 0) {
-        dbg_str(DBG_WARNNING,"can't join with thread tid=%d", thread->tid);
+        dbg_str(OBJ_WARNNING,"can't join with thread tid=%d", thread->tid);
     }
 
-    dbg_str(DBG_DETAIL,"thread deconstruct, out");
+    dbg_str(OBJ_DETAIL,"thread deconstruct, out");
 
     return 0;
 }
@@ -86,7 +86,7 @@ static int __set(Thread *thread, char *attrib, void *value)
         thread->start_routine = value;
     }
     else {
-        dbg_str(DBG_DETAIL,"thread set, not support %s setting",attrib);
+        dbg_str(OBJ_DETAIL,"thread set, not support %s setting",attrib);
     }
 
     return 0;
@@ -96,7 +96,7 @@ static void *__get(Thread *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"thread get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(OBJ_WARNNING,"thread get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
@@ -117,7 +117,7 @@ static int __start(Thread *thread)
     }
 
     if ((pthread_create(&thread->tid, NULL, thread->start_routine, arg)) != 0) {
-        dbg_str(DBG_WARNNING,"pthread start error");
+        dbg_str(OBJ_WARNNING,"pthread start error");
     }
 
     return 0;
@@ -137,7 +137,7 @@ static int __set_start_arg(Thread *thread, void *arg)
 
 static void *__start_routine(void *arg)
 {
-    dbg_str(DBG_DETAIL,"start_routine");
+    dbg_str(OBJ_DETAIL,"start_routine");
 
     return NULL;
 }
@@ -158,7 +158,7 @@ REGISTER_CLASS("Thread",thread_class_info);
 
 void *test_func(void *arg)
 {
-    dbg_str(DBG_SUC,"test func, arg addr:%p",arg);
+    dbg_str(OBJ_SUC,"test func, arg addr:%p",arg);
 }
 void test_obj_thread()
 {
@@ -170,17 +170,17 @@ void test_obj_thread()
     char buf[2048];
 
     c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
+    dbg_str(OBJ_SUC, "configurator_t addr:%p",c);
     /*
      *cfg_config(c, "/Thread", CJSON_STRING, "name", "alan thread") ;  
      */
 
-    dbg_str(DBG_DETAIL,"thread addr:%p",thread);
+    dbg_str(OBJ_DETAIL,"thread addr:%p",thread);
 
     thread = OBJECT_NEW(allocator, Thread, NULL);
 
     object_dump(thread, "Thread", buf, 2048);
-    dbg_str(DBG_DETAIL,"Thread dump: %s",buf);
+    dbg_str(OBJ_DETAIL,"Thread dump: %s",buf);
     thread->set_start_routine(thread, test_func);
     thread->set_start_arg(thread, thread);
     thread->start(thread);

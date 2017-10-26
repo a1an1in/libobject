@@ -44,8 +44,8 @@ static int __construct(List *list,char *init_str)
     dbg_str(OBJ_DETAIL,"llist list construct,list addr:%p",list);
 
     if (list->value_size == 0) {
-        value_size = 50;
-        dbg_str(DBG_WARNNING,"link list value is zero, we'll set it to default value 50");
+        value_size = sizeof(void *);
+        dbg_str(OBJ_DETAIL,"link list value is zero, we'll set it to default value 50");
     } else {
         value_size = list->value_size;
     }
@@ -296,7 +296,7 @@ REGISTER_CLASS("Linked_List",llist_class_info);
 
 static void llist_list_print(void *element)
 {
-    dbg_str(DBG_DETAIL,"value: %s", element);
+    dbg_str(OBJ_DETAIL,"value: %s", element);
 }
 
 void test_obj_llist_list()

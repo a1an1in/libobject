@@ -164,7 +164,7 @@ __for_each_arg2(List *list,void (*func)(void *element, void *arg), void *arg)
     Iterator *cur, *end;
     void *element;
 
-    dbg_str(DBG_IMPORTANT,"List for_each arg2");
+    dbg_str(OBJ_IMPORTANT,"List for_each arg2");
     cur = list->begin(list);
     end = list->end(list);
 

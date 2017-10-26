@@ -46,14 +46,14 @@ static int __construct(Producer *producer,char *init_str)
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(EV_DETAIL,"producer construct, producer addr:%p",producer);
+    dbg_str(CONCURRENT_DETAIL,"producer construct, producer addr:%p",producer);
 
     return 0;
 }
 
 static int __deconstrcut(Producer *producer)
 {
-    dbg_str(EV_DETAIL,"producer deconstruct,producer addr:%p",producer);
+    dbg_str(CONCURRENT_DETAIL,"producer deconstruct,producer addr:%p",producer);
 
     return 0;
 }
@@ -82,7 +82,7 @@ static int __set(Producer *producer, char *attrib, void *value)
         producer->start = value;
     } 
     else {
-        dbg_str(EV_DETAIL,"producer set, not support %s setting",attrib);
+        dbg_str(CONCURRENT_DETAIL,"producer set, not support %s setting",attrib);
     }
 
     return 0;
@@ -92,7 +92,7 @@ static void *__get(Producer *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"producer get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(CONCURRENT_WARNNING,"producer get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
@@ -157,7 +157,7 @@ __attribute__((destructor(ATTRIB_PRIORITY_CONCURRENT))) void
 default_producer_destructor()
 {
     Producer *producer = global_get_default_producer();
-    dbg_str(DBG_DETAIL,"destruct default_producer_destructor");
+    dbg_str(CONCURRENT_DETAIL,"destruct default_producer_destructor");
     object_destroy(producer);
 }
 
@@ -171,13 +171,13 @@ void test_obj_producer()
     char buf[2048];
 
     c = cfg_alloc(allocator); 
-    dbg_str(EV_SUC, "configurator_t addr:%p",c);
+    dbg_str(CONCURRENT_SUC, "configurator_t addr:%p",c);
     cfg_config(c, "/Producer", CJSON_STRING, "name", "alan producer") ;  
 
     producer = OBJECT_NEW(allocator, Producer,c->buf);
 
     object_dump(producer, "Producer", buf, 2048);
-    dbg_str(EV_DETAIL,"Producer dump: %s",buf);
+    dbg_str(CONCURRENT_DETAIL,"Producer dump: %s",buf);
 
     object_destroy(producer);
     cfg_destroy(c);
