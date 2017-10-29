@@ -3,11 +3,12 @@
 
 #include <stdio.h>
 #include <netdb.h>
+#include <unistd.h>
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
-#include <unistd.h>
+#include <libobject/net/net_task.h>
 
 #define DEFAULT_MAX_IP_STR_LEN 64
 #define DEFAULT_MAX_PORT_STR_LEN 10

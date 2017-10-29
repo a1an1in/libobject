@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
+#include <libobject/concurrent/worker.h>
+#include <libobject/net/socket.h>
 
 typedef struct client_s Client;
 
@@ -16,7 +18,15 @@ struct client_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
+    int (*bind)(Client *client, char *host, char *service);
+    int (*connect)(Client *client, char *host, char *service);
+    ssize_t (*send)(Client *client, const void *buf, size_t len, int flags);
+    ssize_t (*recv)(Client *client, void *buf, size_t len, int flags);
+	int (*assign)(Client *client, struct timeval *tv,
+                  void *work_callback, void *opaque);
 
+    Worker *worker;
+    Socket *socket;
 };
 
 #endif

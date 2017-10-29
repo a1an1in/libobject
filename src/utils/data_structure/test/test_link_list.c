@@ -73,14 +73,14 @@ int test_datastructure_link_list()
 
     dbg_str(DBG_DETAIL,"llist for each:");
     dbg_str(DBG_DETAIL,"llist count=%d", llist_get_count(llist));
-    llist_for_each(llist,print_list_data);
+    llist_for_each(llist, (void (*)(void *))print_list_data);
 
     dbg_str(DBG_DETAIL,"remove t2");
     llist_remove_element(llist, &t2);
 
     dbg_str(DBG_DETAIL,"llist for each:");
     dbg_str(DBG_DETAIL,"llist count=%d", llist_get_count(llist));
-    llist_for_each(llist,print_list_data);
+    llist_for_each(llist, (void (*)(void *))print_list_data);
     /*
      *llist_remove_back(llist, (void **)&t);
      *dbg_str(DBG_DETAIL,"llist_delete_back, a=%d,b=%d",t->a,t->b);

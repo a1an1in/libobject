@@ -673,7 +673,19 @@ static int args_process_test_Client(void *base,int argc,char **argv)
     test_obj_client();
 }
 
+static int args_process_test_inet_udp_client_send(void *base,int argc,char **argv)
+{
+    test_obj_inet_udp_client_send();
+}
+
+static int args_process_test_inet_udp_client_recv(void *base,int argc,char **argv)
+{
+    test_obj_inet_udp_client_recv();
+}
+
 static cmd_config_t cmds[]={
+    {"inet_udp_client_recv", args_process_test_inet_udp_client_recv,0, "test", "N/A","test_tcp_client_send"},
+    {"inet_udp_client_send", args_process_test_inet_udp_client_send,0, "test", "N/A","test_tcp_client_send"},
     {"Client", args_process_test_Client,0, "test", "N/A","test_tcp_client_send"},
     {"Server", args_process_test_Server,0, "test", "N/A","test_tcp_client_send"},
     {"Worker", args_process_test_Worker,0, "test", "N/A","test_tcp_client_send"},

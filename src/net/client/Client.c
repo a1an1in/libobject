@@ -41,14 +41,14 @@ static int __construct(Client *client,char *init_str)
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(EV_DETAIL,"client construct, client addr:%p",client);
+    dbg_str(NET_DETAIL,"client construct, client addr:%p",client);
 
     return 0;
 }
 
 static int __deconstrcut(Client *client)
 {
-    dbg_str(EV_DETAIL,"client deconstruct,client addr:%p",client);
+    dbg_str(NET_DETAIL,"client deconstruct,client addr:%p",client);
 
     return 0;
 }
@@ -63,9 +63,20 @@ static int __set(Client *client, char *attrib, void *value)
         client->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         client->deconstruct = value;
+    }
+    else if (strcmp(attrib, "bind") == 0) {
+        client->bind = value;
+    } else if (strcmp(attrib, "connect") == 0) {
+        client->connect = value;
+    } else if (strcmp(attrib, "recv") == 0) {
+        client->recv = value;
+    } else if (strcmp(attrib, "send") == 0) {
+        client->send = value;
+    } else if (strcmp(attrib, "assign") == 0) {
+        client->assign = value;
     } 
     else {
-        dbg_str(EV_DETAIL,"client set, not support %s setting",attrib);
+        dbg_str(NET_DETAIL,"client set, not support %s setting",attrib);
     }
 
     return 0;
@@ -75,10 +86,31 @@ static void *__get(Client *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"client get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(NET_WARNNING,"client get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
+}
+
+static int __bind(Client *client, char *host, char *service)
+{
+}
+
+static int __connect(Client *client, char *host, char *service)
+{
+}
+
+static ssize_t __send(Client *client, const void *buf, size_t len, int flags)
+{
+}
+
+static ssize_t __recv(Client *client, void *buf, size_t len, int flags)
+{
+}
+
+static int __assign(Client *client, struct timeval *tv,
+        void *work_callback, void *opaque)
+{
 }
 
 static class_info_entry_t client_class_info[] = {
@@ -87,7 +119,12 @@ static class_info_entry_t client_class_info[] = {
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","bind",__bind,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","connect",__connect,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","send",__send,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","recv",__recv,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","assign",__assign,sizeof(void *)},
+    [10] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Client",client_class_info);
 
@@ -102,7 +139,7 @@ void test_obj_client()
 
     /*
      *object_dump(client, "Client", buf, 2048);
-     *dbg_str(EV_DETAIL,"Client dump: %s",buf);
+     *dbg_str(NET_DETAIL,"Client dump: %s",buf);
      */
     pause();
     pause();

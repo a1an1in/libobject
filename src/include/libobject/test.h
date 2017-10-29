@@ -101,5 +101,7 @@ extern void test_obj_io_worker();
 extern void test_obj_timer_worker();
 extern void test_obj_server();
 extern void test_obj_client();
+extern void test_obj_inet_udp_client_recv();
+extern void test_obj_inet_udp_client_send();
 
 #endif

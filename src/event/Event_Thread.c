@@ -113,7 +113,7 @@ static int __add_event(Event_Thread *thread, void *event)
 {
     Socket *c = thread->c;
 
-    dbg_str(EV_DETAIL,"add event");
+    dbg_str(EV_DETAIL,"add event, c socket:%p", c);
 
     if (event != NULL) {
         thread->ev_queue->add(thread->ev_queue, event);
