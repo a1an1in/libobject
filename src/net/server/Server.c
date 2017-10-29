@@ -49,10 +49,14 @@ static int __construct(Server *server,char *init_str)
 static void __release_socket(void *element)
 {
     Worker *worker = (Worker *)element;
-    Socket *socket = (Socket *)worker->opaque;
+    /*
+     *Socket *socket = (Socket *)worker->opaque;
+     */
 
     dbg_str(OBJ_DETAIL,"value: %s", element);
-    object_destroy(socket);
+    /*
+     *object_destroy(socket);
+     */
     object_destroy(worker);
 }
 
@@ -111,15 +115,13 @@ static int __bind(Server *server, char *host, char *service)
 static ssize_t __new_socket_ev_callback(int fd, short event, void *arg)
 {
     Worker *worker = (Worker *)arg;
-    Socket *socket = (Socket *)worker->opaque;
 #define EV_CALLBACK_MAX_BUF_LEN 1024 * 10
     char buf[EV_CALLBACK_MAX_BUF_LEN];
     int  buf_len = EV_CALLBACK_MAX_BUF_LEN, len = 0;
 #undef EV_CALLBACK_MAX_BUF_LEN
     int ret;
 
-    if (fd == socket->fd)
-        len = socket->recv(socket, buf, buf_len, 0);
+    len = recv(fd, buf, buf_len, 0);
 
     if (len < 0) {
         dbg_str(DBG_ERROR,"socket read error");
@@ -149,21 +151,20 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
     allocator_t *allocator = worker->obj.allocator;
     Producer *producer     = global_get_default_producer();
     List *list             = server->workers;
-    Socket *new_socket;
     Worker *new_worker;
+    int new_fd;
 
-    new_socket = socket->accept(socket, NULL, NULL);
+    new_fd = socket->accept_fd(socket, NULL, NULL);
     new_worker = OBJECT_NEW(allocator, Worker, NULL);
     if (new_worker == NULL) {
         dbg_str(DBG_ERROR, "OBJECT_NEW Worker");
         return -1;
     }
 
-    new_worker->opaque = new_socket;
-    new_worker->assign(new_worker, new_socket->fd, EV_READ | EV_PERSIST, NULL,
-                   (void *)__new_socket_ev_callback,
-                   new_worker, 
-                   (void *)worker->work_callback);
+    new_worker->assign(new_worker, new_fd, EV_READ | EV_PERSIST, NULL,
+                       (void *)__new_socket_ev_callback,
+                       new_worker, 
+                       (void *)worker->work_callback);
     new_worker->enroll(new_worker, producer);
 
     list->add(list, new_worker);

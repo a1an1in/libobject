@@ -100,6 +100,8 @@ static int __set(Socket *socket, char *attrib, void *value)
         socket->listen = value;
     } else if (strcmp(attrib, "accept") == 0) {
         socket->accept = value;
+    } else if (strcmp(attrib, "accept_fd") == 0) {
+        socket->accept_fd = value;
     } else if (strcmp(attrib, "connect") == 0) {
         socket->connect = value;
     } else if (strcmp(attrib, "write") == 0) {
@@ -365,23 +367,24 @@ static class_info_entry_t socket_class_info[] = {
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","bind",__bind,sizeof(void *)},
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","listen",__listen,sizeof(void *)},
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","accept",NULL,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","connect",__connect,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","write",__write,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","send",__send,sizeof(void *)},
-    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","sendto",__sendto,sizeof(void *)},
-    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","sendmsg",__sendmsg,sizeof(void *)},
-    [13] = {ENTRY_TYPE_VFUNC_POINTER,"","read",__read,sizeof(void *)},
-    [14] = {ENTRY_TYPE_VFUNC_POINTER,"","recv",__recv,sizeof(void *)},
-    [15] = {ENTRY_TYPE_VFUNC_POINTER,"","recvfrom",__recvfrom,sizeof(void *)},
-    [16] = {ENTRY_TYPE_VFUNC_POINTER,"","recvmsg",__recvmsg,sizeof(void *)},
-    [17] = {ENTRY_TYPE_VFUNC_POINTER,"","getsockopt",__getsockopt,sizeof(void *)},
-    [18] = {ENTRY_TYPE_VFUNC_POINTER,"","setsockopt",__setsockopt,sizeof(void *)},
-    [19] = {ENTRY_TYPE_VFUNC_POINTER,"","setnonblocking",__setnonblocking,sizeof(void *)},
-    [20] = {ENTRY_TYPE_STRING,"","local_host",NULL,sizeof(void *)},
-    [21] = {ENTRY_TYPE_STRING,"","local_service",NULL,sizeof(void *)},
-    [22] = {ENTRY_TYPE_STRING,"","remote_host",NULL,sizeof(void *)},
-    [23] = {ENTRY_TYPE_STRING,"","remote_service",NULL,sizeof(void *)},
-    [24] = {ENTRY_TYPE_END},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","accept_fd",NULL,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","connect",__connect,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","write",__write,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","send",__send,sizeof(void *)},
+    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","sendto",__sendto,sizeof(void *)},
+    [13] = {ENTRY_TYPE_VFUNC_POINTER,"","sendmsg",__sendmsg,sizeof(void *)},
+    [14] = {ENTRY_TYPE_VFUNC_POINTER,"","read",__read,sizeof(void *)},
+    [15] = {ENTRY_TYPE_VFUNC_POINTER,"","recv",__recv,sizeof(void *)},
+    [16] = {ENTRY_TYPE_VFUNC_POINTER,"","recvfrom",__recvfrom,sizeof(void *)},
+    [17] = {ENTRY_TYPE_VFUNC_POINTER,"","recvmsg",__recvmsg,sizeof(void *)},
+    [18] = {ENTRY_TYPE_VFUNC_POINTER,"","getsockopt",__getsockopt,sizeof(void *)},
+    [19] = {ENTRY_TYPE_VFUNC_POINTER,"","setsockopt",__setsockopt,sizeof(void *)},
+    [20] = {ENTRY_TYPE_VFUNC_POINTER,"","setnonblocking",__setnonblocking,sizeof(void *)},
+    [21] = {ENTRY_TYPE_STRING,"","local_host",NULL,sizeof(void *)},
+    [22] = {ENTRY_TYPE_STRING,"","local_service",NULL,sizeof(void *)},
+    [23] = {ENTRY_TYPE_STRING,"","remote_host",NULL,sizeof(void *)},
+    [24] = {ENTRY_TYPE_STRING,"","remote_service",NULL,sizeof(void *)},
+    [25] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Socket",socket_class_info);
 

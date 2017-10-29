@@ -18,6 +18,7 @@ struct inet_tcp_socket_s{
 
 	/*virtual methods reimplement*/
     Socket * (*accept)(Inet_Tcp_Socket *socket, char *remote_host, char *remote_service);
+    int (*accept_fd)(Inet_Tcp_Socket *socket, char *remote_host, char *remote_service);
 
     /*inherit metheods from parent*/
     int (*listen)(Inet_Tcp_Socket *socket, int backlog);

@@ -80,6 +80,8 @@ static int __set(Inet_Tcp_Socket *socket, char *attrib, void *value)
         socket->listen = value;
     } else if (strcmp(attrib, "accept") == 0) {
         socket->accept = value;
+    } else if (strcmp(attrib, "accept_fd") == 0) {
+        socket->accept_fd = value;
     } else if (strcmp(attrib, "connect") == 0) {
         socket->connect = value;
     } else if (strcmp(attrib, "write") == 0) {
@@ -133,6 +135,17 @@ static Socket * __accept(Inet_Tcp_Socket *socket,
 
     return ret;
 }
+
+static int __accept_fd(Inet_Tcp_Socket *socket,
+                       char *remote_host, char *remote_service)
+{
+    struct sockaddr_storage cliaddr;
+    socklen_t len;
+    allocator_t *allocator = socket->parent.obj.allocator;
+
+    return accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
+
+}
 static class_info_entry_t inet_tcp_socket_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Socket","parent",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
@@ -142,15 +155,16 @@ static class_info_entry_t inet_tcp_socket_class_info[] = {
     [5 ] = {ENTRY_TYPE_IFUNC_POINTER,"","bind", NULL,sizeof(void *)},
     [6 ] = {ENTRY_TYPE_IFUNC_POINTER,"","listen",NULL,sizeof(void *)},
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","accept",__accept,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_IFUNC_POINTER,"","connect",NULL,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_IFUNC_POINTER,"","write",NULL,sizeof(void *)},
-    [10] = {ENTRY_TYPE_IFUNC_POINTER,"","sendto",NULL,sizeof(void *)},
-    [11] = {ENTRY_TYPE_IFUNC_POINTER,"","sendmsg",NULL,sizeof(void *)},
-    [12] = {ENTRY_TYPE_IFUNC_POINTER,"","read",NULL,sizeof(void *)},
-    [13] = {ENTRY_TYPE_IFUNC_POINTER,"","recv",NULL,sizeof(void *)},
-    [14] = {ENTRY_TYPE_IFUNC_POINTER,"","recvfrom",NULL,sizeof(void *)},
-    [15] = {ENTRY_TYPE_IFUNC_POINTER,"","recvmsg",NULL,sizeof(void *)},
-    [16] = {ENTRY_TYPE_END},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","accept_fd",__accept_fd,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_IFUNC_POINTER,"","connect",NULL,sizeof(void *)},
+    [10] = {ENTRY_TYPE_IFUNC_POINTER,"","write",NULL,sizeof(void *)},
+    [11] = {ENTRY_TYPE_IFUNC_POINTER,"","sendto",NULL,sizeof(void *)},
+    [12] = {ENTRY_TYPE_IFUNC_POINTER,"","sendmsg",NULL,sizeof(void *)},
+    [13] = {ENTRY_TYPE_IFUNC_POINTER,"","read",NULL,sizeof(void *)},
+    [14] = {ENTRY_TYPE_IFUNC_POINTER,"","recv",NULL,sizeof(void *)},
+    [15] = {ENTRY_TYPE_IFUNC_POINTER,"","recvfrom",NULL,sizeof(void *)},
+    [16] = {ENTRY_TYPE_IFUNC_POINTER,"","recvmsg",NULL,sizeof(void *)},
+    [17] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Inet_Tcp_Socket",inet_tcp_socket_class_info);
 
