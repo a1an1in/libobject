@@ -1,5 +1,5 @@
 /**
- * @file Inet_Udp_Client.c
+ * @file Inet_Tcp_Client.c
  * @synopsis 
  * @author a1an1in@sina.com
  * @version 
@@ -33,14 +33,14 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
-#include <libobject/net/client/inet_udp_client.h>
+#include <libobject/net/client/inet_tcp_client.h>
 
-static int __construct(Inet_Udp_Client *client,char *init_str)
+static int __construct(Inet_Tcp_Client *client,char *init_str)
 {
     allocator_t *allocator = client->parent.obj.allocator;
 
-    dbg_str(NET_DETAIL,"Inet_Udp_Client construct, client addr:%p", client);
-    client->parent.socket = OBJECT_NEW(allocator, Inet_Udp_Socket, NULL);
+    dbg_str(NET_DETAIL,"Inet_Tcp_Client construct, client addr:%p", client);
+    client->parent.socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
     if (client->parent.socket == NULL) {
         dbg_str(DBG_ERROR, "OBJECT_NEW Inet_Udp_Socket");
         return -1;
@@ -55,16 +55,16 @@ static int __construct(Inet_Udp_Client *client,char *init_str)
     return 0;
 }
 
-static int __deconstrcut(Inet_Udp_Client *client)
+static int __deconstrcut(Inet_Tcp_Client *client)
 {
-    dbg_str(NET_DETAIL,"Inet_Udp_Client deconstruct,client addr:%p",client);
+    dbg_str(NET_DETAIL,"Inet_Tcp_Client deconstruct,client addr:%p",client);
     object_destroy(client->parent.socket);
     object_destroy(client->parent.worker);
 
     return 0;
 }
 
-static int __set(Inet_Udp_Client *client, char *attrib, void *value)
+static int __set(Inet_Tcp_Client *client, char *attrib, void *value)
 {
     if (strcmp(attrib, "set") == 0) {
         client->set = value;
@@ -93,7 +93,7 @@ static int __set(Inet_Udp_Client *client, char *attrib, void *value)
     return 0;
 }
 
-static void *__get(Inet_Udp_Client *obj, char *attrib)
+static void *__get(Inet_Tcp_Client *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
@@ -104,7 +104,7 @@ static void *__get(Inet_Udp_Client *obj, char *attrib)
 }
 
 
-static class_info_entry_t inet_udp_client_class_info[] = {
+static class_info_entry_t inet_tcp_client_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Client","parent",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
@@ -117,18 +117,18 @@ static class_info_entry_t inet_udp_client_class_info[] = {
     [9 ] = {ENTRY_TYPE_IFUNC_POINTER,"","trustee",NULL,sizeof(void *)},
     [10] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Inet_Udp_Client",inet_udp_client_class_info);
+REGISTER_CLASS("Inet_Tcp_Client",inet_tcp_client_class_info);
 
-void test_obj_inet_udp_client_send()
+void test_obj_inet_tcp_client_send()
 {
-    Inet_Udp_Client *client;
+    Inet_Tcp_Client *client;
     allocator_t *allocator = allocator_get_default_alloc();
     char buf[2048];
     char *test_str = "hello world";
 
     sleep(1);
-    dbg_str(DBG_DETAIL,"test_obj_inet_udp_client_send");
-    client = OBJECT_NEW(allocator, Inet_Udp_Client, NULL);
+    dbg_str(DBG_DETAIL,"test_obj_inet_tcp_client_send");
+    client = OBJECT_NEW(allocator, Inet_Tcp_Client, NULL);
     client->connect(client, "127.0.0.1", "11011");
     client->send(client, test_str, strlen(test_str), 0);
 
@@ -145,17 +145,22 @@ static void test_work_callback(void *task)
     net_task_free(t);
 }
 
-void test_obj_inet_udp_client_recv()
+void test_obj_inet_tcp_client()
 {
-    Inet_Udp_Client *client;
+    Inet_Tcp_Client *client;
     allocator_t *allocator = allocator_get_default_alloc();
     char buf[2048];
+    char *test_str = "hello world";
 
     sleep(1);
-    dbg_str(DBG_DETAIL,"test_obj_inet_udp_client_recv");
-    client = OBJECT_NEW(allocator, Inet_Udp_Client, NULL);
-    client->bind(client, "127.0.0.1", "11011"); 
+    dbg_str(DBG_DETAIL,"test_obj_inet_tcp_client_recv");
+    client = OBJECT_NEW(allocator, Inet_Tcp_Client, NULL);
+    /*
+     *client->bind(client, "127.0.0.1", "11011"); 
+     */
+    client->connect(client, "127.0.0.1", "11011");
     client->trustee(client, NULL, test_work_callback, client);
+    client->send(client, test_str, strlen(test_str), 0);
 
     pause();
     pause();

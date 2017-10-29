@@ -37,10 +37,6 @@
 
 static int __construct(Client *client,char *init_str)
 {
-    allocator_t *allocator = client->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
-
     dbg_str(NET_DETAIL,"client construct, client addr:%p",client);
 
     return 0;
@@ -72,8 +68,8 @@ static int __set(Client *client, char *attrib, void *value)
         client->recv = value;
     } else if (strcmp(attrib, "send") == 0) {
         client->send = value;
-    } else if (strcmp(attrib, "assign") == 0) {
-        client->assign = value;
+    } else if (strcmp(attrib, "trustee") == 0) {
+        client->trustee = value;
     } 
     else {
         dbg_str(NET_DETAIL,"client set, not support %s setting",attrib);
@@ -94,23 +90,70 @@ static void *__get(Client *obj, char *attrib)
 
 static int __bind(Client *client, char *host, char *service)
 {
+    Socket *socket = client->socket;
+
+    return socket->bind(socket, host, service);
 }
 
 static int __connect(Client *client, char *host, char *service)
 {
+    Socket *socket = client->socket;
+
+    return socket->connect(socket, host, service);
 }
 
 static ssize_t __send(Client *client, const void *buf, size_t len, int flags)
 {
+    Socket *socket = client->socket;
+
+    return socket->send(socket, buf, len, flags);
 }
 
 static ssize_t __recv(Client *client, void *buf, size_t len, int flags)
 {
+    Socket *socket = client->socket;
+
+    return socket->recv(socket, buf, len, flags);
 }
 
-static int __assign(Client *client, struct timeval *tv,
-        void *work_callback, void *opaque)
+static ssize_t __ev_callback(int fd, short event, void *arg)
 {
+    Worker *worker = (Worker *)arg;
+    Client *client = (Client *)worker->opaque;
+    Socket *socket = client->socket;
+#define EV_CALLBACK_MAX_BUF_LEN 1024 * 10
+    char buf[EV_CALLBACK_MAX_BUF_LEN];
+    int  buf_len = EV_CALLBACK_MAX_BUF_LEN, len = 0;
+#undef EV_CALLBACK_MAX_BUF_LEN
+
+    if (fd == socket->fd)
+        len = socket->recv(socket, buf, buf_len, 0);
+
+    if (worker->work_callback && len) {
+        net_task_t *task;
+        task = net_task_alloc(worker->obj.allocator, len);
+        memcpy(task->buf, buf, len);
+        task->buf_len = len;
+        worker->work_callback(task);
+    }
+
+    return 0;
+}
+
+static int __trustee(Client *client, struct timeval *tv,
+                     void *work_callback, void *opaque)
+{
+    Producer *producer = global_get_default_producer();
+    Client *c          = (Client *)client;
+    Worker *worker     = c->worker;
+    int fd             = c->socket->fd;
+    
+    worker->opaque = opaque;
+    worker->assign(worker, fd, EV_READ | EV_PERSIST, tv,
+                   (void *)__ev_callback, worker, work_callback);
+    worker->enroll(worker, producer);
+
+    return 0;
 }
 
 static class_info_entry_t client_class_info[] = {
@@ -123,7 +166,7 @@ static class_info_entry_t client_class_info[] = {
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","connect",__connect,sizeof(void *)},
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","send",__send,sizeof(void *)},
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","recv",__recv,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","assign",__assign,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","trustee",__trustee,sizeof(void *)},
     [10] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Client",client_class_info);

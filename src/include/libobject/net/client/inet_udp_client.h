@@ -17,13 +17,13 @@ struct inet_udp_client_s{
 	int (*set)(Inet_Udp_Client *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+	/*inherited methods from parent*/
     int (*bind)(Inet_Udp_Client *socket, char *host, char *service);
     int (*connect)(Inet_Udp_Client *socket, char *host, char *service);
     ssize_t (*send)(Inet_Udp_Client *socket, const void *buf, size_t len, int flags);
     ssize_t (*recv)(Inet_Udp_Client *socket, void *buf, size_t len, int flags);
-	int (*assign)(Inet_Udp_Client *client, struct timeval *tv,
-                  void *work_callback, void *opaque);
+	int (*trustee)(Inet_Udp_Client *client, struct timeval *tv,
+                   void *work_callback, void *opaque);
 
 };
 

@@ -131,7 +131,22 @@ static int __add_event(Event_Thread *thread, void *event)
 
 static int __del_event(Event_Thread *thread, void *event)
 {
+    Socket *c = thread->c;
+
     dbg_str(EV_DETAIL,"del event");
+
+    if (event != NULL) {
+        thread->ev_queue->add(thread->ev_queue, event);
+    } else {
+        return -1;
+    }
+
+    if (c->write(c, "d", 1) != 1) {
+        dbg_str(EV_ERROR,"ctl_write error");
+        return -1;
+    }
+
+    return 0;
 }
 
 static void event_thread_server_socket_ev_callback(int fd, short events, void *arg)
@@ -152,9 +167,16 @@ static void event_thread_server_socket_ev_callback(int fd, short events, void *a
     switch(buf[0]) {
         case 'a': 
             {
+                dbg_str(EV_SUC,"rcv add event command, event=%p", event);
                 ev_queue->remove(ev_queue, (void **)&event);
                 eb->add(eb, event);
-                dbg_str(EV_SUC,"rcv add event command, event=%p", event);
+                break;
+            }
+        case 'd': 
+            {
+                dbg_str(DBG_SUC,"rcv del event command, event=%p", event);
+                ev_queue->remove(ev_queue, (void **)&event);
+                eb->del(eb, event);
                 break;
             }
         default:

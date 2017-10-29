@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
+#include <libobject/net/socket.h>
+#include <libobject/concurrent/worker.h>
+#include <libobject/core/list.h>
 
 typedef struct server_s Server;
 
@@ -16,7 +19,13 @@ struct server_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
+    int (*bind)(Server *server, char *host, char *service);
+	int (*trustee)(Server *server, void *work_callback, void *opaque);
 
+    Worker *worker;
+    Socket *socket;
+    void *opaque;
+    List *workers;
 };
 
 #endif

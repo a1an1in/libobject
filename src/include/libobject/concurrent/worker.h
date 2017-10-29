@@ -23,12 +23,13 @@ struct worker_s{
                    struct timeval *ev_tv, void *ev_callback,
                    void *ev_arg, void *work_callback);
     int  (*enroll)(Worker *, void *);
-    int  (*resign)(Worker *, void *);
+    int  (*resign)(Worker *);
 
     Producer *producer;
     event_t event;
     void *opaque;
     void (*work_callback)(void *);
+    int flags;
 };
 
 #endif

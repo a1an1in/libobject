@@ -111,6 +111,12 @@ static int __add_worker(Producer *producer, void *worker)
 
 static int __del_worker(Producer *producer, void *worker)
 {
+    Worker *w = (Worker *)worker;
+    Event_Thread *thread = &producer->parent;
+
+    dbg_str(DBG_SUC,"producer del worker");
+    w->producer = producer;
+    thread->del_event(thread, (void *)&w->event);
 }
 
 static int __add_dispatcher(Producer *producer, void *worker)

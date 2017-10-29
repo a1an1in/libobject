@@ -43,6 +43,7 @@ static int __construct(Worker *worker,char *init_str)
     char buf[2048];
 
     dbg_str(EV_DETAIL,"worker construct, worker addr:%p",worker);
+    worker->flags = 0;
 
     return 0;
 }
@@ -109,13 +110,24 @@ static int __enroll(Worker *worker, void *producer)
 {
     Producer *p = (Producer *)producer;
 
+    worker->producer = producer;
     p->add_worker(p, worker);
 
     return 0;
 }
 
-static int __resign(Worker *worker, void *producer)
+static int __resign(Worker *worker)
 {
+    Producer *p = worker->producer;
+
+    if (!(worker->flags & 1)) {
+        p->del_worker(p, worker);
+        worker->flags |= 1;
+    } else {
+        return 1;
+    }
+
+    return 0;
 }
 
 static class_info_entry_t worker_class_info[] = {

@@ -17,13 +17,13 @@ struct client_s{
 	int (*set)(Client *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods*/
     int (*bind)(Client *client, char *host, char *service);
     int (*connect)(Client *client, char *host, char *service);
     ssize_t (*send)(Client *client, const void *buf, size_t len, int flags);
     ssize_t (*recv)(Client *client, void *buf, size_t len, int flags);
-	int (*assign)(Client *client, struct timeval *tv,
-                  void *work_callback, void *opaque);
+	int (*trustee)(Client *client, struct timeval *tv,
+                   void *work_callback, void *opaque);
 
     Worker *worker;
     Socket *socket;
