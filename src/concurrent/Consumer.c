@@ -38,8 +38,6 @@
 static int __construct(Consumer *consumer,char *init_str)
 {
     allocator_t *allocator = consumer->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
 
     dbg_str(EV_DETAIL,"consumer construct, consumer addr:%p",consumer);
 

@@ -144,8 +144,8 @@ static int __accept_fd(Inet_Tcp_Socket *socket,
     allocator_t *allocator = socket->parent.obj.allocator;
 
     return accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
-
 }
+
 static class_info_entry_t inet_tcp_socket_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Socket","parent",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},

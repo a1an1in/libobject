@@ -50,6 +50,7 @@ static int __construct(Inet_Udp_Socket *sk,char *init_str)
     sk->parent.fd = skfd;
 
     dbg_str(NET_DETAIL,"socket construct, socket addr:%p, skfd=%d",sk, skfd);
+
     return 0;
 }
 

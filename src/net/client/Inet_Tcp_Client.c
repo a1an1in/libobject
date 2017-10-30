@@ -119,25 +119,6 @@ static class_info_entry_t inet_tcp_client_class_info[] = {
 };
 REGISTER_CLASS("Inet_Tcp_Client",inet_tcp_client_class_info);
 
-void test_obj_inet_tcp_client_send()
-{
-    Inet_Tcp_Client *client;
-    allocator_t *allocator = allocator_get_default_alloc();
-    char buf[2048];
-    char *test_str = "hello world";
-
-    sleep(1);
-    dbg_str(DBG_DETAIL,"test_obj_inet_tcp_client_send");
-    client = OBJECT_NEW(allocator, Inet_Tcp_Client, NULL);
-    client->connect(client, "127.0.0.1", "11011");
-    client->send(client, test_str, strlen(test_str), 0);
-
-    pause();
-    pause();
-
-    object_destroy(client);
-}
-
 static void test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;

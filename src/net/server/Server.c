@@ -46,17 +46,11 @@ static int __construct(Server *server,char *init_str)
     return 0;
 }
 
-static void __release_socket(void *element)
+static void __release_worker(void *element)
 {
     Worker *worker = (Worker *)element;
-    /*
-     *Socket *socket = (Socket *)worker->opaque;
-     */
 
     dbg_str(OBJ_DETAIL,"value: %s", element);
-    /*
-     *object_destroy(socket);
-     */
     object_destroy(worker);
 }
 
@@ -66,7 +60,7 @@ static int __deconstrcut(Server *server)
     dbg_str(EV_DETAIL,"server deconstruct,server addr:%p",server);
 
     /*those socket are created when accepting a new connection*/
-    list->for_each(list,__release_socket);
+    list->for_each(list,__release_worker);
     object_destroy(server->workers);
 
     return 0;
@@ -102,6 +96,7 @@ static void *__get(Server *obj, char *attrib)
         dbg_str(EV_WARNNING,"server get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
+
     return NULL;
 }
 
@@ -141,6 +136,8 @@ static ssize_t __new_socket_ev_callback(int fd, short event, void *arg)
         task->buf_len = len;
         worker->work_callback(task);
     }
+
+    return 0;
 }
 
 static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
@@ -185,7 +182,8 @@ static int __trustee(Server *server, void *work_callback, void *opaque)
     worker->opaque = server;
     worker->assign(worker, fd, EV_READ | EV_PERSIST, NULL,
                    (void *)__listenfd_ev_callback, worker, work_callback);
-    worker->enroll(worker, producer);
+
+    return worker->enroll(worker, producer);
 }
 
 static class_info_entry_t concurent_class_info[] = {
