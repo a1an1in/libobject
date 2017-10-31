@@ -161,7 +161,7 @@ void test_obj_udp_socket()
 }
 #endif
 
-void test_udp_socket_send()
+void test_inet_udp_socket_send()
 {
     Socket *socket;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -178,7 +178,7 @@ void test_udp_socket_send()
     object_destroy(socket);
 }
 
-void test_udp_socket_recv()
+void test_inet_udp_socket_recv()
 {
     Socket *socket;
     char buf[1024] = {0};

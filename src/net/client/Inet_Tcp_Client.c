@@ -100,6 +100,7 @@ static void *__get(Inet_Tcp_Client *obj, char *attrib)
         dbg_str(NET_WARNNING,"client get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
+
     return NULL;
 }
 

@@ -155,7 +155,7 @@ void test_obj_inet_udp_client_recv()
     dbg_str(DBG_DETAIL,"test_obj_inet_udp_client_recv");
     client = OBJECT_NEW(allocator, Inet_Udp_Client, NULL);
     client->bind(client, "127.0.0.1", "11011"); 
-    client->trustee(client, NULL, test_work_callback, client);
+    client->trustee(client, NULL, test_work_callback, NULL);
 
     pause();
     pause();

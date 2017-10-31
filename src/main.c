@@ -97,38 +97,6 @@ static int args_process_test_share_mem_read(void *base,int argc,char **argv)
     return 0;
 }
 
-static int args_process_test_unix_tcp_server(void *base,int argc,char **argv)
-{
-    /*
-     *test_unix_tcp_server();
-     */
-    return 0;
-}
-
-static int args_process_test_unix_tcp_client_send(void *base,int argc,char **argv)
-{
-    /*
-     *test_unix_tcp_client_send();
-     */
-    return 0;
-}
-
-static int args_process_test_unix_udp_client_send(void *base,int argc,char **argv)
-{
-    /*
-     *test_unix_udp_client_send();
-     */
-    return 0;
-}
-
-static int args_process_test_unix_udp_client_recieve(void *base,int argc,char **argv)
-{
-    /*
-     *test_unix_udp_client_recieve();
-     */
-    return 0;
-}
-
 static int args_process_test_state_machine(void *base,int argc,char **argv)
 {
     /*
@@ -605,40 +573,40 @@ static int args_process_test_Event_Thread(void *base,int argc,char **argv)
     return 0;
 }
 
-static int args_process_test_Udp_recv(void *base,int argc,char **argv)
+static int args_process_test_inet_udp_socket_recv(void *base,int argc,char **argv)
 {
-    test_udp_socket_recv();
+    test_inet_udp_socket_recv();
 
     return 0;
 }
 
-static int args_process_test_Udp_send(void *base,int argc,char **argv)
+static int args_process_test_inet_udp_socket_send(void *base,int argc,char **argv)
 {
-    test_udp_socket_send();
+    test_inet_udp_socket_send();
 
     return 0;
 }
 
-static int args_process_test_Tcp_recv(void *base,int argc,char **argv)
+static int args_process_test_inet_tcp_socket_recv(void *base,int argc,char **argv)
 {
-    test_tcp_socket_recv();
+    test_inet_tcp_socket_recv();
     return 0;
 }
 
-static int args_process_test_Tcp_send(void *base,int argc,char **argv)
+static int args_process_test_inet_tcp_socket_send(void *base,int argc,char **argv)
 {
-    test_tcp_socket_send();
+    test_inet_tcp_socket_send();
     return 0;
 }
 
-static int args_process_test_Unix_Udp_send(void *base,int argc,char **argv)
+static int args_process_test_unix_udp_socket_send(void *base,int argc,char **argv)
 {
     test_unix_udp_socket_send();
 
     return 0;
 }
 
-static int args_process_test_Unix_Udp_recv(void *base,int argc,char **argv)
+static int args_process_test_unix_udp_socket_recv(void *base,int argc,char **argv)
 {
     test_unix_udp_socket_recv();
 
@@ -693,21 +661,33 @@ static int args_process_test_inet_tcp_client(void *base,int argc,char **argv)
     test_obj_inet_tcp_client();
 }
 
+static int args_process_test_client_send(void *base,int argc,char **argv)
+{
+    test_obj_client_send();
+}
+
+static int args_process_test_client_recv(void *base,int argc,char **argv)
+{
+    test_obj_client_recv();
+}
+
 static cmd_config_t cmds[]={
-    {"inet_tcp_client", args_process_test_inet_tcp_client,0, "test", "N/A","test_tcp_client_send"},
-    {"inet_tcp_server", args_process_test_inet_tcp_server,0, "test", "N/A","test_tcp_client_send"},
-    {"inet_udp_client_recv", args_process_test_inet_udp_client_recv,0, "test", "N/A","test_tcp_client_send"},
-    {"inet_udp_client_send", args_process_test_inet_udp_client_send,0, "test", "N/A","test_tcp_client_send"},
-    {"Client", args_process_test_Client,0, "test", "N/A","test_tcp_client_send"},
-    {"Server", args_process_test_Server,0, "test", "N/A","test_tcp_client_send"},
-    {"Worker", args_process_test_Worker,0, "test", "N/A","test_tcp_client_send"},
-    {"Lock", args_process_test_Lock,0, "test", "N/A","test_tcp_client_send"},
-    {"unix_udp_send", args_process_test_Unix_Udp_send,0, "test", "N/A","test_tcp_client_send"},
-    {"unix_udp_recv", args_process_test_Unix_Udp_recv,0, "test", "N/A","test_tcp_server"},
-    {"tcp_send", args_process_test_Tcp_send,0, "test", "N/A","test_tcp_client_send"},
-    {"tcp_recv", args_process_test_Tcp_recv,0, "test", "N/A","test_tcp_server"},
-    {"udp_recv", args_process_test_Udp_recv,0, "test", "N/A","test_udp_client_recieve"},
-    {"udp_send", args_process_test_Udp_send,0, "test", "N/A","test_udp_client_send"},
+    {"client_send", args_process_test_client_send,0, "test", "N/A","test_inet_tcp_client_send"},
+    {"client_recv", args_process_test_client_recv,0, "test", "N/A","test_inet_tcp_client_send"},
+    {"inet_tcp_client", args_process_test_inet_tcp_client,0, "test", "N/A","test_inet_tcp_client_send"},
+    {"inet_tcp_server", args_process_test_inet_tcp_server,0, "test", "N/A","test_inet_tcp_client_send"},
+    {"inet_udp_client_recv", args_process_test_inet_udp_client_recv,0, "test", "N/A","test_inet_tcp_client_send"},
+    {"inet_udp_client_send", args_process_test_inet_udp_client_send,0, "test", "N/A","test_inet_tcp_client_send"},
+    {"Client", args_process_test_Client,0, "test", "N/A","test_inet_tcp_client_send"},
+    {"Server", args_process_test_Server,0, "test", "N/A","test_inet_tcp_client_send"},
+    {"Worker", args_process_test_Worker,0, "test", "N/A","test_inet_tcp_client_send"},
+    {"Lock", args_process_test_Lock,0, "test", "N/A","test_inet_tcp_client_send"},
+    {"unix_udp_socket_send", args_process_test_unix_udp_socket_send,0, "test", "N/A","test_inet_tcp_client_send"},
+    {"unix_udp_socket_recv", args_process_test_unix_udp_socket_recv,0, "test", "N/A","test_inet_tcp_server"},
+    {"inet_tcp_socket_send", args_process_test_inet_tcp_socket_send,0, "test", "N/A","test_inet_tcp_client_send"},
+    {"inet_tcp_socket_recv", args_process_test_inet_tcp_socket_recv,0, "test", "N/A","test_inet_tcp_server"},
+    {"inet_udp_socket_recv", args_process_test_inet_udp_socket_recv,0, "test", "N/A","test_inet_udp_client_recieve"},
+    {"inet_udp_socket_send", args_process_test_inet_udp_socket_send,0, "test", "N/A","test_inet_udp_client_send"},
     {"Thread", args_process_test_Thread,0, "test", "N/A","test"},
     {"Event_Thread", args_process_test_Event_Thread,0, "test", "N/A","test"},
     {"Socket", args_process_test_Socket,0, "test", "N/A","test"},

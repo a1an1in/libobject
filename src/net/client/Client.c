@@ -148,7 +148,8 @@ static int __trustee(Client *client, struct timeval *tv,
     Worker *worker     = c->worker;
     int fd             = c->socket->fd;
     
-    worker->opaque = opaque;
+    client->opaque = opaque;
+    worker->opaque = client;
     worker->assign(worker, fd, EV_READ | EV_PERSIST, tv,
                    (void *)__ev_callback, worker, work_callback);
     worker->enroll(worker, producer);

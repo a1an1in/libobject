@@ -107,7 +107,7 @@ static int __bind(Server *server, char *host, char *service)
     return socket->bind(socket, host, service);
 }
 
-static ssize_t __new_socket_ev_callback(int fd, short event, void *arg)
+static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
 {
     Worker *worker = (Worker *)arg;
 #define EV_CALLBACK_MAX_BUF_LEN 1024 * 10
@@ -128,7 +128,7 @@ static ssize_t __new_socket_ev_callback(int fd, short event, void *arg)
         return 1;
     }
 
-    dbg_str(DBG_SUC,"new_socket_ev_callback");
+    dbg_str(DBG_SUC,"new_conn_ev_callback");
     if (worker->work_callback && len) {
         net_task_t *task;
         task = net_task_alloc(worker->obj.allocator, len);
@@ -159,7 +159,7 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
     }
 
     new_worker->assign(new_worker, new_fd, EV_READ | EV_PERSIST, NULL,
-                       (void *)__new_socket_ev_callback,
+                       (void *)__new_conn_ev_callback,
                        new_worker, 
                        (void *)worker->work_callback);
     new_worker->enroll(new_worker, producer);

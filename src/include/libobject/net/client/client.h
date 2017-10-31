@@ -27,6 +27,7 @@ struct client_s{
 
     Worker *worker;
     Socket *socket;
+    void *opaque;
 };
 
 #endif

@@ -168,7 +168,7 @@ static class_info_entry_t inet_tcp_socket_class_info[] = {
 };
 REGISTER_CLASS("Inet_Tcp_Socket",inet_tcp_socket_class_info);
 
-void test_tcp_socket_send()
+void test_inet_tcp_socket_send()
 {
     Socket *socket;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -185,7 +185,7 @@ void test_tcp_socket_send()
     object_destroy(socket);
 }
 
-void test_tcp_socket_recv()
+void test_inet_tcp_socket_recv()
 {
     Socket *socket, *new;
     char buf[1024] = {0};
