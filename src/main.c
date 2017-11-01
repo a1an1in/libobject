@@ -671,7 +671,13 @@ static int args_process_test_client_recv(void *base,int argc,char **argv)
     test_obj_client_recv();
 }
 
+static int args_process_test_server(void *base,int argc,char **argv)
+{
+    test_obj_server();
+}
+
 static cmd_config_t cmds[]={
+    {"server", args_process_test_server,0, "test", "N/A","test_inet_tcp_client_send"},
     {"client_send", args_process_test_client_send,0, "test", "N/A","test_inet_tcp_client_send"},
     {"client_recv", args_process_test_client_recv,0, "test", "N/A","test_inet_tcp_client_send"},
     {"inet_tcp_client", args_process_test_inet_tcp_client,0, "test", "N/A","test_inet_tcp_client_send"},
