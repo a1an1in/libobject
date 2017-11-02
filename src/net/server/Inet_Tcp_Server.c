@@ -113,7 +113,6 @@ static void test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
     dbg_str(DBG_SUC,"%s", t->buf);
-    net_task_free(t);
 }
 
 void test_obj_inet_tcp_server()

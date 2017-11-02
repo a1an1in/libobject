@@ -13,6 +13,7 @@ typedef struct net_task_s{
     void *buf;
     int buf_len;
     allocator_t *allocator;
+    void *opaque;
 } net_task_t;
 
 static inline net_task_t *

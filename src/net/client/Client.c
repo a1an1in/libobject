@@ -134,7 +134,9 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
         task = net_task_alloc(worker->obj.allocator, len);
         memcpy(task->buf, buf, len);
         task->buf_len = len;
+        task->opaque  = client->opaque;
         worker->work_callback(task);
+        net_task_free(task);
     }
 
     return 0;

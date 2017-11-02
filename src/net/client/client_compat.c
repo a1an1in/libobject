@@ -42,12 +42,12 @@
 #define CLIENT_TYPE_UNIX_TCP "unix_tcp_client_type"
 #define CLIENT_TYPE_UNIX_UDP "unix_udp_client_type"
 
-Client *client(allocator_t *allocator,
-               char *type,
-               char *host,
-               char *service,
-               void (*process_task_cb)(void *arg),
-               void *opaque)
+void *client(allocator_t *allocator,
+             char *type,
+             char *host,
+             char *service,
+             void (*process_task_cb)(void *arg),
+             void *opaque)
 {
     Client *client = NULL;
 
@@ -63,20 +63,22 @@ Client *client(allocator_t *allocator,
         return NULL;
     }
 
-    return client;
+    return (void *)client;
 }
 
-int client_connect(Client *client, char *host, char *service)
+int client_connect(void *client, char *host, char *service)
 {
-    return client->connect(client, host, service);
+    Client *c = (Client *)client;
+    return c->connect(c, host, service);
 }
 
-int client_send(Client *client, void *buf, int len, int flags)
+int client_send(void *client, void *buf, int len, int flags)
 {
-    return client->send(client, buf, len, flags);
+    Client *c = (Client *)client;
+    return c->send(c, buf, len, flags);
 }
 
-int client_destroy(Client *client)
+int client_destroy(void *client)
 {
     return object_destroy(client);
 }
@@ -85,7 +87,6 @@ static void test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
     dbg_str(DBG_SUC,"%s", t->buf);
-    net_task_free(t);
 }
 
 void test_obj_client_recv()

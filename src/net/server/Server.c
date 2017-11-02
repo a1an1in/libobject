@@ -110,6 +110,7 @@ static int __bind(Server *server, char *host, char *service)
 static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
 {
     Worker *worker = (Worker *)arg;
+    Server *server = (Server *)worker->opaque;
 #define EV_CALLBACK_MAX_BUF_LEN 1024 * 10
     char buf[EV_CALLBACK_MAX_BUF_LEN];
     int  buf_len = EV_CALLBACK_MAX_BUF_LEN, len = 0;
@@ -133,8 +134,10 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
         net_task_t *task;
         task = net_task_alloc(worker->obj.allocator, len);
         memcpy(task->buf, buf, len);
+        task->opaque  = server->opaque;
         task->buf_len = len;
         worker->work_callback(task);
+        net_task_free(task);
     }
 
     return 0;
@@ -158,6 +161,7 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
         return -1;
     }
 
+    new_worker->opaque = server;
     new_worker->assign(new_worker, new_fd, EV_READ | EV_PERSIST, NULL,
                        (void *)__new_conn_ev_callback,
                        new_worker, 

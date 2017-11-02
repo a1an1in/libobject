@@ -37,12 +37,12 @@
 
 #define SERVER_TYPE_INET_TCP "inet_tcp_server_type"
 #define SERVER_TYPE_UNIX_TCP "tcp_userver_type"
-Server *server(allocator_t *allocator, 
-               char *type,
-               char *host,
-               char *service,
-               void (*process_task_cb)(void *arg),
-               void *opaque)
+void *server(allocator_t *allocator, 
+             char *type,
+             char *host,
+             char *service,
+             void (*process_task_cb)(void *arg),
+             void *opaque)
 {
     Server *server;
 
@@ -56,11 +56,12 @@ Server *server(allocator_t *allocator,
         return NULL;
     }
 
-    return server;
+    return (void *)server;
 }
 
-int server_destroy(Server *server)
+int server_destroy(void *server)
 {
+    Server *s = (Server *)server;
     return object_destroy(server);
 }
 
@@ -68,7 +69,7 @@ static void test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
     dbg_str(DBG_SUC,"%s", t->buf);
-    net_task_free(t);
+    dbg_str(DBG_SUC,"task opaque=%p", t->opaque);
 }
 
 void test_obj_server()
@@ -78,9 +79,10 @@ void test_obj_server()
 
     sleep(1);
 
-    s = server(allocator, SERVER_TYPE_INET_TCP, 
-               "127.0.0.1", "11011", test_work_callback, NULL);
+    s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
+                         "127.0.0.1", "11011", test_work_callback, allocator);
 
+    dbg_str(DBG_SUC,"opaque=%p", allocator);
     pause();
     pause();
 
