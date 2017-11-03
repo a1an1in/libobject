@@ -5,7 +5,7 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/concurrent/worker.h>
-#include <libobject/net/socket.h>
+#include <libobject/net/socket/socket.h>
 
 typedef struct client_s Client;
 

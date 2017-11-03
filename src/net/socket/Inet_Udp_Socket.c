@@ -34,7 +34,7 @@
 #include <libobject/event/event_base.h>
 #include <libobject/utils/config/config.h>
 #include <libobject/utils/timeval/timeval.h>
-#include <libobject/net/inet_udp_socket.h>
+#include <libobject/net/socket/inet_udp_socket.h>
 #include <libobject/core/thread.h>
 
 static int __construct(Inet_Udp_Socket *sk,char *init_str)

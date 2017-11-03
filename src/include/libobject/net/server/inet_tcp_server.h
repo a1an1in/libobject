@@ -5,7 +5,7 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/net/server/server.h>
-#include <libobject/net/inet_tcp_socket.h>
+#include <libobject/net/socket/inet_tcp_socket.h>
 
 typedef struct inet_tcp_server_s Inet_Tcp_Server;
 

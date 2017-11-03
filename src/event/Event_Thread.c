@@ -37,7 +37,7 @@
 #include <libobject/utils/timeval/timeval.h>
 #include <libobject/event/select_base.h>
 #include <libobject/core/linked_queue.h>
-#include <libobject/net/unix_udp_socket.h>
+#include <libobject/net/socket/unix_udp_socket.h>
 #include <libobject/event/event_thread.h>
 
 static int __construct(Event_Thread *thread, char *init_str)

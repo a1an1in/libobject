@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
-#include <libobject/net/socket.h>
+#include <libobject/net/socket/socket.h>
 
 typedef struct inet_tcp_socket_s Inet_Tcp_Socket;
 
