@@ -50,7 +50,8 @@ static void __release_worker(void *element)
 {
     Worker *worker = (Worker *)element;
 
-    dbg_str(OBJ_DETAIL,"value: %s", element);
+    dbg_str(DBG_DETAIL,"release_worker, element: %p", element);
+    worker->resign(worker);
     object_destroy(worker);
 }
 
@@ -111,6 +112,7 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
 {
     Worker *worker = (Worker *)arg;
     Server *server = (Server *)worker->opaque;
+    List *list     = server->workers;
 #define EV_CALLBACK_MAX_BUF_LEN 1024 * 10
     char buf[EV_CALLBACK_MAX_BUF_LEN];
     int  buf_len = EV_CALLBACK_MAX_BUF_LEN, len = 0;
@@ -124,8 +126,11 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
         exit(1);
     }  else if (len == 0) {
         ret = worker->resign(worker);
-        if (ret == 0)
+        if (ret == 0) {
+            list->remove_element(list, worker);
+            object_destroy(worker); //????there may be prolem, worker event may havn't been reclaimed
             dbg_str(DBG_DETAIL,"client exit");
+        }
         return 1;
     }
 

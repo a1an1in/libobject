@@ -77,13 +77,10 @@ void test_obj_server()
     Server *s;
     allocator_t *allocator = allocator_get_default_alloc();
 
-    sleep(1);
-
     s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
                          "127.0.0.1", "11011", test_work_callback, allocator);
 
     dbg_str(DBG_SUC,"opaque=%p", allocator);
-    pause();
     pause();
 
     object_destroy(s);

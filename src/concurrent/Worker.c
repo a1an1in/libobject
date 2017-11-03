@@ -124,7 +124,7 @@ static int __resign(Worker *worker)
         p->del_worker(p, worker);
         worker->flags |= 1;
     } else {
-        return 1;
+        return 1; //has resigned
     }
 
     return 0;

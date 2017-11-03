@@ -188,7 +188,6 @@ void test_obj_client()
      *dbg_str(NET_DETAIL,"Client dump: %s",buf);
      */
     pause();
-    pause();
 
     object_destroy(client);
 }

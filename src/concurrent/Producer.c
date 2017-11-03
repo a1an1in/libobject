@@ -35,18 +35,17 @@
 #include <libobject/utils/timeval/timeval.h>
 #include <libobject/concurrent/producer.h>
 #include <libobject/concurrent/worker.h>
+#include <libobject/core/linked_list.h>
 
 Producer *global_default_producer;
 
 static int __construct(Producer *producer,char *init_str)
 {
-    /*
-     *allocator_t *allocator = producer->obj.allocator;
-     */
-    configurator_t * c;
-    char buf[2048];
+	Obj *obj = (Obj *)producer;
+    allocator_t *allocator = obj->allocator;
 
     dbg_str(CONCURRENT_DETAIL,"producer construct, producer addr:%p",producer);
+    producer->workers = OBJECT_NEW(allocator, Linked_List, NULL);
 
     return 0;
 }
@@ -54,6 +53,7 @@ static int __construct(Producer *producer,char *init_str)
 static int __deconstrcut(Producer *producer)
 {
     dbg_str(CONCURRENT_DETAIL,"producer deconstruct,producer addr:%p",producer);
+    object_destroy(producer->workers);
 
     return 0;
 }
@@ -100,23 +100,31 @@ static void *__get(Producer *obj, char *attrib)
 
 static int __add_worker(Producer *producer, void *worker)
 {
-    Worker *w = (Worker *)worker;
+    Worker *w            = (Worker *)worker;
     Event_Thread *thread = &producer->parent;
+    List *workers_list   = producer->workers;
 
     w->producer = producer;
     thread->add_event(thread, (void *)&w->event);
+    /*
+     *workers_list->add(workers_list, worker);
+     */
 
     return 0;
 }
 
 static int __del_worker(Producer *producer, void *worker)
 {
-    Worker *w = (Worker *)worker;
+    Worker *w            = (Worker *)worker;
     Event_Thread *thread = &producer->parent;
+    List *workers_list   = producer->workers;
 
     dbg_str(DBG_SUC,"producer del worker");
     w->producer = producer;
     thread->del_event(thread, (void *)&w->event);
+    /*
+     *workers_list->remove_element(workers_list, worker);
+     */
 }
 
 static int __add_dispatcher(Producer *producer, void *worker)
@@ -144,7 +152,10 @@ REGISTER_CLASS("Producer",producer_class_info);
 
 Producer *global_get_default_producer()
 {
-    return global_default_producer;
+    Producer *producer = global_default_producer;
+
+    while (producer->parent.flags < EVTHREAD_STATE_RUNNING) sleep(1);
+    return producer;
 }
 
 __attribute__((constructor(ATTRIB_PRIORITY_CONCURRENT))) void
@@ -164,6 +175,7 @@ default_producer_destructor()
 {
     Producer *producer = global_get_default_producer();
     dbg_str(CONCURRENT_DETAIL,"destruct default_producer_destructor");
+    while (producer->parent.flags != EVTHREAD_STATE_DESTROYED) sleep(1);
     object_destroy(producer);
 }
 

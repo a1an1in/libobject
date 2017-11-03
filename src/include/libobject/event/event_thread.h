@@ -12,6 +12,12 @@
 
 typedef struct event_thread_s Event_Thread;
 
+enum event_thread_state_e{
+    EVTHREAD_STATE_UNINITED = -1,
+    EVTHREAD_STATE_INITED,
+    EVTHREAD_STATE_RUNNING,
+    EVTHREAD_STATE_DESTROYED,
+};
 struct event_thread_s{
 	Thread parent;
 
@@ -34,6 +40,7 @@ struct event_thread_s{
     event_t server_socket_event;
     Queue *ev_queue;
     Socket *s, *c;
+    int flags;
 };
 
 #endif

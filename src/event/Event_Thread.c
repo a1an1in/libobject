@@ -49,6 +49,7 @@ static int __construct(Event_Thread *thread, char *init_str)
 
     thread->eb       = (Event_Base *)OBJECT_NEW(allocator, Select_Base, NULL);
     thread->ev_queue = (Queue *)OBJECT_NEW(allocator, Linked_Queue, NULL);
+    thread->flags    = 0;
 
     return 0;
 }
@@ -216,7 +217,11 @@ static void *__start_routine(void *arg)
     event->ev_arg             = arg;
     eb->add(eb, event);
 
+    et->flags = EVTHREAD_STATE_RUNNING; //?????the event may havn't been added to evbase
+
     eb->loop(eb);
+
+    et->flags = EVTHREAD_STATE_DESTROYED;
     dbg_str(EV_IMPORTANT,"Event Thread, out start routine");
 }
 

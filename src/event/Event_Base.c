@@ -156,6 +156,7 @@ static int __add(Event_Base *eb, event_t *event)
         evsig_add(eb, event);
     } else {
         event->ev_tv = event->ev_timeout;
+        dbg_str(DBG_DETAIL, "add fd =%d into io map", fd);
         io_map->add(io_map, &fd, event);
 
         eb->trustee_io(eb,event);
@@ -206,7 +207,7 @@ static int __activate_io(Event_Base *eb, int fd, short events)
     dbg_str(EV_DETAIL,"search ret=%d",ret);
 
     if (ret < 0) {
-        dbg_str(EV_WARNNING,"not found fd in io_map,ret=%d",ret);
+        dbg_str(EV_WARNNING,"not found fd = %d in io_map,ret=%d",fd, ret);
     } else {
         dbg_str(EV_DETAIL, "event addr:%p, ev_callback=%p",
                 event, event->ev_callback);

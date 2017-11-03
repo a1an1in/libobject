@@ -94,7 +94,6 @@ void test_obj_client_recv()
     allocator_t *allocator = allocator_get_default_alloc();
     Client *c = NULL;
 
-    sleep(1);
     dbg_str(DBG_DETAIL,"test_obj_client_recv");
 
     c = client(allocator,
@@ -103,7 +102,6 @@ void test_obj_client_recv()
                (char *)"1989",//char *client_port,
                test_work_callback,
                NULL);
-    pause();
     pause();
     object_destroy(c);
 }
@@ -114,7 +112,6 @@ void test_obj_client_send()
     Client *c = NULL;
     char *str = "hello world";
 
-    sleep(1);
     dbg_str(DBG_DETAIL,"test_obj_client_send");
 
     c = client(allocator,
@@ -126,7 +123,6 @@ void test_obj_client_send()
     client_connect(c, "127.0.0.1", "1989");
     client_send(c, str, strlen(str), 0);
 
-    pause();
     pause();
     object_destroy(c);
 }

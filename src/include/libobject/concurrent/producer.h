@@ -7,6 +7,7 @@
 #include <libobject/core/hash_map.h>
 #include <libobject/concurrent/dispatcher.h>
 #include <libobject/event/event_thread.h>
+#include <libobject/core/list.h>
 
 typedef struct producer_s Producer;
 
@@ -28,6 +29,7 @@ struct producer_s{
     int (*start)(Producer *);
 
     Dispatcher *dispatcher;
+    List *workers;
 };
 
 Producer *global_get_default_producer();

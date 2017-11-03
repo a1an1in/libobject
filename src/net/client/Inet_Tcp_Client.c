@@ -133,7 +133,6 @@ void test_obj_inet_tcp_client()
     char buf[2048];
     char *test_str = "hello world";
 
-    sleep(1);
     dbg_str(DBG_DETAIL,"test_obj_inet_tcp_client_recv");
     client = OBJECT_NEW(allocator, Inet_Tcp_Client, NULL);
     /*
@@ -143,7 +142,6 @@ void test_obj_inet_tcp_client()
     client->trustee(client, NULL, test_work_callback, client);
     client->send(client, test_str, strlen(test_str), 0);
 
-    pause();
     pause();
 
     object_destroy(client);
