@@ -1,6 +1,7 @@
 #ifndef __BLOB_H__
 #define __BLOB_H__
 
+#include <libobject/basic_types.h>
 #include <libobject/utils/alloc/allocator.h>
 #include <libobject/utils/data_structure/array_stack.h>
 
@@ -46,7 +47,9 @@ int blob_add(blob_t *blob, uint8_t type, char *name, void *value, uint16_t value
 int blob_add_u8(blob_t *blob, char *name, uint8_t val);
 int blob_add_u16(blob_t *blob, char *name, uint16_t val);
 int blob_add_u32(blob_t *blob, char *name, uint32_t val);
-int blob_add_u64(blob_t *blob, char *name, uint64_t val);
+/*
+ *int blob_add_u64(blob_t *blob, char *name, uint64_t val);
+ */
 int blob_add_string(blob_t *blob, char *name, char *str);
 int blob_add_buffer(blob_t *blob, char *name, uint8_t *buf, int len);
 int blob_add_table_start(blob_t *blob, char *name);

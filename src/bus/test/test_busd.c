@@ -1,9 +1,9 @@
 /**
- * @file Inet_Tcp_Server.c
- * @Synopsis  
- * @author alan lin
+ * @file busd.c
+ * @synopsis 
+ * @author alan(a1an1in@sina.com)
  * @version 
- * @date 2017-10-24
+ * @date 2016-10-28
  */
 /* Copyright (c) 2015-2020 alan lin <a1an1in@sina.com>
  * Redistribution and use in source and binary forms, with or without
@@ -30,56 +30,33 @@
  * 
  */
 #include <stdio.h>
+#include <unistd.h>
 #include <libobject/utils/dbg/debug.h>
-#include <libobject/utils/config/config.h>
-#include <libobject/utils/timeval/timeval.h>
-#include <libobject/net/server/inet_tcp_server.h>
+#include <libobject/utils/miscellany/buffer.h>
+#include <libobject/bus/busd.h>
+#include <libobject/bus/bus.h>
 
-void *server(allocator_t *allocator, 
-             char *type,
-             char *host,
-             char *service,
-             void (*process_task_cb)(void *arg),
-             void *opaque)
+void test_bus_daemon()
 {
-    Server *server;
-
-    if(!strcmp(type,SERVER_TYPE_INET_TCP)){
-        server = OBJECT_NEW(allocator, Inet_Tcp_Server, NULL);
-        server->bind(server, host, service); 
-        if (process_task_cb != NULL)
-            server->trustee(server, (void *)process_task_cb, opaque);
-    } else {
-        dbg_str(DBG_WARNNING,"server type error");
-        return NULL;
-    }
-
-    return (void *)server;
-}
-
-int server_destroy(void *server)
-{
-    Server *s = (Server *)server;
-    return object_destroy(server);
-}
-
-static void test_work_callback(void *task)
-{
-    net_task_t *t = (net_task_t *)task;
-    dbg_str(DBG_SUC,"%s", t->buf);
-    dbg_str(DBG_SUC,"task opaque=%p", t->opaque);
-}
-
-void test_obj_server()
-{
-    Server *s;
     allocator_t *allocator = allocator_get_default_alloc();
+    busd_t *busd;
+#if 0
+    char *deamon_host = "bus_server_path";
+    char *deamon_srv = NULL;
+#else
+    char *deamon_host = "127.0.0.1";
+    char *deamon_srv  = "12345";
+#endif
+    
+    dbg_str(BUS_DETAIL,"test_busd_daemon");
 
-    s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
-                         "127.0.0.1", "11011", test_work_callback, allocator);
+    busd = busd_create(allocator,
+                       deamon_host,
+                       deamon_srv, 
+                       SERVER_TYPE_INET_TCP);
 
-    dbg_str(DBG_SUC,"opaque=%p", allocator);
-    pause();
-
-    object_destroy(s);
+    /*
+	 *while(1) sleep(1);
+     */
 }
+

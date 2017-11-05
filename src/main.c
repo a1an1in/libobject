@@ -256,47 +256,19 @@ static int args_process_test_blob(void *base,int argc,char **argv)
 
 static int args_process_busd(void *base,int argc,char **argv)
 {
-#if 0
-#if 1
-    allocator_t *allocator = allocator_get_default_alloc();
-    busd_t *busd;
-#if 0
-    char *deamon_host = "bus_server_path";
-    char *deamon_srv = NULL;
-#else
-    char *deamon_host = "127.0.0.1";
-    char *deamon_srv  = "12345";
-#endif
-    
-    dbg_str(BUS_DETAIL,"test_busd_daemon");
-
-    busd = busd_create(allocator,
-                       deamon_host,
-                       deamon_srv, 
-                       SERVER_TYPE_INET_TCP);
-
+    test_bus_daemon();
     return 0;
-#else
-    /*
-     *test_bus_daemon();
-     */
-#endif
-#endif
 }
 
 static int args_process_busc(void *base,int argc,char **argv)
 {
-    /*
-     *test_bus_client();
-     */
+    test_bus_client();
     return 0;
 }
 
 static int args_process_buss(void *base,int argc,char **argv)
 {
-    /*
-     *test_bus_server();
-     */
+    test_bus_server();
     return 0;
 }
 

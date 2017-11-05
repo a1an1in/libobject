@@ -35,6 +35,7 @@
 #include <libobject/utils/timeval/timeval.h>
 #include <libobject/net/client/client.h>
 #include <libobject/net/client/inet_udp_client.h>
+#include <libobject/net/client/inet_tcp_client.h>
 
 #if 1
 #define CLIENT_TYPE_INET_TCP "inet_tcp_client_type"
@@ -58,12 +59,16 @@ void *client(allocator_t *allocator,
         client->bind(client, host, service); 
         if (process_task_cb != NULL)
             client->trustee(client, NULL, (void *)process_task_cb, opaque);
+    }else if (!strcmp(type,CLIENT_TYPE_INET_TCP)){
+        client = OBJECT_NEW(allocator, Inet_Tcp_Client, NULL);
+        if (process_task_cb != NULL)
+            client->trustee(client, NULL, (void *)process_task_cb, opaque);
     } else {
         dbg_str(DBG_WARNNING,"client error type");
         return NULL;
     }
 
-    return (void *)client;
+return (void *)client;
 }
 
 int client_connect(void *client, char *host, char *service)
@@ -126,4 +131,5 @@ void test_obj_client_send()
     pause();
     object_destroy(c);
 }
+
 #endif

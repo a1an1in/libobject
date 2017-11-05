@@ -141,6 +141,7 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
         memcpy(task->buf, buf, len);
         task->opaque  = server->opaque;
         task->buf_len = len;
+        task->fd = fd;
         worker->work_callback(task);
         net_task_free(task);
     }
