@@ -250,9 +250,7 @@ static int args_process_test_pa_admin(void *base,int argc,char **argv)
 
 static int args_process_test_blob(void *base,int argc,char **argv)
 {
-    /*
-     *test_blob();
-     */
+    test_blob();
     return 0;
 }
 
