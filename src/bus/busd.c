@@ -342,6 +342,7 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
 #undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
+    char *json_str = "hello_world";
 
     dbg_str(BUS_DETAIL, "busd_reply_lookup_object");
     memset(&hdr, 0, sizeof(hdr));
@@ -353,20 +354,23 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
         dbg_str(BUS_DETAIL, "obj_name:%s", obj->name);
         blob_add_string(blob, (char *)"object_name", obj->name);
         blob_add_u32(blob, (char *)"id", 1);
-        blob_add_table_start(blob, (char *)"methods"); {
-            vector_pos_t pos, next;
-            for (   vector_begin(obj->methods, &pos), vector_pos_next(&pos, &next);
-                    !vector_pos_equal(&pos, &obj->methods->end);
-                    pos = next, vector_pos_next(&pos, &next))
-            {
-                struct busd_object_method *method; 
-                method = (struct busd_object_method *)vector_pos_get_pointer(&pos);
-                blob_add_table_start(blob, method->name); {
-                }
-                blob_add_table_end(blob);
-            }
-        }
-        blob_add_table_end(blob);
+        /*
+         *blob_add_table_start(blob, (char *)"methods"); {
+         *    vector_pos_t pos, next;
+         *    for (   vector_begin(obj->methods, &pos), vector_pos_next(&pos, &next);
+         *            !vector_pos_equal(&pos, &obj->methods->end);
+         *            pos = next, vector_pos_next(&pos, &next))
+         *    {
+         *        struct busd_object_method *method; 
+         *        method = (struct busd_object_method *)vector_pos_get_pointer(&pos);
+         *        blob_add_table_start(blob, method->name); {
+         *        }
+         *        blob_add_table_end(blob);
+         *    }
+         *}
+         *blob_add_table_end(blob);
+         */
+        blob_add_string(blob, (char *)"opaque", json_str);
     }
     blob_add_table_end(blob);
 

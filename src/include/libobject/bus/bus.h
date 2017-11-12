@@ -127,6 +127,7 @@ typedef struct bus_req_s{
 #undef BUS_REQ_MAX_OPAQUE_LEN
     uint16_t opaque_len;
     uint16_t opaque_buffer_len;
+    int read, write;
 }bus_req_t;
 
 struct bus_s{

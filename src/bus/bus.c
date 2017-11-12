@@ -197,9 +197,6 @@ int bus_add_object(bus_t *bus, struct bus_object *obj)
     }
     blob_add_table_end(blob);
 
-    /*
-     *dbg_str(BUS_DETAIL, "run at here");
-     */
     memcpy(buffer, &hdr, sizeof(hdr));
     buffer_len = sizeof(hdr);
     /*
@@ -276,11 +273,64 @@ int bus_lookup(bus_t *bus, char *key)
     return 0;
 }
 
+#if 1
+int bus_lookup_sync(bus_t *bus, char *object, char *out_buf, char *out_len)
+{
+    bus_req_t *req;
+    Map *map = bus->req_map;
+    int ret;
+    int count = 0;
+    int state = 0;
+#define MAX_BUFFER_LEN 2048
+    char buffer[MAX_BUFFER_LEN];
+#undef MAX_BUFFER_LEN
+    int fds[2];
+    char c;
+
+    req = (bus_req_t *)allocator_mem_alloc(bus->allocator, sizeof(bus_req_t));
+    req->state             = 0xffff;
+    req->opaque_len        = 0;
+    req->opaque            = buffer;
+    req->opaque_buffer_len = sizeof(buffer);
+
+    if (pipe(fds)) {
+        dbg_str(SM_ERROR,"cannot create pipe");
+        return -1;
+    }
+    req->read  = fds[0];
+    req->write = fds[1];
+
+    sprintf(buffer, "%s@lookup", object);
+    map->add(map, buffer, req);
+
+    bus_lookup(bus, object);
+
+    read(req->read, &c, 1); 
+
+    dbg_str(BUS_SUC, "lookup result:%s", req->opaque);
+
+    memcpy(out_buf, req->opaque, req->opaque_len);
+    *out_len = req->opaque_len;
+
+    allocator_mem_free(bus->allocator, req);
+    close(req->read);
+    close(req->write);
+    
+    return ret;
+}
+#endif
+
 int bus_handle_lookup_object_reply(bus_t *bus, blob_attr_t **attr)
 {
     struct bus_object *obj;
     blob_attr_t *attrib, *head;
+    Map *map = bus->req_map;
+    char *obj_name, *opaque = NULL;
+    bus_req_t *req;
     uint32_t len;
+#define MAX_BUFFER_LEN 2048
+    char key[MAX_BUFFER_LEN] = {0};
+#undef MAX_BUFFER_LEN
     int ret;
 
     dbg_str(BUS_DETAIL, "bus_handle_lookup_object_reply");
@@ -289,17 +339,22 @@ int bus_handle_lookup_object_reply(bus_t *bus, blob_attr_t **attr)
         dbg_str(BUS_DETAIL, "object id:%d", blob_get_u32(attr[BUS_ID]));
     }
     if (attr[BUS_OBJNAME]) {
-        dbg_str(BUS_DETAIL, "object name:%s", blob_get_string(attr[BUS_OBJNAME]));
+        obj_name = blob_get_string(attr[BUS_OBJNAME]);
+        dbg_str(BUS_DETAIL, "object name:%s", obj_name);
     }
-    if (attr[BUS_METHORDS]) {
-        dbg_str(BUS_DETAIL, "object methods");
+    if (attr[BUS_OPAQUE]) {
+        opaque = blob_get_string(attr[BUS_OPAQUE]);
+        dbg_str(BUS_DETAIL, "object opaque:%s", opaque);
+    }
 
-        head = (blob_attr_t *)blob_get_data(attr[BUS_METHORDS]);
-        len  = blob_get_data_len(attr[BUS_METHORDS]);
-
-        blob_for_each_attr(attrib, head, len) {
-            dbg_str(BUS_DETAIL, "method name:%s", blob_get_name(attrib));
+    sprintf(key, "%s@lookup", obj_name);
+    ret = map->search(map, key, (void **)&req);
+    if (ret > 0) {
+        char c =  1;
+        if (opaque != NULL) {
+            memcpy(req->opaque, opaque, strlen(opaque));
         }
+        write(req->write, &c, 1);
     }
 }
 
@@ -376,7 +431,7 @@ int bus_invoke_async(bus_t *bus, char *key, char *method, int argc, char **args)
     return 0;
 }
 
-int bus_invoke_sync(bus_t *bus, char *key, char *method, int argc, bus_method_args_t *args, char *out_buf, char *out_len)
+int bus_invoke_sync(bus_t *bus, char *object, char *method, int argc, bus_method_args_t *args, char *out_buf, char *out_len)
 {
     bus_req_t *req;
     Map *map = bus->req_map;
@@ -384,8 +439,10 @@ int bus_invoke_sync(bus_t *bus, char *key, char *method, int argc, bus_method_ar
     int count = 0;
     int state = 0;
 #define MAX_BUFFER_LEN 2048
-    char buffer[MAX_BUFFER_LEN];
+    char buffer[MAX_BUFFER_LEN] = {0};
 #undef MAX_BUFFER_LEN
+    int fds[2];
+    char c;
 
     req = (bus_req_t *)allocator_mem_alloc(bus->allocator, sizeof(bus_req_t));
     req->method            = method;
@@ -394,18 +451,19 @@ int bus_invoke_sync(bus_t *bus, char *key, char *method, int argc, bus_method_ar
     req->opaque            = buffer;
     req->opaque_buffer_len = sizeof(buffer);
 
-    map->add(map, method, req);
-
-    bus_invoke(bus, key, method, argc, args);
-
-    while (req->state == 0xffff) {
-        sleep(1);
-        count++;
-        if (count > 5) {
-            req->state = -99;
-            break;
-        }
+    if (pipe(fds)) {
+        dbg_str(SM_ERROR,"cannot create pipe");
+        return -1;
     }
+    req->read  = fds[0];
+    req->write = fds[1];
+
+    sprintf(buffer, "%s@%s", object, method);
+    map->add(map, buffer, req);
+
+    bus_invoke(bus, object, method, argc, args);
+
+    read(req->read, &c, 1); 
 
     dbg_str(BUS_SUC, "bus_invoke_sync, rev return state =%d", req->state);
     dbg_buf(BUS_SUC, "opaque:", req->opaque, req->opaque_len);
@@ -415,6 +473,8 @@ int bus_invoke_sync(bus_t *bus, char *key, char *method, int argc, bus_method_ar
 
     ret = req->state;
     allocator_mem_free(bus->allocator, req);
+    close(req->read);
+    close(req->write);
     
     return ret;
 }
@@ -428,6 +488,9 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
     int ret;
     char *buffer = NULL;
     int buffer_len = 0;
+#define MAX_BUFFER_LEN 2048
+    char key[MAX_BUFFER_LEN] = {0};
+#undef MAX_BUFFER_LEN
 
     dbg_str(BUS_SUC, "bus_handle_invoke_reply");
 
@@ -449,8 +512,10 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
     }
 
     if (method_name != NULL) {
-        ret = map->search(map, method_name, (void **)&req);
+        sprintf(key, "%s@%s", obj_name, method_name);
+        ret = map->search(map, key, (void **)&req);
         if (ret > 0) {
+            char c =  1;
             req->state = state;
             if (req->opaque_buffer_len < buffer_len) {
                 dbg_str(BUS_WARNNING, "opaque buffer is too small , please check");
@@ -458,6 +523,7 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
             req->opaque_len = buffer_len;
             memcpy(req->opaque, buffer, buffer_len);
             dbg_str(BUS_DETAIL, "method_name:%s, state:%d", req->method, req->state);
+            write(req->write, &c, 1);
         }
     }
 
