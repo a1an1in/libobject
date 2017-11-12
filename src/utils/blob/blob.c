@@ -82,6 +82,7 @@ int blob_reset(blob_t *blob)
 
 int blob_destroy(blob_t *blob)
 {
+    dbg_str(DBG_DETAIL,"blob_destroy");
     array_stack_destroy(blob->tbl_stack);
     allocator_mem_free(blob->allocator, blob->head);
     allocator_mem_free(blob->allocator, blob);

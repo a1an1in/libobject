@@ -42,5 +42,7 @@ void test_bus_client()
     /*
 	 *while(1) sleep(1);
      */
+    pause();
+    bus_destroy(bus);
 	
 }

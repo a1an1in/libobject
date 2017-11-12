@@ -413,9 +413,10 @@ int bus_invoke_sync(bus_t *bus, char *key, char *method, int argc, bus_method_ar
     memcpy(out_buf, req->opaque, req->opaque_len);
     *out_len = req->opaque_len;
 
-    //... remove req
+    ret = req->state;
+    allocator_mem_free(bus->allocator, req);
     
-    return req->state;
+    return ret;
 }
 
 int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
@@ -509,7 +510,7 @@ int bus_reply_forward_invoke(bus_t *bus, char *obj_name, char *method_name, int 
 {
 #define BUS_ADD_OBJECT_MAX_BUFFER_LEN 2048
     bus_reqhdr_t hdr;
-    blob_t *blob;
+    blob_t *blob = bus->blob;
     uint8_t buffer[BUS_ADD_OBJECT_MAX_BUFFER_LEN];
     uint32_t buffer_len, tmp_len;
     allocator_t *allocator = bus->allocator;
@@ -519,12 +520,7 @@ int bus_reply_forward_invoke(bus_t *bus, char *obj_name, char *method_name, int 
 
     hdr.type = BUS_REPLY_FORWARD_INVOKE;
 
-    blob = blob_create(allocator);
-    if (blob == NULL) {
-        dbg_str(BUS_WARNNING, "blob_create");
-        return -1;
-    }
-    blob_init(blob);
+    blob_reset(blob);
     blob_add_table_start(blob, (char *)"reply_forward_invoke"); {
         blob_add_string(blob, (char *)"object_name", obj_name);
         blob_add_string(blob, (char *)"invoke_method", method_name);
