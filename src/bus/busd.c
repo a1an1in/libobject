@@ -41,7 +41,7 @@
 static const struct blob_policy_s busd_policy[] = {
     [BUSD_ID]             = { .name = "id",             .type = BLOB_TYPE_INT32 }, 
     [BUSD_OBJNAME]        = { .name = "object_name",    .type = BLOB_TYPE_STRING }, 
-    [BUSD_METHORDS]       = { .name = "methods",        .type = BLOB_TYPE_TABLE }, 
+    [BUSD_OBJINFOS]       = { .name = "object_infos",   .type = BLOB_TYPE_STRING }, 
     [BUSD_INVOKE_KEY]     = { .name = "invoke_key",     .type = BLOB_TYPE_STRING }, 
     [BUSD_INVOKE_METHORD] = { .name = "invoke_method",  .type = BLOB_TYPE_STRING }, 
     [BUSD_INVOKE_ARGC]    = { .name = "invoke_argc",    .type = BLOB_TYPE_INT32 }, 
@@ -51,54 +51,9 @@ static const struct blob_policy_s busd_policy[] = {
     [BUSD_INVOKE_SRC_FD]  = { .name = "source_fd",      .type = BLOB_TYPE_INT32 }, 
 };
 
-void busd_dump_object_method_args(void *element)
-{
-    struct busd_object_method_arg_s *arg = (struct busd_object_method_arg_s *)
-                                           element;
-
-    printf("args name:%s\n", arg->name);
-}
-
-void busd_dump_object_method(void *element)
-{
-    struct busd_object_method *method = (struct busd_object_method *)
-                                        element;
-    printf("method name:%s\n", method->name);
-
-    llist_for_each(method->args, busd_dump_object_method_args);
-}
-
 int busd_dump_object(struct busd_object *obj)
 {
-    printf("obj_name:%s\n", obj->name);
-
-    vector_for_each(obj->methods, (void (*)(void *))(busd_dump_object_method));
-
-    return 0;
-}
-
-void busd_release_object_method_arg(void *element, void *arg)
-{
-    struct busd_object_method_arg_s *method_arg = (struct busd_object_method_arg_s *)
-                                                  element;
-    allocator_t *allocator = (allocator_t *)arg;
-
-    printf("release args name:%s\n", method_arg->name);
-    allocator_mem_free(allocator, method_arg->name);
-    allocator_mem_free(allocator, method_arg);
-}
-
-int busd_release_object_method(void *element, void *arg)
-{
-    allocator_t *allocator = (allocator_t *)arg;
-    struct busd_object_method *method = (struct busd_object_method *)
-                                        element;
-    printf("release method name:%s\n", method->name);
-
-    llist_for_each_with_arg(method->args, busd_release_object_method_arg, allocator);
-    allocator_mem_free(allocator, method->name);
-    llist_destroy(method->args);
-    allocator_mem_free(allocator, method);
+    dbg_str(BUS_DETAIL, "busd_dump_object:%s", obj->infos);
 
     return 0;
 }
@@ -109,10 +64,7 @@ void busd_release_object(void *key, void *element)
     allocator_t *allocator = obj->allocator;
 
     allocator_mem_free(allocator, obj->name);
-    vector_for_each_with_arg(obj->methods, 
-                             (int (*)(void *, void *))(busd_release_object_method), 
-                             allocator);
-    vector_destroy(obj->methods);
+    allocator_mem_free(allocator, obj->infos);
     allocator_mem_free(allocator, obj);
 }
 
@@ -193,43 +145,6 @@ int busd_init(busd_t *busd,
     return 1;
 }
 
-int busd_get_object_method(struct busd_object_method * method, 
-                           allocator_t *allocator, 
-                           blob_attr_t *attr)
-{
-    struct busd_object_method_arg_s *arg;
-    blob_attr_t *pos, *head;
-    uint32_t len;
-    int data_size = sizeof(struct busd_object_method_arg_s);
-    int lock_type = 0;
-
-    dbg_str(BUS_DETAIL, "method name:%s", blob_get_name(attr));
-    method->name = (char *)allocator_mem_alloc(allocator, strlen(blob_get_name(attr)));
-    strncpy(method->name, (char *)blob_get_name(attr), strlen(blob_get_name(attr)));
-
-    method->args = llist_alloc(allocator);
-    llist_set(method->args, "lock_type", &lock_type);
-    llist_set(method->args, "data_size", &data_size);
-    llist_init(method->args);
-
-    head = (blob_attr_t *)blob_get_data(attr);
-    len  = blob_get_data_len(attr);
-
-    dbg_buf(BUS_DETAIL, "arg:", (uint8_t *)head, len);
-
-    blob_for_each_attr(pos, head, len) {
-        dbg_str(BUS_DETAIL, "arg name:%s", blob_get_name(pos));
-        arg = (struct busd_object_method_arg_s *)
-              allocator_mem_alloc(allocator, 
-                                  sizeof(struct busd_object_method_arg_s));
-        arg->name = (char *)allocator_mem_alloc(allocator, strlen(blob_get_name(pos)));
-        strncpy(arg->name, (char *)blob_get_name(pos), strlen(blob_get_name(pos)));
-        llist_add_back(method->args, arg);
-    }
-
-    return 0;
-}
-
 struct busd_object *
 busd_create_bus_object(busd_t *busd, char *name, blob_attr_t *attr, int fd)
 {
@@ -238,6 +153,7 @@ busd_create_bus_object(busd_t *busd, char *name, blob_attr_t *attr, int fd)
     uint32_t len;
     struct busd_object_method *method; 
     allocator_t *allocator = busd->allocator;
+    char *object_infos;
 
     obj = (struct busd_object *)allocator_mem_alloc(allocator, 
                                                     sizeof(struct busd_object));
@@ -246,23 +162,14 @@ busd_create_bus_object(busd_t *busd, char *name, blob_attr_t *attr, int fd)
         return NULL;
     }
 
-    obj->name = (char *)allocator_mem_alloc(allocator, strlen(name));
-    strncpy(obj->name, name, strlen(name));
-    obj->methods = vector_create(allocator, 0);
-    obj->fd      = fd;
+    object_infos   = blob_get_string(attr);
+    obj->fd        = fd;
     obj->allocator = allocator;
+    obj->name      = (char *)allocator_mem_alloc(allocator, strlen(name));
+    strncpy(obj->name, name, strlen(name));
 
-    vector_init(obj->methods, sizeof(struct busd_object_method), 2);
-
-    head = (blob_attr_t *)blob_get_data(attr);
-    len  = blob_get_data_len(attr);
-
-    blob_for_each_attr(attrib, head, len) {
-        method = (struct busd_object_method *)allocator_mem_alloc(busd->allocator, 
-                 sizeof(struct busd_object_method)); 
-        busd_get_object_method(method, allocator, attrib);
-        vector_add_back(obj->methods, method);
-    }
+    obj->infos = (char *)allocator_mem_alloc(allocator, strlen(object_infos));
+    strncpy(obj->infos, object_infos, strlen(object_infos));
 
     busd_dump_object(obj);
 
@@ -293,7 +200,8 @@ int busd_reply_add_object(busd_t *busd, int state, char *obj_name, int fd)
 
     memcpy(buffer, &hdr, sizeof(hdr));
     buffer_len = sizeof(hdr);
-    memcpy(buffer + buffer_len, (uint8_t *)blob->head, blob_get_len((blob_attr_t *)blob->head));
+    memcpy(buffer + buffer_len, (uint8_t *)blob->head,
+           blob_get_len((blob_attr_t *)blob->head));
     buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
     dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
@@ -318,9 +226,10 @@ int busd_handle_add_object(busd_t *busd, blob_attr_t **attr, int fd)
         obj_name = blob_get_string(attr[BUSD_OBJNAME]);
         dbg_str(BUS_DETAIL, "add object name:%s", blob_get_string(attr[BUSD_OBJNAME]));
     }
-    if (attr[BUSD_METHORDS]) {
-        dbg_str(BUS_DETAIL, "add object methods");
-        obj = busd_create_bus_object(busd, blob_get_string(attr[BUSD_OBJNAME]), attr[BUSD_METHORDS], fd);
+    if (attr[BUSD_OBJINFOS]) {
+        dbg_str(BUS_DETAIL, "add object infos");
+        obj = busd_create_bus_object(busd, blob_get_string(attr[BUSD_OBJNAME]), 
+                                     attr[BUSD_OBJINFOS], fd);
         if (obj != NULL) {
             dbg_str(BUS_DETAIL, "insert obj:%p", obj);
             map->add(map, blob_get_string(attr[BUSD_OBJNAME]), obj);
@@ -342,7 +251,6 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
 #undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
-    char *json_str = "hello_world";
 
     dbg_str(BUS_DETAIL, "busd_reply_lookup_object");
     memset(&hdr, 0, sizeof(hdr));
@@ -354,32 +262,14 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
         dbg_str(BUS_DETAIL, "obj_name:%s", obj->name);
         blob_add_string(blob, (char *)"object_name", obj->name);
         blob_add_u32(blob, (char *)"id", 1);
-        /*
-         *blob_add_table_start(blob, (char *)"methods"); {
-         *    vector_pos_t pos, next;
-         *    for (   vector_begin(obj->methods, &pos), vector_pos_next(&pos, &next);
-         *            !vector_pos_equal(&pos, &obj->methods->end);
-         *            pos = next, vector_pos_next(&pos, &next))
-         *    {
-         *        struct busd_object_method *method; 
-         *        method = (struct busd_object_method *)vector_pos_get_pointer(&pos);
-         *        blob_add_table_start(blob, method->name); {
-         *        }
-         *        blob_add_table_end(blob);
-         *    }
-         *}
-         *blob_add_table_end(blob);
-         */
-        blob_add_string(blob, (char *)"opaque", json_str);
+        blob_add_string(blob, (char *)"object_infos", obj->infos);
     }
     blob_add_table_end(blob);
 
     memcpy(buffer, &hdr, sizeof(hdr));
     buffer_len = sizeof(hdr);
-    /*
-     *dbg_buf(BUS_DETAIL, "object:", (uint8_t *)blob->head, blob_get_len((blob_attr_t *)blob->head));
-     */
-    memcpy(buffer + buffer_len, (uint8_t *)blob->head, blob_get_len((blob_attr_t *)blob->head));
+    memcpy(buffer + buffer_len, (uint8_t *)blob->head,
+           blob_get_len((blob_attr_t *)blob->head));
     buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
     dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
@@ -412,7 +302,10 @@ int busd_handle_lookup_object(busd_t *busd, blob_attr_t **attr, int fd)
     return 0;
 }
 
-int busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd, char *obj_name, char *method, int argc, blob_attr_t *args)
+int 
+busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd,
+                    char *obj_name, char *method, 
+                    int argc, blob_attr_t *args)
 {
     bus_reqhdr_t hdr;
     blob_t *blob = busd->blob;
@@ -440,10 +333,8 @@ int busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd, char *obj_name, c
 
     memcpy(buffer, &hdr, sizeof(hdr));
     buffer_len = sizeof(hdr);
-    /*
-     *dbg_buf(BUS_DETAIL, "object:", (uint8_t *)blob->head, blob_get_len((blob_attr_t *)blob->head));
-     */
-    memcpy(buffer + buffer_len, (uint8_t *)blob->head, blob_get_len((blob_attr_t *)blob->head));
+    memcpy(buffer + buffer_len, (uint8_t *)blob->head, 
+           blob_get_len((blob_attr_t *)blob->head));
     buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
     dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
@@ -524,7 +415,8 @@ int busd_reply_invoke(busd_t *busd, char *obj_name, char *method, int state, uin
 
     memcpy(buffer, &hdr, sizeof(hdr));
     buffer_len = sizeof(hdr);
-    memcpy(buffer + buffer_len, (uint8_t *)blob->head, blob_get_len((blob_attr_t *)blob->head));
+    memcpy(buffer + buffer_len, (uint8_t *)blob->head, 
+           blob_get_len((blob_attr_t *)blob->head));
     buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
     dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);

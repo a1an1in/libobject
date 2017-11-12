@@ -41,7 +41,7 @@
 static const blob_policy_t bus_policy[] = {
     [BUS_ID]            = { .name = "id",             .type = BLOB_TYPE_INT32 }, 
     [BUS_OBJNAME]       = { .name = "object_name",    .type = BLOB_TYPE_STRING }, 
-    [BUS_METHORDS]      = { .name = "methods",        .type = BLOB_TYPE_TABLE }, 
+    [BUS_OBJINFOS]      = { .name = "object_infos",   .type = BLOB_TYPE_STRING }, 
     [BUS_STATE]         = { .name = "state",          .type = BLOB_TYPE_INT32 }, 
     [BUS_OPAQUE]        = { .name = "opaque",         .type = BLOB_TYPE_BUFFER }, 
     [BUS_INVOKE_SRC_FD] = { .name = "source_fd",      .type = BLOB_TYPE_INT32 }, 
@@ -147,25 +147,6 @@ int bus_push_args_to_blob(blob_t *blob, struct bus_method *method)
     return 0;
 }
 
-int bus_push_methods_to_blob(blob_t *blob, struct bus_object *obj)
-{
-    int i;
-
-    dbg_str(BUS_DETAIL, "bus_push_method_to_blob, n_methods=%d", obj->n_methods);
-
-    for (i = 0; i < obj->n_methods; i++) {
-        dbg_str(BUS_DETAIL, "push method:%s", obj->methods[i].name);
-        blob_add_table_start(blob, obj->methods[i].name);
-        bus_push_args_to_blob(blob, &(obj->methods[i]));
-        blob_add_table_end(blob);
-        dbg_str(BUS_DETAIL, "push method end");
-    }
-
-    dbg_str(BUS_DETAIL, "bus_push_methods_to_blob end");
-
-    return 0;
-}
-
 int __bus_add_obj(bus_t *bus, struct bus_object *obj)
 {
     Map *map = bus->obj_map;
@@ -181,6 +162,7 @@ int bus_add_object(bus_t *bus, struct bus_object *obj)
     uint8_t buffer[BUS_ADD_OBJECT_MAX_BUFFER_LEN];
 #undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
     uint32_t buffer_len;
+    char *object_infos = "object_json_str";
 
     dbg_str(BUS_DETAIL, "bus_add_object, obj addr:%p", obj);
     memset(&hdr, 0, sizeof(hdr));
@@ -190,10 +172,7 @@ int bus_add_object(bus_t *bus, struct bus_object *obj)
     blob_add_table_start(blob, (char *)"object"); {
         blob_add_string(blob, (char *)"object_name", obj->name);
         blob_add_u32(blob, (char *)"id", 1);
-        blob_add_table_start(blob, (char *)"methods"); {
-            bus_push_methods_to_blob(blob, obj);
-        }
-        blob_add_table_end(blob);
+        blob_add_string(blob, (char *)"object_infos", object_infos);
     }
     blob_add_table_end(blob);
 
@@ -325,7 +304,7 @@ int bus_handle_lookup_object_reply(bus_t *bus, blob_attr_t **attr)
     struct bus_object *obj;
     blob_attr_t *attrib, *head;
     Map *map = bus->req_map;
-    char *obj_name, *opaque = NULL;
+    char *obj_name, *infos = NULL;
     bus_req_t *req;
     uint32_t len;
 #define MAX_BUFFER_LEN 2048
@@ -342,17 +321,17 @@ int bus_handle_lookup_object_reply(bus_t *bus, blob_attr_t **attr)
         obj_name = blob_get_string(attr[BUS_OBJNAME]);
         dbg_str(BUS_DETAIL, "object name:%s", obj_name);
     }
-    if (attr[BUS_OPAQUE]) {
-        opaque = blob_get_string(attr[BUS_OPAQUE]);
-        dbg_str(BUS_DETAIL, "object opaque:%s", opaque);
+    if (attr[BUS_OBJINFOS]) {
+        infos = blob_get_string(attr[BUS_OBJINFOS]);
+        dbg_str(BUS_DETAIL, "object infos:%s", infos);
     }
 
     sprintf(key, "%s@lookup", obj_name);
     ret = map->search(map, key, (void **)&req);
     if (ret > 0) {
         char c =  1;
-        if (opaque != NULL) {
-            memcpy(req->opaque, opaque, strlen(opaque));
+        if (infos != NULL) {
+            memcpy(req->opaque, infos, strlen(infos));
         }
         write(req->write, &c, 1);
     }

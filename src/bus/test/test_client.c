@@ -1,7 +1,7 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/bus/bus.h>
 
-#if 0
+#if 1
 void test_bus_client()
 {
     allocator_t *allocator = allocator_get_default_alloc();
