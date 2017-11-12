@@ -164,4 +164,5 @@ bus_t * bus_create(allocator_t *allocator,
                    char *server_host,
                    char *server_srv,
                    char *socket_type);
+int bus_destroy(bus_t *bus);
 #endif

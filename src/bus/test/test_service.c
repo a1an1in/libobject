@@ -83,4 +83,6 @@ void test_bus_server()
     /*
 	 *while(1) sleep(1);
      */
+    pause();
+    bus_destroy(bus);
 }

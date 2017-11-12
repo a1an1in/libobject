@@ -80,7 +80,9 @@ __allocator_mem_alloc(allocator_t * alloc,uint32_t size)
     void *ret = NULL;\
     ret =  __allocator_mem_alloc(alloc, size);\
     if (ret != NULL) {\
-        allocator_mem_tag(alloc,ret,(void *) __func__);\
+        char tmp[1024];\
+        sprintf(tmp, "%d:%s", __LINE__, __func__);\
+        allocator_mem_tag(alloc,ret, tmp);\
     }\
     ret;\
 })

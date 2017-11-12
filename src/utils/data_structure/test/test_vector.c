@@ -25,9 +25,12 @@ struct test{
     int a;
     int b;
 };
-void print_vector_data(vector_pos_t *pos)
+
+void print_vector_data(void *element)
 {
-    dbg_buf(DBG_DETAIL,"data:",vector_pos_get_pointer(pos),pos->vector->step);
+    struct test *t = (struct test*)element;
+
+    dbg_str(DBG_DETAIL,"t->a = %d, t->b = %d", t->a, t->b);
 }
 
 static struct test *init_test_instance(struct test *t, int a, int b)
@@ -46,6 +49,7 @@ int test_datastructure_vector()
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret;
 
+    dbg_str(DBG_DETAIL,"test_datastructure_vector begin");
     init_test_instance(&t0, 0, 2);
     init_test_instance(&t1, 1, 2);
     init_test_instance(&t2, 2, 2);
@@ -54,7 +58,7 @@ int test_datastructure_vector()
     init_test_instance(&t5, 5, 2);
 
     vector = vector_create(allocator,0);
-    vector_init(vector,sizeof(struct test),4);
+    vector_init(vector,sizeof(void *),10);
 
     vector_add_back(vector, &t0);
     vector_add_back(vector, &t1);
@@ -62,6 +66,7 @@ int test_datastructure_vector()
     vector_add_back(vector, &t3);
     vector_add_back(vector, &t4);
 
+    dbg_str(DBG_DETAIL,"vector for each");
     vector_for_each(vector,(void (*)(void *))(print_vector_data));
 
     dbg_str(DBG_DETAIL,"test get");
@@ -74,5 +79,6 @@ int test_datastructure_vector()
     vector_for_each(vector,(void (*)(void *))(print_vector_data));
 
     vector_destroy(vector);
+    dbg_str(DBG_DETAIL,"test_datastructure_vector end");
     return ret;
 }

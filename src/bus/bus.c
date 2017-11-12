@@ -682,3 +682,14 @@ bus_t * bus_create(allocator_t *allocator,
 
     return bus;
 }
+
+int bus_destroy(bus_t *bus)
+{
+    allocator_t *allocator = bus->allocator;
+
+    object_destroy(bus->obj_map);
+    object_destroy(bus->req_map);
+    blob_destroy(bus->blob);
+    client_destroy(bus->client);
+    allocator_mem_free(allocator, bus);
+}

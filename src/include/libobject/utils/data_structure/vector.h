@@ -44,7 +44,7 @@ static inline void *vector_pos_get_pointer(vector_pos_t *it)
     return vector_head[it->vector_pos];
 }
 
-static inline void vector_for_each(vector_t *vector,void (*func)(void *))
+static inline void vector_for_each(vector_t *vector,void (*func)(void *element))
 {
 	vector_pos_t pos,next;
 
@@ -52,11 +52,13 @@ static inline void vector_for_each(vector_t *vector,void (*func)(void *))
 			!vector_pos_equal(&pos,&vector->end);
 			pos = next, vector_pos_next(&pos,&next))
 	{
-		func(&pos);
+		func(vector_pos_get_pointer(&pos));
 	}
 }
 
-static inline void vector_for_each_with_arg(vector_t *vector,void (*func)(void *,void *arg),void *arg)
+static inline void
+vector_for_each_with_arg(vector_t *vector,
+                         void (*func)(void *element,void *arg),void *arg)
 {
 	vector_pos_t pos,next;
 
@@ -64,7 +66,7 @@ static inline void vector_for_each_with_arg(vector_t *vector,void (*func)(void *
 			!vector_pos_equal(&pos,&vector->end);
 			pos = next, vector_pos_next(&pos,&next))
 	{
-        func(&pos,arg);
+		func(vector_pos_get_pointer(&pos), arg);
 	}
 }
 

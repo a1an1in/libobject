@@ -58,5 +58,9 @@ void test_bus_daemon()
     /*
 	 *while(1) sleep(1);
      */
+    pause();
+    dbg_str(DBG_DETAIL,"run at here");
+    busd_destroy(busd);
+    dbg_str(DBG_DETAIL,"run at here");
 }
 

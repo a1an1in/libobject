@@ -32,6 +32,7 @@ typedef struct busd_s{
     char *server_host;
     char *server_srv;
 
+    blob_t *blob;
 	Map *obj_map;
     uint8_t key_size;
     uint8_t bucket_size;
@@ -51,6 +52,7 @@ typedef struct busd_object {
 	uint32_t id;
 	vector_t *methods;
     uint8_t fd;
+    allocator_t *allocator;
 }busd_object_t;
 
 typedef int (*busd_cmd_callback)(busd_t *busd,  struct blob_attr_s **attr,int fd);
@@ -58,5 +60,6 @@ busd_t *busd_create(allocator_t *allocator,
                     char *server_host,
                     char *server_srv,
                     char *socket_type);
+int busd_destroy(busd_t *busd);
 
 #endif
