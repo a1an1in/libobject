@@ -39,7 +39,7 @@ void *client(allocator_t *allocator,
              char *type,
              char *host,
              char *service,
-             void (*process_task_cb)(void *arg),
+             int (*process_task_cb)(void *arg),
              void *opaque);
 int client_connect(void *client, char *host, char *service);
 int client_send(void *client, void *buf, int len, int flags);

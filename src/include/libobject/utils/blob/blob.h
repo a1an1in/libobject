@@ -43,6 +43,8 @@ typedef struct blob_policy_s{
 
 blob_t *blob_create(allocator_t *allocator);
 int blob_init(blob_t *blob);
+int blob_reset(blob_t *blob);
+int blob_destroy(blob_t *blob);
 int blob_add(blob_t *blob, uint8_t type, char *name, void *value, uint16_t value_len);
 int blob_add_u8(blob_t *blob, char *name, uint8_t val);
 int blob_add_u16(blob_t *blob, char *name, uint16_t val);

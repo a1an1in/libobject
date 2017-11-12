@@ -39,7 +39,7 @@ void *server(allocator_t *allocator,
              char *type,
              char *host,
              char *service,
-             void (*process_task_cb)(void *arg),
+             int (*process_task_cb)(void *arg),
              void *opaque)
 {
     Server *server;
@@ -63,7 +63,7 @@ int server_destroy(void *server)
     return object_destroy(server);
 }
 
-static void test_work_callback(void *task)
+static int test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
     dbg_str(DBG_SUC,"%s", t->buf);

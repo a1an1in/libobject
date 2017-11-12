@@ -120,7 +120,7 @@ static class_info_entry_t inet_tcp_client_class_info[] = {
 };
 REGISTER_CLASS("Inet_Tcp_Client",inet_tcp_client_class_info);
 
-static void test_work_callback(void *task)
+static int test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
     dbg_str(DBG_SUC,"%s", t->buf);

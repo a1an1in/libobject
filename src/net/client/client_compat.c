@@ -47,7 +47,7 @@ void *client(allocator_t *allocator,
              char *type,
              char *host,
              char *service,
-             void (*process_task_cb)(void *arg),
+             int (*process_task_cb)(void *arg),
              void *opaque)
 {
     Client *client = NULL;
@@ -88,7 +88,7 @@ int client_destroy(void *client)
     return object_destroy(client);
 }
 
-static void test_work_callback(void *task)
+static int test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
     dbg_str(DBG_SUC,"%s", t->buf);

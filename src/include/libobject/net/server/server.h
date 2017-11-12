@@ -34,7 +34,7 @@ void *server(allocator_t *allocator,
              char *type,
              char *host,
              char *service,
-             void (*process_task_cb)(void *arg),
+             int (*process_task_cb)(void *arg),
              void *opaque);
 int server_destroy(void *server);
 

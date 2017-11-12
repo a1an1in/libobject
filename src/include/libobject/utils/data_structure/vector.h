@@ -58,7 +58,7 @@ static inline void vector_for_each(vector_t *vector,void (*func)(void *element))
 
 static inline void
 vector_for_each_with_arg(vector_t *vector,
-                         void (*func)(void *element,void *arg),void *arg)
+                         int (*func)(void *element,void *arg),void *arg)
 {
 	vector_pos_t pos,next;
 

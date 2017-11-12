@@ -72,18 +72,19 @@ int blob_init(blob_t *blob)
     return 0;
 }
 
+int blob_reset(blob_t *blob)
+{
+    memset(blob->head, 0 , blob->len);
+    blob->tail = blob->head;
+
+    return 0;
+}
+
 int blob_destroy(blob_t *blob)
 {
     array_stack_destroy(blob->tbl_stack);
     allocator_mem_free(blob->allocator, blob->head);
     allocator_mem_free(blob->allocator, blob);
-
-    return 0;
-}
-int blob_reset(blob_t *blob)
-{
-    memset(blob->head, 0 , blob->len);
-    blob->tail = blob->head;
 
     return 0;
 }
@@ -374,7 +375,7 @@ void test_blob()
     if (tb[FOO_TABLE] != NULL) {
         dbg_str(DBG_DETAIL,"name :%s", blob_get_name(tb[FOO_TABLE]));
         blob_attr_t *tb2[10];
-        blob_attr_t *attr = blob_get_data(tb[FOO_TABLE]);
+        blob_attr_t *attr = (blob_attr_t *)blob_get_data(tb[FOO_TABLE]);
         int len = blob_get_data_len(tb[FOO_TABLE]);
         blob_parse_to_attr(table, ARRAY_SIZE(table), tb2,
                            attr, len) ;

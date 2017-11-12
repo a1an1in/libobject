@@ -136,7 +136,7 @@ void test_obj_inet_udp_client_send()
     object_destroy(client);
 }
 
-static void test_work_callback(void *task)
+static int test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
     dbg_str(DBG_SUC,"%s", t->buf);
@@ -151,7 +151,7 @@ void test_obj_inet_udp_client_recv()
     dbg_str(DBG_DETAIL,"test_obj_inet_udp_client_recv");
     client = OBJECT_NEW(allocator, Inet_Udp_Client, NULL);
     client->bind(client, "127.0.0.1", "11011"); 
-    client->trustee(client, NULL, test_work_callback, NULL);
+    client->trustee(client, NULL, (void *)test_work_callback, NULL);
 
     pause();
 
