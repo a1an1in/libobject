@@ -19,17 +19,4 @@ void print_time_stamp()
 
 void lab5()
 {
-    int fds[2];
-    char msg = 1;
-    char signals[10];
-    int n;
-
-    evsig_socketpair(fds);
-    send(fds[0], (char*)&msg, 1, 0);
-    send(fds[0], (char*)&msg, 1, 0);
-    send(fds[0], (char*)&msg, 1, 0);
-    send(fds[0], (char*)&msg, 1, 0);
-
-    n = recv(fds[1], signals, sizeof(signals), 0);
-    printf("n =%d", n);
 }

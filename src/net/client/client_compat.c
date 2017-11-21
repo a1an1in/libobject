@@ -68,7 +68,7 @@ void *client(allocator_t *allocator,
         return NULL;
     }
 
-return (void *)client;
+    return (void *)client;
 }
 
 int client_connect(void *client, char *host, char *service)

@@ -219,13 +219,13 @@ static int args_process_lab(void *base,int argc,char **argv)
     /*
      *lab2();
      */
-    lab3();
+    /*
+     *lab3();
+     */
     /*
      *lab4(argc, argv);
      */
-     /*
-      *lab5();
-      */
+     lab5();
     /*
      *lab6(argc, argv);
      */
