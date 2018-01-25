@@ -86,9 +86,11 @@ int test_event_io()
 
     eb->add(eb, &event);
 
+    dbg_str(DBG_SUC,"Event IO, loop before");
     eb->loop(eb);
-
-    dbg_str(DBG_SUC,"Event IO, out test");
+    dbg_str(DBG_SUC,"Event IO, out loop");
     object_destroy(eb);
-    pause();
+    /*
+     *pause();
+     */
 }

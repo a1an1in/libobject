@@ -157,8 +157,8 @@ int test_multi_ios()
 }
 int test_io()
 {
+    test_sigle_io();
     /*
-     *test_sigle_io();
+     *test_multi_ios();
      */
-    test_multi_ios();
 }

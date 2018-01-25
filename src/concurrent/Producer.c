@@ -174,9 +174,11 @@ __attribute__((destructor(ATTRIB_PRIORITY_CONCURRENT))) void
 default_producer_destructor()
 {
     Producer *producer = global_get_default_producer();
-    dbg_str(CONCURRENT_DETAIL,"destruct default_producer_destructor");
+    dbg_str(CONCURRENT_WARNNING,"destruct default_producer_destructor");
     while (producer->parent.flags != EVTHREAD_STATE_DESTROYED) sleep(1);
+    dbg_str(CONCURRENT_WARNNING,"producer->parent.flags=%d", producer->parent.flags);
     object_destroy(producer);
+    sleep(1);
 }
 
 void test_obj_producer()

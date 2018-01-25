@@ -77,6 +77,7 @@ int event_base_free(struct event_base *event_base)
 {
     allocator_t *allocator = allocator_get_default_alloc();
 
+    dbg_str(DBG_DETAIL,"event_base_free");
     object_destroy(event_base->eb);
     allocator_mem_free(allocator, event_base);
 

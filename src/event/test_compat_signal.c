@@ -25,6 +25,8 @@ int test_signal()
     struct event_base* base;
 
     /* Initalize the event library */
+
+    dbg_str(DBG_SUC, "test_signal");
     base = event_base_new();
 
     /* Initalize one event */
@@ -35,6 +37,7 @@ int test_signal()
 
     event_base_dispatch(base);
     event_base_free(base);
+    dbg_str(DBG_SUC, "test_signal end");
 
     return (0);
 }

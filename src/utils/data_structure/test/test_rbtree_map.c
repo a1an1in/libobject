@@ -183,7 +183,7 @@ int test_datastructure_rbtree_map_timeval_key(void)
     map = rbtree_map_alloc(allocator);
 
     map->key_cmp_func = timeval_key_cmp_func;
-    map->fixed_key_len = 1;
+    map->key_type = 1;
 
     rbtree_map_init(map,key_len,sizeof(void *)); 
 
@@ -234,10 +234,10 @@ int test_datastructure_rbtree_map_timeval_key(void)
 
 int test_datastructure_rbtree_map(void)
 {
-    test_datastructure_rbtree_map_string_key();
     /*
-     *test_datastructure_rbtree_map_numeric_key();
+     *test_datastructure_rbtree_map_string_key();
      */
+    test_datastructure_rbtree_map_numeric_key();
     /*
      *test_datastructure_rbtree_map_timeval_key();
      */
