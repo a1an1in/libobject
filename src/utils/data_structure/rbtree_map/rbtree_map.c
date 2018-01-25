@@ -349,7 +349,7 @@ int rbtree_map_remove(rbtree_map_t *map, rbtree_map_pos_t *it)
     return 0;
 }
 
-rbtree_map_pos_t *
+int
 rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it)
 {
     struct rbtree_map_node *mnode;
@@ -363,16 +363,16 @@ rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it)
 
     if (mnode == NULL) {
         dbg_str(RBTMAP_WARNNING, "not found mnode the key searching");
-        it->rb_node_p = NULL;
+        return -1;
     } else {
         it->rb_node_p = &mnode->node;
     }
     it->map = map;
 
-    return it;
+    return 0;
 }
 
-rbtree_map_pos_t *
+int
 rbtree_map_search_by_numeric_key(rbtree_map_t *map, int key, rbtree_map_pos_t *it)
 {
     return rbtree_map_search(map, &key, it);

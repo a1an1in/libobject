@@ -37,7 +37,7 @@ int test_signal()
 
     event_base_dispatch(base);
     event_base_free(base);
-    dbg_str(DBG_SUC, "test_signal end");
+    dbg_str(DBG_SUC, "test_signal end 2");
 
     return (0);
 }

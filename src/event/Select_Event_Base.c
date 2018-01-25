@@ -152,9 +152,6 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
         dbg_str(EV_WARNNING,"dispatch, erro_no:%d, nfds=%d", errno, nfds);
         ((Event_Base *)b)->break_flag = 1;
         return (0);
-        /*
-         *exit(1);
-         */
     } else if (res > 0) {
         if (tv != NULL)
             dbg_str(EV_DETAIL,"select base dispatch io events res=%d, tv=%d",res, tv->tv_sec);
