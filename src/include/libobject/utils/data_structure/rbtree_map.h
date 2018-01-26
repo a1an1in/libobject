@@ -29,6 +29,7 @@ rbtree_map_pos_t * rbtree_map_pos_next(rbtree_map_pos_t *it,rbtree_map_pos_t *ne
 rbtree_map_pos_t* rbtree_map_pos_prev(rbtree_map_pos_t *it,rbtree_map_pos_t *prev);
 int rbtree_map_pos_equal(rbtree_map_pos_t *it1,rbtree_map_pos_t *it2);
 void *rbtree_map_pos_get_pointer(rbtree_map_pos_t *it);
+void *rbtree_map_pos_get_kpointer(rbtree_map_pos_t *it);
 rbtree_map_pos_t * rbtree_map_begin(rbtree_map_t *map, rbtree_map_pos_t *begin);
 rbtree_map_pos_t * rbtree_map_end(rbtree_map_t *map, rbtree_map_pos_t *end);
 int rbtree_map_insert_data(rbtree_map_t *map, void *value);

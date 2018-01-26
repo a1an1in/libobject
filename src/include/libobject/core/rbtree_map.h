@@ -7,9 +7,9 @@
 #include <libobject/utils/data_structure/hash_list.h>
 #include <libobject/core/rbtree_iterator.h>
 
-typedef struct Rbtree_Map_s Rbtree_Map;
+typedef struct RBTree_Map_s RBTree_Map;
 
-struct Rbtree_Map_s{
+struct RBTree_Map_s{
 	Map map;
 
 	int (*construct)(Map *map,char *init_str);
@@ -32,7 +32,6 @@ struct Rbtree_Map_s{
 #undef MAX_NAME_LEN
     rbtree_map_t *rbmap;
     uint16_t key_size;
-    uint16_t bucket_size;
     uint16_t value_size;
     uint8_t key_type;
 };

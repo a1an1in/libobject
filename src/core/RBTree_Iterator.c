@@ -127,10 +127,9 @@ static void *__get_vpointer(Iterator *it)
 
 static void *__get_kpointer(Iterator *it)
 {
-    /*
-     *dbg_str(OBJ_DETAIL,"Iterator get_kpointer");
-     *return rbtree_map_pos_get_kpointer(&((RBTree_Iterator *)it)->rbtree_map_pos);
-     */
+    dbg_str(OBJ_DETAIL,"Iterator get_kpointer");
+    return rbtree_map_pos_get_kpointer(&((RBTree_Iterator *)it)->rbtree_map_pos);
+
 }
 
 static class_info_entry_t rbtree_iter_class_info[] = {

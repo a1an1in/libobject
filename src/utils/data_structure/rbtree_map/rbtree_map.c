@@ -174,6 +174,17 @@ void *rbtree_map_pos_get_pointer(rbtree_map_pos_t *it)
     return *addr;
 }
 
+void *rbtree_map_pos_get_kpointer(rbtree_map_pos_t *it)
+{
+    struct rbtree_map_node *mnode;
+
+    if (it->rb_node_p == NULL) return NULL;
+
+    mnode = rb_entry(it->rb_node_p, struct rbtree_map_node, node);
+
+    return (void **)&mnode->key;
+}
+
 rbtree_map_t * 
 rbtree_map_alloc(allocator_t *allocator)
 {
@@ -369,7 +380,7 @@ rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it)
     }
     it->map = map;
 
-    return 0;
+    return 1;
 }
 
 int

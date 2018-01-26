@@ -36,24 +36,18 @@
 
 static int __construct(Map *map,char *init_str)
 {
-    Rbtree_Map *h = (Rbtree_Map *)map;
+    RBTree_Map *rbm = (RBTree_Map *)map;
     allocator_t *allocator = map->obj.allocator;
 
-    if (h->key_size == 0)    { h->key_size = 10;    }
-    if (h->value_size == 0)  { h->value_size = 100; }
-    if (h->bucket_size == 0) { h->bucket_size = 20; }
+    if (rbm->key_size == 0)    { rbm->key_size = sizeof(void *);}
+    if (rbm->value_size == 0)  { rbm->value_size = sizeof(void *); }
 
-    dbg_str(HMAP_DETAIL,"hash map construct, key_size=%d,value_size=%d,bucket_size=%d",
-            h->key_size,h->value_size,h->bucket_size);
+    dbg_str(DBG_DETAIL,"rbtree map construct, key_size=%d,value_size=%d",
+            rbm->key_size,rbm->value_size);
 
-    h->rbmap = rbtree_map_alloc(allocator);
+    rbm->rbmap = rbtree_map_alloc(allocator);
 
-    /*
-     *rbtree_map_init(h->rbmap,
-     *              h->key_size,     //uint32_t key_size,
-     *              h->value_size,
-     *              h->bucket_size);
-     */
+    rbtree_map_init(rbm->rbmap,rbm->key_size,rbm->value_size); 
 
 
     map->b = OBJECT_NEW(allocator, RBTree_Iterator,NULL);
@@ -64,17 +58,17 @@ static int __construct(Map *map,char *init_str)
 
 static int __deconstrcut(Map *map)
 {
-    dbg_str(HMAP_DETAIL,"hash map deconstruct,map addr:%p",map);
+    dbg_str(DBG_DETAIL,"hash map deconstruct,map addr:%p",map);
     object_destroy(map->b);
     object_destroy(map->e);
-    rbtree_map_destroy(((Rbtree_Map *)map)->rbmap);
+    rbtree_map_destroy(((RBTree_Map *)map)->rbmap);
 
     return 0;
 }
 
 static int __set(Map *m, char *attrib, void *value)
 {
-    Rbtree_Map *map = (Rbtree_Map *)m;
+    RBTree_Map *map = (RBTree_Map *)m;
 
     if (strcmp(attrib, "set") == 0) {
         map->set = value;
@@ -106,12 +100,10 @@ static int __set(Map *m, char *attrib, void *value)
         map->key_size = *((uint16_t *)value);
     } else if (strcmp(attrib, "value_size") == 0) {
         map->value_size = *((uint16_t *)value);
-    } else if (strcmp(attrib, "bucket_size") == 0) {
-        map->bucket_size = *((uint16_t *)value);
     } else if (strcmp(attrib, "key_type") == 0) {
         map->key_type = *((uint8_t *)value);
     } else {
-        dbg_str(HMAP_WARNNING,"map set, not support %s setting",attrib);
+        dbg_str(RBTMAP_WARNNING,"map set, not support %s setting",attrib);
     }
 
     return 0;
@@ -119,7 +111,7 @@ static int __set(Map *m, char *attrib, void *value)
 
 static void *__get(Map *obj, char *attrib)
 {
-    Rbtree_Map *map = (Rbtree_Map *)obj;
+    RBTree_Map *map = (RBTree_Map *)obj;
 
     if (strcmp(attrib, "name") == 0) {
         return map->name;
@@ -127,12 +119,10 @@ static void *__get(Map *obj, char *attrib)
         return &map->key_size;
     } else if (strcmp(attrib, "value_size") == 0) {
         return &map->value_size;
-    } else if (strcmp(attrib, "bucket_size") == 0) {
-        return &map->bucket_size;
     } else if (strcmp(attrib, "key_type") == 0) {
         return &map->key_type;
     } else {
-        dbg_str(HMAP_WARNNING,"hash map get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(RBTMAP_WARNNING,"hash map get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
 
@@ -141,8 +131,8 @@ static void *__get(Map *obj, char *attrib)
 
 static int __add(Map *map,void *key,void *value)
 {
-    dbg_str(HMAP_DETAIL,"Hash Map add");
-    Rbtree_Map *rbmap = (Rbtree_Map *)map;
+    dbg_str(DBG_DETAIL,"Rbtree Map add");
+    RBTree_Map *rbmap = (RBTree_Map *)map;
 
     if (rbmap->key_type) {
         rbmap->rbmap->key_type = rbmap->key_type;
@@ -156,8 +146,8 @@ static int __search(Map *map,void *key,void **element)
     rbtree_map_pos_t pos;
     int ret;
 
-    dbg_str(HMAP_IMPORTANT,"Hash Map search");
-    ret = rbtree_map_search(((Rbtree_Map *)map)->rbmap, key, &pos);
+    dbg_str(RBTMAP_IMPORTANT,"Rbtree Map search");
+    ret = rbtree_map_search(((RBTree_Map *)map)->rbmap, key, &pos);
     if (ret == 1 && element != NULL) {
         *element = rbtree_map_pos_get_pointer(&pos);
         return ret;
@@ -171,16 +161,16 @@ static int __remove(Map *map,void *key,void **element)
     rbtree_map_pos_t pos;
     int ret;
 
-    dbg_str(HMAP_IMPORTANT,"Hash Map remove");
-    ret = rbtree_map_search(((Rbtree_Map *)map)->rbmap, key, &pos);
+    dbg_str(RBTMAP_IMPORTANT,"Rbtree Map remove");
+    ret = rbtree_map_search(((RBTree_Map *)map)->rbmap, key, &pos);
     if (ret == 1 && element != NULL) {
         *element = rbtree_map_pos_get_pointer(&pos);
-        ret = rbtree_map_delete(((Rbtree_Map *)map)->rbmap, &pos);
+        ret = rbtree_map_delete(((RBTree_Map *)map)->rbmap, &pos);
         return ret;
     } else if (ret == 1) {
-        ret = rbtree_map_delete(((Rbtree_Map *)map)->rbmap, &pos);
+        ret = rbtree_map_delete(((RBTree_Map *)map)->rbmap, &pos);
     } else {
-        dbg_str(HMAP_WARNNING,"map remove, not found key :%s", key);
+        dbg_str(RBTMAP_WARNNING,"map remove, not found key :%s", key);
     }
 
     return ret;
@@ -190,11 +180,11 @@ static int __del(Map *map, void *key)
 {
     rbtree_map_pos_t pos;
     int ret = -1;
-    dbg_str(HMAP_DETAIL,"Hash Map del");
+    dbg_str(DBG_DETAIL,"Rbtree Map del");
 
-    ret = rbtree_map_search(((Rbtree_Map *)map)->rbmap, key, &pos);
+    ret = rbtree_map_search(((RBTree_Map *)map)->rbmap, key, &pos);
     if (ret == 1) {
-        ret = rbtree_map_delete(((Rbtree_Map *)map)->rbmap, &pos);
+        ret = rbtree_map_delete(((RBTree_Map *)map)->rbmap, &pos);
     }
 
     return ret;
@@ -204,9 +194,9 @@ static Iterator *__begin(Map *map)
 {
     RBTree_Iterator *iter = (RBTree_Iterator *)map->b;
 
-    dbg_str(HMAP_DETAIL,"Hash Map begin");
+    dbg_str(DBG_DETAIL,"Rbtree Map begin");
 
-    rbtree_map_begin(((Rbtree_Map *)map)->rbmap, &iter->rbtree_map_pos);
+    rbtree_map_begin(((RBTree_Map *)map)->rbmap, &iter->rbtree_map_pos);
 
     return (Iterator *)iter;
 }
@@ -215,9 +205,9 @@ static Iterator *__end(Map *map)
 {
     RBTree_Iterator *iter = (RBTree_Iterator *)map->e;
 
-    dbg_str(HMAP_DETAIL,"Hash Map end");
+    dbg_str(DBG_DETAIL,"Rbtree Map end");
 
-    rbtree_map_end(((Rbtree_Map *)map)->rbmap, &iter->rbtree_map_pos);
+    rbtree_map_end(((RBTree_Map *)map)->rbmap, &iter->rbtree_map_pos);
 
     return (Iterator *)iter;
 }
@@ -237,11 +227,10 @@ static class_info_entry_t rbtree_map_class_info[] = {
     [11] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each",NULL,sizeof(void *)},
     [12] = {ENTRY_TYPE_UINT16_T,"","key_size",NULL,sizeof(short)},
     [13] = {ENTRY_TYPE_UINT16_T,"","value_size",NULL,sizeof(short)},
-    [14] = {ENTRY_TYPE_UINT16_T,"","bucket_size",NULL,sizeof(short)},
-    [15] = {ENTRY_TYPE_UINT8_T,"","key_type",NULL,sizeof(short)},
-    [16] = {ENTRY_TYPE_END},
+    [14] = {ENTRY_TYPE_UINT8_T,"","key_type",NULL,sizeof(short)},
+    [15] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Rbtree_Map",rbtree_map_class_info);
+REGISTER_CLASS("RBTree_Map",rbtree_map_class_info);
 
 struct test{
     int a;
@@ -259,14 +248,14 @@ static void rbtree_map_print(void *key, void *element)
 {
     struct test *t = (struct test *)element;
      
-    dbg_str(HMAP_DETAIL,"key:%s t->a=%d, t->b=%d", key, t->a, t->b);
+    dbg_str(DBG_DETAIL,"key:%s t->a=%d, t->b=%d", key, t->a, t->b);
 }
 
 static void rbtree_map_print_with_numeric_key(void *key, void *element)
 {
     struct test *t = (struct test *)element;
      
-    dbg_str(HMAP_DETAIL,"key:%d t->a=%d, t->b=%d", *(int *)key, t->a, t->b);
+    dbg_str(DBG_DETAIL,"key:%d t->a=%d, t->b=%d", *(int *)key, t->a, t->b);
 }
 
 
@@ -288,18 +277,17 @@ void test_obj_rbtree_map_string_key()
     init_test_instance(&t4, 4, 2);
     init_test_instance(&t5, 5, 2);
 
-    dbg_str(HMAP_SUC, "rbtree_map test begin alloc count =%d",allocator->alloc_count);
+    dbg_str(RBTMAP_SUC, "rbtree_map test begin alloc count =%d",allocator->alloc_count);
 
     c = cfg_alloc(allocator); 
-    dbg_str(HMAP_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Rbtree_Map", CJSON_NUMBER, "key_size", "40") ;  
-    cfg_config(c, "/Rbtree_Map", CJSON_NUMBER, "value_size", "8") ;
-    cfg_config(c, "/Rbtree_Map", CJSON_NUMBER, "bucket_size", "10") ;
+    dbg_str(RBTMAP_SUC, "configurator_t addr:%p",c);
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_size", "40") ;  
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "value_size", "8") ;
 
-    map  = OBJECT_NEW(allocator, Rbtree_Map,c->buf);
+    map  = OBJECT_NEW(allocator, RBTree_Map,c->buf);
 
-    object_dump(map, "Rbtree_Map", buf, 2048);
-    dbg_str(HMAP_DETAIL,"Map dump: %s",buf);
+    object_dump(map, "RBTree_Map", buf, 2048);
+    dbg_str(DBG_DETAIL,"Map dump: %s",buf);
 
     map->add(map,"test0", &t0);
     map->add(map,"test1", &t1);
@@ -309,18 +297,18 @@ void test_obj_rbtree_map_string_key()
     map->add(map,"test5", &t5);
     map->for_each(map,rbtree_map_print);
 
-    dbg_str(HMAP_DETAIL,"test search:");
+    dbg_str(DBG_DETAIL,"test search:");
     map->search(map,"test2", (void **)&t);
-    dbg_str(HMAP_DETAIL,"new search test2: t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(DBG_DETAIL,"new search test2: t->a=%d, t->b=%d", t->a, t->b);
 
     /*
-     *dbg_str(HMAP_DETAIL,"test del:");
+     *dbg_str(DBG_DETAIL,"test del:");
      *map->del(map,"test2");
      */
 
-    dbg_str(HMAP_DETAIL,"test remove:");
+    dbg_str(DBG_DETAIL,"test remove:");
     map->remove(map,"test2", (void **)&t);
-    dbg_str(HMAP_DETAIL,"remove test2: t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(DBG_DETAIL,"remove test2: t->a=%d, t->b=%d", t->a, t->b);
 
     map->for_each(map,rbtree_map_print);
 
@@ -328,7 +316,7 @@ void test_obj_rbtree_map_string_key()
 
     cfg_destroy(c);
 
-    dbg_str(HMAP_SUC, "rbtree_map test end alloc count =%d",allocator->alloc_count);
+    dbg_str(RBTMAP_SUC, "rbtree_map test end alloc count =%d",allocator->alloc_count);
 
 }
 
@@ -348,19 +336,19 @@ void test_obj_rbtree_map_numeric_key()
     init_test_instance(&t0, 0, 2);
     init_test_instance(&t1, 1, 2);
 
-    dbg_str(HMAP_SUC, "rbtree_map test begin alloc count =%d",allocator->alloc_count);
+    dbg_str(RBTMAP_SUC, "rbtree_map test begin alloc count =%d",allocator->alloc_count);
 
     c = cfg_alloc(allocator); 
-    dbg_str(HMAP_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Rbtree_Map", CJSON_NUMBER, "key_size", "4") ;  
-    cfg_config(c, "/Rbtree_Map", CJSON_NUMBER, "value_size", "25") ;
-    cfg_config(c, "/Rbtree_Map", CJSON_NUMBER, "bucket_size", "10") ;
-    cfg_config(c, "/Rbtree_Map", CJSON_NUMBER, "key_type", "1");
+    dbg_str(RBTMAP_SUC, "configurator_t addr:%p",c);
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_size", "4") ;  
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "value_size", "25") ;
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "bucket_size", "10") ;
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_type", "1");
 
-    map  = OBJECT_NEW(allocator, Rbtree_Map,c->buf);
+    map  = OBJECT_NEW(allocator, RBTree_Map,c->buf);
 
-    object_dump(map, "Rbtree_Map", buf, 2048);
-    dbg_str(HMAP_DETAIL,"Map dump: %s",buf);
+    object_dump(map, "RBTree_Map", buf, 2048);
+    dbg_str(DBG_DETAIL,"Map dump: %s",buf);
 
     printf("add\n");
     key = 0;
@@ -373,8 +361,8 @@ void test_obj_rbtree_map_numeric_key()
 
     printf("search\n");
     ret = map->search(map, &key, (void **)&t);
-    dbg_str(HMAP_DETAIL,"search ret=%d",ret);
-    dbg_str(HMAP_DETAIL,"search key=%d, t->a=%d, t->b=%d",key, t->a, t->b);
+    dbg_str(DBG_DETAIL,"search ret=%d",ret);
+    dbg_str(DBG_DETAIL,"search key=%d, t->a=%d, t->b=%d",key, t->a, t->b);
 
     printf("del\n");
     map->del(map,&key);
@@ -385,7 +373,7 @@ void test_obj_rbtree_map_numeric_key()
     object_destroy(map);
     cfg_destroy(c);
 
-    dbg_str(HMAP_SUC, "rbtree_map test end alloc count =%d",allocator->alloc_count);
+    dbg_str(RBTMAP_SUC, "rbtree_map test end alloc count =%d",allocator->alloc_count);
 
 }
 void test_obj_rbtree_map()
