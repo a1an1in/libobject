@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename:  rbtree_map_struct.h
- *
- *    Description:  
- *
- *        Version:  1.0
- *        Created:  12/01/2015 05:39:42 PM
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  alan lin (), a1an1in@sina.com
- *   Organization:  
- *
- * =====================================================================================
- */
-
 #ifndef __RBTREE_MAP_STRUCT_H__
 #define __RBTREE_MAP_STRUCP_H__
 
@@ -23,11 +5,6 @@
 #include <libobject/utils/data_structure/rbtree.h>
 #include <libobject/utils/data_structure/map_pair.h>
 #include "libobject/utils/thread/sync_lock.h"
-/*
- *typedef unsigned int uint32_t;
- *typedef unsigned short uint16_t;
- *typedef unsigned char uint8_t;
- */
 
 #ifndef __KEY_CMP_FPT__
 #define __KEY_CMP_FPT__

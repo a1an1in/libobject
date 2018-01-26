@@ -1,5 +1,5 @@
-#ifndef __ITERATOR_HMAP_H__
-#define __ITERATOR_HMAP_H__
+#ifndef __ITERATOR_RBTREE_MAP_H__
+#define __ITERATOR_RBTREE_MAP_H__
 
 #include <stdio.h>
 #include <libobject/utils/dbg/debug.h>

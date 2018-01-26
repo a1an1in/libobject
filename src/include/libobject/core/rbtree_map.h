@@ -1,5 +1,5 @@
-#ifndef __HASH_MAP_H__
-#define __HASH_MAP_H__
+#ifndef __OBJ_RBTREE_MAP_H__
+#define __OBJ_RBTREE_MAP_H__
 
 #include <stdio.h>
 #include <libobject/utils/dbg/debug.h>
