@@ -42,8 +42,8 @@ static int __construct(Map *map, char *init_str)
     if (rbm->key_size == 0)    { rbm->key_size = sizeof(void *);}
     if (rbm->value_size == 0)  { rbm->value_size = sizeof(void *); }
 
-    dbg_str(DBG_DETAIL, "rbtree map construct, key_size=%d, value_size=%d", 
-            rbm->key_size, rbm->value_size);
+    dbg_str(DBG_DETAIL, "rbtree map construct, key_size=%d, value_size=%d, key_cmp_cb=%p", 
+            rbm->key_size, rbm->value_size, rbm->key_cmp_cb);
 
     rbm->rbmap = rbtree_map_alloc(allocator);
 
@@ -101,6 +101,8 @@ static int __set(Map *m, char *attrib, void *value)
         map->value_size = *((uint16_t *)value);
     } else if (strcmp(attrib, "key_type") == 0) {
         map->key_type = *((uint8_t *)value);
+    } else if (strcmp(attrib, "key_cmp_cb") == 0) {
+        map->key_cmp_cb = value;
     } else {
         dbg_str(RBTMAP_WARNNING, "map set, not support %s setting", attrib);
     }
@@ -227,9 +229,22 @@ static class_info_entry_t rbtree_map_class_info[] = {
     [12] = {ENTRY_TYPE_UINT16_T, "", "key_size", NULL, sizeof(short)}, 
     [13] = {ENTRY_TYPE_UINT16_T, "", "value_size", NULL, sizeof(short)}, 
     [14] = {ENTRY_TYPE_UINT8_T, "", "key_type", NULL, sizeof(short)}, 
-    [15] = {ENTRY_TYPE_END}, 
+    [15] = {ENTRY_TYPE_NORMAL_POINTER, "", "key_cmp_cb", NULL, sizeof(short)}, 
+    [16] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("RBTree_Map", rbtree_map_class_info);
+
+static int numeric_key_cmp_func(void *key1,void *key2,uint32_t size)
+{
+    int k1, k2;
+
+    k1 = *((int *)key1);
+    k2 = *((int *)key2);
+
+    if (k1 > k2 ) return 1;
+    else if (k1 < k2) return -1;
+    else return 0;
+}
 
 struct test{
     int a;
@@ -282,6 +297,7 @@ void test_obj_rbtree_map_string_key()
     dbg_str(RBTMAP_SUC, "configurator_t addr:%p", c);
     cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_size", "40") ;  
     cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "value_size", "8") ;
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_cmp_cb", "43") ;
 
     map  = OBJECT_NEW(allocator, RBTree_Map, c->buf);
 
@@ -374,10 +390,10 @@ void test_obj_rbtree_map_numeric_key()
 }
 void test_obj_rbtree_map()
 {
+    test_obj_rbtree_map_string_key();
     /*
-     *test_obj_rbtree_map_string_key();
+     *test_obj_rbtree_map_numeric_key();
      */
-    test_obj_rbtree_map_numeric_key();
 }
 
 
