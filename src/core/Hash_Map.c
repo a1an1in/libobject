@@ -270,7 +270,6 @@ static void hash_map_print_with_numeric_key(void *key, void *element)
 
 void test_obj_hash_map_string_key()
 {
-    Iterator *iter, *next,*prev;
     Map *map;
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;
@@ -332,7 +331,6 @@ void test_obj_hash_map_string_key()
 
 void test_obj_hash_map_numeric_key()
 {
-    Iterator *iter, *next,*prev;
     Map *map;
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;
