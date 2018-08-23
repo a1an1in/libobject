@@ -19,16 +19,19 @@
 #include <stdlib.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/attrib_priority.h>
+#include <libobject/core/init_registry.h>
 
 extern void console_print_regester();
 extern void log_print_regester();
 
-__attribute__((constructor(ATTRIB_PRIORITY_LIBDBG_REGISTER_MODULES))) 
-void libdbg_register_modules()
+int libdbg_register_modules()
 {
     ATTRIB_PRINT("constructor ATTRIB_PRIORITY_LIBDBG_REGISTER_MODULES=%d,register libdbg modules\n",
                  ATTRIB_PRIORITY_LIBDBG_REGISTER_MODULES);
     console_print_regester();
     //network_print_regester();
     log_print_regester();
+
+    return 0;
 }
+REGISTER_INIT_FUNC(ATTRIB_PRIORITY_LIBDBG_REGISTER_MODULES, libdbg_register_modules);

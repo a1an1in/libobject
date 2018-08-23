@@ -36,6 +36,7 @@
 #include <libobject/concurrent/producer.h>
 #include <libobject/concurrent/worker.h>
 #include <libobject/core/linked_list.h>
+#include <libobject/core/init_registry.h>
 
 Producer *global_default_producer;
 
@@ -158,8 +159,7 @@ Producer *global_get_default_producer()
     return producer;
 }
 
-__attribute__((constructor(ATTRIB_PRIORITY_CONCURRENT))) void
-default_producer_constructor()
+int default_producer_constructor()
 {
     Producer *producer;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -168,9 +168,12 @@ default_producer_constructor()
     global_default_producer = producer;
 
     producer->start(producer);
-}
 
-__attribute__((destructor(ATTRIB_PRIORITY_CONCURRENT))) void
+    return 0;
+}
+REGISTER_INIT_FUNC(ATTRIB_PRIORITY_CONCURRENT, default_producer_constructor);
+
+__attribute__((destructor)) void
 default_producer_destructor()
 {
     Producer *producer = global_get_default_producer();

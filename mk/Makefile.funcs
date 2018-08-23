@@ -10,7 +10,7 @@
 #
 
 define make_clean
-	for subdir in `find -type d `; do\
+	for subdir in `find . -type d `; do\
 		if [ -d $$subdir ]; then\
 			if ls $$subdir/*.cpp >/dev/null 2>&1; then\
 				echo "make clean $$subdir ...";\
@@ -40,7 +40,7 @@ define check_output_dir
 endef
 
 define build_obj
-	for subdir in `find -type d `; do\
+	for subdir in `find . -type d `; do\
 		if [ -d $$subdir ]; then\
 			if ls $$subdir/*.cpp >/dev/null 2>&1; then\
 				echo "Building $$subdir ...";\

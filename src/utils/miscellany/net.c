@@ -54,13 +54,15 @@ int get_mac(char *ifname,unsigned char *mac, int len)
     }
     strcpy (ifreq.ifr_name, ifname); 
 
-    if (ioctl (sock, SIOCGIFHWADDR, &ifreq) < 0)
-    {
-        perror ("ioctl");
-        return -1;
-    }
-
-    memcpy(mac,ifreq.ifr_hwaddr.sa_data,len);
+/*
+ *    if (ioctl (sock, SIOCGIFHWADDR, &ifreq) < 0)
+ *    {
+ *        perror ("ioctl");
+ *        return -1;
+ *    }
+ *
+ *    memcpy(mac,ifreq.ifr_hwaddr.sa_data,len);
+ */
 
     close(sock);
 
@@ -185,8 +187,10 @@ int get_local_netmask(char *ifname,char *netmask_addr)
         return -1;  
     }  
       
-    net_mask = ( struct sockaddr_in * )&( ifreq.ifr_netmask );  
-    strcpy( netmask_addr, inet_ntoa( net_mask -> sin_addr ) );  
+    /*
+     *net_mask = ( struct sockaddr_in * )&( ifreq.ifr_netmask );  
+     *strcpy( netmask_addr, inet_ntoa( net_mask -> sin_addr ) );  
+     */
       
     close( sk );  
     return 1;  

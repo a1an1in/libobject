@@ -166,9 +166,7 @@ void debugger_destroy(debugger_t *debugger);
 #else
 #endif
 
-/*
- *#define OPEN_ATTRIB_PRINT
- */
+#define OPEN_ATTRIB_PRINT
 #ifdef OPEN_ATTRIB_PRINT
     #define ATTRIB_PRINT(fmt,args...) printf(fmt,##args)
 #else

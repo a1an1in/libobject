@@ -49,6 +49,7 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/utils/dbg/debug_string.h>
 #include <libobject/attrib_priority.h>
+#include <libobject/core/init_registry.h>
 
 debugger_t *debugger_gp;
 debugger_module_t debugger_modules[MAX_DEBUGGER_MODULES_NUM];
@@ -294,8 +295,7 @@ debugger_t *debugger_creator(char *ini_file_name,uint8_t lock_type)
 
 }
 
-int __attribute__((constructor(ATTRIB_PRIORITY_DEBUGGER))) 
-debugger_constructor()
+int debugger_constructor()
 {
     char *file_name;
     ATTRIB_PRINT("constructor ATTRIB_PRIORITY_DEBUGGER=%d, construct debugger\n",
@@ -312,7 +312,9 @@ debugger_constructor()
 
     return 0;
 }
-int  __attribute__((destructor(ATTRIB_PRIORITY_DEBUGGER))) 
+REGISTER_INIT_FUNC(ATTRIB_PRIORITY_DEBUGGER, debugger_constructor);
+
+int  __attribute__((destructor)) 
 debugger_destructor()
 {
     ATTRIB_PRINT("destructor ATTRIB_PRIORITY_DEBUGGER=%d, debugger destructor\n",

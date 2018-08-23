@@ -51,12 +51,12 @@
 #include <libobject/utils/thread/posix_thread_rwlock.h>
 #include <libobject/utils/thread/windows_mutex.h>
 #include <libobject/attrib_priority.h>
+#include <libobject/core/init_registry.h>
 
 
 sync_lock_module_t sync_lock_modules[SYNC_LOCK_TYPE_MAX_NUM];
 
-__attribute__((constructor(ATTRIB_PRIORITY_SYNC_LOCK_REGISTER_MODULES))) void
-sync_lock_register_modules()
+int sync_lock_register_modules()
 {
     /*
      *sync_lock_module_t sync_lock_modules[SYNC_LOCK_TYPE_MAX_NUM];
@@ -73,6 +73,9 @@ sync_lock_register_modules()
 #ifdef WINDOWS_USER_MODE
     windows_user_mode_mutex_register();
 #endif
+
+    return 0;
 }
+REGISTER_INIT_FUNC(ATTRIB_PRIORITY_SYNC_LOCK_REGISTER_MODULES, sync_lock_register_modules);
 
 

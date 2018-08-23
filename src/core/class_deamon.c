@@ -35,6 +35,7 @@
 #include <libobject/core/class_info.h>
 #include <libobject/utils/miscellany/buffer.h>
 #include <libobject/attrib_priority.h>
+#include <libobject/core/init_registry.h>
 
 class_deamon_t *global_class_deamon;
 
@@ -92,6 +93,9 @@ int class_deamon_register_class(class_deamon_t *class_deamon,
                                 char *class_name,
                                 void *class_info_addr)
 {
+    if (class_deamon == NULL) {
+        class_deamon = class_deamon_get_global_class_deamon();
+    }
     return map_insert(class_deamon->map,class_name, class_info_addr);
 }
 
@@ -128,8 +132,7 @@ int class_deamon_destroy(class_deamon_t *class_deamon)
     return 0;
 }
 
-__attribute__((constructor(ATTRIB_PRIORITY_OBJ_DEAMON))) void
-class_deamon_constructor()
+int class_deamon_constructor()
 {
     class_deamon_t *class_deamon;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -141,9 +144,12 @@ class_deamon_constructor()
     class_deamon_init(class_deamon);
 
     global_class_deamon = class_deamon;
-}
 
-__attribute__((destructor(ATTRIB_PRIORITY_OBJ_DEAMON))) static void
+    return 0;
+}
+REGISTER_INIT_FUNC(ATTRIB_PRIORITY_OBJ_DEAMON, class_deamon_constructor);
+
+__attribute__((destructor)) static void
 class_deamon_destructor()
 {
     class_deamon_t *class_deamon = class_deamon_get_global_class_deamon();

@@ -39,7 +39,6 @@
 #include <sys/socket.h>    /* basic socket definitions */
 #include <netinet/in.h>    /* sock_addr_in{} and other Internet defns */
 #include <arpa/inet.h>     /* inet(3) functions */
-#include <sys/epoll.h>     /* epoll function */
 #include <fcntl.h>         /* nonblocking */
 #include <sys/resource.h>  /*setrlimit */
 #include <signal.h>
@@ -192,6 +191,7 @@ int test_heap()
     void *element;
     int size = 0;
     int capacity = 1024;
+    int i;
     allocator_t *allocator = allocator_get_default_alloc();
 
     heap = heap_alloc(allocator);
@@ -210,7 +210,7 @@ int test_heap()
     dbg_str(DBG_DETAIL,"size=%d", heap_size(heap));
 
     size = heap_size(heap);
-    for(int i=0; i< size; i++){
+    for(i=0; i< size; i++){
         heap_remove(heap, &element);
         dbg_str(DBG_DETAIL, "%d", (long long)element);
     }

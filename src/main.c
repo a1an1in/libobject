@@ -47,6 +47,7 @@
 #include <libobject/attrib_priority.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/utils/args/cmd_args.h>
+#include <libobject/core/init_registry.h>
 #include <libobject/test.h>
 
 #define LIBRARY_VERSION "libobject version: 2.0.0.0"
@@ -752,8 +753,9 @@ int main(int argc, char *argv[])
 {
     int ret = 0;
 
-    dbg_str(DBG_DETAIL,"main func start");
+    execute_init_funcs();
 
+    dbg_str(DBG_DETAIL,"main func start");
     args_process(NULL,cmds,argc, argv);
 
     dbg_str(DBG_DETAIL,"main func end");
@@ -767,10 +769,10 @@ int main(int argc, char *argv[])
 }
 #endif
 
-__attribute__((constructor(ATTRIB_PRIORITY_VERSION))) void
-print_library_version()
+void print_library_version()
 {
     ATTRIB_PRINT("constructor ATTRIB_PRIORITY_VERSION=%d,%s\n",
                  ATTRIB_PRIORITY_VERSION,
                  LIBRARY_VERSION);
 }
+REGISTER_INIT_FUNC(ATTRIB_PRIORITY_VERSION, print_library_version);

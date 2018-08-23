@@ -49,7 +49,7 @@
 
 extern void pfs_set_pdt_drv_proto_format(protocol_format_set_t *pfs_p);
 
-typedef long long uint64_t;
+typedef unsigned long long uint64_t;
 pa_admin_t *pa_admin;
 
 pa_admin_t *pa_admin_create(allocator_t *allocator,

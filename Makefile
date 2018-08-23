@@ -17,11 +17,11 @@ SHARE_TARGET = libobject.so
 STATIC_TARGET = libobject.a
 
 #compile tools
-export CC = gcc
+export CC = gcc-4.9
 export LD = ld
 export MACROS+=$(MACRO)
 export PROJECT_PATH = $(shell pwd)
-export LIBS = -lpthread -lm -lrt -lSDL2 -lSDL2_ttf
+export LIBS = -lpthread -lm -lSDL2 -lSDL2_ttf
 export INCLUDES += -I $(PROJECT_PATH)/src/include/
 
 #include makefile funtions

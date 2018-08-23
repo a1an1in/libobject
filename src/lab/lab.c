@@ -39,7 +39,6 @@
 #include <sys/socket.h>    /* basic socket definitions */
 #include <netinet/in.h>    /* sockaddr_in{} and other Internet defns */
 #include <arpa/inet.h>     /* inet(3) functions */
-#include <sys/epoll.h>     /* epoll function */
 #include <fcntl.h>         /* nonblocking */
 #include <sys/resource.h>  /*setrlimit */
 #include <signal.h>

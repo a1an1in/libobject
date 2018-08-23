@@ -29,6 +29,7 @@
 #include <libobject/attrib_priority.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/utils/alloc/allocator.h>
+#include <libobject/core/init_registry.h>
 
 allocator_module_t allocator_modules[ALLOCATOR_TYPE_LAST];
 allocator_t *global_allocator_default;
@@ -80,8 +81,7 @@ allocator_t * allocator_get_default_alloc()
     return global_allocator_default;
 }
 
-void __attribute__((constructor(ATTRIB_PRIORITY_DEFAULT_ALLOCATOR)))
-default_allocator_constructor()
+int default_allocator_constructor()
 {
     allocator_t *allocator;
 
@@ -99,10 +99,11 @@ default_allocator_constructor()
 #endif
     global_allocator_default = allocator;
 
-    return;
+    return 0;
 }
+REGISTER_INIT_FUNC(ATTRIB_PRIORITY_DEFAULT_ALLOCATOR, default_allocator_constructor);
 
-void __attribute__((destructor(ATTRIB_PRIORITY_DEFAULT_ALLOCATOR)))
+void __attribute__((destructor))
 default_allocator_destructor()
 {
     allocator_t *allocator = allocator_get_default_alloc();
