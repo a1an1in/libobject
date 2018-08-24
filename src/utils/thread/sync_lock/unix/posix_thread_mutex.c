@@ -94,29 +94,4 @@ int  linux_user_mode_pthread_mutex_register(){
 REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_SYNC_LOCK_REGISTER_MODULES, linux_user_mode_pthread_mutex_register);
 
 
-sync_lock_module_t sync_lock_modules[SYNC_LOCK_TYPE_MAX_NUM];
-
-int sync_lock_register_modules()
-{
-    /*
-     *sync_lock_module_t sync_lock_modules[SYNC_LOCK_TYPE_MAX_NUM];
-     */
-    /*
-     *memset(&sync_lock_modules[PTHREAD_RWLOCK],0,sizeof(sync_lock_module_t));
-     */
-    ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d,register sync lock modules\n",
-                 REGISTRY_CTOR_PRIORITY_SYNC_LOCK_REGISTER_MODULES);
-#ifdef UNIX_LIKE_USER_MODE
-    linux_user_mode_pthread_mutex_register();
-    linux_user_mode_pthread_rwlock_register();
-#endif
-#ifdef WINDOWS_USER_MODE
-    windows_user_mode_mutex_register();
-#endif
-
-    return 0;
-}
-
-
-
 #endif
