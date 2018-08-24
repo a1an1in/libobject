@@ -49,7 +49,7 @@
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/utils/dbg/debug_string.h>
 #include <libobject/attrib_priority.h>
-#include <libobject/core/init_registry.h>
+#include <libobject/core/utils/registry/registry.h>
 
 debugger_t *debugger_gp;
 debugger_module_t debugger_modules[MAX_DEBUGGER_MODULES_NUM];
@@ -298,8 +298,8 @@ debugger_t *debugger_creator(char *ini_file_name,uint8_t lock_type)
 int debugger_constructor()
 {
     char *file_name;
-    ATTRIB_PRINT("constructor ATTRIB_PRIORITY_DEBUGGER=%d, construct debugger\n",
-                 ATTRIB_PRIORITY_DEBUGGER);
+    ATTRIB_PRINT("constructor REGISTRY_CTOR_PRIORITY_DEBUGGER=%d, construct debugger\n",
+                 REGISTRY_CTOR_PRIORITY_DEBUGGER);
 
 #ifdef UNIX_LIKE_USER_MODE
     file_name = "/tmp/dbg.ini";
@@ -312,13 +312,13 @@ int debugger_constructor()
 
     return 0;
 }
-REGISTER_INIT_FUNC(ATTRIB_PRIORITY_DEBUGGER, debugger_constructor);
+REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_DEBUGGER, debugger_constructor);
 
-int  __attribute__((destructor)) 
-debugger_destructor()
+int debugger_destructor()
 {
-    ATTRIB_PRINT("destructor ATTRIB_PRIORITY_DEBUGGER=%d, debugger destructor\n",
-                 ATTRIB_PRIORITY_DEBUGGER);
+    ATTRIB_PRINT("destructor REGISTRY_DTOR_PRIORITY_DEBUGGER=%d, debugger destructor\n",
+                 REGISTRY_DTOR_PRIORITY_DEBUGGER);
     debugger_destroy(debugger_gp);
 }
+REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_DEBUGGER, debugger_destructor);
 

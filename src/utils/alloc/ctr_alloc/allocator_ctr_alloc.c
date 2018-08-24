@@ -47,6 +47,7 @@
 #include <libobject/utils/alloc/allocator.h>
 #include <libobject/utils/alloc/inc_files.h>
 #include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/registry/registry.h>
 
 static int __init(allocator_t *allocator)
 {
@@ -342,3 +343,5 @@ int allocator_ctr_alloc_register() {
 
     return 0;
 }
+REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_LIBALLOC_REGISTER_MODULES, allocator_ctr_alloc_register);
+

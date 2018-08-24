@@ -22,5 +22,5 @@
 
 typedef struct debug_cosole_prive{
 }debug_cosole_prive_t;
-void console_print_regester();
+int console_print_regester();
 #endif

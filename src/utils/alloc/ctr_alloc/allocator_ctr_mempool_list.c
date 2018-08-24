@@ -278,7 +278,7 @@ mempool_alloc_slab_list(allocator_t *allocator,uint32_t size)
 
     if (!(mempool_list = mempool_find_appropriate_pool(allocator,size))){
         dbg_str(ALLOC_DETAIL,"not find appropriate_pool,create a new pool");
-        if (mempool_list = mempool_create_list(allocator)){
+        if ((mempool_list = mempool_create_list(allocator))){
             mempool_attach_list(&mempool_list->list_head,ctr_alloc->pool);
         } else {
             dbg_str(ALLOC_ERROR,"can't create a new mempool_list");

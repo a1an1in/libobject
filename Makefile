@@ -17,7 +17,7 @@ SHARE_TARGET = libobject.so
 STATIC_TARGET = libobject.a
 
 #compile tools
-export CC = gcc-4.9
+export CC = gcc
 export LD = ld
 export MACROS+=$(MACRO)
 export PROJECT_PATH = $(shell pwd)

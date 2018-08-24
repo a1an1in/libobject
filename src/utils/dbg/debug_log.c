@@ -46,6 +46,7 @@
 #include <stdlib.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/utils/dbg/debug_log.h>
+#include <libobject/core/utils/registry/registry.h>
 
 /*init socket*/
 void log_print_init(debugger_t *debugger)
@@ -138,7 +139,8 @@ int log_print_print_str(debugger_t *debugger,size_t level,const char *fmt,...)
 
     return ret;
 }
-void log_print_regester()
+
+int log_print_regester()
 {
     debugger_module_t dm={
         .dbg_ops ={
@@ -148,5 +150,10 @@ void log_print_regester()
             .destroy       = log_print_destroy,
         }
     };
+    ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d,register dbg log print module\n",
+                 REGISTRY_CTOR_PRIORITY_LIBDBG_REGISTER_MODULES);
     memcpy(&debugger_modules[DEBUGGER_TYPE_LOG],&dm,sizeof(debugger_module_t));
+
+    return 0;
 }
+REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_LIBDBG_REGISTER_MODULES, log_print_regester);

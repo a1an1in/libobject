@@ -47,6 +47,7 @@
 #include <string.h>
 #include "libobject/cutils_re.h"
 #include "libobject/utils/dbg/debug.h"
+#include <libobject/core/utils/registry/registry.h>
 
 #ifdef WINDOWS_USER_MODE
 
@@ -82,8 +83,11 @@ int  windows_user_mode_mutex_register(){
 			.sync_lock_destroy = windows_mutex_lock_destroy,
 		},
 	};
+    ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d,register windows_user_mode_mutex module\n",
+                 REGISTRY_CTOR_PRIORITY_SYNC_LOCK_REGISTER_MODULES);
 	memcpy(&sync_lock_modules[WINDOWS_MUTEX_LOCK],&slm,sizeof(sync_lock_module_t));
 	return 0;
 }
+REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_SYNC_LOCK_REGISTER_MODULES, windows_user_mode_mutex_register);
 
 #endif

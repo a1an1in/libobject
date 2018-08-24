@@ -46,6 +46,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/registry/registry.h>
 #include "libobject/cutils_re.h"
 
 int console_print_print_str_vl(debugger_t *debugger,
@@ -111,7 +112,8 @@ int console_print_print(debugger_t *debugger,size_t level,const char *fmt,...)
 
     return ret;
 }
-void console_print_regester()
+
+int console_print_regester()
 {
     debugger_module_t dm={
         .dbg_ops ={
@@ -121,5 +123,10 @@ void console_print_regester()
             .destroy       = NULL,
         }
     };
+    ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d,register dbg console print module\n",
+                 REGISTRY_CTOR_PRIORITY_LIBDBG_REGISTER_MODULES);
     memcpy(&debugger_modules[DEBUGGER_TYPE_CONSOLE],&dm,sizeof(debugger_module_t));
+
+    return 0;
 }
+REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_LIBDBG_REGISTER_MODULES, console_print_regester);

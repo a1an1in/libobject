@@ -29,7 +29,7 @@
 #include <libobject/attrib_priority.h>
 #include <libobject/utils/dbg/debug.h>
 #include <libobject/utils/alloc/allocator.h>
-#include <libobject/core/init_registry.h>
+#include <libobject/core/utils/registry/registry.h>
 
 allocator_module_t allocator_modules[ALLOCATOR_TYPE_LAST];
 allocator_t *global_allocator_default;
@@ -85,8 +85,8 @@ int default_allocator_constructor()
 {
     allocator_t *allocator;
 
-    ATTRIB_PRINT("constructor ATTRIB_PRIORITY_DEFAULT_ALLOCATOR=%d,construct default allocator\n",
-                 ATTRIB_PRIORITY_DEFAULT_ALLOCATOR);
+    ATTRIB_PRINT("constructor REGISTRY_CTOR_PRIORITY_DEFAULT_ALLOCATOR=%d,construct default allocator\n",
+                 REGISTRY_CTOR_PRIORITY_DEFAULT_ALLOCATOR);
 
 #if 0
     if((allocator = allocator_create(ALLOCATOR_TYPE_SYS_MALLOC,0) ) == NULL){
@@ -101,16 +101,15 @@ int default_allocator_constructor()
 
     return 0;
 }
-REGISTER_INIT_FUNC(ATTRIB_PRIORITY_DEFAULT_ALLOCATOR, default_allocator_constructor);
+REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_DEFAULT_ALLOCATOR, default_allocator_constructor);
 
-void __attribute__((destructor))
-default_allocator_destructor()
+int default_allocator_destructor()
 {
     allocator_t *allocator = allocator_get_default_alloc();
 
-    ATTRIB_PRINT("destructor ATTRIB_PRIORITY_DEFAULT_ALLOCATOR=%d, "
+    ATTRIB_PRINT("destructor REGISTRY_DTOR_PRIORITY_DEFAULT_ALLOCATOR=%d, "
                  "default allocator destructor, alloc count =%d\n",
-                 ATTRIB_PRIORITY_DEFAULT_ALLOCATOR, 
+                 REGISTRY_DTOR_PRIORITY_DEFAULT_ALLOCATOR, 
                  allocator->alloc_count);
 
     if (allocator->alloc_count > 0) {
@@ -123,5 +122,6 @@ default_allocator_destructor()
 
     allocator_destroy(allocator);
 
-    return;
+    return 0;
 }
+REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_DEFAULT_ALLOCATOR, default_allocator_destructor);

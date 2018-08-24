@@ -48,6 +48,7 @@
 #include <libobject/cutils_re.h>
 #include <libobject/utils/thread/sync_lock.h>
 #include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/registry/registry.h>
 
 #ifdef UNIX_LIKE_USER_MODE
 
@@ -87,8 +88,12 @@ int  linux_user_mode_pthread_rwlock_register(){
             .sync_lock_destroy = posix_thread_rwlock_lock_destroy,
         },
     };
+    ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d,register sync lock pthread_rwlock module\n",
+                 REGISTRY_CTOR_PRIORITY_SYNC_LOCK_REGISTER_MODULES);
     memcpy(&sync_lock_modules[PTHREAD_RWLOCK],&slm,sizeof(sync_lock_module_t));
     return 0;
 }
+REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_SYNC_LOCK_REGISTER_MODULES, linux_user_mode_pthread_rwlock_register);
+
 #endif
 

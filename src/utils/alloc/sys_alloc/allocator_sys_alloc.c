@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libobject/utils/alloc/inc_files.h>
+#include <libobject/core/utils/registry/registry.h>
 
 static void *__alloc(allocator_t *alloc,uint32_t size)
 {
@@ -53,3 +54,5 @@ int allocator_sys_alloc_register(){
     memcpy(&allocator_modules[ALLOCATOR_TYPE_SYS_MALLOC],&salloc,sizeof(allocator_module_t));
     return 0;
 }
+REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_LIBALLOC_REGISTER_MODULES, allocator_sys_alloc_register);
+

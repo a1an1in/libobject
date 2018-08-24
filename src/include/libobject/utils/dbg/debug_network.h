@@ -31,7 +31,7 @@
  *    struct sockaddr_in raddr;
  *#undef MAX_IP_LEN
  *}debug_network_prive_t;
- *void network_print_regester();
+ *int network_print_regester();
  */
 
 #endif

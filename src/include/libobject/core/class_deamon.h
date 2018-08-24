@@ -5,15 +5,16 @@
 #include <libobject/utils/data_structure/map.h>
 #include <libobject/core/class_info.h>
 #include <libobject/attrib_priority.h>
+#include <libobject/core/utils/registry/registry.h>
 
 #define REGISTER_CLASS(class_name, class_info) \
     __attribute__((constructor)) static void register_class()\
     {\
-        ATTRIB_PRINT("constructor ATTRIB_PRIORITY_REGISTER_CLASS=%d,class name %s\n",\
-                     ATTRIB_PRIORITY_REGISTER_CLASS, class_name);\
+        ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, register class %s\n",\
+                     REGISTRY_CTOR_PRIORITY_REGISTER_CLASS, class_name);\
         \
-        __register_init_func3(ATTRIB_PRIORITY_REGISTER_CLASS,\
-                class_deamon_register_class, NULL, class_name, class_info);\
+        __register_ctor_func3(REGISTRY_CTOR_PRIORITY_REGISTER_CLASS,\
+                (int (*)(void *, void * , void *))class_deamon_register_class, NULL, class_name, class_info);\
     }
 
 typedef struct class_deamon_s{

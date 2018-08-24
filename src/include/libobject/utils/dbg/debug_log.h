@@ -34,6 +34,6 @@ typedef struct debug_log_prive{
 	sync_lock_t log_file_lock;
 #undef MAX_DEBUG_LOG_FILE_NAME_LEN 
 }debug_log_prive_t;
-void log_print_regester();
+int log_print_regester();
 
 #endif

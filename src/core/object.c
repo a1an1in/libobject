@@ -345,6 +345,8 @@ int object_inherit_methods(void *obj,void *class_info,void *parent_class_name)
                 set(obj, (char *)entry[i].value_name, method);
         }
     }   
+
+    return 0;
 }
 
 void *
@@ -465,6 +467,8 @@ static int __object_set(void *obj,
         c = c->next;
     }
 
+    return 0;
+
 }
 int object_set(void *obj, char *type_name, char *set_str) 
 {
@@ -544,6 +548,8 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
             }
         }
     }   
+
+    return 0;
 }
 
 int object_dump(void *obj, char *type_name, char *buf, int max_len) 

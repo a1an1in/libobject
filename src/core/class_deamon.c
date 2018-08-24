@@ -35,7 +35,6 @@
 #include <libobject/core/class_info.h>
 #include <libobject/utils/miscellany/buffer.h>
 #include <libobject/attrib_priority.h>
-#include <libobject/core/init_registry.h>
 
 class_deamon_t *global_class_deamon;
 
@@ -57,7 +56,7 @@ class_deamon_t * class_deamon_alloc(allocator_t *allocator)
 
 int class_deamon_set(class_deamon_t *class_deamon, char *attrib, char *value)
 {
-    if (!strcmp(attrib, "map_type") == 0) {
+    if ((!strcmp(attrib, "map_type")) == 0) {
         class_deamon->map_type = atoi(value);
     } else {
         dbg_str(OBJ_DETAIL,"class_deamon set, not support %s setting",attrib);
@@ -137,8 +136,8 @@ int class_deamon_constructor()
     class_deamon_t *class_deamon;
     allocator_t *allocator = allocator_get_default_alloc();
 
-    ATTRIB_PRINT("constructor ATTRIB_PRIORITY_OBJ_DEAMON =%d, run class_deamon\n",
-                 ATTRIB_PRIORITY_OBJ_DEAMON);
+    ATTRIB_PRINT("constructor REGISTRY_CTOR_PRIORITY_OBJ_DEAMON =%d, run class_deamon\n",
+                 REGISTRY_CTOR_PRIORITY_OBJ_DEAMON);
 
     class_deamon = class_deamon_alloc(allocator);
     class_deamon_init(class_deamon);
@@ -147,16 +146,18 @@ int class_deamon_constructor()
 
     return 0;
 }
-REGISTER_INIT_FUNC(ATTRIB_PRIORITY_OBJ_DEAMON, class_deamon_constructor);
+REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_OBJ_DEAMON, class_deamon_constructor);
 
-__attribute__((destructor)) static void
-class_deamon_destructor()
+static int class_deamon_destructor()
 {
     class_deamon_t *class_deamon = class_deamon_get_global_class_deamon();
 
     class_deamon_destroy(class_deamon);
 
-    ATTRIB_PRINT("destructor ATTRIB_PRIORITY_OBJ_DEAMON =%d, alloc count =%d\n",
-                 ATTRIB_PRIORITY_OBJ_DEAMON, class_deamon->allocator->alloc_count);
+    ATTRIB_PRINT("destructor REGISTRY_DTOR_PRIORITY_OBJ_DEAMON =%d, alloc count =%d\n",
+                 REGISTRY_DTOR_PRIORITY_OBJ_DEAMON, class_deamon->allocator->alloc_count);
+
+    return 0;
 }
+REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_OBJ_DEAMON, class_deamon_destructor);
 

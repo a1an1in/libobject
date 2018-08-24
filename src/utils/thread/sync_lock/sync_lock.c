@@ -44,38 +44,6 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <libobject/cutils_re.h>
-#include <libobject/utils/dbg/debug.h>
 #include <libobject/utils/thread/sync_lock.h>
-#include <libobject/utils/thread/posix_thread_mutex.h>
-#include <libobject/utils/thread/posix_thread_rwlock.h>
-#include <libobject/utils/thread/windows_mutex.h>
-#include <libobject/attrib_priority.h>
-#include <libobject/core/init_registry.h>
-
 
 sync_lock_module_t sync_lock_modules[SYNC_LOCK_TYPE_MAX_NUM];
-
-int sync_lock_register_modules()
-{
-    /*
-     *sync_lock_module_t sync_lock_modules[SYNC_LOCK_TYPE_MAX_NUM];
-     */
-    /*
-     *memset(&sync_lock_modules[PTHREAD_RWLOCK],0,sizeof(sync_lock_module_t));
-     */
-    ATTRIB_PRINT("constructor ATTRIB_PRIORITY_SYNC_LOCK_REGISTER_MODULES=%d,register sync lock modules\n",
-                 ATTRIB_PRIORITY_SYNC_LOCK_REGISTER_MODULES);
-#ifdef UNIX_LIKE_USER_MODE
-    linux_user_mode_pthread_mutex_register();
-    linux_user_mode_pthread_rwlock_register();
-#endif
-#ifdef WINDOWS_USER_MODE
-    windows_user_mode_mutex_register();
-#endif
-
-    return 0;
-}
-REGISTER_INIT_FUNC(ATTRIB_PRIORITY_SYNC_LOCK_REGISTER_MODULES, sync_lock_register_modules);
-
-

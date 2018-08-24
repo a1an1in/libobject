@@ -36,7 +36,7 @@
 #include <libobject/concurrent/producer.h>
 #include <libobject/concurrent/worker.h>
 #include <libobject/core/linked_list.h>
-#include <libobject/core/init_registry.h>
+#include <libobject/core/utils/registry/registry.h>
 
 Producer *global_default_producer;
 
@@ -164,6 +164,8 @@ int default_producer_constructor()
     Producer *producer;
     allocator_t *allocator = allocator_get_default_alloc();
 
+    ATTRIB_PRINT("constructor REGISTRY_CTOR_PRIORITY_CONCURRENT=%d\n",
+            REGISTRY_CTOR_PRIORITY_CONCURRENT);
     producer = OBJECT_NEW(allocator, Producer, NULL);
     global_default_producer = producer;
 
@@ -171,16 +173,19 @@ int default_producer_constructor()
 
     return 0;
 }
-REGISTER_INIT_FUNC(ATTRIB_PRIORITY_CONCURRENT, default_producer_constructor);
+REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_CONCURRENT, default_producer_constructor);
 
-__attribute__((destructor)) void
-default_producer_destructor()
+int default_producer_destructor()
 {
     Producer *producer = global_get_default_producer();
-    dbg_str(CONCURRENT_WARNNING,"destruct default_producer_destructor");
+
+    ATTRIB_PRINT("destructor REGISTRY_DTOR_PRIORITY_CONCURRENT=%d\n",
+            REGISTRY_DTOR_PRIORITY_CONCURRENT);
     while (producer->parent.flags != EVTHREAD_STATE_DESTROYED) sleep(1);
+
     object_destroy(producer);
 }
+REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_CONCURRENT, default_producer_destructor);
 
 void test_obj_producer()
 {

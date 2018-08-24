@@ -1,5 +1,5 @@
 #ifndef __RBTREE_MAP_STRUCT_H__
-#define __RBTREE_MAP_STRUCP_H__
+#define __RBTREE_MAP_STRUCT_H__
 
 #include <libobject/utils/alloc/allocator.h>
 #include <libobject/utils/data_structure/rbtree.h>

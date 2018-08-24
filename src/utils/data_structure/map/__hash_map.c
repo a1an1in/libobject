@@ -1,4 +1,5 @@
 #include <libobject/utils/data_structure/map.h>
+#include <libobject/core/utils/registry/registry.h>
 
 static int __map_alloc(map_t *map)
 {
@@ -106,4 +107,5 @@ int hash_map_pk_register()
     memcpy(&map_modules[MAP_TYPE_HASH_MAP],&m,sizeof(map_module_t));
     return 0;
 }
+REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_REGISTER_MAP_MODULES, hash_map_pk_register);
 

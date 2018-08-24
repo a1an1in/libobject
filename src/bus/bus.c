@@ -298,7 +298,7 @@ int bus_lookup_sync(bus_t *bus, char *object, char *out_buf, char *out_len)
     req = (bus_req_t *)allocator_mem_alloc(bus->allocator, sizeof(bus_req_t));
     req->state             = 0xffff;
     req->opaque_len        = 0;
-    req->opaque            = buffer;
+    req->opaque            = (uint8_t *)buffer;
     req->opaque_buffer_len = sizeof(buffer);
 
     if (pipe(fds)) {
@@ -465,7 +465,7 @@ bus_invoke_sync(bus_t *bus, char *object, char *method,
     req->method            = method;
     req->state             = 0xffff;
     req->opaque_len        = 0;
-    req->opaque            = buffer;
+    req->opaque            = (uint8_t *)buffer;
     req->opaque_buffer_len = sizeof(buffer);
 
     if (pipe(fds)) {
@@ -525,7 +525,7 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
     }
     if (attr[BUS_OPAQUE]) {
         buffer_len = blob_get_buffer(attr[BUS_OPAQUE], (uint8_t**)&buffer);
-        dbg_buf(BUS_DETAIL, "bus_handle_invoke_reply, buffer:", buffer, buffer_len);
+        dbg_buf(BUS_DETAIL, "bus_handle_invoke_reply, buffer:", (uint8_t *)buffer, buffer_len);
     }
 
     if (method_name != NULL) {
