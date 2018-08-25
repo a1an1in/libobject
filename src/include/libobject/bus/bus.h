@@ -3,7 +3,7 @@
 
 #include <libobject/net/client/client.h>
 #include <libobject/net/net_task.h>
-#include <libobject/utils/blob/blob.h>
+#include <libobject/core/utils/blob/blob.h>
 #include <libobject/core/map.h>
 
 enum {

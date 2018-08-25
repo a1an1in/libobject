@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -36,11 +36,11 @@
 #include <libobject/net/server/server.h>
 #include <libobject/core/linked_list.h>
 
-static int __construct(Server *server,char *init_str)
+static int __construct(Server *server, char *init_str)
 {
     allocator_t *allocator = server->obj.allocator;
 
-    dbg_str(EV_DETAIL,"server construct, server addr:%p",server);
+    dbg_str(EV_DETAIL, "server construct, server addr:%p", server);
     server->workers = OBJECT_NEW(allocator, Linked_List, NULL);
 
     return 0;
@@ -50,7 +50,7 @@ static void __release_worker(void *element)
 {
     Worker *worker = (Worker *)element;
 
-    dbg_str(DBG_DETAIL,"release_worker, element: %p", element);
+    dbg_str(DBG_DETAIL, "release_worker, element: %p", element);
     worker->resign(worker);
     object_destroy(worker);
 }
@@ -58,10 +58,10 @@ static void __release_worker(void *element)
 static int __deconstrcut(Server *server)
 {
     List *list = server->workers;
-    dbg_str(EV_DETAIL,"server deconstruct,server addr:%p",server);
+    dbg_str(EV_DETAIL, "server deconstruct, server addr:%p", server);
 
     /*those socket are created when accepting a new connection*/
-    list->for_each(list,__release_worker);
+    list->for_each(list, __release_worker);
     object_destroy(server->workers);
 
     return 0;
@@ -84,7 +84,7 @@ static int __set(Server *server, char *attrib, void *value)
         server->trustee = value;
     } 
     else {
-        dbg_str(EV_DETAIL,"server set, not support %s setting",attrib);
+        dbg_str(EV_DETAIL, "server set, not support %s setting", attrib);
     }
 
     return 0;
@@ -94,7 +94,7 @@ static void *__get(Server *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"server get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARNNING, "server get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
 
@@ -122,19 +122,19 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
     len = recv(fd, buf, buf_len, 0);
 
     if (len < 0) {
-        dbg_str(DBG_ERROR,"socket read error");
+        dbg_str(DBG_ERROR, "socket read error");
         exit(1);
     }  else if (len == 0) {
         ret = worker->resign(worker);
         if (ret == 0) {
             list->remove_element(list, worker);
             object_destroy(worker); //????there may be prolem, worker event may havn't been reclaimed
-            dbg_str(DBG_DETAIL,"client exit");
+            dbg_str(DBG_DETAIL, "client exit");
         }
         return 1;
     }
 
-    dbg_str(DBG_SUC,"new_conn_ev_callback");
+    dbg_str(DBG_SUC, "new_conn_ev_callback");
     if (worker->work_callback && len) {
         net_task_t *task;
         task = net_task_alloc(worker->obj.allocator, len);
@@ -168,8 +168,8 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
     }
 
     new_worker->opaque = server;
-    new_worker->assign(new_worker, new_fd, EV_READ | EV_PERSIST, NULL,
-                       (void *)__new_conn_ev_callback,
+    new_worker->assign(new_worker, new_fd, EV_READ | EV_PERSIST, NULL, 
+                       (void *)__new_conn_ev_callback, 
                        new_worker, 
                        (void *)worker->work_callback);
     new_worker->enroll(new_worker, producer);
@@ -190,23 +190,23 @@ static int __trustee(Server *server, void *work_callback, void *opaque)
     socket->setnonblocking(socket);
     socket->listen(socket, 1024);
     worker->opaque = server;
-    worker->assign(worker, fd, EV_READ | EV_PERSIST, NULL,
+    worker->assign(worker, fd, EV_READ | EV_PERSIST, NULL, 
                    (void *)__listenfd_ev_callback, worker, work_callback);
 
     return worker->enroll(worker, producer);
 }
 
 static class_info_entry_t concurent_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5] = {ENTRY_TYPE_VFUNC_POINTER,"","bind",__bind,sizeof(void *)},
-    [6] = {ENTRY_TYPE_VFUNC_POINTER,"","trustee",__trustee,sizeof(void *)},
-    [7] = {ENTRY_TYPE_END},
+    [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "bind", __bind, sizeof(void *)}, 
+    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "trustee", __trustee, sizeof(void *)}, 
+    [7] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Server",concurent_class_info);
+REGISTER_CLASS("Server", concurent_class_info);
 
 /*
  *void test_obj_server()
@@ -219,13 +219,13 @@ REGISTER_CLASS("Server",concurent_class_info);
  *    char buf[2048];
  *
  *    c = cfg_alloc(allocator); 
- *    dbg_str(EV_SUC, "configurator_t addr:%p",c);
+ *    dbg_str(EV_SUC, "configurator_t addr:%p", c);
  *    cfg_config(c, "/Server", CJSON_STRING, "name", "alan server") ;  
  *
- *    server = OBJECT_NEW(allocator, Server,c->buf);
+ *    server = OBJECT_NEW(allocator, Server, c->buf);
  *
  *    object_dump(server, "Server", buf, 2048);
- *    dbg_str(EV_DETAIL,"Server dump: %s",buf);
+ *    dbg_str(EV_DETAIL, "Server dump: %s", buf);
  *
  *    object_destroy(server);
  *    cfg_destroy(c);

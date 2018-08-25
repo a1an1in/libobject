@@ -45,7 +45,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/attrib_priority.h>
-#include <libobject/utils/args/cmd_args.h>
+#include <libobject/core/utils/args/cmd_args.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/test.h>
@@ -157,14 +157,6 @@ static int args_process_test_heap(void *base,int argc,char **argv)
 static int args_process_test_allocator(void *base,int argc,char **argv)
 {
     test_ctr_alloc();
-    return 0;
-}
-
-static int args_process_test_io_user(void *base,int argc,char **argv)
-{
-    /*
-     *test_io_user();
-     */
     return 0;
 }
 
@@ -697,7 +689,6 @@ static cmd_config_t cmds[]={
     {"evtime", args_process_test_evtime,0, "test", "N/A","test evtime"},
     {"evsignal", args_process_test_evsignal,0, "test", "N/A","test evsignal"},
     {"evio", args_process_test_evio,0, "test", "N/A","test evio"},
-    {"io_user", args_process_test_io_user,0, "test", "N/A","test io user"},
     {"allocator", args_process_test_allocator,0, "test", "N/A","test_allocator"},
     {"heap", args_process_test_heap,0, "test", "N/A","test_ring_buffer"},
     {"ring_buffer", args_process_test_ring_buffer,0, "test", "N/A","test_ring_buffer"},

@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -36,16 +36,16 @@
 #include <libobject/event/event_user.h>
 #include <unistd.h>
 
-static int __construct(Event_User *event_user,char *init_str)
+static int __construct(Event_User *event_user, char *init_str)
 {
-    dbg_str(EV_DETAIL,"event_user construct, event_user addr:%p",event_user);
+    dbg_str(EV_DETAIL, "event_user construct, event_user addr:%p", event_user);
 
     return 0;
 }
 
 static int __deconstrcut(Event_User *event_user)
 {
-    dbg_str(EV_DETAIL,"event_user deconstruct,event_user addr:%p",event_user);
+    dbg_str(EV_DETAIL, "event_user deconstruct, event_user addr:%p", event_user);
 
     return 0;
 }
@@ -62,7 +62,7 @@ static int __set(Event_User *event_user, char *attrib, void *value)
         event_user->deconstruct = value;
     } 
     else {
-        dbg_str(EV_DETAIL,"event_user set, not support %s setting",attrib);
+        dbg_str(EV_DETAIL, "event_user set, not support %s setting", attrib);
     }
 
     return 0;
@@ -72,21 +72,21 @@ static void *__get(Event_User *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"event_user get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARNNING, "event_user get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
 static class_info_entry_t event_user_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Event_User",event_user_class_info);
+REGISTER_CLASS("Event_User", event_user_class_info);
 
 /*
  *void test_obj_event_user()
@@ -99,13 +99,13 @@ REGISTER_CLASS("Event_User",event_user_class_info);
  *    char buf[2048];
  *
  *    c = cfg_alloc(allocator); 
- *    dbg_str(EV_SUC, "configurator_t addr:%p",c);
+ *    dbg_str(EV_SUC, "configurator_t addr:%p", c);
  *    cfg_config(c, "/Event_User", CJSON_STRING, "name", "alan event_user") ;  
  *
- *    event_user = OBJECT_NEW(allocator, Event_User,c->buf);
+ *    event_user = OBJECT_NEW(allocator, Event_User, c->buf);
  *
  *    object_dump(event_user, "Event_User", buf, 2048);
- *    dbg_str(EV_DETAIL,"Event_User dump: %s",buf);
+ *    dbg_str(EV_DETAIL, "Event_User dump: %s", buf);
  *
  *    object_destroy(event_user);
  *    cfg_destroy(c);
@@ -124,7 +124,7 @@ test_timeout_cb(int fd, short event, void *arg)
     elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
     lasttime = newtime;
 
-    dbg_str(DBG_SUC,"timeout_cb called at %d: %.3f seconds elapsed.",
+    dbg_str(DBG_SUC, "timeout_cb called at %d: %.3f seconds elapsed.", 
             (int)newtime.tv_sec, elapsed);
 }
 
@@ -141,7 +141,7 @@ void test_obj_event_user()
     user = OBJECT_NEW(allocator, Event_User, NULL);
 
     object_dump(user, "Thread", buf, 2048);
-    dbg_str(DBG_DETAIL,"Thread dump: %s",buf);
+    dbg_str(DBG_DETAIL, "Thread dump: %s", buf);
 
     sleep(1);
 

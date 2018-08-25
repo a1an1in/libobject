@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -35,9 +35,9 @@
 #include <libobject/core/utils/config/config.h>
 #include <libobject/event/select_base.h>
 
-static int __construct(Select_Base *eb,char *init_str)
+static int __construct(Select_Base *eb, char *init_str)
 {
-    dbg_str(OBJ_DETAIL,"select constructor");
+    dbg_str(OBJ_DETAIL, "select constructor");
 
     eb->maxfdp = 1;
     FD_ZERO(&eb->event_readset_in);
@@ -52,7 +52,7 @@ static int __construct(Select_Base *eb,char *init_str)
 
 static int __deconstrcut(Select_Base *eb)
 {
-    dbg_str(OBJ_DETAIL,"select constructor");
+    dbg_str(OBJ_DETAIL, "select constructor");
 
     evsig_release((Event_Base *)eb);
 
@@ -81,7 +81,7 @@ static int __set(Select_Base *eb, char *attrib, void *value)
         eb->activate_io = value;
     }
     else {
-        dbg_str(OBJ_DETAIL,"eb set, not support %s setting",attrib);
+        dbg_str(OBJ_DETAIL, "eb set, not support %s setting", attrib);
     }
 
     return 0;
@@ -91,7 +91,7 @@ static void *__get(Select_Base *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(OBJ_WARNNING,"eb get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(OBJ_WARNNING, "eb get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -103,13 +103,13 @@ static int __trustee_io(Select_Base *b, event_t *e)
     Event_Base *p = (Event_Base *)b;
 
     if (fd < 0) {
-        dbg_str(EV_WARNNING,"not add this fd =%d", fd);
+        dbg_str(EV_WARNNING, "not add this fd =%d", fd);
         return 0;
     }
 
     b->maxfdp = b->maxfdp -1 > fd ? b->maxfdp : fd + 1; 
 
-    dbg_str(EV_DETAIL,"select base add event, fd =%d, maxfdp=%d", fd, b->maxfdp);
+    dbg_str(EV_DETAIL, "select base add event, fd =%d, maxfdp=%d", fd, b->maxfdp);
 
     if (e->ev_events & EV_READ)
         FD_SET(fd, &b->event_readset_in);
@@ -124,7 +124,7 @@ static int __reclaim_io(Select_Base *b, event_t *e)
     int fd = e->ev_fd;
     unsigned short events = e->ev_events;
 
-    dbg_str(EV_DETAIL,"select base add event");
+    dbg_str(EV_DETAIL, "select base add event");
 
     //.. maxfdp
 
@@ -144,19 +144,19 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
     b->event_readset_out  = b->event_readset_in;
     b->event_writeset_out = b->event_writeset_in;
 
-    dbg_str(EV_DETAIL,"dispatch select in,  nfds=%d",nfds);
-    res = select(nfds, &b->event_readset_out,
+    dbg_str(EV_DETAIL, "dispatch select in,  nfds=%d", nfds);
+    res = select(nfds, &b->event_readset_out, 
                  &b->event_writeset_out, NULL, tv);
     if (res == -1) {
         perror("dispatch");
-        dbg_str(EV_WARNNING,"dispatch, erro_no:%d, nfds=%d", errno, nfds);
+        dbg_str(EV_WARNNING, "dispatch, erro_no:%d, nfds=%d", errno, nfds);
         ((Event_Base *)b)->break_flag = 1;
         return (0);
     } else if (res > 0) {
         if (tv != NULL)
-            dbg_str(EV_DETAIL,"select base dispatch io events res=%d, tv=%d",res, tv->tv_sec);
+            dbg_str(EV_DETAIL, "select base dispatch io events res=%d, tv=%d", res, tv->tv_sec);
     } else {
-        dbg_str(EV_WARNNING,"select timeout");
+        dbg_str(EV_WARNNING, "select timeout");
         return 0;
     }
 
@@ -175,32 +175,32 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
         if (res == 0)
             continue;
 
-        dbg_str(EV_DETAIL,"fd %d has event, res=%d", i, res);
-        b->activate_io((Event_Base *)b,i, res);
+        dbg_str(EV_DETAIL, "fd %d has event, res=%d", i, res);
+        b->activate_io((Event_Base *)b, i, res);
     }
 
-    dbg_str(EV_DETAIL,"dispatch select out");
+    dbg_str(EV_DETAIL, "dispatch select out");
 
     return 0;
 }
 
 static class_info_entry_t select_base_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ,"Event_Base","base",NULL,sizeof(void *)},
-    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5] = {ENTRY_TYPE_FUNC_POINTER,"","trustee_io",__trustee_io,sizeof(void *)},
-    [6] = {ENTRY_TYPE_FUNC_POINTER,"","reclaim_io",__reclaim_io,sizeof(void *)},
-    [7] = {ENTRY_TYPE_FUNC_POINTER,"","dispatch",__dispatch,sizeof(void *)},
-    [8] = {ENTRY_TYPE_IFUNC_POINTER,"","activate_io",NULL,sizeof(void *)},
-    [9] = {ENTRY_TYPE_END},
+    [0] = {ENTRY_TYPE_OBJ, "Event_Base", "base", NULL, sizeof(void *)}, 
+    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5] = {ENTRY_TYPE_FUNC_POINTER, "", "trustee_io", __trustee_io, sizeof(void *)}, 
+    [6] = {ENTRY_TYPE_FUNC_POINTER, "", "reclaim_io", __reclaim_io, sizeof(void *)}, 
+    [7] = {ENTRY_TYPE_FUNC_POINTER, "", "dispatch", __dispatch, sizeof(void *)}, 
+    [8] = {ENTRY_TYPE_IFUNC_POINTER, "", "activate_io", NULL, sizeof(void *)}, 
+    [9] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Select_Base",select_base_class_info);
+REGISTER_CLASS("Select_Base", select_base_class_info);
 
 static void test_ev_callback(int fd, short events, void *arg)
 {
-    dbg_str(EV_DETAIL,"hello world, event");
+    dbg_str(EV_DETAIL, "hello world, event");
 }
 
 void test_obj_select_base()
@@ -214,10 +214,10 @@ void test_obj_select_base()
 
     eb = OBJECT_NEW(allocator, Select_Base, NULL);
 
-    dbg_str(EV_DETAIL,"run at here, eb=%p", eb);
+    dbg_str(EV_DETAIL, "run at here, eb=%p", eb);
 
     object_dump(eb, "Select_Base", buf, 2048);
-    dbg_str(EV_DETAIL,"Select_Base dump: %s",buf);
+    dbg_str(EV_DETAIL, "Select_Base dump: %s", buf);
 
     event.ev_timeout.tv_sec  = 2;
     event.ev_timeout.tv_usec = 0;

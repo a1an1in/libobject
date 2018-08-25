@@ -13,9 +13,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -26,7 +26,7 @@
 #include <libobject/core/utils/miscellany/buffer.h>
 #include <libobject/core/utils/dbg/debug.h>
 
-void addr_to_buffer(void *addr,uint8_t *buffer)
+void addr_to_buffer(void *addr, uint8_t *buffer)
 {
     unsigned long data = (unsigned long)addr;
     int i;
@@ -75,20 +75,20 @@ void printf_buffer(unsigned char *buf, int len)
     int buffer_len;
 
     if(len * 2 > MAX_PRINT_BUFFER_LEN){                      
-        dbg_str(DBG_ERROR,"buffer too long,please check,len=%d",len);               
+        dbg_str(DBG_ERROR, "buffer too long, please check, len=%d", len);               
         return ;                      
     }                            
 
-    memset(buffer,0,MAX_PRINT_BUFFER_LEN);                      
+    memset(buffer, 0, MAX_PRINT_BUFFER_LEN);                      
     buffer_len = strlen(buffer);
     
     for(i = 0; i < len; i++) {                   
-        snprintf(buffer + buffer_len , MAX_PRINT_BUFFER_LEN,"%x ",buf[i]);               
+        snprintf(buffer + buffer_len , MAX_PRINT_BUFFER_LEN, "%x ", buf[i]);               
         buffer_len = strlen(buffer);
     }                           
 
-    snprintf(buffer + buffer_len,MAX_PRINT_BUFFER_LEN, "\n");                      
+    snprintf(buffer + buffer_len, MAX_PRINT_BUFFER_LEN, "\n");                      
 
-    printf("%s\n",buffer);
+    printf("%s\n", buffer);
 #undef MAX_PRINT_BUFFER_LEN                    
 }

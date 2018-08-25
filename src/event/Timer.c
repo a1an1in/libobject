@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -35,16 +35,16 @@
 #include <libobject/event/event_base.h>
 #include <libobject/event/timer.h>
 
-static int __construct(Timer *timer,char *init_str)
+static int __construct(Timer *timer, char *init_str)
 {
-    dbg_str(EV_DETAIL,"timer construct, timer addr:%p",timer);
+    dbg_str(EV_DETAIL, "timer construct, timer addr:%p", timer);
 
     return 0;
 }
 
 static int __deconstrcut(Timer *timer)
 {
-    dbg_str(EV_DETAIL,"timer deconstruct,timer addr:%p",timer);
+    dbg_str(EV_DETAIL, "timer deconstruct, timer addr:%p", timer);
 
     return 0;
 }
@@ -71,7 +71,7 @@ static int __set(Timer *timer, char *attrib, void *value)
     } else if (strcmp(attrib, "first") == 0) {
         timer->first = value;
     } else {
-        dbg_str(EV_DETAIL,"timer set, not support %s setting",attrib);
+        dbg_str(EV_DETAIL, "timer set, not support %s setting", attrib);
     }
 
     return 0;
@@ -81,7 +81,7 @@ static void *__get(Timer *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"timer get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARNNING, "timer get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -89,19 +89,19 @@ static void *__get(Timer *obj, char *attrib)
 
 
 static class_info_entry_t timer_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",NULL,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",NULL,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add",NULL,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","del",NULL,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove",NULL,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","timeout_next",NULL,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","first",NULL,sizeof(void *)},
-    [10] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", NULL, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", NULL, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", NULL, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del", NULL, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", NULL, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "timeout_next", NULL, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "first", NULL, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Timer",timer_class_info);
+REGISTER_CLASS("Timer", timer_class_info);
 
 void test_obj_event_timer()
 {
@@ -112,13 +112,13 @@ void test_obj_event_timer()
     cjson_t *root, *e, *s;
     char buf[2048];
     c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
+    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
     cfg_config(c, "/Timer", CJSON_STRING, "name", "alan timer") ;  
 
-    timer = OBJECT_NEW(allocator, Timer,c->buf);
+    timer = OBJECT_NEW(allocator, Timer, c->buf);
 
     object_dump(timer, "Timer", buf, 2048);
-    dbg_str(DBG_DETAIL,"Timer dump: %s",buf);
+    dbg_str(DBG_DETAIL, "Timer dump: %s", buf);
 
     object_destroy(timer);
     cfg_destroy(c);

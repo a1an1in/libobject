@@ -173,7 +173,8 @@ int default_producer_constructor()
 
     return 0;
 }
-REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_CONCURRENT, default_producer_constructor);
+REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_CONCURRENT,
+                   default_producer_constructor);
 
 int default_producer_destructor()
 {
@@ -185,7 +186,8 @@ int default_producer_destructor()
 
     object_destroy(producer);
 }
-REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_CONCURRENT, default_producer_destructor);
+REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_CONCURRENT,
+                   default_producer_destructor);
 
 void test_obj_producer()
 {

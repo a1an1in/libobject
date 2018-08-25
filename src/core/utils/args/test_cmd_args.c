@@ -1,5 +1,5 @@
 #include "libobject/core/utils/dbg/debug.h"
-#include <libobject/utils/args/cmd_args.h>
+#include <libobject/core/utils/args/cmd_args.h>
 
 typedef struct config_list_s{
 }config_list_t;

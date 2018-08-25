@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -42,12 +42,12 @@ class_deamon_t * class_deamon_alloc(allocator_t *allocator)
 {
     class_deamon_t *class_deamon;
 
-    class_deamon = (class_deamon_t *)allocator_mem_alloc(allocator,sizeof(class_deamon_t));
+    class_deamon = (class_deamon_t *)allocator_mem_alloc(allocator, sizeof(class_deamon_t));
     if (class_deamon == NULL) {
-        dbg_str(OBJ_DETAIL,"allocator_mem_alloc");
+        dbg_str(OBJ_DETAIL, "allocator_mem_alloc");
         return class_deamon;
     }
-    memset(class_deamon,0, sizeof(class_deamon_t));
+    memset(class_deamon, 0, sizeof(class_deamon_t));
 
     class_deamon->allocator = allocator;
 
@@ -59,7 +59,7 @@ int class_deamon_set(class_deamon_t *class_deamon, char *attrib, char *value)
     if ((!strcmp(attrib, "map_type")) == 0) {
         class_deamon->map_type = atoi(value);
     } else {
-        dbg_str(OBJ_DETAIL,"class_deamon set, not support %s setting",attrib);
+        dbg_str(OBJ_DETAIL, "class_deamon set, not support %s setting", attrib);
     }
 
     return 0;
@@ -77,9 +77,9 @@ int class_deamon_init(class_deamon_t *class_deamon)
         class_deamon->map_key_len = 20;
     }
 
-    class_deamon->map = (map_t *)map_alloc(class_deamon->allocator,class_deamon->map_type);
+    class_deamon->map = (map_t *)map_alloc(class_deamon->allocator, class_deamon->map_type);
     if (class_deamon->map == NULL) {
-        dbg_str(OBJ_ERROR,"map_alloc");
+        dbg_str(OBJ_ERROR, "map_alloc");
         return -1;
     }
 
@@ -88,14 +88,14 @@ int class_deamon_init(class_deamon_t *class_deamon)
     return 0;
 }
 
-int class_deamon_register_class(class_deamon_t *class_deamon,
-                                char *class_name,
+int class_deamon_register_class(class_deamon_t *class_deamon, 
+                                char *class_name, 
                                 void *class_info_addr)
 {
     if (class_deamon == NULL) {
         class_deamon = class_deamon_get_global_class_deamon();
     }
-    return map_insert(class_deamon->map,class_name, class_info_addr);
+    return map_insert(class_deamon->map, class_name, class_info_addr);
 }
 
 void * class_deamon_search_class(class_deamon_t *class_deamon, char *class_name)
@@ -106,7 +106,7 @@ void * class_deamon_search_class(class_deamon_t *class_deamon, char *class_name)
 
     ret = map_search(class_deamon->map, class_name, &it);
     if (ret < 0) {
-        dbg_str(OBJ_WARNNING,"class_deamon_search_method, not found %s",class_name);
+        dbg_str(OBJ_WARNNING, "class_deamon_search_method, not found %s", class_name);
         return NULL;
     }
 
@@ -126,7 +126,7 @@ int class_deamon_destroy(class_deamon_t *class_deamon)
 
     map_destroy(class_deamon->map);
 
-    allocator_mem_free(allocator,class_deamon);
+    allocator_mem_free(allocator, class_deamon);
 
     return 0;
 }
@@ -136,7 +136,7 @@ int class_deamon_constructor()
     class_deamon_t *class_deamon;
     allocator_t *allocator = allocator_get_default_alloc();
 
-    ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY =%d, run class_deamon\n",
+    ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY =%d, run class_deamon\n", 
                  REGISTRY_CTOR_PRIORITY_OBJ_DEAMON);
 
     class_deamon = class_deamon_alloc(allocator);
@@ -154,7 +154,7 @@ static int class_deamon_destructor()
 
     class_deamon_destroy(class_deamon);
 
-    ATTRIB_PRINT("REGISTRY_DTOR_PRIORITY =%d, destruct class deamon alloc count =%d\n",
+    ATTRIB_PRINT("REGISTRY_DTOR_PRIORITY =%d, destruct class deamon alloc count =%d\n", 
                  REGISTRY_DTOR_PRIORITY_OBJ_DEAMON, class_deamon->allocator->alloc_count);
 
     return 0;
