@@ -30,10 +30,10 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/miscellany/buffer.h>
 #include <libobject/core/class_deamon.h>
 #include <libobject/core/class_info.h>
-#include <libobject/utils/miscellany/buffer.h>
 #include <libobject/attrib_priority.h>
 
 class_deamon_t *global_class_deamon;
@@ -136,7 +136,7 @@ int class_deamon_constructor()
     class_deamon_t *class_deamon;
     allocator_t *allocator = allocator_get_default_alloc();
 
-    ATTRIB_PRINT("constructor REGISTRY_CTOR_PRIORITY_OBJ_DEAMON =%d, run class_deamon\n",
+    ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY =%d, run class_deamon\n",
                  REGISTRY_CTOR_PRIORITY_OBJ_DEAMON);
 
     class_deamon = class_deamon_alloc(allocator);
@@ -154,7 +154,7 @@ static int class_deamon_destructor()
 
     class_deamon_destroy(class_deamon);
 
-    ATTRIB_PRINT("destructor REGISTRY_DTOR_PRIORITY_OBJ_DEAMON =%d, alloc count =%d\n",
+    ATTRIB_PRINT("REGISTRY_DTOR_PRIORITY =%d, destruct class deamon alloc count =%d\n",
                  REGISTRY_DTOR_PRIORITY_OBJ_DEAMON, class_deamon->allocator->alloc_count);
 
     return 0;

@@ -45,8 +45,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/attrib_priority.h>
-#include <libobject/utils/dbg/debug.h>
 #include <libobject/utils/args/cmd_args.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/test.h>
 
@@ -160,14 +160,6 @@ static int args_process_test_allocator(void *base,int argc,char **argv)
     return 0;
 }
 
-static int args_process_test_tmr_user(void *base,int argc,char **argv)
-{
-    /*
-     *test_tmr_user();
-     */
-    return 0;
-}
-
 static int args_process_test_io_user(void *base,int argc,char **argv)
 {
     /*
@@ -201,15 +193,6 @@ static int args_process_test_evtime(void *base,int argc,char **argv)
     return 0;
 }
 
-static int args_process_test_analyzer(void *base,int argc,char **argv)
-{
-    test_pdt_proto_analyzer();
-    /*
-     *test_pdu_proto_analyzer();
-     */
-    return 0;
-}
-
 static int args_process_lab(void *base,int argc,char **argv)
 {
     dbg_str(DBG_DETAIL,"test begin");
@@ -238,14 +221,6 @@ static int args_process_help_test(void *base,int argc,char **argv)
 {
     args_print_help_test_info(args_get_processor_globle_addr());
     exit(1);
-    return 0;
-}
-
-static int args_process_test_pa_admin(void *base,int argc,char **argv)
-{
-    /*
-     *test_pa_admin();
-     */
     return 0;
 }
 
@@ -717,15 +692,12 @@ static cmd_config_t cmds[]={
     {"busc", args_process_busc,0, "test", "N/A","bus"},
     {"busd", args_process_busd,0, "app", "N/A","bus"},
     {"blob", args_process_test_blob,0, "test", "N/A","bus"},
-    {"pa_admin", args_process_test_pa_admin,0, "test", "N/A","help info"},
     {"help_test", args_process_help_test,0, "help", "N/A","help info"},
     {"lab", args_process_lab,1, "test", "N/A","test simple code"},
-    {"analyzer", args_process_test_analyzer,0, "test", "N/A","test analyzer"},
     {"evtime", args_process_test_evtime,0, "test", "N/A","test evtime"},
     {"evsignal", args_process_test_evsignal,0, "test", "N/A","test evsignal"},
     {"evio", args_process_test_evio,0, "test", "N/A","test evio"},
     {"io_user", args_process_test_io_user,0, "test", "N/A","test io user"},
-    {"tmr_user", args_process_test_tmr_user,0, "test", "N/A","test timer user"},
     {"allocator", args_process_test_allocator,0, "test", "N/A","test_allocator"},
     {"heap", args_process_test_heap,0, "test", "N/A","test_ring_buffer"},
     {"ring_buffer", args_process_test_ring_buffer,0, "test", "N/A","test_ring_buffer"},
@@ -753,14 +725,12 @@ int main(int argc, char *argv[])
 {
     int ret = 0;
 
-    execute_ctor_funcs();
+    INIT_LIBOBJECT();
 
     dbg_str(DBG_DETAIL,"main func start");
-    args_process(NULL,cmds,argc, argv);
+    args_process(NULL, cmds, argc, argv);
 
     dbg_str(DBG_DETAIL,"main func end");
-
-    execute_dtor_funcs();
 
 #if 0
     pause();
@@ -778,3 +748,10 @@ int print_library_version()
                  LIBRARY_VERSION);
 }
 REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_VERSION, print_library_version);
+
+int __attribute__((destructor)) destruct_libobject()
+{
+    execute_dtor_funcs();
+
+    return 0;
+}

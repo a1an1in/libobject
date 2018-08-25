@@ -1,4 +1,4 @@
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/bus/bus.h>
 
 void bus_debug_client(char *bussiness, char *sw, char *level)
@@ -13,7 +13,7 @@ void bus_debug_client(char *bussiness, char *sw, char *level)
     char *deamon_srv  = "12345";
 #endif
 	char out[1024];
-    uint8_t out_len;
+    char out_len;
 
     bus_method_args_t args[3] = {
         [0] = {ARG_TYPE_INT32,"bussiness", bussiness},
@@ -36,5 +36,5 @@ void bus_debug_client(char *bussiness, char *sw, char *level)
      */
 
     bus_invoke_sync(bus,"debug", "set_debug",3, args,out,&out_len);
-    dbg_buf(DBG_DETAIL,"return buffer:",out, out_len);
+    dbg_buf(DBG_DETAIL,"return buffer:",(uint8_t *)out, out_len);
 }

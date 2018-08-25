@@ -2,7 +2,7 @@
 #define __CONSUMER_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 
 typedef struct consumer_s Consumer;

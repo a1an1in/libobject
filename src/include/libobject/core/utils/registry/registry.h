@@ -25,6 +25,10 @@ int __register_ctor_func3(int level, int (*func)(void *arg1, void *arg2, void *a
 int __register_dtor_func(int level, int (*func)());
 int execute_ctor_funcs(); 
 
+int execute_dtor_funcs();
+
+#define INIT_LIBOBJECT execute_ctor_funcs
+
 #define REGISTER_INIT_FUNC(level, func) \
     __attribute__((constructor)) static void register_ctor_##func() {\
         __register_ctor_func(level, func);\

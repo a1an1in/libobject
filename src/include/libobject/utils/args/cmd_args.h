@@ -1,7 +1,7 @@
 #ifndef __CMD_ARGS_H__
 #define __CMD_ARGS_H__
 
-#include <libobject/utils/data_structure/link_list.h>
+#include <libobject/core/utils/data_structure/link_list.h>
 
 typedef struct cmd_config_s{
 	char *cmd;

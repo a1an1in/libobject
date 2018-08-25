@@ -2,7 +2,7 @@
 #define __INET_UDP_CLIENT_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/net/client/client.h>
 #include <libobject/net/socket/inet_udp_socket.h>

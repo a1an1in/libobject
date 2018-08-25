@@ -2,9 +2,9 @@
 #define __LIST_LINKED_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/data_structure/link_list.h>
 #include <libobject/core/list.h>
-#include <libobject/utils/data_structure/link_list.h>
 #include <libobject/core/linkedlist_iterator.h>
 
 typedef struct Linked_List_s Linked_List;

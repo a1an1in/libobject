@@ -2,9 +2,9 @@
 #define __HASH_MAP_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/map.h>
-#include <libobject/utils/data_structure/hash_list.h>
+#include <libobject/core/utils/data_structure/hash_list.h>
 #include <libobject/core/hmap_iterator.h>
 
 typedef struct Hash_Map_s Hash_Map;

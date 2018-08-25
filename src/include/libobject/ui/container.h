@@ -2,7 +2,7 @@
 #define __CONTAINER_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ui/subject.h>
 #include <libobject/core/map.h>
 

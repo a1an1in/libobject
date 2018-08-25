@@ -161,9 +161,11 @@ int execute_ctor_funcs()
     size = reg_heap_size(reg_heap);
     for(i=0; i< size; i++){
         reg_heap_remove(reg_heap, (void **)&element);
+
         /*
          *printf("%d ", element->level);
          */
+
         if (element->args_count == 0) {
             element->func();
             free(element);

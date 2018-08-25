@@ -35,9 +35,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <libobject/utils/dbg/debug.h>
-#include <libobject/utils/config/config.h>
-#include <libobject/utils/timeval/timeval.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/config/config.h>
+#include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/concurrent/worker.h>
 #include <libobject/concurrent/producer.h>
 

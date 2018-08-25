@@ -1,4 +1,4 @@
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/bus/bus.h>
 
 #if 1
@@ -14,7 +14,7 @@ void test_bus_client()
     char *deamon_srv  = "12345";
 #endif
 	char out[1024] = {0};
-    uint8_t out_len;
+    char out_len;
     /*
      *char *args[2] = {"abc","hello world!"};
      */
@@ -31,7 +31,7 @@ void test_bus_client()
                      CLIENT_TYPE_INET_TCP);
 
     bus_invoke_sync(bus,"test", "hello",2, args,out,&out_len);
-    dbg_buf(DBG_DETAIL,"return buffer:",out, out_len);
+    dbg_buf(DBG_DETAIL,"return buffer:",(uint8_t *)out, out_len);
 
     bus_destroy(bus);
 	

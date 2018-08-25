@@ -30,9 +30,9 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
-#include <libobject/utils/config/config.h>
-#include <libobject/utils/timeval/timeval.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/config/config.h>
+#include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/net/server/inet_tcp_server.h>
 
 static int __construct(Inet_Tcp_Server *server,char *init_str)

@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <unistd.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ui/sdl_image.h>
 #include <libobject/ui/sdl_window.h>
 

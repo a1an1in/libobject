@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/event/event_compat.h>
 
 static void

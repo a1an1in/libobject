@@ -2,7 +2,7 @@
 #define __INET_TCP_SERVER_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/net/server/server.h>
 #include <libobject/net/socket/inet_tcp_socket.h>

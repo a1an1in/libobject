@@ -30,7 +30,7 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/system/system.h>
 
 static int __construct(System *system,char *init_str)

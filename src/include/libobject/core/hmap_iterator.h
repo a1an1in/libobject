@@ -2,9 +2,9 @@
 #define __ITERATOR_HMAP_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/iterator.h>
-#include <libobject/utils/data_structure/hash_list.h>
+#include <libobject/core/utils/data_structure/hash_list.h>
 
 typedef struct hmap_iterator_s Hmap_Iterator;
 

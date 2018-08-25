@@ -1,5 +1,5 @@
 #include <unistd.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/bus/bus.h>
 
 static const struct blob_policy_s debug_policy[] = {

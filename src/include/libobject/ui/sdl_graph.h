@@ -2,7 +2,7 @@
 #define __GRAPH_SDL_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ui/graph.h>
 #include <SDL2/SDL.h>
 

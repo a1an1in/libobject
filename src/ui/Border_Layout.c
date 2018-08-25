@@ -34,7 +34,7 @@
 #include <libobject/ui/character.h>
 #include <libobject/ui/timer.h>
 #include <libobject/ui/label.h>
-#include <libobject/utils/config/config.h>
+#include <libobject/core/utils/config/config.h>
 
 static void modulate_component_position(Border_Layout *border_layout)
 {

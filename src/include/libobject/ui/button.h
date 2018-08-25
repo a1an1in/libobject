@@ -2,7 +2,7 @@
 #define __BUTTON_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ui/component.h>
 #include <libobject/ui/label.h>
 

@@ -2,7 +2,7 @@
 #define __BUSD_H__
 
 #include <libobject/basic_types.h>
-#include <libobject/utils/data_structure/vector.h>
+#include <libobject/core/utils/data_structure/vector.h>
 #include <libobject/utils/blob/blob.h>
 #include <libobject/net/server/server.h>
 #include <libobject/core/map.h>

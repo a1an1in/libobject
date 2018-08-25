@@ -30,7 +30,7 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/linkedlist_iterator.h>
 
 static int __set(Iterator *iter, char *attrib, void *value)

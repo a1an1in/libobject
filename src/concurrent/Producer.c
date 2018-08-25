@@ -30,13 +30,13 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
-#include <libobject/utils/config/config.h>
-#include <libobject/utils/timeval/timeval.h>
-#include <libobject/concurrent/producer.h>
-#include <libobject/concurrent/worker.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/config/config.h>
+#include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/linked_list.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/concurrent/producer.h>
+#include <libobject/concurrent/worker.h>
 
 Producer *global_default_producer;
 
@@ -164,7 +164,7 @@ int default_producer_constructor()
     Producer *producer;
     allocator_t *allocator = allocator_get_default_alloc();
 
-    ATTRIB_PRINT("constructor REGISTRY_CTOR_PRIORITY_CONCURRENT=%d\n",
+    ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, run default producer\n",
             REGISTRY_CTOR_PRIORITY_CONCURRENT);
     producer = OBJECT_NEW(allocator, Producer, NULL);
     global_default_producer = producer;
@@ -179,7 +179,7 @@ int default_producer_destructor()
 {
     Producer *producer = global_get_default_producer();
 
-    ATTRIB_PRINT("destructor REGISTRY_DTOR_PRIORITY_CONCURRENT=%d\n",
+    ATTRIB_PRINT("REGISTRY_DTOR_PRIORITY=%d, destruct default producer\n",
             REGISTRY_DTOR_PRIORITY_CONCURRENT);
     while (producer->parent.flags != EVTHREAD_STATE_DESTROYED) sleep(1);
 

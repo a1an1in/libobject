@@ -30,7 +30,7 @@
  * 
  */
 #include <libobject/ui/window.h>
-#include <libobject/utils/miscellany/buffer.h>
+#include <libobject/core/utils/miscellany/buffer.h>
 
 static int __construct(Window *window,char *init_str)
 {

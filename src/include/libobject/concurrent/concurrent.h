@@ -2,13 +2,13 @@
 #define __CONCURRENT_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/core/hash_map.h>
 #include <libobject/event/event.h>
 #include <libobject/event/signal.h>
 #include <libobject/event/rbtree_timer.h>
-#include <libobject/utils/miscellany/buffer.h>
+#include <libobject/core/utils/miscellany/buffer.h>
 
 typedef struct concurrent_s Concurrent;
 

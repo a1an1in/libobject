@@ -7,8 +7,10 @@ This lib is designed for object-oriented programming using c language. It contai
 
 ## Installation
 * make so lib
+
   change diretory to this lib, and key 'make so' command.
 * make bin
+
   change diretory to this lib, and key 'make' command.
   
 ## User Guide

@@ -102,7 +102,7 @@ evsig_socketpair(int fd[2])
     int saved_errno = -1;
     int protocol    = 0;
     int type        = SOCK_STREAM;
-    int size;
+    uint32_t size;
 
     if (!fd) {
         return -1;

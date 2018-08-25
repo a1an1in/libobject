@@ -2,8 +2,8 @@
 #define __BLOB_H__
 
 #include <libobject/basic_types.h>
-#include <libobject/utils/alloc/allocator.h>
-#include <libobject/utils/data_structure/array_stack.h>
+#include <libobject/core/utils/alloc/allocator.h>
+#include <libobject/core/utils/data_structure/array_stack.h>
 
 #define blob_for_each_attr(pos, head, len) \
     for(pos = head; (uint8_t *)pos < (uint8_t *)head + len; pos = blob_next((blob_attr_t *)pos))

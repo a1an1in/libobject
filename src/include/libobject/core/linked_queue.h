@@ -3,10 +3,10 @@
 
 #include <stdio.h>
 #include <pthread.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/data_structure/link_list.h>
 #include <libobject/core/obj.h>
 #include <libobject/core/queue.h>
-#include <libobject/utils/data_structure/link_list.h>
 #include <libobject/core/linkedlist_iterator.h>
 
 typedef struct linked_queue_s Linked_Queue;

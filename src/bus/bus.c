@@ -31,12 +31,11 @@
  */
 #include <stdio.h>
 #include <unistd.h>
-#include <libobject/utils/dbg/debug.h>
 #include <libobject/utils/blob/blob.h>
 #include <libobject/bus/bus.h>
-#include <libobject/utils/config/config.h>
+#include <libobject/core/utils/config/config.h>
 #include <libobject/core/hash_map.h>
-#include <libobject/utils/config/config.h>
+#include <libobject/core/utils/dbg/debug.h>
 
 static const blob_policy_t bus_policy[] = {
     [BUS_ID]            = { .name = "id",             .type = BLOB_TYPE_INT32 }, 
@@ -553,7 +552,7 @@ bus_get_method_handler(bus_object_t *obj, char *method)
     int i;
 
     for (i = 0; i < obj->n_methods; i++) {
-        if (!strncmp(obj->methods[i].name, method, sizeof(obj->methods[i].name))) {
+        if (!strncmp(obj->methods[i].name, method, strlen(obj->methods[i].name))) {
             return obj->methods[i].handler;
         }
     }
@@ -567,7 +566,7 @@ bus_get_policy(bus_object_t *obj, char *method)
     int i;
 
     for (i = 0; i < obj->n_methods; i++) {
-        if (!strncmp(obj->methods[i].name, method, sizeof(obj->methods[i].name))) {
+        if (!strncmp(obj->methods[i].name, method, strlen(obj->methods[i].name))) {
             return obj->methods[i].policy;
         }
     }
@@ -581,7 +580,7 @@ bus_get_n_policy(bus_object_t *obj, char *method)
     int i;
 
     for (i = 0; i < obj->n_methods; i++) {
-        if (!strncmp(obj->methods[i].name, method, sizeof(obj->methods[i].name))) {
+        if (!strncmp(obj->methods[i].name, method, strlen(obj->methods[i].name))) {
             return obj->methods[i].n_policy;
         }
     }
@@ -611,7 +610,7 @@ bus_reply_forward_invoke(bus_t *bus, char *obj_name,
         blob_add_string(blob, (char *)"object_name", obj_name);
         blob_add_string(blob, (char *)"invoke_method", method_name);
         blob_add_u32(blob, (char *)"state", ret);
-        blob_add_buffer(blob, (char *)"opaque", buf, buf_len);
+        blob_add_buffer(blob, (char *)"opaque", (uint8_t *)buf, buf_len);
         blob_add_u32(blob, (char *)"source_fd", src_fd);
     }
     blob_add_table_end(blob);

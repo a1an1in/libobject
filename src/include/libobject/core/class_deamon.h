@@ -1,8 +1,8 @@
 #ifndef __OBJ_DEAMON_H__
 #define __OBJ_DEAMON_H__
 
-#include <libobject/utils/alloc/allocator.h>
-#include <libobject/utils/data_structure/map.h>
+#include <libobject/core/utils/alloc/allocator.h>
+#include <libobject/core/utils/data_structure/map.h>
 #include <libobject/core/class_info.h>
 #include <libobject/attrib_priority.h>
 #include <libobject/core/utils/registry/registry.h>

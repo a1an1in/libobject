@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <pthread.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/core/iterator.h>
 

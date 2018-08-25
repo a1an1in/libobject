@@ -2,9 +2,9 @@
 #define __OBJ_VECTOR_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/data_structure/vector.h>
 #include <libobject/core/obj.h>
-#include <libobject/utils/data_structure/vector.h>
 
 typedef struct _vector_s Vector;
 

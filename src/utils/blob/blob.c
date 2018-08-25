@@ -30,7 +30,7 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/utils/blob/utils.h>
 #include <libobject/utils/blob/blob.h>
 
@@ -370,7 +370,7 @@ void test_blob()
 
     blob_add_u32(blob,(char *)"u32",32);
 
-    blob_add_buffer(blob,(char *)"buffer",buffer,sizeof(buffer));
+    blob_add_buffer(blob,(char *)"buffer",(uint8_t *)buffer,sizeof(buffer));
 
     blob_parse_to_attr(pol,ARRAY_SIZE(pol), tb, (void *)blob->head, (uint32_t)(blob->tail - blob->head)) ;
     if (tb[FOO_TABLE] != NULL) {

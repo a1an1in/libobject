@@ -30,9 +30,9 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/config/config.h>
 #include <libobject/core/vector.h>
-#include <libobject/utils/config/config.h>
 
 static int __construct(Vector *vector,char *init_str)
 {

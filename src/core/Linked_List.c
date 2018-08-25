@@ -31,9 +31,9 @@
  */
 #include <stdio.h>
 #include <unistd.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/config/config.h>
 #include <libobject/core/linked_list.h>
-#include <libobject/utils/config/config.h>
 
 static int __construct(List *list,char *init_str)
 {

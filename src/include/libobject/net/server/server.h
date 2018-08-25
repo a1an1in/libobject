@@ -2,7 +2,7 @@
 #define __CONCURRENT_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/net/socket/socket.h>
 #include <libobject/concurrent/worker.h>

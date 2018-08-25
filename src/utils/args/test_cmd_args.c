@@ -1,4 +1,4 @@
-#include "libobject/utils/dbg/debug.h"
+#include "libobject/core/utils/dbg/debug.h"
 #include <libobject/utils/args/cmd_args.h>
 
 typedef struct config_list_s{

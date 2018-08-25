@@ -30,12 +30,12 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
-#include <libobject/utils/config/config.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/config/config.h>
 #include <libobject/event/event_base.h>
 #include <libobject/event/rbtree_timer.h>
-#include <libobject/utils/miscellany/buffer.h>
-#include <libobject/utils/timeval/timeval.h>
+#include <libobject/core/utils/miscellany/buffer.h>
+#include <libobject/core/utils/timeval/timeval.h>
 
 static int timeval_key_cmp_func(void *key1,void *key2,uint32_t size)
 {

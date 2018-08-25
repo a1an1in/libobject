@@ -43,7 +43,7 @@
 #include <sys/resource.h>  /*setrlimit */
 #include <signal.h>
 #include <sys/un.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 
 #if 0
 typedef struct small_heap_s {

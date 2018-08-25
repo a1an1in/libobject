@@ -2,7 +2,7 @@
 #define __COMPONENT_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ui/container.h>
 
 typedef struct component_s Component;

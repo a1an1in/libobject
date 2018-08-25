@@ -2,7 +2,7 @@
 #define __TEXT_AREA_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/string.h>
 #include <libobject/ui/component.h>
 #include <libobject/ui/text.h>

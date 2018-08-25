@@ -31,10 +31,10 @@
  */
 #include <stdio.h>
 #include <unistd.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/config/config.h>
+#include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/event_base.h>
-#include <libobject/utils/config/config.h>
-#include <libobject/utils/timeval/timeval.h>
 #include <libobject/core/thread.h>
 
 static int __construct(Thread *thread,char *init_str)

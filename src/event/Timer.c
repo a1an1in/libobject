@@ -30,8 +30,8 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
-#include <libobject/utils/config/config.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/config/config.h>
 #include <libobject/event/event_base.h>
 #include <libobject/event/timer.h>
 

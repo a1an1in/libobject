@@ -2,7 +2,7 @@
 #define __DISPATCHER_H__
 
 #include <stdio.h>
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 
 typedef struct dispatcher_s Dispatcher;

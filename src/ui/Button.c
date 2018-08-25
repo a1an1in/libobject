@@ -33,7 +33,7 @@
 #include <libobject/ui/border_layout.h>
 #include <libobject/ui/sdl_window.h>
 #include <libobject/ui/label.h>
-#include <libobject/utils/miscellany/buffer.h>
+#include <libobject/core/utils/miscellany/buffer.h>
 
 static int __construct(Button *button,char *init_str)
 {

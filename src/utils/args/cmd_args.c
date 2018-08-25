@@ -30,7 +30,7 @@
  * 
  */
 
-#include <libobject/utils/dbg/debug.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/utils/args/cmd_args.h>
 
 args_processor_t processor_globle;

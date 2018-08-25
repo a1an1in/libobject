@@ -6,8 +6,8 @@
 #include <unistd.h>
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
-#include <libobject/utils/dbg/debug.h>
-#include <libobject/utils/alloc/allocator.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/alloc/allocator.h>
 
 typedef struct net_task_s{
     void *buf;

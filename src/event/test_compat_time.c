@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <libobject/utils/timeval/timeval.h>
+#include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/event_compat.h>
 
 static struct timeval lasttime;
