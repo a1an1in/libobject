@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -33,9 +33,9 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ui/subject.h>
 
-static int __construct(Subject *subject,char *init_str)
+static int __construct(Subject *subject, char *init_str)
 {
-    dbg_str(OBJ_DETAIL,"subject construct, subject addr:%p",subject);
+    dbg_str(OBJ_DETAIL, "subject construct, subject addr:%p", subject);
 
     subject->x_bak      = subject->x;
     subject->y_bak      = subject->y;
@@ -47,34 +47,34 @@ static int __construct(Subject *subject,char *init_str)
 
 static int __deconstrcut(Subject *subject)
 {
-    dbg_str(OBJ_DETAIL,"subject deconstruct,subject addr:%p",subject);
+    dbg_str(OBJ_DETAIL, "subject deconstruct, subject addr:%p", subject);
 
     return 0;
 }
 
 static int __move(Subject *subject)
 {
-    dbg_str(OBJ_DETAIL,"subject move");
+    dbg_str(OBJ_DETAIL, "subject move");
 }
 
 static int __show(Subject *subject)
 {
-    dbg_str(OBJ_DETAIL,"subject show");
+    dbg_str(OBJ_DETAIL, "subject show");
 }
 
 static int __add_x_speed(Subject *subject, float v) 
 {
-    dbg_str(OBJ_DETAIL,"__add_x_speed");
+    dbg_str(OBJ_DETAIL, "__add_x_speed");
 }
 
 static int __add_y_speed(Subject *subject, float v) 
 {
-    dbg_str(OBJ_DETAIL,"__add_x_speed");
+    dbg_str(OBJ_DETAIL, "__add_x_speed");
 }
 
-static int __is_touching(Subject *me,Subject *subject)
+static int __is_touching(Subject *me, Subject *subject)
 {
-    dbg_str(OBJ_DETAIL,"__is_touching");
+    dbg_str(OBJ_DETAIL, "__is_touching");
 }
 
 static int __set(Subject *subject, char *attrib, void *value)
@@ -107,12 +107,12 @@ static int __set(Subject *subject, char *attrib, void *value)
         subject->height = *((uint32_t *)value);
     } else if (strcmp(attrib, "x_speed") == 0) {
         subject->x_speed = *((int *)value);
-        dbg_str(DBG_DETAIL,"set x_speed =%f",subject->x_speed);
+        dbg_str(DBG_DETAIL, "set x_speed =%f", subject->x_speed);
     } else if (strcmp(attrib, "y_speed") == 0) {
         subject->y_speed = *((int *)value);
-        dbg_str(DBG_DETAIL,"set y_speed =%f",subject->y_speed);
+        dbg_str(DBG_DETAIL, "set y_speed =%f", subject->y_speed);
     } else {
-        dbg_str(OBJ_WARNNING,"subject set,  \"%s\" setting is not support",attrib);
+        dbg_str(OBJ_WARNNING, "subject set,  \"%s\" setting is not support", attrib);
     }
 
     return 0;
@@ -133,40 +133,40 @@ static void * __get(Subject *subject, char *attrib)
     else if (strcmp(attrib, "y_speed") == 0) {
         return &subject->y_speed;
     } else {
-        dbg_str(OBJ_WARNNING,"subject get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(OBJ_WARNNING, "subject get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
 static class_info_entry_t subject_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","move",__move,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","show",__show,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_x_speed",__add_x_speed,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_y_speed",__add_y_speed,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","is_touching",__is_touching,sizeof(void *)},
-    [10] = {ENTRY_TYPE_INT32_T,"int","x",NULL,sizeof(int)},
-    [11] = {ENTRY_TYPE_INT32_T,"int","y",NULL,sizeof(int)},
-    [12] = {ENTRY_TYPE_INT32_T,"int","width",NULL,sizeof(int)},
-    [13] = {ENTRY_TYPE_INT32_T,"int","height",NULL,sizeof(int)},
-    [14] = {ENTRY_TYPE_FLOAT_T,"float","x_speed",NULL,sizeof(float)},
-    [15] = {ENTRY_TYPE_FLOAT_T,"float","y_speed",NULL,sizeof(float)},
-    [16] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "move", __move, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "show", __show, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_x_speed", __add_x_speed, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_y_speed", __add_y_speed, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "is_touching", __is_touching, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_INT32_T, "int", "x", NULL, sizeof(int)}, 
+    [11] = {ENTRY_TYPE_INT32_T, "int", "y", NULL, sizeof(int)}, 
+    [12] = {ENTRY_TYPE_INT32_T, "int", "width", NULL, sizeof(int)}, 
+    [13] = {ENTRY_TYPE_INT32_T, "int", "height", NULL, sizeof(int)}, 
+    [14] = {ENTRY_TYPE_FLOAT_T, "float", "x_speed", NULL, sizeof(float)}, 
+    [15] = {ENTRY_TYPE_FLOAT_T, "float", "y_speed", NULL, sizeof(float)}, 
+    [16] = {ENTRY_TYPE_END}, 
 
 };
-REGISTER_CLASS("Subject",subject_class_info);
+REGISTER_CLASS("Subject", subject_class_info);
 
 void test_obj_subject()
 {
     Subject *subject;
     allocator_t *allocator = allocator_get_default_alloc();
 
-    subject = OBJECT_NEW(allocator, Subject,"");
+    subject = OBJECT_NEW(allocator, Subject, "");
 
     subject->move(subject);
 }

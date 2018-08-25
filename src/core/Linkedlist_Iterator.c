@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -54,9 +54,9 @@ static int __set(Iterator *iter, char *attrib, void *value)
     } else if (strcmp(attrib, "clear") == 0) {
         li->clear = value;
     } else if (strcmp(attrib, "name") == 0) {
-        strncpy(li->name,value,strlen(value));
+        strncpy(li->name, value, strlen(value));
     } else {
-        dbg_str(OBJ_DETAIL,"li set, not support %s setting",attrib);
+        dbg_str(OBJ_DETAIL, "li set, not support %s setting", attrib);
     }
 
     return 0;
@@ -69,7 +69,7 @@ static void *__get(Iterator *iter, char *attrib)
     if (strcmp(attrib, "name") == 0) {
         return li->name;
     } else {
-        dbg_str(OBJ_WARNNING,"iter get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(OBJ_WARNNING, "iter get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -79,9 +79,9 @@ static Iterator *__next(Iterator *it)
 {
     Iterator *next = it;
 
-    dbg_str(OBJ_DETAIL,"LList_Iterator next");
+    dbg_str(OBJ_DETAIL, "LList_Iterator next");
 
-    llist_pos_next(&((LList_Iterator *)it)->list_pos,
+    llist_pos_next(&((LList_Iterator *)it)->list_pos, 
                    &((LList_Iterator *)next)->list_pos);
 
     return next;
@@ -92,29 +92,29 @@ static Iterator *__prev(Iterator *it)
 {
     Iterator *prev = it;
 
-    dbg_str(OBJ_DETAIL,"LList_Iterator prev");
+    dbg_str(OBJ_DETAIL, "LList_Iterator prev");
 
-    llist_pos_prev(&((LList_Iterator *)it)->list_pos,
+    llist_pos_prev(&((LList_Iterator *)it)->list_pos, 
                    &((LList_Iterator *)prev)->list_pos);
 }
 
-static int __equal(Iterator *it1,Iterator *it2)
+static int __equal(Iterator *it1, Iterator *it2)
 {
-    dbg_str(OBJ_DETAIL,"LList_Iterator equal");
+    dbg_str(OBJ_DETAIL, "LList_Iterator equal");
 
-    return llist_pos_equal(&((LList_Iterator *)it1)->list_pos,
+    return llist_pos_equal(&((LList_Iterator *)it1)->list_pos, 
                            &((LList_Iterator *)it2)->list_pos);
 }
 
 static void *__get_vpointer(Iterator *it)
 {
-    dbg_str(OBJ_DETAIL,"LList_Iterator get_vpointer");
+    dbg_str(OBJ_DETAIL, "LList_Iterator get_vpointer");
     return llist_pos_get_pointer(&((LList_Iterator *)it)->list_pos);;
 }
 
 static int __is_null(Iterator *it)
 {
-    dbg_str(OBJ_DETAIL,"LList_Iterator get_vpointer");
+    dbg_str(OBJ_DETAIL, "LList_Iterator get_vpointer");
     return ((LList_Iterator *)it)->list_pos.list_head_p == NULL;
 }
 
@@ -124,29 +124,29 @@ static int __clear(Iterator *it)
 }
 
 static class_info_entry_t hmap_iter_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ,"Iterator","iter",NULL,sizeof(void *)},
-    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_FUNC_POINTER,"","next",__next,sizeof(void *)},
-    [4] = {ENTRY_TYPE_FUNC_POINTER,"","prev",__prev,sizeof(void *)},
-    [5] = {ENTRY_TYPE_FUNC_POINTER,"","equal",__equal,sizeof(void *)},
-    [6] = {ENTRY_TYPE_FUNC_POINTER,"","get_vpointer",__get_vpointer,sizeof(void *)},
-    [7] = {ENTRY_TYPE_FUNC_POINTER,"","is_null",__is_null,sizeof(void *)},
-    [8] = {ENTRY_TYPE_FUNC_POINTER,"","clear",__clear,sizeof(void *)},
-    [9] = {ENTRY_TYPE_END},
+    [0] = {ENTRY_TYPE_OBJ, "Iterator", "iter", NULL, sizeof(void *)}, 
+    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "next", __next, sizeof(void *)}, 
+    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "prev", __prev, sizeof(void *)}, 
+    [5] = {ENTRY_TYPE_FUNC_POINTER, "", "equal", __equal, sizeof(void *)}, 
+    [6] = {ENTRY_TYPE_FUNC_POINTER, "", "get_vpointer", __get_vpointer, sizeof(void *)}, 
+    [7] = {ENTRY_TYPE_FUNC_POINTER, "", "is_null", __is_null, sizeof(void *)}, 
+    [8] = {ENTRY_TYPE_FUNC_POINTER, "", "clear", __clear, sizeof(void *)}, 
+    [9] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("LList_Iterator",hmap_iter_class_info);
+REGISTER_CLASS("LList_Iterator", hmap_iter_class_info);
 
 void test_obj_linked_list_iter()
 {
-    Iterator *iter, *next,*prev;
+    Iterator *iter, *next, *prev;
     allocator_t *allocator = allocator_get_default_alloc();
     char *set_str = NULL;
     cjson_t *root, *e, *s;
     char buf[2048];
 
-    iter = OBJECT_NEW(allocator, LList_Iterator,set_str);
-    next = OBJECT_NEW(allocator, LList_Iterator,set_str);
+    iter = OBJECT_NEW(allocator, LList_Iterator, set_str);
+    next = OBJECT_NEW(allocator, LList_Iterator, set_str);
 
     iter->next(iter);
 }

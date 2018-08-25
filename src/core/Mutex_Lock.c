@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -37,9 +37,9 @@
 #include <libobject/event/event_base.h>
 #include <libobject/core/mutex_lock.h>
 
-static int __construct(Mutex_Lock *lock,char *init_str)
+static int __construct(Mutex_Lock *lock, char *init_str)
 {
-    dbg_str(DBG_DETAIL,"lock construct, lock addr:%p",lock);
+    dbg_str(DBG_DETAIL, "lock construct, lock addr:%p", lock);
 
     return 0;
 }
@@ -48,7 +48,7 @@ static int __deconstrcut(Mutex_Lock *lock)
 {
     int ret;
 
-    dbg_str(DBG_DETAIL,"lock deconstruct,lock addr:%p",lock);
+    dbg_str(DBG_DETAIL, "lock deconstruct, lock addr:%p", lock);
 
     return 0;
 }
@@ -72,7 +72,7 @@ static int __set(Mutex_Lock *lock, char *attrib, void *value)
         lock->unlock = value;
     }
     else {
-        dbg_str(DBG_DETAIL,"lock set, not support %s setting",attrib);
+        dbg_str(DBG_DETAIL, "lock set, not support %s setting", attrib);
     }
 
     return 0;
@@ -82,7 +82,7 @@ static void *__get(Mutex_Lock *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"lock get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARNNING, "lock get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -90,7 +90,7 @@ static void *__get(Mutex_Lock *obj, char *attrib)
 
 static int __lock(Mutex_Lock *lock)
 {
-    dbg_str(DBG_DETAIL,"lock");
+    dbg_str(DBG_DETAIL, "lock");
 }
 
 static int __trylock(Mutex_Lock *lock)
@@ -99,21 +99,21 @@ static int __trylock(Mutex_Lock *lock)
 
 static int __unlock(Mutex_Lock *lock)
 {
-    dbg_str(DBG_DETAIL,"unlock");
+    dbg_str(DBG_DETAIL, "unlock");
 }
 
 static class_info_entry_t lock_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ,"Lock","parent",NULL,sizeof(void *)},
-    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5] = {ENTRY_TYPE_VFUNC_POINTER,"","lock",__lock,sizeof(void *)},
-    [6] = {ENTRY_TYPE_VFUNC_POINTER,"","trylock",__trylock,sizeof(void *)},
-    [7] = {ENTRY_TYPE_VFUNC_POINTER,"","unlock",__unlock,sizeof(void *)},
-    [8] = {ENTRY_TYPE_END},
+    [0] = {ENTRY_TYPE_OBJ, "Lock", "parent", NULL, sizeof(void *)}, 
+    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "lock", __lock, sizeof(void *)}, 
+    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "trylock", __trylock, sizeof(void *)}, 
+    [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "unlock", __unlock, sizeof(void *)}, 
+    [8] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Mutex_Lock",lock_class_info);
+REGISTER_CLASS("Mutex_Lock", lock_class_info);
 
 void test_obj_mutex_lock()
 {
@@ -125,12 +125,12 @@ void test_obj_mutex_lock()
     char buf[2048];
 
     c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
+    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
 
     lock = OBJECT_NEW(allocator, Mutex_Lock, NULL);
 
     object_dump(lock, "Mutex_Lock", buf, 2048);
-    dbg_str(DBG_DETAIL,"Mutex_Lock dump: %s",buf);
+    dbg_str(DBG_DETAIL, "Mutex_Lock dump: %s", buf);
 
     lock->lock(lock);
     lock->unlock(lock);

@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -37,20 +37,20 @@
 #include <libobject/core/queue.h>
 #include <libobject/event/event_base.h>
 
-static int __construct(Queue *queue,char *init_str)
+static int __construct(Queue *queue, char *init_str)
 {
     allocator_t *allocator = queue->obj.allocator;
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(OBJ_DETAIL,"queue construct, queue addr:%p",queue);
+    dbg_str(OBJ_DETAIL, "queue construct, queue addr:%p", queue);
 
     return 0;
 }
 
 static int __deconstrcut(Queue *queue)
 {
-    dbg_str(OBJ_DETAIL,"queue deconstruct,queue addr:%p",queue);
+    dbg_str(OBJ_DETAIL, "queue deconstruct, queue addr:%p", queue);
     int ret;
     void *tret;
 
@@ -88,7 +88,7 @@ static int __set(Queue *queue, char *attrib, void *value)
         queue->end = value;
     }
     else {
-        dbg_str(OBJ_DETAIL,"queue set, not support %s setting",attrib);
+        dbg_str(OBJ_DETAIL, "queue set, not support %s setting", attrib);
     }
 
     return 0;
@@ -98,43 +98,43 @@ static void *__get(Queue *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(OBJ_WARNNING,"queue get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(OBJ_WARNNING, "queue get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
 
     return NULL;
 }
 
-static void __for_each(Queue *queue,void (*func)(void *element))
+static void __for_each(Queue *queue, void (*func)(void *element))
 {
     Iterator *cur, *end;
     void *element;
 
-    dbg_str(OBJ_IMPORTANT,"queue for_each");
+    dbg_str(OBJ_IMPORTANT, "queue for_each");
     cur = queue->begin(queue);
     end = queue->end(queue);
 
-    for (; !end->equal(end,cur); cur->next(cur)) {
+    for (; !end->equal(end, cur); cur->next(cur)) {
         element = cur->get_vpointer(cur);
         func(element);
     }
 }
 
 static class_info_entry_t queue_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add",NULL,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_front",NULL,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_back",NULL,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove",NULL,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove_front",NULL,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","remove_back",NULL,sizeof(void *)},
-    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each",__for_each,sizeof(void *)},
-    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","begin",NULL,sizeof(void *)},
-    [13] = {ENTRY_TYPE_VFUNC_POINTER,"","end",NULL,sizeof(void *)},
-    [14] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", NULL, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_front", NULL, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_back", NULL, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", NULL, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_front", NULL, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_back", NULL, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", NULL, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", NULL, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Queue",queue_class_info);
+REGISTER_CLASS("Queue", queue_class_info);

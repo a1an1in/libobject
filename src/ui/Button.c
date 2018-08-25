@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -35,18 +35,18 @@
 #include <libobject/ui/label.h>
 #include <libobject/core/utils/miscellany/buffer.h>
 
-static int __construct(Button *button,char *init_str)
+static int __construct(Button *button, char *init_str)
 {
     Container *container = (Container *)button;
     Subject *subject     = (Subject *)button;
     Label *label;
     char buf[2048];
 
-	dbg_str(DBG_IMPORTANT,"button construct, button addr:%p",button);
+	dbg_str(DBG_IMPORTANT, "button construct, button addr:%p", button);
 
     gen_label_setting_str(subject->x, subject->y, subject->width, subject->height, 
                           "label", (void *)buf);
-    label   = OBJECT_NEW(((Obj *)button)->allocator, Label,buf);
+    label   = OBJECT_NEW(((Obj *)button)->allocator, Label, buf);
 
     container->add_component((Container *)button, NULL, label);
 
@@ -55,7 +55,7 @@ static int __construct(Button *button,char *init_str)
 
 static int __deconstrcut(Button *button)
 {
-	dbg_str(DBG_IMPORTANT,"button deconstruct,button addr:%p",button);
+	dbg_str(DBG_IMPORTANT, "button deconstruct, button addr:%p", button);
 
 	return 0;
 }
@@ -92,7 +92,7 @@ static int __set(Button *button, char *attrib, void *value)
         button->add_event_listener_cb = value;
 	} 
     else {
-		dbg_str(DBG_DETAIL,"button set, not support %s setting",attrib);
+		dbg_str(DBG_DETAIL, "button set, not support %s setting", attrib);
 	}
 
 	return 0;
@@ -102,7 +102,7 @@ static void *__get(Button *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"button get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARNNING, "button get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -127,76 +127,76 @@ static int __draw(Component *component, void *graph)
     Button *button       = (Button *)component;
     Subject *s           = (Subject *)component;
 
-    dbg_str(DBG_DETAIL,"%s draw", ((Obj *)component)->name);
+    dbg_str(DBG_DETAIL, "%s draw", ((Obj *)component)->name);
 
-    g->render_set_color(g,0,0,0,0xff);
-    g->render_draw_rect(g,s->x,s->y,s->width,s->height);
+    g->render_set_color(g, 0, 0, 0, 0xff);
+    g->render_draw_rect(g, s->x, s->y, s->width, s->height);
     container->for_each_component(container, draw_subcomponent_foreach_cb, g);
 }
 
-static void __mouse_pressed(Component *component,void *event, void *window) 
+static void __mouse_pressed(Component *component, void *event, void *window) 
 {
     __Event *e = (__Event *)event;
 
-    dbg_str(DBG_DETAIL,
-            "EVENT: mouse pressed: %s process mouse_pressed event: Mouse button %d pressed at %d,"
-            "%d with click count %d in window %d",
+    dbg_str(DBG_DETAIL, 
+            "EVENT: mouse pressed: %s process mouse_pressed event: Mouse button %d pressed at %d, "
+            "%d with click count %d in window %d", 
             component->name, e->button, e->x, e->y, e->clicks, e->windowid); 
 
     component->listener.do_mouse_pressed(component, event, window);
 }
 
-static void __mouse_released(Component *component,void *event, void *window) 
+static void __mouse_released(Component *component, void *event, void *window) 
 {
 
 }
 
-static void __mouse_moved(Component *component,void *event, void *window) 
+static void __mouse_moved(Component *component, void *event, void *window) 
 {
     __Event *e = (__Event *)event;
 
     /*
-     *dbg_str(DBG_DETAIL, "EVENT: Mouse: moved to %d,%d (%d,%d) in window %d",
+     *dbg_str(DBG_DETAIL, "EVENT: Mouse: moved to %d, %d (%d, %d) in window %d", 
      *        e->x, e->y, e->xrel, e->yrel, e->windowid);
      */
 
 }
 
-static void __mouse_entered(Component *component,void *event, void *window) 
+static void __mouse_entered(Component *component, void *event, void *window) 
 {
     __Event *e = (__Event *)event;
 
-    dbg_str(DBG_DETAIL, "EVENT: Mouse entered %s: moved to %d,%d (%d,%d) in window %d",
+    dbg_str(DBG_DETAIL, "EVENT: Mouse entered %s: moved to %d, %d (%d, %d) in window %d", 
             component->name, e->x, e->y, e->xrel, e->yrel, e->windowid);
 }
 
-static void __mouse_exited(Component *component,void *event, void *window) 
+static void __mouse_exited(Component *component, void *event, void *window) 
 {
     __Event *e = (__Event *)event;
 
-    dbg_str(DBG_DETAIL, "EVENT: Mouse exited %s: moved to %d,%d (%d,%d) in window %d",
+    dbg_str(DBG_DETAIL, "EVENT: Mouse exited %s: moved to %d, %d (%d, %d) in window %d", 
             component->name, e->x, e->y, e->xrel, e->yrel, e->windowid);
 }
 
 static class_info_entry_t button_class_info[] = {
-	[0 ] = {ENTRY_TYPE_OBJ,"Component","component",NULL,sizeof(void *)},
-	[1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-	[2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-	[3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-	[4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-	[5 ] = {ENTRY_TYPE_FUNC_POINTER,"","move",NULL,sizeof(void *)},
-	[6 ] = {ENTRY_TYPE_FUNC_POINTER,"","draw",__draw,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","mouse_pressed",__mouse_pressed,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","mouse_released",__mouse_released,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","mouse_entered",__mouse_entered,sizeof(void *)},
-    [10] = {ENTRY_TYPE_FUNC_POINTER,"","mouse_exited",__mouse_exited,sizeof(void *)},
-    [11] = {ENTRY_TYPE_FUNC_POINTER,"","mouse_moved",__mouse_moved,sizeof(void *)},
-    [12] = {ENTRY_TYPE_IFUNC_POINTER,"","add_event_listener",NULL,sizeof(void *)},
-    [13] = {ENTRY_TYPE_IFUNC_POINTER,"","add_event_listener_cb",NULL,sizeof(void *)},
-	[14] = {ENTRY_TYPE_END},
+	[0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
+	[1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+	[2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+	[3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+	[4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+	[5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "move", NULL, sizeof(void *)}, 
+	[6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "mouse_pressed", __mouse_pressed, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "mouse_released", __mouse_released, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "mouse_entered", __mouse_entered, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "mouse_exited", __mouse_exited, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "mouse_moved", __mouse_moved, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_IFUNC_POINTER, "", "add_event_listener", NULL, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_IFUNC_POINTER, "", "add_event_listener_cb", NULL, sizeof(void *)}, 
+	[14] = {ENTRY_TYPE_END}, 
 
 };
-REGISTER_CLASS("Button",button_class_info);
+REGISTER_CLASS("Button", button_class_info);
 
 static void *new_button(allocator_t *allocator, int x, int y, int width, int height, char *name)
 {
@@ -210,15 +210,15 @@ static void *new_button(allocator_t *allocator, int x, int y, int width, int hei
     object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "height", &height);
     object_config(buf, MAX_BUFFER_LEN, "/Component", OBJECT_STRING, "name", name) ;
 
-    dbg_str(DBG_DETAIL,"\n%s",buf);
+    dbg_str(DBG_DETAIL, "\n%s", buf);
 
-    subject = OBJECT_NEW(allocator, Button,buf);
+    subject = OBJECT_NEW(allocator, Button, buf);
 
     return subject;
 #undef MAX_BUFFER_LEN
 }
 
-static void __do_mouse_pressed(Component *component,void *event, void *window) 
+static void __do_mouse_pressed(Component *component, void *event, void *window) 
 {
     __Event *e = (__Event *)event;
 
@@ -226,7 +226,7 @@ static void __do_mouse_pressed(Component *component,void *event, void *window)
 }
 
 static event_listener_t button_listener = {
-    .do_mouse_pressed = __do_mouse_pressed,
+    .do_mouse_pressed = __do_mouse_pressed, 
 };
 
 void test_ui_button()
@@ -240,16 +240,16 @@ void test_ui_button()
     Subject *s;
 
     set_str = gen_window_setting_str();
-    window  = OBJECT_NEW(allocator, Sdl_Window,set_str);
+    window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
 
     /*
      *object_dump(window, "Sdl_Window", buf, 2048);
-     *dbg_str(DBG_DETAIL,"Window dump: %s",buf);
+     *dbg_str(DBG_DETAIL, "Window dump: %s", buf);
      */
 
     layout = new_border_layout(allocator, 0, 0, 0, 0, "border layout");
 
-    button = new_button(allocator,0, 0, 100, 50, "button02");
+    button = new_button(allocator, 0, 0, 100, 50, "button02");
 #if 0
     button->add_event_listener((Component *)button, &button_listener);
 #else

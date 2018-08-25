@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -38,24 +38,24 @@
 #include <libobject/core/thread.h>
 #include <sys/un.h>
 
-static int __construct(Unix_Udp_Socket *sk,char *init_str)
+static int __construct(Unix_Udp_Socket *sk, char *init_str)
 {
     int skfd;
 
-    if ((skfd = socket(PF_UNIX,SOCK_DGRAM,0)) < 0) {
+    if ((skfd = socket(PF_UNIX, SOCK_DGRAM, 0)) < 0) {
         perror("udp socket");
         return -1;
     }
 
     sk->parent.fd = skfd;
 
-    dbg_str(NET_DETAIL,"unix socket construct, socket addr:%p, skfd=%d",sk, skfd);
+    dbg_str(NET_DETAIL, "unix socket construct, socket addr:%p, skfd=%d", sk, skfd);
     return 0;
 }
 
 static int __deconstrcut(Unix_Udp_Socket *socket)
 {
-    dbg_str(NET_DETAIL,"unix socket deconstruct,socket addr:%p",socket);
+    dbg_str(NET_DETAIL, "unix socket deconstruct, socket addr:%p", socket);
 
     close(socket->parent.fd);
 
@@ -93,7 +93,7 @@ static int __set(Unix_Udp_Socket *socket, char *attrib, void *value)
         socket->recvmsg = value;
     } 
     else {
-        dbg_str(NET_DETAIL,"socket set, not support %s setting",attrib);
+        dbg_str(NET_DETAIL, "socket set, not support %s setting", attrib);
     }
 
     return 0;
@@ -103,7 +103,7 @@ static void *__get(Unix_Udp_Socket *socket, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(NET_WARNNING,"socket get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(NET_WARNNING, "socket get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -115,7 +115,7 @@ static int __bind(Unix_Udp_Socket *socket, char *host, char *service)
      int fd  = socket->parent.fd;
      int ret = 0;
 
-     bzero(&un_addr,sizeof(un_addr));
+     bzero(&un_addr, sizeof(un_addr));
      un_addr.sun_family = PF_UNIX;
      strcpy(un_addr.sun_path, host);
      unlink(host);
@@ -134,7 +134,7 @@ static int __connect(Unix_Udp_Socket *socket, char *host, char *service)
      int fd  = socket->parent.fd;
      int ret = 0;
 
-     bzero(&un_addr,sizeof(un_addr));
+     bzero(&un_addr, sizeof(un_addr));
      un_addr.sun_family = PF_UNIX;
      strcpy(un_addr.sun_path, host);
 
@@ -147,23 +147,23 @@ static int __connect(Unix_Udp_Socket *socket, char *host, char *service)
 }
 
 static class_info_entry_t inet_udp_socket_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Socket","parent",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","bind", __bind,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","connect",__connect,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_IFUNC_POINTER,"","write",NULL,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_IFUNC_POINTER,"","sendto",NULL,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_IFUNC_POINTER,"","sendmsg",NULL,sizeof(void *)},
-    [10] = {ENTRY_TYPE_IFUNC_POINTER,"","read",NULL,sizeof(void *)},
-    [11] = {ENTRY_TYPE_IFUNC_POINTER,"","recv",NULL,sizeof(void *)},
-    [12] = {ENTRY_TYPE_IFUNC_POINTER,"","recvfrom",NULL,sizeof(void *)},
-    [13] = {ENTRY_TYPE_IFUNC_POINTER,"","recvmsg",NULL,sizeof(void *)},
-    [14] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Socket", "parent", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "bind", __bind, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "connect", __connect, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "write", NULL, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "sendto", NULL, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "sendmsg", NULL, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_IFUNC_POINTER, "", "read", NULL, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_IFUNC_POINTER, "", "recv", NULL, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_IFUNC_POINTER, "", "recvfrom", NULL, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_IFUNC_POINTER, "", "recvmsg", NULL, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Unix_Udp_Socket",inet_udp_socket_class_info);
+REGISTER_CLASS("Unix_Udp_Socket", inet_udp_socket_class_info);
 
 #define UNIX_CLIENT_PATH "/tmp/unix_client_01"
 #define UNIX_SERVER_PATH "/tmp/unix_server_01"
@@ -200,7 +200,7 @@ void test_unix_udp_socket_recv()
 
     while(1) {
         socket->read(socket, buf, 1024);
-        dbg_str(NET_SUC,"recv : %s",buf);
+        dbg_str(NET_SUC, "recv : %s", buf);
     }
 
     object_destroy(socket);

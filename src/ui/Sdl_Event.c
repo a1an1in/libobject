@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -98,7 +98,7 @@ print_modifier_state()
     left = sizeof(message);
 
     print_modifiers(&spot, &left);
-    dbg_str(DBG_DETAIL,"Initial state:%s", message);
+    dbg_str(DBG_DETAIL, "Initial state:%s", message);
 }
 
 static void
@@ -113,24 +113,24 @@ print_key(SDL_Keysym * sym, SDL_bool pressed, SDL_bool repeat)
 
     /* Print the keycode, name and state */
     if (sym->sym) {
-        print_string(&spot, &left,
-                     "Key %s:  scancode %d = %s, keycode 0x%08X = %s ",
-                     pressed ? "pressed " : "released",
-                     sym->scancode,
-                     SDL_GetScancodeName(sym->scancode),
+        print_string(&spot, &left, 
+                     "Key %s:  scancode %d = %s, keycode 0x%08X = %s ", 
+                     pressed ? "pressed " : "released", 
+                     sym->scancode, 
+                     SDL_GetScancodeName(sym->scancode), 
                      sym->sym, SDL_GetKeyName(sym->sym));
     } else {
-        print_string(&spot, &left,
-                     "Unknown Key (scancode %d = %s) %s ",
-                     sym->scancode,
-                     SDL_GetScancodeName(sym->scancode),
+        print_string(&spot, &left, 
+                     "Unknown Key (scancode %d = %s) %s ", 
+                     sym->scancode, 
+                     SDL_GetScancodeName(sym->scancode), 
                      pressed ? "pressed " : "released");
     }
     print_modifiers(&spot, &left);
     if (repeat) {
         print_string(&spot, &left, " (repeat)");
     }
-    dbg_str(DBG_DETAIL,"%s", message);
+    dbg_str(DBG_DETAIL, "%s", message);
 }
 
 static void
@@ -147,9 +147,9 @@ print_text(char *eventtype, char *text)
     dbg_str(DBG_DETAIL, "%s Text (%s): \"%s%s\"", eventtype, expanded, *text == '"' ? "\\" : "", text);
 }
 
-static int __construct(__Event *event,char *init_str)
+static int __construct(__Event *event, char *init_str)
 {
-    dbg_str(OBJ_DETAIL,"event construct, event addr:%p",event);
+    dbg_str(OBJ_DETAIL, "event construct, event addr:%p", event);
 
     return 0;
 }
@@ -157,7 +157,7 @@ static int __construct(__Event *event,char *init_str)
 static int __deconstrcut(__Event *event)
 {
     __Event *i = (__Event *)event;
-    dbg_str(OBJ_DETAIL,"event deconstruct,event addr:%p",event);
+    dbg_str(OBJ_DETAIL, "event deconstruct, event addr:%p", event);
 
 
     return 0;
@@ -178,7 +178,7 @@ static int __set(__Event *event, char *attrib, void *value)
     } else if (strcmp(attrib, "poll_event") == 0) {
         e->poll_event = value;
     } else {
-        dbg_str(OBJ_WARNNING,"event set,  \"%s\" setting is not support",attrib);
+        dbg_str(OBJ_WARNNING, "event set,  \"%s\" setting is not support", attrib);
     }
 
     return 0;
@@ -188,13 +188,13 @@ static void * __get(__Event *event, char *attrib)
 {
     if (strcmp(attrib, "") == 0){ 
     } else {
-        dbg_str(OBJ_WARNNING,"event get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(OBJ_WARNNING, "event get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
-static int __poll_event(__Event *event,void *window)
+static int __poll_event(__Event *event, void *window)
 {
     int quit             = 0;
     SDL_Event *e         = &((Sdl_Event *)event)->ev;
@@ -202,7 +202,7 @@ static int __poll_event(__Event *event,void *window)
     Graph *g             = w->graph;
     Component *component = (Component *)window, *cur;
      
-    dbg_str(DBG_DETAIL,"sdl event poll");
+    dbg_str(DBG_DETAIL, "sdl event poll");
 
     SDL_StartTextInput();
 
@@ -231,7 +231,7 @@ static int __poll_event(__Event *event,void *window)
                  case SDL_KEYDOWN:
                      /*
                       *print_key(&e->key.keysym, 
-                      *          (e->key.state == SDL_PRESSED) ? SDL_TRUE : SDL_FALSE,
+                      *          (e->key.state == SDL_PRESSED) ? SDL_TRUE : SDL_FALSE, 
                       *          (e->key.repeat) ? SDL_TRUE : SDL_FALSE);
                       */
 
@@ -241,25 +241,25 @@ static int __poll_event(__Event *event,void *window)
                      switch(e->key.keysym.sym) {
                          case SDLK_UP:
                              /*
-                              *dbg_str(DBG_DETAIL,"SDLK_UP, code :%x",e->key.keysym.sym);
+                              *dbg_str(DBG_DETAIL, "SDLK_UP, code :%x", e->key.keysym.sym);
                               */
                              component->key_up_pressed(component, g);
                              break;
                          case SDLK_DOWN:
                              /*
-                              *dbg_str(DBG_DETAIL,"SDLK_DOWN, code :%x",e->key.keysym.sym);
+                              *dbg_str(DBG_DETAIL, "SDLK_DOWN, code :%x", e->key.keysym.sym);
                               */
                              component->key_down_pressed(component, g);
                              break;
                          case SDLK_LEFT:
                              /*
-                              *dbg_str(DBG_DETAIL,"SDLK_LEFT, code :%x",e->key.keysym.sym);
+                              *dbg_str(DBG_DETAIL, "SDLK_LEFT, code :%x", e->key.keysym.sym);
                               */
                              component->key_left_pressed(component, g);
                              break;
                          case SDLK_RIGHT:
                              /*
-                              *dbg_str(DBG_DETAIL,"SDLK_RIGHT, code :%x",e->key.keysym.sym);
+                              *dbg_str(DBG_DETAIL, "SDLK_RIGHT, code :%x", e->key.keysym.sym);
                               */
                              component->key_right_pressed(component, g);
                              break;
@@ -271,7 +271,7 @@ static int __poll_event(__Event *event,void *window)
                              break;
                          case SDLK_BACKSPACE:
                              /*
-                              *dbg_str(DBG_DETAIL,"BACKSPACE, code :%d",e->key.keysym.sym);
+                              *dbg_str(DBG_DETAIL, "BACKSPACE, code :%d", e->key.keysym.sym);
                               */
                              component->key_backspace_pressed(component, g);
                              break;
@@ -279,13 +279,13 @@ static int __poll_event(__Event *event,void *window)
                               if (SDL_GetModState() & KMOD_CTRL) {
                                   component->key_onelineup_pressed(component, g);
                               } else{
-                                  dbg_str(DBG_IMPORTANT,"key j down");
+                                  dbg_str(DBG_IMPORTANT, "key j down");
                               }
                              break;
                          case SDLK_k:
                               if (SDL_GetModState() & KMOD_CTRL) {
                                   /*
-                                   *dbg_str(DBG_IMPORTANT,"ctrl + k");
+                                   *dbg_str(DBG_IMPORTANT, "ctrl + k");
                                    */
                                   component->key_onelinedown_pressed(component, g);
                               }
@@ -296,11 +296,11 @@ static int __poll_event(__Event *event,void *window)
                      break;
                  case SDL_KEYUP:
                      /*
-                      *dbg_str(DBG_DETAIL,"SDL_KEYUP");
+                      *dbg_str(DBG_DETAIL, "SDL_KEYUP");
                       */
                      break;
                  case SDL_CONTROLLERBUTTONDOWN:
-                     dbg_str(DBG_DETAIL,"SDL EVENT: Controller %d button %d down",
+                     dbg_str(DBG_DETAIL, "SDL EVENT: Controller %d button %d down", 
                              e->cbutton.which, e->cbutton.button);
                      break;
                  case SDL_MOUSEBUTTONDOWN:
@@ -338,16 +338,16 @@ static int __poll_event(__Event *event,void *window)
                  case SDL_TEXTINPUT:
                      event->window   = window;
 
-                     component->key_text_pressed(component,e->text.text[0], g);
+                     component->key_text_pressed(component, e->text.text[0], g);
                      break;
                  case SDL_FINGERDOWN:
                  case SDL_FINGERUP:
-                     dbg_str(DBG_DETAIL,
-                             "SDL EVENT: Finger: %s touch=%ld, finger=%ld, x=%f, y=%f, dx=%f, dy=%f, pressure=%f",
-                             (e->type == SDL_FINGERDOWN) ? "down" : "up",
-                             (long) e->tfinger.touchId,
-                             (long) e->tfinger.fingerId,
-                             e->tfinger.x, e->tfinger.y,
+                     dbg_str(DBG_DETAIL, 
+                             "SDL EVENT: Finger: %s touch=%ld, finger=%ld, x=%f, y=%f, dx=%f, dy=%f, pressure=%f", 
+                             (e->type == SDL_FINGERDOWN) ? "down" : "up", 
+                             (long) e->tfinger.touchId, 
+                             (long) e->tfinger.fingerId, 
+                             e->tfinger.x, e->tfinger.y, 
                              e->tfinger.dx, e->tfinger.dy, e->tfinger.pressure);
                      break;
                  default:
@@ -362,16 +362,16 @@ static int __poll_event(__Event *event,void *window)
 }
 
 static class_info_entry_t sdl_event_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"__Event","event",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","poll_event",__poll_event,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "__Event", "event", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "poll_event", __poll_event, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_END}, 
 
 };
-REGISTER_CLASS("Sdl_Event",sdl_event_class_info);
+REGISTER_CLASS("Sdl_Event", sdl_event_class_info);
 
 void test_obj_sdl_event()
 {
@@ -385,16 +385,16 @@ void test_obj_sdl_event()
     set_str = (char *)gen_window_setting_str();
 
     /*
-     *window  = OBJECT_NEW(allocator, Sdl_Window,set_str);
+     *window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
      */
-    window  = OBJECT_NEW(allocator, Sdl_Window,set_str);
+    window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
     g       = window->graph;
     event   = window->event;
 
     object_dump(window, "Sdl_Window", buf, 2048);
-    dbg_str(DBG_DETAIL,"Window dump: %s",buf);
+    dbg_str(DBG_DETAIL, "Window dump: %s", buf);
 
-    event->poll_event(event,window);
+    event->poll_event(event, window);
 
     object_destroy(window);
 

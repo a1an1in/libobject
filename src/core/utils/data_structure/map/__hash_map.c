@@ -107,6 +107,6 @@ int hash_map_pk_register()
     memcpy(&map_modules[MAP_TYPE_HASH_MAP], &m, sizeof(map_module_t));
     return 0;
 }
-REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_REGISTER_MAP_MODULES,
+REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_REGISTER_MAP_MODULES,
                    hash_map_pk_register);
 

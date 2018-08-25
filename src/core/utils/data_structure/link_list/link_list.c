@@ -130,18 +130,18 @@ int llist_add_back(llist_t *llist, void *data)
 {
     list_t *p = NULL;
 
-    p = (list_t *)allocator_mem_alloc(llist->allocator, sizeof(list_t));
+    p       = (list_t *)allocator_mem_alloc(llist->allocator, sizeof(list_t));
     p->data = data;
 
     sync_lock(&llist->list_lock, NULL);
+
     list_add_tail(&p->list_head, llist->head.list_head_p);
     if (llist_pos_equal(&llist->head, &llist->begin)) {
-        llist_pos_init(&llist->begin, llist->head.list_head_p->next, llist);//if this list is first, updata begin
+        llist_pos_init(&llist->begin,
+                       llist->head.list_head_p->next,
+                       llist);//if this list is first, updata begin
     }
     llist->list_count++;
-    /*
-     *dbg_str(LINKLIST_DETAIL, "llist_add_back, listcount=%d, addr=%p", llist->list_count, &p->list_head);
-     */
 
     sync_unlock(&llist->list_lock);
 
@@ -160,6 +160,7 @@ int llist_delete(llist_t *llist, list_pos_t *pos)
     p = container_of(pos->list_head_p, list_t, list_head);
 
     sync_lock(&llist->list_lock, NULL);
+
     if (llist_pos_equal(pos, &llist->begin)) {
         llist_pos_init(&llist->begin, pos->list_head_p->next, llist);
     }
@@ -187,6 +188,7 @@ int llist_delete_back(llist_t *llist)
     p = container_of(head->prev, list_t, list_head);
 
     sync_lock(&llist->list_lock, NULL);
+
     list_del(head->prev);
     llist->list_count--;
     if (llist->list_count == 0) {
@@ -213,6 +215,7 @@ int llist_remove(llist_t *llist, list_pos_t *pos, void **data)
     p = container_of(pos->list_head_p, list_t, list_head);
 
     sync_lock(&llist->list_lock, NULL);
+
     if (llist_pos_equal(pos, &llist->begin)) {
         llist_pos_init(&llist->begin, pos->list_head_p->next, llist);
     }
@@ -241,10 +244,12 @@ int llist_remove_front(llist_t *llist, void **data)
     p = container_of(head->next, list_t, list_head);
 
     sync_lock(&llist->list_lock, NULL);
+
     list_del(head->next);
     llist->list_count--;
     llist_pos_init(&llist->begin, llist->head.list_head_p->next, llist);
     dbg_str(LINKLIST_DETAIL, "llist_remove_front, listcount=%d", llist->list_count);
+
     sync_unlock(&llist->list_lock);
 
     *data = p->data;
@@ -266,6 +271,7 @@ int llist_remove_back(llist_t *llist, void **data)
     p = container_of(head->prev, list_t, list_head);
 
     sync_lock(&llist->list_lock, NULL);
+
     list_del(head->prev);
     llist->list_count--;
     if (llist->list_count == 0) {
@@ -340,6 +346,7 @@ list_t *llist_detach_back(llist_t *llist)
     p = container_of(head->prev, list_t, list_head);
 
     sync_lock(&llist->list_lock, NULL);
+
     list_del(head->prev);
     llist->list_count--;
     if (llist->list_count == 0) {

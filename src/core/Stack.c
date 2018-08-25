@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -37,20 +37,20 @@
 #include <libobject/event/event_base.h>
 #include <libobject/core/stack.h>
 
-static int __construct(Stack *stack,char *init_str)
+static int __construct(Stack *stack, char *init_str)
 {
     allocator_t *allocator = stack->obj.allocator;
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(DBG_DETAIL,"stack construct, stack addr:%p",stack);
+    dbg_str(DBG_DETAIL, "stack construct, stack addr:%p", stack);
 
     return 0;
 }
 
 static int __deconstrcut(Stack *stack)
 {
-    dbg_str(DBG_DETAIL,"stack deconstruct,stack addr:%p",stack);
+    dbg_str(DBG_DETAIL, "stack deconstruct, stack addr:%p", stack);
     int ret;
     void *tret;
 
@@ -74,7 +74,7 @@ static int __set(Stack *stack, char *attrib, void *value)
         stack->pop = value;
     }
     else {
-        dbg_str(DBG_DETAIL,"stack set, not support %s setting",attrib);
+        dbg_str(DBG_DETAIL, "stack set, not support %s setting", attrib);
     }
 
     return 0;
@@ -84,20 +84,20 @@ static void *__get(Stack *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"stack get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARNNING, "stack get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
 static class_info_entry_t stack_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5] = {ENTRY_TYPE_VFUNC_POINTER,"","push",NULL,sizeof(void *)},
-    [6] = {ENTRY_TYPE_VFUNC_POINTER,"","pop",NULL,sizeof(void *)},
-    [7] = {ENTRY_TYPE_END},
+    [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "push", NULL, sizeof(void *)}, 
+    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "pop", NULL, sizeof(void *)}, 
+    [7] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Stack",stack_class_info);
+REGISTER_CLASS("Stack", stack_class_info);

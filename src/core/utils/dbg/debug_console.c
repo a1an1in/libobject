@@ -133,5 +133,5 @@ int console_print_regester()
 
     return 0;
 }
-REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_LIBDBG_REGISTER_MODULES,
+REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_LIBDBG_REGISTER_MODULES,
                    console_print_regester);

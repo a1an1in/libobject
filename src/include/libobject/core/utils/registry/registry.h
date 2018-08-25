@@ -29,17 +29,17 @@ int execute_dtor_funcs();
 
 #define INIT_LIBOBJECT execute_ctor_funcs
 
-#define REGISTER_INIT_FUNC(level, func) \
+#define REGISTER_CTOR_FUNC(level, func) \
     __attribute__((constructor)) static void register_ctor_##func() {\
         __register_ctor_func(level, func);\
     } 
 
-#define REGISTER_INIT_FUNC_ARG1(level, func, arg) \
+#define REGISTER_CTOR_FUNC_ARG1(level, func, arg) \
     __attribute__((constructor)) static void register_ctor_##func_arg1() {\
         __register_ctor_func1(level, func, arg);\
     } 
 
-#define REGISTER_INIT_FUNC_ARG2(level, func, arg1, arg2) \
+#define REGISTER_CTOR_FUNC_ARG2(level, func, arg1, arg2) \
     __attribute__((constructor)) static void register_ctor_##func_arg2() {\
         __register_ctor_func2(level, func, arg1, arg2);\
     } 

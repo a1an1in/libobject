@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -50,7 +50,7 @@ timer_worker_timeout_cb(int fd, short event, void *arg)
     elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
     lasttime = newtime;
 
-    dbg_str(DBG_SUC, "timeout_cb called at %d: %.3f seconds elapsed.",
+    dbg_str(DBG_SUC, "timeout_cb called at %d: %.3f seconds elapsed.", 
             (int)newtime.tv_sec, elapsed);
     dbg_str(DBG_DETAIL, "arg addr:%p", arg);
     worker->work_callback(NULL);
@@ -59,8 +59,8 @@ timer_worker_timeout_cb(int fd, short event, void *arg)
 }
 
 Worker *
-peroid_timer_worker(allocator_t *allocator,
-                    struct timeval *ev_tv, void *opaque,
+peroid_timer_worker(allocator_t *allocator, 
+                    struct timeval *ev_tv, void *opaque, 
                     void *work_callback)
 {
     Producer *producer = global_get_default_producer();
@@ -69,16 +69,16 @@ peroid_timer_worker(allocator_t *allocator,
     worker = OBJECT_NEW(allocator, Worker, NULL);
     worker->opaque = opaque;
 
-    worker->assign(worker, -1, EV_READ | EV_PERSIST, ev_tv,
-                   timer_worker_timeout_cb, worker,
+    worker->assign(worker, -1, EV_READ | EV_PERSIST, ev_tv, 
+                   timer_worker_timeout_cb, worker, 
                    work_callback);
     worker->enroll(worker, producer);
 
     return worker;
 }
 
-Worker *timer_worker(allocator_t *allocator,
-                      struct timeval *ev_tv, void *opaque,
+Worker *timer_worker(allocator_t *allocator, 
+                      struct timeval *ev_tv, void *opaque, 
                       void *work_callback)
 {
     Producer *producer = global_get_default_producer();
@@ -87,8 +87,8 @@ Worker *timer_worker(allocator_t *allocator,
     worker = OBJECT_NEW(allocator, Worker, NULL);
     worker->opaque = opaque;
 
-    worker->assign(worker, -1, EV_READ, ev_tv,
-                   timer_worker_timeout_cb, worker,
+    worker->assign(worker, -1, EV_READ, ev_tv, 
+                   timer_worker_timeout_cb, worker, 
                    work_callback);
     worker->enroll(worker, producer);
 
@@ -102,7 +102,7 @@ int timer_worker_destroy(Worker *worker)
 
 static void test_work_callback(void *task)
 {
-    dbg_str(DBG_SUC,"process timer task");
+    dbg_str(DBG_SUC, "process timer task");
 }
 
 #if 1
@@ -142,8 +142,8 @@ void test_obj_timer_worker()
     sleep(1);
 
     worker = OBJECT_NEW(allocator, Worker, NULL);
-    dbg_str(DBG_DETAIL,"worker addr:%p", worker);
-    worker->assign(worker, -1, EV_READ | EV_PERSIST,
+    dbg_str(DBG_DETAIL, "worker addr:%p", worker);
+    worker->assign(worker, -1, EV_READ | EV_PERSIST, 
                    ev_tv, test_timeout_cb, worker, test_work_callback);
     worker->enroll(worker, producer);
 

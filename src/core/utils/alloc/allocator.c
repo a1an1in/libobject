@@ -101,7 +101,7 @@ int default_allocator_constructor()
 
     return 0;
 }
-REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_DEFAULT_ALLOCATOR, 
+REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_DEFAULT_ALLOCATOR, 
                    default_allocator_constructor);
 
 int default_allocator_destructor()

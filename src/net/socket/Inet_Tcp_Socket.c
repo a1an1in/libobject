@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -37,11 +37,11 @@
 #include <libobject/net/socket/inet_tcp_socket.h>
 #include <libobject/core/thread.h>
 
-static int __construct(Inet_Tcp_Socket *sk,char *init_str)
+static int __construct(Inet_Tcp_Socket *sk, char *init_str)
 {
     int skfd;
 
-    dbg_str(NET_DETAIL,"socket construct, socket addr:%p",sk);
+    dbg_str(NET_DETAIL, "socket construct, socket addr:%p", sk);
 
     if ((skfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("udp socket");
@@ -55,7 +55,7 @@ static int __construct(Inet_Tcp_Socket *sk,char *init_str)
 
 static int __deconstrcut(Inet_Tcp_Socket *socket)
 {
-    dbg_str(NET_DETAIL,"socket deconstruct,socket addr:%p",socket);
+    dbg_str(NET_DETAIL, "socket deconstruct, socket addr:%p", socket);
 
     close(socket->parent.fd);
 
@@ -75,7 +75,7 @@ static int __set(Inet_Tcp_Socket *socket, char *attrib, void *value)
     } 
     else if (strcmp(attrib, "bind") == 0) {
         socket->bind = value;
-        dbg_str(DBG_DETAIL,"set bind, addr:%p", socket->bind);
+        dbg_str(DBG_DETAIL, "set bind, addr:%p", socket->bind);
     } else if (strcmp(attrib, "listen") == 0) {
         socket->listen = value;
     } else if (strcmp(attrib, "accept") == 0) {
@@ -100,7 +100,7 @@ static int __set(Inet_Tcp_Socket *socket, char *attrib, void *value)
         socket->recvmsg = value;
     } 
     else {
-        dbg_str(NET_DETAIL,"socket set, not support %s setting",attrib);
+        dbg_str(NET_DETAIL, "socket set, not support %s setting", attrib);
     }
 
     return 0;
@@ -110,13 +110,13 @@ static void *__get(Inet_Tcp_Socket *socket, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(NET_WARNNING,"socket get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(NET_WARNNING, "socket get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
-static Socket * __accept(Inet_Tcp_Socket *socket,
+static Socket * __accept(Inet_Tcp_Socket *socket, 
                          char *remote_host, char *remote_service)
 {
     struct sockaddr_storage cliaddr;
@@ -136,7 +136,7 @@ static Socket * __accept(Inet_Tcp_Socket *socket,
     return ret;
 }
 
-static int __accept_fd(Inet_Tcp_Socket *socket,
+static int __accept_fd(Inet_Tcp_Socket *socket, 
                        char *remote_host, char *remote_service)
 {
     struct sockaddr_storage cliaddr;
@@ -147,26 +147,26 @@ static int __accept_fd(Inet_Tcp_Socket *socket,
 }
 
 static class_info_entry_t inet_tcp_socket_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Socket","parent",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_IFUNC_POINTER,"","bind", NULL,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_IFUNC_POINTER,"","listen",NULL,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","accept",__accept,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","accept_fd",__accept_fd,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_IFUNC_POINTER,"","connect",NULL,sizeof(void *)},
-    [10] = {ENTRY_TYPE_IFUNC_POINTER,"","write",NULL,sizeof(void *)},
-    [11] = {ENTRY_TYPE_IFUNC_POINTER,"","sendto",NULL,sizeof(void *)},
-    [12] = {ENTRY_TYPE_IFUNC_POINTER,"","sendmsg",NULL,sizeof(void *)},
-    [13] = {ENTRY_TYPE_IFUNC_POINTER,"","read",NULL,sizeof(void *)},
-    [14] = {ENTRY_TYPE_IFUNC_POINTER,"","recv",NULL,sizeof(void *)},
-    [15] = {ENTRY_TYPE_IFUNC_POINTER,"","recvfrom",NULL,sizeof(void *)},
-    [16] = {ENTRY_TYPE_IFUNC_POINTER,"","recvmsg",NULL,sizeof(void *)},
-    [17] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Socket", "parent", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "bind", NULL, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "listen", NULL, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "accept", __accept, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "accept_fd", __accept_fd, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "connect", NULL, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_IFUNC_POINTER, "", "write", NULL, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_IFUNC_POINTER, "", "sendto", NULL, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_IFUNC_POINTER, "", "sendmsg", NULL, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_IFUNC_POINTER, "", "read", NULL, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_IFUNC_POINTER, "", "recv", NULL, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_IFUNC_POINTER, "", "recvfrom", NULL, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_IFUNC_POINTER, "", "recvmsg", NULL, sizeof(void *)}, 
+    [17] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Inet_Tcp_Socket",inet_tcp_socket_class_info);
+REGISTER_CLASS("Inet_Tcp_Socket", inet_tcp_socket_class_info);
 
 void test_inet_tcp_socket_send()
 {
@@ -192,17 +192,17 @@ void test_inet_tcp_socket_recv()
     allocator_t *allocator = allocator_get_default_alloc();
 
     /*
-     *dbg_str(NET_DETAIL,"run at here");
+     *dbg_str(NET_DETAIL, "run at here");
      */
     socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
 
-    dbg_str(DBG_DETAIL,"sizeof socket=%d", sizeof(Socket));
+    dbg_str(DBG_DETAIL, "sizeof socket=%d", sizeof(Socket));
     socket->bind(socket, "127.0.0.1", "11011"); 
     socket->listen(socket, 1024);
     new = socket->accept(socket, NULL, NULL);
 
     new->read(new, buf, 1024);
-    dbg_str(NET_SUC,"recv : %s",buf);
+    dbg_str(NET_SUC, "recv : %s", buf);
 
     sleep(10);
 

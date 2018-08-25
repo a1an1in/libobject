@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -33,17 +33,17 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/object.h>
 
-static int __construct(Obj *obj,char *init_str)
+static int __construct(Obj *obj, char *init_str)
 {
-    dbg_str(OBJ_DETAIL,"obj construct, obj addr:%p",obj);
+    dbg_str(OBJ_DETAIL, "obj construct, obj addr:%p", obj);
 
     return 0;
 }
 
 static int __deconstrcut(Obj *obj)
 {
-    dbg_str(OBJ_DETAIL,"obj deconstruct,obj addr:%p",obj);
-    allocator_mem_free(obj->allocator,obj);
+    dbg_str(OBJ_DETAIL, "obj deconstruct, obj addr:%p", obj);
+    allocator_mem_free(obj->allocator, obj);
 
     return 0;
 }
@@ -60,9 +60,9 @@ static int __set(Obj *obj, char *attrib, void *value)
         obj->deconstruct = value;
     } else if (strcmp(attrib, "allocator") == 0) {
         obj->allocator = value;
-        dbg_str(OBJ_DETAIL,"allocator addr:%p",obj->allocator);
+        dbg_str(OBJ_DETAIL, "allocator addr:%p", obj->allocator);
     } else {
-        dbg_str(OBJ_WARNNING,"obj set, \"%s\" setting is not supported",attrib);
+        dbg_str(OBJ_WARNNING, "obj set, \"%s\" setting is not supported", attrib);
     }
 
     return 0;
@@ -75,22 +75,22 @@ static void *__get(Obj *obj, char *attrib)
     } else if (strcmp(attrib, "name") == 0) {
         return obj->name;
     } else {
-        dbg_str(OBJ_WARNNING,"obj get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(OBJ_WARNNING, "obj get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
 static class_info_entry_t obj_class_info[] = {
-    [0] = {ENTRY_TYPE_NORMAL_POINTER,"allocator_t","allocator",NULL,sizeof(void *)},
-    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5] = {ENTRY_TYPE_STRING,"","name",NULL,0},
-    [6] = {ENTRY_TYPE_END},
+    [0] = {ENTRY_TYPE_NORMAL_POINTER, "allocator_t", "allocator", NULL, sizeof(void *)}, 
+    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5] = {ENTRY_TYPE_STRING, "", "name", NULL, 0}, 
+    [6] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Obj",obj_class_info);
+REGISTER_CLASS("Obj", obj_class_info);
 
 void test_obj()
 {
@@ -98,7 +98,7 @@ void test_obj()
     char buf[2048];
     allocator_t *allocator = allocator_get_default_alloc();
 
-    obj = OBJECT_NEW(allocator, Obj,"");
+    obj = OBJECT_NEW(allocator, Obj, "");
 
     object_dump(obj, "Obj", buf, 2048);
 }

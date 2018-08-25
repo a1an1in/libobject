@@ -65,11 +65,6 @@ __rbtree_map_search(rbtree_map_t *map, struct rb_root *root, void *key)
         int result;
 
         result = key_cmp_func(key, mnode->key, mnode->value_pos);
-        /*
-         *dbg_buf(RBTMAP_DETAIL, "key1:", key, mnode->value_pos);
-         *dbg_buf(RBTMAP_DETAIL, "key2:", mnode->key, mnode->value_pos);
-         */
-
         if (result < 0)
             node = node->rb_left;
         else if (result > 0)
@@ -213,9 +208,6 @@ int rbtree_map_init(rbtree_map_t *map,
 
     dbg_str(RBTMAP_DETAIL, "rbtree_map init");
 
-    /*
-     *strcpy(ct->name, "rbtree_map container");
-     */
     map->pair = create_pair(key_size, value_size);
     if (map->pair == NULL) {
         dbg_str(RBTMAP_ERROR, "hash_map_init, create_pair");
@@ -384,7 +376,9 @@ rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it)
 }
 
 int
-rbtree_map_search_by_numeric_key(rbtree_map_t *map, int key, rbtree_map_pos_t *it)
+rbtree_map_search_by_numeric_key(rbtree_map_t *map,
+                                 int key,
+                                 rbtree_map_pos_t *it)
 {
     return rbtree_map_search(map, &key, it);
 }

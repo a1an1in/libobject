@@ -80,9 +80,7 @@ struct debugger{
 	struct debugger_opperations *dbg_ops;
 	uint8_t lock_type;
 	union debugger_priv{
-		/*
-		 *debug_network_prive_t net;
-		 */
+        debug_network_prive_t net;
 		debug_log_prive_t log;
 	}priv;
 #undef MAX_INI_FILE_NAME_LEN

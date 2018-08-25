@@ -65,10 +65,8 @@ static int __init(allocator_t *allocator)
         ctr_alloc->data_min_size = 8;
     }
     if (!ctr_alloc->mempool_capacity) {
-        /*
-         *ctr_alloc->mempool_capacity = MEM_POOL_MAX_SIZE;
-         */
-        ctr_alloc->mempool_capacity = ____pow(2, ctr_alloc->slab_array_max_num) * ctr_alloc->data_min_size;
+        ctr_alloc->mempool_capacity = ____pow(2, ctr_alloc->slab_array_max_num) * 
+                                              ctr_alloc->data_min_size;
     }
     allocator->alloc_count = 0;
 
@@ -169,12 +167,10 @@ static void *__alloc(allocator_t *allocator, uint32_t size)
     dbg_str(ALLOC_DETAIL, "ctr alloc begin, size =%d", size);
     index = slab_get_slab_index(allocator, size);
 
-    /*
-     *dbg_str(ALLOC_DETAIL, "allocator mem, size=%d, index=%d, slab_array_max_num=%d", 
-     *        size, index, allocator->priv.ctr_alloc.slab_array_max_num);
-     */
     if (size > ctr_alloc->mempool_capacity || index < 0) {
-        dbg_str(ALLOC_IMPORTANT, "ctr alloc size = %d, which is too huge, using sys malloc", size);
+        dbg_str(ALLOC_IMPORTANT,
+                "ctr alloc size = %d, which is too huge, using sys malloc",
+                size);
         mem = alloc_huge_slab(allocator, size);
     } else {
         mem = alloc_normal_slab(allocator, size);
@@ -209,10 +205,6 @@ static int free_normal_slab(allocator_t *allocator, ctr_slab_t *slab_list)
     new_head = &slab_list->list_head;
     size = slab_list->size;
     free_slabs = ctr_alloc->free_slabs;
-
-    /*
-     *memset(slab_list->tag, 0, sizeof(slab_list->tag));
-     */
 
     slab_detach_list_from_used_slabs(allocator, 
                                      new_head, //struct list_head *del_head, 
@@ -249,7 +241,9 @@ static void __free(allocator_t *allocator, void *addr)
 
     size = slab_list->size;
     index = slab_get_slab_index(allocator, size);
-    dbg_str(ALLOC_DETAIL, "index=%d, size=%d, mempool_capacity=%d", index, size, ctr_alloc->mempool_capacity);
+    dbg_str(ALLOC_DETAIL,
+            "index=%d, size=%d, mempool_capacity=%d",
+            index, size, ctr_alloc->mempool_capacity);
     if (size >= ctr_alloc->mempool_capacity || index < 0) {
         dbg_str(ALLOC_DETAIL, "free_huge_slab, slab_list addr:%p", slab_list);
         free_huge_slab(allocator, slab_list);
@@ -257,7 +251,8 @@ static void __free(allocator_t *allocator, void *addr)
         free_normal_slab(allocator, slab_list);
     }
 
-    dbg_str(ALLOC_IMPORTANT, "free ctr mem, free add=%p, allocator using count=%d", 
+    dbg_str(ALLOC_IMPORTANT, 
+            "free ctr mem, free add=%p, allocator using count=%d", 
             addr, allocator->alloc_count);
 
 }
@@ -343,5 +338,6 @@ int allocator_ctr_alloc_register() {
 
     return 0;
 }
-REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_LIBALLOC_REGISTER_MODULES, allocator_ctr_alloc_register);
+REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_LIBALLOC_REGISTER_MODULES,
+                   allocator_ctr_alloc_register);
 

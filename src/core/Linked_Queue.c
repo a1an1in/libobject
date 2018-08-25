@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -37,7 +37,7 @@
 #include <libobject/core/linked_queue.h>
 #include <libobject/event/event_base.h>
 
-static int __construct(Linked_Queue *queue,char *init_str)
+static int __construct(Linked_Queue *queue, char *init_str)
 {
     llist_t *llist;
     allocator_t *allocator = queue->parent.obj.allocator;
@@ -45,17 +45,17 @@ static int __construct(Linked_Queue *queue,char *init_str)
     int value_size = sizeof(void *);
     int lock_type = 0;
 
-    dbg_str(OBJ_DETAIL,"queue construct, queue addr:%p",queue);
+    dbg_str(OBJ_DETAIL, "queue construct, queue addr:%p", queue);
 
     llist = llist_alloc(allocator);
-    llist_set(llist,"lock_type",&lock_type);
-    llist_set(llist,"data_size",&value_size);
+    llist_set(llist, "lock_type", &lock_type);
+    llist_set(llist, "data_size", &value_size);
     llist_init(llist);
 
     queue->llist = llist;
 
-    q->b = OBJECT_NEW(allocator, LList_Iterator,NULL);
-    q->e = OBJECT_NEW(allocator, LList_Iterator,NULL);
+    q->b = OBJECT_NEW(allocator, LList_Iterator, NULL);
+    q->e = OBJECT_NEW(allocator, LList_Iterator, NULL);
 
     return 0;
 }
@@ -65,7 +65,7 @@ static int __deconstrcut(Linked_Queue *queue)
     int ret;
     Queue *q = (Queue *)queue;
 
-    dbg_str(OBJ_DETAIL,"queue deconstruct,queue addr:%p",queue);
+    dbg_str(OBJ_DETAIL, "queue deconstruct, queue addr:%p", queue);
     object_destroy(q->b);
     object_destroy(q->e);
     llist_destroy(queue->llist);
@@ -98,7 +98,7 @@ static int __set(Linked_Queue *queue, char *attrib, void *value)
         queue->remove_back = value;
     }
     else {
-        dbg_str(OBJ_DETAIL,"queue set, not support %s setting",attrib);
+        dbg_str(OBJ_DETAIL, "queue set, not support %s setting", attrib);
     }
 
     return 0;
@@ -108,7 +108,7 @@ static void *__get(Linked_Queue *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(OBJ_WARNNING,"queue get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(OBJ_WARNNING, "queue get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -116,14 +116,14 @@ static void *__get(Linked_Queue *obj, char *attrib)
 
 static int __add(Linked_Queue *queue, void *element)
 {
-    dbg_str(OBJ_DETAIL,"Linked_Queue add");
+    dbg_str(OBJ_DETAIL, "Linked_Queue add");
 
     return llist_add_back(queue->llist, element);
 }
 
 static int __add_back(Linked_Queue *queue, void *element)
 {
-    return llist_add_back(queue->llist,element);
+    return llist_add_back(queue->llist, element);
 }
 
 static int __add_front(Linked_Queue *queue, void *element)
@@ -133,7 +133,7 @@ static int __add_front(Linked_Queue *queue, void *element)
 
 static int __remove(Linked_Queue *queue, void **element)
 {
-    dbg_str(OBJ_DETAIL,"Linked_Queue remove");
+    dbg_str(OBJ_DETAIL, "Linked_Queue remove");
 
     return llist_remove_front(queue->llist, element);
 }
@@ -154,7 +154,7 @@ static Iterator* __begin(Queue *queue)
     allocator_t *allocator = queue->obj.allocator;
     LList_Iterator *iter   = (LList_Iterator *)queue->b;
 
-    dbg_str(OBJ_DETAIL,"queue begin");
+    dbg_str(OBJ_DETAIL, "queue begin");
 
     llist_begin(q->llist, &(iter->list_pos));
 
@@ -167,7 +167,7 @@ static Iterator* __end(Queue *queue)
     allocator_t *allocator = queue->obj.allocator;
     LList_Iterator *iter   = (LList_Iterator *)queue->e;
 
-    dbg_str(OBJ_DETAIL,"Linked List end");
+    dbg_str(OBJ_DETAIL, "Linked List end");
 
     llist_end(q->llist, &(iter->list_pos));
 
@@ -175,22 +175,22 @@ static Iterator* __end(Queue *queue)
 }
 
 static class_info_entry_t linked_queue_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Queue","parent",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add",__add,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_front",__add_front,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_back",__add_back,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove",__remove,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove_front",__remove_front,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","remove_back",__remove_back,sizeof(void *)},
-    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","begin",__begin,sizeof(void *)},
-    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","end",__end,sizeof(void *)},
-    [13] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Queue", "parent", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", __add, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_front", __add_front, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_back", __add_back, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_front", __remove_front, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_back", __remove_back, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Linked_Queue",linked_queue_class_info);
+REGISTER_CLASS("Linked_Queue", linked_queue_class_info);
 
 struct test{
     int a;
@@ -208,7 +208,7 @@ static void queue_print(void *element)
 {
     struct test *t = (struct test *)element;
      
-    dbg_str(OBJ_DETAIL,"t->a=%d, t->b=%d",t->a, t->b);
+    dbg_str(OBJ_DETAIL, "t->a=%d, t->b=%d", t->a, t->b);
 }
 
 void test_obj_linked_queue()
@@ -224,7 +224,7 @@ void test_obj_linked_queue()
     init_test_instance(&t4, 4, 2);
     init_test_instance(&t5, 5, 2);
 
-    dbg_str(OBJ_SUC, "linked queue test begin alloc count =%d",allocator->alloc_count);
+    dbg_str(OBJ_SUC, "linked queue test begin alloc count =%d", allocator->alloc_count);
 
     q = OBJECT_NEW(allocator, Linked_Queue, NULL);
 
@@ -238,15 +238,15 @@ void test_obj_linked_queue()
     q->for_each(q, queue_print);
 
     q->remove(q, (void **)&t);
-    dbg_str(OBJ_DETAIL,"remove , t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(OBJ_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
     q->remove(q, (void **)&t);
-    dbg_str(OBJ_DETAIL,"remove , t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(OBJ_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
     q->remove(q, (void **)&t);
-    dbg_str(OBJ_DETAIL,"remove , t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(OBJ_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
     q->remove(q, (void **)&t);
-    dbg_str(OBJ_DETAIL,"remove , t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(OBJ_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
     q->remove(q, (void **)&t);
-    dbg_str(OBJ_DETAIL,"remove , t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(OBJ_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
 
     q->for_each(q, queue_print);
 

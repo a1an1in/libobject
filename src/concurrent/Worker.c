@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -36,13 +36,13 @@
 #include <libobject/concurrent/worker.h>
 #include <libobject/concurrent/producer.h>
 
-static int __construct(Worker *worker,char *init_str)
+static int __construct(Worker *worker, char *init_str)
 {
     allocator_t *allocator = worker->obj.allocator;
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(EV_DETAIL,"worker construct, worker addr:%p",worker);
+    dbg_str(EV_DETAIL, "worker construct, worker addr:%p", worker);
     worker->flags = 0;
 
     return 0;
@@ -50,7 +50,7 @@ static int __construct(Worker *worker,char *init_str)
 
 static int __deconstrcut(Worker *worker)
 {
-    dbg_str(EV_DETAIL,"worker deconstruct,worker addr:%p",worker);
+    dbg_str(EV_DETAIL, "worker deconstruct, worker addr:%p", worker);
 
     return 0;
 }
@@ -74,7 +74,7 @@ static int __set(Worker *worker, char *attrib, void *value)
         worker->resign = value;
     } 
     else {
-        dbg_str(EV_DETAIL,"worker set, not support %s setting",attrib);
+        dbg_str(EV_DETAIL, "worker set, not support %s setting", attrib);
     }
 
     return 0;
@@ -84,14 +84,14 @@ static void *__get(Worker *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"worker get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARNNING, "worker get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
-static int  __assign(Worker *worker, int fd, int ev_events,
-                     struct timeval *ev_tv, void *ev_callback,
+static int  __assign(Worker *worker, int fd, int ev_events, 
+                     struct timeval *ev_tv, void *ev_callback, 
                      void *ev_arg, void *work_callback)
 {
     event_t *event = &worker->event;
@@ -139,7 +139,7 @@ static class_info_entry_t worker_class_info[] = {
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "assign", __assign, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "enroll", __enroll, sizeof(void *)}, 
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "resign", __resign, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_END},
+    [8 ] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Worker", worker_class_info);
 
@@ -158,15 +158,15 @@ test_timeout_cb(int fd, short event, void *arg)
     elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
     lasttime = newtime;
 
-    dbg_str(DBG_SUC,"timeout_cb called at %d: %.3f seconds elapsed.",
+    dbg_str(DBG_SUC, "timeout_cb called at %d: %.3f seconds elapsed.", 
             (int)newtime.tv_sec, elapsed);
-    dbg_str(DBG_DETAIL,"arg addr:%p", arg);
+    dbg_str(DBG_DETAIL, "arg addr:%p", arg);
     worker->work_callback(NULL);
 }
 
 static void test_work_callback(void *task)
 {
-    dbg_str(DBG_SUC,"process timer task");
+    dbg_str(DBG_SUC, "process timer task");
 }
 void test_obj_worker()
 {
@@ -183,8 +183,8 @@ void test_obj_worker()
     sleep(1);
 
     worker = OBJECT_NEW(allocator, Worker, NULL);
-    dbg_str(DBG_DETAIL,"worker addr:%p", worker);
-    worker->assign(worker, -1, EV_READ | EV_PERSIST,
+    dbg_str(DBG_DETAIL, "worker addr:%p", worker);
+    worker->assign(worker, -1, EV_READ | EV_PERSIST, 
                    &ev_tv, test_timeout_cb, worker, test_work_callback);
     worker->enroll(worker, producer);
 

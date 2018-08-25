@@ -234,7 +234,7 @@ static class_info_entry_t rbtree_map_class_info[] = {
 };
 REGISTER_CLASS("RBTree_Map", rbtree_map_class_info);
 
-static int numeric_key_cmp_func(void *key1,void *key2,uint32_t size)
+static int numeric_key_cmp_func(void *key1, void *key2, uint32_t size)
 {
     int k1, k2;
 

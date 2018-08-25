@@ -88,6 +88,7 @@ int  windows_user_mode_mutex_register(){
 	memcpy(&sync_lock_modules[WINDOWS_MUTEX_LOCK],&slm,sizeof(sync_lock_module_t));
 	return 0;
 }
-REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_SYNC_LOCK_REGISTER_MODULES, windows_user_mode_mutex_register);
+REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_SYNC_LOCK_REGISTER_MODULES,
+                   windows_user_mode_mutex_register);
 
 #endif

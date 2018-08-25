@@ -59,22 +59,19 @@ void debugger_set_level_info(debugger_t *debugger,
 {
     debugger->debug_level_info[level].color = color_value;
     memcpy(debugger->debug_level_info[level].level_str, level_str, strlen(level_str));
-    /*
-     *printf("%s %x\n", console_print_color[debug_devel].level, console_print_color[debug_devel].color);
-     */
 }
 void debugger_set_level_infos(debugger_t *debugger)
 {
-    debugger_set_level_info(debugger, DBG_PANIC,    (DBG_PANIC_COLOR),    "DBG_PANIC");
-    debugger_set_level_info(debugger, DBG_FATAL,    (DBG_FATAL_COLOR),    "DBG_FATAL");
-    debugger_set_level_info(debugger, DBG_ERROR,    (DBG_ERROR_COLOR),    "DBG_ERROR");
-    debugger_set_level_info(debugger, DBG_WARNNING, (DBG_WARNNING_COLOR), "DBG_WARNNING");
-    debugger_set_level_info(debugger, DBG_SUC,      (DBG_SUC_COLOR),      "DBG_SUC");
-    debugger_set_level_info(debugger, DBG_CORRECT,  (DBG_CORRECT_COLOR),  "DBG_CORRECT");
-    debugger_set_level_info(debugger, DBG_VIP,      (DBG_VIP_COLOR),      "DBG_VIP");
-    debugger_set_level_info(debugger, DBG_FLOW,     (DBG_FLOW_COLOR),     "DBG_FLOW");
-    debugger_set_level_info(debugger, DBG_IMPORTANT, (DBG_IMPORTANT_COLOR), "DBG_IMPORTANT");
-    debugger_set_level_info(debugger, DBG_DETAIL,   (DBG_DETAIL_COLOR),   "DBG_DETAIL");
+    debugger_set_level_info(debugger, DBG_PANIC,     (DBG_PANIC_COLOR),    "DBG_PANIC");
+    debugger_set_level_info(debugger, DBG_FATAL,     (DBG_FATAL_COLOR),    "DBG_FATAL");
+    debugger_set_level_info(debugger, DBG_ERROR,     (DBG_ERROR_COLOR),    "DBG_ERROR");
+    debugger_set_level_info(debugger, DBG_WARNNING,  (DBG_WARNNING_COLOR), "DBG_WARNNING");
+    debugger_set_level_info(debugger, DBG_SUC,       (DBG_SUC_COLOR),      "DBG_SUC");
+    debugger_set_level_info(debugger, DBG_CORRECT,   (DBG_CORRECT_COLOR),  "DBG_CORRECT");
+    debugger_set_level_info(debugger, DBG_VIP,       (DBG_VIP_COLOR),      "DBG_VIP");
+    debugger_set_level_info(debugger, DBG_FLOW,      (DBG_FLOW_COLOR),     "DBG_FLOW");
+    debugger_set_level_info(debugger, DBG_IMPORTANT, (DBG_IMPORTANT_COLOR),"DBG_IMPORTANT");
+    debugger_set_level_info(debugger, DBG_DETAIL,    (DBG_DETAIL_COLOR),   "DBG_DETAIL");
 }
 uint8_t debugger_get_level_color(debugger_t *debugger, uint32_t level)
 {
@@ -109,12 +106,16 @@ void debugger_set_businesses(debugger_t *debugger)
         iniparser_setstr(d, (char *)"businesses", NULL); 
         iniparser_setstr(d, (char *)"businesses:business_num", buf); 
         for(i = 0; i < MAX_DEBUG_BUSINESS_NUM; i++){
-            snprintf(switch_str, MAX_STRING_LEN, "businesses:%s_switch", debug_business_names[i]);
-            snprintf(level_str, MAX_STRING_LEN, "businesses:%s_level", debug_business_names[i]);
-            /*
-             *snprintf(switch_str, MAX_STRING_LEN, "businesses:business%d_switch", i);
-             *snprintf(level_str, MAX_STRING_LEN, "businesses:business%d_level", i);
-             */
+            snprintf(switch_str,
+                     MAX_STRING_LEN,
+                     "businesses:%s_switch",
+                     debug_business_names[i]);
+
+            snprintf(level_str,
+                     MAX_STRING_LEN,
+                     "businesses:%s_level",
+                     debug_business_names[i]);
+
             iniparser_setstr(d, switch_str, "1");
             if(i == 0){
                 iniparser_setstr(d, level_str, "9");
@@ -129,15 +130,16 @@ void debugger_set_businesses(debugger_t *debugger)
         fclose(f);
     }else{
         for(i = 0; i < bussiness_num; i++){
-            /*
-             *snprintf(switch_str, MAX_STRING_LEN, "businesses:business%d_switch", i);
-             *snprintf(level_str, MAX_STRING_LEN, "businesses:business%d_level", i);
-             */
-            snprintf(switch_str, MAX_STRING_LEN, "businesses:%s_switch", debug_business_names[i]);
-            snprintf(level_str, MAX_STRING_LEN, "businesses:%s_level", debug_business_names[i]);
-            /*
-             *printf("debugger_set_businesses, bussiness_num=%d\n", bussiness_num);
-             */
+            snprintf(switch_str,
+                     MAX_STRING_LEN,
+                     "businesses:%s_switch",
+                     debug_business_names[i]);
+
+            snprintf(level_str,
+                     MAX_STRING_LEN,
+                     "businesses:%s_level",
+                     debug_business_names[i]);
+
             sw = iniparser_getint(d, switch_str, 1);
             lv = iniparser_getint(d, level_str, 6);
             debugger_set_business(debugger, i, sw, lv);
@@ -167,25 +169,7 @@ void debugger_destroy(debugger_t *debugger)
     if(debugger->dbg_ops->destroy)
         debugger->dbg_ops->destroy(debugger);
 }
-/*
- *int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt, ...) 
- *{
- *    int ret = 0;
- *    va_list ap;
- *    uint32_t business_num = dbg_switch >> 8;
- *    uint8_t level = dbg_switch & 0xff;
- *    if(!debugger_is_business_switch_on(debugger, business_num)){
- *        return -1;
- *    }
- *    if(debugger_get_business_level(debugger, business_num) < level){
- *        return -1;
- *    }
- *    va_start(ap, fmt);
- *    ret = debugger->dbg_ops->dbg_string_vl(debugger, level, fmt, ap);
- *    va_end(ap);
- *    return ret;
- *}
- */
+
 int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt, ...) 
 {
 #define MAX_FMT_STR_LEN 1024*4
@@ -207,7 +191,11 @@ int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt,
     vsnprintf(fmt_str, MAX_FMT_STR_LEN, fmt, ap);
     va_end(ap);
     level_str = (char *)debugger_get_level_str(debugger, level);
-    ret = debugger->dbg_ops->dbg_string(debugger, level, "[%s]--%s", level_str, fmt_str);
+    ret = debugger->dbg_ops->dbg_string(debugger,
+                                        level,
+                                        "[%s]--%s",
+                                        level_str,
+                                        fmt_str);
 
     return ret;
 #undef MAX_FMT_STR_LEN 
@@ -276,16 +264,10 @@ debugger_t *debugger_creator(char *ini_file_name, uint8_t lock_type)
             exit(1);
         }
         iniparser_setstr(d, (char *)"debugger", NULL); 
-        /*
-         *itoa(type, type_str, 10);
-         */
         iniparser_setstr(d, (char *)"debugger:type", "0");
         iniparser_dump_ini(d, f);
         fclose(f);
     }
-    /*
-     *printf("debugger type =%d\n", type);
-     */
     debugger->debugger_type = type;
     debugger->dbg_ops = &debugger_modules[type].dbg_ops;
     debugger->lock_type = lock_type;
@@ -315,7 +297,7 @@ int debugger_constructor()
 
     return 0;
 }
-REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_DEBUGGER, debugger_constructor);
+REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_DEBUGGER, debugger_constructor);
 
 int debugger_destructor()
 {

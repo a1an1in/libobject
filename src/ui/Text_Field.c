@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -68,14 +68,14 @@ static int move_cursor_left(Component *component)
         cursor->width     = character->width;
         cursor->offset--;
     } else if (cursor->x == 0 && cursor->y == 0) {
-        dbg_str(DBG_DETAIL,"already at head of text");
+        dbg_str(DBG_DETAIL, "already at head of text");
         return 0;
     }
 
-    dbg_str(DBG_DETAIL,
-            "offset=%d,cursor_line=%d,last_line_num=%d,char =%c,"
-            "x pos=%d,char_width =%d",
-            cursor->offset,cursor_line, text->last_line_num, 
+    dbg_str(DBG_DETAIL, 
+            "offset=%d, cursor_line=%d, last_line_num=%d, char =%c, "
+            "x pos=%d, char_width =%d", 
+            cursor->offset, cursor_line, text->last_line_num, 
             cursor->c, cursor->x, character->width);
 
     return 1;
@@ -107,29 +107,29 @@ static void move_cursor_right(Component *component)
         cursor->offset++;
     } else if (cursor->x + cursor->width == line_info->line_lenth)
     {
-        dbg_str(DBG_SUC,"move cursor to adding char field");
+        dbg_str(DBG_SUC, "move cursor to adding char field");
         c               = ' ';
         character       = (Character *)g->font->ascii[c].character;
         cursor->c       = c;
         cursor->x      += cursor->width;
         cursor->offset++;
     } else {
-        dbg_str(DBG_WARNNING,
-                "curor x=%d width=%d line_num=%d line_lenth=%d last_line_num=%d",
+        dbg_str(DBG_WARNNING, 
+                "curor x=%d width=%d line_num=%d line_lenth=%d last_line_num=%d", 
                 cursor->x, cursor->width, cursor_line, line_info->line_lenth, 
                 text->last_line_num);
     }
 
-    dbg_str(DBG_DETAIL,
-            "offset=%d,cursor_line=%d,last_line_num=%d,char =%c,"
-            "x pos=%d,char_width =%d",
-            cursor->offset,cursor_line, text->last_line_num, 
+    dbg_str(DBG_DETAIL, 
+            "offset=%d, cursor_line=%d, last_line_num=%d, char =%c, "
+            "x pos=%d, char_width =%d", 
+            cursor->offset, cursor_line, text->last_line_num, 
             cursor->c, cursor->x, character->width);
 
     return ;
 }
 
-static int draw_cursor(Component *component,void *graph)
+static int draw_cursor(Component *component, void *graph)
 {
     Text_Field *ta    = (Text_Field *)component;
     Subject *s        = (Subject *)component;
@@ -144,29 +144,29 @@ static int draw_cursor(Component *component,void *graph)
 
 #if 0
     c         = cursor->c;
-    character = g->render_load_character(g,c,g->font,
-                                         bg_color->r,
+    character = g->render_load_character(g, c, g->font, 
+                                         bg_color->r, 
                                          bg_color->g, 
                                          bg_color->b, 
                                          bg_color->a); 
 
-    g->render_set_color(g,ft_color->r,ft_color->g,ft_color->b,ft_color->a);
-    g->render_fill_rect(g,cursor->x + s->x, cursor->y + s->y, character->width, character->height);
-    g->render_write_character(g,cursor->x + s->x,cursor->y + s->y,character);
+    g->render_set_color(g, ft_color->r, ft_color->g, ft_color->b, ft_color->a);
+    g->render_fill_rect(g, cursor->x + s->x, cursor->y + s->y, character->width, character->height);
+    g->render_write_character(g, cursor->x + s->x, cursor->y + s->y, character);
     g->render_present(g);
 
     object_destroy(character);   
 #else
-    g->render_set_color(g,ft_color->r,ft_color->g,ft_color->b,ft_color->a);
-    g->render_draw_line(g,
-                        s->x + cursor->x, s->y + cursor->y,
+    g->render_set_color(g, ft_color->r, ft_color->g, ft_color->b, ft_color->a);
+    g->render_draw_line(g, 
+                        s->x + cursor->x, s->y + cursor->y, 
                         s->x + cursor->x, s->y + cursor->y + cursor->height);
     g->render_present(g);
 #endif
 
 }
 
-static int reverse_cursor(Component *component,void *graph)
+static int reverse_cursor(Component *component, void *graph)
 {
     Text_Field *ta    = (Text_Field *)component;
     Subject *s        = (Subject *)component;
@@ -180,29 +180,29 @@ static int reverse_cursor(Component *component,void *graph)
 
 #if 0
     c         = cursor->c;
-    character = g->render_load_character(g,c,g->font,
-                                         ft_color->r,
-                                         ft_color->g,
-                                         ft_color->b,
+    character = g->render_load_character(g, c, g->font, 
+                                         ft_color->r, 
+                                         ft_color->g, 
+                                         ft_color->b, 
                                          ft_color->a); 
 
-    g->render_set_color(g,bg_color->r, bg_color->g, bg_color->b, bg_color->a);
-    g->render_fill_rect(g,cursor->x + s->x, cursor->y + s->y, character->width, character->height);
+    g->render_set_color(g, bg_color->r, bg_color->g, bg_color->b, bg_color->a);
+    g->render_fill_rect(g, cursor->x + s->x, cursor->y + s->y, character->width, character->height);
 
-    g->render_write_character(g,cursor->x + s->x,cursor->y + s->y,character);
+    g->render_write_character(g, cursor->x + s->x, cursor->y + s->y, character);
     g->render_present(g);
 
     object_destroy(character);   
 #else
-    g->render_set_color(g,bg_color->r, bg_color->g, bg_color->b, bg_color->a);
-    g->render_draw_line(g,
-                        s->x + cursor->x, s->y + cursor->y,
+    g->render_set_color(g, bg_color->r, bg_color->g, bg_color->b, bg_color->a);
+    g->render_draw_line(g, 
+                        s->x + cursor->x, s->y + cursor->y, 
                         s->x + cursor->x, s->y + cursor->y + cursor->height);
     g->render_present(g);
 #endif
 }
 
-static int draw_character(Component *component,char c, void *graph)
+static int draw_character(Component *component, char c, void *graph)
 {
     Text_Field *ta   = (Text_Field *)component;
     Graph *g         = (Graph *)graph;
@@ -212,11 +212,11 @@ static int draw_character(Component *component,char c, void *graph)
 
     character = (Character *)g->font->ascii[c].character;
     if (character->height == 0) {
-        dbg_str(DBG_WARNNING,"text list may have problem, draw id=%d, c=%c", c,c);
+        dbg_str(DBG_WARNNING, "text list may have problem, draw id=%d, c=%c", c, c);
         return -1;
     }
 
-    g->render_write_character(g,cursor->x + s->x, cursor->y + s->y,character);
+    g->render_write_character(g, cursor->x + s->x, cursor->y + s->y, character);
     cursor->x      += character->width;
     cursor->width   = character->width;
     cursor->height  = character->height;
@@ -227,7 +227,7 @@ static int draw_character(Component *component,char c, void *graph)
     return 0;
 }
 
-static int erase_character(Component *component,char c, void *graph)
+static int erase_character(Component *component, char c, void *graph)
 {
     Text_Field *ta    = (Text_Field *)component;
     Subject *s        = (Subject *)component;
@@ -238,14 +238,14 @@ static int erase_character(Component *component,char c, void *graph)
     color_t *bg_color = &ta->background_color;
     Character *character;   
 
-    character = g->render_load_character(g,c,g->font,
-                                         ft_color->r,
-                                         ft_color->g,
-                                         ft_color->b,
+    character = g->render_load_character(g, c, g->font, 
+                                         ft_color->r, 
+                                         ft_color->g, 
+                                         ft_color->b, 
                                          ft_color->a); 
 
-    g->render_set_color(g,bg_color->r, bg_color->g, bg_color->b, bg_color->a);
-    g->render_fill_rect(g,cursor->x + s->x, cursor->y + s->y, character->width, character->height);
+    g->render_set_color(g, bg_color->r, bg_color->g, bg_color->b, bg_color->a);
+    g->render_fill_rect(g, cursor->x + s->x, cursor->y + s->y, character->width, character->height);
 
     g->render_present(g);
 
@@ -260,26 +260,26 @@ static uint32_t cursor_timer_callback(uint32_t interval, void* param )
     Graph *g       = ((Window *)window)->graph;
 
     if ((ta->cursor_count++ % 2) == 0) {
-        reverse_cursor((Component *)ta,g);
+        reverse_cursor((Component *)ta, g);
     } else {
-        draw_cursor((Component *)ta,g);
+        draw_cursor((Component *)ta, g);
     }
 
     window->remove_timer(window, timer);
     timer->reuse(timer);
 }
 
-static int __construct(Text_Field *ta,char *init_str)
+static int __construct(Text_Field *ta, char *init_str)
 {
     allocator_t *allocator = ((Obj *)ta)->allocator;
     cursor_t *cursor       = &ta->cursor;
 
-    dbg_str(DBG_SUC,"ta construct");
+    dbg_str(DBG_SUC, "ta construct");
 
     ta->string             = OBJECT_NEW(allocator, String, NULL);
-    ta->string->assign(ta->string,"hello world!");
+    ta->string->assign(ta->string, "hello world!");
 
-    ta->text               = OBJECT_NEW(allocator, Text,"");
+    ta->text               = OBJECT_NEW(allocator, Text, "");
     ta->text->content      = ta->string->value;
     ta->start_line         = 0;
 
@@ -302,7 +302,7 @@ static int __construct(Text_Field *ta,char *init_str)
 
 static int __deconstrcut(Text_Field *ta)
 {
-    dbg_str(DBG_SUC,"ta deconstruct");
+    dbg_str(DBG_SUC, "ta deconstruct");
 
     object_destroy(ta->string);
     object_destroy(ta->text);
@@ -340,9 +340,9 @@ static int __set(Text_Field *ta, char *attrib, void *value)
     }
     /*attribs*/
     else if (strcmp(attrib, "name") == 0) {
-        strncpy(ta->name,value,strlen(value));
+        strncpy(ta->name, value, strlen(value));
     } else {
-        dbg_str(DBG_DETAIL,"ta set, not support %s setting",attrib);
+        dbg_str(DBG_DETAIL, "ta set, not support %s setting", attrib);
     }
 
     return 0;
@@ -353,24 +353,24 @@ static void *__get(Text_Field *obj, char *attrib)
     if (strcmp(attrib, "name") == 0) {
         return obj->name;
     } else {
-        dbg_str(DBG_WARNNING,"text_field get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARNNING, "text_field get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
-static int __load_resources(Component *component,void *window)
+static int __load_resources(Component *component, void *window)
 {
     Graph *g      = ((Window *)window)->graph;
     Text_Field *ta = (Text_Field *)component;
     Text *text    = ta->text;
     Character *character;
 
-    dbg_str(DBG_SUC,"%s load load_resources",component->name);
+    dbg_str(DBG_SUC, "%s load load_resources", component->name);
 
     ta->window          = window;
 
-    text->last_line_num = text->write_text(text,0, text->content, g->font) - 1;
+    text->last_line_num = text->write_text(text, 0, text->content, g->font) - 1;
 
     ta->timer           = ((Window *)window)->create_timer(window);
     ta->timer->opaque   = component;
@@ -381,12 +381,12 @@ static int __load_resources(Component *component,void *window)
     ta->char_height     = character->height;
     ta->cursor.height   = character->height;
 
-    dbg_str(DBG_DETAIL,"cursor height =%d",ta->cursor.height);
+    dbg_str(DBG_DETAIL, "cursor height =%d", ta->cursor.height);
 
     return 0;
 }
 
-static int __unload_resources(Component *component,void *window)
+static int __unload_resources(Component *component, void *window)
 {
     //...........
 }
@@ -403,22 +403,22 @@ static int __draw(Component *component, void *graph)
     char c, c_bak;
     int width_bak;
 
-    g->render_set_color(g,0xff,0xff,0xff,0xff);
-    g->render_draw_rect(g,s->x,s->y,s->width,s->height);
+    g->render_set_color(g, 0xff, 0xff, 0xff, 0xff);
+    g->render_draw_rect(g, s->x, s->y, s->width, s->height);
     g->render_clear(g);
-    g->render_set_color(g,0x0,0x0,0x0,0xff);
-    g->render_draw_rect(g,s->x,s->y,s->width,s->height);
+    g->render_set_color(g, 0x0, 0x0, 0x0, 0xff);
+    g->render_draw_rect(g, s->x, s->y, s->width, s->height);
 
     cursor->x = 0; cursor->y = 0; cursor->width = 0; 
 
-    line_info = (text_line_t *)text->get_text_line_info(text,0);
+    line_info = (text_line_t *)text->get_text_line_info(text, 0);
     if (line_info == NULL) return -1;
 
     for (i = 0; i < line_info->tail - line_info->head + 1; i++) {
         c = line_info->head[i];
         if (cursor->x + cursor->width > s->width) break;
 
-        draw_character(component,c, graph);
+        draw_character(component, c, graph);
 
         if (i == 0) { /*bak cursor info of first char of the screen*/
             c_bak     = line_info->head[0];
@@ -437,7 +437,7 @@ static int __draw(Component *component, void *graph)
     return 0;
 }
 
-static int __key_text_pressed(Component *component,char c, void *graph)
+static int __key_text_pressed(Component *component, char c, void *graph)
 {
     Graph *g                 = (Graph *)graph;
     Text_Field *ta           = (Text_Field *)component;
@@ -449,7 +449,7 @@ static int __key_text_pressed(Component *component,char c, void *graph)
 
     if (c == '\n') return 0;
 
-    text->write_char(text,cursor_line, cursor->offset, cursor->x, c, g->font);
+    text->write_char(text, cursor_line, cursor->offset, cursor->x, c, g->font);
 
     character              = (Character *)g->font->ascii[c].character;
     cursor->c              = c;
@@ -461,7 +461,7 @@ static int __key_text_pressed(Component *component,char c, void *graph)
         cursor_bak             = *cursor;
         ta->draw(component, g);
         *cursor                = cursor_bak;
-        draw_cursor(component,g);
+        draw_cursor(component, g);
     } else if (cursor->x + cursor->width == s->width) {
         /*
          *cursor->x = s->width - cursor->width;
@@ -472,7 +472,7 @@ static int __key_text_pressed(Component *component,char c, void *graph)
     return 0;
 }
 
-static int __key_backspace_pressed(Component *component,void *graph)
+static int __key_backspace_pressed(Component *component, void *graph)
 {
     Graph *g             = (Graph *)graph;
     Text_Field *ta       = (Text_Field *)component;
@@ -483,14 +483,14 @@ static int __key_backspace_pressed(Component *component,void *graph)
     char c;
     int ret;
 
-    dbg_str(DBG_DETAIL,"key_backspace_pressed");
+    dbg_str(DBG_DETAIL, "key_backspace_pressed");
 
     c                    = cursor->c;
 
     ret                  = move_cursor_left(component);
     if (ret < 1) { return 0;}
 
-    text->delete_char(text,cursor_line, cursor->offset, cursor->x, g->font);
+    text->delete_char(text, cursor_line, cursor->offset, cursor->x, g->font);
 
     character            = (Character *)g->font->ascii[c].character;
     cursor->c            = c;
@@ -501,58 +501,58 @@ static int __key_backspace_pressed(Component *component,void *graph)
     ta->draw(component, g);
 
     *cursor              = cursor_bak;
-    draw_cursor(component,g);
+    draw_cursor(component, g);
 
     return 0;
 }
 
-static int __key_left_pressed(Component *component,void *graph)
+static int __key_left_pressed(Component *component, void *graph)
 {
     Graph *g         = (Graph *)graph;
     Text_Field *ta    = (Text_Field *)component;
     cursor_t *cursor = &ta->cursor;
 
-    reverse_cursor(component,g);
+    reverse_cursor(component, g);
     move_cursor_left(component);
-    draw_cursor(component,g);
+    draw_cursor(component, g);
 
     ta->cursor_count = 0;
 }
 
-static int __key_right_pressed(Component *component,void *graph)
+static int __key_right_pressed(Component *component, void *graph)
 {
     Graph *g         = (Graph *)graph;
     Text_Field *ta    = (Text_Field *)component;
     cursor_t *cursor = &ta->cursor;
 
-    reverse_cursor(component,g);
+    reverse_cursor(component, g);
     move_cursor_right(component);
-    draw_cursor(component,g);
+    draw_cursor(component, g);
 
     ta->cursor_count = 0;
 }
 
 static class_info_entry_t text_field_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Component","component",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","draw",__draw,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","load_resources",__load_resources,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","key_text_pressed",__key_text_pressed,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","key_backspace_pressed",__key_backspace_pressed,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","key_left_pressed",__key_left_pressed,sizeof(void *)},
-    [10] = {ENTRY_TYPE_FUNC_POINTER,"","key_right_pressed",__key_right_pressed,sizeof(void *)},
-    [11] = {ENTRY_TYPE_STRING,"char","name",NULL,0},
-    [12] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_resources", __load_resources, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "key_text_pressed", __key_text_pressed, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "key_backspace_pressed", __key_backspace_pressed, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "key_left_pressed", __key_left_pressed, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "key_right_pressed", __key_right_pressed, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
+    [12] = {ENTRY_TYPE_END}, 
 
 };
-REGISTER_CLASS("Text_Field",text_field_class_info);
+REGISTER_CLASS("Text_Field", text_field_class_info);
 
 char *gen_text_field_setting_str()
 {
-    cjson_t *root,*b, *c, *e, *s;
+    cjson_t *root, *b, *c, *e, *s;
     char *set_str;
 
     root = cjson_create_object();{
@@ -586,22 +586,22 @@ void test_ui_text_field()
     char buf[2048];
 
     set_str   = gen_window_setting_str();
-    window    = OBJECT_NEW(allocator, Sdl_Window,set_str);
+    window    = OBJECT_NEW(allocator, Sdl_Window, set_str);
     g         = window->graph;
     event     = window->event;
     container = (Container *)window;
 
     object_dump(window, "Sdl_Window", buf, 2048);
-    dbg_str(DBG_DETAIL,"Window dump: %s",buf);
+    dbg_str(DBG_DETAIL, "Window dump: %s", buf);
 
     set_str   = gen_text_field_setting_str();
-    subject   = OBJECT_NEW(allocator, Text_Field,set_str);
+    subject   = OBJECT_NEW(allocator, Text_Field, set_str);
 
     object_dump(subject, "Text_Field", buf, 2048);
-    dbg_str(DBG_DETAIL,"Text_Field dump: %s",buf);
+    dbg_str(DBG_DETAIL, "Text_Field dump: %s", buf);
 
     container->add_component(container, NULL, subject);
-    dbg_str(DBG_DETAIL,"window container :%p",container);
+    dbg_str(DBG_DETAIL, "window container :%p", container);
 
     window->load_resources(window);
     window->update_window(window);

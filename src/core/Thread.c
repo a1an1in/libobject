@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -37,13 +37,13 @@
 #include <libobject/event/event_base.h>
 #include <libobject/core/thread.h>
 
-static int __construct(Thread *thread,char *init_str)
+static int __construct(Thread *thread, char *init_str)
 {
     allocator_t *allocator = thread->obj.allocator;
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(OBJ_DETAIL,"Thread construct, thread addr:%p",thread);
+    dbg_str(OBJ_DETAIL, "Thread construct, thread addr:%p", thread);
 
     return 0;
 }
@@ -53,14 +53,14 @@ static int __deconstrcut(Thread *thread)
     int ret;
     void *tret;
 
-    dbg_str(OBJ_DETAIL,"thread deconstruct,thread addr:%p",thread);
+    dbg_str(OBJ_DETAIL, "thread deconstruct, thread addr:%p", thread);
 
     ret = pthread_join(thread->tid, &tret);
     if (ret != 0) {
-        dbg_str(OBJ_WARNNING,"can't join with thread tid=%d", thread->tid);
+        dbg_str(OBJ_WARNNING, "can't join with thread tid=%d", thread->tid);
     }
 
-    dbg_str(OBJ_DETAIL,"thread deconstruct, out");
+    dbg_str(OBJ_DETAIL, "thread deconstruct, out");
 
     return 0;
 }
@@ -86,7 +86,7 @@ static int __set(Thread *thread, char *attrib, void *value)
         thread->start_routine = value;
     }
     else {
-        dbg_str(OBJ_DETAIL,"thread set, not support %s setting",attrib);
+        dbg_str(OBJ_DETAIL, "thread set, not support %s setting", attrib);
     }
 
     return 0;
@@ -96,7 +96,7 @@ static void *__get(Thread *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(OBJ_WARNNING,"thread get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(OBJ_WARNNING, "thread get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -117,7 +117,7 @@ static int __start(Thread *thread)
     }
 
     if ((pthread_create(&thread->tid, NULL, thread->start_routine, arg)) != 0) {
-        dbg_str(OBJ_WARNNING,"pthread start error");
+        dbg_str(OBJ_WARNNING, "pthread start error");
     }
 
     return 0;
@@ -137,28 +137,28 @@ static int __set_start_arg(Thread *thread, void *arg)
 
 static void *__start_routine(void *arg)
 {
-    dbg_str(OBJ_DETAIL,"start_routine");
+    dbg_str(OBJ_DETAIL, "start_routine");
 
     return NULL;
 }
 
 static class_info_entry_t thread_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5] = {ENTRY_TYPE_FUNC_POINTER,"","start",__start,sizeof(void *)},
-    [6] = {ENTRY_TYPE_FUNC_POINTER,"","set_start_routine",__set_start_routine,sizeof(void *)},
-    [7] = {ENTRY_TYPE_FUNC_POINTER,"","set_start_arg",__set_start_arg,sizeof(void *)},
-    [8] = {ENTRY_TYPE_VFUNC_POINTER,"","start_routine",__start_routine,sizeof(void *)},
-    [9] = {ENTRY_TYPE_END},
+    [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5] = {ENTRY_TYPE_FUNC_POINTER, "", "start", __start, sizeof(void *)}, 
+    [6] = {ENTRY_TYPE_FUNC_POINTER, "", "set_start_routine", __set_start_routine, sizeof(void *)}, 
+    [7] = {ENTRY_TYPE_FUNC_POINTER, "", "set_start_arg", __set_start_arg, sizeof(void *)}, 
+    [8] = {ENTRY_TYPE_VFUNC_POINTER, "", "start_routine", __start_routine, sizeof(void *)}, 
+    [9] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Thread",thread_class_info);
+REGISTER_CLASS("Thread", thread_class_info);
 
 void *test_func(void *arg)
 {
-    dbg_str(OBJ_SUC,"test func, arg addr:%p",arg);
+    dbg_str(OBJ_SUC, "test func, arg addr:%p", arg);
 }
 void test_obj_thread()
 {
@@ -170,17 +170,17 @@ void test_obj_thread()
     char buf[2048];
 
     c = cfg_alloc(allocator); 
-    dbg_str(OBJ_SUC, "configurator_t addr:%p",c);
+    dbg_str(OBJ_SUC, "configurator_t addr:%p", c);
     /*
      *cfg_config(c, "/Thread", CJSON_STRING, "name", "alan thread") ;  
      */
 
-    dbg_str(OBJ_DETAIL,"thread addr:%p",thread);
+    dbg_str(OBJ_DETAIL, "thread addr:%p", thread);
 
     thread = OBJECT_NEW(allocator, Thread, NULL);
 
     object_dump(thread, "Thread", buf, 2048);
-    dbg_str(OBJ_DETAIL,"Thread dump: %s",buf);
+    dbg_str(OBJ_DETAIL, "Thread dump: %s", buf);
     thread->set_start_routine(thread, test_func);
     thread->set_start_arg(thread, thread);
     thread->start(thread);

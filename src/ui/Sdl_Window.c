@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -80,7 +80,7 @@ static int __set(Window *window, char *attrib, void *value)
         w->destroy_timer = value;
     }
     else {
-        dbg_str(SDL_INTERFACE_DETAIL,"sdl window set, not support %s setting",attrib);
+        dbg_str(SDL_INTERFACE_DETAIL, "sdl window set, not support %s setting", attrib);
     }
 
     return 0;
@@ -91,7 +91,7 @@ static void *__get(Window *obj, char *attrib)
     if (strcmp(attrib, "name") == 0) {
         return obj->name;
     } else {
-        dbg_str(DBG_WARNNING,"sdl window get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARNNING, "sdl window get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -101,30 +101,30 @@ static void *__create_graph(Window *window, char *graph_type)
 {
     allocator_t *allocator = ((Obj *)window)->allocator;
 
-    dbg_str(SDL_INTERFACE_DETAIL,"sdl window create_graph");
+    dbg_str(SDL_INTERFACE_DETAIL, "sdl window create_graph");
 
-    window->graph = (Graph *)OBJECT_NEW(allocator, Sdl_Graph,NULL);
+    window->graph = (Graph *)OBJECT_NEW(allocator, Sdl_Graph, NULL);
 }
 
 static int __destroy_graph(Window *window)
 {
-    dbg_str(SDL_INTERFACE_DETAIL,"sdl window destroy_graph");
+    dbg_str(SDL_INTERFACE_DETAIL, "sdl window destroy_graph");
     object_destroy(window->graph);
 }
 
-static void *__create_font(Window *window,char *font_name)
+static void *__create_font(Window *window, char *font_name)
 {
     allocator_t *allocator = ((Obj *)window)->allocator;
 
-    dbg_str(SDL_INTERFACE_DETAIL,"sdl window create_font");
+    dbg_str(SDL_INTERFACE_DETAIL, "sdl window create_font");
 
-    window->font = OBJECT_NEW(allocator, Sdl_Font,"");
+    window->font = OBJECT_NEW(allocator, Sdl_Font, "");
     window->font->load_font(window->font);
 }
 
 static int __destroy_font(Window *window)
 {
-    dbg_str(SDL_INTERFACE_DETAIL,"sdl window destroy_font");
+    dbg_str(SDL_INTERFACE_DETAIL, "sdl window destroy_font");
     window->font->load_font(window->font);
     object_destroy(window->font);
 }
@@ -133,14 +133,14 @@ static void *__create_event(Window *window)
 {
     allocator_t *allocator = ((Obj *)window)->allocator;
 
-    dbg_str(SDL_INTERFACE_DETAIL,"sdl window create_event");
+    dbg_str(SDL_INTERFACE_DETAIL, "sdl window create_event");
 
-    window->event = OBJECT_NEW(allocator, Sdl_Event,"");
+    window->event = OBJECT_NEW(allocator, Sdl_Event, "");
 }
 
 static int __destroy_event(Window *window)
 {
-    dbg_str(SDL_INTERFACE_DETAIL,"sdl window destroy_event");
+    dbg_str(SDL_INTERFACE_DETAIL, "sdl window destroy_event");
     object_destroy(window->event);
 }
 
@@ -149,14 +149,14 @@ static void *__create_background(Window *window, char *pic_path)
     allocator_t *allocator = ((Obj *)window)->allocator;
     Graph *g = window->graph;
 
-    dbg_str(SDL_INTERFACE_DETAIL,"sdl window draw_background");
+    dbg_str(SDL_INTERFACE_DETAIL, "sdl window draw_background");
 
     window->background = g->render_load_image(g, pic_path);
 }
 
 static int __destroy_background(Window *window)
 {
-    dbg_str(SDL_INTERFACE_DETAIL,"sdl window destroy_background");
+    dbg_str(SDL_INTERFACE_DETAIL, "sdl window destroy_background");
     object_destroy(window->background);
 }
 
@@ -165,23 +165,23 @@ static int __init_window(Window *window)
     int ret;
     Sdl_Window *w = (Sdl_Window *)window;
 
-    dbg_str(SDL_INTERFACE_DETAIL,"Sdl_Graph init window");
-    dbg_str(SDL_INTERFACE_DETAIL,"srceen width=%d, height=%d",window->screen_width,window->screen_height);
+    dbg_str(SDL_INTERFACE_DETAIL, "Sdl_Graph init window");
+    dbg_str(SDL_INTERFACE_DETAIL, "srceen width=%d, height=%d", window->screen_width, window->screen_height);
 
     //Initialize SDL
     if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER ) < 0 ) {
-        dbg_str(DBG_ERROR,"SDL could not initialize! SDL_Error: %s", SDL_GetError() );
+        dbg_str(DBG_ERROR, "SDL could not initialize! SDL_Error: %s", SDL_GetError() );
         ret = -1;
     } else {
         //Create window
         w->sdl_window = SDL_CreateWindow("libcutils demo", 
                                          SDL_WINDOWPOS_UNDEFINED, 
-                                         SDL_WINDOWPOS_UNDEFINED,
+                                         SDL_WINDOWPOS_UNDEFINED, 
                                          window->screen_width, 
-                                         window->screen_height,
+                                         window->screen_height, 
                                          SDL_WINDOW_SHOWN);
         if ( w->sdl_window == NULL ) {
-            dbg_str(DBG_ERROR,"Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+            dbg_str(DBG_ERROR, "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
             ret = -1;
         } else {
             Sdl_Graph *g = (Sdl_Graph *)window->graph;
@@ -197,15 +197,15 @@ static int __open_window(Window *window)
 {
     Graph *g = window->graph;
 
-    dbg_str(SDL_INTERFACE_DETAIL,"sdl window open_window start");
+    dbg_str(SDL_INTERFACE_DETAIL, "sdl window open_window start");
 
     if (g == NULL) {
-        dbg_str(DBG_ERROR,"window graph is NULL, please check");
+        dbg_str(DBG_ERROR, "window graph is NULL, please check");
         return -1;
     } else {
         /*
          *background->load_image(background);
-         *g->draw_image(g,background);
+         *g->draw_image(g, background);
          */
     }
 
@@ -215,11 +215,11 @@ static int __open_window(Window *window)
     g->render_set_font(window->graph, window->font);
 
     g->render_create(g);
-    g->render_set_color(g,0xff,0xff,0xff,0xff);
+    g->render_set_color(g, 0xff, 0xff, 0xff, 0xff);
     g->render_clear(g);
     g->render_present(g);
 
-    dbg_str(SDL_INTERFACE_DETAIL,"sdl window open_window end");
+    dbg_str(SDL_INTERFACE_DETAIL, "sdl window open_window end");
     /*
      *g->update_window(g);
      */
@@ -230,7 +230,7 @@ static int __close_window(Window *window)
     Sdl_Graph *g = (Sdl_Graph *)window->graph;
     Sdl_Window *w = (Sdl_Window *)window;
 
-    dbg_str(SDL_INTERFACE_DETAIL,"sdl window close_window");
+    dbg_str(SDL_INTERFACE_DETAIL, "sdl window close_window");
 
     //release screen surface
     if (g->screen_surface)
@@ -251,7 +251,7 @@ static void *__create_timer(Window *window)
     allocator_t *allocator = ((Obj *)window)->allocator;
     Sdl_Timer *timer;
 
-    timer = OBJECT_NEW(allocator, Sdl_Timer,"");
+    timer = OBJECT_NEW(allocator, Sdl_Timer, "");
 
     return timer;
 }
@@ -267,31 +267,31 @@ static int __destroy_timer(Window *window, void *timer)
 }
 
 static class_info_entry_t sdl_window_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Window","window",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","create_graph",__create_graph,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","destroy_graph",__destroy_graph,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","create_font",__create_font,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","destroy_font",__destroy_font,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","create_event",__create_event,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","destroy_event",__destroy_event,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","create_background",__create_background,sizeof(void *)},
-    [10] = {ENTRY_TYPE_FUNC_POINTER,"","destroy_background",__destroy_background,sizeof(void *)},
-    [11] = {ENTRY_TYPE_FUNC_POINTER,"","init_window",__init_window,sizeof(void *)},
-    [12] = {ENTRY_TYPE_FUNC_POINTER,"","open_window",__open_window,sizeof(void *)},
-    [13] = {ENTRY_TYPE_FUNC_POINTER,"","close_window",__close_window,sizeof(void *)},
-    [14] = {ENTRY_TYPE_FUNC_POINTER,"","create_timer",__create_timer,sizeof(void *)},
-    [15] = {ENTRY_TYPE_FUNC_POINTER,"","remove_timer",__remove_timer,sizeof(void *)},
-    [16] = {ENTRY_TYPE_FUNC_POINTER,"","destroy_timer",__destroy_timer,sizeof(void *)},
-    [17] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Window", "window", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_graph", __create_graph, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_graph", __destroy_graph, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_font", __create_font, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_font", __destroy_font, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_event", __create_event, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_event", __destroy_event, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_background", __create_background, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_background", __destroy_background, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "init_window", __init_window, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_FUNC_POINTER, "", "open_window", __open_window, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_FUNC_POINTER, "", "close_window", __close_window, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_FUNC_POINTER, "", "create_timer", __create_timer, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_FUNC_POINTER, "", "remove_timer", __remove_timer, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_timer", __destroy_timer, sizeof(void *)}, 
+    [17] = {ENTRY_TYPE_END}, 
 
 };
-REGISTER_CLASS("Sdl_Window",sdl_window_class_info);
+REGISTER_CLASS("Sdl_Window", sdl_window_class_info);
 
 char *gen_window_setting_str()
 {
-    cjson_t *root,*w, *c, *e, *s;
+    cjson_t *root, *w, *c, *e, *s;
     char *set_str;
 
     root = cjson_create_object();{
@@ -331,27 +331,27 @@ void test_ui_sdl_window()
 
     set_str = gen_window_setting_str();
 
-    dbg_str(DBG_SUC, "test_ui_sdl_window begin alloc count =%d",allocator->alloc_count);
-    window  = OBJECT_NEW(allocator, Sdl_Window,set_str);
+    dbg_str(DBG_SUC, "test_ui_sdl_window begin alloc count =%d", allocator->alloc_count);
+    window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
     g       = window->graph;
 
     object_dump(window, "Sdl_Window", buf, 2048);
-    dbg_str(SDL_INTERFACE_DETAIL,"Window dump: %s",buf);
+    dbg_str(SDL_INTERFACE_DETAIL, "Window dump: %s", buf);
 
-    dbg_str(SDL_INTERFACE_DETAIL,"render draw test");
-    g->render_draw_image(g,0,0,window->background);
+    dbg_str(SDL_INTERFACE_DETAIL, "render draw test");
+    g->render_draw_image(g, 0, 0, window->background);
     g->render_present(g);
 
     /*
      *sleep(2);
      */
     g->render_clear(g);
-    g->render_set_color(g,0xff,0x0,0xff,0xff);
-    g->render_draw_line(g,20,0,50,50);
-    g->render_set_color(g,0xff,0x0,0x0,0xff);
-    g->render_draw_rect(g,20,20,100,100);
+    g->render_set_color(g, 0xff, 0x0, 0xff, 0xff);
+    g->render_draw_line(g, 20, 0, 50, 50);
+    g->render_set_color(g, 0xff, 0x0, 0x0, 0xff);
+    g->render_draw_rect(g, 20, 20, 100, 100);
     /*
-     *g->render_fill_rect(g,20,20,100,100);
+     *g->render_fill_rect(g, 20, 20, 100, 100);
      */
     g->render_present(g);
     /*
@@ -359,7 +359,7 @@ void test_ui_sdl_window()
      */
 
     object_destroy(window);
-    dbg_str(DBG_SUC, "test_ui_sdl_window end alloc count =%d",allocator->alloc_count);
+    dbg_str(DBG_SUC, "test_ui_sdl_window end alloc count =%d", allocator->alloc_count);
 
     free(set_str);
 

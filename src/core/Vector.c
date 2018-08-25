@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -34,20 +34,20 @@
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/vector.h>
 
-static int __construct(Vector *vector,char *init_str)
+static int __construct(Vector *vector, char *init_str)
 {
     allocator_t *allocator = vector->obj.allocator;
-    dbg_str(OBJ_DETAIL,"vector construct, vector addr:%p",vector);
+    dbg_str(OBJ_DETAIL, "vector construct, vector addr:%p", vector);
 
-    vector->vector = vector_create(allocator,0);
-    vector_init(vector->vector, vector->value_size,vector->capacity);
+    vector->vector = vector_create(allocator, 0);
+    vector_init(vector->vector, vector->value_size, vector->capacity);
 
     return 0;
 }
 
 static int __deconstrcut(Vector *vector)
 {
-    dbg_str(OBJ_DETAIL,"vector deconstruct,vector addr:%p",vector);
+    dbg_str(OBJ_DETAIL, "vector deconstruct, vector addr:%p", vector);
 
     vector_destroy(vector->vector);
 
@@ -86,7 +86,7 @@ static int __set(Vector *vector, char *attrib, void *value)
         vector->capacity = *(uint32_t *)value;
     }
     else {
-        dbg_str(OBJ_DETAIL,"vector set, not support %s setting",attrib);
+        dbg_str(OBJ_DETAIL, "vector set, not support %s setting", attrib);
     }
 
     return 0;
@@ -99,18 +99,18 @@ static void *__get(Vector *vector, char *attrib)
     } else if (strcmp(attrib, "capacity") == 0) {
         return &vector->capacity;
     } else {
-        dbg_str(OBJ_WARNNING,"vector get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(OBJ_WARNNING, "vector get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
-static int __add(Vector *vector,void *value)
+static int __add(Vector *vector, void *value)
 {
     return vector_add_back(vector->vector, value);
 }
 
-static int __add_back(Vector *vector,void *value)
+static int __add_back(Vector *vector, void *value)
 {
     return vector_add_back(vector->vector, value);
 }
@@ -120,31 +120,31 @@ static int __remove(Vector *vector, int index, void **value)
     return vector_remove(vector->vector, index, value);
 }
 
-static int __remove_back(Vector *vector,void **value)
+static int __remove_back(Vector *vector, void **value)
 {
     return vector_remove_back(vector->vector, value);
 }
 
-static int __add_at(Vector *vector,int index, void *value)
+static int __add_at(Vector *vector, int index, void *value)
 {
-   return vector_add_at(vector->vector,index,value);
+   return vector_add_at(vector->vector, index, value);
 }
 
-static int __peek_at(Vector *vector,int index, void **value)
+static int __peek_at(Vector *vector, int index, void **value)
 {
-    return vector_peek_at(vector->vector,index, value);
+    return vector_peek_at(vector->vector, index, value);
 }
 
-static void __for_each(Vector *vector,void (*func)(int index, void *element))
+static void __for_each(Vector *vector, void (*func)(int index, void *element))
 {
-	vector_pos_t pos,next;
+	vector_pos_t pos, next;
     vector_t *v = vector->vector;
     void *element;
     int index = 0;
 
-	for(	vector_begin(v, &pos), vector_pos_next(&pos,&next);
-			!vector_pos_equal(&pos,&v->end);
-			pos = next, vector_pos_next(&pos,&next))
+	for(	vector_begin(v, &pos), vector_pos_next(&pos, &next);
+			!vector_pos_equal(&pos, &v->end);
+			pos = next, vector_pos_next(&pos, &next))
 	{
         vector->peek_at(vector, index, (void **)&element);
 		func(index++, element);
@@ -153,23 +153,23 @@ static void __for_each(Vector *vector,void (*func)(int index, void *element))
 
 
 static class_info_entry_t vector_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add",__add,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_at",__add_at,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_back",__add_back,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove",__remove,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove_back",__remove_back,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","peek_at",__peek_at,sizeof(void *)},
-    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each",__for_each,sizeof(void *)},
-    [12] = {ENTRY_TYPE_UINT32_T,"","value_size",0,sizeof(void *)},
-    [13] = {ENTRY_TYPE_UINT32_T,"","capacity",0,sizeof(void *)},
-    [14] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", __add, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_at", __add_at, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_back", __add_back, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_back", __remove_back, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_at", __peek_at, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_UINT32_T, "", "value_size", 0, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_UINT32_T, "", "capacity", 0, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Vector",vector_class_info);
+REGISTER_CLASS("Vector", vector_class_info);
 
 struct test{
     int a;
@@ -180,7 +180,7 @@ static void print_vector_data(int index, void *element)
 {
     struct test *t = (struct test *)element;
     
-    dbg_str(DBG_DETAIL,"index=%d, a =%d b=%d", index, t->a, t->b);
+    dbg_str(DBG_DETAIL, "index=%d, a =%d b=%d", index, t->a, t->b);
 }
 
 static struct test *init_test_instance(struct test *t, int a, int b)
@@ -210,14 +210,14 @@ void test_obj_vector()
     init_test_instance(&t5, 5, 2);
 
     c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
+    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
     cfg_config_num(c, "/Vector", "capacity", 4) ;  
     cfg_config_num(c, "/Vector", "value_size", value_size) ;
 
-    vector = OBJECT_NEW(allocator, Vector,c->buf);
+    vector = OBJECT_NEW(allocator, Vector, c->buf);
 
     object_dump(vector, "Vector", buf, 2048);
-    dbg_str(DBG_DETAIL,"Vector dump: %s",buf);
+    dbg_str(DBG_DETAIL, "Vector dump: %s", buf);
 
     vector->add_at(vector, 0, &t0);
     vector->add_at(vector, 1, &t1);
@@ -236,34 +236,34 @@ void test_obj_vector()
      */
 
     vector->peek_at(vector, 1, (void **)&t);
-    dbg_str(DBG_DETAIL,"peak at index =%d a =%d b=%d", 1 , t->a, t->b);
+    dbg_str(DBG_DETAIL, "peak at index =%d a =%d b=%d", 1 , t->a, t->b);
 
-    dbg_str(DBG_DETAIL,"vector for each");
+    dbg_str(DBG_DETAIL, "vector for each");
     vector->for_each(vector, print_vector_data);
 
     vector->remove(vector, 4, (void **)&t);
-    dbg_str(DBG_DETAIL,"remove index 4, t->a=%d t->b=%d", t->a, t->b);
+    dbg_str(DBG_DETAIL, "remove index 4, t->a=%d t->b=%d", t->a, t->b);
 
     /*
      *vector->remove_back(vector, (void **)&t);
-     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
      *vector->remove_back(vector, (void **)&t);
-     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
      *vector->remove_back(vector, (void **)&t);
-     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
      *vector->remove_back(vector, (void **)&t);
-     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
      *vector->remove_back(vector, (void **)&t);
-     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
      *vector->remove_back(vector, (void **)&t);
-     *dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
      *t = NULL;
      *vector->remove_back(vector, (void **)&t);
      *if (t != NULL)
-     *    dbg_str(DBG_DETAIL,"t0 a =%d b=%d", t->a, t->b);
+     *    dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
      */
 
-    dbg_str(DBG_DETAIL,"vector for each");
+    dbg_str(DBG_DETAIL, "vector for each");
     vector->for_each(vector, print_vector_data);
 
     object_destroy(vector);

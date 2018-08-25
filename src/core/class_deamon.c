@@ -146,7 +146,7 @@ int class_deamon_constructor()
 
     return 0;
 }
-REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_OBJ_DEAMON, class_deamon_constructor);
+REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_OBJ_DEAMON, class_deamon_constructor);
 
 static int class_deamon_destructor()
 {

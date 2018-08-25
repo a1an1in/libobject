@@ -16,9 +16,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -31,28 +31,29 @@
 #include <libobject/core/utils/alloc/inc_files.h>
 #include <libobject/core/utils/registry/registry.h>
 
-static void *__alloc(allocator_t *alloc,uint32_t size)
+static void *__alloc(allocator_t *alloc, uint32_t size)
 {
     return malloc(size);
 }
 
-static void __free(allocator_t *alloc,void *addr)
+static void __free(allocator_t *alloc, void *addr)
 {
     free(addr);
 }
 
 int allocator_sys_alloc_register(){
     allocator_module_t salloc = {
-        .allocator_type = ALLOCATOR_TYPE_SYS_MALLOC,
+        .allocator_type = ALLOCATOR_TYPE_SYS_MALLOC, 
         .alloc_ops = {
-            .init    = NULL,
-            .alloc   = __alloc,
-            .free    = __free,
-            .destroy = NULL,
+            .init    = NULL, 
+            .alloc   = __alloc, 
+            .free    = __free, 
+            .destroy = NULL, 
         }
     };
-    memcpy(&allocator_modules[ALLOCATOR_TYPE_SYS_MALLOC],&salloc,sizeof(allocator_module_t));
+    memcpy(&allocator_modules[ALLOCATOR_TYPE_SYS_MALLOC], &salloc, sizeof(allocator_module_t));
     return 0;
 }
-REGISTER_INIT_FUNC(REGISTRY_CTOR_PRIORITY_LIBALLOC_REGISTER_MODULES, allocator_sys_alloc_register);
+REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_LIBALLOC_REGISTER_MODULES, 
+                   allocator_sys_alloc_register);
 

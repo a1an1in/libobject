@@ -75,12 +75,6 @@ void mempool_attach_list(struct list_head *new_head, struct list_head *hl_head)
     list_add(new_head, hl_head);
     head_list->count++;
     sync_unlock(&head_list->head_lock);
-
-    /*
-     *dbg_str(ALLOC_DETAIL, "add head:%p hl_head:%p", new_head, hl_head);
-     *dbg_str(ALLOC_DETAIL, "new heads next:%p, prev:%p", new_head->next, new_head->prev);
-     *dbg_str(ALLOC_DETAIL, "add mempool list, list count =%d", head_list->count);
-     */
 }
 
 /* not del list, just detach it from one link list */
@@ -92,10 +86,6 @@ void mempool_detach_list(struct list_head *del_head, struct list_head *hl_head)
     dbg_str(ALLOC_DETAIL, "mempool_detach_list");
     head_list = container_of(hl_head, ctr_mempool_head_list_t, list_head);
     sync_lock(&head_list->head_lock, NULL);
-    /*
-     *dbg_str(ALLOC_DETAIL, "mempool del head:%p, hl_head:%p", del_head, hl_head);
-     *dbg_str(ALLOC_DETAIL, "mempool del heads next:%p, prev:%p", del_head->next, del_head->prev);
-     */
     list_del(del_head);
     head_list->count--;
     mempool_list = container_of(del_head, ctr_mempool_t, list_head);
@@ -112,10 +102,6 @@ void mempool_destroy_list(struct list_head *del_head, struct list_head *hl_head)
     dbg_str(ALLOC_DETAIL, "mempool_detach_list");
     head_list = container_of(hl_head, ctr_mempool_head_list_t, list_head);
     sync_lock(&head_list->head_lock, NULL);
-    /*
-     *dbg_str(ALLOC_DETAIL, "mempool del head:%p, hl_head:%p", del_head, hl_head);
-     *dbg_str(ALLOC_DETAIL, "mempool del heads next:%p, prev:%p", del_head->next, del_head->prev);
-     */
     list_del(del_head);
     head_list->count--;
     mempool_list = container_of(del_head, ctr_mempool_t, list_head);
@@ -226,9 +212,6 @@ uint32_t get_real_alloc_mem_size(allocator_t *allocator, uint32_t size)
     int index;
 
     index = slab_get_slab_index(allocator, size);
-    /*
-     *dbg_str(DBG_DETAIL, "get_real_alloc_mem_size, index=%d, real_size=%d", index, __pow(2, index) * data_min_size);
-     */
     return ____pow(2, index) * data_min_size;
 }
 
@@ -249,8 +232,11 @@ mempool_find_appropriate_pool(allocator_t *allocator, uint32_t size)
     sync_lock(&head_list->head_lock, NULL);
     list_for_each_safe(pos, n, hl_head) {
         mempool_list = container_of(pos, ctr_mempool_t, list_head);
-        if (mempool_list->depth >= get_real_alloc_mem_size(allocator, size) + sizeof(ctr_slab_t)){
-            dbg_str(ALLOC_DETAIL, "find an appropriate_pool, mempool_list->depth=%d", mempool_list->depth);
+        if (mempool_list->depth >= 
+                get_real_alloc_mem_size(allocator, size) + sizeof(ctr_slab_t))
+        {
+            dbg_str(ALLOC_DETAIL, "find an appropriate_pool, mempool_list->depth=%d",
+                    mempool_list->depth);
             sync_unlock(&head_list->head_lock);
             return mempool_list;
         } else if (mempool_list->depth < mempool_list->min_depth){
@@ -286,13 +272,6 @@ mempool_alloc_slab_list(allocator_t *allocator, uint32_t size)
         }
     }
 
-    /*
-     *dbg_str(ALLOC_DETAIL, "mempool_alloc_slab_list  next:%p, prev:%p", 
-     *        mempool_list->list_head.next, mempool_list->list_head.prev);
-     *dbg_str(ALLOC_DETAIL, "sizeof(ctr_slab_t)=%d, size=%d", sizeof(ctr_slab_t), size);
-     *dbg_str(ALLOC_DETAIL, "mempool_list->depth=%d", mempool_list->depth);
-     */
-
     slab_list            = mempool_list->start + mempool_list->size - mempool_list->depth;
     slab_list->size      = get_real_alloc_mem_size(allocator, size);
     slab_list->data_size = size;
@@ -304,18 +283,12 @@ mempool_alloc_slab_list(allocator_t *allocator, uint32_t size)
             slab_list->size,  slab_list->data_size, slab_list->slab_size);
     assert(slab_list->size >= slab_list->data_size);
 
-    /*
-     *dbg_str(ALLOC_DETAIL, "slab_list=%p, slab_list->mem_addr=%p", slab_list , slab_list->mem_addr);
-     *dbg_str(ALLOC_DETAIL, "sizeof(ctr_slab_t)=%d, size=%d", sizeof(ctr_slab_t), size);
-     *dbg_str(ALLOC_DETAIL, "dmempool_alloc_mem:%p, slab list_head:%p", slab_list->mem_addr, &slab_list->list_head);
-     *dbg_str(ALLOC_DETAIL, "dmempool_alloc_slab_list  next:%p, prev:%p", 
-     *        mempool_list->list_head.next, mempool_list->list_head.prev);
-     */
     
     mempool_list->depth -= slab_list->slab_size;
 
     if (mempool_list->depth < 0) {
-        dbg_str(DBG_WARNNING, "mempool_list->depth=%d, slab_list->slab_size=%d", mempool_list->depth, slab_list->slab_size);
+        dbg_str(DBG_WARNNING, "mempool_list->depth=%d, slab_list->slab_size=%d",
+                mempool_list->depth, slab_list->slab_size);
     }
 
     return slab_list;

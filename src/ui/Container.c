@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -33,12 +33,12 @@
 #include <libobject/ui/component.h>
 #include <libobject/core/hash_map.h>
 
-static int __construct(Container *container,char *init_str)
+static int __construct(Container *container, char *init_str)
 {
     allocator_t *allocator = ((Obj *)container)->allocator;
     Map *map;
 
-    dbg_str(DBG_DETAIL,"container construct, container addr:%p",container);
+    dbg_str(DBG_DETAIL, "container construct, container addr:%p", container);
 
     //make it support map by default
     if (container->map_type == 0) {
@@ -49,10 +49,10 @@ static int __construct(Container *container,char *init_str)
     }
 
     if (container->map_type == 1) {
-        container->map  = (Map *)OBJECT_NEW(allocator, Hash_Map,container->map_construct_str);
-        dbg_str(DBG_DETAIL,"map addr %p", container->map);
+        container->map  = (Map *)OBJECT_NEW(allocator, Hash_Map, container->map_construct_str);
+        dbg_str(DBG_DETAIL, "map addr %p", container->map);
     } else {
-        dbg_str(DBG_WARNNING,"not supported map type, type =%d", container->map_type);
+        dbg_str(DBG_WARNNING, "not supported map type, type =%d", container->map_type);
         return -1;
     }
 
@@ -69,7 +69,7 @@ static void release_subcomponent_foreach_cb(Iterator *iter, void *arg)
 
     component = (Component *)iter->get_vpointer(iter);
 
-    dbg_str(DBG_DETAIL,"release subcomponent %s",component->name);
+    dbg_str(DBG_DETAIL, "release subcomponent %s", component->name);
 
     object_destroy(component);
 }
@@ -78,14 +78,14 @@ static void release_subcomponents(Container *container)
 {
     Component *component = (Component *)container;
 
-    dbg_str(DBG_DETAIL,"%s release subcomponents",component->name);
+    dbg_str(DBG_DETAIL, "%s release subcomponents", component->name);
 
-    container->for_each_component(container,release_subcomponent_foreach_cb,NULL);
+    container->for_each_component(container, release_subcomponent_foreach_cb, NULL);
 }
 
 static int __deconstrcut(Container *container)
 {
-    dbg_str(DBG_DETAIL,"container deconstruct,container addr:%p",container);
+    dbg_str(DBG_DETAIL, "container deconstruct, container addr:%p", container);
 
     release_subcomponents(container); 
     if (container->map != NULL)
@@ -118,12 +118,12 @@ static int __set(Container *container, char *attrib, void *value)
         container->for_each_component = value;
     }
     else if (strcmp(attrib, "name") == 0) {/*attribs*/
-        strncpy(container->name,value,strlen(value));
+        strncpy(container->name, value, strlen(value));
     } else if (strcmp(attrib, "map_type") == 0) {
         container->map_type = *(uint8_t *)value;
-        dbg_str(DBG_DETAIL,"%s set map_type =%d",((Obj *)container)->name, container->map_type);
+        dbg_str(DBG_DETAIL, "%s set map_type =%d", ((Obj *)container)->name, container->map_type);
     } else {
-        dbg_str(DBG_DETAIL,"container set, not support %s setting",attrib);
+        dbg_str(DBG_DETAIL, "container set, not support %s setting", attrib);
     }
 
     return 0;
@@ -136,8 +136,8 @@ static void *__get(Container *obj, char *attrib)
     } else if (strcmp(attrib, "map_type") == 0) {
         return &obj->map_type;
     } else {
-        dbg_str(DBG_WARNNING,
-                "container get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARNNING, 
+                "container get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -145,7 +145,7 @@ static void *__get(Container *obj, char *attrib)
 
 static int __move(Container *container)
 {
-    dbg_str(DBG_DETAIL,"container move");
+    dbg_str(DBG_DETAIL, "container move");
 }
 
 static void update_subcomponent_position_foreach_cb(Iterator *iter, void *arg) 
@@ -163,13 +163,13 @@ static void update_subcomponent_position_foreach_cb(Iterator *iter, void *arg)
     s->x      += add->x;
     s->y      += add->y;
 
-    dbg_str(DBG_DETAIL,"class %s, component name %s, position: x =%d, y=%d",
-            ((Obj *)component)->name,component->name, s->x, s->y);
+    dbg_str(DBG_DETAIL, "class %s, component name %s, position: x =%d, y=%d", 
+            ((Obj *)component)->name, component->name, s->x, s->y);
 
-    c->for_each_component(c,update_subcomponent_position_foreach_cb,add);
+    c->for_each_component(c, update_subcomponent_position_foreach_cb, add);
 }
 
-static int __update_component_position(void *component,void *arg) 
+static int __update_component_position(void *component, void *arg) 
 {
     Subject *s      = (Subject *)component;
     Container *c    = (Container *)component;
@@ -178,10 +178,10 @@ static int __update_component_position(void *component,void *arg)
     s->x += add->x;
     s->y += add->y;
 
-    dbg_str(DBG_DETAIL,"%s position, x =%d, y=%d, add_x=%d, add_y=%d",
+    dbg_str(DBG_DETAIL, "%s position, x =%d, y=%d, add_x=%d, add_y=%d", 
             ((Obj *)component)->name, s->x, s->y, add->x, add->y);
 
-    c->for_each_component(c,update_subcomponent_position_foreach_cb,arg);
+    c->for_each_component(c, update_subcomponent_position_foreach_cb, arg);
 
 }
 
@@ -200,12 +200,12 @@ static void reset_subcomponent_position_foreach_cb(Iterator *iter, void *arg)
     s->x      = s->x_bak;
     s->y      = s->y_bak;
 
-    dbg_str(DBG_DETAIL,"%s position, x =%d, y=%d",((Obj *)component)->name, s->x, s->y);
+    dbg_str(DBG_DETAIL, "%s position, x =%d, y=%d", ((Obj *)component)->name, s->x, s->y);
 
-    c->for_each_component(c,reset_subcomponent_position_foreach_cb,add);
+    c->for_each_component(c, reset_subcomponent_position_foreach_cb, add);
 }
 
-static void __reset_component_position(void *component,void *arg) 
+static void __reset_component_position(void *component, void *arg) 
 {
     Subject *s      = (Subject *)component;
     Container *c    = (Container *)component;
@@ -214,24 +214,24 @@ static void __reset_component_position(void *component,void *arg)
     s->x = s->x_bak;
     s->y = s->y_bak;
 
-    dbg_str(DBG_DETAIL,"%s position, x =%d, y=%d",((Obj *)component)->name, s->x, s->y);
+    dbg_str(DBG_DETAIL, "%s position, x =%d, y=%d", ((Obj *)component)->name, s->x, s->y);
 
-    c->for_each_component(c,reset_subcomponent_position_foreach_cb,arg);
+    c->for_each_component(c, reset_subcomponent_position_foreach_cb, arg);
 
 }
 
 static int __add_component(Container *obj, void *pos, Component *component)
 {
     if (obj->map_type == 0) {
-        dbg_str(DBG_WARNNING,"%s is support container add op",((Obj *)obj)->name);
+        dbg_str(DBG_WARNNING, "%s is support container add op", ((Obj *)obj)->name);
         return -1;
     }
 
-    dbg_str(DBG_IMPORTANT, "add component name %s, component addr %p",
-            component->name,component);
+    dbg_str(DBG_IMPORTANT, "add component name %s, component addr %p", 
+            component->name, component);
 
-    if (strcmp(component->name,"") == 0) {
-        dbg_str(DBG_WARNNING,
+    if (strcmp(component->name, "") == 0) {
+        dbg_str(DBG_WARNNING, 
                 "component name is NULL, this is vip, add component failed, please check");
         return -1;
     }
@@ -256,7 +256,7 @@ static Component *__search_component(Container *obj, char *key)
     void *addr = NULL;
 
     if (obj->map_type == 0) {
-        dbg_str(DBG_WARNNING,"%s is support container search op",((Obj *)obj)->name);
+        dbg_str(DBG_WARNNING, "%s is support container search op", ((Obj *)obj)->name);
         return NULL;
     }
 
@@ -264,46 +264,46 @@ static Component *__search_component(Container *obj, char *key)
     if (ret == 1) {
         return addr;
     } else {
-        dbg_str(DBG_DETAIL,"not find component %s",key);
+        dbg_str(DBG_DETAIL, "not find component %s", key);
     }
 
     return addr;
 }
 
-static int __for_each_component(Container *obj,
+static int __for_each_component(Container *obj, 
                                 void (*func)(Iterator *iter, void *args), void *arg)
 {
     if (obj->map == NULL) {
         /*
-         *dbg_str(DBG_WARNNING,"%s is not support container", ((Obj *)obj)->name);
+         *dbg_str(DBG_WARNNING, "%s is not support container", ((Obj *)obj)->name);
          */
         return 0;
     }
 
     /*
-     *dbg_str(DBG_DETAIL,"container for each component, map addr :%p", obj->map);
+     *dbg_str(DBG_DETAIL, "container for each component, map addr :%p", obj->map);
      */
     obj->map->for_each_arg2(obj->map, func, arg);
 
 }
 
 static class_info_entry_t container_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Subject","subject",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","move",__move,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add_component",__add_component,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","update_component_position",__update_component_position,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","reset_component_position",__reset_component_position,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","search_component",__search_component,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each_component",__for_each_component,sizeof(void *)},
-    [11] = {ENTRY_TYPE_STRING,"char","name",NULL,0},
-    [12] = {ENTRY_TYPE_UINT8_T,"uint8_t","map_type",NULL,sizeof(int)},
-    [13] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Subject", "subject", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "move", __move, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_component", __add_component, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "update_component_position", __update_component_position, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "reset_component_position", __reset_component_position, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search_component", __search_component, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_component", __for_each_component, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
+    [12] = {ENTRY_TYPE_UINT8_T, "uint8_t", "map_type", NULL, sizeof(int)}, 
+    [13] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Container",container_class_info);
+REGISTER_CLASS("Container", container_class_info);
 
 void test_ui_container()
 {
@@ -328,21 +328,21 @@ void test_ui_container()
     set_str = cjson_print(root);
 
     /*
-     *subject = OBJECT_ALLOC(allocator,Container);
+     *subject = OBJECT_ALLOC(allocator, Container);
      *object_set(subject, "Container", set_str);
-     *dbg_str(DBG_DETAIL,"x=%d y=%d width=%d height=%d",subject->x,subject->y,subject->width,subject->height);
+     *dbg_str(DBG_DETAIL, "x=%d y=%d width=%d height=%d", subject->x, subject->y, subject->width, subject->height);
      */
 
-    subject = OBJECT_NEW(allocator, Container,set_str);
+    subject = OBJECT_NEW(allocator, Container, set_str);
 
     /*
-     *dbg_str(DBG_DETAIL,"x=%d y=%d width=%d height=%d",subject->x,subject->y,subject->width,subject->height);
-     *dbg_str(DBG_DETAIL,"container nane=%s",((Container *)subject)->name);
+     *dbg_str(DBG_DETAIL, "x=%d y=%d width=%d height=%d", subject->x, subject->y, subject->width, subject->height);
+     *dbg_str(DBG_DETAIL, "container nane=%s", ((Container *)subject)->name);
      *subject->move(subject);
      */
 
     object_dump(subject, "Container", buf, 2048);
-    dbg_str(DBG_DETAIL,"Container dump: %s",buf);
+    dbg_str(DBG_DETAIL, "Container dump: %s", buf);
 
     free(set_str);
 

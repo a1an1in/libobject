@@ -46,7 +46,10 @@
 #include <stdlib.h>
 #include <libobject/core/utils/dbg/debug_string.h>
 
-uint32_t debug_string_buf_to_str(uint8_t *buf_addr,size_t buf_len,char *str,size_t str_len)
+uint32_t debug_string_buf_to_str(uint8_t *buf_addr,
+                                 size_t buf_len,
+                                 char *str,
+                                 size_t str_len)
 {
     size_t i;
     size_t offset=0;
@@ -59,6 +62,7 @@ uint32_t debug_string_buf_to_str(uint8_t *buf_addr,size_t buf_len,char *str,size
     }
     return offset;
 }
+
 int debug_string_itoa(int val, char* buf,int radix)
 {
     char* p;
@@ -75,19 +79,19 @@ int debug_string_itoa(int val, char* buf,int radix)
     }
     u = (unsigned int)val;
     b = p;
-    do{
-        a = u % radix;
-        u /= radix;
-        *p++ = a + '0';
+    do {
+        a     = u % radix;
+        u    /= radix;
+        *p++  = a + '0';
     } while (u > 0);
 
     len = (int)(p - buf);
     *p-- = 0;
 
-    do{
+    do {
         temp = *p;
-        *p = *b;
-        *b = temp;
+        *p   = *b;
+        *b   = temp;
         --p;
         ++b;
     } while (b < p);

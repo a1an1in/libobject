@@ -18,20 +18,20 @@
 #ifndef __DEBUG_NETWORK_H__
 #define __DEBUG_NETWORK_H__
 
+#include <sys/socket.h>
+#include<netinet/in.h>
 #include <libobject/core/utils/thread/sync_lock.h>
 
-/*
- *typedef struct debug_network_prive{
- *#define MAX_IP_LEN 20
- *    int sd;
- *    char ip_str[MAX_IP_LEN];
- *    unsigned int port;
- *    //pthread_mutex_t send_dgram_lock;
- *    sync_lock_t send_dgram_lock;
- *    struct sockaddr_in raddr;
- *#undef MAX_IP_LEN
- *}debug_network_prive_t;
- *int network_print_regester();
- */
+typedef struct debug_network_prive{
+#define MAX_IP_LEN 20
+    int sd;
+    char ip_str[MAX_IP_LEN];
+    unsigned int port;
+    //pthread_mutex_t send_dgram_lock;
+    sync_lock_t send_dgram_lock;
+    struct sockaddr_in raddr;
+#undef MAX_IP_LEN
+}debug_network_prive_t;
+int network_print_regester();
 
 #endif

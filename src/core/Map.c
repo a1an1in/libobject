@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -34,16 +34,16 @@
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/map.h>
 
-static int __construct(Map *map,char *init_str)
+static int __construct(Map *map, char *init_str)
 {
-    dbg_str(OBJ_DETAIL,"map construct, map addr:%p",map);
+    dbg_str(OBJ_DETAIL, "map construct, map addr:%p", map);
 
     return 0;
 }
 
 static int __deconstrcut(Map *map)
 {
-    dbg_str(OBJ_DETAIL,"map deconstruct,map addr:%p",map);
+    dbg_str(OBJ_DETAIL, "map deconstruct, map addr:%p", map);
 
     return 0;
 }
@@ -59,7 +59,7 @@ static int __set(Map *map, char *attrib, void *value)
     } else if (strcmp(attrib, "deconstruct") == 0) {
         map->deconstruct = value;
     } else if (strcmp(attrib, "name") == 0) {
-        strncpy(map->name,value,strlen(value));
+        strncpy(map->name, value, strlen(value));
     } else if (strcmp(attrib, "add") == 0) {
         map->add = value;
     } else if (strcmp(attrib, "search") == 0) {
@@ -80,9 +80,9 @@ static int __set(Map *map, char *attrib, void *value)
         map->destroy = value;
     }
     else if (strcmp(attrib, "name") == 0) {
-        strncpy(map->name,value,strlen(value));
+        strncpy(map->name, value, strlen(value));
     } else {
-        dbg_str(OBJ_DETAIL,"map set, not support %s setting",attrib);
+        dbg_str(OBJ_DETAIL, "map set, not support %s setting", attrib);
     }
 
     return 0;
@@ -95,22 +95,22 @@ static void *__get(Map *obj, char *attrib)
     } else if (strcmp(attrib, "for_each") == 0) {
         return obj->for_each;
     } else {
-        dbg_str(OBJ_WARNNING,"map get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(OBJ_WARNNING, "map get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
-static void __for_each(Map *map,void (*func)(void *key, void *element))
+static void __for_each(Map *map, void (*func)(void *key, void *element))
 {
     Iterator *cur, *end;
     void *key, *value;
 
-    dbg_str(OBJ_IMPORTANT,"Map for_each");
+    dbg_str(OBJ_IMPORTANT, "Map for_each");
     cur = map->begin(map);
     end = map->end(map);
 
-    for (; !end->equal(end,cur); cur->next(cur)) {
+    for (; !end->equal(end, cur); cur->next(cur)) {
         key = cur->get_kpointer(cur);
         value = cur->get_vpointer(cur);
         func(key, value);
@@ -118,15 +118,15 @@ static void __for_each(Map *map,void (*func)(void *key, void *element))
 
 }
 
-static void __for_each_arg2(Map *map,void (*func)(Iterator *iter,void *arg),void *arg)
+static void __for_each_arg2(Map *map, void (*func)(Iterator *iter, void *arg), void *arg)
 {
     Iterator *cur, *end;
 
-    dbg_str(OBJ_DETAIL,"Map for_each arg2");
+    dbg_str(OBJ_DETAIL, "Map for_each arg2");
     cur = map->begin(map);
     end = map->end(map);
 
-    for (; !end->equal(end,cur); cur->next(cur)) {
+    for (; !end->equal(end, cur); cur->next(cur)) {
         func(cur, arg);
     }
 
@@ -134,38 +134,38 @@ static void __for_each_arg2(Map *map,void (*func)(Iterator *iter,void *arg),void
 
 static Iterator *__begin(Map *map)
 {
-    dbg_str(OBJ_DETAIL,"Map begin");
+    dbg_str(OBJ_DETAIL, "Map begin");
 }
 
 static Iterator *__end(Map *map)
 {
-    dbg_str(OBJ_DETAIL,"Map end");
+    dbg_str(OBJ_DETAIL, "Map end");
 }
 
 static int __destroy(Map *map)
 {
-    dbg_str(OBJ_DETAIL,"Map destroy");
+    dbg_str(OBJ_DETAIL, "Map destroy");
 }
 
 static class_info_entry_t map_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","add", NULL,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","search", NULL,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","remove", NULL,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","del", NULL,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each",__for_each,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","for_each_arg2",__for_each_arg2,sizeof(void *)},
-    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","begin",__begin,sizeof(void *)},
-    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","end",__end,sizeof(void *)},
-    [13] = {ENTRY_TYPE_VFUNC_POINTER,"","destroy",__destroy,sizeof(void *)},
-    [14] = {ENTRY_TYPE_STRING,"char","name",NULL,0},
-    [15] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", NULL, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search", NULL, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", NULL, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del", NULL, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg2", __for_each_arg2, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy", __destroy, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
+    [15] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Map",map_class_info);
+REGISTER_CLASS("Map", map_class_info);
 
 void test_obj_map()
 {
@@ -184,10 +184,10 @@ void test_obj_map()
 
     set_str = cjson_print(root);
 
-    map = OBJECT_NEW(allocator, Map,set_str);
+    map = OBJECT_NEW(allocator, Map, set_str);
 
     object_dump(map, "Map", buf, 2048);
-    dbg_str(OBJ_DETAIL,"Map dump: %s",buf);
+    dbg_str(OBJ_DETAIL, "Map dump: %s", buf);
 
     object_destroy(map);
     free(set_str);
@@ -199,13 +199,13 @@ void test_obj_map()
     cjson_t *root, *e, *s;
     char buf[2048];
     c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
+    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
     cfg_config(c, "/Map", CJSON_STRING, "name", "alan map") ;  
 
-    map = OBJECT_NEW(allocator, Map,c->buf);
+    map = OBJECT_NEW(allocator, Map, c->buf);
 
     object_dump(map, "Map", buf, 2048);
-    dbg_str(DBG_DETAIL,"Map dump: %s",buf);
+    dbg_str(DBG_DETAIL, "Map dump: %s", buf);
 
     object_destroy(map);
     cfg_destroy(c);
