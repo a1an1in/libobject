@@ -151,7 +151,6 @@ test_timeout_cb(int fd, short event, void *arg)
     double elapsed;
     static struct timeval lasttime;
 
-
     gettimeofday(&newtime, NULL);
     timeval_sub(&newtime, &lasttime, &difference);
 

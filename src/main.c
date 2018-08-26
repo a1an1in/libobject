@@ -626,7 +626,14 @@ static int args_process_log_server(void *base, int argc, char **argv)
     return 0;
 }
 
+static int args_process_mockery(void *base, int argc, char **argv)
+{
+    mockery(argc, argv);
+    return 0;
+}
+
 static cmd_config_t cmds[]={
+    {"mockery", args_process_mockery, 0, "app", "N/A", "test framework"}, 
     {"log_server", args_process_log_server, 0, "app", "N/A", "log server"}, 
     {"server", args_process_test_server, 0, "test", "N/A", "test_inet_tcp_client_send"}, 
     {"client_send", args_process_test_client_send, 0, "test", "N/A", "test_inet_tcp_client_send"}, 

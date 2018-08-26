@@ -1,6 +1,8 @@
 #ifndef __INIT_REGISTRY_H__
 #define __INIT_REGISTRY_H__
 
+#include <libobject/core/utils/registry/reg_heap.h>
+
 #define REGISTRY_CTOR_PRIORITY_VERSION                      1
 #define REGISTRY_CTOR_PRIORITY_LIBALLOC_REGISTER_MODULES    2
 #define REGISTRY_CTOR_PRIORITY_LIBDBG_REGISTER_MODULES      3 
@@ -23,9 +25,18 @@ int __register_ctor_func2(int level, int (*func)(void *arg1, void *arg2), void *
 int __register_ctor_func3(int level, int (*func)(void *arg1, void *arg2, void *arg3), void *arg1, void *arg2, void *arg3);
 
 int __register_dtor_func(int level, int (*func)());
+
+int 
+__register_test_func(int (*func)(void *),
+                     const char *func_name,
+                     const char *file,
+                     int line);
+
 int execute_ctor_funcs(); 
 
 int execute_dtor_funcs();
+
+int execute_test_funcs();
 
 #define INIT_LIBOBJECT execute_ctor_funcs
 
@@ -48,4 +59,10 @@ int execute_dtor_funcs();
     __attribute__((constructor)) static void register_dtor_##func() {\
         __register_dtor_func(level, func);\
     } 
+
+#define REGISTER_TEST_FUNC(func) \
+    __attribute__((constructor)) static void register_test_##func() {\
+        __register_test_func((int (*)(void *))func, #func, __FILE__, __LINE__);\
+    } 
+
 #endif 

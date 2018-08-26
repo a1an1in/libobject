@@ -12,11 +12,18 @@ typedef struct init_func_entry_s {
     int level;
     int args_count;
     void *arg1, *arg2, *arg3;
+    int line;
+    const char *file;
+    const char *func_name;
+    int ret;
+
     int (*func)();
     int (*func1)(void * arg);
     int (*func2)(void * arg1, void *arg2);
     int (*func3)(void * arg1, void *arg2, void *arg3);
 } init_func_entry_t;
+
+#define TEST_ENTRY struct init_func_entry_s 
 
 reg_heap_t *reg_heap_alloc();
 int reg_heap_set(reg_heap_t *reg_heap, char *key, void *value);
