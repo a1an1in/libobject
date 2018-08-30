@@ -360,12 +360,6 @@ static int args_process_test_RBTreeMap(void *base, int argc, char **argv)
     return 0;
 }
 
-static int args_process_test_Vector(void *base, int argc, char **argv)
-{
-    test_obj_vector();
-    return 0;
-}
-
 static int args_process_test_LList(void *base, int argc, char **argv)
 {
     test_obj_llist_list();
@@ -674,7 +668,6 @@ static cmd_config_t cmds[]={
     {"Graph", args_process_test_Graph, 0, "test", "N/A", "test"}, 
     {"Queue", args_process_test_Queue, 0, "test", "N/A", "test"}, 
     {"Stack", args_process_test_Stack, 0, "test", "N/A", "test"}, 
-    {"Vector", args_process_test_Vector, 0, "test", "N/A", "test"}, 
     {"HMap", args_process_test_Hmap, 0, "test", "N/A", "test"}, 
     {"RBTMap", args_process_test_RBTreeMap, 0, "test", "N/A", "test"}, 
     {"LList", args_process_test_LList, 0, "test", "N/A", "test"}, 
@@ -737,7 +730,7 @@ int main(int argc, char *argv[])
 
     dbg_str(DBG_DETAIL, "main func end");
 
-#if 0
+#if 1
     pause();
     dbg_str(DBG_DETAIL, "main func out, but pause breaked");
 #endif

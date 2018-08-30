@@ -33,6 +33,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/vector.h>
+#include <libobject/core/utils/registry/registry.h>
 
 static int __construct(Vector *vector, char *init_str)
 {
@@ -191,7 +192,7 @@ static struct test *init_test_instance(struct test *t, int a, int b)
     return t;
 }
 
-void test_obj_vector()
+static int test_obj_vector(TEST_ENTRY *entry)
 {
     Vector *vector;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -201,6 +202,7 @@ void test_obj_vector()
     char buf[2048];
     int value_size = 25;
     struct test *t, t0, t1, t2, t3, t4, t5;
+    int ret;
 
     init_test_instance(&t0, 0, 2);
     init_test_instance(&t1, 1, 2);
@@ -211,13 +213,15 @@ void test_obj_vector()
 
     c = cfg_alloc(allocator); 
     dbg_str(DBG_SUC, "configurator_t addr:%p", c);
-    cfg_config_num(c, "/Vector", "capacity", 4) ;  
+    cfg_config_num(c, "/Vector", "capacity", 10) ;  
     cfg_config_num(c, "/Vector", "value_size", value_size) ;
 
     vector = OBJECT_NEW(allocator, Vector, c->buf);
 
-    object_dump(vector, "Vector", buf, 2048);
-    dbg_str(DBG_DETAIL, "Vector dump: %s", buf);
+    /*
+     *object_dump(vector, "Vector", buf, 2048);
+     *dbg_str(DBG_DETAIL, "Vector dump: %s", buf);
+     */
 
     vector->add_at(vector, 0, &t0);
     vector->add_at(vector, 1, &t1);
@@ -235,14 +239,30 @@ void test_obj_vector()
      *vector->add(vector, &t5);
      */
 
+    /*
+     *dbg_str(DBG_DETAIL, "vector for each");
+     *vector->for_each(vector, print_vector_data);
+     */
+
     vector->peek_at(vector, 1, (void **)&t);
     dbg_str(DBG_DETAIL, "peak at index =%d a =%d b=%d", 1 , t->a, t->b);
 
-    dbg_str(DBG_DETAIL, "vector for each");
-    vector->for_each(vector, print_vector_data);
+    ret = assert_equal(t, &t1, sizeof(void *));
+    if (ret == 0) {
+        return ret;
+    }
+
+    /*
+     *dbg_str(DBG_DETAIL, "vector for each");
+     *vector->for_each(vector, print_vector_data);
+     */
 
     vector->remove(vector, 4, (void **)&t);
     dbg_str(DBG_DETAIL, "remove index 4, t->a=%d t->b=%d", t->a, t->b);
+    ret = assert_equal(t, &t4, sizeof(void *));
+    if (ret == 0) {
+        return ret;
+    }
 
     /*
      *vector->remove_back(vector, (void **)&t);
@@ -263,11 +283,16 @@ void test_obj_vector()
      *    dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
      */
 
-    dbg_str(DBG_DETAIL, "vector for each");
-    vector->for_each(vector, print_vector_data);
+    /*
+     *dbg_str(DBG_DETAIL, "vector for each");
+     *vector->for_each(vector, print_vector_data);
+     */
 
     object_destroy(vector);
     cfg_destroy(c);
 
+    return 1;
+
 }
+REGISTER_TEST_FUNC(test_obj_vector);
 

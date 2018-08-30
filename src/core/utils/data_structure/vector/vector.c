@@ -131,7 +131,7 @@ vector_t *vector_create(allocator_t *allocator, uint8_t lock_type)
 
 int vector_init(vector_t *vector, uint32_t data_size, uint32_t capacity)
 {
-    dbg_str(VECTOR_DETAIL, "vector init");
+    dbg_str(VECTOR_DETAIL, "vector init, capacity=%d, step=%d", capacity, vector->step);
 
     vector->step        = sizeof(void *);
     vector->data_size   = data_size;
@@ -185,7 +185,8 @@ int vector_add_at(vector_t *vector, int index, void *data)
     void **vector_head = vector->vector_head;
     int ret  = 0;
     
-    dbg_str(VECTOR_DETAIL, "set_pos=%d", set_pos);
+    dbg_str(VECTOR_DETAIL, "set_pos=%d, index=%d, element=%p",
+            set_pos, index, data);
 
     sync_lock(&vector->vector_lock, NULL);
 
@@ -363,12 +364,11 @@ int vector_peek_at(vector_t *vector, int index, void **element)
     uint32_t get_pos   = index;
     void **vector_head = vector->vector_head;
     int ret = 0;
-    
-    dbg_str(VECTOR_DETAIL, "get_pos=%d", get_pos);
 
     sync_lock(&vector->vector_lock, NULL);
     *element = vector_head[get_pos];
     sync_unlock(&vector->vector_lock);
+    dbg_str(VECTOR_DETAIL, "get_pos=%d, element =%p", get_pos, *element);
 
     return 0;
 }
