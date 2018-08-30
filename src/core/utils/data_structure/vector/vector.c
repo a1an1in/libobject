@@ -106,7 +106,7 @@ int vector_copy(vector_t *vector, vector_pos_t *to, vector_pos_t *from, uint32_t
     uint32_t from_pos = from->vector_pos;
     uint32_t to_pos   = to->vector_pos;
     
-    dbg_str(VECTOR_WARNNING, "count=%d", count);
+    dbg_str(VECTOR_IMPORTANT, "count=%d", count);
     if (from_pos > to_pos) {//forward
         vector_copy_forward(vector, to, from, count);
     } else {//backward

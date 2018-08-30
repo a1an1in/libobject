@@ -348,12 +348,6 @@ static int args_process_test_Hmap_Iterator(void *base, int argc, char **argv)
     return 0;
 }
 
-static int args_process_test_Hmap(void *base, int argc, char **argv)
-{
-    test_obj_hash_map();
-    return 0;
-}
-
 static int args_process_test_RBTreeMap(void *base, int argc, char **argv)
 {
     test_obj_rbtree_map();
@@ -668,7 +662,6 @@ static cmd_config_t cmds[]={
     {"Graph", args_process_test_Graph, 0, "test", "N/A", "test"}, 
     {"Queue", args_process_test_Queue, 0, "test", "N/A", "test"}, 
     {"Stack", args_process_test_Stack, 0, "test", "N/A", "test"}, 
-    {"HMap", args_process_test_Hmap, 0, "test", "N/A", "test"}, 
     {"RBTMap", args_process_test_RBTreeMap, 0, "test", "N/A", "test"}, 
     {"LList", args_process_test_LList, 0, "test", "N/A", "test"}, 
     {"HIter", args_process_test_Hmap_Iterator, 0, "test", "N/A", "test"}, 

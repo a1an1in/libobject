@@ -58,7 +58,6 @@ extern void test_obj_subject();
 extern void test_obj_enemy();
 extern void test_obj_string();
 extern void test_obj_map();
-extern void test_obj_hash_map();
 extern void test_obj_rbtree_map();
 extern void test_obj_llist_list();
 extern void test_ui_graph();

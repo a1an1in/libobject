@@ -33,6 +33,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/hash_map.h>
+#include <libobject/core/utils/registry/registry.h>
 
 static int __construct(Map *map, char *init_str)
 {
@@ -268,7 +269,7 @@ static void hash_map_print_with_numeric_key(void *key, void *element)
 }
 
 
-void test_obj_hash_map_string_key()
+static int test_obj_hash_map_string_key(TEST_ENTRY *entry)
 {
     Map *map;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -277,6 +278,7 @@ void test_obj_hash_map_string_key()
     char buf[2048] = {0};
     char set_str[2048] = {0};
     struct test *t, t0, t1, t2, t3, t4, t5;
+    int ret;
 
     init_test_instance(&t0, 0, 2);
     init_test_instance(&t1, 1, 2);
@@ -285,18 +287,20 @@ void test_obj_hash_map_string_key()
     init_test_instance(&t4, 4, 2);
     init_test_instance(&t5, 5, 2);
 
-    dbg_str(HMAP_SUC, "hash_map test begin alloc count =%d", allocator->alloc_count);
+    dbg_str(DBG_SUC, "hash_map test begin alloc count =%d", allocator->alloc_count);
 
     c = cfg_alloc(allocator); 
-    dbg_str(HMAP_SUC, "configurator_t addr:%p", c);
+    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "40") ;  
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "8") ;
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
 
     map  = OBJECT_NEW(allocator, Hash_Map, c->buf);
 
-    object_dump(map, "Hash_Map", buf, 2048);
-    dbg_str(HMAP_DETAIL, "Map dump: %s", buf);
+    /*
+     *object_dump(map, "Hash_Map", buf, 2048);
+     *dbg_str(DBG_DETAIL, "Map dump: %s", buf);
+     */
 
     map->add(map, "test0", &t0);
     map->add(map, "test1", &t1);
@@ -306,18 +310,23 @@ void test_obj_hash_map_string_key()
     map->add(map, "test5", &t5);
     map->for_each(map, hash_map_print);
 
-    dbg_str(HMAP_DETAIL, "test search:");
+    dbg_str(DBG_DETAIL, "test search:");
     map->search(map, "test2", (void **)&t);
-    dbg_str(HMAP_DETAIL, "new search test2: t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(DBG_DETAIL, "new search test2: t->a=%d, t->b=%d", t->a, t->b);
+    ret = assert_equal(t, &t2, sizeof(struct test));
+    if (ret == 0) {
+        dbg_str(DBG_WARNNING, "hash map search error");
+        return ret;
+    }
 
-    /*
-     *dbg_str(HMAP_DETAIL, "test del:");
-     *map->del(map, "test2");
-     */
-
-    dbg_str(HMAP_DETAIL, "test remove:");
+    dbg_str(DBG_DETAIL, "test remove:");
     map->remove(map, "test2", (void **)&t);
-    dbg_str(HMAP_DETAIL, "remove test2: t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(DBG_DETAIL, "remove test2: t->a=%d, t->b=%d", t->a, t->b);
+    ret = assert_equal(t, &t2, sizeof(struct test));
+    if (ret == 0) {
+        dbg_str(DBG_WARNNING, "hash map remove error");
+        return ret;
+    }
 
     map->for_each(map, hash_map_print);
 
@@ -325,11 +334,14 @@ void test_obj_hash_map_string_key()
 
     cfg_destroy(c);
 
-    dbg_str(HMAP_SUC, "hash_map test end alloc count =%d", allocator->alloc_count);
+    dbg_str(DBG_SUC, "hash_map test end alloc count =%d", allocator->alloc_count);
+
+    return ret;
 
 }
+REGISTER_TEST_FUNC(test_obj_hash_map_string_key);
 
-void test_obj_hash_map_numeric_key()
+static int test_obj_hash_map_numeric_key(TEST_ENTRY *entry)
 {
     Map *map;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -344,10 +356,10 @@ void test_obj_hash_map_numeric_key()
     init_test_instance(&t0, 0, 2);
     init_test_instance(&t1, 1, 2);
 
-    dbg_str(HMAP_SUC, "hash_map test begin alloc count =%d", allocator->alloc_count);
+    dbg_str(DBG_SUC, "hash_map test begin alloc count =%d", allocator->alloc_count);
 
     c = cfg_alloc(allocator); 
-    dbg_str(HMAP_SUC, "configurator_t addr:%p", c);
+    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "4") ;  
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "25") ;
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
@@ -355,42 +367,46 @@ void test_obj_hash_map_numeric_key()
 
     map  = OBJECT_NEW(allocator, Hash_Map, c->buf);
 
-    object_dump(map, "Hash_Map", buf, 2048);
-    dbg_str(HMAP_DETAIL, "Map dump: %s", buf);
+    /*
+     *object_dump(map, "Hash_Map", buf, 2048);
+     *dbg_str(DBG_DETAIL, "Map dump: %s", buf);
+     */
 
-    printf("add\n");
+    dbg_str(DBG_DETAIL, "test hashmap add:");
     key = 0;
     map->add(map, &key, &t0);
     key = 1;
     map->add(map, &key, &t1);
 
-    printf("for_each\n");
-    map->for_each(map, hash_map_print_with_numeric_key);
+    /*
+     *printf("for_each\n");
+     *map->for_each(map, hash_map_print_with_numeric_key);
+     */
 
-    printf("search\n");
+    dbg_str(DBG_DETAIL, "test hashmap search:");
     ret = map->search(map, &key, (void **)&t);
-    dbg_str(HMAP_DETAIL, "search ret=%d", ret);
-    dbg_str(HMAP_DETAIL, "search key=%d, t->a=%d, t->b=%d", key, t->a, t->b);
+    dbg_str(DBG_DETAIL, "search ret=%d", ret);
+    dbg_str(DBG_DETAIL, "search key=%d, t->a=%d, t->b=%d", key, t->a, t->b);
+    ret = assert_equal(t, &t1, sizeof(struct test));
+    if (ret == 0) {
+        dbg_str(DBG_WARNNING, "hash map search error");
+        return ret;
+    }
 
-    printf("del\n");
+    dbg_str(DBG_DETAIL, "test hashmap del:");
     map->del(map, &key);
 
-    printf("for_each\n");
-    map->for_each(map, hash_map_print_with_numeric_key);
+    /*
+     *printf("for_each\n");
+     *map->for_each(map, hash_map_print_with_numeric_key);
+     */
 
     object_destroy(map);
     cfg_destroy(c);
 
-    dbg_str(HMAP_SUC, "hash_map test end alloc count =%d", allocator->alloc_count);
+    dbg_str(DBG_SUC, "hash_map test end alloc count =%d", allocator->alloc_count);
+
+    return ret;
 
 }
-void test_obj_hash_map()
-{
-    test_obj_hash_map_string_key();
-    /*
-     *test_obj_hash_map_numeric_key();
-     */
-}
-
-
-
+REGISTER_TEST_FUNC(test_obj_hash_map_numeric_key);

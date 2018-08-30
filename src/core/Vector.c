@@ -196,6 +196,7 @@ static int test_obj_vector(TEST_ENTRY *entry)
 {
     Vector *vector;
     allocator_t *allocator = allocator_get_default_alloc();
+    int pre_alloc_count, after_alloc_count;
     configurator_t * c;
     char *set_str;
     cjson_t *root, *e, *s;
@@ -203,6 +204,8 @@ static int test_obj_vector(TEST_ENTRY *entry)
     int value_size = 25;
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret;
+
+    pre_alloc_count = allocator->alloc_count;
 
     init_test_instance(&t0, 0, 2);
     init_test_instance(&t1, 1, 2);
@@ -290,6 +293,18 @@ static int test_obj_vector(TEST_ENTRY *entry)
 
     object_destroy(vector);
     cfg_destroy(c);
+
+    after_alloc_count = allocator->alloc_count;
+    ret = assert_equal(&pre_alloc_count, &after_alloc_count, sizeof(int));
+    if (ret == 0) {
+        dbg_str(DBG_WARNNING,
+                "vector has memory omit, pre_alloc_count=%d, after_alloc_count=%d",
+                pre_alloc_count, after_alloc_count);
+        /*
+         *allocator_mem_info(allocator);
+         */
+        return ret;
+    }
 
     return 1;
 
