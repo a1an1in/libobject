@@ -38,6 +38,9 @@ int execute_dtor_funcs();
 
 int execute_test_funcs();
 
+
+int assert_equal(void *peer1, void *peer2, unsigned int count);
+
 #define INIT_LIBOBJECT execute_ctor_funcs
 
 #define REGISTER_CTOR_FUNC(level, func) \
