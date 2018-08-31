@@ -70,16 +70,38 @@ static int test_work_callback(void *task)
     dbg_str(DBG_SUC,"task opaque=%p", t->opaque);
 }
 
-void test_obj_server()
+static int test_obj_server(TEST_ENTRY *entry, void *argc, void *argv)
 {
     Server *s;
     allocator_t *allocator = allocator_get_default_alloc();
+    int pre_alloc_count, after_alloc_count;
+    int ret;
 
+    sleep(1);
+
+    pre_alloc_count = allocator->alloc_count;
     s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
                          "127.0.0.1", "11011", test_work_callback, allocator);
 
     dbg_str(DBG_SUC,"opaque=%p", allocator);
-    pause();
 
-    object_destroy(s);
+    pause();
+    server_destroy(s);
+
+    after_alloc_count = allocator->alloc_count;
+    ret = assert_equal(&pre_alloc_count, &after_alloc_count, sizeof(int));
+    if (ret == 0) {
+        dbg_str(DBG_WARNNING,
+                "server has memory omit, pre_alloc_count=%d, after_alloc_count=%d",
+                pre_alloc_count, after_alloc_count);
+        /*
+         *allocator_mem_info(allocator);
+         */
+        entry->ret = ret;
+        return ret;
+    }
+
+    entry->ret = ret;
+
 }
+REGISTER_STANDALONE_TEST_FUNC(test_obj_server);

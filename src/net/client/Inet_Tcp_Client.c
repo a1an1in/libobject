@@ -148,24 +148,4 @@ void test_obj_inet_tcp_client()
     object_destroy(client);
 }
 #else
-void test_obj_inet_tcp_client()
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-    Client *c = NULL;
-    char *str = "hello world";
-
-    dbg_str(DBG_DETAIL, "test_obj_client_send");
-
-    c = client(allocator, 
-               CLIENT_TYPE_INET_TCP, 
-               (char *)"127.0.0.1", //char *host, 
-               (char *)"1990", //char *client_port, 
-               test_work_callback, 
-               NULL);
-    client_connect(c, "127.0.0.1", "11011");
-    client_send(c, str, strlen(str), 0);
-
-    pause();
-    object_destroy(c);
-}
 #endif

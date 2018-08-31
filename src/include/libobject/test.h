@@ -97,13 +97,9 @@ extern void test_obj_worker();
 extern void test_obj_io_worker();
 extern void test_obj_timer_worker();
 extern void test_obj_server();
-extern void test_obj_client();
 extern void test_obj_inet_udp_client_recv();
 extern void test_obj_inet_udp_client_send();
-extern void test_obj_inet_tcp_client();
 extern void test_obj_inet_tcp_server();
-extern void test_obj_client_recv();
-extern void test_obj_client_send();
 extern void log_server();
 extern int mockery(int argc, char **argv);
 

@@ -563,11 +563,6 @@ static int args_process_test_Worker(void *base, int argc, char **argv)
     return 0;
 }
 
-static int args_process_test_Server(void *base, int argc, char **argv)
-{
-    test_obj_server();
-}
-
 static int args_process_test_Client(void *base, int argc, char **argv)
 {
     test_obj_client();
@@ -588,26 +583,6 @@ static int args_process_test_inet_tcp_server(void *base, int argc, char **argv)
     test_obj_inet_tcp_server();
 }
 
-static int args_process_test_inet_tcp_client(void *base, int argc, char **argv)
-{
-    test_obj_inet_tcp_client();
-}
-
-static int args_process_test_client_send(void *base, int argc, char **argv)
-{
-    test_obj_client_send();
-}
-
-static int args_process_test_client_recv(void *base, int argc, char **argv)
-{
-    test_obj_client_recv();
-}
-
-static int args_process_test_server(void *base, int argc, char **argv)
-{
-    test_obj_server();
-}
-
 static int args_process_log_server(void *base, int argc, char **argv)
 {
     log_server();
@@ -616,22 +591,16 @@ static int args_process_log_server(void *base, int argc, char **argv)
 
 static int args_process_mockery(void *base, int argc, char **argv)
 {
-    mockery(argc, argv);
-    return 0;
+    return mockery(argc, argv);
 }
 
 static cmd_config_t cmds[]={
     {"mockery", args_process_mockery, 0, "app", "N/A", "test framework"}, 
     {"log_server", args_process_log_server, 0, "app", "N/A", "log server"}, 
-    {"server", args_process_test_server, 0, "test", "N/A", "test_inet_tcp_client_send"}, 
-    {"client_send", args_process_test_client_send, 0, "test", "N/A", "test_inet_tcp_client_send"}, 
-    {"client_recv", args_process_test_client_recv, 0, "test", "N/A", "test_inet_tcp_client_send"}, 
-    {"inet_tcp_client", args_process_test_inet_tcp_client, 0, "test", "N/A", "test_inet_tcp_client_send"}, 
     {"inet_tcp_server", args_process_test_inet_tcp_server, 0, "test", "N/A", "test_inet_tcp_client_send"}, 
     {"inet_udp_client_recv", args_process_test_inet_udp_client_recv, 0, "test", "N/A", "test_inet_tcp_client_send"}, 
     {"inet_udp_client_send", args_process_test_inet_udp_client_send, 0, "test", "N/A", "test_inet_tcp_client_send"}, 
     {"Client", args_process_test_Client, 0, "test", "N/A", "test_inet_tcp_client_send"}, 
-    {"Server", args_process_test_Server, 0, "test", "N/A", "test_inet_tcp_client_send"}, 
     {"Worker", args_process_test_Worker, 0, "test", "N/A", "test_inet_tcp_client_send"}, 
     {"Lock", args_process_test_Lock, 0, "test", "N/A", "test_inet_tcp_client_send"}, 
     {"unix_udp_socket_send", args_process_test_unix_udp_socket_send, 0, "test", "N/A", "test_inet_tcp_client_send"}, 

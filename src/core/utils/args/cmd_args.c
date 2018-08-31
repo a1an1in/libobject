@@ -87,10 +87,12 @@ args_parse_args(args_processor_t *p, int argc, char *argv[])
             args_count = c->fn(p->base, argc - i, argv + i);
             if(args_count != c->args_count){
                 dbg_str(ARGS_WARNNING, 
-                        "the args funtion process args count is not equal the setting, "
-                        "we'll compute by the default setting");
+                        "the args funtion process args count is not equal the setting");
             }
-            i+= c->args_count;
+            /*
+             *i+= c->args_count;
+             */
+            i+= args_count;
             dbg_str(ARGS_DETAIL, "args count=%d", args_count);
         }
     }

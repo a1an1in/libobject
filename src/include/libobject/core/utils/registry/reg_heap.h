@@ -1,6 +1,11 @@
 #ifndef __REGISTRY_HEAP_H__
 #define __REGISTRY_HEAP_H__
 
+enum func_entry_type_e {
+    FUNC_ENTRY_TYPE_NORMAL, 
+    FUNC_ENTRY_TYPE_STANDALONE, 
+};
+
 typedef struct reg_heap_s {
     void **queue;
     int size;
@@ -16,6 +21,7 @@ typedef struct init_func_entry_s {
     const char *file;
     const char *func_name;
     int ret;
+    enum func_entry_type_e type;
 
     int (*func)();
     int (*func1)(void * arg);

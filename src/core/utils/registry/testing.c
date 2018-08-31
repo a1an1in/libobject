@@ -82,7 +82,7 @@ __register_test_func(int (*func)(void *),
     }
 
     element->func1 = func;
-    element->args_count = 0;
+    element->args_count = 1;
     element->func_name = func_name;
     element->file = file;
     element->line = line;
@@ -91,6 +91,34 @@ __register_test_func(int (*func)(void *),
 
     return 0;
 }
+
+int 
+__register_standalone_test_func(int (*func)(void *, void *, void *),
+                                const char *func_name,
+                                const char *file,
+                                int line) 
+{
+    init_func_entry_t *element;
+    reg_heap_t * reg_heap = get_global_testfunc_reg_heap();
+
+    element = (init_func_entry_t *) malloc(sizeof(init_func_entry_t));
+    if (element == NULL) {
+        printf("register init func, malloc err\n");
+        return -1;
+    }
+
+    element->func3 = func;
+    element->args_count = 3;
+    element->func_name = func_name;
+    element->file = file;
+    element->line = line;
+    element->type = FUNC_ENTRY_TYPE_STANDALONE;
+
+    reg_heap_add(reg_heap, (void *)element);
+
+    return 0;
+}
+
 
 /**
  * @Synopsis  
@@ -109,7 +137,10 @@ int execute_test_funcs()
     for(i=0; i< size; i++){
         reg_heap_remove(reg_heap, (void **)&element);
 
-        if (element->args_count == 0) {
+        if (element->type == FUNC_ENTRY_TYPE_STANDALONE) {
+            continue;
+        }
+        if (element->args_count == 1) {
             ret = element->func1((void *)element);
             if (ret == 0) {
                 dbg_str(DBG_ERROR, 
@@ -127,6 +158,51 @@ int execute_test_funcs()
             free(element);
         } else {
         }
+    }
+
+    reg_heap_destroy(reg_heap);
+
+    return 0;
+}
+
+int execute_test_designated_func(char *func_name, void *arg1, void *arg2) 
+{
+    int i, size = 0, ret;
+    init_func_entry_t *element;
+    reg_heap_t * reg_heap = get_global_testfunc_reg_heap();
+
+    size = reg_heap_size(reg_heap);
+    for(i=0; i< size; i++){
+        reg_heap_remove(reg_heap, (void **)&element);
+
+        if (strcmp(element->func_name, func_name) != 0) {
+            free(element);
+            continue;
+        }
+
+        if (element->args_count == 1) {
+            ret = element->func1((void *)element);
+        } else if (element->args_count == 3) {
+            ret = element->func3((void *)element, arg1, arg2);
+        } else {
+            free(element);
+            continue;
+        }
+
+        if (ret == 0) {
+            dbg_str(DBG_ERROR, 
+                    "test failed, func_name = %s,  file = %s, line = %d", 
+                    element->func_name,
+                    element->file,
+                    element->line);
+        } else {
+            dbg_str(DBG_SUC, 
+                    "test suc, func_name = %s,  file = %s, line = %d", 
+                    element->func_name,
+                    element->file,
+                    element->line);
+        }
+        free(element);
     }
 
     reg_heap_destroy(reg_heap);
