@@ -44,6 +44,7 @@
 #include <signal.h>
 #include <sys/un.h>
 #include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/registry/registry.h>
 
 int check_endian( )
 {
@@ -54,12 +55,16 @@ int check_endian( )
     c.a = 1;
     return(c.b ==1);
 }
-int lab()
+
+static int lab(TEST_ENTRY *entry, void *argc, void *argv)
 {
     if(check_endian()) {
         dbg_str(DBG_DETAIL,"little endian");
     } else {
         dbg_str(DBG_DETAIL,"big endian");
     }
+
+    return 1;
 }
+REGISTER_STANDALONE_TEST_FUNC(lab);
 

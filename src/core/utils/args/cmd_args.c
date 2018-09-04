@@ -86,8 +86,10 @@ args_parse_args(args_processor_t *p, int argc, char *argv[])
             i++;
             args_count = c->fn(p->base, argc - i, argv + i);
             if(args_count != c->args_count){
-                dbg_str(ARGS_WARNNING, 
-                        "the args funtion process args count is not equal the setting");
+                /*
+                 *dbg_str(ARGS_WARNNING, 
+                 *        "the args funtion process args count is not equal the setting");
+                 */
             }
             /*
              *i+= c->args_count;

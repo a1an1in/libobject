@@ -27,10 +27,16 @@ int __register_ctor_func3(int level, int (*func)(void *arg1, void *arg2, void *a
 int __register_dtor_func(int level, int (*func)());
 
 int 
+__register_standalone_test_func(int (*func)(void *, void *, void *),
+                                const char *func_name,
+                                const char *file,
+                                int line); 
+
+int
 __register_test_func(int (*func)(void *),
                      const char *func_name,
                      const char *file,
-                     int line);
+                     int line); 
 
 int execute_ctor_funcs(); 
 
