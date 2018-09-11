@@ -81,9 +81,7 @@ static int test_obj_server(TEST_ENTRY *entry, void *argc, void *argv)
 
     pre_alloc_count = allocator->alloc_count;
     s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
-                         "127.0.0.1", "11011", test_work_callback, allocator);
-
-    dbg_str(DBG_SUC,"opaque=%p", allocator);
+                         "127.0.0.1", "11011", test_work_callback, 0x1234);
 
     pause();
     server_destroy(s);
