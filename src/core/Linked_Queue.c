@@ -208,7 +208,7 @@ static void queue_print(void *element)
 {
     struct test *t = (struct test *)element;
      
-    dbg_str(OBJ_DETAIL, "t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(DBG_DETAIL, "t->a=%d, t->b=%d", t->a, t->b);
 }
 
 void test_obj_linked_queue()
@@ -238,15 +238,15 @@ void test_obj_linked_queue()
     q->for_each(q, queue_print);
 
     q->remove(q, (void **)&t);
-    dbg_str(OBJ_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(DBG_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
     q->remove(q, (void **)&t);
-    dbg_str(OBJ_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(DBG_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
     q->remove(q, (void **)&t);
-    dbg_str(OBJ_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(DBG_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
     q->remove(q, (void **)&t);
-    dbg_str(OBJ_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(DBG_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
     q->remove(q, (void **)&t);
-    dbg_str(OBJ_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
+    dbg_str(DBG_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
 
     q->for_each(q, queue_print);
 

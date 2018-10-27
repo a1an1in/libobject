@@ -21,8 +21,9 @@ export CC = gcc
 export LD = ld
 export MACROS+=$(MACRO)
 export PROJECT_PATH = $(shell pwd)
-export LIBS = -lpthread -lm -lSDL2 -lSDL2_ttf
-export INCLUDES += -I $(PROJECT_PATH)/src/include/
+export LIBS = -lpthread -lm -lrt -lSDL2 -lSDL2_ttf -L /usr/local/lib -lcutils
+export INCLUDES = -I /usr/local/include/libcutils
+export INCLUDES += -I $(PROJECT_PATH)/src/include
 
 #include makefile funtions
 include ./mk/Makefile.funcs

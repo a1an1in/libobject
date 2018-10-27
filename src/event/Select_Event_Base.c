@@ -156,7 +156,7 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
         if (tv != NULL)
             dbg_str(EV_DETAIL, "select base dispatch io events res=%d, tv=%d", res, tv->tv_sec);
     } else {
-        dbg_str(EV_WARNNING, "select timeout");
+        dbg_str(EV_DETAIL, "select timeout");
         return 0;
     }
 
