@@ -31,6 +31,7 @@
 # Debug files
 *.dSYM/
 .DS_Store
+CMakeFiles/
 
 *.swn
 *.swo
