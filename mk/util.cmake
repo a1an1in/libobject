@@ -1,0 +1,26 @@
+function (test arg)
+    message(${arg})
+endfunction()
+
+function (find_source_files ret)
+    file(GLOB_RECURSE files ${PROJECT_SOURCE_DIR}/src/*.c)
+    set(${ret} ${files} PARENT_SCOPE)
+endfunction()
+
+function (find_main_file ret)
+    file(GLOB_RECURSE file ${PROJECT_SOURCE_DIR}/src main.c)
+    set(${ret} ${file} PARENT_SCOPE)
+endfunction()
+
+function (find_module_files ret module_name)
+    file(GLOB_RECURSE files */${module_name}/*.c)
+    set(${ret} ${files} PARENT_SCOPE)
+endfunction()
+
+function (exclude_files ret source filted_files)
+  #message("filted_files: ${filted_files}")
+  #message("pre: ${source}")
+  list( REMOVE_ITEM source ${filted_files} )
+  #message("abc: ${source}")
+  set(${ret} ${source} PARENT_SCOPE)
+endfunction()

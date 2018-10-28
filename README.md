@@ -6,13 +6,20 @@
 This lib is designed for object-oriented programming using c language. It contains core, event, net, concurrent, and ui (not completed) modules now. Every module supply demos which are easy.
 
 ## Installation
-* cmake .
+1. cmake .
 
   change diretory to this lib, and key 'cmake .' command.
-* make 
+  if you want to config modules to compile, there're two methods recommended.
+  first, add pass module switch to cmake like below.
+
+  ```
+  cmake . -DMODULE_UI=ON
+  ```
+  sencond, using ccmake command to config.
+2. make 
 
   and key 'make' command.
-* make install
+3. make install
 
   and key 'make install' command.
   

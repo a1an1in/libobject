@@ -224,19 +224,25 @@ static int args_process_test_blob(void *base, int argc, char **argv)
 
 static int args_process_busd(void *base, int argc, char **argv)
 {
-    test_bus_daemon();
+    /*
+     *test_bus_daemon();
+     */
     return 0;
 }
 
 static int args_process_busc(void *base, int argc, char **argv)
 {
-    test_bus_client();
+    /*
+     *test_bus_client();
+     */
     return 0;
 }
 
 static int args_process_buss(void *base, int argc, char **argv)
 {
-    test_bus_server();
+    /*
+     *test_bus_server();
+     */
     return 0;
 }
 
@@ -300,7 +306,9 @@ static int args_process_test_Obj(void *base, int argc, char **argv)
 
 static int args_process_test_Subject(void *base, int argc, char **argv)
 {
-    test_obj_subject();
+    /*
+     *test_obj_subject();
+     */
     return 0;
 }
 
@@ -320,7 +328,9 @@ static int args_process_test_sdl(void *base, int argc, char **argv)
 
 static int args_process_test_Container(void *base, int argc, char **argv)
 {
-    test_ui_container();
+    /*
+     *test_ui_container();
+     */
     return 0;
 }
 
@@ -374,30 +384,40 @@ static int args_process_test_Queue(void *base, int argc, char **argv)
 
 static int args_process_test_Graph(void *base, int argc, char **argv)
 {
-    test_ui_graph();
+    /*
+     *test_ui_graph();
+     */
     return 0;
 }
 static int args_process_test_SDL_Window(void *base, int argc, char **argv)
 {
-    test_ui_sdl_window();
+    /*
+     *test_ui_sdl_window();
+     */
     return 0;
 }
 
 static int args_process_test_Image(void *base, int argc, char **argv)
 {
-    test_obj_image();
+    /*
+     *test_obj_image();
+     */
     return 0;
 }
 
 static int args_process_test_SDL_Image(void *base, int argc, char **argv)
 {
-    test_obj_sdl_image();
+    /*
+     *test_obj_sdl_image();
+     */
     return 0;
 }
 
 static int args_process_test_SDL_Font(void *base, int argc, char **argv)
 {
-    test_obj_sdl_font();
+    /*
+     *test_obj_sdl_font();
+     */
     return 0;
 }
 
@@ -412,61 +432,81 @@ static int args_process_test_SDL_Text(void *base, int argc, char **argv)
 static int args_process_test_SDL_Character(void *base, int argc, char **argv)
 {
     
-    test_obj_sdl_character();
+    /*
+     *test_obj_sdl_character();
+     */
     return 0;
 }
 
 static int args_process_test_SDL_Event(void *base, int argc, char **argv)
 {
-    test_obj_sdl_event();
+    /*
+     *test_obj_sdl_event();
+     */
     return 0;
 }
 
 static int args_process_test_Label(void *base, int argc, char **argv)
 {
-    test_ui_label();
+    /*
+     *test_ui_label();
+     */
     return 0;
 }
 
 static int args_process_test_Text(void *base, int argc, char **argv)
 {
-    test_obj_text();
+    /*
+     *test_obj_text();
+     */
     return 0;
 }
 
 static int args_process_test_Text_Area(void *base, int argc, char **argv)
 {
-    test_ui_text_area();
+    /*
+     *test_ui_text_area();
+     */
     return 0;
 }
 
 static int args_process_test_Text_Field(void *base, int argc, char **argv)
 {
-    test_ui_text_field();
+    /*
+     *test_ui_text_field();
+     */
     return 0;
 }
 
 static int args_process_test_SDL_Timer(void *base, int argc, char **argv)
 {
-    test_obj_sdl_timer();
+    /*
+     *test_obj_sdl_timer();
+     */
     return 0;
 }
 
 static int args_process_test_GridLayout(void *base, int argc, char **argv)
 {
-    test_ui_grid_layout();
+    /*
+     *test_ui_grid_layout();
+     */
     return 0;
 }
 
 static int args_process_test_BorderLayout(void *base, int argc, char **argv)
 {
-    test_ui_border_layout();
+    /*
+     *test_ui_border_layout();
+     */
     return 0;
 }
 
 static int args_process_test_Button(void *base, int argc, char **argv)
 {
-    test_ui_button();
+    /*
+     *test_ui_button();
+     */
     return 0;
 }
 
