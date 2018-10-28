@@ -202,7 +202,7 @@ CURL_LIBRARY:FILEPATH=/usr/lib/libcurl.dylib
 MODULE_BUS:BOOL=OFF
 
 //ui module
-MODULE_UI:BOOL=ON
+MODULE_UI:BOOL=OFF
 
 //No help, variable specified on the command line.
 MOUDLE_UI:UNINITIALIZED=ON

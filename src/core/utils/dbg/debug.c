@@ -106,13 +106,11 @@ void debugger_set_businesses(debugger_t *debugger)
         iniparser_setstr(d, (char *)"businesses", NULL); 
         iniparser_setstr(d, (char *)"businesses:business_num", buf); 
         for(i = 0; i < MAX_DEBUG_BUSINESS_NUM; i++){
-            snprintf(switch_str,
-                     MAX_STRING_LEN,
+            snprintf(switch_str, MAX_STRING_LEN,
                      "businesses:%s_switch",
                      debug_business_names[i]);
 
-            snprintf(level_str,
-                     MAX_STRING_LEN,
+            snprintf(level_str, MAX_STRING_LEN,
                      "businesses:%s_level",
                      debug_business_names[i]);
 
@@ -130,13 +128,11 @@ void debugger_set_businesses(debugger_t *debugger)
         fclose(f);
     }else{
         for(i = 0; i < bussiness_num; i++){
-            snprintf(switch_str,
-                     MAX_STRING_LEN,
+            snprintf(switch_str, MAX_STRING_LEN,
                      "businesses:%s_switch",
                      debug_business_names[i]);
 
-            snprintf(level_str,
-                     MAX_STRING_LEN,
+            snprintf(level_str, MAX_STRING_LEN,
                      "businesses:%s_level",
                      debug_business_names[i]);
 
@@ -257,7 +253,7 @@ debugger_t *debugger_creator(char *ini_file_name, uint8_t lock_type)
 
     type = iniparser_getint(d, (char *)"debugger:type", 0);
     if(access(debugger->ini_file_name, F_OK)){
-        printf("ini file not exsit\n");
+        printf("ini file %s not exist\n", debugger->ini_file_name);
         f = fopen(debugger->ini_file_name, "w");
         if(f == NULL){
             console_str("open ini file failed");

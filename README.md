@@ -11,7 +11,7 @@ This lib is designed for object-oriented programming using c language. It contai
   change diretory to this lib, and key 'cmake .' command.
   if you want to config modules to compile, there're two methods recommended.
 
-  first, add pass module switch to cmake like below.
+  first, pass module switch to cmake like below.
 
   ```
   cmake . -DMODULE_UI=ON

@@ -19,8 +19,6 @@ option (MODULE_BUS "bus module" OFF)
 # The version number.
 set (LIBOBJECT_VERSION_MAJOR 1)
 set (LIBOBJECT_VERSION_MINOR 0)
-
-#set (Source_Files)
 # Set the output folder where your program will be created
 set (CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/bin)
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -95,4 +93,5 @@ SET_TARGET_PROPERTIES (object PROPERTIES VERSION 1.2 SOVERSION 1)
 install (TARGETS test DESTINATION bin)
 #install (TARGETS object DESTINATION lib)
 install (TARGETS object DESTINATION lib)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/include/libobject DESTINATION include)
 

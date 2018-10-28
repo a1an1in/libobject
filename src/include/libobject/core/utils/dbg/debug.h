@@ -111,6 +111,21 @@ debugger_t *debugger_creator(char *ini_file_name,uint8_t lock_type);
 void debugger_init(debugger_t *debugger);
 void debugger_destroy(debugger_t *debugger);
 
+static inline char * extract_filename_in_macro(char *macro)
+{
+    char * index;
+
+    index = strrchr(macro, '/');
+    if (index != NULL) {
+        return index + 1;
+    } else if ((index = strrchr(macro, '\\')) != NULL) {
+        return index + 1;
+    } else {
+        return macro;
+    }
+
+}
+
 /*color*/
 #define BLACK 				0x0
 #define RED 				0x1
@@ -149,9 +164,9 @@ void debugger_destroy(debugger_t *debugger);
 #define OPEN_DEBUG 
 #ifdef OPEN_DEBUG
 	#define dbg_str(debug_switch,fmt,args...)\
-		debugger_dbg_str(debugger_gp,debug_switch,"[" fmt "]--[%s:%d]",##args, __FILE__, __LINE__);
+		debugger_dbg_str(debugger_gp,debug_switch,"[" fmt "]--[%s:%d]",##args, extract_filename_in_macro(__FILE__), __LINE__);
 	#define dbg_buf(debug_switch,const_str,buf,buf_len)\
-		debugger_dbg_buf(debugger_gp,debug_switch,const_str,buf,buf_len,"[%s:%d]", __FILE__, __LINE__) ;
+		debugger_dbg_buf(debugger_gp,debug_switch,const_str,buf,buf_len,"[%s:%d]", extract_filename_in_macro(__FILE__), __LINE__) ;
 #else
 	#define dbg_str(debug_switch,fmt,args...) do{}while(0) 
 	#define dbg_buf(debug_switch,const_str,buf,buf_len) do{}while(0)  
