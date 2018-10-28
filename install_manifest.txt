@@ -1,1 +1,4 @@
 /usr/local/bin/test
+/usr/local/lib/libobject.1.2.dylib
+/usr/local/lib/libobject.1.dylib
+/usr/local/lib/libobject.dylib

@@ -6,12 +6,15 @@
 This lib is designed for object-oriented programming using c language. It contains core, event, net, concurrent, and ui (not completed) modules now. Every module supply demos which are easy.
 
 ## Installation
-* make so lib
+* cmake .
 
-  change diretory to this lib, and key 'make so' command.
-* make bin
+  change diretory to this lib, and key 'cmake .' command.
+* make 
 
-  change diretory to this lib, and key 'make' command.
+  and key 'make' command.
+* make install
+
+  and key 'make install' command.
   
 ## User Guide
 
