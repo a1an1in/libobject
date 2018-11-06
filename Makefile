@@ -2855,32 +2855,140 @@ src/main.c.s:
 	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/main.c.s
 .PHONY : src/main.c.s
 
-src/module/Mould.o: src/module/Mould.c.o
+src/message/Centor.o: src/message/Centor.c.o
 
-.PHONY : src/module/Mould.o
+.PHONY : src/message/Centor.o
 
 # target to build an object file
-src/module/Mould.c.o:
-	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/module/Mould.c.o
-.PHONY : src/module/Mould.c.o
+src/message/Centor.c.o:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/message/Centor.c.o
+.PHONY : src/message/Centor.c.o
 
-src/module/Mould.i: src/module/Mould.c.i
+src/message/Centor.i: src/message/Centor.c.i
 
-.PHONY : src/module/Mould.i
+.PHONY : src/message/Centor.i
 
 # target to preprocess a source file
-src/module/Mould.c.i:
-	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/module/Mould.c.i
-.PHONY : src/module/Mould.c.i
+src/message/Centor.c.i:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/message/Centor.c.i
+.PHONY : src/message/Centor.c.i
 
-src/module/Mould.s: src/module/Mould.c.s
+src/message/Centor.s: src/message/Centor.c.s
 
-.PHONY : src/module/Mould.s
+.PHONY : src/message/Centor.s
 
 # target to generate assembly for a file
-src/module/Mould.c.s:
-	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/module/Mould.c.s
-.PHONY : src/module/Mould.c.s
+src/message/Centor.c.s:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/message/Centor.c.s
+.PHONY : src/message/Centor.c.s
+
+src/message/Message.o: src/message/Message.c.o
+
+.PHONY : src/message/Message.o
+
+# target to build an object file
+src/message/Message.c.o:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/message/Message.c.o
+.PHONY : src/message/Message.c.o
+
+src/message/Message.i: src/message/Message.c.i
+
+.PHONY : src/message/Message.i
+
+# target to preprocess a source file
+src/message/Message.c.i:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/message/Message.c.i
+.PHONY : src/message/Message.c.i
+
+src/message/Message.s: src/message/Message.c.s
+
+.PHONY : src/message/Message.s
+
+# target to generate assembly for a file
+src/message/Message.c.s:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/message/Message.c.s
+.PHONY : src/message/Message.c.s
+
+src/message/Publisher.o: src/message/Publisher.c.o
+
+.PHONY : src/message/Publisher.o
+
+# target to build an object file
+src/message/Publisher.c.o:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/message/Publisher.c.o
+.PHONY : src/message/Publisher.c.o
+
+src/message/Publisher.i: src/message/Publisher.c.i
+
+.PHONY : src/message/Publisher.i
+
+# target to preprocess a source file
+src/message/Publisher.c.i:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/message/Publisher.c.i
+.PHONY : src/message/Publisher.c.i
+
+src/message/Publisher.s: src/message/Publisher.c.s
+
+.PHONY : src/message/Publisher.s
+
+# target to generate assembly for a file
+src/message/Publisher.c.s:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/message/Publisher.c.s
+.PHONY : src/message/Publisher.c.s
+
+src/message/Subscriber.o: src/message/Subscriber.c.o
+
+.PHONY : src/message/Subscriber.o
+
+# target to build an object file
+src/message/Subscriber.c.o:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/message/Subscriber.c.o
+.PHONY : src/message/Subscriber.c.o
+
+src/message/Subscriber.i: src/message/Subscriber.c.i
+
+.PHONY : src/message/Subscriber.i
+
+# target to preprocess a source file
+src/message/Subscriber.c.i:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/message/Subscriber.c.i
+.PHONY : src/message/Subscriber.c.i
+
+src/message/Subscriber.s: src/message/Subscriber.c.s
+
+.PHONY : src/message/Subscriber.s
+
+# target to generate assembly for a file
+src/message/Subscriber.c.s:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/message/Subscriber.c.s
+.PHONY : src/message/Subscriber.c.s
+
+src/module/Module.o: src/module/Module.c.o
+
+.PHONY : src/module/Module.o
+
+# target to build an object file
+src/module/Module.c.o:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/module/Module.c.o
+.PHONY : src/module/Module.c.o
+
+src/module/Module.i: src/module/Module.c.i
+
+.PHONY : src/module/Module.i
+
+# target to preprocess a source file
+src/module/Module.c.i:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/module/Module.c.i
+.PHONY : src/module/Module.c.i
+
+src/module/Module.s: src/module/Module.c.s
+
+.PHONY : src/module/Module.s
+
+# target to generate assembly for a file
+src/module/Module.c.s:
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/module/Module.c.s
+.PHONY : src/module/Module.c.s
 
 src/net/client/Client.o: src/net/client/Client.c.o
 
@@ -3625,9 +3733,21 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
-	@echo "... src/module/Mould.o"
-	@echo "... src/module/Mould.i"
-	@echo "... src/module/Mould.s"
+	@echo "... src/message/Centor.o"
+	@echo "... src/message/Centor.i"
+	@echo "... src/message/Centor.s"
+	@echo "... src/message/Message.o"
+	@echo "... src/message/Message.i"
+	@echo "... src/message/Message.s"
+	@echo "... src/message/Publisher.o"
+	@echo "... src/message/Publisher.i"
+	@echo "... src/message/Publisher.s"
+	@echo "... src/message/Subscriber.o"
+	@echo "... src/message/Subscriber.i"
+	@echo "... src/message/Subscriber.s"
+	@echo "... src/module/Module.o"
+	@echo "... src/module/Module.i"
+	@echo "... src/module/Module.s"
 	@echo "... src/net/client/Client.o"
 	@echo "... src/net/client/Client.i"
 	@echo "... src/net/client/Client.s"

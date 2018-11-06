@@ -32,4 +32,9 @@ struct worker_s{
     int flags;
 };
 
+extern Worker *
+io_worker(allocator_t *allocator, int fd, 
+          struct timeval *ev_tv, void *ev_callback, 
+          void *work_callback, void *opaque);
+
 #endif

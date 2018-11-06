@@ -1,10 +1,11 @@
 /**
- * @file concurrent.c
- * @synopsis 
- * @author a1an1in@sina.com
- * @version 
- * @date 2017-09-24
+ * @file Message.c
+ * @Synopsis  
+ * @author alan lin
+ * @version 1
+ * @date 2018-10-28
  */
+
 /* Copyright (c) 2015-2020 alan lin <a1an1in@sina.com>
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,49 +34,49 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include "mould.h"
+#include <libobject/message/message.h> 
 
-static int __construct(Mould *mould,char *init_str)
+static int __construct(Message *message,char *init_str)
 {
-    allocator_t *allocator = mould->obj.allocator;
+    allocator_t *allocator = message->obj.allocator;
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(EV_DETAIL,"mould construct, mould addr:%p",mould);
+    dbg_str(EV_DETAIL,"message construct, message addr:%p",message);
 
     return 0;
 }
 
-static int __deconstrcut(Mould *mould)
+static int __deconstrcut(Message *message)
 {
-    dbg_str(EV_DETAIL,"mould deconstruct,mould addr:%p",mould);
+    dbg_str(EV_DETAIL,"message deconstruct,message addr:%p",message);
 
     return 0;
 }
 
-static int __set(Mould *mould, char *attrib, void *value)
+static int __set(Message *message, char *attrib, void *value)
 {
     if (strcmp(attrib, "set") == 0) {
-        mould->set = value;
+        message->set = value;
     } else if (strcmp(attrib, "get") == 0) {
-        mould->get = value;
+        message->get = value;
     } else if (strcmp(attrib, "construct") == 0) {
-        mould->construct = value;
+        message->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
-        mould->deconstruct = value;
+        message->deconstruct = value;
     } 
     else {
-        dbg_str(EV_DETAIL,"mould set, not support %s setting",attrib);
+        dbg_str(EV_DETAIL,"message set, not support %s setting",attrib);
     }
 
     return 0;
 }
 
-static void *__get(Mould *obj, char *attrib)
+static void *__get(Message *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"mould get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARNNING,"message get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
@@ -89,11 +90,11 @@ static class_info_entry_t concurent_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Mould",concurent_class_info);
+REGISTER_CLASS("Message",concurent_class_info);
 
-void test_obj_mould()
+void test_obj_message()
 {
-    Mould *mould;
+    Message *message;
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;
     char *set_str;
@@ -102,13 +103,13 @@ void test_obj_mould()
 
     c = cfg_alloc(allocator); 
     dbg_str(EV_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Mould", CJSON_STRING, "name", "alan mould") ;  
+    cfg_config(c, "/Message", CJSON_STRING, "name", "alan message") ;  
 
-    mould = OBJECT_NEW(allocator, Mould,c->buf);
+    message = OBJECT_NEW(allocator, Message,c->buf);
 
-    object_dump(mould, "Mould", buf, 2048);
-    dbg_str(EV_DETAIL,"Mould dump: %s",buf);
+    object_dump(message, "Message", buf, 2048);
+    dbg_str(EV_DETAIL,"Message dump: %s",buf);
 
-    object_destroy(mould);
+    object_destroy(message);
     cfg_destroy(c);
 }

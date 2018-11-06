@@ -204,9 +204,6 @@ MODULE_BUS:BOOL=OFF
 //ui module
 MODULE_UI:BOOL=OFF
 
-//No help, variable specified on the command line.
-MOUDLE_UI:UNINITIALIZED=ON
-
 //Include for OpenGL on OS X
 OPENGL_INCLUDE_DIR:PATH=/System/Library/Frameworks/OpenGL.framework
 
@@ -218,9 +215,6 @@ OPENGL_glu_LIBRARY:FILEPATH=/System/Library/Frameworks/OpenGL.framework
 
 //pkg-config executable
 PKG_CONFIG_EXECUTABLE:FILEPATH=/usr/local/bin/pkg-config
-
-//The directory containing a CMake configuration file for SDL2.
-SDL2_DIR:PATH=/usr/local/lib/cmake/SDL2
 
 //Value Computed by CMake
 libobject_BINARY_DIR:STATIC=/Users/alanlin/c_workspace/libobject

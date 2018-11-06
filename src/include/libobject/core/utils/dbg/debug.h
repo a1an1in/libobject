@@ -111,7 +111,8 @@ debugger_t *debugger_creator(char *ini_file_name,uint8_t lock_type);
 void debugger_init(debugger_t *debugger);
 void debugger_destroy(debugger_t *debugger);
 
-static inline char * extract_filename_in_macro(char *macro)
+static inline char *
+extract_filename_in_macro(char *macro)
 {
     char * index;
 
@@ -124,6 +125,7 @@ static inline char * extract_filename_in_macro(char *macro)
         return macro;
     }
 
+    return NULL;
 }
 
 /*color*/
