@@ -39,18 +39,16 @@
 
 static int __construct(Mutex_Lock *lock, char *init_str)
 {
-    dbg_str(DBG_DETAIL, "lock construct, lock addr:%p", lock);
+    dbg_str(DBG_DETAIL, "muxtex lock construct, lock addr:%p", lock);
 
-    return 0;
+    return pthread_mutex_init(&lock->mutex, NULL);
 }
 
 static int __deconstrcut(Mutex_Lock *lock)
 {
-    int ret;
+    dbg_str(DBG_DETAIL, "mutex lock deconstruct, lock addr:%p", lock);
 
-    dbg_str(DBG_DETAIL, "lock deconstruct, lock addr:%p", lock);
-
-    return 0;
+    return pthread_mutex_destroy(&lock->mutex);
 }
 
 static int __set(Mutex_Lock *lock, char *attrib, void *value)
@@ -90,16 +88,20 @@ static void *__get(Mutex_Lock *obj, char *attrib)
 
 static int __lock(Mutex_Lock *lock)
 {
-    dbg_str(DBG_DETAIL, "lock");
+    dbg_str(DBG_DETAIL, "mutex lock");
+    return pthread_mutex_lock(&lock->mutex);
 }
 
 static int __trylock(Mutex_Lock *lock)
 {
+    dbg_str(DBG_DETAIL, "mutex trylock");
+    return pthread_mutex_trylock(&lock->mutex);
 }
 
 static int __unlock(Mutex_Lock *lock)
 {
-    dbg_str(DBG_DETAIL, "unlock");
+    dbg_str(DBG_DETAIL, "mutex unlock");
+    return pthread_mutex_unlock(&lock->mutex);
 }
 
 static class_info_entry_t lock_class_info[] = {
@@ -115,26 +117,21 @@ static class_info_entry_t lock_class_info[] = {
 };
 REGISTER_CLASS("Mutex_Lock", lock_class_info);
 
-void test_obj_mutex_lock()
+int test_mutex_lock()
 {
     Lock *lock;
     allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
     char *set_str;
     cjson_t *root, *e, *s;
     char buf[2048];
 
-    c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
-
     lock = OBJECT_NEW(allocator, Mutex_Lock, NULL);
-
-    object_dump(lock, "Mutex_Lock", buf, 2048);
-    dbg_str(DBG_DETAIL, "Mutex_Lock dump: %s", buf);
 
     lock->lock(lock);
     lock->unlock(lock);
 
     object_destroy(lock);
-    cfg_destroy(c);
+
+    return 1;
 }
+REGISTER_STANDALONE_TEST_FUNC(test_mutex_lock);

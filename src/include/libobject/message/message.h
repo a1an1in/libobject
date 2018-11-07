@@ -1,22 +1,20 @@
-#ifndef __CONCURRENT_H__
-#define __CONCURRENT_H__
+#ifndef __MESSAGE_MSG_H__
+#define __MESSAGE_MSG_H__
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 
-typedef struct message_s Message;
+#define DEFAULT_RAW_MESSAGE_LEN 10
 
-struct message_s{
-	Obj obj;
+typedef struct message_s{
+    void *publisher;
+    char *raw_message;
+    int raw_message_len;
+    allocator_t *allocator;
+} message_t;
 
-	int (*construct)(Message *,char *init_str);
-	int (*deconstruct)(Message *);
-	int (*set)(Message *, char *attrib, void *value);
-    void *(*get)(void *obj, char *attrib);
-
-	/*virtual methods reimplement*/
-
-};
+message_t *message_alloc(allocator_t *allocator);
+int message_set(message_t *message, char *attrib, void *value);
 
 #endif

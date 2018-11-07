@@ -22,9 +22,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -36,21 +36,22 @@
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/message/subscriber.h> 
+#include <libobject/message/centor.h>
 
-static int __construct(Subscriber *subscriber,char *init_str)
+static int __construct(Subscriber *subscriber, char *init_str)
 {
     allocator_t *allocator = subscriber->obj.allocator;
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(EV_DETAIL,"subscriber construct, subscriber addr:%p",subscriber);
+    dbg_str(EV_DETAIL, "subscriber construct, subscriber addr:%p", subscriber);
 
     return 0;
 }
 
 static int __deconstrcut(Subscriber *subscriber)
 {
-    dbg_str(EV_DETAIL,"subscriber deconstruct,subscriber addr:%p",subscriber);
+    dbg_str(EV_DETAIL, "subscriber deconstruct, subscriber addr:%p", subscriber);
 
     return 0;
 }
@@ -65,9 +66,17 @@ static int __set(Subscriber *subscriber, char *attrib, void *value)
         subscriber->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         subscriber->deconstruct = value;
+    } else if (strcmp(attrib, "connect_centor") == 0) {
+        subscriber->connect_centor = value;
+    } else if (strcmp(attrib, "subscribe") == 0) {
+        subscriber->subscribe = value;
+    } else if (strcmp(attrib, "add_message_handler") == 0) {
+        subscriber->add_message_handler = value;
+    } else if (strcmp(attrib, "add_message_handler_arg") == 0) {
+        subscriber->add_message_handler_arg = value;
     } 
     else {
-        dbg_str(EV_DETAIL,"subscriber set, not support %s setting",attrib);
+        dbg_str(EV_DETAIL, "subscriber set, not support %s setting", attrib);
     }
 
     return 0;
@@ -77,40 +86,51 @@ static void *__get(Subscriber *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"subscriber get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARNNING, "subscriber get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
-static class_info_entry_t concurent_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
-};
-REGISTER_CLASS("Subscriber",concurent_class_info);
-
-void test_obj_subscriber()
+static int __connect_centor(Subscriber *subscriber, void *centor)
 {
-    Subscriber *subscriber;
-    allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-
-    c = cfg_alloc(allocator); 
-    dbg_str(EV_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Subscriber", CJSON_STRING, "name", "alan subscriber") ;  
-
-    subscriber = OBJECT_NEW(allocator, Subscriber,c->buf);
-
-    object_dump(subscriber, "Subscriber", buf, 2048);
-    dbg_str(EV_DETAIL,"Subscriber dump: %s",buf);
-
-    object_destroy(subscriber);
-    cfg_destroy(c);
+    dbg_str(DBG_DETAIL, "subscriber connect centor");
+    subscriber->centor = centor;
 }
+
+static int __subscribe(Subscriber *subscriber, void *publisher)
+{
+    Centor *centor = (Centor *)subscriber->centor;
+    dbg_str(DBG_DETAIL, "subscriber subscribe publisher");
+
+    subscriber->publisher = publisher;
+    centor->subscriber_map->add(centor->subscriber_map, &publisher, subscriber);
+
+    return 0;
+}
+
+static int __add_message_handler(Subscriber *subscriber, void (*func)(void *))
+{
+    subscriber->message_handler = func;
+    return 0;
+}
+
+static int __add_message_handler_arg(Subscriber *subscriber, void *arg)
+{
+    subscriber->message_handler_arg = arg;
+    return 0;
+}
+
+static class_info_entry_t concurent_class_info[] = {
+    [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "connect_centor", __connect_centor, sizeof(void *)}, 
+    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "subscribe", __subscribe, sizeof(void *)}, 
+    [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_message_handler", __add_message_handler, sizeof(void *)}, 
+    [8] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_message_handler_arg", __add_message_handler_arg, sizeof(void *)}, 
+    [9] = {ENTRY_TYPE_END}, 
+};
+REGISTER_CLASS("Subscriber", concurent_class_info);

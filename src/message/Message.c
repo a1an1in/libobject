@@ -1,5 +1,5 @@
 /**
- * @file Message.c
+ * @file message_t.c
  * @Synopsis  
  * @author alan lin
  * @version 1
@@ -35,81 +35,76 @@
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/message/message.h> 
+#include <libobject/message/publisher.h>
 
-static int __construct(Message *message,char *init_str)
+message_t *message_alloc(allocator_t *allocator)
 {
-    allocator_t *allocator = message->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
+    message_t *ret = NULL;
 
-    dbg_str(EV_DETAIL,"message construct, message addr:%p",message);
+    dbg_str(DBG_DETAIL, "message_create");
 
-    return 0;
-}
-
-static int __deconstrcut(Message *message)
-{
-    dbg_str(EV_DETAIL,"message deconstruct,message addr:%p",message);
-
-    return 0;
-}
-
-static int __set(Message *message, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        message->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        message->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        message->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        message->deconstruct = value;
-    } 
-    else {
-        dbg_str(EV_DETAIL,"message set, not support %s setting",attrib);
+    ret = (message_t *)allocator_mem_alloc(allocator, sizeof(message_t));
+    if (ret == NULL) {
+        dbg_str(DBG_ERROR, "allock err");
     }
 
-    return 0;
+    memset(ret,  0,  sizeof(message_t));
+
+    ret->allocator = allocator;
+    ret->raw_message_len = DEFAULT_RAW_MESSAGE_LEN;
+    dbg_str(DBG_DETAIL, "message_create end, ret =%p", ret);
+
+    return ret;
 }
 
-static void *__get(Message *obj, char *attrib)
+int message_set(message_t *message, char *attrib, void *value)
 {
-    if (strcmp(attrib, "") == 0) {
+    dbg_str(DBG_DETAIL, "message_set, message addr:%p", message);
+
+    if (!strcmp(attrib, "raw_message_len")) {
+        int * len = (int *)value;
+        message->raw_message_len = *len;
     } else {
-        dbg_str(EV_WARNNING,"message get, \"%s\" getting attrib is not supported",attrib);
-        return NULL;
+        dbg_str(DBG_WARNNING, "not support attrib setting, please check");
+        return -1;
     }
-    return NULL;
+
+    return 0;
 }
 
-static class_info_entry_t concurent_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
-};
-REGISTER_CLASS("Message",concurent_class_info);
-
-void test_obj_message()
+int 
+message_init(message_t *message, Publisher *publisher,
+             char *raw_message, int raw_message_len)
 {
-    Message *message;
-    allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
+    allocator_t *allocator;
 
-    c = cfg_alloc(allocator); 
-    dbg_str(EV_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Message", CJSON_STRING, "name", "alan message") ;  
+    dbg_str(DBG_DETAIL,"message init");
 
-    message = OBJECT_NEW(allocator, Message,c->buf);
+    allocator = message->allocator;
 
-    object_dump(message, "Message", buf, 2048);
-    dbg_str(EV_DETAIL,"Message dump: %s",buf);
+    if (message->raw_message_len == 0) {
+        message->raw_message_len = DEFAULT_RAW_MESSAGE_LEN;
+    }
 
-    object_destroy(message);
-    cfg_destroy(c);
+    message->raw_message = (char *)allocator_mem_alloc(allocator, message->raw_message_len);
+    if (message->raw_message == NULL) {
+        dbg_str(DBG_ERROR, "alloc err");
+        return -1;
+    }
+
+    message->publisher = publisher;
+    memcpy(message->raw_message, raw_message, raw_message_len);
+
+    return 0;
 }
+
+int message_destroy(message_t * message)
+{
+    int ret = 0;
+
+    allocator_mem_free(message->allocator, message->raw_message);
+    allocator_mem_free(message->allocator, message);
+
+    return ret;
+}
+

@@ -22,9 +22,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -36,7 +36,12 @@
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/message/centor.h> 
+#include <libobject/message/message.h> 
+#include <libobject/message/subscriber.h>
+#include <libobject/message/publisher.h>
 #include <libobject/net/socket/unix_udp_socket.h>
+#include <libobject/core/linked_queue.h>
+#include <libobject/core/rbtree_map.h>
 
 #define DEFAULT_CENTOR_UNIX_SERVER_PATH "/tmp/default_centor_unix_socket_path"
 
@@ -47,17 +52,17 @@ message_centor_ev_callback(int fd, short event, void *arg)
     char buf[1];
 
     if (read(fd, buf, 1) != 1) {
-        dbg_str(DBG_WARNNING,"message centor read ev error");
+        dbg_str(DBG_WARNNING, "message centor read ev error");
         return ;
     }
 
     switch(buf[0]) {
         case 'p': {
-                dbg_str(DBG_SUC,"a publisher pub a message");
+                dbg_str(DBG_SUC, "a publisher pub a message");
                 break;
             }
         default:
-            dbg_str(DBG_WARNNING,"read a unsupported message");
+            dbg_str(DBG_WARNNING, "read a unsupported message");
             break;
     }
 
@@ -66,19 +71,48 @@ message_centor_ev_callback(int fd, short event, void *arg)
     return;
 }
 
+/*
+ * find the subscribers who care the message
+ * */
+static void map_for_each_arg_callback(void *key, void *element, void *arg)
+{
+    Subscriber *subscriber = (Subscriber *)element;
+    Publisher **publisher  = (Publisher **)key;
+    message_t *message     = (message_t *)arg;
+     
+    if (*publisher == message->publisher) {
+        dbg_str(DBG_SUC, "publisher %p publish a message which has a subscriber: %p", 
+                *publisher, subscriber);
+        subscriber->message = message;
+        subscriber->message_handler(subscriber);
+    }
+}
+
 static void message_centor_work_callback(void *task)
 {
     Worker *worker = (Worker *)task;
+    Centor *centor = (Centor *)worker->opaque;
+    message_t *message;
+
     dbg_str(DBG_SUC, "centor worker callback");
-    dbg_str(DBG_SUC,"centor addr:%p",worker->opaque);
+    dbg_str(DBG_DETAIL, "centor addr:%p", worker->opaque);
+    centor->message_queue->remove(centor->message_queue, 
+                                  (void **)&message);
+    dbg_str(DBG_DETAIL, "message addr %p, publisher addr:%p", message, message->publisher);
+    dbg_str(DBG_DETAIL, "recv raw message %s", (char *)message->raw_message);
+    centor->subscriber_map->for_each_arg(centor->subscriber_map, 
+                                         map_for_each_arg_callback, message);
+
+    message_destroy(message);
 }
 
-static int __construct(Centor *centor,char *init_str)
+static int __construct(Centor *centor, char *init_str)
 {
     allocator_t *allocator = centor->obj.allocator;
     Socket *s, *c;
+    configurator_t * config;
 
-    dbg_str(DBG_SUC,"centor construct, centor addr:%p",centor);
+    dbg_str(DBG_SUC, "centor construct, centor addr:%p", centor);
     s = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
     s->bind(s, DEFAULT_CENTOR_UNIX_SERVER_PATH, NULL); 
 
@@ -92,15 +126,24 @@ static int __construct(Centor *centor,char *init_str)
                                NULL, message_centor_ev_callback, 
                                message_centor_work_callback, centor);
 
+    centor->message_queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
+
+    config = cfg_alloc(allocator); 
+    cfg_config(config, "/RBTree_Map", CJSON_NUMBER, "key_type", "1");
+    centor->subscriber_map = OBJECT_NEW(allocator, RBTree_Map, config->buf);
+    cfg_destroy(config);
+
     return 0;
 }
 
 static int __deconstrcut(Centor *centor)
 {
-    dbg_str(EV_DETAIL,"centor deconstruct,centor addr:%p",centor);
+    dbg_str(DBG_DETAIL, "centor deconstruct, centor addr:%p", centor);
     io_worker_destroy(centor->worker);
     object_destroy(centor->s);
     object_destroy(centor->c);
+    object_destroy(centor->message_queue);
+    object_destroy(centor->subscriber_map);
 
     return 0;
 }
@@ -117,7 +160,7 @@ static int __set(Centor *centor, char *attrib, void *value)
         centor->deconstruct = value;
     } 
     else {
-        dbg_str(EV_DETAIL,"centor set, not support %s setting",attrib);
+        dbg_str(DBG_DETAIL, "centor set, not support %s setting", attrib);
     }
 
     return 0;
@@ -127,21 +170,21 @@ static void *__get(Centor *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"centor get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARNNING, "centor get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
 static class_info_entry_t concurent_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
+    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Centor",concurent_class_info);
+REGISTER_CLASS("Centor", concurent_class_info);
 
 int test_obj_message_centor()
 {
@@ -149,7 +192,7 @@ int test_obj_message_centor()
     allocator_t *allocator = allocator_get_default_alloc();
     char * test_str = "p";
 
-    centor = OBJECT_NEW(allocator, Centor,NULL);
+    centor = OBJECT_NEW(allocator, Centor, NULL);
 
     centor->c->write(centor->c, test_str, 1);
     pause();

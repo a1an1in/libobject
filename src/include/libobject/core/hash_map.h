@@ -26,6 +26,7 @@ struct Hash_Map_s{
      *void (*for_each)(Map *map,void (*func)(Map *map, char *key, void *value));
      */
     void (*for_each)(Map *map,void (*func)(void *key, void *element));
+    void (*for_each_arg)(Map *map,void (*func)(void *key, void *element, void *arg),void *arg);
     Iterator *(*begin)(Map *map);
     Iterator *(*end)(Map *map);
     int (*destroy)(Map *map);

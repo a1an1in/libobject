@@ -30,12 +30,12 @@ set (CMAKE_BUILD_TYPE "Debug")
 
 # add compile paramater 
 add_definitions(-DDEBUG)
-add_definitions(-O0 -g -ggdb)
+add_definitions(-O0)
 add_definitions(-fPIC)
 add_definitions("-Wall -Wno-return-type -Wno-unused-variable -Wno-unused-function
                  -Wno-sometimes-uninitialized -Wno-char-subscripts -Wno-sometimes-uninitialized 
                  -Wno-unused-label -Wno-uninitialized -Wno-int-conversion -Wno-implicit-function-declaration
-                 -Wno-uninitialized")
+                 -Wno-uninitialized -g -ggdb")
 
 include_directories(src/include)
 #add_subdirectory(src)
@@ -77,8 +77,10 @@ ADD_LIBRARY (object SHARED ${Source_Files})
 target_link_libraries(object SDL2)
 target_link_libraries(object SDL2_ttf)
 
-add_executable(test ${Main_File})
-target_link_libraries(test object)
+#add_executable(test ${Main_File})
+#target_link_libraries(test object)
+
+add_executable(test ${Main_File} ${Source_Files})
 
 #ADD_LIBRARY (object_static STATIC ${Source_Files})
 #SET_TARGET_PROPERTIES(object_static PROPERTIES OUTPUT_NAME "object")
@@ -91,7 +93,6 @@ SET_TARGET_PROPERTIES (object PROPERTIES VERSION 1.2 SOVERSION 1)
 
 
 install (TARGETS test DESTINATION bin)
-#install (TARGETS object DESTINATION lib)
 install (TARGETS object DESTINATION lib)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/include/libobject DESTINATION include)
 

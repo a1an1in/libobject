@@ -43,3 +43,4 @@ cscope*
 *~
 tags
 dbg.ini
+bin/test

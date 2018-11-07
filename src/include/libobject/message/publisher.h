@@ -1,9 +1,11 @@
-#ifndef __CONCURRENT_H__
-#define __CONCURRENT_H__
+#ifndef __MESSAGE_PUBLISHER_H__
+#define __MESSAGE_PUBLISHER_H__
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
+#include <libobject/message/message.h>
+#include <libobject/message/centor.h>
 
 typedef struct msg_publisher_s Publisher;
 
@@ -17,6 +19,11 @@ struct msg_publisher_s{
 
 	/*virtual methods reimplement*/
 
+    int (*connect_centor)(Publisher *, Centor *);
+    int (*publish)(Publisher *, message_t *);
+    int (*publish_raw_message)(Publisher *publisher, char *raw_message, int raw_message_len);
+
+    void *centor;
 };
 
 #endif

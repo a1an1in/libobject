@@ -23,6 +23,7 @@ struct RBTree_Map_s{
     int (*remove)(Map *map,void *key,void **element);
     int (*del)(Map *map, void *key);
     void (*for_each)(Map *map,void (*func)(void *key, void *element));
+    void (*for_each_arg)(Map *map,void (*func)(void *key, void *element, void *arg),void *arg);
     Iterator *(*begin)(Map *map);
     Iterator *(*end)(Map *map);
     int (*destroy)(Map *map);

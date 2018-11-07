@@ -6,6 +6,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/core/lock.h>
+#include <pthread.h>
 
 typedef struct mutex_lock_s Mutex_Lock;
 
@@ -21,6 +22,8 @@ struct mutex_lock_s{
     int (*lock)(Mutex_Lock *lock);
     int (*trylock)(Mutex_Lock *lock);
     int (*unlock)(Mutex_Lock *lock);
+
+    pthread_mutex_t mutex;
 };
 
 #endif

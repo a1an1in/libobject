@@ -6,6 +6,9 @@
 #include <libobject/core/obj.h>
 #include <libobject/net/socket/socket.h>
 #include <libobject/concurrent/worker.h>
+#include <libobject/core/queue.h>
+#include <libobject/core/map.h>
+#include <libobject/core/lock.h>
 
 typedef struct centor_s Centor;
 
@@ -21,7 +24,11 @@ struct centor_s{
 
     Socket *s, *c;
     Worker *worker;
-
+    Queue *message_queue;
+    Map *subscriber_map;
+    /*
+     *Lock *lock;
+     */
 };
 
 #endif

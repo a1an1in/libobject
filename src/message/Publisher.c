@@ -21,9 +21,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -35,21 +35,23 @@
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/message/publisher.h> 
+#include <libobject/message/centor.h>
+#include <libobject/message/subscriber.h>
 
-static int __construct(Publisher *publisher,char *init_str)
+static int __construct(Publisher *publisher, char *init_str)
 {
     allocator_t *allocator = publisher->obj.allocator;
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(EV_DETAIL,"publisher construct, publisher addr:%p",publisher);
+    dbg_str(DBG_DETAIL, "publisher construct, publisher addr:%p", publisher);
 
     return 0;
 }
 
 static int __deconstrcut(Publisher *publisher)
 {
-    dbg_str(EV_DETAIL,"publisher deconstruct,publisher addr:%p",publisher);
+    dbg_str(DBG_DETAIL, "publisher deconstruct, publisher addr:%p", publisher);
 
     return 0;
 }
@@ -64,9 +66,15 @@ static int __set(Publisher *publisher, char *attrib, void *value)
         publisher->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         publisher->deconstruct = value;
+    } else if (strcmp(attrib, "connect_centor") == 0) {
+        publisher->connect_centor = value;
+    } else if (strcmp(attrib, "publish") == 0) {
+        publisher->publish = value;
+    } else if (strcmp(attrib, "publish_raw_message") == 0) {
+        publisher->publish_raw_message = value;
     } 
     else {
-        dbg_str(EV_DETAIL,"publisher set, not support %s setting",attrib);
+        dbg_str(DBG_DETAIL, "publisher set, not support %s setting", attrib);
     }
 
     return 0;
@@ -76,40 +84,90 @@ static void *__get(Publisher *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"publisher get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARNNING, "publisher get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
 }
 
-static class_info_entry_t concurent_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
-};
-REGISTER_CLASS("Publisher",concurent_class_info);
-
-void test_obj_publisher()
+static int __connect_centor(Publisher *publish, Centor *centor)
 {
-    Publisher *publisher;
-    allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-
-    c = cfg_alloc(allocator); 
-    dbg_str(EV_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Publisher", CJSON_STRING, "name", "alan publisher") ;  
-
-    publisher = OBJECT_NEW(allocator, Publisher,c->buf);
-
-    object_dump(publisher, "Publisher", buf, 2048);
-    dbg_str(EV_DETAIL,"Publisher dump: %s",buf);
-
-    object_destroy(publisher);
-    cfg_destroy(c);
+    dbg_str(DBG_DETAIL, "publish message");
+    publish->centor = centor;
 }
+
+static int __publish(Publisher *publish, message_t *message)
+{
+    dbg_str(DBG_DETAIL, "publish message, unsurported now");
+}
+
+int 
+__publish_raw_message(Publisher *publisher, char *raw_message, int raw_message_len)
+{
+    message_t * message;
+    Centor *centor = (Centor *)publisher->centor;
+    allocator_t *allocator = publisher->obj.allocator;
+
+    dbg_str(DBG_DETAIL, "publish raw message");
+
+    message = message_alloc(allocator);
+    dbg_str(DBG_DETAIL, "message addr:%p, len addr:%p", message, &raw_message_len);
+    dbg_str(DBG_DETAIL, "publish message len %d", message->raw_message_len);
+    message_set(message, "raw_message_len", &raw_message_len);
+    message_init(message, publisher, raw_message, raw_message_len);
+
+    centor->message_queue->add(centor->message_queue, message);
+    centor->c->write(centor->c, "p", 1);
+}
+
+static class_info_entry_t concurent_class_info[] = {
+    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "connect_centor", __connect_centor, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "publish", __publish, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "publish_raw_message", __publish_raw_message, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_END}, 
+};
+REGISTER_CLASS("Publisher", concurent_class_info);
+
+void test_message_handler(void *arg)
+{
+    Subscriber *subscriber = (Subscriber *)arg;
+    message_t *message = (message_t *)subscriber->message;
+    dbg_str(DBG_SUC, "subscriber receive a message:%s", (char *)message->raw_message);
+    dbg_str(DBG_DETAIL, "message handler arg:%p", subscriber->message_handler_arg);
+}
+
+int test_message_publisher()
+{
+    Centor *centor;
+    Publisher *publisher;
+    Subscriber *subscriber;
+    allocator_t *allocator = allocator_get_default_alloc();
+    char * test_str = "hello world";
+
+    centor     = OBJECT_NEW(allocator, Centor, NULL);
+    publisher  = OBJECT_NEW(allocator, Publisher, NULL);
+    subscriber = OBJECT_NEW(allocator, Subscriber, NULL);
+
+    subscriber->connect_centor(subscriber, centor);
+    subscriber->subscribe(subscriber, publisher);
+    subscriber->add_message_handler(subscriber, test_message_handler);
+    subscriber->add_message_handler_arg(subscriber, allocator);
+    dbg_str(DBG_DETAIL, "%p subscribe a publisher, publisher addr:%p", subscriber, publisher);
+    dbg_str(DBG_DETAIL, "message handler arg:%p", allocator);
+
+    publisher->connect_centor(publisher, centor);
+    publisher->publish_raw_message(publisher, test_str, strlen(test_str));
+
+    pause();
+    object_destroy(centor);
+    object_destroy(subscriber);
+    object_destroy(publisher);
+
+    return 1;
+}
+REGISTER_STANDALONE_TEST_FUNC(test_message_publisher);
