@@ -70,8 +70,8 @@ static int __set(Map *map, char *attrib, void *value)
         map->del = value;
     } else if (strcmp(attrib, "for_each") == 0) {
         map->for_each = value;
-    } else if (strcmp(attrib, "for_each_arg") == 0) {
-        map->for_each_arg = value;
+    } else if (strcmp(attrib, "for_each_arg3") == 0) {
+        map->for_each_arg3 = value;
     } else if (strcmp(attrib, "begin") == 0) {
         map->begin = value;
     } else if (strcmp(attrib, "end") == 0) {
@@ -118,7 +118,7 @@ static void __for_each(Map *map, void (*func)(void *key, void *element))
 
 }
 
-static void __for_each_arg(Map *map,void (*func)(void *key, void *element, void *arg),void *arg)
+static void __for_each_arg3(Map *map,void (*func)(void *key, void *element, void *arg),void *arg)
 {
     Iterator *cur, *end;
     void *key, *value;
@@ -160,7 +160,7 @@ static class_info_entry_t map_class_info[] = {
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", NULL, sizeof(void *)}, 
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del", NULL, sizeof(void *)}, 
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg", __for_each_arg, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg3", __for_each_arg3, sizeof(void *)}, 
     [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
     [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
     [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy", __destroy, sizeof(void *)}, 

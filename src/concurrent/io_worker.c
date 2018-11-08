@@ -44,11 +44,14 @@
 Worker *
 io_worker(allocator_t *allocator, int fd, 
           struct timeval *ev_tv, void *ev_callback, 
-          void *work_callback, void *opaque)
+          void *work_callback, Producer *producer, 
+          void *opaque)
 {
-    Producer *producer = global_get_default_producer();
     Worker *worker = NULL;
 
+    if (producer == NULL) {
+        producer = global_get_default_producer();
+    }
     worker = OBJECT_NEW(allocator, Worker, NULL);
     worker->opaque = opaque;
 
@@ -132,7 +135,7 @@ void test_obj_io_worker()
 
     fd = create_fifo((char *)"event.fifo");
     worker = io_worker(allocator, fd, NULL, test_pipe_ev_callback, 
-                       test_work_callback, NULL);
+                       test_work_callback, NULL, NULL);
     pause();
     pause();
     io_worker_destroy(worker);

@@ -35,6 +35,7 @@ struct worker_s{
 extern Worker *
 io_worker(allocator_t *allocator, int fd, 
           struct timeval *ev_tv, void *ev_callback, 
-          void *work_callback, void *opaque);
+          void *work_callback, Producer *producer, 
+          void *opaque);
 
 #endif

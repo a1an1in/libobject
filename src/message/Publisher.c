@@ -154,9 +154,9 @@ int test_message_publisher()
     subscriber = OBJECT_NEW(allocator, Subscriber, NULL);
 
     subscriber->connect_centor(subscriber, centor);
-    subscriber->subscribe(subscriber, publisher);
     subscriber->add_message_handler(subscriber, test_message_handler);
     subscriber->add_message_handler_arg(subscriber, allocator);
+    subscriber->subscribe(subscriber, publisher);
     dbg_str(DBG_DETAIL, "%p subscribe a publisher, publisher addr:%p", subscriber, publisher);
     dbg_str(DBG_DETAIL, "message handler arg:%p", allocator);
 

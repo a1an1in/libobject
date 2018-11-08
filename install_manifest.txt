@@ -89,7 +89,6 @@
 /usr/local/include/libobject/core/utils/dbg/debug.h
 /usr/local/include/libobject/core/utils/dbg/debug_network.h
 /usr/local/include/libobject/core/utils/dbg/debug_log.h
-/usr/local/include/libobject/core/utils/dbg/.debug.h.swp
 /usr/local/include/libobject/core/utils/dbg/list.h
 /usr/local/include/libobject/core/utils/dbg/debug_businesses.h
 /usr/local/include/libobject/core/utils/dbg/debug_string.h
@@ -127,6 +126,10 @@
 /usr/local/include/libobject/test.h
 /usr/local/include/libobject/bus/bus.h
 /usr/local/include/libobject/bus/busd.h
+/usr/local/include/libobject/message/message.h
+/usr/local/include/libobject/message/centor.h
+/usr/local/include/libobject/message/publisher.h
+/usr/local/include/libobject/message/subscriber.h
 /usr/local/include/libobject/utils/.DS_Store
 /usr/local/include/libobject/attrib_priority.h
 /usr/local/include/libobject/system/system.h
