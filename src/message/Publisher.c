@@ -70,8 +70,8 @@ static int __set(Publisher *publisher, char *attrib, void *value)
         publisher->connect_centor = value;
     } else if (strcmp(attrib, "publish") == 0) {
         publisher->publish = value;
-    } else if (strcmp(attrib, "publish_raw_message") == 0) {
-        publisher->publish_raw_message = value;
+    } else if (strcmp(attrib, "publish_message") == 0) {
+        publisher->publish_message = value;
     } 
     else {
         dbg_str(DBG_DETAIL, "publisher set, not support %s setting", attrib);
@@ -102,7 +102,7 @@ static int __publish(Publisher *publish, message_t *message)
 }
 
 int 
-__publish_raw_message(Publisher *publisher, char *raw_message, int raw_message_len)
+__publish_message(Publisher *publisher, char *what, void *opaque)
 {
     message_t * message;
     Centor *centor = (Centor *)publisher->centor;
@@ -111,10 +111,9 @@ __publish_raw_message(Publisher *publisher, char *raw_message, int raw_message_l
     dbg_str(DBG_DETAIL, "publish raw message");
 
     message = message_alloc(allocator);
-    dbg_str(DBG_DETAIL, "message addr:%p, len addr:%p", message, &raw_message_len);
-    dbg_str(DBG_DETAIL, "publish message len %d", message->raw_message_len);
-    message_set(message, "raw_message_len", &raw_message_len);
-    message_init(message, publisher, raw_message, raw_message_len);
+    message_set(message, "what", what);
+    message_set(message, "opaque", opaque);
+    message_set(message, "publisher", publisher);
 
     centor->message_queue->add(centor->message_queue, message);
     centor->c->write(centor->c, "p", 1);
@@ -128,17 +127,16 @@ static class_info_entry_t concurent_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "connect_centor", __connect_centor, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "publish", __publish, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "publish_raw_message", __publish_raw_message, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "publish_message", __publish_message, sizeof(void *)}, 
     [8 ] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Publisher", concurent_class_info);
 
-void test_message_handler(void *arg)
+static void test_on_pause(message_t *message, void *arg)
 {
     Subscriber *subscriber = (Subscriber *)arg;
-    message_t *message = (message_t *)subscriber->message;
-    dbg_str(DBG_SUC, "subscriber receive a message:%s", (char *)message->raw_message);
-    dbg_str(DBG_DETAIL, "message handler arg:%p", subscriber->message_handler_arg);
+    dbg_str(DBG_SUC, "subscriber receive a message:%s", (char *)message->what);
+    dbg_str(DBG_DETAIL, "message handler opaque:%p", subscriber->opaque);
 }
 
 int test_message_publisher()
@@ -147,21 +145,21 @@ int test_message_publisher()
     Publisher *publisher;
     Subscriber *subscriber;
     allocator_t *allocator = allocator_get_default_alloc();
-    char * test_str = "hello world";
+    char * test_str = "on_pause";
 
     centor     = OBJECT_NEW(allocator, Centor, NULL);
     publisher  = OBJECT_NEW(allocator, Publisher, NULL);
     subscriber = OBJECT_NEW(allocator, Subscriber, NULL);
 
     subscriber->connect_centor(subscriber, centor);
-    subscriber->add_message_handler(subscriber, test_message_handler);
-    subscriber->add_message_handler_arg(subscriber, allocator);
+    subscriber->add_method(subscriber, "on_pause", test_on_pause);
+    subscriber->add_opaque(subscriber, allocator);
     subscriber->subscribe(subscriber, publisher);
     dbg_str(DBG_DETAIL, "%p subscribe a publisher, publisher addr:%p", subscriber, publisher);
     dbg_str(DBG_DETAIL, "message handler arg:%p", allocator);
 
     publisher->connect_centor(publisher, centor);
-    publisher->publish_raw_message(publisher, test_str, strlen(test_str));
+    publisher->publish_message(publisher, test_str, strlen(test_str));
 
     pause();
     object_destroy(centor);

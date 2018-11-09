@@ -1,5 +1,5 @@
-#ifndef __CONCURRENT_H__
-#define __CONCURRENT_H__
+#ifndef __MESSAGE_CENTOR_H__
+#define __MESSAGE_CENTOR_H__
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>

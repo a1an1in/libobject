@@ -37,14 +37,40 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/message/subscriber.h> 
 #include <libobject/message/centor.h>
+#include <libobject/message/message.h>
+#include <libobject/core/rbtree_map.h>
+
+static void message_handler(void *arg)
+{
+    Subscriber *subscriber = (Subscriber *)arg;
+    void (*method)(void *, void *);
+
+    message_t *message = (message_t *)subscriber->message;
+
+    dbg_str(DBG_DETAIL, "message handler opaque:%p, msg.what=%s",
+            subscriber->opaque,
+            message->what);
+
+    subscriber->method_map->search(subscriber->method_map, message->what, (void **)&method);
+    if (method != NULL) {
+        method(message, subscriber->opaque);
+    }
+
+}
 
 static int __construct(Subscriber *subscriber, char *init_str)
 {
     allocator_t *allocator = subscriber->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
+    configurator_t * config;
 
     dbg_str(EV_DETAIL, "subscriber construct, subscriber addr:%p", subscriber);
+
+    subscriber->message_handler = message_handler;
+
+    config = cfg_alloc(allocator); 
+    cfg_config(config, "/RBTree_Map", CJSON_NUMBER, "key_type", "1");
+    subscriber->method_map = OBJECT_NEW(allocator, RBTree_Map, config->buf);
+    cfg_destroy(config);
 
     return 0;
 }
@@ -52,6 +78,7 @@ static int __construct(Subscriber *subscriber, char *init_str)
 static int __deconstrcut(Subscriber *subscriber)
 {
     dbg_str(EV_DETAIL, "subscriber deconstruct, subscriber addr:%p", subscriber);
+    object_destroy(subscriber->method_map);
 
     return 0;
 }
@@ -70,10 +97,10 @@ static int __set(Subscriber *subscriber, char *attrib, void *value)
         subscriber->connect_centor = value;
     } else if (strcmp(attrib, "subscribe") == 0) {
         subscriber->subscribe = value;
-    } else if (strcmp(attrib, "add_message_handler") == 0) {
-        subscriber->add_message_handler = value;
-    } else if (strcmp(attrib, "add_message_handler_arg") == 0) {
-        subscriber->add_message_handler_arg = value;
+    } else if (strcmp(attrib, "add_method") == 0) {
+        subscriber->add_method = value;
+    } else if (strcmp(attrib, "add_opaque") == 0) {
+        subscriber->add_opaque = value;
     } 
     else {
         dbg_str(EV_DETAIL, "subscriber set, not support %s setting", attrib);
@@ -109,15 +136,16 @@ static int __subscribe(Subscriber *subscriber, void *publisher)
     return 0;
 }
 
-static int __add_message_handler(Subscriber *subscriber, void (*func)(void *))
+static int
+__add_method(Subscriber *subscriber,char *method_name,
+             void (*func)(message_t *, void *))
 {
-    subscriber->message_handler = func;
-    return 0;
+    return subscriber->method_map->add(subscriber->method_map, method_name, func);
 }
 
-static int __add_message_handler_arg(Subscriber *subscriber, void *arg)
+static int __add_opaque(Subscriber *subscriber, void *arg)
 {
-    subscriber->message_handler_arg = arg;
+    subscriber->opaque = arg;
     return 0;
 }
 
@@ -129,8 +157,8 @@ static class_info_entry_t concurent_class_info[] = {
     [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
     [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "connect_centor", __connect_centor, sizeof(void *)}, 
     [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "subscribe", __subscribe, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_message_handler", __add_message_handler, sizeof(void *)}, 
-    [8] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_message_handler_arg", __add_message_handler_arg, sizeof(void *)}, 
+    [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_method", __add_method, sizeof(void *)}, 
+    [8] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_opaque", __add_opaque, sizeof(void *)}, 
     [9] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Subscriber", concurent_class_info);

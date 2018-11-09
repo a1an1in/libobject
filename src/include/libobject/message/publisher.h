@@ -21,7 +21,7 @@ struct msg_publisher_s{
 
     int (*connect_centor)(Publisher *, Centor *);
     int (*publish)(Publisher *, message_t *);
-    int (*publish_raw_message)(Publisher *publisher, char *raw_message, int raw_message_len);
+    int (*publish_message)(Publisher *publisher, char *what, void *opaque);
 
     void *centor;
 };

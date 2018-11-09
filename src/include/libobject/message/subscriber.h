@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
+#include <libobject/core/map.h>
+#include <libobject/message/message.h>
 
 typedef struct subscriber_s Subscriber;
 
@@ -18,8 +20,8 @@ struct subscriber_s{
 	/*virtual methods reimplement*/
     int (*connect_centor)(Subscriber *subscriber, void *centor);
     int (*subscribe)(Subscriber *subscriber, void *publisher);
-    int (*add_message_handler)(Subscriber *subscriber, void (*func)(void *));
-    int (*add_message_handler_arg)(Subscriber *subscriber, void *arg);
+    int (*add_method)(Subscriber *subscriber,char *method_name,  void (*func)(message_t *, void *));
+    int (*add_opaque)(Subscriber *subscriber, void *arg);
 
     /*
      *Subscriber *next;
@@ -27,8 +29,9 @@ struct subscriber_s{
     void *publisher;
     void *centor;
     void (*message_handler)(void *);
-    void *message_handler_arg;
+    void *opaque;
     void *message;
+    Map *method_map;
 };
 
 #endif

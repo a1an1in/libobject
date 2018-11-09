@@ -9,8 +9,8 @@
 
 typedef struct message_s{
     void *publisher;
-    char *raw_message;
-    int raw_message_len;
+    char *what;
+    void *opaque;
     allocator_t *allocator;
 } message_t;
 

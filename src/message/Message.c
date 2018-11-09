@@ -51,7 +51,6 @@ message_t *message_alloc(allocator_t *allocator)
     memset(ret,  0,  sizeof(message_t));
 
     ret->allocator = allocator;
-    ret->raw_message_len = DEFAULT_RAW_MESSAGE_LEN;
     dbg_str(DBG_DETAIL, "message_create end, ret =%p", ret);
 
     return ret;
@@ -61,9 +60,12 @@ int message_set(message_t *message, char *attrib, void *value)
 {
     dbg_str(DBG_DETAIL, "message_set, message addr:%p", message);
 
-    if (!strcmp(attrib, "raw_message_len")) {
-        int * len = (int *)value;
-        message->raw_message_len = *len;
+    if (!strcmp(attrib, "what")) {
+        message->what = value;
+    } else if (!strcmp(attrib, "opaque")) {
+        message->opaque = value;
+    } else if (!strcmp(attrib, "publisher")) {
+        message->publisher = value;
     } else {
         dbg_str(DBG_WARNNING, "not support attrib setting, please check");
         return -1;
@@ -72,37 +74,10 @@ int message_set(message_t *message, char *attrib, void *value)
     return 0;
 }
 
-int 
-message_init(message_t *message, Publisher *publisher,
-             char *raw_message, int raw_message_len)
-{
-    allocator_t *allocator;
-
-    dbg_str(DBG_DETAIL,"message init");
-
-    allocator = message->allocator;
-
-    if (message->raw_message_len == 0) {
-        message->raw_message_len = DEFAULT_RAW_MESSAGE_LEN;
-    }
-
-    message->raw_message = (char *)allocator_mem_alloc(allocator, message->raw_message_len);
-    if (message->raw_message == NULL) {
-        dbg_str(DBG_ERROR, "alloc err");
-        return -1;
-    }
-
-    message->publisher = publisher;
-    memcpy(message->raw_message, raw_message, raw_message_len);
-
-    return 0;
-}
-
 int message_destroy(message_t * message)
 {
     int ret = 0;
 
-    allocator_mem_free(message->allocator, message->raw_message);
     allocator_mem_free(message->allocator, message);
 
     return ret;

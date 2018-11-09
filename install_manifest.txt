@@ -129,7 +129,9 @@
 /usr/local/include/libobject/message/message.h
 /usr/local/include/libobject/message/centor.h
 /usr/local/include/libobject/message/publisher.h
+/usr/local/include/libobject/message/.centor.h.swp
 /usr/local/include/libobject/message/subscriber.h
+/usr/local/include/libobject/message/.subscriber.h.swp
 /usr/local/include/libobject/utils/.DS_Store
 /usr/local/include/libobject/attrib_priority.h
 /usr/local/include/libobject/system/system.h
