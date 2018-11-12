@@ -9,6 +9,11 @@
 
 typedef struct subscriber_s Subscriber;
 
+typedef struct message_method_s {
+    void (*func)(message_t *, void *arg);
+    void *arg;
+}message_method_t;
+
 struct subscriber_s{
 	Obj obj;
 
@@ -20,8 +25,8 @@ struct subscriber_s{
 	/*virtual methods reimplement*/
     int (*connect_centor)(Subscriber *subscriber, void *centor);
     int (*subscribe)(Subscriber *subscriber, void *publisher);
-    int (*add_method)(Subscriber *subscriber,char *method_name,  void (*func)(message_t *, void *));
-    int (*add_opaque)(Subscriber *subscriber, void *arg);
+    int (*add_method)(Subscriber *subscriber,char *method_name,
+                      void (*func)(message_t *, void *), void *arg);
 
     /*
      *Subscriber *next;

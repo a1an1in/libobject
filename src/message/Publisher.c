@@ -136,7 +136,7 @@ static void test_on_pause(message_t *message, void *arg)
 {
     Subscriber *subscriber = (Subscriber *)arg;
     dbg_str(DBG_SUC, "subscriber receive a message:%s", (char *)message->what);
-    dbg_str(DBG_DETAIL, "message handler opaque:%p", subscriber->opaque);
+    dbg_str(DBG_DETAIL, "message arg:%p", arg);
 }
 
 int test_message_publisher()
@@ -152,8 +152,7 @@ int test_message_publisher()
     subscriber = OBJECT_NEW(allocator, Subscriber, NULL);
 
     subscriber->connect_centor(subscriber, centor);
-    subscriber->add_method(subscriber, "on_pause", test_on_pause);
-    subscriber->add_opaque(subscriber, allocator);
+    subscriber->add_method(subscriber, "on_pause", test_on_pause, allocator);
     subscriber->subscribe(subscriber, publisher);
     dbg_str(DBG_DETAIL, "%p subscribe a publisher, publisher addr:%p", subscriber, publisher);
     dbg_str(DBG_DETAIL, "message handler arg:%p", allocator);

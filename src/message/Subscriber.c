@@ -43,7 +43,7 @@
 static void message_handler(void *arg)
 {
     Subscriber *subscriber = (Subscriber *)arg;
-    void (*method)(void *, void *);
+    message_method_t *method;
 
     message_t *message = (message_t *)subscriber->message;
 
@@ -53,9 +53,15 @@ static void message_handler(void *arg)
 
     subscriber->method_map->search(subscriber->method_map, message->what, (void **)&method);
     if (method != NULL) {
-        method(message, subscriber->opaque);
+        method->func(message, method->arg);
     }
 
+}
+
+static  void release_registered_method(void *key, void *element, void *arg)
+{
+    allocator_t *allocator = (allocator_t *)arg;
+    allocator_mem_free(allocator, element);
 }
 
 static int __construct(Subscriber *subscriber, char *init_str)
@@ -77,7 +83,12 @@ static int __construct(Subscriber *subscriber, char *init_str)
 
 static int __deconstrcut(Subscriber *subscriber)
 {
+    allocator_t *allocator = subscriber->obj.allocator;
+
     dbg_str(EV_DETAIL, "subscriber deconstruct, subscriber addr:%p", subscriber);
+    subscriber->method_map->for_each_arg3(subscriber->method_map,
+                                     release_registered_method,
+                                     allocator);
     object_destroy(subscriber->method_map);
 
     return 0;
@@ -99,8 +110,6 @@ static int __set(Subscriber *subscriber, char *attrib, void *value)
         subscriber->subscribe = value;
     } else if (strcmp(attrib, "add_method") == 0) {
         subscriber->add_method = value;
-    } else if (strcmp(attrib, "add_opaque") == 0) {
-        subscriber->add_opaque = value;
     } 
     else {
         dbg_str(EV_DETAIL, "subscriber set, not support %s setting", attrib);
@@ -138,15 +147,18 @@ static int __subscribe(Subscriber *subscriber, void *publisher)
 
 static int
 __add_method(Subscriber *subscriber,char *method_name,
-             void (*func)(message_t *, void *))
+             void (*func)(message_t *, void *), void *arg)
 {
-    return subscriber->method_map->add(subscriber->method_map, method_name, func);
-}
+    allocator_t *allocator = subscriber->obj.allocator;
 
-static int __add_opaque(Subscriber *subscriber, void *arg)
-{
-    subscriber->opaque = arg;
-    return 0;
+    message_method_t *method;
+
+    method = allocator_mem_alloc(allocator, sizeof(message_method_t));
+
+    method->func = func;
+    method->arg = arg;
+
+    return subscriber->method_map->add(subscriber->method_map, method_name, method);
 }
 
 static class_info_entry_t concurent_class_info[] = {
@@ -158,7 +170,6 @@ static class_info_entry_t concurent_class_info[] = {
     [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "connect_centor", __connect_centor, sizeof(void *)}, 
     [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "subscribe", __subscribe, sizeof(void *)}, 
     [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_method", __add_method, sizeof(void *)}, 
-    [8] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_opaque", __add_opaque, sizeof(void *)}, 
-    [9] = {ENTRY_TYPE_END}, 
+    [8] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Subscriber", concurent_class_info);
