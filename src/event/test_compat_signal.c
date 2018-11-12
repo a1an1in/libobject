@@ -19,7 +19,7 @@ signal_cb(int fd, short event_res, void *arg)
     dbg_str(DBG_SUC, "signal_cb, signal no:%d", event->ev_fd);
 }
 
-int test_signal()
+static int test_signal(TEST_ENTRY *entry, void *argc, void *argv)
 {
     struct event signal_int;
     struct event_base* base;
@@ -39,5 +39,6 @@ int test_signal()
     event_base_free(base);
     dbg_str(DBG_SUC, "test_signal end 2");
 
-    return (0);
+    return (1);
 }
+REGISTER_STANDALONE_TEST_FUNC(test_signal);

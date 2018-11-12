@@ -167,15 +167,6 @@ static int args_process_test_evio(void *base, int argc, char **argv)
     return 0;
 }
 
-static int args_process_test_evsignal(void *base, int argc, char **argv)
-{
-    test_signal();
-    /*
-     *test_signal2();
-     */
-    return 0;
-}
-
 static int args_process_test_evtime(void *base, int argc, char **argv)
 {
     test_time();
@@ -689,7 +680,6 @@ static cmd_config_t cmds[]={
     {"help_test", args_process_help_test, 0, "help", "N/A", "help info"}, 
     {"lab", args_process_lab, 1, "test", "N/A", "test simple code"}, 
     {"evtime", args_process_test_evtime, 0, "test", "N/A", "test evtime"}, 
-    {"evsignal", args_process_test_evsignal, 0, "test", "N/A", "test evsignal"}, 
     {"evio", args_process_test_evio, 0, "test", "N/A", "test evio"}, 
     {"allocator", args_process_test_allocator, 0, "test", "N/A", "test_allocator"}, 
     {"heap", args_process_test_heap, 0, "test", "N/A", "test_ring_buffer"}, 
