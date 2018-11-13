@@ -5,6 +5,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/core/iterator.h>
+#include <libobject/core/list.h>
 
 typedef struct _map_s Map;
 
@@ -19,6 +20,7 @@ struct _map_s{
 	/*virtual methods reimplement*/
     int (*add)(Map *map,void *key,void *value);
     int (*search)(Map *map,void *key,void **element);
+    int (*search_all)(Map *map,void *key, List *list);
     int (*remove)(Map *map,void *key,void **element);
     int (*del)(Map *map, void *key);
     void (*for_each)(Map *map,void (*func)(void *key, void *element));

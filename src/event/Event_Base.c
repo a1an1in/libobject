@@ -37,17 +37,21 @@
 
 List *global_event_base_list;
 
+/*
+ *static void rbtree_map_print_with_numeric_key(void *key, void *element)
+ *{
+ *    event_t *event = (event_t *)element;
+ *     
+ *    dbg_str(EV_DETAIL, "key:%d, event=%p", *(int *)key, event);
+ *}
+ */
+
 static int __construct(Event_Base *eb,char *init_str)
 {
     allocator_t *allocator = eb->obj.allocator;
     List **list = &global_event_base_list;
     configurator_t * c;
     char buf[2048];
-    /*
-     *uint8_t key_size = 4;
-     *uint16_t value_size = 4;
-     *uint16_t bucket_size = 20;
-     */
 
     dbg_str(EV_DETAIL,"eb construct, eb addr:%p",eb);
 
@@ -80,7 +84,7 @@ static int __deconstrcut(Event_Base *eb)
 {
     List *list = global_event_base_list;
 
-    dbg_str(EV_DETAIL,"eb deconstruct,eb addr:%p",eb);
+    dbg_str(EV_DETAIL,"*****eb deconstruct,eb addr:%p",eb);
 
     //release evsig
     
@@ -154,9 +158,12 @@ static int __add(Event_Base *eb, event_t *event)
 
     if (event->ev_events & EV_SIGNAL) {
         evsig_add(eb, event);
+        /*
+         *eb->evsig.map->for_each(eb->evsig.map, rbtree_map_print_with_numeric_key);
+         */
     } else {
         event->ev_tv = event->ev_timeout;
-        dbg_str(DBG_DETAIL, "add fd =%d into io map", fd);
+        dbg_str(EV_DETAIL, "add fd =%d into io map", fd);
         io_map->add(io_map, &fd, event);
 
         eb->trustee_io(eb,event);
@@ -228,27 +235,55 @@ static int __activate_io(Event_Base *eb, int fd, short events)
     return 0;
 }
 
-static int __activate_signal(Event_Base *eb, int fd, short events)
+static int __activate_signal_old(Event_Base *eb, int fd, short events)
 {
-    rbtree_map_t *sig_map = eb->evsig.sig_map;
-    rbtree_map_pos_t it;
-    event_t *event;
+    Map *map = eb->evsig.map;
+    event_t *event = NULL;
     char buf[16];
     char *p = NULL;
+    int ret;
 
     dbg_str(EV_DETAIL,"event base active signal event, signal = %d, ncount=%d", fd, events);
 
-    rbtree_map_search_by_numeric_key(sig_map, fd,&it);
-    if (it.rb_node_p != NULL) {
-        event = (event_t *) rbtree_map_pos_get_pointer(&it);
+    map->search(map, &fd, (void **)&event);
+    if (event != NULL) {
+        dbg_str(EV_WARNNING,"activate_signal, find signal=%d", fd);
+        event->ev_callback(event->ev_fd, 0, event->ev_arg);
+    } else {
+        dbg_str(EV_WARNNING,"activate_signal, get event addr error");
+        return -1;
+    }
 
-        if (event != NULL) {
-            dbg_str(EV_DETAIL,"event=%p, ev_callback=%p", event, event->ev_callback);
-            event->ev_callback(event->ev_fd, 0, event->ev_arg);
-        } else {
-            dbg_str(EV_WARNNING,"activate_signal, get event addr error");
-            return -1;
-        }
+    return 0;
+}
+
+static void __signal_list_for_each_callback(void *element)
+{
+    event_t *event = (event_t *)element;
+    dbg_str(OBJ_DETAIL, "value: %s", element);
+    event->ev_callback(event->ev_fd, 0, event->ev_arg);
+}
+
+static int __activate_signal(Event_Base *eb, int fd, short events)
+{
+    Map *map = eb->evsig.map;
+    List *list = eb->evsig.list;
+    event_t *event = NULL;
+    char buf[16];
+    char *p = NULL;
+    int ret;
+
+    dbg_str(EV_DETAIL,"event base active signal event, signal = %d, ncount=%d", fd, events);
+
+    list->remove_all(list);
+
+    map->search_all(map, &fd, list);
+    if (list->count(list) != 0) {
+        dbg_str(EV_WARNNING,"activate_signal, find signal=%d", fd);
+        list->for_each(list, __signal_list_for_each_callback);
+    } else {
+        dbg_str(EV_WARNNING,"activate_signal, get event addr error");
+        return -1;
     }
 
     return 0;

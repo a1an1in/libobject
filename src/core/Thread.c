@@ -43,7 +43,7 @@ static int __construct(Thread *thread, char *init_str)
     configurator_t * c;
     char buf[2048];
 
-    dbg_str(OBJ_DETAIL, "Thread construct, thread addr:%p", thread);
+    dbg_str(DBG_IMPORTANT, "Thread construct, thread addr:%p", thread);
 
     return 0;
 }
@@ -53,7 +53,7 @@ static int __deconstrcut(Thread *thread)
     int ret;
     void *tret;
 
-    dbg_str(OBJ_DETAIL, "thread deconstruct, thread addr:%p", thread);
+    dbg_str(DBG_IMPORTANT, "thread deconstruct, thread addr:%p", thread);
 
     ret = pthread_join(thread->tid, &tret);
     if (ret != 0) {

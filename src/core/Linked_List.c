@@ -300,7 +300,7 @@ static void llist_list_print(void *element)
     dbg_str(OBJ_DETAIL, "value: %s", element);
 }
 
-void test_obj_llist_list()
+int test_obj_llist_list()
 {
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;
@@ -345,6 +345,8 @@ void test_obj_llist_list()
     list->remove_element(list, (void *)str2);
 #endif
 
+    list->remove_all(list);
+
     dbg_str(DBG_DETAIL, "list for each test");
     dbg_str(DBG_DETAIL, "list count=%d", list->count(list));
     list->for_each(list, llist_list_print);
@@ -352,6 +354,8 @@ void test_obj_llist_list()
     object_destroy(list);
     cfg_destroy(c);
 
-    sleep(5);
     pause();
+
+    return 1;
 }
+REGISTER_STANDALONE_TEST_FUNC(test_obj_llist_list);

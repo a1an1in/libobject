@@ -148,9 +148,12 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
     res = select(nfds, &b->event_readset_out, 
                  &b->event_writeset_out, NULL, tv);
     if (res == -1) {
-        perror("dispatch");
-        dbg_str(EV_WARNNING, "dispatch, erro_no:%d, nfds=%d", errno, nfds);
-        ((Event_Base *)b)->break_flag = 1;
+        if (errno == EINTR) {
+        } else {
+            ((Event_Base *)b)->break_flag = 1;
+            perror("dispatch");
+            dbg_str(EV_WARNNING, "dispatch, erro_no:%d, nfds=%d", errno, nfds);
+        }
         return (0);
     } else if (res > 0) {
         if (tv != NULL)

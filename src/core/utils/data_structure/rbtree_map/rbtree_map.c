@@ -220,6 +220,8 @@ int rbtree_map_init(rbtree_map_t *map,
     map->data_size = key_size + value_size;
     map->key_size  = key_size;
 
+    map->enable_same_key = 1;
+
     tree_root = (struct rb_root *)allocator_mem_alloc(map->allocator, 
                                                       sizeof(struct rb_root));
     tree_root->rb_node = NULL;
@@ -250,10 +252,12 @@ rbtree_map_end(rbtree_map_t *map, rbtree_map_pos_t *end)
 void rbtree_map_make_pair(rbtree_map_t *map, void *key, void *value)
 {
     sync_lock(&map->map_lock, NULL);
-    if (map->key_size) {
-        make_pair_with_fixed_key_len(map->pair, key, map->key_size, value);
-    } else
+
+    if (map->key_type) {
         make_pair(map->pair, key, value);
+    } else {
+        make_pair_with_fixed_key_len(map->pair, key, map->key_size, value);
+    }
     sync_unlock(&map->map_lock);
 }
 
@@ -294,13 +298,13 @@ int rbtree_map_insert_data(rbtree_map_t *map, void *value)
 int rbtree_map_insert(rbtree_map_t *map, void *key, void *value)
 {
     rbtree_map_make_pair(map, key, value);
-    dbg_buf(RBTMAP_DETAIL, "insert data:", map->pair->data, map->data_size);
 
     return rbtree_map_insert_data(map, map->pair->data);
 }
 
 int rbtree_map_insert_with_numeric_key(rbtree_map_t *map, int key, void *value)
 {
+    dbg_str(RBTMAP_WARNNING, "rbtree_map_insert_with_numeric_key");
     return rbtree_map_insert(map, &key, value);
 }
 
@@ -380,6 +384,7 @@ rbtree_map_search_by_numeric_key(rbtree_map_t *map,
                                  int key,
                                  rbtree_map_pos_t *it)
 {
+    dbg_str(DBG_DETAIL, "******rbtree_map_search_by_numeric_key");
     return rbtree_map_search(map, &key, it);
 }
 

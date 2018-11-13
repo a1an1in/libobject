@@ -13,11 +13,13 @@
 #define REGISTRY_CTOR_PRIORITY_OBJ_DEAMON                   8
 #define REGISTRY_CTOR_PRIORITY_REGISTER_CLASS               9
 #define REGISTRY_CTOR_PRIORITY_CONCURRENT                   10
+#define REGISTRY_CTOR_PRIORITY_EVBASE                       11
 
-#define REGISTRY_DTOR_PRIORITY_CONCURRENT                   1
-#define REGISTRY_DTOR_PRIORITY_OBJ_DEAMON                   2
-#define REGISTRY_DTOR_PRIORITY_DEFAULT_ALLOCATOR            3
-#define REGISTRY_DTOR_PRIORITY_DEBUGGER                     4
+#define REGISTRY_DTOR_PRIORITY_EVBASE                       1
+#define REGISTRY_DTOR_PRIORITY_CONCURRENT                   2
+#define REGISTRY_DTOR_PRIORITY_OBJ_DEAMON                   3
+#define REGISTRY_DTOR_PRIORITY_DEFAULT_ALLOCATOR            4
+#define REGISTRY_DTOR_PRIORITY_DEBUGGER                     5
 
 int __register_ctor_func(int level, int (*func)()); 
 int __register_ctor_func1(int level, int (*func)(void *arg), void *arg);

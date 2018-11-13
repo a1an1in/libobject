@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <libobject/event/event_compat.h>
+#include <libobject/concurrent/producer.h>
+
+
+struct event_base *global_event_base;
 
 struct event_base * event_base_new(void)
 {
@@ -83,3 +87,40 @@ int event_base_free(struct event_base *event_base)
 
     return 0;
 }
+
+struct event_base *get_default_event_base()
+{
+    return global_event_base;
+}
+
+int default_event_base_constructor()
+{
+    Producer *producer = global_get_default_producer();
+    allocator_t *allocator = allocator_get_default_alloc();
+    struct event_base *event_base;
+
+    event_base = (struct event_base *) allocator_mem_alloc(allocator,
+                                                           sizeof(struct event_base));
+    if (event_base == NULL) {
+        return -1;
+    }
+
+    event_base->eb = producer->parent.eb;
+    global_event_base = event_base;
+
+    return 0;
+}
+REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_EVBASE, 
+                   default_event_base_constructor);
+
+int default_event_base_destructor()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    struct event_base *eb = get_default_event_base();
+
+    allocator_mem_free(allocator, eb);
+     
+    return 0;
+}
+REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_EVBASE, 
+                   default_event_base_destructor);

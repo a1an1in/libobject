@@ -252,7 +252,9 @@ int llist_remove_front(llist_t *llist, void **data)
 
     sync_unlock(&llist->list_lock);
 
-    *data = p->data;
+    if (data != NULL) {
+        *data = p->data;
+    }
     allocator_mem_free(llist->allocator, p);
 
     return 0;

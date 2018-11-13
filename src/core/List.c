@@ -70,6 +70,8 @@ static int __set(List *list, char *attrib, void *value)
         list->remove_front = value;
     } else if (strcmp(attrib, "remove_back") == 0) {
         list->remove_back = value;
+    } else if (strcmp(attrib, "remove_all") == 0) {
+        list->remove_all = value;
     } else if (strcmp(attrib, "remove_element") == 0) {
         list->remove_element = value;
     } else if (strcmp(attrib, "count") == 0) {
@@ -138,6 +140,15 @@ static int __remove_back(List *list, void **data)
     dbg_str(OBJ_DETAIL, "List remove back");
 }
 
+static int __remove_all(List *list)
+{
+    dbg_str(OBJ_DETAIL, "List remove all");
+    while (list->count(list)) {
+        dbg_str(OBJ_DETAIL, "List remove a element");
+        list->remove_front(list, NULL);
+    }
+}
+
 static int __remove_element(List *list, void *data)
 {
     dbg_str(OBJ_DETAIL, "List remove element");
@@ -196,18 +207,19 @@ static class_info_entry_t list_class_info[] = {
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_front", NULL, sizeof(void *)}, 
     [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_back", __remove_back, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_element", __remove_element, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "count", NULL, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "delete", __delete, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach_front", NULL, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "free_detached", NULL, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg2", __for_each_arg2, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
-    [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
-    [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy", NULL, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_UINT32_T, "", "value_size", NULL, sizeof(short)}, 
-    [22] = {ENTRY_TYPE_END}, 
+    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_all", __remove_all, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_element", __remove_element, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "count", NULL, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "delete", __delete, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach_front", NULL, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "free_detached", NULL, sizeof(void *)}, 
+    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
+    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg2", __for_each_arg2, sizeof(void *)}, 
+    [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
+    [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
+    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy", NULL, sizeof(void *)}, 
+    [22] = {ENTRY_TYPE_UINT32_T, "", "value_size", NULL, sizeof(short)}, 
+    [23] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("List", list_class_info);
 

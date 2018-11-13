@@ -23,6 +23,9 @@
 #include <sys/stat.h>
 #include <libobject/event/select_base.h>
 #include <libobject/event/event_compat.h>
+#include <libobject/core/rbtree_map.h>
+#include <libobject/core/linked_list.h>
+#include <libobject/core/utils/config/config.h>
 
 static int gloable_evsig_send_fd;
 static int gloable_evsig_rcv_fd;
@@ -85,8 +88,12 @@ static void __evsig_send(void *element, void *c)
 
 static void signal_handler(int sig)
 {
-    char msg = (char) sig;
+    char msg        = (char) sig;
+    pthread_t   tid = pthread_self();
+
     List *list = global_event_base_list;
+    dbg_str(EV_IMPORTANT,"thread %lu receive signal=%d", tid, sig);
+    dbg_str(EV_IMPORTANT,"list count=%d", list->count(list));
 
     list->for_each_arg2(list, __evsig_send, (void *)&msg);
 }
@@ -214,6 +221,8 @@ int evsig_init(Event_Base *eb)
     event_t *event = &eb->evsig.fd_rcv_event;
     struct evsig_s *evsig = &eb->evsig;
     allocator_t *allocator = eb->obj.allocator;
+    configurator_t * c;
+    char size[4];
 
 #if 0
     if (pipe(fds)) {
@@ -247,9 +256,14 @@ int evsig_init(Event_Base *eb)
     event->ev_arg       = event;
     eb->add(eb, event);
 
-    evsig->sig_map = rbtree_map_alloc(allocator);
-    evsig->sig_map->key_cmp_func = numeric_key_cmp_func;
-    rbtree_map_init(evsig->sig_map, 4,sizeof(void *)); 
+    c = cfg_alloc(allocator); 
+    dbg_str(EV_DETAIL, "configurator_t addr:%p", c);
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_type", "1");
+    cfg_config_num(c, "/RBTree_Map", "key_size", sizeof(int)) ;  
+
+    evsig->map  = OBJECT_NEW(allocator, RBTree_Map, c->buf);
+    evsig->list = OBJECT_NEW(allocator, Linked_List, NULL);
+    cfg_destroy(c);
 
     return 0;
 }
@@ -258,7 +272,8 @@ int evsig_release(Event_Base *eb)
 {
     struct evsig_s *evsig = &eb->evsig;
 
-    rbtree_map_destroy(evsig->sig_map);
+    object_destroy(evsig->map);
+    object_destroy(evsig->list);
 
     close(evsig->fd_rcv);
     close(evsig->fd_snd);
@@ -268,7 +283,7 @@ int evsig_add(Event_Base *eb, event_t *event)
 {
     struct sigaction sa; 
     int evsignal = event->ev_fd;
-    rbtree_map_t *sig_map = eb->evsig.sig_map;
+    Map *map = eb->evsig.map;
 
 #if 0
     sa.sa_handler = signal_handler;                    
@@ -282,10 +297,11 @@ int evsig_add(Event_Base *eb, event_t *event)
         return (-1);
     }
 #else 
+    dbg_str(EV_DETAIL,"add sig:%d", evsignal);
     signal(evsignal,signal_handler);
 #endif
 
-    rbtree_map_insert_with_numeric_key(sig_map,evsignal,event);
+    map->add(map, &evsignal,event);
 
     return 0;
 }

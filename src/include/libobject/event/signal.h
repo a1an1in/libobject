@@ -4,13 +4,14 @@
 #include <stdio.h>
 #include <libobject/event/event.h>
 #include <libobject/core/utils/miscellany/buffer.h>
-#include <libobject/core/utils/data_structure/rbtree_map.h>
+#include <libobject/core/map.h>
 
 struct evsig_s{
     int fd_snd, fd_rcv;
     event_t fd_rcv_event;
 
-    rbtree_map_t *sig_map;
+    Map *map;
+    List *list;
 };
 
 

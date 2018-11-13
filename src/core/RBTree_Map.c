@@ -33,6 +33,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/rbtree_map.h>
+#include <libobject/core/linked_list.h>
 
 static int __construct(Map *map, char *init_str)
 {
@@ -83,6 +84,8 @@ static int __set(Map *m, char *attrib, void *value)
         map->add = value;
     } else if (strcmp(attrib, "search") == 0) {
         map->search = value;
+    } else if (strcmp(attrib, "search_all") == 0) {
+        map->search_all = value;
     } else if (strcmp(attrib, "remove") == 0) {
         map->remove = value;
     } else if (strcmp(attrib, "del") == 0) {
@@ -157,6 +160,69 @@ static int __search(Map *map, void *key, void **element)
     return ret;
 }
 
+static int find_same_node(struct rb_node *node, key_cmp_fpt func, void *key, List *list)
+{
+    int ret = 0;
+    void **addr;
+
+    while (node) {
+        struct rbtree_map_node *mnode = rb_entry(node, struct rbtree_map_node, node);
+        int result;
+
+        result = func(key, mnode->key, mnode->value_pos);
+        if (result < 0) {
+            node = node->rb_left;
+        } else if (result > 0) {
+            node = node->rb_right;
+        } else {
+            addr  = (void **)&mnode->key[mnode->value_pos];
+            list->add(list, *addr);
+            find_same_node(node->rb_left, func , key, list);
+            find_same_node(node->rb_right, func,  key, list);
+            break;
+        }
+    }
+
+    return ret;
+}
+
+static int __search_all(Map *map, void *key, List *list)
+{
+    RBTree_Map *obj_rbtree_map = (RBTree_Map *)map;
+    rbtree_map_t *rbtree_map = obj_rbtree_map->rbmap;
+    struct rb_root *root = rbtree_map->tree_root;
+    struct rb_node *node = root->rb_node;
+    int ret = 0;
+    void **addr;
+    int out_flag = 0;
+
+    dbg_str(DBG_DETAIL, "rbtree_map_search all");
+
+    sync_lock(&rbtree_map->map_lock, NULL);
+    key_cmp_fpt key_cmp_func = rbtree_map->key_cmp_func;
+
+    while (node) {
+        struct rbtree_map_node *mnode = rb_entry(node, struct rbtree_map_node, node);
+        int result;
+
+        result = key_cmp_func(key, mnode->key, mnode->value_pos);
+        if (result < 0) {
+            node = node->rb_left;
+        } else if (result > 0) {
+            node = node->rb_right;
+        } else {
+            addr  = (void **)&mnode->key[mnode->value_pos];
+            list->add(list, *addr);
+            find_same_node(node->rb_left, key_cmp_func , key, list);
+            find_same_node(node->rb_right, key_cmp_func,  key, list);
+            break;
+        }
+    }
+    sync_unlock(&rbtree_map->map_lock);
+
+    return ret;
+}
+
 static int __remove(Map *map, void *key, void **element)
 {
     rbtree_map_pos_t pos;
@@ -221,16 +287,17 @@ static class_info_entry_t rbtree_map_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", __add, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search", __search, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del", __del, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", NULL, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_UINT16_T, "", "key_size", NULL, sizeof(short)}, 
-    [13] = {ENTRY_TYPE_UINT16_T, "", "value_size", NULL, sizeof(short)}, 
-    [14] = {ENTRY_TYPE_UINT8_T, "", "key_type", NULL, sizeof(short)}, 
-    [15] = {ENTRY_TYPE_NORMAL_POINTER, "", "key_cmp_cb", NULL, sizeof(short)}, 
-    [16] = {ENTRY_TYPE_END}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search_all", __search_all, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del", __del, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", NULL, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_UINT16_T, "", "key_size", NULL, sizeof(short)}, 
+    [14] = {ENTRY_TYPE_UINT16_T, "", "value_size", NULL, sizeof(short)}, 
+    [15] = {ENTRY_TYPE_UINT8_T, "", "key_type", NULL, sizeof(short)}, 
+    [16] = {ENTRY_TYPE_NORMAL_POINTER, "", "key_cmp_cb", NULL, sizeof(short)}, 
+    [17] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("RBTree_Map", rbtree_map_class_info);
 
@@ -395,6 +462,193 @@ void test_obj_rbtree_map()
      *test_obj_rbtree_map_numeric_key();
      */
 }
+
+static void list_print(void *element)
+{
+    dbg_str(DBG_DETAIL, "list element value: %p", element);
+}
+
+int test_rbtree_map_same_string_key()
+{
+    Iterator *iter, *next, *prev;
+    Map *map;
+    List *list;
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;
+    cjson_t *root, *e, *s;
+    char buf[2048] = {0};
+    char set_str[2048] = {0};
+    struct test *t, t0, t1, t2, t3, t4, t5;
+    int ret = 0;
+
+    init_test_instance(&t0, 0, 2);
+    init_test_instance(&t1, 1, 2);
+    init_test_instance(&t2, 2, 2);
+    init_test_instance(&t3, 3, 2);
+    init_test_instance(&t4, 4, 2);
+    init_test_instance(&t5, 5, 2);
+
+    c = cfg_alloc(allocator); 
+    dbg_str(RBTMAP_SUC, "configurator_t addr:%p", c);
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_size", "40") ;  
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "value_size", "8") ;
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_cmp_cb", "43") ;
+
+    map  = OBJECT_NEW(allocator, RBTree_Map, c->buf);
+    list = OBJECT_NEW(allocator, Linked_List, NULL);
+
+    map->add(map, "test0", &t0);
+    map->add(map, "test1", &t1);
+    map->add(map, "test2", &t2);
+    map->add(map, "test2", &t2);
+    map->add(map, "test2", &t2);
+    map->add(map, "test2", &t2);
+    map->add(map, "test3", &t3);
+    map->add(map, "test4", &t4);
+    map->add(map, "test5", &t5);
+    map->for_each(map, rbtree_map_print);
+
+    dbg_str(DBG_DETAIL, "run at here");
+    map->search_all(map, "test2", list);
+    dbg_str(DBG_DETAIL, "run at here");
+    list->for_each(list, list_print);
+
+    if (list->count(list) == 4) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
+
+    object_destroy(list);
+    object_destroy(map);
+
+    cfg_destroy(c);
+    return ret;
+}
+REGISTER_TEST_FUNC(test_rbtree_map_same_string_key);
+
+int test_rbtree_map_same_numeric_key()
+{
+    Iterator *iter, *next, *prev;
+    Map *map;
+    List *list;
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;
+    cjson_t *root, *e, *s;
+    char buf[2048] = {0};
+    char set_str[2048] = {0};
+    int key;
+    int ret;
+    struct test *t, t0, t1, t2, t3, t4, t5;
+
+    init_test_instance(&t0, 0, 2);
+    init_test_instance(&t1, 1, 2);
+    init_test_instance(&t2, 1, 2);
+    init_test_instance(&t3, 1, 2);
+    init_test_instance(&t4, 1, 2);
+
+    c = cfg_alloc(allocator); 
+    dbg_str(RBTMAP_SUC, "configurator_t addr:%p", c);
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_type", "1");
+
+    map  = OBJECT_NEW(allocator, RBTree_Map, c->buf);
+    list = OBJECT_NEW(allocator, Linked_List, NULL);
+
+    key = 0;
+    map->add(map, &key, &t0);
+    key = 1;
+    map->add(map, &key, &t1);
+    map->add(map, &key, &t1);
+    map->add(map, &key, &t1);
+    key = 2;
+    map->add(map, &key, &t2);
+    key = 3;
+    map->add(map, &key, &t3);
+
+    printf("for_each\n");
+    map->for_each(map, rbtree_map_print_with_numeric_key);
+
+    key = 1;
+    map->search_all(map, &key, list);
+    dbg_str(DBG_DETAIL, "run at here");
+    list->for_each(list, list_print);
+
+    if (list->count(list) == 3) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
+
+    object_destroy(list);
+    object_destroy(map);
+    cfg_destroy(c);
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_rbtree_map_same_numeric_key);
+
+int test_rbtree_map_a_numeric_key()
+{
+    Iterator *iter, *next, *prev;
+    Map *map;
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;
+    cjson_t *root, *e, *s;
+    char buf[2048] = {0};
+    char set_str[2048] = {0};
+    int key;
+    int ret;
+    struct test *t, t0, t1, t2, t3, t4, t5;
+
+    init_test_instance(&t0, 0, 2);
+    init_test_instance(&t1, 1, 2);
+    init_test_instance(&t2, 1, 2);
+    init_test_instance(&t3, 1, 2);
+    init_test_instance(&t4, 1, 2);
+
+    c = cfg_alloc(allocator); 
+    dbg_str(RBTMAP_SUC, "configurator_t addr:%p", c);
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_type", "1");
+
+    map  = OBJECT_NEW(allocator, RBTree_Map, c->buf);
+
+    key = 0;
+    map->add(map, &key, &t0);
+    key = 1;
+    map->add(map, &key, &t1);
+    key = 2;
+    map->add(map, &key, &t2);
+    key = 3;
+    map->add(map, &key, &t3);
+
+    printf("for_each\n");
+    map->for_each(map, rbtree_map_print_with_numeric_key);
+
+    key = 1;
+    ret = map->search(map, &key, (void **)&t);
+    if (ret == 1) {
+        dbg_str(DBG_SUC, "found key =%d", key);
+    }
+
+    key = 2;
+    ret = map->search(map, &key, (void **)&t);
+    if (ret == 1) {
+        dbg_str(DBG_SUC, "found key =%d", key);
+    }
+
+    key = 3;
+    ret = map->search(map, &key, (void **)&t);
+    if (ret == 1) {
+        dbg_str(DBG_SUC, "found key =%d", key);
+    }
+
+    object_destroy(map);
+    cfg_destroy(c);
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_rbtree_map_a_numeric_key);
+
 
 
 

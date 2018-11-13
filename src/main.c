@@ -44,6 +44,7 @@
  */
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
 #include <libobject/attrib_priority.h>
 #include <libobject/core/utils/args/cmd_args.h>
 #include <libobject/core/utils/dbg/debug.h>
@@ -719,6 +720,9 @@ int main(int argc, char *argv[])
     pause();
     dbg_str(DBG_DETAIL, "main func out, but pause breaked");
 #endif
+    /*
+     *signal(SIGCHLD,SIG_IGN);
+     */
 
     return ret;
 }

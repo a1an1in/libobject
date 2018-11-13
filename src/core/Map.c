@@ -64,6 +64,8 @@ static int __set(Map *map, char *attrib, void *value)
         map->add = value;
     } else if (strcmp(attrib, "search") == 0) {
         map->search = value;
+    } else if (strcmp(attrib, "search_all") == 0) {
+        map->search_all = value;
     } else if (strcmp(attrib, "remove") == 0) {
         map->remove = value;
     } else if (strcmp(attrib, "del") == 0) {
@@ -157,15 +159,16 @@ static class_info_entry_t map_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", NULL, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg3", __for_each_arg3, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy", __destroy, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [15] = {ENTRY_TYPE_END}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search_all", NULL, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", NULL, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del", NULL, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg3", __for_each_arg3, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy", __destroy, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
+    [16] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Map", map_class_info);
 
