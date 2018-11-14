@@ -3,7 +3,6 @@
 
 #include <libobject/core/obj.h>
 #include <libobject/core/string.h>
-#include <libobject/ui/graph.h>
 
 typedef struct ui_event_s __Event;
 struct ui_event_s{

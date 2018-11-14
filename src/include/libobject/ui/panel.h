@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ui/component.h>
-#include <libobject/ui/graph.h>
 #include <libobject/ui/image.h>
 #include <libobject/ui/font.h>
 #include <libobject/ui/event.h>
