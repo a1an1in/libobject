@@ -231,13 +231,13 @@ static int __add_component(Container *obj, void *pos, void *component)
     return 0;
 }
 
-static void draw_subcomponent(Iterator *iter, void *arg) 
+static void draw_subcomponent(void *key, void *element, void *arg) 
 {
     Component *component;
     uint8_t *addr;
     Graph *g = (Graph *)arg;
 
-    component = (Component *)iter->get_vpointer(iter);
+    component = (Component *)element;
 
     if (component->draw) component->draw(component, g);
 }

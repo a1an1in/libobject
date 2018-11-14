@@ -389,14 +389,6 @@ static int args_process_test_SDL_Window(void *base, int argc, char **argv)
     return 0;
 }
 
-static int args_process_test_Image(void *base, int argc, char **argv)
-{
-    /*
-     *test_obj_image();
-     */
-    return 0;
-}
-
 static int args_process_test_SDL_Image(void *base, int argc, char **argv)
 {
     /*
@@ -525,12 +517,6 @@ static int args_process_test_Socket(void *base, int argc, char **argv)
     return 0;
 }
 
-static int args_process_test_Thread(void *base, int argc, char **argv)
-{
-    test_obj_thread();
-    return 0;
-}
-
 static int args_process_test_Event_Thread(void *base, int argc, char **argv)
 {
     test_obj_event_thread();
@@ -634,7 +620,6 @@ static cmd_config_t cmds[]={
     {"inet_tcp_socket_recv", args_process_test_inet_tcp_socket_recv, 0, "test", "N/A", "test_inet_tcp_server"}, 
     {"inet_udp_socket_recv", args_process_test_inet_udp_socket_recv, 0, "test", "N/A", "test_inet_udp_client_recieve"}, 
     {"inet_udp_socket_send", args_process_test_inet_udp_socket_send, 0, "test", "N/A", "test_inet_udp_client_send"}, 
-    {"Thread", args_process_test_Thread, 0, "test", "N/A", "test"}, 
     {"Event_Thread", args_process_test_Event_Thread, 0, "test", "N/A", "test"}, 
     {"Socket", args_process_test_Socket, 0, "test", "N/A", "test"}, 
     {"Event_Base", args_process_test_Event_Base, 0, "test", "N/A", "test"}, 
@@ -651,7 +636,6 @@ static cmd_config_t cmds[]={
     {"SDL_Text", args_process_test_SDL_Text, 0, "test", "N/A", "test"}, 
     {"SDL_Font", args_process_test_SDL_Font, 0, "test", "N/A", "test"}, 
     {"SDL_Image", args_process_test_SDL_Image, 0, "test", "N/A", "test"}, 
-    {"Image", args_process_test_Image, 0, "test", "N/A", "test"}, 
     {"SDL_Window", args_process_test_SDL_Window, 0, "test", "N/A", "test"}, 
     {"Graph", args_process_test_Graph, 0, "test", "N/A", "test"}, 
     {"Queue", args_process_test_Queue, 0, "test", "N/A", "test"}, 

@@ -55,9 +55,11 @@ static int __deconstrcut(Thread *thread)
 
     dbg_str(DBG_IMPORTANT, "thread deconstruct, thread addr:%p", thread);
 
-    ret = pthread_join(thread->tid, &tret);
-    if (ret != 0) {
-        dbg_str(OBJ_WARNNING, "can't join with thread tid=%d", thread->tid);
+    if (thread->tid !=0) {
+        ret = pthread_join(thread->tid, &tret);
+        if (ret != 0) {
+            dbg_str(OBJ_WARNNING, "can't join with thread tid=%d", thread->tid);
+        }
     }
 
     dbg_str(OBJ_DETAIL, "thread deconstruct, out");
@@ -81,6 +83,8 @@ static int __set(Thread *thread, char *attrib, void *value)
         thread->set_start_routine = value;
     } else if (strcmp(attrib, "set_start_arg") == 0) {
         thread->set_start_arg = value;
+    } else if (strcmp(attrib, "set_opaque") == 0) {
+        thread->set_opaque = value;
     }
     else if (strcmp(attrib, "start_routine") == 0) {
         thread->start_routine = value;
@@ -111,12 +115,10 @@ static int __start(Thread *thread)
     }
 
     if (thread->arg == NULL) {
-        arg = thread;
-    } else {
-        arg = thread->arg;
+        thread->arg = thread;
     }
 
-    if ((pthread_create(&thread->tid, NULL, thread->start_routine, arg)) != 0) {
+    if ((pthread_create(&thread->tid, NULL, thread->start_routine, thread->arg)) != 0) {
         dbg_str(OBJ_WARNNING, "pthread start error");
     }
 
@@ -135,6 +137,11 @@ static int __set_start_arg(Thread *thread, void *arg)
     thread->arg = arg;
 }
 
+static int __set_opaque(Thread *thread, void *arg)
+{
+    thread->opaque = arg;
+}
+
 static void *__start_routine(void *arg)
 {
     dbg_str(OBJ_DETAIL, "start_routine");
@@ -143,24 +150,26 @@ static void *__start_routine(void *arg)
 }
 
 static class_info_entry_t thread_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_FUNC_POINTER, "", "start", __start, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_FUNC_POINTER, "", "set_start_routine", __set_start_routine, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_FUNC_POINTER, "", "set_start_arg", __set_start_arg, sizeof(void *)}, 
-    [8] = {ENTRY_TYPE_VFUNC_POINTER, "", "start_routine", __start_routine, sizeof(void *)}, 
-    [9] = {ENTRY_TYPE_END}, 
+    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "start", __start, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set_start_routine", __set_start_routine, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set_start_arg", __set_start_arg, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set_opaque", __set_opaque, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "start_routine", __start_routine, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Thread", thread_class_info);
 
 void *test_func(void *arg)
 {
-    dbg_str(OBJ_SUC, "test func, arg addr:%p", arg);
+    dbg_str(DBG_DETAIL, "thread callback, arg addr:%p", arg);
 }
-void test_obj_thread()
+
+int test_obj_thread()
 {
     Thread *thread;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -170,23 +179,26 @@ void test_obj_thread()
     char buf[2048];
 
     c = cfg_alloc(allocator); 
-    dbg_str(OBJ_SUC, "configurator_t addr:%p", c);
+    dbg_str(DBG_DETAIL, "configurator_t addr:%p", c);
     /*
      *cfg_config(c, "/Thread", CJSON_STRING, "name", "alan thread") ;  
      */
 
-    dbg_str(OBJ_DETAIL, "thread addr:%p", thread);
-
     thread = OBJECT_NEW(allocator, Thread, NULL);
+
+    dbg_str(DBG_DETAIL, "thread addr:%p", thread);
+    dbg_str(DBG_DETAIL, "allocator addr:%p", allocator);
 
     object_dump(thread, "Thread", buf, 2048);
     dbg_str(OBJ_DETAIL, "Thread dump: %s", buf);
     thread->set_start_routine(thread, test_func);
     thread->set_start_arg(thread, thread);
+    thread->set_opaque(thread, allocator);
     thread->start(thread);
 
-    sleep(1);
+    pause();
 
     object_destroy(thread);
     cfg_destroy(c);
 }
+REGISTER_STANDALONE_TEST_FUNC(test_obj_thread);

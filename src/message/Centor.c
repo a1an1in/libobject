@@ -121,6 +121,7 @@ static int __construct(Centor *centor, char *init_str)
     centor->s = s;
     centor->c = c;
 
+    dbg_str(DBG_SUC, "centor add io_worker fd=%d", centor->s->fd);
     centor->worker = io_worker(allocator, centor->s->fd, 
                                NULL, message_centor_ev_callback, 
                                message_centor_work_callback,

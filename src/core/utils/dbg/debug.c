@@ -183,6 +183,8 @@ int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt,
     if(debugger_get_business_level(debugger, business_num) < level){
         return -1;
     }
+
+    sync_lock(&debugger->lock, NULL);
     va_start(ap, fmt);
     vsnprintf(fmt_str, MAX_FMT_STR_LEN, fmt, ap);
     va_end(ap);
@@ -192,6 +194,7 @@ int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt,
                                         "[%s]--%s",
                                         level_str,
                                         fmt_str);
+    sync_unlock(&debugger->lock);
 
     return ret;
 #undef MAX_FMT_STR_LEN 
@@ -267,7 +270,7 @@ debugger_t *debugger_creator(char *ini_file_name, uint8_t lock_type)
     debugger->debugger_type = type;
     debugger->dbg_ops = &debugger_modules[type].dbg_ops;
     debugger->lock_type = lock_type;
-
+    sync_lock_init(&debugger->lock, debugger->lock_type);
 
     debugger_set_level_infos(debugger);
     debugger_set_businesses(debugger);
@@ -288,7 +291,7 @@ int debugger_constructor()
     file_name= "dbg.ini";
 #endif
 
-    debugger_gp = debugger_creator(file_name, 0);
+    debugger_gp = debugger_creator(file_name, PTHREAD_MUTEX_LOCK);
     debugger_init(debugger_gp);
 
     return 0;

@@ -59,18 +59,12 @@ static int __construct(Container *container, char *init_str)
     return 0;
 }
 
-static void release_subcomponent_foreach_cb(Iterator *iter, void *arg) 
+static void release_subcomponent_foreach_cb(void *key, void *element, void *arg) 
 {
     Component *component;
-    Subject *s;
-    Container *c;
-    uint8_t *addr;
-    position_t *add = (position_t *)arg;
 
-    component = (Component *)iter->get_vpointer(iter);
-
+    component = (Component *)element;
     dbg_str(DBG_DETAIL, "release subcomponent %s", component->name);
-
     object_destroy(component);
 }
 
@@ -148,7 +142,7 @@ static int __move(Container *container)
     dbg_str(DBG_DETAIL, "container move");
 }
 
-static void update_subcomponent_position_foreach_cb(Iterator *iter, void *arg) 
+static void update_subcomponent_position_foreach_cb(void *key, void *element, void *arg) 
 {
     Component *component;
     Subject *s;
@@ -156,7 +150,7 @@ static void update_subcomponent_position_foreach_cb(Iterator *iter, void *arg)
     uint8_t *addr;
     position_t *add = (position_t *)arg;
 
-    component  = (Component *)iter->get_vpointer(iter);
+    component  = (Component *)element;
     s          = (Subject *)component;
     c          = (Container *)component;
 
@@ -185,7 +179,7 @@ static int __update_component_position(void *component, void *arg)
 
 }
 
-static void reset_subcomponent_position_foreach_cb(Iterator *iter, void *arg) 
+static void reset_subcomponent_position_foreach_cb(void *key, void *element, void *arg) 
 {
     Component *component;
     Subject *s;
@@ -193,7 +187,7 @@ static void reset_subcomponent_position_foreach_cb(Iterator *iter, void *arg)
     uint8_t *addr;
     position_t *add = (position_t *)arg;
 
-    component = (Component *)iter->get_vpointer(iter);
+    component = (Component *)element;
     s         = (Subject *)component;
     c         = (Container *)component;
 
@@ -271,7 +265,7 @@ static Component *__search_component(Container *obj, char *key)
 }
 
 static int __for_each_component(Container *obj, 
-                                void (*func)(Iterator *iter, void *args), void *arg)
+                                void (*func)(void *key, void *element, void *arg), void *arg)
 {
     if (obj->map == NULL) {
         /*
@@ -283,7 +277,7 @@ static int __for_each_component(Container *obj,
     /*
      *dbg_str(DBG_DETAIL, "container for each component, map addr :%p", obj->map);
      */
-    obj->map->for_each_arg2(obj->map, func, arg);
+    obj->map->for_each_arg3(obj->map, func, arg);
 
 }
 

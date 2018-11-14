@@ -165,6 +165,7 @@ static void __for_each(List *list, void (*func)(void *element))
 
     for (; !end->equal(end, cur); cur->next(cur)) {
         element = cur->get_vpointer(cur);
+        dbg_str(DBG_IMPORTANT, "List for_each, element=%p", element);
         func(element);
     }
 }

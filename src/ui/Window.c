@@ -163,15 +163,14 @@ static int __update_window(Window *window)
 }
 
 static void
-load_subcomponent_resources_foreach_cb(Iterator *iter, void *arg) 
+load_subcomponent_resources_foreach_cb(void *key, void *element, void *arg) 
 {
     Component *component;
     Window *window = (Window *)arg;
-    uint8_t *addr;
 
     dbg_str(DBG_DETAIL, "window load_subcomponent_resources_foreach_cb");
 
-    component = (Component *)iter->get_vpointer(iter);
+    component = (Component *)element;
     if (component->load_resources)
         component->load_resources(component, window);
 }
@@ -191,16 +190,14 @@ static int __load_resources(Window *window)
     return 0;
 }
 
-static void unload_subcomponent_resources_foreach_cb(Iterator *iter, void *arg) 
+static void unload_subcomponent_resources_foreach_cb(void *key, void *element, void *arg) 
 {
     Component *component;
     Window *window = (Window *)arg;
-    uint8_t *addr;
 
     dbg_str(DBG_DETAIL, "window unload_subcomponent_resources_foreach_cb");
 
-    addr = (uint8_t *)iter->get_vpointer(iter);
-    component = (Component *)buffer_to_addr(addr);
+    component = (Component *)element;
     if (component->unload_resources)
         component->unload_resources(component, window);
 }

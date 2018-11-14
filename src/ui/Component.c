@@ -157,14 +157,13 @@ int __add_event_listener_cb(Component *component, char *name, void *value)
 }
 
 static void 
-load_subcomponent_resources_foreach_cb(Iterator *iter, 
+load_subcomponent_resources_foreach_cb(void *key, void *element, 
                                        void *arg) 
 {
     Component *component;
     void *window = (void *)arg;
-    uint8_t *addr;
 
-    component = (Component *)iter->get_vpointer(iter);
+    component = (Component *)element;
 
     if (component->load_resources)
         component->load_resources(component, window);
@@ -183,13 +182,13 @@ static int __load_resources(Component *component, void *window)
 }
 
 static void 
-unload_subcomponent_resources_foreach_cb(Iterator *iter, void *arg) 
+unload_subcomponent_resources_foreach_cb(void *key, void *element, void *arg) 
 {
     Component *component;
     void *window = (void *)arg;
     uint8_t *addr;
 
-    component = (Component *)iter->get_vpointer(iter);
+    component = (Component *)element;
 
     if (component->unload_resources)
         component->unload_resources(component, window);
@@ -207,13 +206,13 @@ static int __unload_resources(Component *component, void *window)
     return 0;
 }
 
-static void draw_subcomponent_foreach_cb(Iterator *iter, void *arg) 
+static void draw_subcomponent_foreach_cb(void *key, void *element, void *arg) 
 {
     Component *component;
     uint8_t *addr;
     Graph *g = (Graph *)arg;
 
-    component = (Component *)iter->get_vpointer(iter);
+    component = (Component *)element;
 
     if (component->draw) component->draw(component, g);
 }
@@ -371,7 +370,7 @@ static void __key_backspace_pressed(Component *component, void *graph)
 }
 
 static void 
-process_subcomponent_mouse_pressed_foreach_cb(Iterator *iter, 
+process_subcomponent_mouse_pressed_foreach_cb(void *key, void *element, 
                                               void *arg) 
 {
     Graph *g       = (Graph *)arg;
@@ -380,7 +379,7 @@ process_subcomponent_mouse_pressed_foreach_cb(Iterator *iter,
     Component *component;
     uint8_t *addr;
 
-    component = (Component *)iter->get_vpointer(iter);
+    component = (Component *)element;
 	s         = (Subject *)component;
 
     if (component->is_mouse_over_component(component, event) == 0) {
@@ -441,14 +440,14 @@ int  __is_mouse_over_component(Component *component, void *event)
 }
 
 static void 
-process_subcomponent_mouse_moved_foreach_cb(Iterator *iter, void *arg) 
+process_subcomponent_mouse_moved_foreach_cb(void *key, void *element, void *arg) 
 {
     Graph *g       = (Graph *)arg;
     __Event *event = (__Event *)arg;
     Component *component;
     uint8_t *addr;
 
-    component = (Component *)iter->get_vpointer(iter);
+    component = (Component *)element;
 
     if (component->is_mouse_over_component(component, event) == 0) {
         if (component->mouse_entered_flag == 1) {

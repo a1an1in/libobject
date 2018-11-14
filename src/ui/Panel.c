@@ -84,13 +84,13 @@ static void *__get(Panel *obj, char *attrib)
     return NULL;
 }
 
-static void draw_subcomponent_foreach_cb(Iterator *iter, void *arg) 
+static void draw_subcomponent_foreach_cb(void *key, void *element, void *arg) 
 {
     Component *component;
     uint8_t *addr;
     Graph *g = (Graph *)arg;
 
-    addr      = (uint8_t *)iter->get_vpointer(iter);
+    addr      = (uint8_t *)element;
     component = (Component *)buffer_to_addr(addr);
 
     if (component->draw) component->draw(component, g);

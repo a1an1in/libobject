@@ -1012,7 +1012,7 @@ char *gen_text_area_setting_str()
 
     return set_str;
 }
-void test_ui_text_area()
+int text_area()
 {
     Window *window;
     Container *container;
@@ -1049,4 +1049,6 @@ void test_ui_text_area()
     object_destroy(window);
 
     free(set_str);
+    return 1;
 }
+REGISTER_STANDALONE_TEST_FUNC(text_area);

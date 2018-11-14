@@ -81,6 +81,8 @@ target_link_libraries(object SDL2_ttf)
 #target_link_libraries(test object)
 
 add_executable(test ${Main_File} ${Source_Files})
+target_link_libraries(test SDL2)
+target_link_libraries(test SDL2_ttf)
 
 #ADD_LIBRARY (object_static STATIC ${Source_Files})
 #SET_TARGET_PROPERTIES(object_static PROPERTIES OUTPUT_NAME "object")

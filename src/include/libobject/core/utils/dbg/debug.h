@@ -83,6 +83,7 @@ struct debugger{
         debug_network_prive_t net;
 		debug_log_prive_t log;
 	}priv;
+	sync_lock_t lock;
 #undef MAX_INI_FILE_NAME_LEN
 };
 

@@ -18,12 +18,14 @@ struct thread_s{
     int (*start)(Thread *);
     int (*set_start_routine)(Thread *, void *);
     int (*set_start_arg)(Thread *, void *);
+    int (*set_opaque)(Thread *, void *);
 
 	/*virtual methods reimplement*/
     void *(*start_routine)(void *);
 
     void *arg;
     pthread_t tid;
+    void *opaque;
 };
 
 #endif

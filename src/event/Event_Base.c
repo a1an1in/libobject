@@ -37,15 +37,6 @@
 
 List *global_event_base_list;
 
-/*
- *static void rbtree_map_print_with_numeric_key(void *key, void *element)
- *{
- *    event_t *event = (event_t *)element;
- *     
- *    dbg_str(EV_DETAIL, "key:%d, event=%p", *(int *)key, event);
- *}
- */
-
 static int __construct(Event_Base *eb,char *init_str)
 {
     allocator_t *allocator = eb->obj.allocator;
@@ -60,10 +51,10 @@ static int __construct(Event_Base *eb,char *init_str)
     eb->timer = OBJECT_NEW(allocator, Rbtree_Timer,NULL);
 
     c = cfg_alloc(allocator); 
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "4") ;  
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "8") ;
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "20") ;
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_type", "1");
+    cfg_config_num(c, "/Hash_Map", "key_size", sizeof(int)) ;  
+    cfg_config_num(c, "/Hash_Map", "value_size", sizeof(void *)) ;
+    cfg_config_num(c, "/Hash_Map", "bucket_size", 20);
+    cfg_config_num(c, "/Hash_Map", "key_type", 1);
     eb->io_map    = OBJECT_NEW(allocator, Hash_Map, c->buf);
 
     dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p,timer:%p",
@@ -86,8 +77,6 @@ static int __deconstrcut(Event_Base *eb)
 
     dbg_str(EV_DETAIL,"*****eb deconstruct,eb addr:%p",eb);
 
-    //release evsig
-    
     object_destroy(eb->timer);
     object_destroy(eb->io_map);
 
@@ -158,9 +147,6 @@ static int __add(Event_Base *eb, event_t *event)
 
     if (event->ev_events & EV_SIGNAL) {
         evsig_add(eb, event);
-        /*
-         *eb->evsig.map->for_each(eb->evsig.map, rbtree_map_print_with_numeric_key);
-         */
     } else {
         event->ev_tv = event->ev_timeout;
         dbg_str(EV_DETAIL, "add fd =%d into io map", fd);
@@ -178,9 +164,11 @@ static int __del(Event_Base *eb, event_t *event)
     Timer *timer = eb->timer;
     int fd       = event->ev_fd;
     Map *io_map  = eb->io_map;
+    Map *sig_map = eb->evsig.map;
     int ret;
 
     if (event->ev_events & EV_SIGNAL) {
+        evsig_del(eb, event);
     } else {
         eb->reclaim_io(eb,event);
         timer->del(timer, event);
@@ -260,7 +248,6 @@ static int __activate_signal_old(Event_Base *eb, int fd, short events)
 static void __signal_list_for_each_callback(void *element)
 {
     event_t *event = (event_t *)element;
-    dbg_str(OBJ_DETAIL, "value: %s", element);
     event->ev_callback(event->ev_fd, 0, event->ev_arg);
 }
 
@@ -277,8 +264,9 @@ static int __activate_signal(Event_Base *eb, int fd, short events)
 
     list->remove_all(list);
 
-    map->search_all(map, &fd, list);
+    map->search_all_same_key(map, &fd, list);
     if (list->count(list) != 0) {
+        dbg_str(EV_WARNNING,"activate_signal, list count=%d", list->count(list));
         dbg_str(EV_WARNNING,"activate_signal, find signal=%d", fd);
         list->for_each(list, __signal_list_for_each_callback);
     } else {

@@ -27,7 +27,7 @@ struct container_s{
     int (*update_component_position)(void *component, void *arg);
     int (*reset_component_position)(void *component, void *arg);
     void *(*search_component)(Container *obj, char *key);
-	void (*for_each_component)(Container *obj, void (*func)(Iterator *iter, void *args), void *arg);
+	void (*for_each_component)(Container *obj, void (*func)(void *key, void *element, void *arg), void *arg);
 
 #define MAX_NAME_LEN 50
     char name[MAX_NAME_LEN];

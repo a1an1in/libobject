@@ -108,13 +108,13 @@ static void *__get(Button *obj, char *attrib)
     return NULL;
 }
 
-static void draw_subcomponent_foreach_cb(Iterator *iter, void *arg) 
+static void draw_subcomponent_foreach_cb(void *key, void *element, void *arg) 
 {
     Component *component;
     uint8_t *addr;
     Graph *g = (Graph *)arg;
 
-    addr      = (uint8_t *)iter->get_vpointer(iter);
+    addr      = (uint8_t *)element;
     component = (Component *)buffer_to_addr(addr);
 
     if (component->draw) component->draw(component, g);
@@ -229,7 +229,7 @@ static event_listener_t button_listener = {
     .do_mouse_pressed = __do_mouse_pressed, 
 };
 
-void test_ui_button()
+static int button()
 {
     allocator_t *allocator = allocator_get_default_alloc();
     Window *window;
@@ -268,5 +268,8 @@ void test_ui_button()
 
     window->unload_resources(window);
     object_destroy(window);
+
+    return 1;
 }
+REGISTER_STANDALONE_TEST_FUNC(button);
 

@@ -35,6 +35,33 @@
 #include <libobject/core/rbtree_map.h>
 #include <libobject/core/linked_list.h>
 
+static int __find_same_key_node(struct rb_node *node, key_cmp_fpt func, void *key, List *list)
+{
+    int ret = 0;
+    void **addr;
+
+    while (node) {
+        struct rbtree_map_node *mnode = rb_entry(node, struct rbtree_map_node, node);
+        int result;
+
+        result = func(key, mnode->key, mnode->value_pos);
+        if (result < 0) {
+            node = node->rb_left;
+        } else if (result > 0) {
+            node = node->rb_right;
+        } else {
+            addr  = (void **)&mnode->key[mnode->value_pos];
+            dbg_str(DBG_DETAIL, "list add a element:%p", *addr);
+            list->add(list, *addr);
+            __find_same_key_node(node->rb_left, func , key, list);
+            __find_same_key_node(node->rb_right, func,  key, list);
+            break;
+        }
+    }
+
+    return ret;
+}
+
 static int __construct(Map *map, char *init_str)
 {
     RBTree_Map *rbm = (RBTree_Map *)map;
@@ -84,8 +111,8 @@ static int __set(Map *m, char *attrib, void *value)
         map->add = value;
     } else if (strcmp(attrib, "search") == 0) {
         map->search = value;
-    } else if (strcmp(attrib, "search_all") == 0) {
-        map->search_all = value;
+    } else if (strcmp(attrib, "search_all_same_key") == 0) {
+        map->search_all_same_key = value;
     } else if (strcmp(attrib, "remove") == 0) {
         map->remove = value;
     } else if (strcmp(attrib, "del") == 0) {
@@ -160,41 +187,13 @@ static int __search(Map *map, void *key, void **element)
     return ret;
 }
 
-static int find_same_node(struct rb_node *node, key_cmp_fpt func, void *key, List *list)
+static int __search_all_same_key(Map *map, void *key, List *list)
 {
-    int ret = 0;
-    void **addr;
-
-    while (node) {
-        struct rbtree_map_node *mnode = rb_entry(node, struct rbtree_map_node, node);
-        int result;
-
-        result = func(key, mnode->key, mnode->value_pos);
-        if (result < 0) {
-            node = node->rb_left;
-        } else if (result > 0) {
-            node = node->rb_right;
-        } else {
-            addr  = (void **)&mnode->key[mnode->value_pos];
-            list->add(list, *addr);
-            find_same_node(node->rb_left, func , key, list);
-            find_same_node(node->rb_right, func,  key, list);
-            break;
-        }
-    }
-
-    return ret;
-}
-
-static int __search_all(Map *map, void *key, List *list)
-{
-    RBTree_Map *obj_rbtree_map = (RBTree_Map *)map;
-    rbtree_map_t *rbtree_map = obj_rbtree_map->rbmap;
+    rbtree_map_t *rbtree_map = ((RBTree_Map *)map)->rbmap;
     struct rb_root *root = rbtree_map->tree_root;
     struct rb_node *node = root->rb_node;
     int ret = 0;
     void **addr;
-    int out_flag = 0;
 
     dbg_str(DBG_DETAIL, "rbtree_map_search all");
 
@@ -212,9 +211,10 @@ static int __search_all(Map *map, void *key, List *list)
             node = node->rb_right;
         } else {
             addr  = (void **)&mnode->key[mnode->value_pos];
+            dbg_str(DBG_DETAIL, "list add a element:%p", *addr);
             list->add(list, *addr);
-            find_same_node(node->rb_left, key_cmp_func , key, list);
-            find_same_node(node->rb_right, key_cmp_func,  key, list);
+            __find_same_key_node(node->rb_left, key_cmp_func , key, list);
+            __find_same_key_node(node->rb_right, key_cmp_func,  key, list);
             break;
         }
     }
@@ -287,7 +287,7 @@ static class_info_entry_t rbtree_map_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", __add, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search", __search, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search_all", __search_all, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search_all_same_key", __search_all_same_key, sizeof(void *)}, 
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del", __del, sizeof(void *)}, 
     [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
@@ -463,7 +463,7 @@ void test_obj_rbtree_map()
      */
 }
 
-static void list_print(void *element)
+static void test_list_print(void *element)
 {
     dbg_str(DBG_DETAIL, "list element value: %p", element);
 }
@@ -509,9 +509,9 @@ int test_rbtree_map_same_string_key()
     map->for_each(map, rbtree_map_print);
 
     dbg_str(DBG_DETAIL, "run at here");
-    map->search_all(map, "test2", list);
+    map->search_all_same_key(map, "test2", list);
     dbg_str(DBG_DETAIL, "run at here");
-    list->for_each(list, list_print);
+    list->for_each(list, test_list_print);
 
     if (list->count(list) == 4) {
         ret = 1;
@@ -569,9 +569,9 @@ int test_rbtree_map_same_numeric_key()
     map->for_each(map, rbtree_map_print_with_numeric_key);
 
     key = 1;
-    map->search_all(map, &key, list);
+    map->search_all_same_key(map, &key, list);
     dbg_str(DBG_DETAIL, "run at here");
-    list->for_each(list, list_print);
+    list->for_each(list, test_list_print);
 
     if (list->count(list) == 3) {
         ret = 1;

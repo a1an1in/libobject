@@ -306,6 +306,19 @@ int evsig_add(Event_Base *eb, event_t *event)
     return 0;
 }
 
+int evsig_del(Event_Base *eb, event_t *event)
+{
+    struct sigaction sa; 
+    int evsignal = event->ev_fd;
+    Map *map = eb->evsig.map;
+
+    dbg_str(DBG_DETAIL,"del sig:%d", evsignal);
+
+    map->del(map, &evsignal);
+
+    return 0;
+}
+
 /* --------------------------------------------------------------------------*/
 /**
  * @Synopsis  break event base loop singal callback

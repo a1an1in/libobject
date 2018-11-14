@@ -574,7 +574,7 @@ char *gen_text_field_setting_str()
 
     return set_str;
 }
-void test_ui_text_field()
+static int text_field()
 {
     Window *window;
     Container *container;
@@ -591,6 +591,7 @@ void test_ui_text_field()
     event     = window->event;
     container = (Container *)window;
 
+#if 0
     object_dump(window, "Sdl_Window", buf, 2048);
     dbg_str(DBG_DETAIL, "Window dump: %s", buf);
 
@@ -607,8 +608,12 @@ void test_ui_text_field()
     window->update_window(window);
 
     event->poll_event(event, window);
+#endif
 
+    pause();
     object_destroy(window);
 
     free(set_str);
+    return 1;
 }
+REGISTER_STANDALONE_TEST_FUNC(text_field);

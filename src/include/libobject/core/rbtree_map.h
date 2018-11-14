@@ -20,7 +20,7 @@ struct RBTree_Map_s{
 	/*virtual methods reimplement*/
     int (*add)(Map *map,void *key,void *value);
     int (*search)(Map *map,void *key,void **element);
-    int (*search_all)(Map *map,void *key, List *list);
+    int (*search_all_same_key)(Map *map,void *key, List *list);
     int (*remove)(Map *map,void *key,void **element);
     int (*del)(Map *map, void *key);
     void (*for_each)(Map *map,void (*func)(void *key, void *element));

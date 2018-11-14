@@ -110,7 +110,7 @@ static class_info_entry_t image_class_info[] = {
 };
 REGISTER_CLASS("Sdl_Image", image_class_info);
 
-void test_obj_sdl_image()
+static int sdl_image()
 {
     Window *window;
     Graph *g;
@@ -139,7 +139,8 @@ void test_obj_sdl_image()
     object_destroy(window);
 
     free(set_str);
-
+    return 1;
 }
+REGISTER_STANDALONE_TEST_FUNC(sdl_image);
 
 

@@ -179,7 +179,7 @@ static int __init_window(Window *window)
                                          SDL_WINDOWPOS_UNDEFINED, 
                                          window->screen_width, 
                                          window->screen_height, 
-                                         SDL_WINDOW_SHOWN);
+                                         SDL_WINDOW_RESIZABLE);
         if ( w->sdl_window == NULL ) {
             dbg_str(DBG_ERROR, "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
             ret = -1;
@@ -321,7 +321,7 @@ char *gen_window_setting_str()
     return set_str;
 }
 
-void test_ui_sdl_window()
+int sdl_window()
 {
     Window *window;
     Graph *g;
@@ -358,11 +358,16 @@ void test_ui_sdl_window()
      *sleep(5);
      */
 
+    pause();
     object_destroy(window);
     dbg_str(DBG_SUC, "test_ui_sdl_window end alloc count =%d", allocator->alloc_count);
 
+
     free(set_str);
 
+    return 1;
+
 }
+REGISTER_STANDALONE_TEST_FUNC(sdl_window);
 
 

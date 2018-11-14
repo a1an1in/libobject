@@ -14,5 +14,8 @@ struct evsig_s{
     List *list;
 };
 
+/*
+ *int evsig_del(Event_Base *eb, event_t *event);
+ */
 
 #endif
