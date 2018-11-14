@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ui/component.h>
-#include <libobject/ui/graph.h>
+#include <libobject/ui/render.h>
 #include <libobject/ui/image.h>
 #include <libobject/ui/font.h>
 #include <libobject/ui/event.h>
@@ -26,8 +26,8 @@ struct window_s{
 	int (*move)(Window *window);
     void *(*create_font)(Window *window, char *font_name);
     int (*destroy_font)(Window *window);
-    void *(*create_graph)(Window *window, char *graph_type);
-    int (*destroy_graph)(Window *window);
+    void *(*create_render)(Window *window, char *render_type);
+    int (*destroy_render)(Window *window);
     void *(*create_event)(Window *window);
     int (*destroy_event)(Window *window);
     void *(*create_background)(Window *window, char *pic_path);
@@ -46,9 +46,9 @@ struct window_s{
 #define MAX_NAME_LEN 50
     char name[MAX_NAME_LEN];
 #undef MAX_NAME_LEN
-	uint8_t graph_type;
+	uint8_t render_type;
 
-	Graph *graph;
+	Render *render;
 	Font *font;
 	Image *background;
     __Event *event;

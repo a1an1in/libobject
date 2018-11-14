@@ -210,26 +210,26 @@ static void draw_subcomponent_foreach_cb(void *key, void *element, void *arg)
 {
     Component *component;
     uint8_t *addr;
-    Graph *g = (Graph *)arg;
+    Render *g = (Render *)arg;
 
     component = (Component *)element;
 
     if (component->draw) component->draw(component, g);
 }
 
-static int __draw(Component *component, void *graph)
+static int __draw(Component *component, void *render)
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *g             = (Render *)render;
     dbg_str(DBG_DETAIL, "%s draw", ((Obj *)component)->name);
 
     container->for_each_component(container, draw_subcomponent_foreach_cb, g);
 }
 
-static void __key_text_pressed(Component *component, char c, void *graph)
+static void __key_text_pressed(Component *component, char c, void *render)
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *g             = (Render *)render;
     Component *cur;
 
     dbg_str(DBG_DETAIL, "EVENT: text input %c", c);
@@ -242,10 +242,10 @@ static void __key_text_pressed(Component *component, char c, void *graph)
     if (cur->key_text_pressed) cur->key_text_pressed(cur, c, g);
 }
 
-static void __key_up_pressed(Component *component, void *graph) 
+static void __key_up_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *g             = (Render *)render;
     Component *cur;
 
     cur = container->search_component(container, "text_area");
@@ -257,10 +257,10 @@ static void __key_up_pressed(Component *component, void *graph)
 
 }
 
-static void __key_down_pressed(Component *component, void *graph) 
+static void __key_down_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *g             = (Render *)render;
     Component *cur;
 
     cur = container->search_component(container, "text_area");
@@ -271,10 +271,10 @@ static void __key_down_pressed(Component *component, void *graph)
     if (cur->key_down_pressed) cur->key_down_pressed(cur, g); 
 }
 
-static void __key_left_pressed(Component *component, void *graph) 
+static void __key_left_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *g             = (Render *)render;
     Component *cur;
 
     cur = container->search_component(container, "text_area");
@@ -285,10 +285,10 @@ static void __key_left_pressed(Component *component, void *graph)
     if (cur->key_left_pressed) cur->key_left_pressed(cur, g); 
 }
 
-static void __key_right_pressed(Component *component, void *graph) 
+static void __key_right_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *g             = (Render *)render;
     Component *cur;
 
     cur = container->search_component(container, "text_area");
@@ -299,10 +299,10 @@ static void __key_right_pressed(Component *component, void *graph)
     if (cur->key_right_pressed) cur->key_right_pressed(cur, g); 
 }
 
-static void __key_pageup_pressed(Component *component, void *graph) 
+static void __key_pageup_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *g             = (Render *)render;
     Component *cur;
 
     cur = container->search_component(container, "text_area");
@@ -313,10 +313,10 @@ static void __key_pageup_pressed(Component *component, void *graph)
     if (cur->key_pageup_pressed) cur->key_pageup_pressed(cur, g); 
 }
 
-static void __key_pagedown_pressed(Component *component, void *graph) 
+static void __key_pagedown_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *g             = (Render *)render;
     Component *cur;
 
     cur = container->search_component(container, "text_area");
@@ -327,10 +327,10 @@ static void __key_pagedown_pressed(Component *component, void *graph)
     if (cur->key_pagedown_pressed) cur->key_pagedown_pressed(cur, g); 
 }
 
-static void __key_onelineup_pressed(Component *component, void *graph) 
+static void __key_onelineup_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *g             = (Render *)render;
     Component *cur;
 
     cur = container->search_component(container, "text_area");
@@ -341,10 +341,10 @@ static void __key_onelineup_pressed(Component *component, void *graph)
     if (cur->key_onelineup_pressed) cur->key_onelineup_pressed(cur, g); 
 }
 
-static void __key_onelinedown_pressed(Component *component, void *graph) 
+static void __key_onelinedown_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *g             = (Render *)render;
     Component *cur;
 
     cur = container->search_component(container, "text_area");
@@ -355,10 +355,10 @@ static void __key_onelinedown_pressed(Component *component, void *graph)
     if (cur->key_onelinedown_pressed) cur->key_onelinedown_pressed(cur, g); 
 }
 
-static void __key_backspace_pressed(Component *component, void *graph) 
+static void __key_backspace_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *g             = (Render *)render;
     Component *cur;
 
     cur = container->search_component(container, "text_area");
@@ -373,7 +373,7 @@ static void
 process_subcomponent_mouse_pressed_foreach_cb(void *key, void *element, 
                                               void *arg) 
 {
-    Graph *g       = (Graph *)arg;
+    Render *g       = (Render *)arg;
     __Event *event = (__Event *)arg;
 	Subject *s;
     Component *component;
@@ -395,7 +395,7 @@ static void __mouse_pressed(Component *component, void *event, void *window)
 {
     Container *container = (Container *)component;
     Window *w            = (Window *)window;
-    Graph *g             = w->graph;
+    Render *g             = w->render;
     __Event *e           = (__Event *)event;
     Component *cur;
 
@@ -442,7 +442,7 @@ int  __is_mouse_over_component(Component *component, void *event)
 static void 
 process_subcomponent_mouse_moved_foreach_cb(void *key, void *element, void *arg) 
 {
-    Graph *g       = (Graph *)arg;
+    Render *g       = (Render *)arg;
     __Event *event = (__Event *)arg;
     Component *component;
     uint8_t *addr;
@@ -476,7 +476,7 @@ static void __mouse_moved(Component *component, void *event, void *window)
 {
     Container *container = (Container *)component;
     Window *w            = (Window *)window;
-    Graph *g             = w->graph;
+    Render *g             = w->render;
     __Event *e           = (__Event *)event;
     Component *cur;
 

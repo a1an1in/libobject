@@ -37,7 +37,7 @@ static int __construct(Window *window, char *init_str)
     dbg_str(DBG_IMPORTANT, "window construct, window addr:%p", window);
 
     window->create_font(window, NULL);
-    window->create_graph(window, NULL);
+    window->create_render(window, NULL);
     window->create_event(window);
     window->open_window(window);
 
@@ -54,7 +54,7 @@ static int __deconstrcut(Window *window)
     window->close_window(window);
     window->destroy_event(window);
     window->destroy_font(window);
-    window->destroy_graph(window);
+    window->destroy_render(window);
 
     return 0;
 }
@@ -84,10 +84,10 @@ static int __set(Window *window, char *attrib, void *value)
         window->create_font = value;
     } else if (strcmp(attrib, "destroy_font") == 0) {
         window->destroy_font = value;
-    } else if (strcmp(attrib, "create_graph") == 0) {
-        window->create_graph = value;
-    } else if (strcmp(attrib, "destroy_graph") == 0) {
-        window->destroy_graph = value;
+    } else if (strcmp(attrib, "create_render") == 0) {
+        window->create_render = value;
+    } else if (strcmp(attrib, "destroy_render") == 0) {
+        window->destroy_render = value;
     } else if (strcmp(attrib, "create_event") == 0) {
         window->create_event = value;
     } else if (strcmp(attrib, "destroy_event") == 0) {
@@ -116,14 +116,14 @@ static int __set(Window *window, char *attrib, void *value)
     /*attribs*/
     else if (strcmp(attrib, "name") == 0) { 
         strncpy(window->name, value, strlen(value));
-    } else if (strcmp(attrib, "graph_type") == 0) {
-        window->graph_type = *((uint8_t *)value);
+    } else if (strcmp(attrib, "render_type") == 0) {
+        window->render_type = *((uint8_t *)value);
     } else if (strcmp(attrib, "screen_width") == 0) {
         window->screen_width = *((uint32_t *)value);
     } else if (strcmp(attrib, "screen_height") == 0) {
         window->screen_height = *((uint32_t *)value);
-    } else if (strcmp(attrib, "graph") == 0) {
-        window->graph = value;
+    } else if (strcmp(attrib, "render") == 0) {
+        window->render = value;
     } else {
         dbg_str(DBG_DETAIL, "window set, not support %s setting", attrib);
     }
@@ -135,10 +135,10 @@ static void *__get(Window *obj, char *attrib)
 {
     if (strcmp(attrib, "name") == 0) {
         return obj->name;
-    } else if (strcmp(attrib, "graph_type") == 0) {
-        return &obj->graph_type;
-    } else if (strcmp(attrib, "graph") == 0) {
-        return obj->graph;
+    } else if (strcmp(attrib, "render_type") == 0) {
+        return &obj->render_type;
+    } else if (strcmp(attrib, "render") == 0) {
+        return obj->render;
     } else if (strcmp(attrib, "screen_width") == 0) {
         return &obj->screen_width;
     } else if (strcmp(attrib, "screen_height") == 0) {
@@ -152,13 +152,13 @@ static void *__get(Window *obj, char *attrib)
 
 static int __update_window(Window *window)
 {
-    Graph *g = window->graph;
+    Render *r = window->render;
     Component *component = (Component *)window;
 
     dbg_str(DBG_DETAIL, "window update_window");
 
-    component->draw(component, g);
-    g->render_present(g);
+    component->draw(component, r);
+    r->present(r);
 
 }
 
@@ -181,7 +181,7 @@ static int __load_resources(Window *window)
 
     dbg_str(DBG_IMPORTANT, "window load_resources");
 
-    window->font->load_ascii_character(window->font, window->graph);
+    window->font->load_ascii_character(window->font, window->render);
 
     container->for_each_component(container, 
                                   load_subcomponent_resources_foreach_cb, 
@@ -197,6 +197,10 @@ static void unload_subcomponent_resources_foreach_cb(void *key, void *element, v
 
     dbg_str(DBG_DETAIL, "window unload_subcomponent_resources_foreach_cb");
 
+    /*
+     *window->font->unload_ascii_character(window->font, window->render);
+     */
+
     component = (Component *)element;
     if (component->unload_resources)
         component->unload_resources(component, window);
@@ -207,8 +211,6 @@ static int __unload_resources(Window *window)
     Container *container = (Container *)window;
 
     dbg_str(DBG_IMPORTANT, "window unload_resources");
-
-    window->font->unload_ascii_character(window->font, window->graph);
 
     container->for_each_component(container, 
                                   unload_subcomponent_resources_foreach_cb, 
@@ -229,8 +231,8 @@ static class_info_entry_t window_class_info[] = {
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "move", NULL, sizeof(void *)}, 
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_font", NULL, sizeof(void *)}, 
     [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_font", NULL, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_graph", NULL, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_graph", NULL, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_render", NULL, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_render", NULL, sizeof(void *)}, 
     [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_event", NULL, sizeof(void *)}, 
     [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_event", NULL, sizeof(void *)}, 
     [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_background", NULL, sizeof(void *)}, 
@@ -243,10 +245,10 @@ static class_info_entry_t window_class_info[] = {
     [22] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_timer", NULL, sizeof(void *)}, 
     [23] = {ENTRY_TYPE_IFUNC_POINTER, "", "add_component", NULL, sizeof(void *)}, 
     [24] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [25] = {ENTRY_TYPE_UINT8_T, "uint8_t", "graph_type", NULL, 0}, 
+    [25] = {ENTRY_TYPE_UINT8_T, "uint8_t", "render_type", NULL, 0}, 
     [26] = {ENTRY_TYPE_UINT32_T, "", "screen_width", NULL, sizeof(short)}, 
     [27] = {ENTRY_TYPE_UINT32_T, "", "screen_height", NULL, sizeof(short)}, 
-    [28] = {ENTRY_TYPE_NORMAL_POINTER, "Graph", "graph", NULL, sizeof(float)}, 
+    [28] = {ENTRY_TYPE_NORMAL_POINTER, "Render", "render", NULL, sizeof(float)}, 
     [29] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Window", window_class_info);

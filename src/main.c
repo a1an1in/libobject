@@ -701,8 +701,10 @@ int main(int argc, char *argv[])
     dbg_str(DBG_DETAIL, "main func end");
 
 #if 1
-    pause();
-    dbg_str(DBG_DETAIL, "main func out, but pause breaked");
+    /*
+     *pause();
+     *dbg_str(DBG_DETAIL, "main func out, but pause breaked");
+     */
 #endif
     /*
      *signal(SIGCHLD,SIG_IGN);

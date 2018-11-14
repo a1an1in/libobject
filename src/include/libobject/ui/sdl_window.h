@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ui/component.h>
-#include <libobject/ui/graph.h>
+#include <libobject/ui/render.h>
 #include <libobject/ui/image.h>
 #include <libobject/ui/window.h>
 #include <SDL2/SDL.h>
@@ -22,8 +22,8 @@ struct sdl_window_s{
     /*virtual methods*/
     void *(*create_font)(Window *window, char *font_name);
     int (*destroy_font)(Window *window);
-    void *(*create_graph)(Window *window, char *graph_type);
-    int (*destroy_graph)(Window *window);
+    void *(*create_render)(Window *window, char *render_type);
+    int (*destroy_render)(Window *window);
     void *(*create_event)(Window *window);
     int (*destroy_event)(Window *window);
     void *(*create_background)(Window *window, char *pic_path);

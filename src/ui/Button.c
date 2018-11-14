@@ -112,26 +112,26 @@ static void draw_subcomponent_foreach_cb(void *key, void *element, void *arg)
 {
     Component *component;
     uint8_t *addr;
-    Graph *g = (Graph *)arg;
+    Render *r = (Render *)arg;
 
     addr      = (uint8_t *)element;
     component = (Component *)buffer_to_addr(addr);
 
-    if (component->draw) component->draw(component, g);
+    if (component->draw) component->draw(component, r);
 }
 
-static int __draw(Component *component, void *graph)
+static int __draw(Component *component, void *render)
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *r             = (Render *)render;
     Button *button       = (Button *)component;
     Subject *s           = (Subject *)component;
 
     dbg_str(DBG_DETAIL, "%s draw", ((Obj *)component)->name);
 
-    g->render_set_color(g, 0, 0, 0, 0xff);
-    g->render_draw_rect(g, s->x, s->y, s->width, s->height);
-    container->for_each_component(container, draw_subcomponent_foreach_cb, g);
+    r->set_color(r, 0, 0, 0, 0xff);
+    r->draw_rect(r, s->x, s->y, s->width, s->height);
+    container->for_each_component(container, draw_subcomponent_foreach_cb, r);
 }
 
 static void __mouse_pressed(Component *component, void *event, void *window) 

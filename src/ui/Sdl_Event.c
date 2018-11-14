@@ -199,7 +199,7 @@ static int __poll_event(__Event *event, void *window)
     int quit             = 0;
     SDL_Event *e         = &((Sdl_Event *)event)->ev;
     Window *w            = (Window *)window;
-    Graph *g             = w->graph;
+    Render *g             = w->render;
     Component *component = (Component *)window, *cur;
      
     dbg_str(DBG_DETAIL, "sdl event poll");
@@ -373,11 +373,11 @@ static class_info_entry_t sdl_event_class_info[] = {
 };
 REGISTER_CLASS("Sdl_Event", sdl_event_class_info);
 
-void test_obj_sdl_event()
+int sdl_event()
 {
     allocator_t *allocator = allocator_get_default_alloc();
     Window *window;
-    Graph *g;
+    Render *g;
     __Event *event;
     char *set_str;
     char buf[2048];
@@ -388,7 +388,7 @@ void test_obj_sdl_event()
      *window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
      */
     window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
-    g       = window->graph;
+    g       = window->render;
     event   = window->event;
 
     object_dump(window, "Sdl_Window", buf, 2048);
@@ -400,5 +400,6 @@ void test_obj_sdl_event()
 
     free(set_str);
 }
+REGISTER_STANDALONE_TEST_FUNC(sdl_event);
 
 

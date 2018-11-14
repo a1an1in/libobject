@@ -7,7 +7,9 @@ int mockery(int argc, char **argv)
 {
     dbg_str(DBG_DETAIL, "mockery start");
 
-    sleep(1);
+    /*
+     *sleep(1);
+     */
 
     if (argc > 0) {
         int targc = argc - 1;

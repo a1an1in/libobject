@@ -540,34 +540,34 @@ static void draw_subcomponent_foreach_cb(void *key, void *element, void *arg)
 {
     Component *component;
     uint8_t *addr;
-    Graph *g = (Graph *)arg;
+    Render *r = (Render *)arg;
 
     component = (Component *)element;
 
-    if (component->draw) component->draw(component, g);
+    if (component->draw) component->draw(component, r);
 }
 
-static void draw_border(Component *component, void *graph) 
+static void draw_border(Component *component, void *render) 
 {
     Border_Layout *l = (Border_Layout *)component;
-    Graph *g         = (Graph *)graph;
+    Render *r         = (Render *)render;
     Subject *s       = (Subject *)component;
     int i;
     position_t start, end;
 
     dbg_str(DBG_DETAIL, "draw_border");
 
-    g->render_set_color(g, 0, 0, 0, 0xff);
+    r->set_color(r, 0, 0, 0, 0xff);
 
-    g->render_draw_rect(g, s->x, s->y, l->layout_width, l->layout_height);
+    r->draw_rect(r, s->x, s->y, l->layout_width, l->layout_height);
 
-	g->render_draw_line(g, 
+	r->draw_line(r, 
                         s->x, 
                         s->y + l->blocks[BORDER_LAYOUT_NORTH].height, 
                         s->x + l->layout_width, 
                         s->y + l->blocks[BORDER_LAYOUT_NORTH].height);
 
-	g->render_draw_line(g, 
+	r->draw_line(r, 
                         s->x, 
                         s->y + l->blocks[BORDER_LAYOUT_NORTH].height + l->blocks[BORDER_LAYOUT_CENTER].height, 
                         s->x + l->layout_width, 
@@ -577,14 +577,14 @@ static void draw_border(Component *component, void *graph)
      */
 
     if (l->blocks[BORDER_LAYOUT_WEST].width != 0)
-        g->render_draw_line(g, 
+        r->draw_line(r, 
                             s->x + l->blocks[BORDER_LAYOUT_WEST].width, 
                             s->y + l->blocks[BORDER_LAYOUT_NORTH].height, 
                             s->x + l->blocks[BORDER_LAYOUT_WEST].width, 
                             s->y + l->blocks[BORDER_LAYOUT_NORTH].height + l->blocks[BORDER_LAYOUT_CENTER].height);
 
     if (l->blocks[BORDER_LAYOUT_EAST].width != 0)
-        g->render_draw_line(g, 
+        r->draw_line(r, 
                             s->x + l->blocks[BORDER_LAYOUT_WEST].width + l->blocks[BORDER_LAYOUT_CENTER].width, 
                             s->y + l->blocks[BORDER_LAYOUT_NORTH].height, 
                             s->x + l->blocks[BORDER_LAYOUT_WEST].width + l->blocks[BORDER_LAYOUT_CENTER].width, 
@@ -611,18 +611,18 @@ static void draw_border(Component *component, void *graph)
 }
 
 /*reimplement the virtual func draw() int Component class*/
-static int __draw(Component *component, void *graph)
+static int __draw(Component *component, void *render)
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *r             = (Render *)render;
 
     dbg_str(DBG_DETAIL, "%s draw", ((Obj *)component)->name);
 
     /*draw layouts*/
-    draw_border(component, graph);
+    draw_border(component, render);
 
     /*draw subcomponent*/
-    container->for_each_component(container, draw_subcomponent_foreach_cb, g);
+    container->for_each_component(container, draw_subcomponent_foreach_cb, r);
 }
 
 static class_info_entry_t border_layout_class_info[] = {

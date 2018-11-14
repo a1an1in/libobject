@@ -35,26 +35,30 @@
 #include <libobject/ui/timer.h>
 
 static int 
-draw_character(Component *component, char c, void *graph)
+draw_character(Component *component, char c, void *render)
 {
     Label *label     = (Label *)component;
-    Graph *g         = (Graph *)graph;
+    Render *r         = (Render *)render;
     cursor_t *cursor = &label->cursor;
     Character *character;
 
-    character = (Character *)g->font->ascii[c].character;
+    character = (Character *)r->font->ascii[c].character;
     if (character->height == 0) {
         dbg_str(DBG_WARNNING, "text list may have problem, draw id=%d, c=%c", c, c);
         return -1;
     }
 
-    g->render_write_character(g, cursor->x, cursor->y, character);
+    dbg_str(DBG_DETAIL, "draw char c %c, at %d, %d", c, cursor->x, cursor->y);
+    r->write_character(r, cursor->x, cursor->y, character);
     cursor->x      += character->width;
     cursor->width   = character->width;
     cursor->height  = character->height;
     cursor->offset++;
 
     cursor->c = ' ';
+    /*
+     *r->present(r);
+     */
 
     return 0;
 }
@@ -70,12 +74,12 @@ static int __construct(Label *label, char *init_str)
     label->string->assign(label->string, "b1234567890");
 
     label->front_color.r      = 0;
-    label->front_color.g      = 0;
+    label->front_color.r      = 0;
     label->front_color.b      = 0;
     label->front_color.a      = 0xff;
 
     label->background_color.r = 0xff;
-    label->background_color.g = 0xff;
+    label->background_color.r = 0xff;
     label->background_color.b = 0xff;
     label->background_color.a = 0xff;
 
@@ -141,7 +145,7 @@ static void *__get(Label *obj, char *attrib)
 
 static int __load_resources(Component *component, void *window)
 {
-    Graph *g     = ((Window *)window)->graph;
+    Render *r     = ((Window *)window)->render;
     Label *label = (Label *)component;
     Character *character;
 
@@ -149,7 +153,7 @@ static int __load_resources(Component *component, void *window)
 
     label->window          = window;
 
-    character             = (Character *)g->font->ascii['i'].character;
+    character             = (Character *)r->font->ascii['i'].character;
     label->char_min_width = character->width;
     label->char_height    = character->height;
     label->cursor.height  = character->height;
@@ -161,15 +165,15 @@ static int __load_resources(Component *component, void *window)
 
 static int __unload_resources(Component *component, void *window)
 {
-    Graph *g     = ((Window *)window)->graph;
+    Render *r     = ((Window *)window)->render;
 
     dbg_str(DBG_DETAIL, "%s unload resources", component->name);
 }
 
-static int __draw(Component *component, void *graph)
+static int __draw(Component *component, void *render)
 {
     Label *label       = (Label *)component;
-    Graph *g           = (Graph *)graph;
+    Render *r           = (Render *)render;
     Subject *s         = (Subject *)component;
     cursor_t *cursor   = &label->cursor;
     char text_overflow = 1;
@@ -181,7 +185,7 @@ static int __draw(Component *component, void *graph)
     dbg_str(DBG_DETAIL, "%s draw component", ((Obj *)component)->name);
 
     if (label->text_overflow_flag == 1) {
-        character = (Character *)g->font->ascii['.'].character;
+        character = (Character *)r->font->ascii['.'].character;
         dot_width = character->width;
         draw_width = s->width - 3 * dot_width;
     } else {
@@ -189,16 +193,15 @@ static int __draw(Component *component, void *graph)
     }
 
     /*
-     *g->render_set_color(g, 0xff, 0xff, 0xff, 0xff);
-     *g->render_draw_rect(g, s->x, s->y, s->width, label->char_height);
+     *r->set_color(r, 0xff, 0xff, 0xff, 0xff);
+     *r->draw_rect(r, s->x, s->y, s->width, label->char_height);
      */
+    r->clear(r);
+    r->set_color(r, 0, 0, 0, 0xff);
+    r->draw_rect(r, s->x, s->y, s->width, label->char_height);
+    r->present(r);
     /*
-     *g->render_clear(g);
-     */
-    g->render_set_color(g, 0, 0, 0, 0xff);
-    g->render_draw_rect(g, s->x, s->y, s->width, label->char_height);
-    /*
-     *g->render_draw_rect(g, s->x, s->y, s->width, s->height);
+     *r->draw_rect(r, s->x, s->y, s->width, s->height);
      */
 
     cursor->x = s->x; cursor->y = s->y; cursor->width = 0; 
@@ -207,7 +210,8 @@ static int __draw(Component *component, void *graph)
 
     for (i = 0; cursor->x + cursor->width < draw_width + s->x; i++) {
         c = label->string->at(label->string, count++);
-        draw_character(component, c, graph);
+        dbg_str(DBG_DETAIL, "count =%d", count);
+        draw_character(component, c, render);
         if (count == str_len){
             dbg_str(DBG_DETAIL, "count =%d", count);
             goto end;
@@ -218,16 +222,17 @@ static int __draw(Component *component, void *graph)
             label->text_overflow_flag == 1)
     {
         c = '.';
-        draw_character(component, c, graph);
-        draw_character(component, c, graph);
-        draw_character(component, c, graph);
+        draw_character(component, c, render);
+        draw_character(component, c, render);
+        draw_character(component, c, render);
     }
 
     cursor->x  = s->x;
     cursor->y += cursor->height;
 
 end:
-    g->render_present(g);
+    dbg_str(DBG_DETAIL, "run at here");
+    r->present(r);
 }
 
 static class_info_entry_t label_class_info[] = {
@@ -292,11 +297,11 @@ void *new_label(allocator_t *allocator, int x, int y, int width, int height, cha
 }
 #endif
 
-void test_ui_label()
+int label()
 {
     Window *window;
     Container *container;
-    Graph *g;
+    Render *r;
     Subject *subject;
     __Event *event;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -305,7 +310,7 @@ void test_ui_label()
 
     set_str   = gen_window_setting_str();
     window    = OBJECT_NEW(allocator, Sdl_Window, set_str);
-    g         = window->graph;
+    r         = window->render;
     event     = window->event;
     container = (Container *)window;
 
@@ -331,3 +336,4 @@ void test_ui_label()
 
     object_destroy(window);
 }
+REGISTER_STANDALONE_TEST_FUNC(label);

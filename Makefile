@@ -4019,36 +4019,6 @@ src/ui/Font.c.s:
 	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Font.c.s
 .PHONY : src/ui/Font.c.s
 
-src/ui/Graph.o: src/ui/Graph.c.o
-
-.PHONY : src/ui/Graph.o
-
-# target to build an object file
-src/ui/Graph.c.o:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Graph.c.o
-	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Graph.c.o
-.PHONY : src/ui/Graph.c.o
-
-src/ui/Graph.i: src/ui/Graph.c.i
-
-.PHONY : src/ui/Graph.i
-
-# target to preprocess a source file
-src/ui/Graph.c.i:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Graph.c.i
-	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Graph.c.i
-.PHONY : src/ui/Graph.c.i
-
-src/ui/Graph.s: src/ui/Graph.c.s
-
-.PHONY : src/ui/Graph.s
-
-# target to generate assembly for a file
-src/ui/Graph.c.s:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Graph.c.s
-	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Graph.c.s
-.PHONY : src/ui/Graph.c.s
-
 src/ui/Grid_Layout.o: src/ui/Grid_Layout.c.o
 
 .PHONY : src/ui/Grid_Layout.o
@@ -4199,6 +4169,36 @@ src/ui/Panel.c.s:
 	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Panel.c.s
 .PHONY : src/ui/Panel.c.s
 
+src/ui/Render.o: src/ui/Render.c.o
+
+.PHONY : src/ui/Render.o
+
+# target to build an object file
+src/ui/Render.c.o:
+	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Render.c.o
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Render.c.o
+.PHONY : src/ui/Render.c.o
+
+src/ui/Render.i: src/ui/Render.c.i
+
+.PHONY : src/ui/Render.i
+
+# target to preprocess a source file
+src/ui/Render.c.i:
+	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Render.c.i
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Render.c.i
+.PHONY : src/ui/Render.c.i
+
+src/ui/Render.s: src/ui/Render.c.s
+
+.PHONY : src/ui/Render.s
+
+# target to generate assembly for a file
+src/ui/Render.c.s:
+	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Render.c.s
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Render.c.s
+.PHONY : src/ui/Render.c.s
+
 src/ui/Sdl_Character.o: src/ui/Sdl_Character.c.o
 
 .PHONY : src/ui/Sdl_Character.o
@@ -4289,36 +4289,6 @@ src/ui/Sdl_Font.c.s:
 	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Sdl_Font.c.s
 .PHONY : src/ui/Sdl_Font.c.s
 
-src/ui/Sdl_Graph.o: src/ui/Sdl_Graph.c.o
-
-.PHONY : src/ui/Sdl_Graph.o
-
-# target to build an object file
-src/ui/Sdl_Graph.c.o:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Sdl_Graph.c.o
-	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Sdl_Graph.c.o
-.PHONY : src/ui/Sdl_Graph.c.o
-
-src/ui/Sdl_Graph.i: src/ui/Sdl_Graph.c.i
-
-.PHONY : src/ui/Sdl_Graph.i
-
-# target to preprocess a source file
-src/ui/Sdl_Graph.c.i:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Sdl_Graph.c.i
-	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Sdl_Graph.c.i
-.PHONY : src/ui/Sdl_Graph.c.i
-
-src/ui/Sdl_Graph.s: src/ui/Sdl_Graph.c.s
-
-.PHONY : src/ui/Sdl_Graph.s
-
-# target to generate assembly for a file
-src/ui/Sdl_Graph.c.s:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Sdl_Graph.c.s
-	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Sdl_Graph.c.s
-.PHONY : src/ui/Sdl_Graph.c.s
-
 src/ui/Sdl_Image.o: src/ui/Sdl_Image.c.o
 
 .PHONY : src/ui/Sdl_Image.o
@@ -4348,6 +4318,36 @@ src/ui/Sdl_Image.c.s:
 	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Sdl_Image.c.s
 	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Sdl_Image.c.s
 .PHONY : src/ui/Sdl_Image.c.s
+
+src/ui/Sdl_Render.o: src/ui/Sdl_Render.c.o
+
+.PHONY : src/ui/Sdl_Render.o
+
+# target to build an object file
+src/ui/Sdl_Render.c.o:
+	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Sdl_Render.c.o
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Sdl_Render.c.o
+.PHONY : src/ui/Sdl_Render.c.o
+
+src/ui/Sdl_Render.i: src/ui/Sdl_Render.c.i
+
+.PHONY : src/ui/Sdl_Render.i
+
+# target to preprocess a source file
+src/ui/Sdl_Render.c.i:
+	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Sdl_Render.c.i
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Sdl_Render.c.i
+.PHONY : src/ui/Sdl_Render.c.i
+
+src/ui/Sdl_Render.s: src/ui/Sdl_Render.c.s
+
+.PHONY : src/ui/Sdl_Render.s
+
+# target to generate assembly for a file
+src/ui/Sdl_Render.c.s:
+	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ui/Sdl_Render.c.s
+	$(MAKE) -f CMakeFiles/object.dir/build.make CMakeFiles/object.dir/src/ui/Sdl_Render.c.s
+.PHONY : src/ui/Sdl_Render.c.s
 
 src/ui/Sdl_Timer.o: src/ui/Sdl_Timer.c.o
 
@@ -5017,9 +5017,6 @@ help:
 	@echo "... src/ui/Font.o"
 	@echo "... src/ui/Font.i"
 	@echo "... src/ui/Font.s"
-	@echo "... src/ui/Graph.o"
-	@echo "... src/ui/Graph.i"
-	@echo "... src/ui/Graph.s"
 	@echo "... src/ui/Grid_Layout.o"
 	@echo "... src/ui/Grid_Layout.i"
 	@echo "... src/ui/Grid_Layout.s"
@@ -5035,6 +5032,9 @@ help:
 	@echo "... src/ui/Panel.o"
 	@echo "... src/ui/Panel.i"
 	@echo "... src/ui/Panel.s"
+	@echo "... src/ui/Render.o"
+	@echo "... src/ui/Render.i"
+	@echo "... src/ui/Render.s"
 	@echo "... src/ui/Sdl_Character.o"
 	@echo "... src/ui/Sdl_Character.i"
 	@echo "... src/ui/Sdl_Character.s"
@@ -5044,12 +5044,12 @@ help:
 	@echo "... src/ui/Sdl_Font.o"
 	@echo "... src/ui/Sdl_Font.i"
 	@echo "... src/ui/Sdl_Font.s"
-	@echo "... src/ui/Sdl_Graph.o"
-	@echo "... src/ui/Sdl_Graph.i"
-	@echo "... src/ui/Sdl_Graph.s"
 	@echo "... src/ui/Sdl_Image.o"
 	@echo "... src/ui/Sdl_Image.i"
 	@echo "... src/ui/Sdl_Image.s"
+	@echo "... src/ui/Sdl_Render.o"
+	@echo "... src/ui/Sdl_Render.i"
+	@echo "... src/ui/Sdl_Render.s"
 	@echo "... src/ui/Sdl_Timer.o"
 	@echo "... src/ui/Sdl_Timer.i"
 	@echo "... src/ui/Sdl_Timer.s"

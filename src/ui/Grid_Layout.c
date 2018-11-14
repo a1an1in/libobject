@@ -235,34 +235,34 @@ static void draw_subcomponent(void *key, void *element, void *arg)
 {
     Component *component;
     uint8_t *addr;
-    Graph *g = (Graph *)arg;
+    Render *r = (Render *)arg;
 
     component = (Component *)element;
 
-    if (component->draw) component->draw(component, g);
+    if (component->draw) component->draw(component, r);
 }
 
-static void draw_grids(Component *component, void *graph) 
+static void draw_grids(Component *component, void *render) 
 {
     Grid_Layout *l = (Grid_Layout *)component;
-    Graph *g      = (Graph *)graph;
+    Render *r      = (Render *)render;
     int i;
     position_t start, end;
 
     dbg_str(DBG_SUC, "draw_grids");
 
     /*draw row lines*/
-    g->render_set_color(g, 0x0, 0x0, 0x0, 0xff);
+    r->set_color(r, 0x0, 0x0, 0x0, 0xff);
     start.x = 0;
     start.y = 0;
     end.x   = l->layout_width;
     end.y   = 0;
-    g->render_draw_line(g, start.x, start.y, end.x, end.y);
+    r->draw_line(r, start.x, start.y, end.x, end.y);
 
     for (i = 0; i < l->row_max; i++) {
         start.y += l->row_height[i];
         end.y   += l->row_height[i];
-        g->render_draw_line(g, start.x, start.y, end.x, end.y);
+        r->draw_line(r, start.x, start.y, end.x, end.y);
     }
 
     /*draw column lines*/
@@ -270,28 +270,28 @@ static void draw_grids(Component *component, void *graph)
     start.y = 0;
     end.x   = 0;
     end.y   = l->layout_height;
-    g->render_draw_line(g, start.x, start.y, end.x, end.y);
+    r->draw_line(r, start.x, start.y, end.x, end.y);
 
     for (i = 0; i < l->row_max; i++) {
         start.x += l->col_width[i];
         end.x   += l->col_width[i];
-        g->render_draw_line(g, start.x, start.y, end.x, end.y);
+        r->draw_line(r, start.x, start.y, end.x, end.y);
     }
 }
 
 /*reimplement the virtual func draw() int Component class*/
-static int __draw(Component *component, void *graph)
+static int __draw(Component *component, void *render)
 {
     Container *container = (Container *)component;
-    Graph *g             = (Graph *)graph;
+    Render *r             = (Render *)render;
 
     dbg_str(DBG_SUC, "%s draw", ((Obj *)component)->name);
 
     /*draw grids*/
-    draw_grids(component, graph);
+    draw_grids(component, render);
 
     /*draw subcomponent*/
-    container->for_each_component(container, draw_subcomponent, g);
+    container->for_each_component(container, draw_subcomponent, r);
 }
 
 static class_info_entry_t grid_layout_class_info[] = {

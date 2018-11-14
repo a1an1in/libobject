@@ -93,7 +93,7 @@ static int __load_image(Image *image)
 {
     Sdl_Image *i = (Sdl_Image *)image;
 
-    dbg_str(DBG_DETAIL, "Sdl_Graph load image");
+    dbg_str(DBG_DETAIL, "Sdl_Render load image");
     i->surface = SDL_LoadBMP(((Image *)image)->path->value);
     dbg_str(DBG_DETAIL, "image path :\"%s\"", ((Image *)image)->path->value);
 }
@@ -113,7 +113,7 @@ REGISTER_CLASS("Sdl_Image", image_class_info);
 static int sdl_image()
 {
     Window *window;
-    Graph *g;
+    Render *r;
     allocator_t *allocator = allocator_get_default_alloc();
     char *set_str;
     char buf[2048];
@@ -124,15 +124,19 @@ static int sdl_image()
     set_str = gen_window_setting_str();
 
     window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
-    g       = window->graph;
+    r       = window->render;
 
     object_dump(window, "Sdl_Window", buf, 2048);
     dbg_str(DBG_DETAIL, "Window dump: %s", buf);
 
     dbg_str(DBG_DETAIL, "render draw test");
-    image = g->render_load_image(g, "./bin/hello_world.bmp");
-    g->render_draw_image(g, 0, 0, image);
-    g->render_present(g);
+    image = r->load_image(r, "./bin/hello_world.bmp");
+    r->clear(r);
+    r->draw_image(r, 0, 0, image);
+    /*
+     *r->set_color(r, 0x00, 0x0, 0x0, 0xff);
+     */
+    r->present(r);
 
     pause();
     object_destroy(image);

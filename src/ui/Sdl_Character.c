@@ -88,7 +88,7 @@ static void * __get(Character *character, char *attrib)
     return NULL;
 }
 
-static int __load_character(Character *character, void *graph)
+static int __load_character(Character *character, void *render)
 {
 }
 
@@ -104,11 +104,13 @@ static class_info_entry_t character_class_info[] = {
 };
 REGISTER_CLASS("Sdl_Character", character_class_info);
 
-void test_obj_sdl_character()
+int sdl_character()
 {
     Window *window;
-    Graph *g;
-    Character *character;
+    Render *r;
+    Character *c1;
+    Character *c2;
+    Character *c3;
     Font *font;
     allocator_t *allocator = allocator_get_default_alloc();
     char *set_str;
@@ -117,23 +119,36 @@ void test_obj_sdl_character()
     set_str = gen_window_setting_str();
 
     window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
-    g       = window->graph;
+    r       = window->render;
 
-    object_dump(window, "Sdl_Window", buf, 2048);
-    dbg_str(DBG_DETAIL, "Window dump: %s", buf);
+    /*
+     *object_dump(window, "Sdl_Window", buf, 2048);
+     *dbg_str(DBG_DETAIL, "Window dump: %s", buf);
+     */
+    window->load_resources(window);
+    window->update_window(window);
 
-    character = g->render_load_character(g, 'a', window->font, 0, 0, 0, 0xff);
-    g->render_write_character(g, 0, 33, character);
+    c1 = r->load_character(r, 'a', window->font, 0, 0, 0, 0xff);
+    c2 = r->load_character(r, 'b', window->font, 0, 0, 0, 0xff);
+    c3 = r->load_character(r, 'c', window->font, 0, 0, 0, 0xff);
+    r->write_character(r, 0,  0, c1);
+    r->write_character(r, 5, 0, c2);
+    r->write_character(r, 10, 0, c3);
 
-    g->render_present(g);
-    g->render_unload_character(g, character);
+    r->present(r);
 
     pause();
+    r->unload_character(r, c1);
+    r->unload_character(r, c2);
+    r->unload_character(r, c3);
 
     object_destroy(window);
 
-    free(set_str);
+    /*
+     *free(set_str);
+     */
 
 }
+REGISTER_STANDALONE_TEST_FUNC(sdl_character);
 
 

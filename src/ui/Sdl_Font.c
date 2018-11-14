@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ui/sdl_font.h>
-#include <libobject/ui/graph.h>
+#include <libobject/ui/render.h>
 #include <libobject/ui/character.h>
 
 static int __construct(Font *font, char *init_str)
@@ -54,6 +54,7 @@ static int __deconstrcut(Font *font)
     Sdl_Font *f = (Sdl_Font *)font;
     dbg_str(OBJ_DETAIL, "font deconstruct, font addr:%p", font);
 
+    font->unload_ascii_character(font, NULL);
     if (f->ttf_font != NULL) {
         TTF_CloseFont(f->ttf_font);
     }
@@ -127,7 +128,7 @@ static int __load_font(Font *font)
 
     if (f->ttf_font == NULL) {
     } else {
-        dbg_str(DBG_DETAIL, "Sdl_Graph load font");
+        dbg_str(DBG_DETAIL, "Sdl_Render load font");
     }
 }
 
@@ -138,16 +139,16 @@ static int __unload_font(Font *font)
     //...........
 }
 
-static int __load_ascii_character(Font *font, void *graph)
+static int __load_ascii_character(Font *font, void *render)
 {
     int i;                                                                                                               
-    Graph *g = (Graph *)graph;
+    Render *r = (Render *)render;
     Character *character;   
     ascii_character_t *ascii = font->ascii;  
 
     dbg_str(DBG_DETAIL, "load asscii info"); 
     for( i = 0; i < 128; i++) {  
-        character = g->render_load_character(g, i, font, 0, 0, 0, 0xff); 
+        character = r->load_character(r, i, font, 0, 0, 0, 0xff); 
         ascii[i].height = character->height;
         ascii[i].width  = character->width;
         ascii[i].character = character;
@@ -156,12 +157,12 @@ static int __load_ascii_character(Font *font, void *graph)
     return 0;
 }
 
-static int __unload_ascii_character(Font *font, void *graph)
+static int __unload_ascii_character(Font *font, void *render)
 {
     int i;                                                                                                               
     ascii_character_t *ascii = font->ascii;  
 
-    dbg_str(DBG_DETAIL, "unload asscii info"); 
+    dbg_str(DBG_IMPORTANT, "unload asscii info"); 
 
     for( i = 0; i < 128; i++) {  
         object_destroy(ascii[i].character);   
