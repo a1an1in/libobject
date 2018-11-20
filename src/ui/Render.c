@@ -101,6 +101,10 @@ static int __set(Render *render, char *attrib, void *value)
         render->write_character = value;
     } else if (strcmp(attrib, "present") == 0) {
         render->present = value;
+    } else if (strcmp(attrib, "create_texture") == 0) {
+        render->create_texture = value;
+    } else if (strcmp(attrib, "destroy_texture") == 0) {
+        render->destroy_texture = value;
     }
     else if (strcmp(attrib, "name") == 0) {
         strncpy(render->name, value, strlen(value));
@@ -149,8 +153,10 @@ static class_info_entry_t class_info[] = {
     [23] = {ENTRY_TYPE_VFUNC_POINTER, "", "unload_character", NULL, sizeof(void *)}, 
     [24] = {ENTRY_TYPE_VFUNC_POINTER, "", "write_character", NULL, sizeof(void *)}, 
     [25] = {ENTRY_TYPE_VFUNC_POINTER, "", "present", NULL, sizeof(void *)}, 
-    [26] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [27] = {ENTRY_TYPE_END}, 
+    [26] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_texture", __create_texture, sizeof(void *)}, 
+    [27] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_texture", __destroy_texture, sizeof(void *)}, 
+    [28] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
+    [29] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Render", class_info);
 

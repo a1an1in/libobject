@@ -43,6 +43,8 @@ struct s{
 	int (*write_character)(Render *render,int x, int y, void *character);
 	int (*present)(Render *render);
 	int (*draw_component)(Render *render, void *component);
+    void (*create_texture)(Render *render, uint32_t format, int access, int w, int h);
+    void (*destroy_texture)(Render *render, void *texture);
 
 #define MAX_NAME_LEN 50
     char name[MAX_NAME_LEN];

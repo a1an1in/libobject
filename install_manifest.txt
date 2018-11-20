@@ -20,6 +20,7 @@
 /usr/local/include/libobject/ui/cursor.h
 /usr/local/include/libobject/ui/sdl_font.h
 /usr/local/include/libobject/ui/timer.h
+/usr/local/include/libobject/ui/.render.h.swp
 /usr/local/include/libobject/ui/panel.h
 /usr/local/include/libobject/ui/sdl_timer.h
 /usr/local/include/libobject/ui/.sdl_render.h.swp
