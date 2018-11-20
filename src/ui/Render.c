@@ -83,6 +83,8 @@ static int __set(Render *render, char *attrib, void *value)
         render->fill_rect = value;
     } else if (strcmp(attrib, "draw_image") == 0) {
         render->draw_image = value;
+    } else if (strcmp(attrib, "draw_texture") == 0) {
+        render->draw_texture = value;
     } else if (strcmp(attrib, "load_image") == 0) {
         render->load_image = value;
     } else if (strcmp(attrib, "load_text") == 0) {
@@ -138,16 +140,17 @@ static class_info_entry_t class_info[] = {
     [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "draw_rect", NULL, sizeof(void *)}, 
     [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "fill_rect", NULL, sizeof(void *)}, 
     [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "draw_image", NULL, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_image", NULL, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_text", NULL, sizeof(void *)}, 
-    [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "unload_text", NULL, sizeof(void *)}, 
-    [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "write_text", NULL, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_character", NULL, sizeof(void *)}, 
-    [22] = {ENTRY_TYPE_VFUNC_POINTER, "", "unload_character", NULL, sizeof(void *)}, 
-    [23] = {ENTRY_TYPE_VFUNC_POINTER, "", "write_character", NULL, sizeof(void *)}, 
-    [24] = {ENTRY_TYPE_VFUNC_POINTER, "", "present", NULL, sizeof(void *)}, 
-    [25] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [26] = {ENTRY_TYPE_END}, 
+    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "draw_texture", NULL, sizeof(void *)}, 
+    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_image", NULL, sizeof(void *)}, 
+    [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_text", NULL, sizeof(void *)}, 
+    [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "unload_text", NULL, sizeof(void *)}, 
+    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "write_text", NULL, sizeof(void *)}, 
+    [22] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_character", NULL, sizeof(void *)}, 
+    [23] = {ENTRY_TYPE_VFUNC_POINTER, "", "unload_character", NULL, sizeof(void *)}, 
+    [24] = {ENTRY_TYPE_VFUNC_POINTER, "", "write_character", NULL, sizeof(void *)}, 
+    [25] = {ENTRY_TYPE_VFUNC_POINTER, "", "present", NULL, sizeof(void *)}, 
+    [26] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
+    [27] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Render", class_info);
 

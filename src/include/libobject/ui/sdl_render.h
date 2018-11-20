@@ -31,6 +31,7 @@ struct sdl_s{
 	int (*fill_rect)(Render *render,int x1, int y1, int x2, int y2);
 	void *(*load_image)(Render *render,void *path);
 	int (*draw_image)(Render *render,int x, int y, void *image);
+    int (*draw_texture)(Sdl_Render *render, int x, int y, int width, int height, void *texture);
 	void *(*load_text)(Render *render,void *string,void *font,int r, int g, int b, int a);
 	int (*unload_text)(Render *render,void *text);
 	int (*write_text)(Render *render,int x, int y, void *text);

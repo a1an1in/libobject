@@ -22,9 +22,9 @@
 /usr/local/include/libobject/ui/timer.h
 /usr/local/include/libobject/ui/panel.h
 /usr/local/include/libobject/ui/sdl_timer.h
+/usr/local/include/libobject/ui/.sdl_render.h.swp
 /usr/local/include/libobject/ui/button.h
 /usr/local/include/libobject/ui/sdl_render.h
-/usr/local/include/libobject/ui/.subject.h.swp
 /usr/local/include/libobject/ui/font.h
 /usr/local/include/libobject/ui/component.h
 /usr/local/include/libobject/ui/sdl_character.h

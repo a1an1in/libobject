@@ -110,7 +110,9 @@ static int __load_font(Font *font)
 {
     Sdl_Font *f = (Sdl_Font *)font;
 
-    f->ttf_font = TTF_OpenFont( "./bin/Vera.ttf", 15 );
+    /*
+     *f->ttf_font = TTF_OpenFont( "./bin/Vera.ttf", 15 );
+     */
     /*
      *f->ttf_font = TTF_OpenFont( "./bin/UbuntuMono-R.ttf", 18 );
      */
@@ -121,6 +123,7 @@ static int __load_font(Font *font)
      /*
       *f->ttf_font = TTF_OpenFont( "./bin/ARIAL.TTF", 15 );
       */
+     f->ttf_font = TTF_OpenFont( "./bin/Times New Roman.ttf", 15 );
  
     /*
      *TTF_SetFontStyle(f->ttf_font, TTF_STYLE_BOLD);
@@ -165,9 +168,11 @@ static int __unload_ascii_character(Font *font, void *render)
     dbg_str(DBG_IMPORTANT, "unload asscii info"); 
 
     for( i = 0; i < 128; i++) {  
-        object_destroy(ascii[i].character);   
+        if (ascii[i].character != NULL)
+            object_destroy(ascii[i].character);   
     }      
 
+    dbg_str(DBG_IMPORTANT, "unload asscii info end"); 
     return 0;
 }
 static int __get_character_width(Font *font, char c)

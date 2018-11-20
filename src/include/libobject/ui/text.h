@@ -4,7 +4,6 @@
 #include <libobject/core/obj.h>
 #include <libobject/core/list.h>
 #include <libobject/core/string.h>
-#include <libobject/ui/graph.h>
 
 typedef struct text_s Text;
 

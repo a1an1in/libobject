@@ -87,6 +87,8 @@ static int __set(Sdl_Render *sdl_grath, char *attrib, void *value)
         sdl_grath->draw_rect = value;
     } else if (strcmp(attrib, "draw_image") == 0) {
         sdl_grath->draw_image = value;
+    } else if (strcmp(attrib, "draw_texture") == 0) {
+        sdl_grath->draw_texture = value;
     } else if (strcmp(attrib, "load_image") == 0) {
         sdl_grath->load_image = value;
     } else if (strcmp(attrib, "load_text") == 0) {
@@ -243,6 +245,14 @@ static int __draw_image(Sdl_Render *render, int x, int y, void *image)
     SDL_RenderCopy(render->sdl_render, i->texture, NULL, &quad );
 }
 
+static int __draw_texture(Sdl_Render *render, int x, int y, 
+                          int width, int height, void *texture)
+{
+    dbg_str(SDL_INTERFACE_DETAIL, "Sdl_Render draw_texture");
+    SDL_Rect quad = { x, y, width, height};
+    SDL_RenderCopy(render->sdl_render, texture, NULL, &quad );
+}
+
 #if 0
 static void * __load_text(Sdl_Render *render, void *string, void *font, int r, int g, int b, int a)
 {
@@ -311,9 +321,20 @@ static void * __load_character(Sdl_Render *render, uint32_t code, void *font, in
      *                               character_color); 
      */
     
-    surface = TTF_RenderText_Blended(f->ttf_font, 
-                                     buf, 
-                                     character_color); 
+    /*
+     *surface = TTF_RenderText_Blended(f->ttf_font, 
+     *                                 buf, 
+     *                                 character_color); 
+     */
+    /*
+     *surface = TTF_RenderGlyph_Blended(f->ttf_font,
+     *                                  buf[0],
+     *                                  character_color);
+     */
+
+    surface = TTF_RenderUTF8_Blended(f->ttf_font,
+                                     buf,
+                                     character_color);
 
     if (surface != NULL) {
         ((Sdl_Character *)character)->texture = SDL_CreateTextureFromSurface(render->sdl_render, surface);
@@ -369,13 +390,14 @@ static class_info_entry_t sdl_grath_class_info[] = {
     [14] = {ENTRY_TYPE_FUNC_POINTER, "", "draw_rect", __draw_rect, sizeof(void *)}, 
     [15] = {ENTRY_TYPE_FUNC_POINTER, "", "fill_rect", __fill_rect, sizeof(void *)}, 
     [16] = {ENTRY_TYPE_FUNC_POINTER, "", "draw_image", __draw_image, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_FUNC_POINTER, "", "load_image", __load_image, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_FUNC_POINTER, "", "load_character", __load_character, sizeof(void *)}, 
-    [19] = {ENTRY_TYPE_FUNC_POINTER, "", "unload_character", __unload_character, sizeof(void *)}, 
-    [20] = {ENTRY_TYPE_FUNC_POINTER, "", "write_character", __write_character, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_FUNC_POINTER, "", "present", __present, sizeof(void *)}, 
-    [22] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [23] = {ENTRY_TYPE_END}, 
+    [17] = {ENTRY_TYPE_FUNC_POINTER, "", "draw_texture", __draw_texture, sizeof(void *)}, 
+    [18] = {ENTRY_TYPE_FUNC_POINTER, "", "load_image", __load_image, sizeof(void *)}, 
+    [19] = {ENTRY_TYPE_FUNC_POINTER, "", "load_character", __load_character, sizeof(void *)}, 
+    [20] = {ENTRY_TYPE_FUNC_POINTER, "", "unload_character", __unload_character, sizeof(void *)}, 
+    [21] = {ENTRY_TYPE_FUNC_POINTER, "", "write_character", __write_character, sizeof(void *)}, 
+    [22] = {ENTRY_TYPE_FUNC_POINTER, "", "present", __present, sizeof(void *)}, 
+    [23] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
+    [24] = {ENTRY_TYPE_END}, 
 
     /*
      *[19] = {ENTRY_TYPE_FUNC_POINTER, "", "load_text", __load_text, sizeof(void *)}, 

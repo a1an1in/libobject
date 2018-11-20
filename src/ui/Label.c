@@ -56,9 +56,7 @@ draw_character(Component *component, char c, void *render)
     cursor->offset++;
 
     cursor->c = ' ';
-    /*
-     *r->present(r);
-     */
+    r->present(r);
 
     return 0;
 }
@@ -199,7 +197,9 @@ static int __draw(Component *component, void *render)
     r->clear(r);
     r->set_color(r, 0, 0, 0, 0xff);
     r->draw_rect(r, s->x, s->y, s->width, label->char_height);
-    r->present(r);
+    /*
+     *r->present(r);
+     */
     /*
      *r->draw_rect(r, s->x, s->y, s->width, s->height);
      */
