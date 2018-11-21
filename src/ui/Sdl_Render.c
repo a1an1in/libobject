@@ -105,8 +105,8 @@ static int __set(Sdl_Render *sdl_grath, char *attrib, void *value)
         sdl_grath->write_character = value;
     } else if (strcmp(attrib, "present") == 0) {
         sdl_grath->present = value;
-    } else if (strcmp(attrib, "create_texture") == 0) {
-        sdl_grath->create_texture = value;
+    } else if (strcmp(attrib, "create_yuvtexture") == 0) {
+        sdl_grath->create_yuvtexture = value;
     } else if (strcmp(attrib, "destroy_texture") == 0) {
         sdl_grath->destroy_texture = value;
     } 
@@ -377,12 +377,13 @@ static int __present(Sdl_Render *render)
     SDL_RenderPresent(render->sdl_render);
 }
 
-static void *__create_texture(Sdl_Render *render, uint32_t format, int access, int w, int h)
+static void *__create_yuvtexture(Sdl_Render *render, int w, int h)
 {
-    return SDL_CreateTexture(renderer, format, access, w, h);
+    return SDL_CreateTexture(render->sdl_render, SDL_PIXELFORMAT_IYUV,
+                             SDL_TEXTUREACCESS_STREAMING, w, h);
 }
 
-static void *__destroy_texture(Sdl_Render *render, void texture)
+static int __destroy_texture(Sdl_Render *render, void *texture)
 {
     SDL_DestroyTexture(texture);
     return 0;
@@ -413,7 +414,7 @@ static class_info_entry_t sdl_grath_class_info[] = {
     [20] = {ENTRY_TYPE_FUNC_POINTER, "", "unload_character", __unload_character, sizeof(void *)}, 
     [21] = {ENTRY_TYPE_FUNC_POINTER, "", "write_character", __write_character, sizeof(void *)}, 
     [22] = {ENTRY_TYPE_FUNC_POINTER, "", "present", __present, sizeof(void *)}, 
-    [23] = {ENTRY_TYPE_FUNC_POINTER, "", "create_texture", __create_texture, sizeof(void *)}, 
+    [23] = {ENTRY_TYPE_FUNC_POINTER, "", "create_yuvtexture", __create_yuvtexture, sizeof(void *)}, 
     [24] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_texture", __destroy_texture, sizeof(void *)}, 
     [25] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
     [26] = {ENTRY_TYPE_END}, 
