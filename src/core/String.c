@@ -218,10 +218,8 @@ static void __toupper_impact(String *string)
 {
     int size=string->value_len;
     int i;
-    for(i = 0; i < size; i++)
-    {
-        if(islower(string->value[i]))
-        {
+    for(i = 0; i < size; i++){
+        if(islower(string->value[i])){
             //toupper(string->value[i]);
             string->value[i]+='A'-'a';
         }
@@ -238,12 +236,10 @@ static void __tolower_impact(String *string)
 {
     int size=string->value_len;
     int i;
-    for(i = 0; i < size; i++)
-    {
-        if(isupper(string->value[i]))
-        {
+    for(i = 0; i < size; i++){
+        if(isupper(string->value[i])){
             //tolower(string->value[i]);
-             string->value[i]+='a'-'A';
+            string->value[i]+='a'-'A';
         }
      } 
 }
@@ -258,11 +254,9 @@ static void __ltrim(String *string)
 {
     int size=string->value_len;
     int i;
-    for(i = 0; i < size; i++)
-    {
+    for(i = 0; i < size; i++){
         /* code */
-        if(isspace(string->value[i]))
-        {
+        if(isspace(string->value[i])){
             string->value++;
         }else{
             break;
@@ -275,11 +269,9 @@ static void __rtrim(String *string)
 {
     int size=string->value_len;
     int i;
-    for(i = size-1; i >=0; i--)
-    {
+    for(i = size-1; i >=0; i--){
         /* code */
-        if(isspace(string->value[i]))
-        {
+        if(isspace(string->value[i])){
             string->value[i]='\0';
         }else{
             break;
@@ -289,8 +281,7 @@ static void __rtrim(String *string)
 
 static void __trim(String *string)
 { 
-    if(NULL !=string)
-    {
+    if(NULL !=string){
         __ltrim(string);
         __rtrim(string);
     }
@@ -323,8 +314,7 @@ static String *__substr(String  *string,int pos,int len)
     //allocator_t *allocator = allocator_get_default_alloc();
     str=OBJECT_NEW(string->obj.allocator,String,NULL);
     assert(pos <= size);
-    for( i =pos;i < size && len ;i++)
-    {
+    for( i =pos;i < size && len ;i++){
            str->append_char(str,string->value[i]);
            len--;
     }
@@ -333,36 +323,33 @@ static String *__substr(String  *string,int pos,int len)
 
 static void __split_string(String *string,String *separator,Vector *vector)
 {
-  if(NULL == string|| NULL == separator)
-  {
-      vector->add_back(vector,(void *)string);
-      return;
-  }
-
-  int start_pos=0,pos;
-  String *pstr=NULL;
-  int i=0;
-
-  while(1)
-  {
-      pos=__find(string,separator,start_pos);
-      if(pos==start_pos)
-      {
-          start_pos+=separator->value_len;
-          continue;
-      }
-      if(pos < 0)
-      {   
-           pstr=__substr(string,start_pos,string->value_len); 
-           vector->add_at(vector,i,pstr);       
-           break;
-      }else{
-           pstr=__substr(string,start_pos,pos-start_pos);
-           vector->add_at(vector,i,pstr);
-           start_pos=pos+separator->value_len;
-      }
-      i++;     
-  }
+    int start_pos=0,pos;
+    String *pstr=NULL;
+    int i=0;
+    
+    if(NULL == string|| NULL == separator) {
+        vector->add_back(vector,(void *)string);
+        return;
+    }
+    
+    while(1)
+    {
+        pos=__find(string,separator,start_pos);
+        if(pos==start_pos){
+            start_pos+=separator->value_len;
+            continue;
+        }
+        if(pos < 0){   
+             pstr=__substr(string,start_pos,string->value_len); 
+             vector->add_at(vector,i,pstr);       
+             break;
+        }else{
+             pstr=__substr(string,start_pos,pos-start_pos);
+             vector->add_at(vector,i,pstr);
+             start_pos=pos+separator->value_len;
+        }
+        i++;     
+   }
 }
 
 

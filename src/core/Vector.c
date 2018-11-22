@@ -165,8 +165,7 @@ static void __free_vector(Vector *vector)
         pos=next,vector_pos_next(&pos,&next))
     {
         vector->peek_at(vector,index,(void **)&element);
-        if(element!=NULL)
-        {
+        if(element!=NULL){
             object_destroy(element);
             element=NULL;
         }
