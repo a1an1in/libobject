@@ -137,7 +137,7 @@ static int __connect_centor(Subscriber *subscriber, void *centor)
 static int __subscribe(Subscriber *subscriber, void *publisher)
 {
     Centor *centor = (Centor *)subscriber->centor;
-    dbg_str(DBG_DETAIL, "subscriber subscribe publisher");
+    dbg_str(DBG_DETAIL, "subscriber %p subscribe publisher %p", subscriber, publisher);
 
     subscriber->publisher = publisher;
     centor->subscriber_map->add(centor->subscriber_map, &publisher, subscriber);
