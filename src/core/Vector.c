@@ -80,8 +80,9 @@ static int __set(Vector *vector, char *attrib, void *value)
         vector->peek_at = value;
     } else if (strcmp(attrib, "for_each") == 0) {
         vector->for_each = value;
-    }
-    else if (strcmp(attrib, "value_size") == 0) {
+    }else if(strcmp(attrib,"free_vector")==0){
+        vector->free_vector=value;
+    }else if (strcmp(attrib, "value_size") == 0) {
         vector->value_size = *(uint32_t *)value;
     } else if (strcmp(attrib, "capacity") == 0) {
         vector->capacity = *(uint32_t *)value;
@@ -152,6 +153,24 @@ static void __for_each(Vector *vector, void (*func)(int index, void *element))
 	}
 }
 
+static void __free_vector(Vector *vector)
+{   
+    vector_pos_t pos,next;
+    vector_t *v=vector->vector;
+    void *element;
+    int index =0;
+
+    for(vector_begin(v,&pos),vector_pos_next(&pos,&next);
+        !vector_pos_equal(&pos,&v->end);
+        pos=next,vector_pos_next(&pos,&next))
+    {
+        vector->peek_at(vector,index,(void **)&element);
+        if(element!=NULL){
+            object_destroy(element);
+            element=NULL;
+        }
+    }
+}
 
 static class_info_entry_t vector_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
@@ -166,9 +185,10 @@ static class_info_entry_t vector_class_info[] = {
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_back", __remove_back, sizeof(void *)}, 
     [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_at", __peek_at, sizeof(void *)}, 
     [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_UINT32_T, "", "value_size", 0, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_UINT32_T, "", "capacity", 0, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_END}, 
+    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "free_vector", __free_vector, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_UINT32_T, "", "value_size", 0, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_UINT32_T, "", "capacity", 0, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Vector", vector_class_info);
 
@@ -188,6 +208,7 @@ static struct test *init_test_instance(struct test *t, int a, int b)
 {
     t->a = a;
     t->b = b;
+
 
     return t;
 }
@@ -291,8 +312,10 @@ static int test_obj_vector(TEST_ENTRY *entry)
      *vector->for_each(vector, print_vector_data);
      */
 
+    //vector->free_vector(vector);
     object_destroy(vector);
     cfg_destroy(c);
+    
 
     after_alloc_count = allocator->alloc_count;
     ret = assert_equal(&pre_alloc_count, &after_alloc_count, sizeof(int));
