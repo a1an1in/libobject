@@ -484,11 +484,9 @@ int test_string_substr()
     return ret;   
 }
 
-/*
- *REGISTER_STANDALONE_TEST_FUNC(test_string_split);
- *REGISTER_STANDALONE_TEST_FUNC(test_string_find);
- *REGISTER_STANDALONE_TEST_FUNC(test_string_substr);
- */
+REGISTER_STANDALONE_TEST_FUNC(test_string_split);
+REGISTER_STANDALONE_TEST_FUNC(test_string_find);
+REGISTER_STANDALONE_TEST_FUNC(test_string_substr);
 
 REGISTER_TEST_FUNC(test_string_split);
 REGISTER_TEST_FUNC(test_string_find);
