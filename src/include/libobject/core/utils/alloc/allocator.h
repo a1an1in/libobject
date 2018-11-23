@@ -69,6 +69,9 @@ __allocator_mem_alloc(allocator_t * alloc,uint32_t size)
 {
     void *ret = NULL;
 
+    if (size == 0) {
+        return NULL;
+    }
     sync_lock(&alloc->head_lock,NULL);
     ret = allocator_modules[alloc->allocator_type].alloc_ops.alloc(alloc,size);
     sync_unlock(&alloc->head_lock);
