@@ -326,12 +326,6 @@ static int args_process_test_Container(void *base, int argc, char **argv)
     return 0;
 }
 
-static int args_process_test_String(void *base, int argc, char **argv)
-{
-    test_obj_string();
-    return 0;
-}
-
 static int args_process_test_Map(void *base, int argc, char **argv)
 {
     test_obj_map();
@@ -645,7 +639,6 @@ static cmd_config_t cmds[]={
     {"HIter", args_process_test_Hmap_Iterator, 0, "test", "N/A", "test"}, 
     {"Iter", args_process_test_Iterator, 0, "test", "N/A", "test"}, 
     {"Map", args_process_test_Map, 0, "test", "N/A", "test"}, 
-    {"String", args_process_test_String, 0, "test", "N/A", "test"}, 
     {"Container", args_process_test_Container, 0, "test", "N/A", "test"}, 
     {"sdl", args_process_test_sdl, 0, "test", "N/A", "test"}, 
     {"Enemy", args_process_test_Enemy, 0, "test", "N/A", "obj"}, 
