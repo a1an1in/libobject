@@ -30,12 +30,12 @@ set (CMAKE_BUILD_TYPE "Debug")
 
 # add compile paramater 
 add_definitions(-DDEBUG)
-add_definitions(-O0)
+add_definitions(-O0 -g)
 add_definitions(-fPIC)
 add_definitions("-Wall -Wno-return-type -Wno-unused-variable -Wno-unused-function
                  -Wno-sometimes-uninitialized -Wno-char-subscripts -Wno-sometimes-uninitialized 
                  -Wno-unused-label -Wno-uninitialized -Wno-int-conversion -Wno-implicit-function-declaration
-                 -Wno-uninitialized -g -ggdb")
+                 -Wno-uninitialized")
 
 include_directories(src/include)
 #add_subdirectory(src)

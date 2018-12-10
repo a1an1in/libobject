@@ -170,7 +170,7 @@ static int __init_window(Window *window)
     dbg_str(SDL_INTERFACE_DETAIL, "srceen width=%d, height=%d", window->screen_width, window->screen_height);
 
     //Initialize SDL
-    if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_TIMER ) < 0 ) {
+    if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER ) < 0 ) {
         dbg_str(DBG_ERROR, "SDL could not initialize! SDL_Error: %s", SDL_GetError() );
         ret = -1;
     } else {

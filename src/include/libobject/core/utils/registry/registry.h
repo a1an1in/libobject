@@ -75,6 +75,9 @@ int assert_equal(void *peer1, void *peer2, unsigned int count);
 #define REGISTER_TEST_FUNC(func) \
     __attribute__((constructor)) static void register_test_##func() {\
         __register_test_func((int (*)(void *))func, #func, __FILE__, __LINE__);\
+    } \
+    __attribute__((constructor)) static void register_standalone_test_##func() {\
+        __register_standalone_test_func((int (*)(void *, void *, void *))func, #func, __FILE__, __LINE__);\
     } 
 
 #define REGISTER_STANDALONE_TEST_FUNC(func) \

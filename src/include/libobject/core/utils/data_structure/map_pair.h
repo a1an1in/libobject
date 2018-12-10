@@ -17,6 +17,7 @@
  */
 #include <string.h>
 #include <stdlib.h>
+#include <libobject/core/utils/dbg/debug.h>
 
 #ifndef __MAP_PAIR_H__
 #define __MAP_PAIR_H__

@@ -134,14 +134,21 @@ static int __connect_centor(Subscriber *subscriber, void *centor)
     subscriber->centor = centor;
 }
 
+static void __printf_map(void *key, void *element)
+{
+    char **publisher  = (char **)key;
+    dbg_str(DBG_IMPORTANT, "subscriber map, key=%p", *publisher);
+}
+
 static int __subscribe(Subscriber *subscriber, void *publisher)
 {
     Centor *centor = (Centor *)subscriber->centor;
     dbg_str(DBG_DETAIL, "subscriber %p subscribe publisher %p", subscriber, publisher);
 
     subscriber->publisher = publisher;
-    centor->subscriber_map->add(centor->subscriber_map, &publisher, subscriber);
+    centor->subscriber_map->add(centor->subscriber_map, &subscriber->publisher, subscriber);
 
+    centor->subscriber_map->for_each(centor->subscriber_map, __printf_map);
     return 0;
 }
 
@@ -173,3 +180,4 @@ static class_info_entry_t concurent_class_info[] = {
     [8] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Subscriber", concurent_class_info);
+
