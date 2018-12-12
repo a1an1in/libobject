@@ -71,9 +71,65 @@ struct string_s{
      * @date    2018/11/21
      */
     String * (*substr)(String  *string,int pos,int len);  
-     
-
+     /**
+     * @brief c_str  String串到C风格串 
+     *
+     * @param string  母串 
+     * @return        
+     * @see
+     * @note    ref_value. don't delete p=c_str() otherwise oringal String 's avction may unvalid
+     * @author  wuyujie[1683358846@qq.com]
+     * @date    2018/11/21
+     */
+    char *(*c_str)(String *);
+    /**
+     * @brief append_str  追加c风格串
+     *
+     * @param string  母串 
+     * @return        
+     * @see
+     * @note    
+     * @author  wuyujie[1683358846@qq.com]
+     * @date    2018/11/21
+     */
+    void (*append_str)(String *,char *);
+     /**
+     * @brief append_str_len  追加c风格串指定长度的串
+     *
+     * @param string  母串 
+     * @return        
+     * @see
+     * @note    
+     * @author  wuyujie[1683358846@qq.com]
+     * @date    2018/11/21
+     */
+    void (*append_str_len)(String *,char *,int );
+    /**
+     * @brief append_Str  追加String风格的串
+     *
+     * @param string  母串 
+     * @return        
+     * @see
+     * @note    
+     * @author  wuyujie[1683358846@qq.com]
+     * @date    2018/11/21
+     */
+    void (*append_Str)(String *,String *);
+    /**
+     * @brief size     获取String实际存储串有效长度
+     *
+     * @param string  母串 
+     * @return        
+     * @see
+     * @note    
+     * @author  wuyujie[1683358846@qq.com]
+     * @date    2018/11/21
+     */
+    size_t  (*size)(String *);
+    
 	/*virtual methods reimplement*/
+
+    
 #define MAX_NAME_LEN 50
     char name[MAX_NAME_LEN];
 #undef MAX_NAME_LEN
