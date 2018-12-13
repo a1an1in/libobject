@@ -658,8 +658,29 @@ int test_string_substr()
     string->assign(string, test);
     pstr->assign(pstr, "&");
     substr = string->substr(string, 3, 10);
+    printf("substr %s\n ",pstr->value);
+    return 1;   
+}
 
 
+ int test_obj_string()
+{
+    String *string;
+    allocator_t *allocator = allocator_get_default_alloc();
+    char *set_str;
+    cjson_t *root, *e, *s;
+    char buf[2048];
+    int alloc_count_be, alloc_count_end;
+
+    dbg_str(DBG_DETAIL, "test_obj_string");
+    alloc_count_be = allocator->alloc_count;
+
+#if 0
+    root = cjson_create_object();{
+        cjson_add_item_to_object(root, "String", e = cjson_create_object());{
+            cjson_add_string_to_object(e, "name", "alan");
+        }
+    }
     set_str = cjson_print(root);
 
     string = OBJECT_NEW(allocator, String, set_str);
