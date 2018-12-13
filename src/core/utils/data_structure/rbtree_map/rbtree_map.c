@@ -254,9 +254,9 @@ void rbtree_map_make_pair(rbtree_map_t *map, void *key, void *value)
     sync_lock(&map->map_lock, NULL);
 
     if (map->key_type) {
-        make_pair(map->pair, key, value);
-    } else {
         make_pair_with_fixed_key_len(map->pair, key, map->key_size, value);
+    } else {
+        make_pair(map->pair, key, value);
     }
     sync_unlock(&map->map_lock);
 }

@@ -85,6 +85,10 @@ static void map_for_each_arg_callback(void *key, void *element, void *arg)
                 *publisher, subscriber);
         subscriber->message = message;
         subscriber->message_handler(subscriber);
+    } else {
+        dbg_str(DBG_WARNNING, 
+                "publisher %p publish a message, publisher in map %p ", 
+                message->publisher, *publisher);
     }
 }
 

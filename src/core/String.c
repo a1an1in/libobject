@@ -130,6 +130,7 @@ static int __set(String *string, char *attrib, void *value)
         string->find = value;
     } else if (strcmp(attrib, "substr") == 0) {
         string->substr = value;
+
     }else if(strcmp(attrib,"c_str")==0){
         string->c_str=value;
     }else if(strcmp(attrib,"append_str")==0){
@@ -226,64 +227,66 @@ static char __at(String *string, int index)
 
 static void __toupper_impact(String *string)
 {
-    int size=string->value_len;
+    int size = string->value_len;
     int i;
-    for(i = 0; i < size; i++){
-        if(islower(string->value[i])){
+
+    for (i = 0; i < size; i++) {
+        if (islower(string->value[i])) {
             //toupper(string->value[i]);
-            string->value[i]+='A'-'a';
+            string->value[i] += 'A'-'a';
         }
     }       
 }
 
 static void  __toupper_(String *string, String *str)
 {
-    str->assign(str,string->value);
+    str->assign(str, string->value);
     __toupper_impact(str);  
 }
 
 static void __tolower_impact(String *string)
 {
-    int size=string->value_len;
+    int size = string->value_len;
     int i;
-    for(i = 0; i < size; i++){
-        if(isupper(string->value[i])){
+
+    for (i = 0; i < size; i++) {
+        if (isupper(string->value[i])) {
             //tolower(string->value[i]);
-            string->value[i]+='a'-'A';
+            string->value[i] += 'a'-'A';
         }
-     } 
+    } 
 }
 
 static void __tolower_(String *string, String *str)
 {
-    str->assign(str,string->value);
+    str->assign(str, string->value);
     __tolower_impact(str);
 }
 
 static void __ltrim(String *string)
 {
-    int size=string->value_len;
+    int size = string->value_len;
     int i;
-    for(i = 0; i < size; i++){
-        /* code */
-        if(isspace(string->value[i])){
+
+    for (i = 0; i < size; i++) {
+        if (isspace(string->value[i])) {
             string->value++;
-        }else{
+        } else {
             break;
         }   
-       
+
     }
 }
 
 static void __rtrim(String *string)
 {
-    int size=string->value_len;
+    int size = string->value_len;
     int i;
-    for(i = size-1; i >=0; i--){
-        /* code */
-        if(isspace(string->value[i])){
-            string->value[i]='\0';
-        }else{
+
+    for (i = size - 1; i >= 0; i--) {
+        if (isspace(string->value[i])) {
+            string->value[i] = '\0';
+        } else {
             break;
         }   
     }
@@ -291,13 +294,13 @@ static void __rtrim(String *string)
 
 static void __trim(String *string)
 { 
-    if(NULL !=string){
+    if (NULL != string) {
         __ltrim(string);
         __rtrim(string);
     }
 }
 
-static int __find(String *string,String *substr,int pos)
+static int __find(String *string, String *substr, int pos)
 {   
     int len1 = string->value_len;
     int len2 = substr->value_len;
@@ -314,30 +317,29 @@ static int __find(String *string,String *substr,int pos)
     return -1;
 }
 
-static String *__substr(String  *string,int pos,int len)
+static String *__substr(String  *string, int pos, int len)
 {
-    int size=string->value_len;
+    int size = string->value_len;
     int i;
-    
     String *str;
-    //allocator_t *allocator = allocator_get_default_alloc();
-    str=OBJECT_NEW(string->obj.allocator,String,NULL);
-    assert(pos <= size);
-    for( i =pos;i < size && len ;i++){
-           str->append_char(str,string->value[i]);
-           len--;
+
+    str = OBJECT_NEW(string->obj.allocator, String, NULL);
+    assert(pos <=  size);
+    for ( i  = pos;i < size && len ;i++) {
+        str->append_char(str, string->value[i]);
+        len--;
     }
     return str;
 }
 
-static void __split_string(String *string,String *separator,Vector *vector)
+static void __split_string(String *string, String *separator, Vector *vector)
 {
-    int start_pos=0,pos;
-    String *pstr=NULL;
-    int i=0;
-    
-    if(NULL == string|| NULL == separator) {
-        vector->add_back(vector,(void *)string);
+    int start_pos = 0, pos;
+    String *pstr = NULL;
+    int i = 0;
+
+    if (NULL == string|| NULL == separator) {
+        vector->add_back(vector, (void *)string);
         return;
     }
 
@@ -347,17 +349,17 @@ static void __split_string(String *string,String *separator,Vector *vector)
             start_pos += separator->value_len;
             continue;
         }
-        if(pos < 0){   
-             pstr=__substr(string,start_pos,string->value_len); 
-             vector->add_at(vector,i,pstr);       
-             break;
-        }else{
-             pstr=__substr(string,start_pos,pos-start_pos);
-             vector->add_at(vector,i,pstr);
-             start_pos=pos+separator->value_len;
+        if (pos < 0) {   
+            pstr = __substr(string, start_pos, string->value_len); 
+            vector->add_at(vector, i, pstr);       
+            break;
+        } else {
+            pstr = __substr(string, start_pos, pos-start_pos);
+            vector->add_at(vector, i, pstr);
+            start_pos = pos + separator->value_len;
         }
         i++;     
-   }
+    }
 }
 
 static char *__c_str(String * str) 
@@ -426,7 +428,7 @@ static class_info_entry_t string_class_info[] = {
     [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "pre_alloc", __pre_alloc, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "assign", __assign, sizeof(void *)}, 
     [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "append_char", __append_char, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "replace_char", __replace_char, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "replace_char", __replace_char, sizeof(void *)},
     [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "at", __at, sizeof(void *)},
     [10] = {ENTRY_TYPE_FUNC_POINTER, "", "toupper", __toupper_, sizeof(void *)},
     [11] = {ENTRY_TYPE_FUNC_POINTER, "", "toupper_impact", __toupper_impact, sizeof(void *)},
@@ -565,116 +567,98 @@ static int test_size()
 
 
 
-
- static void print_vector_data(int index, void *element)
+static void print_vector_data(int index, void *element)
 {  
-    if(element != NULL){
-        printf(" index:%d value:%s  type_name:%s\n",index,((String*)element)->value,((String*)element)->obj.name);
+    if (element !=  NULL) {
+        dbg_str(DBG_DETAIL, "index:%d value:%s  type_name:%s", 
+                index, ((String*)element)->value, ((String*)element)->obj.name);
     }
 }
 
-static void free_vector_elements(int index,void *element)
-{
-    if(element != NULL)
-    { 
-         object_destroy((String *)element);
-        //printf(" %d %s \n",index,((String*)element)->value);
-        //free(element);
-        element=NULL;
-        //printf("release free memory index :%d\n",index);
-    }
-}
-
-
- int test_obj_string_split_string()
+int test_string_split()
 {    
-   
-   allocator_t *allocator2 = allocator_get_default_alloc();
-   //test find and split_string function
-   int count=allocator2->alloc_count;
-   String *str_find,*str_separator;
-   str_find=OBJECT_NEW(allocator2,String,NULL);
-  
-   str_find->assign(str_find,"https://www.baidu.com/s?ie=utf-8&f=3&rsv_bp=1&rsv_idx=1&tn=baidu&wd="
-   "ffmpeg%20hls%20%20%E6%A8%A1%E5%9D%97&oq=ffmpeg%2520hls%2520%25E5%2588%2587%25E7%2589%2587&rsv_pq=f57123dc00006105&"
-   "rsv_t=4a67K//PcOq6Y0swQnyeFtlQezzWiuwU1bS8vKp48Nn9joWPQd1BHAqFkqu9Y&rqlang=cn&rsv_enter=1&inputT=4580&"
-   "rsv_sug3=170&rsv//_sug1=107&rsv_sug7=100&rsv_sug2=0&prefixsug=ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25"
-   "E5%259D%2597&rsp=0&rsv_sug4=5089");  
 
-   
-   printf("str_find type_name:%s\n",str_find->obj.name);
+    allocator_t *allocator = allocator_get_default_alloc();
+    //test find and split_string function
+    String *str_find, *str_separator;
+    Vector *vector;
+    int ret = 0;
 
-   str_separator=OBJECT_NEW(allocator2,String,NULL);
-   #if 1
-   str_separator->assign(str_separator,"&");
-   //str_separator->assign(str_separator,"//");
-   #else 
-   str_separator->assign(str_separator,"//");
-   #endif 
-   Vector *vc;
-   vc=OBJECT_NEW(allocator2,Vector,NULL);
-   vector_init(vc->vector,10,10);
-   str_find->split_string(str_find,str_separator,vc);
-   
-   vc->for_each(vc, print_vector_data);
-   vc->for_each(vc,free_vector_elements);
+    str_find      = OBJECT_NEW(allocator, String, NULL);
+    vector        = OBJECT_NEW(allocator, Vector, NULL);
+    str_separator = OBJECT_NEW(allocator, String, NULL);
 
-   object_destroy(str_find);
-   object_destroy(str_separator);
-   object_destroy(vc);
-   //vector_destroy(vc->vector);
-   int end=allocator2->alloc_count;
-   printf("leak memory number %d end %d count %d ",end-count,end,count);
-   return 1;
+    str_find->assign(str_find, "https://www.baidu.com/s?ie = utf-8&f = 3&rsv_bp = 1&rsv_idx = 1&tn = baidu&wd = "
+            "ffmpeg%20hls%20%20%E6%A8%A1%E5%9D%97&oq = ffmpeg%2520hls%2520%25E5%2588%2587%25E7%2589%2587&rsv_pq = f57123dc00006105&"
+            "rsv_t = 4a67K//PcOq6Y0swQnyeFtlQezzWiuwU1bS8vKp48Nn9joWPQd1BHAqFkqu9Y&rqlang = cn&rsv_enter = 1&inputT = 4580&"
+            "rsv_sug3 = 170&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25"
+            "E5%259D%2597&rsp = 0&rsv_sug4 = 5089");  
+
+
+#if 1
+    str_separator->assign(str_separator, "&");
+    //str_separator->assign(str_separator, "//");
+#else 
+    str_separator->assign(str_separator, "//");
+#endif 
+
+
+    str_find->split_string(str_find, str_separator, vector);
+
+    dbg_str(DBG_DETAIL, "vector len=%d", vector->get_len(vector));
+
+
+    ret = assert_int_equal(vector->get_len(vector), 18);
+
+    vector->for_each(vector, print_vector_data);
+    vector->free_vector_elements(vector);
+
+
+    object_destroy(str_find);
+    object_destroy(str_separator);
+    object_destroy(vector);
+
+    return ret;
 
 }
 
 int test_string_find()
 {
-   allocator_t *allocator=allocator_get_default_alloc();
-   String *string,*pstr;
-   string                =OBJECT_NEW(allocator,String,NULL);
-   string->assign(string,"&rsv//_sug1=107&rsv_sug7=100&rsv_sug2=0&prefixsug=ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25");
-   pstr                  =OBJECT_NEW(allocator,String,NULL);
-   pstr->assign(pstr,"&");
-   int pos=string->find(string,pstr,0);
-   printf("substr position: %d ",pos);
-   return 1;
-   
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr;
+    int ret = 0;
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign(string, "rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25");
+    pstr->assign(pstr, "&");
+
+    int pos = string->find(string, pstr, 0);
+
+    ret = assert_int_equal(pos, 16);
+    dbg_str(DBG_DETAIL, "substr position: %d ", pos);
+    object_destroy(string);
+    object_destroy(pstr);
+
+    return ret;
+
 }
 
 int test_string_substr()
 {
-   allocator_t *allocator=allocator_get_default_alloc();
-   String *string,*pstr;
-   string                =OBJECT_NEW(allocator,String,NULL);
-   string->assign(string,"&rsv//_sug1=107&rsv_sug7=100&rsv_sug2=0&prefixsug=ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25");
-   pstr                  =OBJECT_NEW(allocator,String,NULL);
-   pstr->assign(pstr,"&");
-   pstr=string->substr(string,3,100);
-   printf("substr %s\n ",pstr->value);
-   return 1;   
-}
-
-
- int test_obj_string()
-{
-    String *string;
     allocator_t *allocator = allocator_get_default_alloc();
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-    int alloc_count_be, alloc_count_end;
+    String *string, *pstr, *substr;
+    int ret;
+    char *test = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
 
-    dbg_str(DBG_DETAIL, "test_obj_string");
-    alloc_count_be = allocator->alloc_count;
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
 
-#if 0
-    root = cjson_create_object();{
-        cjson_add_item_to_object(root, "String", e = cjson_create_object());{
-            cjson_add_string_to_object(e, "name", "alan");
-        }
-    }
+    string->assign(string, test);
+    pstr->assign(pstr, "&");
+    substr = string->substr(string, 3, 10);
+
 
     set_str = cjson_print(root);
 
@@ -768,15 +752,18 @@ int test_string_substr()
     object_destroy(str_substring);
     object_destroy(str_trim);
     object_destroy(str);
-    object_destroy(string);
-    object_destroy(pStr1);  
-    alloc_count_end = allocator2->alloc_count;
-    if (alloc_count_be != alloc_count_end) {
-        dbg_str(DBG_WARNNING, "there's mem leak in test_obj_string test");
-    }
-    return 1;
 
+    dbg_str(DBG_DETAIL, "substr %s ", substr->value);
+    ret = assert_equal(substr->value, test + 3, 10);
+
+    object_destroy(substr);
+
+    object_destroy(string);
+    object_destroy(pstr);
+
+    return ret;   
 }
+
 
 
 REGISTER_STANDALONE_TEST_FUNC(test_obj_string);
@@ -791,3 +778,7 @@ REGISTER_STANDALONE_TEST_FUNC(test_append_str);
 REGISTER_STANDALONE_TEST_FUNC(test_append_str_len);
 REGISTER_STANDALONE_TEST_FUNC(test_append_Str);
 REGISTER_STANDALONE_TEST_FUNC(test_size);
+
+REGISTER_TEST_FUNC(test_string_split);
+REGISTER_TEST_FUNC(test_string_find);
+REGISTER_TEST_FUNC(test_string_substr);

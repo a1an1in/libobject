@@ -39,8 +39,8 @@ struct sdl_s{
 	int (*unload_character)(Render *render,void *character);
 	int (*write_character)(Render *render,int x, int y, void *character);
 	int (*present)(Render *render);
-    void (*create_texture)(Sdl_Render *render, uint32_t format, int access, int w, int h);
-    void (*destroy_texture)(Sdl_Render *render, void *texture);
+    void *(*create_yuvtexture)(Sdl_Render *render, int w, int h);
+    int (*destroy_texture)(Sdl_Render *render, void *texture);
 
 #define MAX_NAME_LEN 50
     char name[MAX_NAME_LEN];

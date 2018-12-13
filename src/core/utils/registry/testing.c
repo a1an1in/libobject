@@ -180,6 +180,11 @@ int execute_test_designated_func(char *func_name, void *arg1, void *arg2)
             continue;
         }
 
+        if (element->type != FUNC_ENTRY_TYPE_STANDALONE) {
+            free(element);
+            continue;
+        }
+
         if (element->args_count == 1) {
             ret = element->func1((void *)element);
         } else if (element->args_count == 3) {
