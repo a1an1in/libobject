@@ -559,7 +559,7 @@ static int test_size()
    object_destroy(parent);
    object_destroy(substr);
    return 1;
-   return 1;
+   
 }
 
 
