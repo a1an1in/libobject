@@ -24,6 +24,8 @@ struct _vector_s{
     int (*remove_back)(Vector *vector,void **value);
     int (*peek_at)(Vector *vector,int index, void **value);
     void (*for_each)(Vector *vector,void (*func)(int index, void *element));
+    void (*free_vector_elements)(Vector *vector);
+    int (*get_len)(Vector *vector);
 
     vector_t *vector;
 	uint32_t value_size;

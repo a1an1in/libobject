@@ -237,7 +237,7 @@ int llist_remove_front(llist_t *llist, void **data)
     struct list_head *head = llist->head.list_head_p;
 
     if (llist_pos_equal(&llist->begin, &llist->head)) {
-        dbg_str(LINKLIST_WARNNING, "llist is null");
+        dbg_str(LINKLIST_IMPORTANT, "llist is null");
         return -1;
     }
 

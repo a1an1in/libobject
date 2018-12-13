@@ -108,7 +108,7 @@ __publish_message(Publisher *publisher, char *what, void *opaque)
     Centor *centor = (Centor *)publisher->centor;
     allocator_t *allocator = publisher->obj.allocator;
 
-    dbg_str(DBG_DETAIL, "publish raw message");
+    dbg_str(DBG_DETAIL, "publish raw message, publisher %p, what %s, opaque %p", publisher, what, opaque);
 
     message = message_alloc(allocator);
     message_set(message, "what", what);
@@ -167,4 +167,4 @@ int test_message_publisher()
 
     return 1;
 }
-REGISTER_STANDALONE_TEST_FUNC(test_message_publisher);
+REGISTER_TEST_FUNC(test_message_publisher);

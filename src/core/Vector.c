@@ -41,6 +41,12 @@ static int __construct(Vector *vector, char *init_str)
     dbg_str(OBJ_DETAIL, "vector construct, vector addr:%p", vector);
 
     vector->vector = vector_create(allocator, 0);
+    if (vector->value_size == 0) {
+        vector->value_size = sizeof(void *);
+    }
+    if (vector->capacity == 0) {
+        vector->capacity = 10;
+    }
     vector_init(vector->vector, vector->value_size, vector->capacity);
 
     return 0;
@@ -80,9 +86,12 @@ static int __set(Vector *vector, char *attrib, void *value)
         vector->peek_at = value;
     } else if (strcmp(attrib, "for_each") == 0) {
         vector->for_each = value;
-    }else if(strcmp(attrib,"free_vector")==0){
-        vector->free_vector=value;
-    }else if (strcmp(attrib, "value_size") == 0) {
+    } else if (strcmp(attrib,"free_vector_elements") == 0) {
+        vector->free_vector_elements = value;
+    } else if (strcmp(attrib,"get_len") == 0) {
+        vector->get_len = value;
+    }
+    else if (strcmp(attrib, "value_size") == 0) {
         vector->value_size = *(uint32_t *)value;
     } else if (strcmp(attrib, "capacity") == 0) {
         vector->capacity = *(uint32_t *)value;
@@ -153,23 +162,29 @@ static void __for_each(Vector *vector, void (*func)(int index, void *element))
 	}
 }
 
-static void __free_vector(Vector *vector)
+static void __free_vector_elements(Vector *vector)
 {   
-    vector_pos_t pos,next;
-    vector_t *v=vector->vector;
+    vector_pos_t pos, next;
+    vector_t *v = vector->vector;
     void *element;
-    int index =0;
+    int index = 0;
 
-    for(vector_begin(v,&pos),vector_pos_next(&pos,&next);
-        !vector_pos_equal(&pos,&v->end);
-        pos=next,vector_pos_next(&pos,&next))
+    for(vector_begin(v, &pos), vector_pos_next(&pos, &next);
+        !vector_pos_equal(&pos, &v->end);
+        pos = next, vector_pos_next(&pos, &next))
     {
-        vector->peek_at(vector,index,(void **)&element);
-        if(element!=NULL){
+        vector->peek_at(vector, index++, (void **)&element);
+        if(element != NULL){
             object_destroy(element);
-            element=NULL;
         }
     }
+}
+
+static int __get_len(Vector *vector)
+{
+    vector_pos_t end = vector->vector->end;
+
+    return end.vector_pos - 1;
 }
 
 static class_info_entry_t vector_class_info[] = {
@@ -185,10 +200,11 @@ static class_info_entry_t vector_class_info[] = {
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_back", __remove_back, sizeof(void *)}, 
     [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_at", __peek_at, sizeof(void *)}, 
     [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "free_vector", __free_vector, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_UINT32_T, "", "value_size", 0, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_UINT32_T, "", "capacity", 0, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_END}, 
+    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "free_vector_elements", __free_vector_elements, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_len", __get_len, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_UINT32_T, "", "value_size", 0, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_UINT32_T, "", "capacity", 0, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Vector", vector_class_info);
 
@@ -246,6 +262,8 @@ static int test_obj_vector(TEST_ENTRY *entry)
      *object_dump(vector, "Vector", buf, 2048);
      *dbg_str(DBG_DETAIL, "Vector dump: %s", buf);
      */
+
+    pause();
 
     vector->add_at(vector, 0, &t0);
     vector->add_at(vector, 1, &t1);

@@ -44,3 +44,5 @@ cscope*
 tags
 dbg.ini
 bin/test
+Makefile
+CMakeCache.txt
