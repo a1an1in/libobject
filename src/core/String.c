@@ -51,7 +51,7 @@ static int string_buf_auto_modulate(String *string, int write_len)
             return -1;
         }
     } else if ( string->value_max_len > string->value_len + 1 &&
-               string->value_max_len < string->value_len + write_len + 1)
+            string->value_max_len < string->value_len + write_len + 1)
     {
         char *new_buf;
 
@@ -108,28 +108,28 @@ static int __set(String *string, char *attrib, void *value)
         string->append_char = value;
     } else if (strcmp(attrib, "replace_char") == 0) {
         string->replace_char = value;
-    }else if(strcmp(attrib,"toupper")==0){
-        string->toupper=value;
-    }else if(strcmp(attrib,"toupper_impact")==0){
-        string->toupper_impact=value;
-    }else if(strcmp(attrib,"lower")==0){
-        string->tolower=value;
-    }else if(strcmp(attrib,"lower_impact")==0){
-        string->tolower_impact=value;
-    }else if (strcmp(attrib, "at") == 0) {
+    } else if (strcmp(attrib, "toupper") == 0) {
+        string->toupper = value;
+    } else if (strcmp(attrib, "toupper_impact") == 0) {
+        string->toupper_impact = value;
+    } else if (strcmp(attrib, "lower") == 0) {
+        string->tolower = value;
+    } else if (strcmp(attrib, "lower_impact") == 0) {
+        string->tolower_impact = value;
+    } else if (strcmp(attrib, "at") == 0) {
         string->at = value;
-    }else if(strcmp(attrib,"ltrim")==0){
-        string->ltrim=value; 
-    }else if(strcmp(attrib,"rtrim")==0){
-        string->rtrim=value;
-    }else if(strcmp(attrib,"trim")==0){
-        string->trim=value;
-    }else if(strcmp(attrib,"split_string")==0){
-        string->split_string=value;
-    }else if(strcmp(attrib,"find")==0){
-        string->find=value;
-    }else if(strcmp(attrib,"substr")==0){
-        string->substr=value;
+    } else if (strcmp(attrib, "ltrim") == 0) {
+        string->ltrim = value; 
+    } else if (strcmp(attrib, "rtrim") == 0) {
+        string->rtrim = value;
+    } else if (strcmp(attrib, "trim") == 0) {
+        string->trim = value;
+    } else if (strcmp(attrib, "split_string") == 0) {
+        string->split_string = value;
+    } else if (strcmp(attrib, "find") == 0) {
+        string->find = value;
+    } else if (strcmp(attrib, "substr") == 0) {
+        string->substr = value;
     }else if(strcmp(attrib,"c_str")==0){
         string->c_str=value;
     }else if(strcmp(attrib,"append_str")==0){
@@ -140,7 +140,7 @@ static int __set(String *string, char *attrib, void *value)
         string->append_Str=value;
     }else if(strcmp(attrib,"size")==0){
         string->size=value;
-    }else if (strcmp(attrib, "name") == 0) {
+    } else if (strcmp(attrib, "name") == 0) {
         strncpy(string->name, value, strlen(value));
     } else {
         dbg_str(OBJ_DETAIL, "string set, not support %s setting", attrib);
@@ -166,7 +166,7 @@ static void *__get(String *obj, char *attrib)
 // return enough space
 static String *__pre_alloc(String *string, uint32_t size)
 {
-    dbg_str(OBJ_DETAIL, "pre_alloc, size=%d", size);
+    dbg_str(OBJ_DETAIL, "pre_alloc, size = %d", size);
 
     if (size < string->value_max_len) return string;
     else {
