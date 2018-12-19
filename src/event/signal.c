@@ -257,8 +257,7 @@ int evsig_init(Event_Base *eb)
 
     c = cfg_alloc(allocator); 
     dbg_str(EV_DETAIL, "configurator_t addr:%p", c);
-    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_type", "1");
-    cfg_config_num(c, "/RBTree_Map", "key_size", sizeof(int)) ;  
+    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_type", "4");
 
     evsig->map  = OBJECT_NEW(allocator, RBTree_Map, c->buf);
     evsig->list = OBJECT_NEW(allocator, Linked_List, NULL);

@@ -2,8 +2,9 @@ cmake_minimum_required (VERSION 2.8)
 project (libobject)
 
 include (mk/util.cmake)
-#FIND_LIBRARY(/usr/local/lib /usr/lib NO_DEFAULT_PATH)
-#LINK_DIRECTORIES(/usr/local/lib /usr/lib ${PROJECT_SOURCE_DIR}/lib)
+FIND_LIBRARY(/usr/local/lib /usr/lib NO_DEFAULT_PATH)
+LINK_DIRECTORIES(/usr/local/lib /usr/lib ${PROJECT_SOURCE_DIR}/lib)
+INCLUDE_DIRECTORIES(/usr/local/include)
 
 #message("${Source_Files}")
 #FIND_LIBRARY(LIB_SDL_PATH NAMES SDL2)

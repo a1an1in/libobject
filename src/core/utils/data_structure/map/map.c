@@ -24,7 +24,6 @@ map_t * map_alloc(allocator_t *allocator, uint8_t type)
     return map;
 }
 
-//----------------------------test start---------------------------->>
 struct A{
     int a;
     int b;
@@ -39,6 +38,7 @@ void test_map()
 {
     map_t *map;
     map_iterator_t it;
+    struct A *p;
     allocator_t *allocator = allocator_get_default_alloc();
 
     struct A t1 = {1, 2};
@@ -49,26 +49,19 @@ void test_map()
     map = map_alloc(allocator, MAP_TYPE_HASH_MAP);
     map_init(map, 2, sizeof(struct A));
 
-    dbg_str(DBG_DETAIL, "------------map insert------------");
-
     map_insert(map, (char *)"11", &t1);
     map_insert(map, (char *)"22", &t2);
     map_insert(map, (char *)"55", &t4);
     map_insert(map, (char *)"33", &t3);
 
-    dbg_str(DBG_DETAIL, "------------map search------------");
-    struct A *p;
     map_search(map, (char *)"33", &it);
 
     p = (struct A *)map_get_pointer(&it);
     dbg_str(DBG_DETAIL, "a =%d, b=%d", p->a, p->b);
 
-    dbg_str(DBG_DETAIL, "------------map for each------------");
     map_for_each(map, test_print_context);
 
-    dbg_str(DBG_DETAIL, "------------map destroy------------");
     map_destroy(map);
 
 }
-
-//----------------------------test end---------------------------<<
+REGISTER_TEST_FUNC(test_map);

@@ -54,6 +54,7 @@
 /usr/local/include/libobject/core/map.h
 /usr/local/include/libobject/core/linked_list.h
 /usr/local/include/libobject/core/mutex_lock.h
+/usr/local/include/libobject/core/.rbtree_map.h.swp
 /usr/local/include/libobject/core/lock.h
 /usr/local/include/libobject/core/obj.h
 /usr/local/include/libobject/core/object_deamon.h
@@ -61,6 +62,7 @@
 /usr/local/include/libobject/core/utils/miscellany/buffer.h
 /usr/local/include/libobject/core/utils/data_structure/array_stack.h
 /usr/local/include/libobject/core/utils/data_structure/map.h
+/usr/local/include/libobject/core/utils/data_structure/.rbtree_map.h.swp
 /usr/local/include/libobject/core/utils/data_structure/map_struct.h
 /usr/local/include/libobject/core/utils/data_structure/link_list.h
 /usr/local/include/libobject/core/utils/data_structure/vector_struct.h

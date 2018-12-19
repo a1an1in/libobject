@@ -125,12 +125,6 @@ static int args_process_test_llist(void *base, int argc, char **argv)
     return 0;
 }
 
-static int args_process_test_rbtree_map(void *base, int argc, char **argv)
-{
-    test_datastructure_rbtree_map();
-    return 0;
-}
-
 static int args_process_test_vector(void *base, int argc, char **argv)
 {
     test_datastructure_vector();
@@ -341,12 +335,6 @@ static int args_process_test_Iterator(void *base, int argc, char **argv)
 static int args_process_test_Hmap_Iterator(void *base, int argc, char **argv)
 {
     test_obj_hiter();
-    return 0;
-}
-
-static int args_process_test_RBTreeMap(void *base, int argc, char **argv)
-{
-    test_obj_rbtree_map();
     return 0;
 }
 
@@ -634,7 +622,6 @@ static cmd_config_t cmds[]={
     {"Graph", args_process_test_Graph, 0, "test", "N/A", "test"}, 
     {"Queue", args_process_test_Queue, 0, "test", "N/A", "test"}, 
     {"Stack", args_process_test_Stack, 0, "test", "N/A", "test"}, 
-    {"RBTMap", args_process_test_RBTreeMap, 0, "test", "N/A", "test"}, 
     {"LList", args_process_test_LList, 0, "test", "N/A", "test"}, 
     {"HIter", args_process_test_Hmap_Iterator, 0, "test", "N/A", "test"}, 
     {"Iter", args_process_test_Iterator, 0, "test", "N/A", "test"}, 
@@ -665,7 +652,6 @@ static cmd_config_t cmds[]={
     {"as", args_process_test_as, 0, "test", "N/A", "array_stack"}, 
     {"vector", args_process_test_vector, 0, "test", "N/A", "test_vector"}, 
     {"map", args_process_test_map, 0, "test", "N/A", "test_map"}, 
-    {"rbtree_map", args_process_test_rbtree_map, 0, "test", "N/A", "test_rbtree_map"}, 
     {"llist", args_process_test_llist, 0, "test", "N/A", "test_llist"}, 
     {"hash_map", args_process_test_hashlist, 0, "test", "N/A", "test_hashlist"}, 
     {"state_machine", args_process_test_state_machine, 0, "test", "N/A", "test_state_machine"}, 

@@ -52,7 +52,7 @@ static int __construct(Rbtree_Timer *timer, char *init_str)
     timer->map->key_cmp_func = timeval_key_cmp_func;
     timer->map->key_type     = 1;
 
-    rbtree_map_init(timer->map, key_size, sizeof(void *)); 
+    rbtree_map_init(timer->map); 
 
     return 0;
 }
