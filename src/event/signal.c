@@ -18,7 +18,6 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/timeb.h>
 #include <time.h>
 #include <sys/stat.h>
 #include <libobject/event/select_base.h>

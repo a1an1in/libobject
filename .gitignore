@@ -32,6 +32,7 @@
 *.dSYM/
 .DS_Store
 CMakeFiles/
+build/
 
 *.swn
 *.swo
