@@ -453,18 +453,14 @@ static class_info_entry_t string_class_info[] = {
 REGISTER_CLASS("String", string_class_info);
 
 
-
-
 static int test_c_str() 
 {
-     
    allocator_t *allocator = allocator_get_default_alloc();
    //test find and split_string function
    int count=allocator->alloc_count;
    String *parent;
    parent=OBJECT_NEW(allocator,String,NULL);
    parent->assign(parent,"abcdebf");  
-
 
    printf(" c format value: %s \n",parent->c_str(parent));
 
@@ -519,6 +515,7 @@ static int test_append_str_len()
    object_destroy(substr);
    return 1;
 }
+
 static int test_append_Str()
 { 
    allocator_t *allocator = allocator_get_default_alloc();
@@ -541,6 +538,7 @@ static int test_append_Str()
    object_destroy(substr);
    return 1;
 }
+
 static int test_size()
 {  
     allocator_t *allocator = allocator_get_default_alloc();
@@ -563,9 +561,6 @@ static int test_size()
    return 1;
    
 }
-
-
-
 
 static void print_vector_data(int index, void *element)
 {  
@@ -602,17 +597,14 @@ int test_string_split()
     str_separator->assign(str_separator, "//");
 #endif 
 
-
     str_find->split_string(str_find, str_separator, vector);
 
     dbg_str(DBG_DETAIL, "vector len=%d", vector->get_len(vector));
-
 
     ret = assert_int_equal(vector->get_len(vector), 18);
 
     vector->for_each(vector, print_vector_data);
     vector->free_vector_elements(vector);
-
 
     object_destroy(str_find);
     object_destroy(str_separator);
@@ -663,142 +655,10 @@ int test_string_substr()
 }
 
 
- int test_obj_string()
-{
-    String *string;
-    allocator_t *allocator = allocator_get_default_alloc();
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-    int alloc_count_be, alloc_count_end;
-
-    dbg_str(DBG_DETAIL, "test_obj_string");
-    alloc_count_be = allocator->alloc_count;
-
-#if 0
-    root = cjson_create_object();{
-        cjson_add_item_to_object(root, "String", e = cjson_create_object());{
-            cjson_add_string_to_object(e, "name", "alan");
-        }
-    }
-    set_str = cjson_print(root);
-
-    string = OBJECT_NEW(allocator, String, set_str);
-    free(set_str);
-#else
-
-#define MAX_BUFFER_LEN 1024
-    char config[MAX_BUFFER_LEN] = {0};  
-
-    object_config(config, MAX_BUFFER_LEN, "/String", OBJECT_STRING, "name", "alan") ;
-    string  = OBJECT_NEW(allocator, String, config);
-#undef MAX_BUFFER_LEN
-#endif
-
-    string->pre_alloc(string, 1024);
-    string->assign(string, "hello world!");
-    string->append_char(string, 'a');
-    string->append_char(string, 'b');
-
-    object_dump(string, "String", buf, 2048);
-    dbg_str(DBG_DETAIL, "String dump: %s", buf);
-    
-    memset(buf,0,sizeof(buf));
-    
-    //string->toupper_impact(string);
-    //object_dump(string, "String", buf, 2048);
-    //dbg_str(DBG_DETAIL, "String dump: %s", buf);
-    //printf("  result:%s\n",string->value);
-    String *str;
-    allocator_t *allocator1 = allocator_get_default_alloc();
-    str=OBJECT_NEW(allocator1,String,NULL);
-    string->toupper(string,str);
-    //str->ltrim(str);
-    printf("orginal string %s  result:%s\n",string->value,str->value);
-    
-    //test trim
-    String *str_trim;
-    allocator_t *allocator2 = allocator_get_default_alloc();
-
-    alloc_count_be=allocator2->alloc_count;
-    str_trim=OBJECT_NEW(allocator2,String,NULL);
-    //str_trim->pre_alloc(str_trim,1024);
-    str_trim->assign(str_trim,"    fasdfasdfdas  ");
-    //str_trim->rtrim(str_trim);
-    printf("original_trim_result:%sxxxxxxxxxxxxx\n",str_trim->value);
-    str_trim->ltrim(str_trim);
-    printf("trim_result:%sxxxxxxxxxxxxx\n",str_trim->value);
-    
-   //test find and split_string function
-   
-   String *str_find,*str_separator;
-   str_find=OBJECT_NEW(allocator2,String,NULL);
-   //str_find();
-   str_find->assign(str_find,"https://www.baidu.com/s?ie=utf-8&f=3&rsv_bp=1&rsv_idx=1&tn=baidu&wd="
-   "ffmpeg%20hls%20%20%E6%A8%A1%E5%9D%97&oq=ffmpeg%2520hls%2520%25E5%2588%2587%25E7%2589%2587&rsv_pq=f57123dc00006105&"
-   "rsv_t=4a67K//PcOq6Y0swQnyeFtlQezzWiuwU1bS8vKp48Nn9joWPQd1BHAqFkqu9Y&rqlang=cn&rsv_enter=1&inputT=4580&"
-   "rsv_sug3=170&rsv//_sug1=107&rsv_sug7=100&rsv_sug2=0&prefixsug=ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25"
-   "E5%259D%2597&rsp=0&rsv_sug4=5089");
-   str_separator=OBJECT_NEW(allocator2,String,NULL);
-   str_separator->assign(str_separator,"&");
-   
-
-   printf("parent_string:%s child_string:%s\n",str_find->value,str_separator->value);
-
-   int pos=str_find->find(str_find,str_separator,0);
-   printf("find %s position %d",str_separator->value,pos);
-    
-    //test substr member function
-    
-    String *str_substring;
-    str_substring=OBJECT_NEW(allocator2,String,NULL);
-    str_substring->assign(str_substring,"f12asdfsd$afdsaf");
-    String *pStr=str_substring->substr(str_substring,4,100);
-    printf(" substring:%s\n",pStr->value);
-
-    String *pStr1=str_substring->substr(str_substring,12,100);
-    printf("substring1:%s\n",pStr1->value);
-    //test split_string
-    Vector *vc;
-    // allocator_t *allocator2=allocator_get_default_alloc();
-    vc=OBJECT_NEW(allocator2,Vector,NULL);
-    str_find->split_string(str_find,str_separator,vc);
-    //printf("vector size %d",vc->size);
-    vc->for_each(vc, print_vector_data);
-    //vc->for_each(vc,free_vector_elements);
-   
-    object_destroy(vc);
-    object_destroy(str_find);
-    object_destroy(str_separator);
-    object_destroy(str_substring);
-    object_destroy(str_trim);
-    object_destroy(str);
-
-    dbg_str(DBG_DETAIL, "substr %s ", substr->value);
-    ret = assert_equal(substr->value, test + 3, 10);
-
-    object_destroy(substr);
-
-    object_destroy(string);
-    object_destroy(pstr);
-
-    return ret;   
-}
-
-
-
-REGISTER_STANDALONE_TEST_FUNC(test_obj_string);
-REGISTER_STANDALONE_TEST_FUNC(test_obj_string_split_string);
-REGISTER_STANDALONE_TEST_FUNC(test_string_find);
-REGISTER_STANDALONE_TEST_FUNC(test_string_substr);
-
-REGISTER_TEST_FUNC(test_string_find);
-REGISTER_TEST_FUNC(test_string_substr);
-REGISTER_STANDALONE_TEST_FUNC(test_c_str);
-REGISTER_STANDALONE_TEST_FUNC(test_append_str);
-REGISTER_STANDALONE_TEST_FUNC(test_append_str_len);
-REGISTER_STANDALONE_TEST_FUNC(test_append_Str);
-REGISTER_STANDALONE_TEST_FUNC(test_size);
+REGISTER_TEST_FUNC(test_c_str);
+REGISTER_TEST_FUNC(test_append_str);
+REGISTER_TEST_FUNC(test_append_str_len);
+REGISTER_TEST_FUNC(test_size);
 
 REGISTER_TEST_FUNC(test_string_split);
 REGISTER_TEST_FUNC(test_string_find);

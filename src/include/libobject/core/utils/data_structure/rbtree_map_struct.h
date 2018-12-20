@@ -3,7 +3,6 @@
 
 #include <libobject/core/utils/alloc/allocator.h>
 #include <libobject/core/utils/data_structure/rbtree.h>
-#include <libobject/core/utils/data_structure/map_pair.h>
 #include "libobject/core/utils/thread/sync_lock.h"
 
 #ifndef __KEY_CMP_FPT__
@@ -13,8 +12,9 @@ typedef int (*key_cmp_fpt)(void *key1,void *key2,uint32_t key_size);
 
 struct rbtree_map_node {
   	struct rb_node node;
-	uint8_t value_pos;
-  	char key[1];
+    uint8_t key_type;
+  	void *key;
+    void *value;
 };
 typedef struct rbtree_map_pos_s{
 	struct rb_node *rb_node_p;
@@ -23,9 +23,6 @@ typedef struct rbtree_map_pos_s{
 }rbtree_map_pos_t;
 
 typedef struct rbtree_map_s{
-	uint32_t data_size;
-	uint32_t key_size;
-	uint32_t value_size;
 	key_cmp_fpt key_cmp_func;
 	sync_lock_t map_lock;
 	uint8_t lock_type;
@@ -34,7 +31,6 @@ typedef struct rbtree_map_s{
 	allocator_t *allocator;
 	struct rb_root *tree_root;
 	rbtree_map_pos_t begin ,end;
-    pair_t *pair;
 }rbtree_map_t;
 
 #endif

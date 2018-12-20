@@ -154,8 +154,8 @@ int test_message_publisher()
     subscriber->connect_centor(subscriber, centor);
     subscriber->add_method(subscriber, "on_pause", test_on_pause, allocator);
     subscriber->subscribe(subscriber, publisher);
-    dbg_str(DBG_DETAIL, "%p subscribe a publisher, publisher addr:%p", subscriber, publisher);
-    dbg_str(DBG_DETAIL, "message handler arg:%p", allocator);
+    dbg_str(DBG_SUC, "%p subscribe a publisher, publisher addr:%p", subscriber, publisher);
+    dbg_str(DBG_SUC, "message handler arg:%p", allocator);
 
     publisher->connect_centor(publisher, centor);
     publisher->publish_message(publisher, test_str, strlen(test_str));
@@ -167,4 +167,4 @@ int test_message_publisher()
 
     return 1;
 }
-REGISTER_TEST_FUNC(test_message_publisher);
+REGISTER_STANDALONE_TEST_FUNC(test_message_publisher);
