@@ -109,7 +109,6 @@ static void *__get(Thread *obj, char *attrib)
 static int __start(Thread *thread)
 {
     void *arg;
-
     if (thread->start_routine == NULL) {
         return -1;
     }

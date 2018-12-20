@@ -88,6 +88,12 @@ static int __set(Queue *queue, char *attrib, void *value)
         queue->begin = value;
     } else if (strcmp(attrib, "end") == 0) {
         queue->end = value;
+    }else if (strcmp(attrib, "size") == 0) {
+        queue->size = value;
+    }else if (strcmp(attrib, "empty") == 0) {
+        queue->empty = value;
+    }else if (strcmp(attrib, "clear") == 0) {
+        queue->clear = value;
     }
     else {
         dbg_str(OBJ_DETAIL, "queue set, not support %s setting", attrib);
@@ -153,6 +159,9 @@ static class_info_entry_t queue_class_info[] = {
     [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg2", __for_each_arg2, sizeof(void *)}, 
     [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", NULL, sizeof(void *)}, 
     [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", NULL, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_END}, 
+    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "size", NULL, sizeof(void *)},
+    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "empty", NULL, sizeof(void *)},  
+    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "clear", NULL, sizeof(void *)},  
+    [18] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Queue", queue_class_info);

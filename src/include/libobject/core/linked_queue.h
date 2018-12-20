@@ -26,7 +26,10 @@ struct linked_queue_s{
     int (*remove)(Linked_Queue *queue, void **element);
     int (*remove_back)(Linked_Queue *queue, void **element);
     int (*remove_front)(Linked_Queue *queue, void **element);
-
+    size_t (*size)(Linked_Queue *);
+    size_t (*empty)(Linked_Queue *);
+    void   (*clear)(Linked_Queue *);
+    
     llist_t *llist;
 };
 
