@@ -96,6 +96,12 @@ static int __set(Linked_Queue *queue, char *attrib, void *value)
         queue->remove_front = value;
     } else if (strcmp(attrib, "remove_back") == 0) {
         queue->remove_back = value;
+    }else if (strcmp(attrib, "size") == 0) {
+        queue->size = value;
+    }else if (strcmp(attrib, "empty") == 0) {
+        queue->empty = value;
+    }else if (strcmp(attrib, "clear") == 0) {
+        queue->clear = value;
     }
     else {
         dbg_str(OBJ_DETAIL, "queue set, not support %s setting", attrib);
@@ -174,6 +180,38 @@ static Iterator* __end(Queue *queue)
     return (Iterator *)iter;
 }
 
+static size_t __size(Linked_Queue *queue)
+{   
+    size_t count = 0;
+    sync_trylock(&(queue->llist->list_lock), NULL);
+    count = queue->llist->list_count;
+    sync_unlock(&(queue->llist->list_lock));
+
+    return  count;
+}
+
+static size_t __empty(Linked_Queue *queue)
+{    
+    return  queue->size(queue) == 0 ? 1 : 0;
+}
+
+static void __clear(Linked_Queue *queue)
+{  
+    list_pos_t pos ,next;
+
+    sync_lock(&(queue->llist->list_lock), NULL);
+    if (!queue->empty(queue)) {   
+        for(llist_begin(queue->llist, &pos), llist_pos_next(&pos, &next);
+            !llist_pos_equal(&pos, &queue->llist->head);
+             pos = next, llist_pos_next(&pos, &next))
+        {
+            llist_delete(queue->llist,&pos);
+        }
+    sync_unlock(&(queue->llist->list_lock));
+
+    }
+}
+
 static class_info_entry_t linked_queue_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Queue", "parent", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -188,7 +226,10 @@ static class_info_entry_t linked_queue_class_info[] = {
     [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_back", __remove_back, sizeof(void *)}, 
     [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
     [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_END}, 
+    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "size", __size, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "empty", __empty, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "clear", __clear, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Linked_Queue", linked_queue_class_info);
 
@@ -252,3 +293,91 @@ void test_obj_linked_queue()
 
     object_destroy(q);
 }
+
+
+
+static int test_Linked_Queue_clear()
+{
+    int ret,i,j;
+    int buf[10];
+    Queue * queue ;
+    allocator_t *allocator = allocator_get_default_alloc();
+
+    queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
+    
+    
+    for( i = 0; i < 10; i++)
+    {
+        /* code */
+        queue->add(queue,&i);
+        buf[i] = i;
+    }
+
+    dbg_str(DBG_DETAIL, " queue size: %d ", queue->size(queue));
+    dbg_str(DBG_DETAIL, " queue is empty: %d ", queue->empty(queue));
+   
+    // for( i = 0; i < 10; i++)
+    // {
+    //     /* code */ 
+    //     queue->remove(queue,(void **)&buf[i]);
+    // }
+
+    // dbg_str(DBG_DETAIL, " queue size: %d ", queue->size(queue));
+    // dbg_str(DBG_DETAIL, " queue is empty: %d ", queue->empty(queue));
+
+   
+    // if ( queue == NULL ) {
+    //     dbg_str(DBG_DETAIL, " queue = NULL  ");    
+    // }
+    dbg_str(DBG_DETAIL, " before clear queue size: %d ", queue->size(queue));
+    queue->clear(queue);
+    dbg_str(DBG_DETAIL, " after clear queue size: %d ", queue->size(queue));
+
+
+    object_destroy(queue);
+
+
+    return 1;
+
+}
+
+static int test_Linked_Queue()
+{
+    int ret,i,j;
+    int buf[10];
+    Queue * queue ;
+    allocator_t *allocator = allocator_get_default_alloc();
+
+    queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
+    
+    
+    for( i = 0; i < 10; i++)
+    {
+        /* code */
+        queue->add(queue,&i);
+        buf[i] = i;
+    }
+
+    dbg_str(DBG_DETAIL, " queue size: %d ", queue->size(queue));
+    dbg_str(DBG_DETAIL, " queue is empty: %d ", queue->empty(queue));
+   
+    for( i = 0; i < 10; i++)
+    {
+        /* code */
+        
+        queue->remove(queue,(void **)&buf[i]);
+        
+    }
+
+    dbg_str(DBG_DETAIL, " queue size: %d ", queue->size(queue));
+    dbg_str(DBG_DETAIL, " queue is empty: %d ", queue->empty(queue));
+
+    object_destroy(queue);
+
+
+    return 1;
+}
+//test_Linked_Queue_clear
+
+REGISTER_STANDALONE_TEST_FUNC(test_Linked_Queue_clear);
+REGISTER_STANDALONE_TEST_FUNC(test_Linked_Queue);

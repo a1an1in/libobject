@@ -263,8 +263,6 @@ static int test_obj_vector(TEST_ENTRY *entry)
      *dbg_str(DBG_DETAIL, "Vector dump: %s", buf);
      */
 
-    pause();
-
     vector->add_at(vector, 0, &t0);
     vector->add_at(vector, 1, &t1);
     vector->add_at(vector, 2, &t2);
