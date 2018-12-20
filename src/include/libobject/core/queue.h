@@ -26,6 +26,10 @@ struct queue_s{
     int (*remove_front)(Queue *queue, void **element);
     void (*for_each)(Queue *queue,void (*func)(void *element));
     void (*for_each_arg2)(Queue *queue,void (*func)(void *element, void *arg), void *arg);
+    size_t (*size)(Queue *);
+    size_t (*empty)(Queue *);
+    void   (*clear)(Queue *);
+
     Iterator *(*begin)(Queue *queue);
     Iterator *(*end)(Queue *queue);
 
