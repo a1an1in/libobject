@@ -285,10 +285,14 @@ int debugger_constructor()
     ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, construct debugger\n", 
                  REGISTRY_CTOR_PRIORITY_DEBUGGER);
 
-#ifdef UNIX_LIKE_USER_MODE
-    file_name = "/tmp/dbg.ini";
+#ifdef __ANDROID__
+    file_name = "/storage/sdcard/dbg.ini";
+
+#elif UNIX_LIKE_USER_MODE
+    file_name = "/storage/sdcard/dbg.ini";
 #else
     file_name= "dbg.ini";
+    
 #endif
 
     debugger_gp = debugger_creator(file_name, PTHREAD_MUTEX_LOCK);
