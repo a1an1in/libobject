@@ -42,7 +42,7 @@ static int test_signal(TEST_ENTRY *entry, void *argc, void *argv)
 
     /* Initalize the event library */
 
-    dbg_str(DBG_DETAIL, "test_signal");
+    dbg_str(DBG_DETAIL, "test_signal, SIGUSR1: %d", SIGUSR1);
     base = event_base_new();
 
     /* Initalize one event */
