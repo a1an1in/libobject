@@ -29,7 +29,7 @@ timeout_cb(int fd, short event, void *arg)
             (int)newtime.tv_sec, elapsed);
 }
 
-int test_time(TEST_ENTRY *entry)
+int test_timer(TEST_ENTRY *entry)
 {
     struct event timeout;
     struct timeval tv;
@@ -55,6 +55,6 @@ int test_time(TEST_ENTRY *entry)
     event_base_free(base);
 
     dbg_str(DBG_DETAIL,"test time end");
-    return (0);
+    return (1);
 }
-REGISTER_TEST_FUNC(test_time);
+REGISTER_STANDALONE_TEST_FUNC(test_timer);

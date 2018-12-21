@@ -5,7 +5,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/miscellany/buffer.h>
 #include <libobject/core/obj.h>
-#include <libobject/core/hash_map.h>
+#include <libobject/core/rbtree_map.h>
 #include <libobject/event/event.h>
 #include <libobject/event/signal.h>
 #include <libobject/event/rbtree_timer.h>

@@ -51,11 +51,9 @@ static int __construct(Event_Base *eb,char *init_str)
     eb->timer = OBJECT_NEW(allocator, Rbtree_Timer,NULL);
 
     c = cfg_alloc(allocator); 
-    cfg_config_num(c, "/Hash_Map", "key_size", sizeof(int)) ;  
-    cfg_config_num(c, "/Hash_Map", "value_size", sizeof(void *)) ;
-    cfg_config_num(c, "/Hash_Map", "bucket_size", 20);
-    cfg_config_num(c, "/Hash_Map", "key_type", 1);
-    eb->io_map    = OBJECT_NEW(allocator, Hash_Map, c->buf);
+    cfg_config_num(c, "/RBTree_Map", "key_size", sizeof(int)); 
+
+    eb->io_map  = OBJECT_NEW(allocator, RBTree_Map, c->buf);
 
     dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p,timer:%p",
             eb, eb->io_map, eb->timer);
@@ -150,7 +148,7 @@ static int __add(Event_Base *eb, event_t *event)
     } else {
         event->ev_tv = event->ev_timeout;
         dbg_str(EV_DETAIL, "add fd =%d into io map", fd);
-        io_map->add(io_map, &fd, event);
+        io_map->add(io_map, &event->ev_fd, event);
 
         eb->trustee_io(eb,event);
         timer->add(timer, event);
