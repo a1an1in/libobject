@@ -33,9 +33,12 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/Users/alanlin/c_workspace/libobject/bin/test")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/Users/alanlin/c_workspace/libobject/bin/mac/test")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/test" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/test")
+    execute_process(COMMAND /usr/bin/install_name_tool
+      -delete_rpath "/Users/alanlin/c_workspace/libobject/lib/mac"
+      "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/test")
     execute_process(COMMAND /usr/bin/install_name_tool
       -delete_rpath "/usr/local/lib"
       "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/test")
@@ -50,8 +53,8 @@ endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES
-    "/Users/alanlin/c_workspace/libobject/lib/libobject.1.2.dylib"
-    "/Users/alanlin/c_workspace/libobject/lib/libobject.1.dylib"
+    "/Users/alanlin/c_workspace/libobject/lib/mac/libobject.1.2.dylib"
+    "/Users/alanlin/c_workspace/libobject/lib/mac/libobject.1.dylib"
     )
   foreach(file
       "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libobject.1.2.dylib"
@@ -59,12 +62,6 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
       )
     if(EXISTS "${file}" AND
        NOT IS_SYMLINK "${file}")
-      execute_process(COMMAND /usr/bin/install_name_tool
-        -delete_rpath "/usr/local/lib"
-        "${file}")
-      execute_process(COMMAND /usr/bin/install_name_tool
-        -delete_rpath "/Users/alanlin/c_workspace/libobject/lib"
-        "${file}")
       if(CMAKE_INSTALL_DO_STRIP)
         execute_process(COMMAND "/Library/Developer/CommandLineTools/usr/bin/strip" "${file}")
       endif()
@@ -73,15 +70,9 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES "/Users/alanlin/c_workspace/libobject/lib/libobject.dylib")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES "/Users/alanlin/c_workspace/libobject/lib/mac/libobject.dylib")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libobject.dylib" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libobject.dylib")
-    execute_process(COMMAND /usr/bin/install_name_tool
-      -delete_rpath "/usr/local/lib"
-      "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libobject.dylib")
-    execute_process(COMMAND /usr/bin/install_name_tool
-      -delete_rpath "/Users/alanlin/c_workspace/libobject/lib"
-      "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libobject.dylib")
     if(CMAKE_INSTALL_DO_STRIP)
       execute_process(COMMAND "/Library/Developer/CommandLineTools/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libobject.dylib")
     endif()

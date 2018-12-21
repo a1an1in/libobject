@@ -33,6 +33,11 @@
 .DS_Store
 CMakeFiles/
 build/
+bin/android/
+bin/ios/
+bin/linux
+bin/mac
+lib/
 
 *.swn
 *.swo

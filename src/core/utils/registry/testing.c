@@ -170,6 +170,7 @@ int execute_test_designated_func(char *func_name, void *arg1, void *arg2)
     int i, size = 0, ret;
     init_func_entry_t *element;
     reg_heap_t * reg_heap = get_global_testfunc_reg_heap();
+    int flag = 0;
 
     size = reg_heap_size(reg_heap);
     for(i=0; i< size; i++){
@@ -187,8 +188,10 @@ int execute_test_designated_func(char *func_name, void *arg1, void *arg2)
 
         if (element->args_count == 1) {
             ret = element->func1((void *)element);
+            flag = 1;
         } else if (element->args_count == 3) {
             ret = element->func3((void *)element, arg1, arg2);
+            flag = 1;
         } else {
             free(element);
             continue;
@@ -208,6 +211,12 @@ int execute_test_designated_func(char *func_name, void *arg1, void *arg2)
                     element->line);
         }
         free(element);
+    }
+
+    if (flag == 0) {
+        dbg_str(DBG_ERROR, 
+                "not found func_name = %s register map", 
+                func_name);
     }
 
     reg_heap_destroy(reg_heap);
