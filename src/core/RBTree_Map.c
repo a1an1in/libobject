@@ -420,13 +420,13 @@ int test_RBTree_Map_search_same_default_key(TEST_ENTRY *entry)
 
     init_test_instance(&t0, 0, 2);
     init_test_instance(&t1, 1, 2);
-    init_test_instance(&t2, 1, 2);
-    init_test_instance(&t3, 1, 2);
-    init_test_instance(&t4, 1, 2);
+    init_test_instance(&t2, 2, 2);
+    init_test_instance(&t3, 3, 2);
+    init_test_instance(&t4, 4, 2);
 
     c = cfg_alloc(allocator); 
     dbg_str(RBTMAP_SUC, "configurator_t addr:%p", c);
-    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_type", "4");
+    cfg_config_num(c, "/RBTree_Map", "key_size", sizeof(int)); 
 
     map  = OBJECT_NEW(allocator, RBTree_Map, c->buf);
     list = OBJECT_NEW(allocator, Linked_List, NULL);
@@ -444,17 +444,16 @@ int test_RBTree_Map_search_same_default_key(TEST_ENTRY *entry)
     key5 = 4;
     map->add(map, &key5, &t4);
 
-    printf("for_each\n");
     map->for_each(map, rbtree_map_print_with_numeric_key);
 
     key6 = 1;
     map->search_all_same_key(map, &key6, list);
-    dbg_str(DBG_DETAIL, "run at here");
     list->for_each(list, test_list_print);
 
     if (list->count(list) == 3) {
         ret = 1;
     } else {
+        dbg_str(DBG_DETAIL, "list count =%d", list->count(list));
         ret = 0;
     }
 

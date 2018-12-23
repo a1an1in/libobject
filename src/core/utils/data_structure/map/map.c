@@ -34,12 +34,13 @@ void test_print_context(map_iterator_t *it)
     struct A *p = (struct A *)map_get_pointer(it);
     dbg_str(DBG_DETAIL, "a =%d, b=%d", p->a, p->b);
 }
-void test_map()
+int test_map(TEST_ENTRY *entry)
 {
     map_t *map;
     map_iterator_t it;
     struct A *p;
     allocator_t *allocator = allocator_get_default_alloc();
+    int ret = 0;
 
     struct A t1 = {1, 2};
     struct A t2 = {2, 2};
@@ -57,11 +58,17 @@ void test_map()
     map_search(map, (char *)"33", &it);
 
     p = (struct A *)map_get_pointer(&it);
-    dbg_str(DBG_DETAIL, "a =%d, b=%d", p->a, p->b);
+    if (p->a == 3 && p->b == 2) {
+        ret = 1;
+    } else {
+        dbg_str(DBG_DETAIL, "a =%d, b=%d", p->a, p->b);
+        ret = 0;
+    } 
 
     map_for_each(map, test_print_context);
 
     map_destroy(map);
 
+    return ret;
 }
 REGISTER_TEST_FUNC(test_map);
