@@ -12,9 +12,7 @@ set (CMAKE_MACOSX_RPATH 1)
 # Debug/Release settings
 set (CMAKE_BUILD_TYPE "Debug")
 
-message("EXECUTABLE_OUTPUT_PATH: ${EXECUTABLE_OUTPUT_PATH}")
-message("LIBRARY_OUTPUT_PATH: ${LIBRARY_OUTPUT_PATH}")
-message("CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+display_configs("${PLATFORM}")
 
 find_package(PkgConfig)
 find_package(opengl)
@@ -79,6 +77,6 @@ SET_TARGET_PROPERTIES (object PROPERTIES VERSION 1.2 SOVERSION 1)
 
 
 install (TARGETS test DESTINATION bin)
-install (TARGETS object DESTINATION lib)
+install (DIRECTORY ${LIBRARY_DIR_PATH} DESTINATION lib)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/include/libobject DESTINATION include)
 

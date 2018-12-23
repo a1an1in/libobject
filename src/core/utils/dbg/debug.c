@@ -290,17 +290,20 @@ int debugger_constructor()
 
 #if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
     file_name = "/tmp/dbg.ini";
+
+    debugger_gp = debugger_creator(file_name, PTHREAD_MUTEX_LOCK);
+    debugger_init(debugger_gp);
+
 #elif defined(ANDROID_USER_MODE)
     /*
      *file_name = "/storage/sdcard/dbg.ini";
      */
-    file_name = "/sdcard/dbg.ini";
 #else
     file_name= "dbg.ini";
-#endif
 
     debugger_gp = debugger_creator(file_name, PTHREAD_MUTEX_LOCK);
     debugger_init(debugger_gp);
+#endif
 
     return 0;
 }
@@ -310,7 +313,9 @@ int debugger_destructor()
 {
     ATTRIB_PRINT("REGISTRY_DTOR_PRIORITY=%d, debugger destructor\n", 
                  REGISTRY_DTOR_PRIORITY_DEBUGGER);
+#if (!defined(ANDROID_USER_MODE))
     debugger_destroy(debugger_gp);
+#endif
 
     return 0;
 }
