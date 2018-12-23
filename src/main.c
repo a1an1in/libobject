@@ -54,13 +54,13 @@
 
 #ifndef MAKELIB
 
-typedef struct config_list_s{
-}config_list_t;
+typedef struct config_list_s {
+} config_list_t;
 
-typedef struct base_s{
+typedef struct base_s {
     config_list_t config;
     args_processor_t *p;
-}base_t;
+} base_t;
 
 
 static int args_process_help(void *base, int argc, char **argv)
@@ -93,7 +93,7 @@ static int args_process_mockery(void *base, int argc, char **argv)
     return mockery(argc, argv);
 }
 
-static cmd_config_t cmds[]={
+static cmd_config_t cmds[] = {
     {"mockery", args_process_mockery, 0, "app", "N/A", "test framework"}, 
     {"log_server", args_process_log_server, 0, "app", "N/A", "log server"}, 
     {"port", args_process_port, 1, "config", "NN(number)", "udp port, using to send/rcv msg with neighbor"}, 
@@ -114,19 +114,10 @@ int main(int argc, char *argv[])
     INIT_LIBOBJECT();
 
     dbg_str(DBG_DETAIL, "main func start");
+
     args_process(NULL, cmds, argc, argv);
 
     dbg_str(DBG_DETAIL, "main func end");
-
-#if 1
-    /*
-     *pause();
-     *dbg_str(DBG_DETAIL, "main func out, but pause breaked");
-     */
-#endif
-    /*
-     *signal(SIGCHLD,SIG_IGN);
-     */
 
     return ret;
 }

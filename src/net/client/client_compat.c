@@ -59,7 +59,7 @@ void *client(allocator_t *allocator,
         client->bind(client, host, service); 
         if (process_task_cb != NULL)
             client->trustee(client, NULL, (void *)process_task_cb, opaque);
-    }else if (!strcmp(type,CLIENT_TYPE_INET_TCP)){
+    } else if (!strcmp(type,CLIENT_TYPE_INET_TCP)){
         client = OBJECT_NEW(allocator, Inet_Tcp_Client, NULL);
         if (process_task_cb != NULL)
             client->trustee(client, NULL, (void *)process_task_cb, opaque);
