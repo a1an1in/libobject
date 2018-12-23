@@ -531,7 +531,7 @@ int test_rbtree_map_search_default(TEST_ENTRY *entry)
 
     dbg_str(DBG_DETAIL,"rbtree allocator addr:%p",allocator);
     map = rbtree_map_alloc(allocator);
-    rbtree_map_set(map, "key_len", &key_len);
+    rbtree_map_set(map, "key_len", (void *)&key_len);
     rbtree_map_init(map); 
 
     rbtree_map_insert(map, &key0, &t0);
@@ -585,7 +585,7 @@ int test_rbtree_map_search_string_key(TEST_ENTRY *entry)
 
     dbg_str(DBG_DETAIL,"rbtree allocator addr:%p",allocator);
     map = rbtree_map_alloc(allocator);
-    rbtree_map_set(map, "key_type", &key_type);
+    rbtree_map_set(map, "key_type", (void *)&key_type);
     rbtree_map_init(map); 
 
     rbtree_map_insert(map,(char *)"00", &t0);

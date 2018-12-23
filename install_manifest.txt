@@ -91,6 +91,7 @@
 /usr/local/include/libobject/core/utils/dbg/debug.h
 /usr/local/include/libobject/core/utils/dbg/debug_network.h
 /usr/local/include/libobject/core/utils/dbg/debug_log.h
+/usr/local/include/libobject/core/utils/dbg/.debug.h.swp
 /usr/local/include/libobject/core/utils/dbg/list.h
 /usr/local/include/libobject/core/utils/dbg/debug_businesses.h
 /usr/local/include/libobject/core/utils/dbg/debug_string.h

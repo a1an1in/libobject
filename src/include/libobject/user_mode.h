@@ -18,9 +18,21 @@
 #ifndef __LIBCRE_H__
 #define __LIBCRE_H__
 
-#define UNIX_LIKE_USER_MODE
 /*
  *#define WINDOWS_USER_MODE
+ */
+#define ANDROID_USER_MODE
+/*
+ *#define LINUX_USER_MODE
+ */
+/*
+ *#define UNIX_USER_MODE
+ */
+/*
+ *#define IOS_USER_MODE
+ */
+/*
+ *#define MAC_USER_MODE
  */
 
 #endif

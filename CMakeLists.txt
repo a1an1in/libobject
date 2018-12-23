@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 2.8)
 include (mk/util.cmake)
-init_platform("${Platform}")
+init_platform("${PLATFORM}")
 project (libobject)
-config_platform("${Platform}")
+config_platform("${PLATFORM}")
 
 # The version number.
 set (LIBOBJECT_VERSION_MAJOR 1)
@@ -64,10 +64,6 @@ else ()
     #message("sources exclude bus module: ${Source_Files}")
 endif ()
 
-
-#message("Main_File:${Main_File}")
-#message("Source_Files:${Source_Files}")
-
 ADD_LIBRARY (object SHARED ${Source_Files})
 target_link_libraries(object ${ExternalLibs})
 
@@ -76,11 +72,6 @@ target_link_libraries(test object)
 
 #add_executable(test ${Main_File} ${Source_Files})
 #target_link_libraries(test ${ExternalLibs})
-
-#ADD_LIBRARY (object_static STATIC ${Source_Files})
-#SET_TARGET_PROPERTIES(object_static PROPERTIES OUTPUT_NAME "object")
-#target_link_libraries(object_static SDL2)
-#target_link_libraries(object_static SDL2_ttf)
 
 #set_target_properties(object PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 #set_target_properties(object_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)

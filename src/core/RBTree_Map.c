@@ -577,8 +577,8 @@ int test_RBTree_Map_search_string_key(TEST_ENTRY *entry)
     dbg_str(DBG_DETAIL, "test search:");
     map->search(map, "test2", (void **)&t);
     dbg_str(DBG_DETAIL, "new search test2: t->a=%d, t->b=%d", t->a, t->b);
-    dbg_buf(DBG_DETAIL, "t:", t, sizeof(t2));
-    dbg_buf(DBG_DETAIL, "t2:", &t2, sizeof(t2));
+    dbg_buf(DBG_DETAIL, "t:", (void *)t, sizeof(t2));
+    dbg_buf(DBG_DETAIL, "t2:", (void *)&t2, sizeof(t2));
     ret = assert_equal(t, &t2, sizeof(t2));
     dbg_str(DBG_DETAIL, "ret=%d", ret);
 

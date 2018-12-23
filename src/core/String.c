@@ -550,11 +550,11 @@ static int test_size()
    parent->assign(parent,"abcdebf");  
    substr->assign(substr,"{}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>#########$$$$$$>>>>>>>>>>>>{}");
 
-   printf("parent size %d child size %d \n",parent->size(parent),substr->size(substr)); 
+   printf("parent size %zu child size %zu \n", parent->size(parent),substr->size(substr)); 
    
    parent->append_Str(parent,substr);
    printf(" c format value: %s \n",parent->c_str(parent));
-   printf("parent size %d child size %d \n",parent->size(parent),substr->size(substr)); 
+   printf("parent size %zu child size %zu \n",parent->size(parent),substr->size(substr)); 
    
    object_destroy(parent);
    object_destroy(substr);

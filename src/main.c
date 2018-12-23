@@ -47,8 +47,7 @@
 #include <signal.h>
 #include <libobject/attrib_priority.h>
 #include <libobject/core/utils/args/cmd_args.h>
-#include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/libobject.h>
 #include <libobject/test.h>
 
 #define LIBRARY_VERSION "libobject version: 2.0.0.0"

@@ -18,9 +18,9 @@
 #ifndef __SYNC_LOCK_H__
 #define __SYNC_LOCK_H__
 
-#include <libobject/cutils_re.h>
+#include <libobject/user_mode.h>
 #include <libobject/basic_types.h>
-#ifdef UNIX_LIKE_USER_MODE
+#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(ANDROID_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
 #include <pthread.h>
 #endif
 
@@ -34,14 +34,11 @@ typedef struct sync_lock_s{
 	uint8_t lock_type;
 	struct sync_lock_operations *lock_ops;
 	union lock{
-#ifdef UNIX_LIKE_USER_MODE
+#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(ANDROID_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
 		pthread_mutex_t mutex;
 		pthread_rwlock_t rwlock;
-#endif
-#ifdef WINDOWS_USER_MODE
-		/*
-		 *CRITIACAL_SECTION cs;
-		 */
+#elif defined(WINDOWS_USER_MODE)
+        CRITIACAL_SECTION cs;
 #endif
 		int b;
 	}lock;
