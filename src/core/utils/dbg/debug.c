@@ -46,6 +46,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/dbg/debug_string.h>
 #include <libobject/attrib_priority.h>
@@ -248,6 +249,7 @@ debugger_t *debugger_creator(char *ini_file_name, uint8_t lock_type)
     int8_t type;
     dictionary *d;
     FILE *f;
+    int err;
 
     debugger =(debugger_t *)malloc(sizeof(debugger_t));
 
@@ -259,7 +261,8 @@ debugger_t *debugger_creator(char *ini_file_name, uint8_t lock_type)
         printf("ini file %s not exist\n", debugger->ini_file_name);
         f = fopen(debugger->ini_file_name, "w");
         if(f == NULL){
-            console_str("open ini file failed");
+            err = errno;
+            console_str("open ini file failed, errno=%d", err);
             exit(1);
         }
         iniparser_setstr(d, (char *)"debugger", NULL); 
@@ -285,18 +288,22 @@ int debugger_constructor()
     ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, construct debugger\n", 
                  REGISTRY_CTOR_PRIORITY_DEBUGGER);
 
-#ifdef __ANDROID__
-    file_name = "/storage/sdcard/dbg.ini";
-
-#elif UNIX_LIKE_USER_MODE
-    file_name = "/storage/sdcard/dbg.ini";
-#else
-    file_name= "dbg.ini";
-    
-#endif
+#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
+    file_name = "/tmp/dbg.ini";
 
     debugger_gp = debugger_creator(file_name, PTHREAD_MUTEX_LOCK);
     debugger_init(debugger_gp);
+
+#elif defined(ANDROID_USER_MODE)
+    /*
+     *file_name = "/storage/sdcard/dbg.ini";
+     */
+#else
+    file_name= "dbg.ini";
+
+    debugger_gp = debugger_creator(file_name, PTHREAD_MUTEX_LOCK);
+    debugger_init(debugger_gp);
+#endif
 
     return 0;
 }
@@ -306,7 +313,9 @@ int debugger_destructor()
 {
     ATTRIB_PRINT("REGISTRY_DTOR_PRIORITY=%d, debugger destructor\n", 
                  REGISTRY_DTOR_PRIORITY_DEBUGGER);
+#if (!defined(ANDROID_USER_MODE))
     debugger_destroy(debugger_gp);
+#endif
 
     return 0;
 }
