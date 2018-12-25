@@ -131,15 +131,15 @@ static int __set(String *string, char *attrib, void *value)
     } else if (strcmp(attrib, "substr") == 0) {
         string->substr = value;
 
-    }else if(strcmp(attrib,"c_str")==0){
+    }else if(strcmp(attrib, "c_str")==0){
         string->c_str=value;
-    }else if(strcmp(attrib,"append_str")==0){
+    }else if(strcmp(attrib, "append_str")==0){
         string->append_str=value;
-    }else if(strcmp(attrib,"append_str_len")==0){
+    }else if(strcmp(attrib, "append_str_len")==0){
         string->append_str_len=value;
-    }else if(strcmp(attrib,"append_Str")==0){
-        string->append_Str=value;
-    }else if(strcmp(attrib,"size")==0){
+    }else if(strcmp(attrib, "append_objective_string")==0){
+        string->append_objective_string=value;
+    }else if(strcmp(attrib, "size")==0){
         string->size=value;
     } else if (strcmp(attrib, "name") == 0) {
         strncpy(string->name, value, strlen(value));
@@ -163,8 +163,6 @@ static void *__get(String *obj, char *attrib)
     return NULL;
 }
 
-// Expand memory size
-// return enough space
 static String *__pre_alloc(String *string, uint32_t size)
 {
     dbg_str(OBJ_DETAIL, "pre_alloc, size = %d", size);
@@ -367,50 +365,50 @@ static char *__c_str(String * str)
     return str->value;
 }
 
-static void __append_str(String *string,char *sub) 
+static void __append_str(String *string, char *sub) 
 {   
     int len;
     int ret;
-    if ( sub == NULL ) {
+    if (sub == NULL) {
         dbg_str(DBG_WARNNING, "appending-string is null unvalid substring");
         return ;
     }
     len = strlen(sub);
-    ret = string_buf_auto_modulate(string,len);
+    ret = string_buf_auto_modulate(string, len);
 
     if (ret < 0 ) {
         return ;
     }
    
-    strncpy(string->value+string->value_len,sub,len);
-    string->value_len+=len;
-    string->value[string->value_len] = '\0';
-
-}
-
-static void __append_str_len(String *string,char *sub,int len)
-{
-    int ret;
-    if ( sub == NULL ) {
-        dbg_str(DBG_WARNNING, "appending-string is null unvalid substring");
-        return ;
-    }
-
-    len = strlen(sub) > len ? len:strlen(sub);
-    ret = string_buf_auto_modulate(string,len);
-    if (ret < 0 ) {
-        return ;
-    }
-    strncpy(string->value+string->value_len,sub,len);
+    strncpy(string->value + string->value_len, sub, len);
     string->value_len += len;
     string->value[string->value_len] = '\0';
 
 }
 
-static void __append_Str(String *string,String *sub)
+static void __append_str_len(String *string, char *sub, int len)
+{
+    int ret;
+    if (sub == NULL) {
+        dbg_str(DBG_WARNNING, "appending-string is null unvalid substring");
+        return ;
+    }
+
+    len = strlen(sub) > len ? len:strlen(sub);
+    ret = string_buf_auto_modulate(string, len);
+    if (ret < 0 ) {
+        return ;
+    }
+    strncpy(string->value+string->value_len, sub, len);
+    string->value_len += len;
+    string->value[string->value_len] = '\0';
+
+}
+
+static void __append_objective_string(String *string, String *sub)
 {
     char *value = sub->c_str(sub);
-    string->append_str(string,value);
+    string->append_str(string, value);
 }
 
 
@@ -428,23 +426,23 @@ static class_info_entry_t string_class_info[] = {
     [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "pre_alloc", __pre_alloc, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "assign", __assign, sizeof(void *)}, 
     [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "append_char", __append_char, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "replace_char", __replace_char, sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "at", __at, sizeof(void *)},
-    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "toupper", __toupper_, sizeof(void *)},
-    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "toupper_impact", __toupper_impact, sizeof(void *)},
-    [12] = {ENTRY_TYPE_FUNC_POINTER, "", "tolower_impact", __tolower_impact, sizeof(void *)},
-    [13] = {ENTRY_TYPE_FUNC_POINTER, "", "tolower", __tolower_, sizeof(void *)},
-    [14] = {ENTRY_TYPE_FUNC_POINTER, "", "ltrim", __ltrim, sizeof(void *)},
-    [15] = {ENTRY_TYPE_FUNC_POINTER, "", "rtrim", __rtrim, sizeof(void *)},
-    [16] = {ENTRY_TYPE_FUNC_POINTER, "", "trim", __trim, sizeof(void *)},
-    [17] = {ENTRY_TYPE_FUNC_POINTER, "", "split_string", __split_string, sizeof(void *)},
-    [18] = {ENTRY_TYPE_FUNC_POINTER, "", "substr", __substr, sizeof(void *)},
-    [19] = {ENTRY_TYPE_FUNC_POINTER, "", "find", __find, sizeof(void *)},
-    [20] = {ENTRY_TYPE_FUNC_POINTER, "", "c_str", __c_str, sizeof(void *)},
-    [21] = {ENTRY_TYPE_FUNC_POINTER, "", "size", __size, sizeof(void *)},
-    [22] = {ENTRY_TYPE_FUNC_POINTER, "", "append_str", __append_str, sizeof(void *)},
-    [23] = {ENTRY_TYPE_FUNC_POINTER, "", "append_str_len", __append_str_len, sizeof(void *)},
-    [24] = {ENTRY_TYPE_FUNC_POINTER, "", "append_Str", __append_Str, sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "replace_char", __replace_char, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "at", __at, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "toupper", __toupper_, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "toupper_impact", __toupper_impact, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_FUNC_POINTER, "", "tolower_impact", __tolower_impact, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_FUNC_POINTER, "", "tolower", __tolower_, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_FUNC_POINTER, "", "ltrim", __ltrim, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_FUNC_POINTER, "", "rtrim", __rtrim, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_FUNC_POINTER, "", "trim", __trim, sizeof(void *)}, 
+    [17] = {ENTRY_TYPE_FUNC_POINTER, "", "split_string", __split_string, sizeof(void *)}, 
+    [18] = {ENTRY_TYPE_FUNC_POINTER, "", "substr", __substr, sizeof(void *)}, 
+    [19] = {ENTRY_TYPE_FUNC_POINTER, "", "find", __find, sizeof(void *)}, 
+    [20] = {ENTRY_TYPE_FUNC_POINTER, "", "c_str", __c_str, sizeof(void *)}, 
+    [21] = {ENTRY_TYPE_FUNC_POINTER, "", "size", __size, sizeof(void *)}, 
+    [22] = {ENTRY_TYPE_FUNC_POINTER, "", "append_str", __append_str, sizeof(void *)}, 
+    [23] = {ENTRY_TYPE_FUNC_POINTER, "", "append_str_len", __append_str_len, sizeof(void *)}, 
+    [24] = {ENTRY_TYPE_FUNC_POINTER, "", "append_objective_string", __append_objective_string, sizeof(void *)}, 
     [25] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
     [26] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
     [27] = {ENTRY_TYPE_END}, 
@@ -453,16 +451,26 @@ static class_info_entry_t string_class_info[] = {
 REGISTER_CLASS("String", string_class_info);
 
 
+static void print_vector_data(int index, void *element)
+{  
+    if (element !=  NULL) {
+        dbg_str(DBG_DETAIL, "index:%d value:%s  type_name:%s", 
+                index, ((String*)element)->value, 
+                ((String*)element)->obj.name);
+    }
+}
+
 static int test_c_str() 
 {
    allocator_t *allocator = allocator_get_default_alloc();
    //test find and split_string function
-   int count=allocator->alloc_count;
+   int count = allocator->alloc_count;
    String *parent;
-   parent=OBJECT_NEW(allocator,String,NULL);
-   parent->assign(parent,"abcdebf");  
 
-   printf(" c format value: %s \n",parent->c_str(parent));
+   parent = OBJECT_NEW(allocator, String, NULL);
+   parent->assign(parent, "abcdebf");  
+
+   printf(" c format value: %s \n", parent->c_str(parent));
 
    object_destroy(parent);
 
@@ -473,15 +481,16 @@ static int test_append_str()
 {  
     allocator_t *allocator = allocator_get_default_alloc();
    //test find and split_string function
-   int count=allocator->alloc_count;
-   String *parent,*substr;
-   parent = OBJECT_NEW(allocator,String,NULL);
-   substr = OBJECT_NEW(allocator,String,NULL);
-   parent->assign(parent,"abcdebf");  
-   substr->assign(substr,">>>>>>>>>>>>>>>>>>>>>");
+   int count = allocator->alloc_count;
+   String *parent, *substr;
+
+   parent = OBJECT_NEW(allocator, String, NULL);
+   substr = OBJECT_NEW(allocator, String, NULL);
+   parent->assign(parent, "abcdebf");  
+   substr->assign(substr, ">>>>>>>>>>>>>>>>>>>>>");
     
-   parent->append_str(parent,">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$");
-   printf(" c format value: %s \n",parent->c_str(parent));
+   parent->append_str(parent, ">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$");
+   printf(" c format value: %s \n", parent->c_str(parent));
 
    object_destroy(parent);
    object_destroy(substr);
@@ -493,45 +502,47 @@ static int test_append_str_len()
     allocator_t *allocator = allocator_get_default_alloc();
    //test find and split_string function
    int count=allocator->alloc_count;
-   String *parent,*substr;
-   parent = OBJECT_NEW(allocator,String,NULL);
-   substr = OBJECT_NEW(allocator,String,NULL);
-   parent->assign(parent,"abcdebf");  
-   substr->assign(substr,">>>>>>>>>>>>>>>>>>>>>");
+   String *parent, *substr;
+
+   parent = OBJECT_NEW(allocator, String, NULL);
+   substr = OBJECT_NEW(allocator, String, NULL);
+   parent->assign(parent, "abcdebf");  
+   substr->assign(substr, ">>>>>>>>>>>>>>>>>>>>>");
     
-   parent->append_str_len(parent,">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$",4);
-   printf(" c format value: %s \n",parent->c_str(parent));
+   parent->append_str_len(parent, ">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$", 4);
+   printf(" c format value: %s \n", parent->c_str(parent));
 
-   parent->append_str_len(parent,">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$",20);
-   printf(" c format value: %s \n",parent->c_str(parent));
+   parent->append_str_len(parent, ">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$", 20);
+   printf(" c format value: %s \n", parent->c_str(parent));
 
-   parent->append_str_len(parent,">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$",40);
-   printf(" c format value: %s \n",parent->c_str(parent));
+   parent->append_str_len(parent, ">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$", 40);
+   printf(" c format value: %s \n", parent->c_str(parent));
 
-   parent->append_str_len(parent,">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$",400000);
-   printf(" c format value: %s \n",parent->c_str(parent));
+   parent->append_str_len(parent, ">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$", 400000);
+   printf(" c format value: %s \n", parent->c_str(parent));
 
    object_destroy(parent);
    object_destroy(substr);
    return 1;
 }
 
-static int test_append_Str()
+static int test_append_objective_string()
 { 
    allocator_t *allocator = allocator_get_default_alloc();
    //test find and split_string function
    int count=allocator->alloc_count;
-   String *parent,*substr;
-   parent = OBJECT_NEW(allocator,String,NULL);
-   substr = OBJECT_NEW(allocator,String,NULL);
-   parent->assign(parent,"abcdebf");  
-   substr->assign(substr,"{}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>#########$$$$$$>>>>>>>>>>>>{}");
-    
-   parent->append_Str(parent,substr);
-   printf(" c format value: %s \n",parent->c_str(parent));
+   String *parent, *substr;
 
-   parent->append_str(parent,substr->c_str(substr));
-   printf(" c format value: %s \n",parent->c_str(parent));
+   parent = OBJECT_NEW(allocator, String, NULL);
+   substr = OBJECT_NEW(allocator, String, NULL);
+   parent->assign(parent, "abcdebf");  
+   substr->assign(substr, "{}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>#########$$$$$$>>>>>>>>>>>>{}");
+    
+   parent->append_objective_string(parent, substr);
+   printf(" c format value: %s \n", parent->c_str(parent));
+
+   parent->append_str(parent, substr->c_str(substr));
+   printf(" c format value: %s \n", parent->c_str(parent));
 
 
    object_destroy(parent);
@@ -543,31 +554,24 @@ static int test_size()
 {  
     allocator_t *allocator = allocator_get_default_alloc();
    //test find and split_string function
-   int count=allocator->alloc_count;
-   String *parent,*substr;
-   parent = OBJECT_NEW(allocator,String,NULL);
-   substr = OBJECT_NEW(allocator,String,NULL);
-   parent->assign(parent,"abcdebf");  
-   substr->assign(substr,"{}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>#########$$$$$$>>>>>>>>>>>>{}");
+   int count = allocator->alloc_count;
+   String *parent, *substr;
 
-   printf("parent size %d child size %d \n",parent->size(parent),substr->size(substr)); 
+   parent = OBJECT_NEW(allocator, String, NULL);
+   substr = OBJECT_NEW(allocator, String, NULL);
+   parent->assign(parent, "abcdebf");  
+   substr->assign(substr, "{}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>#########$$$$$$>>>>>>>>>>>>{}");
+
+   printf("parent size %zu child size %zu \n", parent->size(parent), substr->size(substr)); 
    
-   parent->append_Str(parent,substr);
-   printf(" c format value: %s \n",parent->c_str(parent));
-   printf("parent size %d child size %d \n",parent->size(parent),substr->size(substr)); 
+   parent->append_objective_string(parent, substr);
+   printf(" c format value: %s \n", parent->c_str(parent));
+   printf("parent size %zu child size %zu \n", parent->size(parent), substr->size(substr)); 
    
    object_destroy(parent);
    object_destroy(substr);
    return 1;
    
-}
-
-static void print_vector_data(int index, void *element)
-{  
-    if (element !=  NULL) {
-        dbg_str(DBG_DETAIL, "index:%d value:%s  type_name:%s", 
-                index, ((String*)element)->value, ((String*)element)->obj.name);
-    }
 }
 
 int test_string_split()
@@ -650,16 +654,14 @@ int test_string_substr()
     string->assign(string, test);
     pstr->assign(pstr, "&");
     substr = string->substr(string, 3, 10);
-    printf("substr %s\n ",pstr->value);
+    printf("substr %s\n ", pstr->value);
     return 1;   
 }
-
 
 REGISTER_TEST_FUNC(test_c_str);
 REGISTER_TEST_FUNC(test_append_str);
 REGISTER_TEST_FUNC(test_append_str_len);
 REGISTER_TEST_FUNC(test_size);
-
 REGISTER_TEST_FUNC(test_string_split);
 REGISTER_TEST_FUNC(test_string_find);
 REGISTER_TEST_FUNC(test_string_substr);

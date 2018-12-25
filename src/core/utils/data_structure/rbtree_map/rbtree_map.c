@@ -65,7 +65,6 @@ static int timeval_key_cmp_func(void *key1,void *key2,uint32_t size)
 
     k1 = (struct timeval *) key1;
     k2 = (struct timeval *) key2;
-
     
     if (    k1->tv_sec > k2->tv_sec || 
             (k1->tv_sec == k2->tv_sec && k1->tv_usec > k2->tv_usec))
@@ -317,8 +316,6 @@ int rbtree_map_get_key_len(rbtree_map_t *map)
     return len;
 }
 
-
-
 int rbtree_map_insert(rbtree_map_t *map, void *key, void *value)
 {
     struct rbtree_map_node *mnode;
@@ -523,7 +520,7 @@ int test_rbtree_map_search_default(TEST_ENTRY *entry)
     struct test *t, t0, t1, t2, t3, t4, t5;
     int key0 = 0, key1 = 1, key2 = 2, key3 = 3, key4 = 4, key5 =5,
         key6 = 3, key7 = 7;
-    int key_len = sizeof(key0);;
+    int key_len = sizeof(key0);
 
     init_test_instance(&t0, 0, 2);
     init_test_instance(&t1, 1, 2);
@@ -534,7 +531,7 @@ int test_rbtree_map_search_default(TEST_ENTRY *entry)
 
     dbg_str(DBG_DETAIL,"rbtree allocator addr:%p",allocator);
     map = rbtree_map_alloc(allocator);
-    rbtree_map_set(map, "key_len", &key_len);
+    rbtree_map_set(map, "key_len", (void *)&key_len);
     rbtree_map_init(map); 
 
     rbtree_map_insert(map, &key0, &t0);
@@ -588,7 +585,7 @@ int test_rbtree_map_search_string_key(TEST_ENTRY *entry)
 
     dbg_str(DBG_DETAIL,"rbtree allocator addr:%p",allocator);
     map = rbtree_map_alloc(allocator);
-    rbtree_map_set(map, "key_type", &key_type);
+    rbtree_map_set(map, "key_type", (void *)&key_type);
     rbtree_map_init(map); 
 
     rbtree_map_insert(map,(char *)"00", &t0);

@@ -5,16 +5,11 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-/*
- *#include <sys/time.h>
- *#include <arpa/inet.h>
- *#include <sys/socket.h>
- */
-
 #include "basic_types.h"
 #include "debug_console.h"
 #include "debug_network.h"
 #include "debug_log.h"
+#include <libobject/user_mode.h>
 #include <libobject/core/utils/ini/iniparser.h>
 
 
@@ -164,15 +159,61 @@ extract_filename_in_macro(char *macro)
 
 #define ERRORIP "cannot find host ip"  
 
+
 #define OPEN_DEBUG 
-#ifdef OPEN_DEBUG
-	#define dbg_str(debug_switch,fmt,args...)\
-		debugger_dbg_str(debugger_gp,debug_switch,"[" fmt "]--[%s:%d]",##args, extract_filename_in_macro(__FILE__), __LINE__);
-	#define dbg_buf(debug_switch,const_str,buf,buf_len)\
-		debugger_dbg_buf(debugger_gp,debug_switch,const_str,buf,buf_len,"[%s:%d]", extract_filename_in_macro(__FILE__), __LINE__) ;
+#if (defined(ANDROID_USER_MODE))
+    #include <android/log.h>
+    #ifdef OPEN_DEBUG
+    	#define dbg_str(debug_switch,fmt,args...)\
+            switch(debug_switch&0xf) {\
+                case DBG_PANIC:\
+                    __android_log_print(ANDROID_LOG_ERROR, "liboject", fmt, ##args);\
+                    break;\
+                case DBG_FATAL:\
+                    __android_log_print(ANDROID_LOG_WARN, "liboject", fmt, ##args);\
+                    break;\
+                case DBG_ERROR:\
+                    __android_log_print(ANDROID_LOG_WARN, "liboject", fmt, ##args);\
+                    break;\
+                case DBG_WARNNING:\
+                    __android_log_print(ANDROID_LOG_WARN, "liboject", fmt, ##args);\
+                    break;\
+                case DBG_SUC:\
+                    __android_log_print(ANDROID_LOG_INFO, "liboject", fmt, ##args);\
+                    break;\
+                case DBG_CORRECT:\
+                    __android_log_print(ANDROID_LOG_INFO, "liboject", fmt, ##args);\
+                    break;\
+                case DBG_VIP:\
+                    __android_log_print(ANDROID_LOG_INFO, "liboject", fmt, ##args);\
+                    break;\
+                case DBG_FLOW:\
+                    __android_log_print(ANDROID_LOG_DEBUG, "liboject", fmt, ##args);\
+                    break;\
+                case DBG_IMPORTANT:\
+                    __android_log_print(ANDROID_LOG_DEBUG, "liboject", fmt, ##args);\
+                    break;\
+                case DBG_DETAIL:\
+                    __android_log_print(ANDROID_LOG_VERBOSE, "liboject", fmt, ##args);\
+                    break;\
+                default:\
+                    break;\
+            }
+    	#define dbg_buf(debug_switch,const_str,buf,buf_len) do{}while(0)  
+    #else
+    	#define dbg_str(debug_switch,fmt,args...) do{}while(0) 
+    	#define dbg_buf(debug_switch,const_str,buf,buf_len) do{}while(0)  
+    #endif
 #else
-	#define dbg_str(debug_switch,fmt,args...) do{}while(0) 
-	#define dbg_buf(debug_switch,const_str,buf,buf_len) do{}while(0)  
+    #ifdef OPEN_DEBUG
+    	#define dbg_str(debug_switch,fmt,args...)\
+    		debugger_dbg_str(debugger_gp,debug_switch,"[" fmt "]--[%s:%d]",##args, extract_filename_in_macro(__FILE__), __LINE__);
+    	#define dbg_buf(debug_switch,const_str,buf,buf_len)\
+    		debugger_dbg_buf(debugger_gp,debug_switch,const_str,buf,buf_len,"[%s:%d]", extract_filename_in_macro(__FILE__), __LINE__) ;
+    #else
+    	#define dbg_str(debug_switch,fmt,args...) do{}while(0) 
+    	#define dbg_buf(debug_switch,const_str,buf,buf_len) do{}while(0)  
+    #endif
 #endif
 
 #define OPEN_CONSOLE_DEBUG

@@ -45,7 +45,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "libobject/cutils_re.h"
+#include "libobject/user_mode.h"
 #include "libobject/core/utils/dbg/debug.h"
 #include <libobject/core/utils/registry/registry.h>
 

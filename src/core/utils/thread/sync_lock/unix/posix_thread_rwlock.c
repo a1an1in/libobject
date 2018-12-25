@@ -45,12 +45,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <libobject/cutils_re.h>
+#include <libobject/user_mode.h>
 #include <libobject/core/utils/thread/sync_lock.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
-#ifdef UNIX_LIKE_USER_MODE
+#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(ANDROID_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
 
 #include <pthread.h>
 
