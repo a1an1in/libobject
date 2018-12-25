@@ -47,7 +47,7 @@
 #include <unistd.h>
 #include <libobject/core/utils/alloc/allocator.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include "libobject/cutils_re.h"
+#include "libobject/user_mode.h"
 
 #if 0
 void test_ctr_alloc()

@@ -278,9 +278,10 @@ static ssize_t __send(Socket *socket, const void *buf, size_t len, int flags)
     return send(socket->fd, buf, len, flags);
 }
 
-static ssize_t __sendto(Socket *socket, const void *buf, size_t len, int flags, 
-                 const struct sockaddr *dest_addr, 
-                 socklen_t addrlen)
+static ssize_t 
+__sendto(Socket *socket, const void *buf, size_t len,
+         int flags, const struct sockaddr *dest_addr, 
+         socklen_t addrlen)
 {
     dbg_str(NET_DETAIL, "not supported now");
     return -1;

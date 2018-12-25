@@ -146,7 +146,7 @@ static int __subscribe(Subscriber *subscriber, void *publisher)
     dbg_str(DBG_DETAIL, "subscriber %p subscribe publisher %p", subscriber, publisher);
 
     subscriber->publisher = publisher;
-    centor->subscriber_map->add(centor->subscriber_map, &subscriber->publisher, subscriber);
+    centor->subscriber_map->add(centor->subscriber_map, publisher, subscriber);
 
     centor->subscriber_map->for_each(centor->subscriber_map, __printf_map);
     return 0;

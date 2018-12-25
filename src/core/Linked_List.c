@@ -34,6 +34,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/linked_list.h>
+#include <libobject/core/utils/registry/registry.h>
 
 static int __construct(List *list, char *init_str)
 {
@@ -300,7 +301,7 @@ static void llist_list_print(void *element)
     dbg_str(OBJ_DETAIL, "value: %s", element);
 }
 
-int test_obj_llist_list()
+int test_Linked_List(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;
@@ -354,8 +355,6 @@ int test_obj_llist_list()
     object_destroy(list);
     cfg_destroy(c);
 
-    pause();
-
     return 1;
 }
-REGISTER_STANDALONE_TEST_FUNC(test_obj_llist_list);
+REGISTER_TEST_FUNC(test_Linked_List);

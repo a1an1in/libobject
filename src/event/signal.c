@@ -18,7 +18,6 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/timeb.h>
 #include <time.h>
 #include <sys/stat.h>
 #include <libobject/event/select_base.h>
@@ -258,8 +257,7 @@ int evsig_init(Event_Base *eb)
 
     c = cfg_alloc(allocator); 
     dbg_str(EV_DETAIL, "configurator_t addr:%p", c);
-    cfg_config(c, "/RBTree_Map", CJSON_NUMBER, "key_type", "1");
-    cfg_config_num(c, "/RBTree_Map", "key_size", sizeof(int)) ;  
+    cfg_config_num(c, "/RBTree_Map", "key_size", sizeof(int)); 
 
     evsig->map  = OBJECT_NEW(allocator, RBTree_Map, c->buf);
     evsig->list = OBJECT_NEW(allocator, Linked_List, NULL);
@@ -301,7 +299,7 @@ int evsig_add(Event_Base *eb, event_t *event)
     signal(evsignal,signal_handler);
 #endif
 
-    map->add(map, &evsignal,event);
+    map->add(map, &event->ev_fd, event);
 
     return 0;
 }

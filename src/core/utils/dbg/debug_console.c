@@ -47,7 +47,7 @@
 #include <string.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
-#include "libobject/cutils_re.h"
+#include <libobject/user_mode.h>
 
 int console_print_print_str_vl(debugger_t *debugger, 
         size_t level, const char *fmt, va_list vl)
@@ -59,7 +59,7 @@ int console_print_print_str_vl(debugger_t *debugger,
     memset(dest, '\0', MAX_STR_LEN);
     offset = vsnprintf(dest, MAX_STR_LEN, fmt, vl);
 
-#ifdef UNIX_LIKE_USER_MODE
+#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(ANDROID_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
     int reverse_color_flag, background_color, front_color, high_light_flag;
     char high_light_value[MAX_STR_LEN];
     char reverse_color_value[MAX_STR_LEN];
@@ -95,9 +95,7 @@ int console_print_print_str_vl(debugger_t *debugger,
     printf("\n");
 
     return strlen(dest);
-#endif
-
-#ifdef WINDOWS_USER_MODE
+#elif defined(WINDOWS_USER_MODE)
     printf("%s\n", dest);
 #endif
 

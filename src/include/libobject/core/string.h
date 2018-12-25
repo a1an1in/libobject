@@ -114,7 +114,7 @@ struct string_s{
      * @author  wuyujie[1683358846@qq.com]
      * @date    2018/11/21
      */
-    void (*append_Str)(String *,String *);
+    void (*append_objective_string)(String *,String *);
     /**
      * @brief size     获取String实际存储串有效长度
      *

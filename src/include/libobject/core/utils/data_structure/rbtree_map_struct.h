@@ -28,6 +28,8 @@ typedef struct rbtree_map_s{
 	uint8_t lock_type;
     uint8_t enable_same_key;
     uint8_t key_type;
+    uint8_t key_len;
+    uint32_t count;
 	allocator_t *allocator;
 	struct rb_root *tree_root;
 	rbtree_map_pos_t begin ,end;
