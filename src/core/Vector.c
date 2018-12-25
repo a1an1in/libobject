@@ -88,8 +88,12 @@ static int __set(Vector *vector, char *attrib, void *value)
         vector->for_each = value;
     } else if (strcmp(attrib,"free_vector_elements") == 0) {
         vector->free_vector_elements = value;
-    } else if (strcmp(attrib,"get_len") == 0) {
-        vector->get_len = value;
+    } else if (strcmp(attrib,"size") == 0) {
+        vector->size = value;
+    }else if (strcmp(attrib,"clear") == 0) {
+        vector->clear = value;
+    } else if (strcmp(attrib,"empty") == 0) {
+        vector->empty = value;
     }
     else if (strcmp(attrib, "value_size") == 0) {
         vector->value_size = *(uint32_t *)value;
