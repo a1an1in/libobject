@@ -25,7 +25,10 @@ struct _vector_s{
     int (*peek_at)(Vector *vector,int index, void **value);
     void (*for_each)(Vector *vector,void (*func)(int index, void *element));
     void (*free_vector_elements)(Vector *vector);
-    int (*get_len)(Vector *vector);
+    uint32_t (*size)(Vector *vector);
+    int    (*empty)(Vector *vector);
+
+    void (*clear)(Vector *vector);
 
     vector_t *vector;
 	uint32_t value_size;

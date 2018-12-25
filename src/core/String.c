@@ -603,9 +603,9 @@ int test_string_split()
 
     str_find->split_string(str_find, str_separator, vector);
 
-    dbg_str(DBG_DETAIL, "vector len=%d", vector->get_len(vector));
+    dbg_str(DBG_DETAIL, "vector len=%d", vector->size(vector));
 
-    ret = assert_int_equal(vector->get_len(vector), 18);
+    ret = assert_int_equal(vector->size(vector), 18);
 
     vector->for_each(vector, print_vector_data);
     vector->free_vector_elements(vector);

@@ -88,8 +88,12 @@ static int __set(Vector *vector, char *attrib, void *value)
         vector->for_each = value;
     } else if (strcmp(attrib,"free_vector_elements") == 0) {
         vector->free_vector_elements = value;
-    } else if (strcmp(attrib,"get_len") == 0) {
-        vector->get_len = value;
+    } else if (strcmp(attrib,"size") == 0) {
+        vector->size = value;
+    }else if (strcmp(attrib,"clear") == 0) {
+        vector->clear = value;
+    } else if (strcmp(attrib,"empty") == 0) {
+        vector->empty = value;
     }
     else if (strcmp(attrib, "value_size") == 0) {
         vector->value_size = *(uint32_t *)value;
@@ -180,11 +184,33 @@ static void __free_vector_elements(Vector *vector)
     }
 }
 
-static int __get_len(Vector *vector)
+static uint32_t __size(Vector * vector)
 {
-    vector_pos_t end = vector->vector->end;
+    uint32_t count = 0;
+    sync_trylock(&vector->vector->vector_lock, NULL);
+    count = vector->vector->size;
+    sync_unlock(&vector->vector->vector_lock);
+    return count;
+} 
 
-    return end.vector_pos - 1;
+static int  __empty(Vector * vector) 
+{
+    return vector->size(vector) == 0 ? 1:0;
+}
+
+static void __clear(Vector *vector)
+{
+    vector_pos_t pos,next;
+    vector_t *v=vector->vector;
+    void *element;
+    int index =0;
+
+    for(vector_begin(v,&pos),vector_pos_next(&pos,&next);
+        !vector_pos_equal(&pos,&v->end);
+        pos=next,vector_pos_next(&pos,&next))
+    {
+        vector->remove(vector,index,(void **)&element);
+    }
 }
 
 static class_info_entry_t vector_class_info[] = {
@@ -201,10 +227,12 @@ static class_info_entry_t vector_class_info[] = {
     [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_at", __peek_at, sizeof(void *)}, 
     [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
     [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "free_vector_elements", __free_vector_elements, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_len", __get_len, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_UINT32_T, "", "value_size", 0, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_UINT32_T, "", "capacity", 0, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_END}, 
+    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "clear", __clear, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "size", __size, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "empty", __empty, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_UINT32_T, "", "value_size", 0, sizeof(void *)}, 
+    [17] = {ENTRY_TYPE_UINT32_T, "", "capacity", 0, sizeof(void *)}, 
+    [18] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Vector", vector_class_info);
 
