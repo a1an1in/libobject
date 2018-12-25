@@ -136,6 +136,7 @@ int vector_init(vector_t *vector, uint32_t data_size, uint32_t capacity)
     vector->step        = sizeof(void *);
     vector->data_size   = data_size;
     vector->capacity    = capacity;
+    vector->size        = 0;
     vector->vector_head = allocator_mem_alloc(vector->allocator, 
                                               capacity * (vector->step));
     if (vector->vector_head == NULL) {
@@ -172,7 +173,7 @@ int vector_add(vector_t *vector, vector_pos_t *it, void *data)
     vector_copy(vector, &to, it, count);
     vector_head[insert_pos] = data;
     vector_pos_init(&vector->end, end_pos + 1, vector);
-
+    vector->size+=1;
     sync_unlock(&vector->vector_lock);
 
     return 0;
@@ -194,7 +195,7 @@ int vector_add_at(vector_t *vector, int index, void *data)
     if (set_pos + 1 > end_pos) {
         vector_pos_init(&vector->end, set_pos + 1, vector);
     }
-
+    vector->size+=1;
     sync_unlock(&vector->vector_lock);
 
     return ret;
@@ -235,7 +236,7 @@ int vector_add_back(vector_t *vector, void *data)
         vector_head[push_pos++] = data;
         vector_pos_init(&vector->end, push_pos, vector);
     }
-
+    vector->size+=1;
     sync_unlock(&vector->vector_lock);
 
     dbg_str(VECTOR_DETAIL, "vector_add_back, push_pos=%d, capacity=%d", 
@@ -266,7 +267,7 @@ int vector_delete(vector_t *vector, vector_pos_t *it)
         vector_copy(vector, it, &from, count);
         vector_pos_init(&vector->end, end_pos - 1, vector);
     }
-
+    vector->size-=1;
     sync_unlock(&vector->vector_lock);
 
     return 0;
@@ -290,6 +291,7 @@ int vector_delete_back(vector_t *vector)
     } else {
         dbg_str(VECTOR_WARNNING, "vector is NULL");
     }
+    vector->size-=1;
     sync_unlock(&vector->vector_lock);
 
     return 0;
@@ -323,7 +325,7 @@ int vector_remove(vector_t *vector, int index, void **element)
         vector_copy(vector, &it, &from, count);
         vector_pos_init(&vector->end, end_pos - 1, vector);
     }
-
+    vector->size-=1;
     sync_unlock(&vector->vector_lock);
 
     return 0;
@@ -353,7 +355,7 @@ int vector_remove_back(vector_t *vector, void **element)
         vector_copy(vector, &it, &from, count);
         vector_pos_init(&vector->end, end_pos - 1, vector);
     }
-
+    vector->size-=1;;
     sync_unlock(&vector->vector_lock);
 
     return 0;
