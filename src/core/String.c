@@ -655,6 +655,10 @@ int test_string_substr()
     pstr->assign(pstr, "&");
     substr = string->substr(string, 3, 10);
     printf("substr %s\n ", pstr->value);
+
+    object_destroy(string);
+    object_destroy(pstr);
+    object_destroy(substr);
     return 1;   
 }
 
