@@ -25,19 +25,22 @@ struct queue_s{
     int (*remove_back)(Queue *queue, void **element);
     int (*remove_front)(Queue *queue, void **element);
     void (*for_each)(Queue *queue,void (*func)(void *element));
-    void (*for_each_arg2)(Queue *queue,void (*func)(void *element, void *arg), void *arg);
+    void (*for_each_arg)(Queue *queue,void (*func)(void *element, void *arg), void *arg);
+    void (*for_each_arg2)(Queue *queue,
+                          void (*func)(void *element, void *arg1,void *arg2), 
+                          void *arg1,void *arg2);
+    void (*for_each_arg3)(Queue *queue,
+                          void (*func)(void *element, void *arg1,void *arg2,void *arg3), 
+                          void *arg1,void *arg2,void *arg3);
+    void (*for_each_arg4)(Queue *queue,
+                          void (*func)(void *element, void *arg1,void *arg2,void *arg3,void *arg4), 
+                          void *arg1,void *arg2,void *arg3,void *arg4);
+    void (*for_each_arg5)(Queue *queue,
+                          void (*func)(void *element, void *arg1,void *arg2,void *arg3,void *arg4,void *arg5), 
+                          void *arg1,void *arg2,void *arg3,void *arg4,void *arg5);
     size_t (*size)(Queue *);
     size_t (*empty)(Queue *);
     void   (*clear)(Queue *);
-    void (*for_each_arg3)(Queue *queue,void (*func)(void *element, void *arg1,void *arg2),
-                                                                                        void *arg1,void *arg2);
-    void (*for_each_arg4)(Queue *queue,void (*func)(void *element, void *arg1,void *arg2,void *arg3), 
-                                                                                        void *arg1,void *arg2,void *arg3);
-    void (*for_each_arg5)(Queue *queue,void (*func)(void *element, void *arg1,void *arg2,void *arg3,void *arg4),
-                                                                                         void *arg1,void *arg2,void *arg3,void *arg4);
-    void (*for_each_arg6)(Queue *queue,void (*func)(void *element, void *arg1,void *arg2,void *arg3,void *arg4,void *arg5),
-                                                                                          void *arg1,void *arg2,void *arg3,void *arg4,void *arg5);
-    
 
     Iterator *(*begin)(Queue *queue);
     Iterator *(*end)(Queue *queue);

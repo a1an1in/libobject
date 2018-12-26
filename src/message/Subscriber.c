@@ -86,9 +86,9 @@ static int __deconstrcut(Subscriber *subscriber)
     allocator_t *allocator = subscriber->obj.allocator;
 
     dbg_str(EV_DETAIL, "subscriber deconstruct, subscriber addr:%p", subscriber);
-    subscriber->method_map->for_each_arg3(subscriber->method_map,
-                                     release_registered_method,
-                                     allocator);
+    subscriber->method_map->for_each_arg(subscriber->method_map,
+                                         release_registered_method,
+                                         allocator);
     object_destroy(subscriber->method_map);
 
     return 0;

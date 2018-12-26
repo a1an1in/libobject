@@ -605,7 +605,7 @@ int test_string_split()
 
     dbg_str(DBG_DETAIL, "vector len=%d", vector->size(vector));
 
-    ret = assert_int_equal(vector->size(vector), 18);
+    ret = assert_int_equal(vector->size(vector), 19);
 
     vector->for_each(vector, print_vector_data);
     vector->free_vector_elements(vector);

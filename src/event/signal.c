@@ -94,7 +94,7 @@ static void signal_handler(int sig)
     dbg_str(EV_IMPORTANT,"thread %lu receive signal=%d", tid, sig);
     dbg_str(EV_IMPORTANT,"list count=%d", list->count(list));
 
-    list->for_each_arg2(list, __evsig_send, (void *)&msg);
+    list->for_each_arg(list, __evsig_send, (void *)&msg);
 }
 
 int
