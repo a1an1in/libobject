@@ -143,6 +143,68 @@ static void __for_each_arg2(Queue *queue, void (*func)(void *element, void *arg)
     }
 }
 
+static void __for_each_arg3(Queue *queue, void (*func)(void *element, void *arg,void *arg1), void *arg,void *arg1)
+{
+    Iterator *cur, *end;
+    void *element;
+
+    dbg_str(OBJ_IMPORTANT, "queue for_each");
+    cur = queue->begin(queue);
+    end = queue->end(queue);
+
+    for (; !end->equal(end, cur); cur->next(cur)) {
+        element = cur->get_vpointer(cur);
+        func(element, arg,arg1);
+    }
+}
+
+static void __for_each_arg4(Queue *queue, void (*func)(void *element, void *arg,void *arg1,void *arg2), void *arg,void *arg1,void *arg2)
+{
+    Iterator *cur, *end;
+    void *element;
+
+    dbg_str(OBJ_IMPORTANT, "queue for_each");
+    cur = queue->begin(queue);
+    end = queue->end(queue);
+
+    for (; !end->equal(end, cur); cur->next(cur)) {
+        element = cur->get_vpointer(cur);
+        func(element, arg,arg1,arg2);
+    }
+}
+
+static void __for_each_arg5(Queue *queue, void (*func)(void *element, void *arg,void *arg1,void *arg2,void *arg3), void *arg,void *arg1,void *arg2,void *arg3)
+{
+    Iterator *cur, *end;
+    void *element;
+
+    dbg_str(OBJ_IMPORTANT, "queue for_each");
+    cur = queue->begin(queue);
+    end = queue->end(queue);
+
+    for (; !end->equal(end, cur); cur->next(cur)) {
+        element = cur->get_vpointer(cur);
+        func(element, arg,arg1,arg2,arg3);
+    }
+}
+
+static void __for_each_arg6(Queue *queue, void (*func)(void *element, void *arg,void *arg1,void *arg2,void *arg3,void *arg4), void *arg,void *arg1,void *arg2,void *arg3,void *arg4)
+{
+    Iterator *cur, *end;
+    void *element;
+
+    dbg_str(OBJ_IMPORTANT, "queue for_each");
+    cur = queue->begin(queue);
+    end = queue->end(queue);
+
+    for (; !end->equal(end, cur); cur->next(cur)) {
+        element = cur->get_vpointer(cur);
+        func(element, arg,arg1,arg2,arg3,arg4);
+    }
+}
+
+
+
 static class_info_entry_t queue_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -159,9 +221,10 @@ static class_info_entry_t queue_class_info[] = {
     [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg2", __for_each_arg2, sizeof(void *)}, 
     [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", NULL, sizeof(void *)}, 
     [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", NULL, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "size", NULL, sizeof(void *)},
-    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "empty", NULL, sizeof(void *)},  
-    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "clear", NULL, sizeof(void *)},  
-    [18] = {ENTRY_TYPE_END}, 
+    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg3", __for_each_arg3, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg4", __for_each_arg4, sizeof(void *)}, 
+    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg5", __for_each_arg5, sizeof(void *)}, 
+    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg6", __for_each_arg6, sizeof(void *)}, 
+    [19] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Queue", queue_class_info);
