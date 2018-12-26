@@ -102,7 +102,7 @@ static void message_centor_work_callback(void *task)
     centor->message_queue->remove(centor->message_queue, 
                                   (void **)&message);
     dbg_str(DBG_DETAIL, "message addr %p, publisher addr:%p", message, message->publisher);
-    centor->subscriber_map->for_each_arg3(centor->subscriber_map, 
+    centor->subscriber_map->for_each_arg(centor->subscriber_map, 
                                           map_for_each_arg_callback, message);
 
     message_destroy(message);

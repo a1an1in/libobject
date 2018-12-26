@@ -84,8 +84,8 @@ static int __set(List *list, char *attrib, void *value)
         list->free_detached = value;
     } else if (strcmp(attrib, "for_each") == 0) {
         list->for_each = value;
-    } else if (strcmp(attrib, "for_each_arg2") == 0) {
-        list->for_each_arg2 = value;
+    } else if (strcmp(attrib, "for_each_arg") == 0) {
+        list->for_each_arg = value;
     } else if (strcmp(attrib, "begin") == 0) {
         list->begin = value;
     } else if (strcmp(attrib, "end") == 0) {
@@ -171,7 +171,7 @@ static void __for_each(List *list, void (*func)(void *element))
 }
 
 static void
-__for_each_arg2(List *list, void (*func)(void *element, void *arg), void *arg)
+__for_each_arg(List *list, void (*func)(void *element, void *arg), void *arg)
 {
     Iterator *cur, *end;
     void *element;
@@ -215,7 +215,7 @@ static class_info_entry_t list_class_info[] = {
     [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach_front", NULL, sizeof(void *)}, 
     [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "free_detached", NULL, sizeof(void *)}, 
     [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg2", __for_each_arg2, sizeof(void *)}, 
+    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg", __for_each_arg, sizeof(void *)}, 
     [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
     [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
     [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy", NULL, sizeof(void *)}, 
