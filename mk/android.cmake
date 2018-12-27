@@ -1,20 +1,20 @@
 macro (set_android_environment_variable)
-    set(CMAKE_SYSTEM_NAME Android PARENT_SCOPE)
-    set(CMAKE_SYSTEM_VERSION 22 PARENT_SCOPE) # API level
-    #set(CMAKE_ANDROID_ARCH_ABI armeabi-v7a PARENT_SCOPE)
-    #set(ANDROID_ABI arm64-v8a PARENT_SCOPE)
-    #set(ANDROID_ABI x86_64 PARENT_SCOPE)
-    #set(ANDROID_ABI x86 PARENT_SCOPE)
-    #set(ANDROID_ABI armeabi-v7a PARENT_SCOPE)
+    set(CMAKE_SYSTEM_NAME Android)
+    set(CMAKE_SYSTEM_VERSION 22) # API level
+    #set(CMAKE_ANDROID_ARCH_ABI armeabi-v7a)
+    #set(ANDROID_ABI arm64-v8a)
+    #set(ANDROID_ABI x86_64)
+    #set(ANDROID_ABI x86)
+    #set(ANDROID_ABI armeabi-v7a)
     message("********android_abi: ${ANDROID_ABI}")
     if ("${ANDROID_ABI}" STREQUAL "")
-        set(ANDROID_ABI armeabi-v7a PARENT_SCOPE)
+        set(ANDROID_ABI armeabi-v7a)
     endif()
-    set(CMAKE_ANDROID_NDK /Users/alanlin/Library/Android/sdk/ndk-bundle PARENT_SCOPE)
-    set(CMAKE_ANDROID_STL_TYPE gnustl_static PARENT_SCOPE)
-    set(CMAKE_TOOLCHAIN_FILE /Users/alanlin/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake PARENT_SCOPE)
+    set(CMAKE_ANDROID_NDK /Users/alanlin/Library/Android/sdk/ndk-bundle)
+    set(CMAKE_ANDROID_STL_TYPE gnustl_static)
+    set(CMAKE_TOOLCHAIN_FILE /Users/alanlin/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake)
 
-    SET(ExternalLibs ${ExternalLibs} log PARENT_SCOPE)
+    SET(ExternalLibs ${ExternalLibs} log)
 endmacro()
 
 macro (set_cmake_evironment_variable)
@@ -30,7 +30,7 @@ macro (set_cmake_evironment_variable)
     endif ()
 
     #message("link dir: ${CMAKE_ANDROID_NDK}/platforms/android-21/${ARCH_NAME}/usr/lib ")
-    set (LIBRARY_INSTALL_PATH ${CMAKE_ANDROID_NDK}/platforms/android-21/${ARCH_NAME}/usr/lib PARENT_SCOPE)
+    set (LIBRARY_INSTALL_PATH ${CMAKE_ANDROID_NDK}/platforms/android-21/${ARCH_NAME}/usr/lib)
     message("-- LIBRARY_INSTALL_PATH: ${LIBRARY_INSTALL_PATH}")
 
     LINK_DIRECTORIES(
@@ -42,9 +42,9 @@ macro (set_cmake_evironment_variable)
         ${CMAKE_ANDROID_NDK}/sysroot/usr/include
         ${PROJECT_SOURCE_DIR}/src/include)
 
-    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/android/${ANDROID_ABI} PARENT_SCOPE)
-    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/andorid/${ANDROID_ABI} PARENT_SCOPE)
-    set (CMAKE_INSTALL_PREFIX ${CMAKE_ANDROID_NDK}/sysroot/usr PARENT_SCOPE)
+    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/android/${ANDROID_ABI})
+    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/andorid/${ANDROID_ABI})
+    set (CMAKE_INSTALL_PREFIX ${CMAKE_ANDROID_NDK}/sysroot/usr)
 
 endmacro()
 

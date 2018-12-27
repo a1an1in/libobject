@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 2.8)
 include (mk/util.cmake)
-init_platform("${PLATFORM}")
+init_platform()
 project (libobject)
-config_platform("${PLATFORM}")
+config_platform()
 
 # The version number.
 set (LIBOBJECT_VERSION_MAJOR 1)
