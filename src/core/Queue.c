@@ -82,8 +82,8 @@ static int __set(Queue *queue, char *attrib, void *value)
         queue->remove_back = value;
     } else if (strcmp(attrib, "for_each") == 0) {
         queue->for_each = value;
-    } else if (strcmp(attrib, "for_each_arg") == 0) {
-        queue->for_each_arg = value;
+    } else if (strcmp(attrib, "for_each_arg2") == 0) {
+        queue->for_each_arg2 = value;
     } else if (strcmp(attrib, "begin") == 0) {
         queue->begin = value;
     } else if (strcmp(attrib, "end") == 0) {
@@ -94,6 +94,14 @@ static int __set(Queue *queue, char *attrib, void *value)
         queue->empty = value;
     }else if (strcmp(attrib, "clear") == 0) {
         queue->clear = value;
+    }else if (strcmp(attrib, "for_each_arg") == 0) {
+        queue->for_each_arg = value;
+    }else if (strcmp(attrib, "for_each_arg3") == 0) {
+        queue->for_each_arg3 = value;
+    }else if (strcmp(attrib, "for_each_arg4") == 0) {
+        queue->for_each_arg4 = value;
+    }else if (strcmp(attrib, "for_each_arg5") == 0) {
+        queue->for_each_arg5 = value;
     }
     else {
         dbg_str(OBJ_DETAIL, "queue set, not support %s setting", attrib);
@@ -238,10 +246,13 @@ static class_info_entry_t queue_class_info[] = {
     [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg", __for_each_arg, sizeof(void *)}, 
     [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", NULL, sizeof(void *)}, 
     [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", NULL, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg2", __for_each_arg2, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg3", __for_each_arg3, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg4", __for_each_arg4, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg5", __for_each_arg5, sizeof(void *)}, 
-    [19] = {ENTRY_TYPE_END}, 
+	[15] = {ENTRY_TYPE_VFUNC_POINTER, "", "size", NULL, sizeof(void *)},
+    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "empty", NULL, sizeof(void *)},  
+    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "clear", NULL, sizeof(void *)}, 
+    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg2", __for_each_arg2, sizeof(void *)}, 
+    [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg3", __for_each_arg3, sizeof(void *)}, 
+    [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg4", __for_each_arg4, sizeof(void *)}, 
+    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg5", __for_each_arg5, sizeof(void *)}, 
+    [22] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Queue", queue_class_info);
