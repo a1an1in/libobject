@@ -14,9 +14,9 @@ set (CMAKE_BUILD_TYPE "Debug")
 
 display_configs("${PLATFORM}")
 
-find_package(PkgConfig)
-find_package(opengl)
-find_package(CURL)
+#find_package(PkgConfig)
+#find_package(opengl)
+#find_package(CURL)
 
 option (MODULE_UI "ui module" OFF)
 option (MODULE_BUS "bus module" OFF)
@@ -64,6 +64,7 @@ endif ()
 
 ADD_LIBRARY (object SHARED ${Source_Files})
 target_link_libraries(object ${ExternalLibs})
+message("ExternalLibs :${ExternalLibs}")
 
 add_executable(test ${Main_File})
 target_link_libraries(test object)
