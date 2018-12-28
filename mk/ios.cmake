@@ -8,7 +8,7 @@ macro (set_cmake_evironment_variable)
 
     set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/ios)
     set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/ios)
-    set (LIBRARY_DIR_PATH ${PROJECT_SOURCE_DIR}/lib/ios/ PARENT_SCOPE)
+    set (LIBRARY_DIR_PATH ${PROJECT_SOURCE_DIR}/lib/ios/)
 endmacro()
 
 macro (display_ios_platform_configs)
