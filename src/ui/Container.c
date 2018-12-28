@@ -277,7 +277,7 @@ static int __for_each_component(Container *obj,
     /*
      *dbg_str(DBG_DETAIL, "container for each component, map addr :%p", obj->map);
      */
-    obj->map->for_each_arg3(obj->map, func, arg);
+    obj->map->for_each_arg(obj->map, func, arg);
 
 }
 
