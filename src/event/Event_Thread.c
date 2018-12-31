@@ -199,7 +199,7 @@ static void *__start_routine(void *arg)
     char *libobject_run_path;
     char buf[2048];
     char server_addr[100];
-    static count;
+    static int count;
 
     count++;
     libobject_run_path = libobject_get_run_path();

@@ -116,7 +116,7 @@ static int __construct(Centor *centor, char *init_str)
     configurator_t * config;
     char server_addr[100];
     char *libobject_run_path;
-    static count;
+    static int count;
 
     dbg_str(DBG_SUC, "centor construct, centor addr:%p", centor);
 

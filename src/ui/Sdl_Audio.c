@@ -166,9 +166,12 @@ __writing_buffer_callback(void *opaque, void *stream, int len)
     dbg_str(DBG_IMPORTANT, "audio_buffer_len =%d, read_pos=%d, len=%d",
             audio->audio_buffer_len, audio->audio_read_pos, len);
 
-	SDL_MixAudioFormat(stream, audio->audio_buffer + audio->audio_read_pos, AUDIO_S16SYS, len, SDL_MIX_MAXVOLUME);
+	SDL_MixAudioFormat(stream,
+                       (uint8_t *)audio->audio_buffer + audio->audio_read_pos,
+                       AUDIO_S16SYS,
+                       len, SDL_MIX_MAXVOLUME);
     dbg_buf(DBG_IMPORTANT, "write audio data to device:",
-            audio->audio_buffer + audio->audio_read_pos, 20);
+            (void *)(audio->audio_buffer + audio->audio_read_pos), 20);
     
 	audio->audio_read_pos += len; 
 	audio->audio_buffer_len -= len; 

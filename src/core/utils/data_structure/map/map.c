@@ -48,7 +48,7 @@ int test_map_hash_map(TEST_ENTRY *entry)
     struct A t4 = {4, 2};
 
     map = map_alloc(allocator, MAP_TYPE_HASH_MAP);
-    map_init(map, 2, sizeof(struct A));
+    map_init(map);
 
     map_insert(map, (char *)"11", &t1);
     map_insert(map, (char *)"22", &t2);
@@ -87,7 +87,7 @@ int test_map_rbtree_map(TEST_ENTRY *entry)
     struct A t4 = {4, 2};
 
     map = map_alloc(allocator, MAP_TYPE_RBTREE_MAP);
-    map_init(map, 2, sizeof(struct A));
+    map_init(map);
 
     map_insert(map, (char *)"11", &t1);
     map_insert(map, (char *)"22", &t2);

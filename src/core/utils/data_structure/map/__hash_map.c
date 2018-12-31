@@ -16,13 +16,9 @@ static int __map_set(map_t *map, char *attrib, char *value)
     return hash_map_set(map->priv.hash_map, attrib, value);
 }
 
-static int __map_init(map_t *map, uint32_t key_size, uint32_t value_size)
+static int __map_init(map_t *map)
 {
-
-    return  hash_map_init(map->priv.hash_map, 
-                          key_size, 
-                          value_size, 
-                          0);
+    return  hash_map_init(map->priv.hash_map);
 }
 
 static int __map_insert(map_t *map, char *key, void *value)

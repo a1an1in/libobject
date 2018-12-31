@@ -39,7 +39,7 @@ typedef struct map_s{
 struct map_operations{
     int (*map_alloc)(map_t *map);
     int (*map_set)(map_t *map, char *attrib, char *value);
-    int (*map_init)(map_t *map, uint32_t key_size, uint32_t value_size);
+    int (*map_init)(map_t *map);
     int (*map_insert)(map_t *map, char *key, void *value);
     int (*map_search)(map_t *map, void *key,map_iterator_t *it);
     int (*map_del)(map_t *map, map_iterator_t *it);

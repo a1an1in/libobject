@@ -19,24 +19,17 @@
 #define __HASH_LIST_ST_H__
 
 #include "libobject/core/utils/data_structure/list.h"
-#include "libobject/core/utils/data_structure/map_pair.h"
 #include "libobject/core/utils/alloc/allocator.h"
 #include "libobject/core/utils/thread/sync_lock.h"
-#include "libobject/core/utils/data_structure/map_pair.h"
 
-/*
- *typedef unsigned int uint32_t;
- *typedef unsigned short uint16_t;
- *typedef unsigned char uint8_t;
- */
 
-typedef uint32_t (*hash_func_fpt)(void *key,uint32_t key_size,uint32_t bucket_size);
+typedef uint32_t (*hash_func_fpt)(void *key,uint32_t bucket_size);
+typedef int (*key_cmp_fpt)(void *key1,void *key2);
 
 struct hash_map_node {
 	struct hlist_node hlist_node;
-	uint8_t value_pos;//value's pos at key array
-	uint32_t data_size;
-	char key[1];
+	void * key;
+    void *value;
 };
 typedef struct hash_map_pos_info{
 	struct hlist_node *hlist_node_p; //node addr
@@ -47,9 +40,6 @@ typedef struct hash_map_pos_info{
 
 typedef struct hash_map_s{
 	uint32_t bucket_size;
-	uint32_t data_size;
-	uint32_t key_size;
-
 	hash_func_fpt hash_func;
 	key_cmp_fpt key_cmp_func;
 
@@ -60,8 +50,6 @@ typedef struct hash_map_s{
 	allocator_t *allocator;
 	uint32_t node_count;
     uint8_t key_type;
-
-    pair_t *pair;
 }hash_map_t;
 
 #endif

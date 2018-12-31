@@ -16,7 +16,7 @@ static int __map_set(map_t *map, char *attrib, char *value)
     return rbtree_map_set(map->priv.rbtree_map, attrib, value);
 }
 
-static int __map_init(map_t *map, uint32_t key_size, uint32_t value_size)
+static int __map_init(map_t *map)
 {
     rbtree_map_init(map->priv.rbtree_map);
 

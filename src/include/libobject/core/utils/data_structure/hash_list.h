@@ -22,23 +22,14 @@
 #include "libobject/core/utils/data_structure/hash_list_struct.h"
 
 hash_map_t * hash_map_alloc(allocator_t *allocator);
-int hash_map_set(hash_map_t *hmap,char *attrib,char *value);
-int hash_map_init(hash_map_t *hmap,
-		          uint32_t key_size,
-		          uint32_t value_size,
-		          uint32_t bucket_size);
-
-int hash_map_insert_data(hash_map_t *hmap,void *data);
-int hash_map_insert_data_wb(hash_map_t *hmap,void *data, hash_map_pos_t *out);
+int hash_map_set(hash_map_t *hmap,char *attrib, void *value);
+int hash_map_init(hash_map_t *hmap);
 int hash_map_insert(hash_map_t *hmap,void *key,void *value);
-int hash_map_insert_wb(hash_map_t *hmap,void *key,void *value, hash_map_pos_t *out);
 int hash_map_search(hash_map_t *hmap, void *key,hash_map_pos_t *ret);
 int hash_map_delete(hash_map_t *hmap, hash_map_pos_t *pos);
 int hash_map_destroy(hash_map_t *hmap);
 int hash_map_pos_next(hash_map_pos_t *pos,hash_map_pos_t *next);
 void hash_map_print_mnode(struct hash_map_node *mnode);
-
-
 
 static inline int
 hash_map_pos_init(hash_map_pos_t *pos,
@@ -73,17 +64,12 @@ static inline int hash_map_pos_equal(hash_map_pos_t *pos1,hash_map_pos_t *pos2)
 static inline void *hash_map_pos_get_pointer(hash_map_pos_t *pos)
 {
 	struct hash_map_node *mnode;
-    void **data;
 
 	mnode = container_of(pos->hlist_node_p,
 			struct hash_map_node,
 			hlist_node);
-	/*
-	 *dbg_buf(DBG_DETAIL,"key:",mnode->key,mnode->data_size);
-	 */
 
-    data = (void **)&mnode->key[mnode->value_pos];
-	return *data;
+    return mnode->value;
 }
 
 static inline void *hash_map_pos_get_kpointer(hash_map_pos_t *pos)
@@ -93,9 +79,6 @@ static inline void *hash_map_pos_get_kpointer(hash_map_pos_t *pos)
 	mnode = container_of(pos->hlist_node_p,
 			struct hash_map_node,
 			hlist_node);
-	/*
-	 *dbg_buf(DBG_DETAIL,"key:",mnode->key,mnode->data_size);
-	 */
 
 	return mnode->key;
 }
@@ -103,7 +86,6 @@ static inline void
 hash_map_for_each(struct hash_map_s *hmap,void (*func)(hash_map_pos_t *pos))
 {
 	hash_map_pos_t pos,next;
-	struct hash_map_node *mnode;
 
 	for(	hash_map_begin(hmap,&pos),hash_map_pos_next(&pos,&next); 
 			!hash_map_pos_equal(&pos,&hmap->end);

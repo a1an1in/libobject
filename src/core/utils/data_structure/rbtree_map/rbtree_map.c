@@ -196,14 +196,6 @@ rbtree_map_alloc(allocator_t *allocator)
     /*
      *map->lock_type = 0;
      */
-    /*
-     * 0: key is value;
-     * 1: key is addr;
-     */
-    /*
-     *map->key_type = 0; 
-     *map->key_len = sizeof(void *);
-     */
     map->enable_same_key = 1;
     map->count = 0;
 
@@ -212,7 +204,7 @@ rbtree_map_alloc(allocator_t *allocator)
     return map;
 }
 
-int rbtree_map_set(rbtree_map_t *map, char *attrib, char *value)
+int rbtree_map_set(rbtree_map_t *map, char *attrib, void *value)
 {
     if (!strcmp(attrib, "lock_type")) {
         map->lock_type = *((uint8_t *)value);
@@ -222,8 +214,7 @@ int rbtree_map_set(rbtree_map_t *map, char *attrib, char *value)
         map->key_len = *((uint8_t *)value);
         dbg_str(DBG_DETAIL, "key len=%d", map->key_len);
     } else if (!strcmp(attrib, "key_cmp_func")) {
-        dbg_str(DBG_SUC, "****key_cmp_func %p", value);
-        map->key_cmp_func = value;
+        map->key_cmp_func = (key_cmp_fpt)value;
     } else {
         dbg_str(HMAP_WARNNING, "not support attrib setting, please check");
         return -1;
@@ -536,7 +527,7 @@ int test_rbtree_map_search_string_key(TEST_ENTRY *entry)
 
     dbg_str(DBG_DETAIL,"rbtree allocator addr:%p",allocator);
     map = rbtree_map_alloc(allocator);
-    rbtree_map_set(map, "key_cmp_func", string_key_cmp_func);
+    rbtree_map_set(map, "key_cmp_func", (void *)string_key_cmp_func);
     rbtree_map_init(map); 
 
     rbtree_map_insert(map,(char *)"00", &t0);
