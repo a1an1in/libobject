@@ -299,7 +299,7 @@ int evsig_add(Event_Base *eb, event_t *event)
     signal(evsignal,signal_handler);
 #endif
 
-    map->add(map, &event->ev_fd, event);
+    map->add(map, event->ev_fd, event);
 
     return 0;
 }
@@ -312,7 +312,7 @@ int evsig_del(Event_Base *eb, event_t *event)
 
     dbg_str(DBG_DETAIL,"del sig:%d", evsignal);
 
-    map->del(map, &evsignal);
+    map->del(map, evsignal);
 
     return 0;
 }

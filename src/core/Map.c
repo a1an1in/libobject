@@ -80,6 +80,8 @@ static int __set(Map *map, char *attrib, void *value)
         map->end = value;
     } else if (strcmp(attrib, "destroy") == 0) {
         map->destroy = value;
+    } else if (strcmp(attrib, "set_cmp_func") == 0) {
+        map->set_cmp_func = value;
     }
     else if (strcmp(attrib, "name") == 0) {
         strncpy(map->name, value, strlen(value));
@@ -167,8 +169,9 @@ static class_info_entry_t map_class_info[] = {
     [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
     [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
     [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy", __destroy, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [16] = {ENTRY_TYPE_END}, 
+    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_cmp_func", NULL, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
+    [17] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Map", map_class_info);
 

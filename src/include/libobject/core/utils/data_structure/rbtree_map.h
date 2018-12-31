@@ -20,6 +20,40 @@
 #define __RBTREE_MAP_H__
 
 #include <libobject/core/utils/data_structure/rbtree_map_struct.h>
+#include <libobject/core/utils/dbg/debug.h>
+
+static inline int default_key_cmp_func(void *key1, void *key2)
+{
+    if (key1 > key2) return 1;
+    else if (key1 < key2) return -1;
+    else return 0;
+}
+
+static inline int string_key_cmp_func(void *key1, void *key2)
+{
+    dbg_str(DBG_DETAIL, "string_key_cmp_func");
+    return strcmp(key1, key2);
+}
+
+/*
+ *static inline int timeval_key_cmp_func(void *key1,void *key2)
+ *{
+ *    struct timeval *k1, *k2;
+ *
+ *    k1 = (struct timeval *) key1;
+ *    k2 = (struct timeval *) key2;
+ *    
+ *    if (    k1->tv_sec > k2->tv_sec || 
+ *            (k1->tv_sec == k2->tv_sec && k1->tv_usec > k2->tv_usec))
+ *    {
+ *        return 1;
+ *    } else if (k1->tv_sec == k2->tv_sec && k1->tv_usec == k2->tv_usec) {
+ *        return 0;
+ *    } else {
+ *        return -1;
+ *    }
+ *}
+ */
 
 rbtree_map_t * rbtree_map_alloc(allocator_t *allocator);
 int rbtree_map_init(rbtree_map_t *map);
