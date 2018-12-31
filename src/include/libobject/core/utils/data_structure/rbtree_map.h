@@ -31,7 +31,6 @@ static inline int default_key_cmp_func(void *key1, void *key2)
 
 static inline int string_key_cmp_func(void *key1, void *key2)
 {
-    dbg_str(DBG_DETAIL, "string_key_cmp_func");
     return strcmp(key1, key2);
 }
 
