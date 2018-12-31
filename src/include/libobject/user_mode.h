@@ -33,8 +33,6 @@
 /*
  *#define IOS_USER_MODE
  */
-/*
- *#define MAC_USER_MODE
- */
+#define MAC_USER_MODE
 
 #endif

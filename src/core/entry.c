@@ -1,7 +1,38 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/libobject.h>
+
+#define MAX_LIBOBJECT_PATH_LEN 50
+#define DEFAULT_LIBOBJECT_RUN_PATH "/tmp"
+char libobject_path[MAX_LIBOBJECT_PATH_LEN];
+#undef MAX_LIBOBJECT_PATH_LEN
+
+
+int libobject_set_run_path(char *path)
+{
+    strcpy(libobject_path, path);
+
+    return 0;
+}
+
+char *libobject_get_run_path()
+{
+    if (strlen(libobject_path) == 0) {
+        strcpy(libobject_path, DEFAULT_LIBOBJECT_RUN_PATH);
+    }
+
+    return libobject_path;
+}
+
+int libobject_init()
+{
+    execute_ctor_funcs();
+
+    return 0;
+}
 
 int print_library_version()
 {

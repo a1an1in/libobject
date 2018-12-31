@@ -120,8 +120,11 @@ static int __bind(Unix_Udp_Socket *socket, char *host, char *service)
      strcpy(un_addr.sun_path, host);
      unlink(host);
 
-     if (bind(fd, (struct sockaddr *)&un_addr, sizeof(un_addr)) < 0) {
-         perror("fail to bind");
+     if ((ret = bind(fd, (struct sockaddr *)&un_addr, sizeof(un_addr))) < 0) {
+         /*
+          *perror("fail to bind");
+          */
+         dbg_str(DBG_ERROR,"fail to bind, error_no=%d", ret);
          ret = -1;
      }                         
 
@@ -138,8 +141,8 @@ static int __connect(Unix_Udp_Socket *socket, char *host, char *service)
      un_addr.sun_family = PF_UNIX;
      strcpy(un_addr.sun_path, host);
 
-     if (connect(fd, (struct sockaddr *)&un_addr, sizeof(un_addr)) < 0) {
-         perror("unix udp, fail to connect");
+     if ((ret = connect(fd, (struct sockaddr *)&un_addr, sizeof(un_addr))) < 0) {
+         dbg_str(DBG_ERROR,"unix udp, fail to connect, error_no=%d", ret);
          ret = -1;
      }                         
 
