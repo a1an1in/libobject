@@ -33,22 +33,22 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
+#include <libobject/core/rbtree_map.h>
 #include <libobject/net/http/Request.h>
 
 static int __construct(Request *request,char *init_str)
 {
     allocator_t *allocator = request->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
 
-    dbg_str(EV_DETAIL,"request construct, request addr:%p",request);
 
+    request->header = OBJECT_NEW(allocator, RBTree_Map, NULL);
     return 0;
 }
 
 static int __deconstrcut(Request *request)
 {
     dbg_str(EV_DETAIL,"request deconstruct,request addr:%p",request);
+    object_destroy(request->header);
 
     return 0;
 }
@@ -63,6 +63,14 @@ static int __set(Request *request, char *attrib, void *value)
         request->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         request->deconstruct = value;
+    } else if (strcmp(attrib, "set_url") == 0) {
+        request->set_url = value;
+    } else if (strcmp(attrib, "set_method") == 0) {
+        request->set_method = value;
+    } else if (strcmp(attrib, "set_body") == 0) {
+        request->set_body = value;
+    } else if (strcmp(attrib, "set_header") == 0) {
+        request->set_header = value;
     } 
     else {
         dbg_str(EV_DETAIL,"request set, not support %s setting",attrib);
@@ -81,13 +89,43 @@ static void *__get(Request *obj, char *attrib)
     return NULL;
 }
 
+static int __set_url(Request *request, void *url)
+{
+    request->url = url;
+
+    return 0;
+}
+
+static int __set_method(Request *request, void *method)
+{
+    request->method = method;
+
+    return 0;
+}
+
+static int __set_body(Request *request, void *body)
+{
+    request->body = body;
+
+    return 0;
+}
+
+static int __set_header(Request *request, void *key, void *value)
+{
+    return request->header->add(request->header, key, value);
+}
+
 static class_info_entry_t concurent_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_url",__set_url,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_method",__set_method,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_body",__set_body,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_header",__set_header,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Request",concurent_class_info);
 
