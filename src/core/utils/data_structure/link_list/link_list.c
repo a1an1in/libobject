@@ -497,7 +497,7 @@ int test_llist_remove_front(TEST_ENTRY *entry)
     llist_add_front(llist, &t2);
     llist_add_front(llist, &t3);
 
-    llist_remove_front(llist, &t);
+    llist_remove_front(llist, (void **)&t);
     if (t->a == 3 && t->b == 2) {
         ret = 1;
         goto end;
