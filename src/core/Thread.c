@@ -42,7 +42,8 @@ static int __construct(Thread *thread, char *init_str)
     allocator_t *allocator = thread->obj.allocator;
     configurator_t * c;
     char buf[2048];
-
+    thread->is_run = 0;
+    thread->arg = NULL;
     dbg_str(DBG_IMPORTANT, "Thread construct, thread addr:%p", thread);
 
     return 0;
@@ -88,6 +89,14 @@ static int __set(Thread *thread, char *attrib, void *value)
     }
     else if (strcmp(attrib, "start_routine") == 0) {
         thread->start_routine = value;
+    }else if (strcmp(attrib, "stop") == 0) {
+        thread->stop = value;
+    }else if (strcmp(attrib, "get_status") == 0) {
+        thread->get_status = value;
+    }else if (strcmp(attrib, "run") == 0) {
+        thread->run = value;
+    }else if (strcmp(attrib, "set_run_routine") == 0) {
+        thread->set_run_routine = value;
     }
     else {
         dbg_str(OBJ_DETAIL, "thread set, not support %s setting", attrib);
@@ -109,6 +118,9 @@ static void *__get(Thread *obj, char *attrib)
 static int __start(Thread *thread)
 {
     void *arg;
+    if (thread->is_run) {
+        return -1;
+    }
     if (thread->start_routine == NULL) {
         return -1;
     }
@@ -116,18 +128,19 @@ static int __start(Thread *thread)
     if (thread->arg == NULL) {
         thread->arg = thread;
     }
-
     if ((pthread_create(&thread->tid, NULL, thread->start_routine, thread->arg)) != 0) {
         dbg_str(OBJ_WARNNING, "pthread start error");
     }
+
+    thread->is_run = 0;
 
     return 0;
 }
 
 static int __set_start_routine(Thread *thread, void *routine)
 {
+    thread->is_run = 1;
     thread->start_routine = routine;
-
     return 0;
 }
 
@@ -144,8 +157,50 @@ static int __set_opaque(Thread *thread, void *arg)
 static void *__start_routine(void *arg)
 {
     dbg_str(OBJ_DETAIL, "start_routine");
+    Thread * thread = (Thread *)arg;
+    if ( thread == NULL ){
+        return;
+    }
+    thread->is_run = 1; 
 
+    while (1) {
+        usleep(100000);
+
+        while ( thread->is_run ) {
+            thread->execute(arg);
+        }
+        dbg_str(DBG_WARNNING,"current thread finished");
+    }
     return NULL;
+}
+
+
+static void __stop(Thread * thread)
+{
+    if ( thread->is_run ) {
+        thread->is_run = 0;
+    }
+}
+
+static int __get_status(Thread *thread)
+{
+    return thread->is_run;
+}
+
+static int __set_run_routine(Thread *thread,void *func )
+{
+    if ( thread == NULL || func == NULL ) {
+        return -1;
+    }
+    thread->execute = func;
+    return 0;
+}
+
+static void __run(Thread *thread)
+{
+    if ( thread->is_run == 0 ) {
+        thread->is_run = 1;
+    }
 }
 
 static class_info_entry_t thread_class_info[] = {
@@ -159,13 +214,19 @@ static class_info_entry_t thread_class_info[] = {
     [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set_start_arg", __set_start_arg, sizeof(void *)}, 
     [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set_opaque", __set_opaque, sizeof(void *)}, 
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "start_routine", __start_routine, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_END}, 
+    [10 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "stop", __stop, sizeof(void *)}, 
+    [11 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "run", __run, sizeof(void *)}, 
+    [12 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_run_routine", __set_run_routine, sizeof(void *)}, 
+    [13 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_status", __get_status, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_END}, 
 };
+
 REGISTER_CLASS("Thread", thread_class_info);
 
 void *test_func(void *arg)
 {
     dbg_str(DBG_DETAIL, "thread callback, arg addr:%p", arg);
+    
 }
 
 int test_obj_thread()
@@ -200,4 +261,33 @@ int test_obj_thread()
     object_destroy(thread);
     cfg_destroy(c);
 }
+
+static void *func(void *arg)
+{
+    Thread * thread = (Thread *)arg;
+    int i = 0;
+    while (i < 200 ) {
+        usleep(10000);
+        i++;
+        if ( i == 150 ) {
+            thread->stop(thread);
+        }
+        dbg_str(DBG_IMPORTANT," i= %d   I= %d " ,i,thread->tid);
+    }
+
+    return 1;
+}
+
+int test_safe_thread()
+{
+    Thread *thread;
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;      
+    thread = OBJECT_NEW(allocator, Thread, NULL);
+    thread->set_run_routine(thread,func);
+    thread->start(thread);
+
+}
+
 REGISTER_STANDALONE_TEST_FUNC(test_obj_thread);
+REGISTER_STANDALONE_TEST_FUNC(test_safe_thread);

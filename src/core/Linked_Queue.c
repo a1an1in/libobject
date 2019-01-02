@@ -98,10 +98,14 @@ static int __set(Linked_Queue *queue, char *attrib, void *value)
         queue->remove_back = value;
     }else if (strcmp(attrib, "size") == 0) {
         queue->size = value;
-    }else if (strcmp(attrib, "empty") == 0) {
-        queue->empty = value;
+    }else if (strcmp(attrib, "is_empty") == 0) {
+        queue->is_empty = value;
     }else if (strcmp(attrib, "clear") == 0) {
         queue->clear = value;
+    }else if (strcmp(attrib, "peek_front") == 0) {
+        queue->peek_front = value;
+    }else if (strcmp(attrib, "peek_back") == 0) {
+        queue->peek_back = value;
     }
     else {
         dbg_str(OBJ_DETAIL, "queue set, not support %s setting", attrib);
@@ -190,7 +194,7 @@ static size_t __size(Linked_Queue *queue)
     return  count;
 }
 
-static size_t __empty(Linked_Queue *queue)
+static size_t __is_empty(Linked_Queue *queue)
 {    
     return  queue->size(queue) == 0 ? 1 : 0;
 }
@@ -200,7 +204,7 @@ static void __clear(Linked_Queue *queue)
     list_pos_t pos ,next;
 
     sync_lock(&(queue->llist->list_lock), NULL);
-    if (!queue->empty(queue)) {   
+    if (!queue->is_empty(queue)) {   
         for(llist_begin(queue->llist, &pos), llist_pos_next(&pos, &next);
             !llist_pos_equal(&pos, &queue->llist->head);
              pos = next, llist_pos_next(&pos, &next))
@@ -210,6 +214,37 @@ static void __clear(Linked_Queue *queue)
     sync_unlock(&(queue->llist->list_lock));
 
     }
+}
+
+static int __peek_front(Linked_Queue *queue, void **element)
+{
+    Iterator * begin;
+    Queue * q = queue;
+
+    int ret = 0;
+    if (!q->is_empty(q)) {
+        begin = q->begin(q);
+        (*element) = begin->get_vpointer(begin);
+    }else {
+        ret = -1;
+    }
+    return ret;
+}
+
+static int __peek_back(Linked_Queue *queue, void **element)
+{
+    Iterator * end;
+    Queue * q = queue;
+
+    int ret = 0;
+    if (!q->is_empty(q)) {
+        end = q->end(q);
+        (*element) = end->get_vpointer(end);
+    }else {
+        ret = -1;
+    }
+
+    return ret;
 }
 
 static class_info_entry_t linked_queue_class_info[] = {
@@ -227,9 +262,11 @@ static class_info_entry_t linked_queue_class_info[] = {
     [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
     [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
     [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "size", __size, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "empty", __empty, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "is_empty", __is_empty, sizeof(void *)}, 
     [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "clear", __clear, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_END}, 
+    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_front", __peek_front, sizeof(void *)},
+    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_back", __peek_back, sizeof(void *)}, 
+    [18] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Linked_Queue", linked_queue_class_info);
 
@@ -250,6 +287,13 @@ static void queue_print(void *element)
     struct test *t = (struct test *)element;
      
     dbg_str(DBG_DETAIL, "t->a=%d, t->b=%d", t->a, t->b);
+}
+
+
+static void queue_print_int(void *element)
+{
+    int *p =  (int*)element;
+    dbg_str(DBG_IMPORTANT," element %d",*p);
 }
 
 void test_obj_linked_queue()
@@ -314,7 +358,7 @@ static int test_Linked_Queue_clear()
     }
 
     dbg_str(DBG_DETAIL, " queue size: %d ", queue->size(queue));
-    dbg_str(DBG_DETAIL, " queue is empty: %d ", queue->empty(queue));
+    dbg_str(DBG_DETAIL, " queue is is_empty: %d ", queue->is_empty(queue));
    
     // for( i = 0; i < 10; i++)
     // {
@@ -323,7 +367,7 @@ static int test_Linked_Queue_clear()
     // }
 
     // dbg_str(DBG_DETAIL, " queue size: %d ", queue->size(queue));
-    // dbg_str(DBG_DETAIL, " queue is empty: %d ", queue->empty(queue));
+    // dbg_str(DBG_DETAIL, " queue is is_empty: %d ", queue->is_empty(queue));
 
    
     // if ( queue == NULL ) {
@@ -359,7 +403,7 @@ static int test_Linked_Queue()
     }
 
     dbg_str(DBG_DETAIL, " queue size: %d ", queue->size(queue));
-    dbg_str(DBG_DETAIL, " queue is empty: %d ", queue->empty(queue));
+    dbg_str(DBG_DETAIL, " queue is is_empty: %d ", queue->is_empty(queue));
    
     for( i = 0; i < 10; i++)
     {
@@ -370,7 +414,7 @@ static int test_Linked_Queue()
     }
 
     dbg_str(DBG_DETAIL, " queue size: %d ", queue->size(queue));
-    dbg_str(DBG_DETAIL, " queue is empty: %d ", queue->empty(queue));
+    dbg_str(DBG_DETAIL, " queue is is_empty: %d ", queue->is_empty(queue));
 
     object_destroy(queue);
 
@@ -379,5 +423,51 @@ static int test_Linked_Queue()
 }
 //test_Linked_Queue_clear
 
+
+int test_peek_Linked_Queue()
+{
+    int ret,i,j;
+    int buf[10];
+    Queue * queue ;
+    void * element;
+
+    allocator_t *allocator = allocator_get_default_alloc();
+
+    queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
+    
+    
+    for( i = 1; i < 10; i++)
+    {
+        /* code */
+        buf[i] = i;
+        queue->add(queue,&buf[i]);
+    }
+
+
+    queue->for_each(queue,queue_print_int);
+
+    dbg_str(DBG_DETAIL, " peek front at: %d ", *(int *)element);
+    element = NULL; 
+
+    queue->peek_front(queue,&element);
+    if (element) 
+    dbg_str(DBG_DETAIL, " peek front at: %d ", *(int *)element);
+
+    element = NULL;
+    queue->peek_back(queue,&element);
+    if (element) {
+        dbg_str(DBG_DETAIL, " peek back at: %d ", *(int *)element);
+    }else {
+
+    }
+
+
+    object_destroy(queue);
+
+
+    return 1;
+}
+
 REGISTER_STANDALONE_TEST_FUNC(test_Linked_Queue_clear);
 REGISTER_STANDALONE_TEST_FUNC(test_Linked_Queue);
+REGISTER_STANDALONE_TEST_FUNC(test_peek_Linked_Queue);
