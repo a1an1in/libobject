@@ -19,13 +19,21 @@ struct thread_s{
     int (*set_start_routine)(Thread *, void *);
     int (*set_start_arg)(Thread *, void *);
     int (*set_opaque)(Thread *, void *);
+    int (*get_status)(Thread *);
+    int (*stop)(Thread *);
 
+    int (*set_run_routine)(Thread *,void *);
 	/*virtual methods reimplement*/
     void *(*start_routine)(void *);
+    void *(*execute)(void *);
+    void *(*run)(Thread *);
+
+
 
     void *arg;
     pthread_t tid;
     void *opaque;
+    int is_run;
 };
 
 #endif
