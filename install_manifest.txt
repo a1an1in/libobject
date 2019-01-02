@@ -37,6 +37,12 @@
 /usr/local/include/libobject/user_mode.h
 /usr/local/include/libobject/net/server/inet_tcp_server.h
 /usr/local/include/libobject/net/server/server.h
+/usr/local/include/libobject/net/http/Client.h
+/usr/local/include/libobject/net/http/Response.h
+/usr/local/include/libobject/net/http/.Server.h.swp
+/usr/local/include/libobject/net/http/Request.h
+/usr/local/include/libobject/net/http/.Client.h.swp
+/usr/local/include/libobject/net/http/Server.h
 /usr/local/include/libobject/net/net_task.h
 /usr/local/include/libobject/net/client/client.h
 /usr/local/include/libobject/net/client/inet_tcp_client.h
@@ -66,7 +72,6 @@
 /usr/local/include/libobject/core/utils/data_structure/link_list.h
 /usr/local/include/libobject/core/utils/data_structure/vector_struct.h
 /usr/local/include/libobject/core/utils/data_structure/ring_buffer.h
-/usr/local/include/libobject/core/utils/data_structure/map_pair.h
 /usr/local/include/libobject/core/utils/data_structure/hash_list_struct.h
 /usr/local/include/libobject/core/utils/data_structure/link_list_struct.h
 /usr/local/include/libobject/core/utils/data_structure/list.h
@@ -124,7 +129,6 @@
 /usr/local/include/libobject/core/iterator.h
 /usr/local/include/libobject/core/queue.h
 /usr/local/include/libobject/core/string.h
-/usr/local/include/libobject/.user_mode.h.swp
 /usr/local/include/libobject/io/file.h
 /usr/local/include/libobject/test.h
 /usr/local/include/libobject/bus/bus.h

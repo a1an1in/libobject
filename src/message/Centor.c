@@ -142,10 +142,7 @@ static int __construct(Centor *centor, char *init_str)
 
     centor->message_queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
 
-    config = cfg_alloc(allocator); 
-    cfg_config(config, "/RBTree_Map", CJSON_NUMBER, "key_type", "1");
-    centor->subscriber_map = OBJECT_NEW(allocator, RBTree_Map, config->buf);
-    cfg_destroy(config);
+    centor->subscriber_map = OBJECT_NEW(allocator, RBTree_Map, NULL);
 
     return 0;
 }

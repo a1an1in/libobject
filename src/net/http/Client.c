@@ -123,8 +123,7 @@ __request(Http_Client *hc, int (*request_cb)(void *arg), void *arg)
     return 0;
 }
 
-static Response *
-__request_sync(Http_Client *client)
+static Response * __request_sync(Http_Client *client)
 {
 }
 

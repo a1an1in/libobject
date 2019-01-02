@@ -43,7 +43,7 @@
 static void message_handler(void *arg)
 {
     Subscriber *subscriber = (Subscriber *)arg;
-    message_method_t *method;
+    message_method_t *method = NULL;
 
     message_t *message = (message_t *)subscriber->message;
 
@@ -54,6 +54,8 @@ static void message_handler(void *arg)
     subscriber->method_map->search(subscriber->method_map, message->what, (void **)&method);
     if (method != NULL) {
         method->func(message, method->arg);
+    } else {
+        dbg_str(DBG_DETAIL, "not found method, key=%s", message->what);
     }
 
 }
@@ -76,6 +78,8 @@ static int __construct(Subscriber *subscriber, char *init_str)
     config = cfg_alloc(allocator); 
     cfg_config(config, "/RBTree_Map", CJSON_NUMBER, "key_type", "1");
     subscriber->method_map = OBJECT_NEW(allocator, RBTree_Map, config->buf);
+    subscriber->method_map->set_cmp_func(subscriber->method_map, 
+                                         string_key_cmp_func);
     cfg_destroy(config);
 
     return 0;
