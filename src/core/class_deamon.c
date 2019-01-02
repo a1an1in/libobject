@@ -68,7 +68,10 @@ int class_deamon_set(class_deamon_t *class_deamon, char *attrib, char *value)
 int class_deamon_init(class_deamon_t *class_deamon)
 {
     if (class_deamon->map_type == 0) {
-        class_deamon->map_type = MAP_TYPE_HASH_MAP;
+        /*
+         *class_deamon->map_type = MAP_TYPE_HASH_MAP;
+         */
+        class_deamon->map_type = MAP_TYPE_RBTREE_MAP;
     }
     if (class_deamon->map_value_size == 0) {
         class_deamon->map_value_size = sizeof(void *);
@@ -83,7 +86,8 @@ int class_deamon_init(class_deamon_t *class_deamon)
         return -1;
     }
 
-    map_init(class_deamon->map, class_deamon->map_key_len, class_deamon->map_value_size);
+    map_set(class_deamon->map, "key_cmp_func", (void *)string_key_cmp_func);
+    map_init(class_deamon->map);
 
     return 0;
 }

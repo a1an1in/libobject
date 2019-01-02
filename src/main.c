@@ -111,7 +111,11 @@ int main(int argc, char *argv[])
 {
     int ret = 0;
 
-    INIT_LIBOBJECT();
+    libobject_set_run_path("./");
+    libobject_init();
+    /*
+     *INIT_LIBOBJECT();
+     */
 
     dbg_str(DBG_DETAIL, "main func start");
 

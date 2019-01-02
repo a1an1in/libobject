@@ -18,7 +18,7 @@ display_configs("${PLATFORM}")
 #find_package(opengl)
 #find_package(CURL)
 
-option (MODULE_UI "ui module" OFF)
+option (MODULE_UI "ui module" ON)
 option (MODULE_BUS "bus module" OFF)
 
 # add compile paramater 
@@ -41,7 +41,7 @@ endif ()
 
 if (MODULE_UI)
     message("-- Turn ui module on")
-    find_package(SDL2 REQUIRED)
+    #find_package(SDL2 REQUIRED)
     SET(ExternalLibs ${ExternalLibs} SDL2 SDL2_ttf)
 else ()
     message("-- Turn ui module off")

@@ -148,7 +148,7 @@ static int __add(Event_Base *eb, event_t *event)
     } else {
         event->ev_tv = event->ev_timeout;
         dbg_str(EV_DETAIL, "add fd =%d into io map", fd);
-        io_map->add(io_map, &event->ev_fd, event);
+        io_map->add(io_map, event->ev_fd, event);
 
         eb->trustee_io(eb,event);
         timer->add(timer, event);
@@ -172,7 +172,7 @@ static int __del(Event_Base *eb, event_t *event)
         timer->del(timer, event);
 
         //del fd in map
-        ret = io_map->del(io_map, &fd);
+        ret = io_map->del(io_map, fd);
         if (ret < 0) {
             dbg_str(EV_WARNNING,"not found fd in io_map,ret=%d",ret);
         } else {
@@ -196,7 +196,7 @@ static int __activate_io(Event_Base *eb, int fd, short events)
 
     dbg_str(EV_DETAIL,"event base active io event, fd = %d", fd);
 
-    ret = io_map->search(io_map, &fd, (void **)&event);
+    ret = io_map->search(io_map, fd, (void **)&event);
     dbg_str(EV_DETAIL,"search ret=%d",ret);
 
     if (ret < 0) {
@@ -262,7 +262,7 @@ static int __activate_signal(Event_Base *eb, int fd, short events)
 
     list->remove_all(list);
 
-    map->search_all_same_key(map, &fd, list);
+    map->search_all_same_key(map, fd, list);
     if (list->count(list) != 0) {
         dbg_str(EV_WARNNING,"activate_signal, list count=%d", list->count(list));
         dbg_str(EV_WARNNING,"activate_signal, find signal=%d", fd);

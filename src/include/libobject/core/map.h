@@ -18,6 +18,8 @@ struct _map_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
+
+    int (*set_cmp_func)(Map *map, void *func);
     int (*add)(Map *map,void *key,void *value);
     int (*search)(Map *map,void *key,void **element);
     int (*search_all_same_key)(Map *map,void *key, List *list);

@@ -49,7 +49,7 @@ static int __construct(Rbtree_Timer *timer, char *init_str)
 
     dbg_str(EV_DETAIL, "timer construct, timer addr:%p", timer);
     timer->map               = rbtree_map_alloc(allocator);
-    timer->map->key_cmp_func = timeval_key_cmp_func;
+    timer->map->key_cmp_func = (key_cmp_fpt)timeval_key_cmp_func;
 
     rbtree_map_init(timer->map); 
 

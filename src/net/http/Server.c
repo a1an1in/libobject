@@ -1,5 +1,5 @@
 /**
- * @file Response.c
+ * @file Http_Server.c
  * @Synopsis  
  * @author alan lin
  * @version 
@@ -33,49 +33,58 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/net/http/Response.h>
+#include <libobject/core/utils/registry/registry.h>
+#include <libobject/net/http/Server.h>
+#include <libobject/net/server/inet_tcp_server.h>
 
-static int __construct(Response *response,char *init_str)
+static int __http_server_callback(void *task)
 {
-    allocator_t *allocator = response->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
+    net_task_t *t = (net_task_t *)task;
+    dbg_str(DBG_SUC,"%s", t->buf);
+    dbg_str(DBG_SUC,"task opaque=%p", t->opaque);
+}
 
-    dbg_str(DBG_DETAIL,"response construct, response addr:%p",response);
+static int __construct(Http_Server *hs,char *init_str)
+{
+    allocator_t *allocator = hs->obj.allocator;
+
+    dbg_str(DBG_SUC,"worker callback opaque=%p", server);
+    hs->s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
+                         "127.0.0.1", "8080", __http_server_callback, server);
 
     return 0;
 }
 
-static int __deconstrcut(Response *response)
+static int __deconstruct(Http_Server *server)
 {
-    dbg_str(DBG_DETAIL,"response deconstruct,response addr:%p",response);
+    server_destroy(server->s);
 
     return 0;
 }
 
-static int __set(Response *response, char *attrib, void *value)
+static int __set(Http_Server *server, char *attrib, void *value)
 {
     if (strcmp(attrib, "set") == 0) {
-        response->set = value;
+        server->set = value;
     } else if (strcmp(attrib, "get") == 0) {
-        response->get = value;
+        server->get = value;
     } else if (strcmp(attrib, "construct") == 0) {
-        response->construct = value;
+        server->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
-        response->deconstruct = value;
+        server->deconstruct = value;
     } 
     else {
-        dbg_str(DBG_DETAIL,"response set, not support %s setting",attrib);
+        dbg_str(EV_DETAIL,"server set, not support %s setting",attrib);
     }
 
     return 0;
 }
 
-static void *__get(Response *obj, char *attrib)
+static void *__get(Http_Server *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"response get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARNNING,"server get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
@@ -86,29 +95,19 @@ static class_info_entry_t concurent_class_info[] = {
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstruct,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Response",concurent_class_info);
+REGISTER_CLASS("Http_Server",concurent_class_info);
 
-void test_obj_response()
+int test_http_server(TEST_ENTRY *entry)
 {
-    Response *response;
+    Http_Server *server;
     allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
 
-    c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Response", CJSON_STRING, "name", "alan response") ;  
+    server = OBJECT_NEW(allocator, Http_Server, NULL);
 
-    response = OBJECT_NEW(allocator, Response,c->buf);
-
-    object_dump(response, "Response", buf, 2048);
-    dbg_str(DBG_DETAIL,"Response dump: %s",buf);
-
-    object_destroy(response);
-    cfg_destroy(c);
+    pause();
+    object_destroy(server);
 }
+REGISTER_STANDALONE_TEST_FUNC(test_http_server);

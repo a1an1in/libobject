@@ -7,7 +7,7 @@
 
 #ifndef __KEY_CMP_FPT__
 #define __KEY_CMP_FPT__
-typedef int (*key_cmp_fpt)(void *key1,void *key2,uint32_t key_size);
+typedef int (*key_cmp_fpt)(void *key1,void *key2);
 #endif
 
 struct rbtree_map_node {

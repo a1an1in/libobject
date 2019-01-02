@@ -40,19 +40,11 @@ static int __construct(Map *map, char *init_str)
     Hash_Map *h = (Hash_Map *)map;
     allocator_t *allocator = map->obj.allocator;
 
-    if (h->key_size == 0)    { h->key_size = 10;    }
-    if (h->value_size == 0)  { h->value_size = 100; }
     if (h->bucket_size == 0) { h->bucket_size = 20; }
-
-    dbg_str(HMAP_DETAIL, "hash map construct, key_size=%d, value_size=%d, bucket_size=%d", 
-            h->key_size, h->value_size, h->bucket_size);
 
     h->hmap = hash_map_alloc(allocator);
 
-    hash_map_init(h->hmap, 
-                  h->key_size,     //uint32_t key_size, 
-                  h->value_size, 
-                  h->bucket_size);
+    hash_map_init(h->hmap);
 
 
     map->b = OBJECT_NEW(allocator, Hmap_Iterator, NULL);

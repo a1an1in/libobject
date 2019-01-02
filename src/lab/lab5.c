@@ -1,22 +1,28 @@
 #include <stdio.h>
-#include <time.h>
-#include <sys/time.h>
+#include <errno.h>
+#include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <libobject/core/utils/dbg/debug.h>
-#include <libobject/event/event_base.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <libobject/core/utils/registry/registry.h>
 
-void print_time_stamp()  
-{  
-    struct timeval    tv;  
-    struct timezone   tz;  
-    struct tm         *p;  
-
-    gettimeofday(&tv, &tz);  
-    p = localtime(&tv.tv_sec);  
-    printf("time_now:%d /%d /%d %d :%d :%d.%3d", 1900+p->tm_year, 1+p->tm_mon, p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec, tv.tv_usec);  
-}  
-
-void lab5()
+int test_gethostbyname(TEST_ENTRY *entry)
 {
+    int i;
+    struct hostent *he;
+    struct in_addr **addr_list;
+
+    if ((he = gethostbyname("www.baidu.com")) == NULL) {
+        perror("gethostbyname");
+    }
+
+    addr_list = (struct in_addr **)he->h_addr_list;
+    for(i = 0; addr_list[i] != NULL; i++) {
+        printf("%s ", inet_ntoa(*addr_list[i]));
+    }
+    printf("\n");
+
+    return 1;
 }
+REGISTER_TEST_FUNC(test_gethostbyname);

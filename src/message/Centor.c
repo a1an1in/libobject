@@ -42,6 +42,7 @@
 #include <libobject/net/socket/unix_udp_socket.h>
 #include <libobject/core/linked_queue.h>
 #include <libobject/core/rbtree_map.h>
+#include <libobject/libobject.h>
 
 #define DEFAULT_CENTOR_UNIX_SERVER_PATH "/tmp/default_centor_unix_socket_path"
 
@@ -113,13 +114,22 @@ static int __construct(Centor *centor, char *init_str)
     allocator_t *allocator = centor->obj.allocator;
     Socket *s, *c;
     configurator_t * config;
+    char server_addr[100];
+    char *libobject_run_path;
+    static int count;
 
     dbg_str(DBG_SUC, "centor construct, centor addr:%p", centor);
+
+    count++;
+    libobject_run_path = libobject_get_run_path();
+    sprintf(server_addr, "%s/%s_%d", libobject_run_path, 
+            "message_unix_socket_server", count); 
+
     s = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
-    s->bind(s, DEFAULT_CENTOR_UNIX_SERVER_PATH, NULL); 
+    s->bind(s, server_addr, NULL); 
 
     c = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
-    c->connect(c, DEFAULT_CENTOR_UNIX_SERVER_PATH, NULL);
+    c->connect(c, server_addr, NULL);
 
     centor->s = s;
     centor->c = c;

@@ -43,7 +43,7 @@ macro (set_cmake_evironment_variable)
         ${PROJECT_SOURCE_DIR}/src/include)
 
     set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/android/${ANDROID_ABI})
-    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/andorid/${ANDROID_ABI})
+    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/android/${ANDROID_ABI})
     set (CMAKE_INSTALL_PREFIX ${CMAKE_ANDROID_NDK}/sysroot/usr)
 
 endmacro()

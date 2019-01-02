@@ -139,7 +139,7 @@ static void test_on_pause(message_t *message, void *arg)
     dbg_str(DBG_DETAIL, "message arg:%p", arg);
 }
 
-int test_message_publisher()
+static int test_message_publisher()
 {
     Centor *centor;
     Publisher *publisher;
