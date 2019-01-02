@@ -24,6 +24,10 @@ struct queue_s{
     int (*remove)(Queue *queue, void **element);
     int (*remove_back)(Queue *queue, void **element);
     int (*remove_front)(Queue *queue, void **element);
+
+    int (*peek_front)(Queue *queue, void **element);
+    int (*peek_back)(Queue *queue, void **element);
+
     void (*for_each)(Queue *queue,void (*func)(void *element));
     void (*for_each_arg)(Queue *queue,void (*func)(void *element, void *arg), void *arg);
     void (*for_each_arg2)(Queue *queue,
@@ -39,7 +43,7 @@ struct queue_s{
                           void (*func)(void *element, void *arg1,void *arg2,void *arg3,void *arg4,void *arg5), 
                           void *arg1,void *arg2,void *arg3,void *arg4,void *arg5);
     size_t (*size)(Queue *);
-    size_t (*empty)(Queue *);
+    size_t (*is_empty)(Queue *);
     void   (*clear)(Queue *);
 
     Iterator *(*begin)(Queue *queue);

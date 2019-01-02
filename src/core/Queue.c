@@ -90,8 +90,8 @@ static int __set(Queue *queue, char *attrib, void *value)
         queue->end = value;
     }else if (strcmp(attrib, "size") == 0) {
         queue->size = value;
-    }else if (strcmp(attrib, "empty") == 0) {
-        queue->empty = value;
+    }else if (strcmp(attrib, "is_empty") == 0) {
+        queue->is_empty = value;
     }else if (strcmp(attrib, "clear") == 0) {
         queue->clear = value;
     }else if (strcmp(attrib, "for_each_arg") == 0) {
@@ -102,6 +102,10 @@ static int __set(Queue *queue, char *attrib, void *value)
         queue->for_each_arg4 = value;
     }else if (strcmp(attrib, "for_each_arg5") == 0) {
         queue->for_each_arg5 = value;
+    }else if (strcmp(attrib, "peek_front") == 0) {
+        queue->peek_front = value;
+    }else if (strcmp(attrib, "peek_back") == 0) {
+        queue->peek_back = value;
     }
     else {
         dbg_str(OBJ_DETAIL, "queue set, not support %s setting", attrib);
@@ -247,12 +251,14 @@ static class_info_entry_t queue_class_info[] = {
     [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", NULL, sizeof(void *)}, 
     [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", NULL, sizeof(void *)}, 
 	[15] = {ENTRY_TYPE_VFUNC_POINTER, "", "size", NULL, sizeof(void *)},
-    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "empty", NULL, sizeof(void *)},  
+    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "is_empty", NULL, sizeof(void *)},  
     [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "clear", NULL, sizeof(void *)}, 
     [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg2", __for_each_arg2, sizeof(void *)}, 
     [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg3", __for_each_arg3, sizeof(void *)}, 
     [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg4", __for_each_arg4, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg5", __for_each_arg5, sizeof(void *)}, 
-    [22] = {ENTRY_TYPE_END}, 
+    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg5", __for_each_arg5, sizeof(void *)},
+    [22] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_front", NULL, sizeof(void *)}, 
+    [23] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_back", NULL, sizeof(void *)}, 
+    [24] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Queue", queue_class_info);
