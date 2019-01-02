@@ -134,6 +134,8 @@ static void __for_each(Queue *queue, void (*func)(void *element))
     cur = queue->begin(queue);
     end = queue->end(queue);
 
+    element = end->get_vpointer(end);
+    dbg_str(DBG_IMPORTANT, "queue for_each, end element:%p", element);
     for (; !end->equal(end, cur); cur->next(cur)) {
         element = cur->get_vpointer(cur);
         func(element);

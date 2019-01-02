@@ -92,10 +92,12 @@ static Iterator *__prev(Iterator *it)
 {
     Iterator *prev = it;
 
-    dbg_str(OBJ_DETAIL, "LList_Iterator prev");
+    dbg_str(DBG_DETAIL, "LList_Iterator prev");
 
     llist_pos_prev(&((LList_Iterator *)it)->list_pos, 
                    &((LList_Iterator *)prev)->list_pos);
+
+    return prev;
 }
 
 static int __equal(Iterator *it1, Iterator *it2)

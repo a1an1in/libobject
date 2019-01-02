@@ -164,7 +164,7 @@ static Iterator* __begin(Queue *queue)
     allocator_t *allocator = queue->obj.allocator;
     LList_Iterator *iter   = (LList_Iterator *)queue->b;
 
-    dbg_str(OBJ_DETAIL, "queue begin");
+    dbg_str(DBG_DETAIL, "queue begin");
 
     llist_begin(q->llist, &(iter->list_pos));
 
@@ -176,8 +176,6 @@ static Iterator* __end(Queue *queue)
     Linked_Queue *q        = (Linked_Queue *)queue;
     allocator_t *allocator = queue->obj.allocator;
     LList_Iterator *iter   = (LList_Iterator *)queue->e;
-
-    dbg_str(OBJ_DETAIL, "Linked List end");
 
     llist_end(q->llist, &(iter->list_pos));
 
@@ -219,13 +217,13 @@ static void __clear(Linked_Queue *queue)
 static int __peek_front(Linked_Queue *queue, void **element)
 {
     Iterator * begin;
-    Queue * q = queue;
+    Queue * q = (Queue *)queue;
 
     int ret = 0;
     if (!q->is_empty(q)) {
         begin = q->begin(q);
         (*element) = begin->get_vpointer(begin);
-    }else {
+    } else {
         ret = -1;
     }
     return ret;
@@ -233,14 +231,15 @@ static int __peek_front(Linked_Queue *queue, void **element)
 
 static int __peek_back(Linked_Queue *queue, void **element)
 {
-    Iterator * end;
-    Queue * q = queue;
+    Iterator * end, *prev;
+    Queue * q = (Queue *)queue;
 
     int ret = 0;
     if (!q->is_empty(q)) {
         end = q->end(q);
-        (*element) = end->get_vpointer(end);
-    }else {
+        prev = end->prev(end);
+        (*element) = prev->get_vpointer(prev);
+    } else {
         ret = -1;
     }
 
@@ -422,52 +421,44 @@ static int test_Linked_Queue()
     return 1;
 }
 //test_Linked_Queue_clear
+REGISTER_TEST_FUNC(test_Linked_Queue_clear);
+REGISTER_TEST_FUNC(test_Linked_Queue);
 
 
-int test_peek_Linked_Queue()
+int Test_peek_linked_queue_peek()
 {
     int ret,i,j;
     int buf[10];
     Queue * queue ;
-    void * element;
+    void * element = NULL;
 
     allocator_t *allocator = allocator_get_default_alloc();
 
     queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
     
-    
-    for( i = 1; i < 10; i++)
-    {
-        /* code */
+    for( i = 1; i < 10; i++) {
         buf[i] = i;
-        queue->add(queue,&buf[i]);
+        queue->add(queue, &buf[i]);
     }
 
+    /*
+     *queue->for_each(queue, queue_print_int);
+     */
 
-    queue->for_each(queue,queue_print_int);
+    dbg_str(DBG_DETAIL, " peek front at: %p ", element);
 
-    dbg_str(DBG_DETAIL, " peek front at: %d ", *(int *)element);
-    element = NULL; 
-
-    queue->peek_front(queue,&element);
-    if (element) 
-    dbg_str(DBG_DETAIL, " peek front at: %d ", *(int *)element);
-
-    element = NULL;
-    queue->peek_back(queue,&element);
-    if (element) {
-        dbg_str(DBG_DETAIL, " peek back at: %d ", *(int *)element);
-    }else {
-
+    queue->peek_front(queue, &element);
+    ret = assert_equal(&buf[1], element, sizeof(void *));
+    if (ret == 0) {
+        goto end;
     }
 
+    queue->peek_back(queue, &element);
+    ret = assert_equal(&buf[9], element, sizeof(void *));
 
+end:
     object_destroy(queue);
 
-
-    return 1;
+    return ret;
 }
-
-REGISTER_STANDALONE_TEST_FUNC(test_Linked_Queue_clear);
-REGISTER_STANDALONE_TEST_FUNC(test_Linked_Queue);
-REGISTER_STANDALONE_TEST_FUNC(test_peek_Linked_Queue);
+REGISTER_TEST_FUNC(Test_peek_linked_queue_peek);
