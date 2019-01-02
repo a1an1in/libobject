@@ -295,136 +295,6 @@ static void queue_print_int(void *element)
     dbg_str(DBG_IMPORTANT," element %d",*p);
 }
 
-void test_obj_linked_queue()
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-    struct test *t, t0, t1, t2, t3, t4, t5;
-    Queue *q;
-
-    init_test_instance(&t0, 0, 2);
-    init_test_instance(&t1, 1, 2);
-    init_test_instance(&t2, 2, 2);
-    init_test_instance(&t3, 3, 2);
-    init_test_instance(&t4, 4, 2);
-    init_test_instance(&t5, 5, 2);
-
-    dbg_str(OBJ_SUC, "linked queue test begin alloc count =%d", allocator->alloc_count);
-
-    q = OBJECT_NEW(allocator, Linked_Queue, NULL);
-
-    q->add(q, &t0);
-    q->add(q, &t1);
-    q->add(q, &t2);
-    q->add(q, &t3);
-    q->add(q, &t4);
-    q->add(q, &t5);
-
-    q->for_each(q, queue_print);
-
-    q->remove(q, (void **)&t);
-    dbg_str(DBG_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
-    q->remove(q, (void **)&t);
-    dbg_str(DBG_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
-    q->remove(q, (void **)&t);
-    dbg_str(DBG_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
-    q->remove(q, (void **)&t);
-    dbg_str(DBG_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
-    q->remove(q, (void **)&t);
-    dbg_str(DBG_DETAIL, "remove , t->a=%d, t->b=%d", t->a, t->b);
-
-    q->for_each(q, queue_print);
-
-    object_destroy(q);
-}
-
-
-
-static int test_Linked_Queue_clear()
-{
-    int ret,i,j;
-    int buf[10];
-    Queue * queue ;
-    allocator_t *allocator = allocator_get_default_alloc();
-
-    queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
-    
-    
-    for( i = 0; i < 10; i++)
-    {
-        /* code */
-        queue->add(queue,&i);
-        buf[i] = i;
-    }
-
-    dbg_str(DBG_DETAIL, " queue size: %d ", queue->size(queue));
-    dbg_str(DBG_DETAIL, " queue is is_empty: %d ", queue->is_empty(queue));
-   
-    // for( i = 0; i < 10; i++)
-    // {
-    //     /* code */ 
-    //     queue->remove(queue,(void **)&buf[i]);
-    // }
-
-    // dbg_str(DBG_DETAIL, " queue size: %d ", queue->size(queue));
-    // dbg_str(DBG_DETAIL, " queue is is_empty: %d ", queue->is_empty(queue));
-
-   
-    // if ( queue == NULL ) {
-    //     dbg_str(DBG_DETAIL, " queue = NULL  ");    
-    // }
-    dbg_str(DBG_DETAIL, " before clear queue size: %d ", queue->size(queue));
-    queue->clear(queue);
-    dbg_str(DBG_DETAIL, " after clear queue size: %d ", queue->size(queue));
-
-
-    object_destroy(queue);
-
-
-    return 1;
-
-}
-
-static int test_Linked_Queue()
-{
-    int ret,i,j;
-    int buf[10];
-    Queue * queue ;
-    allocator_t *allocator = allocator_get_default_alloc();
-
-    queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
-    
-    
-    for( i = 0; i < 10; i++)
-    {
-        /* code */
-        queue->add(queue,&i);
-        buf[i] = i;
-    }
-
-    dbg_str(DBG_DETAIL, " queue size: %d ", queue->size(queue));
-    dbg_str(DBG_DETAIL, " queue is is_empty: %d ", queue->is_empty(queue));
-   
-    for( i = 0; i < 10; i++)
-    {
-        /* code */
-        
-        queue->remove(queue,(void **)&buf[i]);
-        
-    }
-
-    dbg_str(DBG_DETAIL, " queue size: %d ", queue->size(queue));
-    dbg_str(DBG_DETAIL, " queue is is_empty: %d ", queue->is_empty(queue));
-
-    object_destroy(queue);
-
-
-    return 1;
-}
-//test_Linked_Queue_clear
-REGISTER_TEST_FUNC(test_Linked_Queue_clear);
-REGISTER_TEST_FUNC(test_Linked_Queue);
-
-
 int Test_peek_linked_queue_peek()
 {
     int ret,i,j;
@@ -462,3 +332,68 @@ end:
     return ret;
 }
 REGISTER_TEST_FUNC(Test_peek_linked_queue_peek);
+
+static int Test_linked_queue_clear()
+{
+    int ret,i,j;
+    int buf[10];
+    Queue * queue ;
+    allocator_t *allocator = allocator_get_default_alloc();
+
+    queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
+    
+    for( i = 0; i < 10; i++) {
+        queue->add(queue,&i);
+        buf[i] = i;
+    }
+
+    queue->clear(queue);
+    
+    if (queue->size(queue) == 0) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
+
+    object_destroy(queue);
+
+    return ret;
+
+}
+REGISTER_TEST_FUNC(Test_linked_queue_clear);
+
+static int test_linked_queue_is_empty()
+{
+    int ret,i,j;
+    int buf[10];
+    Queue * queue ;
+    allocator_t *allocator = allocator_get_default_alloc();
+
+    queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
+    
+    for( i = 0; i < 10; i++) {
+        queue->add(queue,&i);
+        buf[i] = i;
+    }
+
+    if (queue->is_empty(queue)) {
+        ret = 0;
+        goto end;
+    } 
+    for( i = 0; i < 10; i++) {
+        queue->remove(queue, NULL);
+    }
+
+    if (queue->is_empty(queue)) {
+        ret = 1;
+        goto end;
+    } 
+
+end:
+    object_destroy(queue);
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_linked_queue_is_empty);
+
+
