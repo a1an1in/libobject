@@ -139,7 +139,7 @@ static int __start(Thread *thread)
 
 static int __set_start_routine(Thread *thread, void *routine)
 {
-    thread->is_run = 1;
+   
     thread->start_routine = routine;
     return 0;
 }
@@ -274,7 +274,7 @@ static void *func(void *arg)
         }
         dbg_str(DBG_IMPORTANT," i= %d   I= %d " ,i,thread->tid);
     }
-
+    
     return 1;
 }
 
