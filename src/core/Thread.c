@@ -44,6 +44,7 @@ static int __construct(Thread *thread, char *init_str)
     char buf[2048];
     thread->is_run = 0;
     thread->arg = NULL;
+    thread->joinable = 1;
     dbg_str(DBG_IMPORTANT, "Thread construct, thread addr:%p", thread);
 
     return 0;
@@ -97,6 +98,8 @@ static int __set(Thread *thread, char *attrib, void *value)
         thread->run = value;
     }else if (strcmp(attrib, "set_run_routine") == 0) {
         thread->set_run_routine = value;
+    }else if (strcmp(attrib, "join") == 0) {
+        thread->join = value;
     }
     else {
         dbg_str(OBJ_DETAIL, "thread set, not support %s setting", attrib);
@@ -203,6 +206,14 @@ static void __run(Thread *thread)
     }
 }
 
+static void __join(Thread * thread)
+{
+    if ( thread->joinable ) {
+        pthread_join(thread->tid,NULL);
+        thread->joinable = 0;
+    }
+}
+
 static class_info_entry_t thread_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -218,7 +229,8 @@ static class_info_entry_t thread_class_info[] = {
     [11 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "run", __run, sizeof(void *)}, 
     [12 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_run_routine", __set_run_routine, sizeof(void *)}, 
     [13 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_status", __get_status, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_END}, 
+    [14 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "join", __join, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_END}, 
 };
 
 REGISTER_CLASS("Thread", thread_class_info);
@@ -286,6 +298,8 @@ int test_safe_thread()
     thread = OBJECT_NEW(allocator, Thread, NULL);
     thread->set_run_routine(thread,func);
     thread->start(thread);
+
+    thread->join(thread);
 
 }
 
