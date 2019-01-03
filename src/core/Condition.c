@@ -110,7 +110,7 @@ static int __wait(Condition *condition)
 { 
      
      Mutex_Lock * mutex_lock=(Mutex_Lock *)condition->lock;
-     pthread_cond_wait(condition->cond,mutex_lock->mutex);
+     pthread_cond_wait(condition->cond,&(mutex_lock->mutex));
 }
 
 static int __signal(Condition *condition)
