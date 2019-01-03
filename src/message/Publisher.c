@@ -108,7 +108,7 @@ __publish_message(Publisher *publisher, char *what, void *opaque)
     Centor *centor = (Centor *)publisher->centor;
     allocator_t *allocator = publisher->obj.allocator;
 
-    dbg_str(DBG_DETAIL, "publish raw message, publisher %p, what %s, opaque %p", publisher, what, opaque);
+    dbg_str(DBG_IMPORTANT, "publish raw message, publisher %p, what %s, opaque %p", publisher, what, opaque);
 
     message = message_alloc(allocator);
     message_set(message, "what", what);

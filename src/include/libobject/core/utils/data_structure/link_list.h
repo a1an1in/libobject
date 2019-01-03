@@ -123,8 +123,6 @@ llist_get_count(llist_t *llist)
 static inline void *
 llist_pos_get_pointer(list_pos_t *pos)
 {
-    dbg_str(DBG_DETAIL, "llist_pos_get_pointer: %p ",
-            (void *)(container_of(pos->list_head_p, list_t, list_head))->data);
 	return (void *)(container_of(pos->list_head_p, list_t, list_head))->data;
 }
 
