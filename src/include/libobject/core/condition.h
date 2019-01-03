@@ -23,9 +23,9 @@ struct condition_s{
     int (*signal)(Condition *condition);
     int (*broadcast)(Condition *condition);
 
-    Mutex_Lock *lock;
-    pthread_condattr_t * attr;
-    pthread_cond_t * cond;
+    Mutex_Lock *       lock;
+    pthread_condattr_t attr;
+    pthread_cond_t     cond;
 };
 
 #endif

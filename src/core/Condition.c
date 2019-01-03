@@ -36,17 +36,22 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/condition.h>
 #include <libobject/event/event_base.h>
+#include <libobject/core/thread.h>
+#include <libobject/core/mutex_lock.h>
+#include <libobject/core/linked_queue.h>
 
 static int __construct(Condition *condition, char *init_str)
 {
     allocator_t *allocator = condition->obj.allocator;
     configurator_t * c;
     char buf[2048];
-    
-    condition->cond = pthread_cond_init(condition->cond,NULL);
-    dbg_str(DBG_DETAIL, "condition construct, condition addr:%p", condition);
+    int ret;
 
-    return 0;
+    ret = pthread_cond_init(&condition->cond,NULL);
+    condition->lock = NULL;
+    dbg_str(DBG_DETAIL, "condition construct, condition addr:%p ret:%d", condition,ret );
+
+    return ret;
 }
 
 static int __deconstrcut(Condition *condition)
@@ -54,11 +59,8 @@ static int __deconstrcut(Condition *condition)
     dbg_str(DBG_DETAIL, "condition deconstruct, condition addr:%p", condition);
     int ret;
     void *tret;
-    if ( condition->cond ) {
-        pthread_cond_destroy(condition->cond);
-        condition->cond = NULL;
-    }
-    return 0;
+    ret = pthread_cond_destroy(&condition->cond);   
+    return ret;
 }
 
 static int __set(Condition *condition, char *attrib, void *value)
@@ -71,8 +73,7 @@ static int __set(Condition *condition, char *attrib, void *value)
         condition->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         condition->deconstruct = value;
-    }
-    else if (strcmp(attrib, "setlock") == 0) {
+    } else if (strcmp(attrib, "setlock") == 0) {
         condition->setlock = value;
     } else if (strcmp(attrib, "wait") == 0) {
         condition->wait = value;
@@ -100,27 +101,27 @@ static void *__get(Condition *obj, char *attrib)
     return NULL;
 }
 
-static int __setlock(Condition *condition, Lock *lock)
+static int __setlock(Condition *condition, Mutex_Lock *lock)
 {
-    if ( lock != NULL )
-        condition->lock = lock;
+   
+    condition->lock = lock;
+    //dbg_str(DBG_IMPORTANT,"Mutex_Lock addr: %p",condition->lock);
+    return 0; 
 }
 
 static int __wait(Condition *condition)
-{ 
-     
-     Mutex_Lock * mutex_lock=(Mutex_Lock *)condition->lock;
-     pthread_cond_wait(condition->cond,&(mutex_lock->mutex));
+{     
+     return pthread_cond_wait(&(condition->cond),&(condition->lock->mutex));
 }
 
 static int __signal(Condition *condition)
 {
-    pthread_cond_signal(condition->cond);
+    return pthread_cond_signal(&condition->cond);
 }
 
 static int __broadcast(Condition *condition)
 {
-     pthread_cond_broadcast(condition->cond);
+     return pthread_cond_broadcast(&condition->cond);
 }
 
 static class_info_entry_t condition_class_info[] = {
@@ -160,3 +161,127 @@ void test_obj_condition()
     object_destroy(condition);
     cfg_destroy(c);
 }
+
+
+
+ static Condition    * condition  ;
+ static Mutex_Lock   * mutex_lock  ;
+ static Linked_Queue * queue      ;
+
+
+pthread_cond_t cond ;
+pthread_mutex_t mutex;
+
+static void * producer(void *arg)
+{
+    sleep(2);
+    int buf[6]={1,2,3,4,5,56};
+    int i;
+
+    //mutex_lock->lock(mutex_lock);
+    #if 0
+    pthread_mutex_lock(&mutex);
+    for( i = 0 ; i < sizeof(buf)/sizeof(int); i++ ) {
+        queue->add(queue,&buf[i]);
+    }
+
+    pthread_cond_signal(&cond);
+    dbg_str(DBG_IMPORTANT,"producer notify");
+    pthread_mutex_unlock(&mutex);
+    #else
+    mutex_lock->lock(mutex_lock);
+    for( i = 0 ; i < sizeof(buf)/sizeof(int); i++ ) {
+        queue->add(queue,&buf[i]);
+    }
+    
+    condition->signal(condition);
+    dbg_str(DBG_IMPORTANT,"producer notify");
+    mutex_lock->unlock(mutex_lock);
+
+    #endif 
+
+    return NULL;
+}
+
+ static void * consumer(void *arg)
+{
+
+    void *element;
+    
+    #if 0
+    
+     pthread_mutex_lock(&mutex);
+     //queue->is_empty(queue);
+     while(queue->is_empty(queue)) {
+        pthread_cond_wait(&cond,&mutex);
+     }
+     queue->peek_back(queue,&element);
+     pthread_mutex_unlock(&mutex);
+
+     #else
+
+     mutex_lock->lock(mutex_lock);
+     while (queue->is_empty(queue)) {
+
+          condition->wait(condition);
+     }
+
+     queue->peek_back(queue,&element);
+
+     mutex_lock->unlock(mutex_lock);
+     #endif 
+
+    dbg_str(DBG_IMPORTANT,"element value:%d ",*(int *)element);
+    queue->clear(queue);
+    
+    return NULL;
+}
+
+
+static int test_condition_produce_consume()
+{
+
+    
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;
+
+    condition  = OBJECT_NEW(allocator,Condition,NULL);
+    mutex_lock = OBJECT_NEW(allocator,Mutex_Lock,NULL);
+    queue      = OBJECT_NEW(allocator,Linked_Queue,NULL);
+
+    condition->setlock(condition,mutex_lock);
+
+    dbg_str(DBG_ERROR,"Condition addr: %p",condition);
+    dbg_str(DBG_ERROR,"Mutex_Lock addr: %p",mutex_lock);
+    dbg_str(DBG_ERROR,"queue addr: %p",queue);
+
+    
+
+    Thread * t1 = OBJECT_NEW(allocator,Thread,NULL);
+    t1->set_run_routine(t1,producer);
+    t1->start(t1);
+
+
+    Thread * t2 = OBJECT_NEW(allocator,Thread,NULL);
+    t2->set_run_routine(t2,consumer);
+    t2->start(t2);
+    
+
+    
+    t1->join(t1);
+    t2->join(t2);
+
+    object_destroy(condition);
+    object_destroy(mutex_lock);
+    object_destroy(queue);
+    
+    return 1;
+}
+
+
+REGISTER_STANDALONE_TEST_FUNC(test_condition_produce_consume);
+
+
+
+
+
