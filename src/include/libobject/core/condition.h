@@ -24,6 +24,8 @@ struct condition_s{
     int (*broadcast)(Condition *condition);
 
     Lock *lock;
+    pthread_condattr_t * attr;
+    pthread_cond_t * cond;
 };
 
 #endif

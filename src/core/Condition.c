@@ -42,7 +42,8 @@ static int __construct(Condition *condition, char *init_str)
     allocator_t *allocator = condition->obj.allocator;
     configurator_t * c;
     char buf[2048];
-
+    
+    condition->cond = pthread_cond_init(condition->cond,NULL);
     dbg_str(DBG_DETAIL, "condition construct, condition addr:%p", condition);
 
     return 0;
@@ -53,7 +54,10 @@ static int __deconstrcut(Condition *condition)
     dbg_str(DBG_DETAIL, "condition deconstruct, condition addr:%p", condition);
     int ret;
     void *tret;
-
+    if ( condition->cond ) {
+        pthread_cond_destroy(condition->cond);
+        condition->cond = NULL;
+    }
     return 0;
 }
 
@@ -98,22 +102,25 @@ static void *__get(Condition *obj, char *attrib)
 
 static int __setlock(Condition *condition, Lock *lock)
 {
-    dbg_str(DBG_DETAIL, "not support now");
+    if ( lock != NULL )
+        condition->lock = lock;
 }
 
 static int __wait(Condition *condition)
-{
-    dbg_str(DBG_DETAIL, "not support now");
+{ 
+     
+     Mutex_Lock * mutex_lock=(Mutex_Lock *)condition->lock;
+     pthread_cond_wait(condition->cond,mutex_lock->mutex);
 }
 
 static int __signal(Condition *condition)
 {
-    dbg_str(DBG_DETAIL, "not support now");
+    pthread_cond_signal(condition->cond);
 }
 
 static int __broadcast(Condition *condition)
 {
-    dbg_str(DBG_DETAIL, "not support now");
+     pthread_cond_broadcast(condition->cond);
 }
 
 static class_info_entry_t condition_class_info[] = {
