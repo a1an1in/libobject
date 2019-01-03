@@ -75,12 +75,9 @@ static int __construct(Subscriber *subscriber, char *init_str)
 
     subscriber->message_handler = message_handler;
 
-    config = cfg_alloc(allocator); 
-    cfg_config(config, "/RBTree_Map", CJSON_NUMBER, "key_type", "1");
-    subscriber->method_map = OBJECT_NEW(allocator, RBTree_Map, config->buf);
+    subscriber->method_map = OBJECT_NEW(allocator, RBTree_Map, NULL);
     subscriber->method_map->set_cmp_func(subscriber->method_map, 
                                          string_key_cmp_func);
-    cfg_destroy(config);
 
     return 0;
 }

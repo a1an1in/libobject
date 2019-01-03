@@ -39,9 +39,7 @@
 /usr/local/include/libobject/net/server/server.h
 /usr/local/include/libobject/net/http/Client.h
 /usr/local/include/libobject/net/http/Response.h
-/usr/local/include/libobject/net/http/.Server.h.swp
 /usr/local/include/libobject/net/http/Request.h
-/usr/local/include/libobject/net/http/.Client.h.swp
 /usr/local/include/libobject/net/http/Server.h
 /usr/local/include/libobject/net/net_task.h
 /usr/local/include/libobject/net/client/client.h

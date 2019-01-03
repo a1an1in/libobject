@@ -140,8 +140,7 @@ static int __construct(Centor *centor, char *init_str)
                                message_centor_work_callback,
                                NULL, centor);
 
-    centor->message_queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
-
+    centor->message_queue  = OBJECT_NEW(allocator, Linked_Queue, NULL);
     centor->subscriber_map = OBJECT_NEW(allocator, RBTree_Map, NULL);
 
     return 0;
