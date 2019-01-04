@@ -22,6 +22,8 @@ struct thread_s{
     int (*get_status)(Thread *);
     int (*stop)(Thread *);
 
+    void (*join)(Thread *);
+
     int (*set_run_routine)(Thread *,void *);
 	/*virtual methods reimplement*/
     void *(*start_routine)(void *);
@@ -34,6 +36,7 @@ struct thread_s{
     pthread_t tid;
     void *opaque;
     int is_run;
+    int joinable;
 };
 
 #endif
