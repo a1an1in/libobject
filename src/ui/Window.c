@@ -50,11 +50,17 @@ static int __deconstrcut(Window *window)
 {
     dbg_str(DBG_IMPORTANT, "window deconstruct, window addr:%p", window);
 
+    dbg_str(DBG_IMPORTANT, "run at here");
     window->destroy_background(window);
-    window->close_window(window);
+    dbg_str(DBG_IMPORTANT, "run at here");
     window->destroy_event(window);
+    dbg_str(DBG_IMPORTANT, "run at here");
     window->destroy_font(window);
+    dbg_str(DBG_IMPORTANT, "run at here");
     window->destroy_render(window);
+    dbg_str(DBG_IMPORTANT, "run at here");
+    window->close_window(window);
+    dbg_str(DBG_IMPORTANT, "run at here");
 
     return 0;
 }
@@ -108,6 +114,8 @@ static int __set(Window *window, char *attrib, void *value)
         window->remove_timer = value;
     } else if (strcmp(attrib, "destroy_timer") == 0) {
         window->destroy_timer = value;
+    } else if (strcmp(attrib, "poll_event") == 0) {
+        window->poll_event = value;
     }
     /*inherited methods*/
     else if (strcmp(attrib, "add_component") == 0) {
@@ -244,12 +252,13 @@ static class_info_entry_t window_class_info[] = {
     [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_timer", NULL, sizeof(void *)}, 
     [22] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_timer", NULL, sizeof(void *)}, 
     [23] = {ENTRY_TYPE_IFUNC_POINTER, "", "add_component", NULL, sizeof(void *)}, 
-    [24] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [25] = {ENTRY_TYPE_UINT8_T, "uint8_t", "render_type", NULL, 0}, 
-    [26] = {ENTRY_TYPE_UINT32_T, "", "screen_width", NULL, sizeof(short)}, 
-    [27] = {ENTRY_TYPE_UINT32_T, "", "screen_height", NULL, sizeof(short)}, 
-    [28] = {ENTRY_TYPE_NORMAL_POINTER, "Render", "render", NULL, sizeof(float)}, 
-    [29] = {ENTRY_TYPE_END}, 
+    [24] = {ENTRY_TYPE_VFUNC_POINTER, "", "poll_event", NULL, sizeof(void *)}, 
+    [25] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
+    [26] = {ENTRY_TYPE_UINT8_T, "uint8_t", "render_type", NULL, 0}, 
+    [27] = {ENTRY_TYPE_UINT32_T, "", "screen_width", NULL, sizeof(short)}, 
+    [28] = {ENTRY_TYPE_UINT32_T, "", "screen_height", NULL, sizeof(short)}, 
+    [29] = {ENTRY_TYPE_NORMAL_POINTER, "Render", "render", NULL, sizeof(float)}, 
+    [30] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Window", window_class_info);
 

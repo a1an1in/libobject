@@ -79,6 +79,8 @@ static int __set(Window *window, char *attrib, void *value)
         w->remove_timer = value;
     } else if (strcmp(attrib, "destroy_timer") == 0) {
         w->destroy_timer = value;
+    } else if (strcmp(attrib, "poll_event") == 0) {
+        w->poll_event = value;
     }
     else {
         dbg_str(SDL_INTERFACE_DETAIL, "sdl window set, not support %s setting", attrib);
@@ -233,18 +235,24 @@ static int __close_window(Window *window)
 
     dbg_str(SDL_INTERFACE_DETAIL, "sdl window close_window");
 
+    dbg_str(DBG_IMPORTANT, "run at here");
     //release screen surface
     if (r->screen_surface)
         SDL_FreeSurface( r->screen_surface );
 
+    dbg_str(DBG_IMPORTANT, "run at here");
     //destroy render
     r->destroy((Render *)r);
     
+    dbg_str(DBG_IMPORTANT, "run at here");
     //Destroy window
-    SDL_DestroyWindow(w->sdl_window);
+    if (w->sdl_window)
+        SDL_DestroyWindow(w->sdl_window);
 
+    dbg_str(DBG_IMPORTANT, "run at here");
     //Quit SDL subsystems
     SDL_Quit();
+    dbg_str(DBG_IMPORTANT, "run at here");
 }
 
 static void *__create_timer(Window *window)
@@ -267,6 +275,17 @@ static int __destroy_timer(Window *window, void *timer)
     object_destroy(timer);
 }
 
+static int __poll_event(Window *window)
+{
+    __Event *event;
+
+    event = window->event;
+
+    event->poll_event(event, window);
+
+    return 0;
+}
+
 static class_info_entry_t sdl_window_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Window", "window", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -285,7 +304,8 @@ static class_info_entry_t sdl_window_class_info[] = {
     [14] = {ENTRY_TYPE_FUNC_POINTER, "", "create_timer", __create_timer, sizeof(void *)}, 
     [15] = {ENTRY_TYPE_FUNC_POINTER, "", "remove_timer", __remove_timer, sizeof(void *)}, 
     [16] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_timer", __destroy_timer, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_END}, 
+    [17] = {ENTRY_TYPE_FUNC_POINTER, "", "poll_event", __poll_event, sizeof(void *)}, 
+    [18] = {ENTRY_TYPE_END}, 
 
 };
 REGISTER_CLASS("Sdl_Window", sdl_window_class_info);

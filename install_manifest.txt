@@ -30,6 +30,7 @@
 /usr/local/include/libobject/ui/component.h
 /usr/local/include/libobject/ui/sdl_character.h
 /usr/local/include/libobject/ui/grid_layout.h
+/usr/local/include/libobject/ui/.window.h.swp
 /usr/local/include/libobject/ui/image.h
 /usr/local/include/libobject/ui/render.h
 /usr/local/include/libobject/ui/sdl_image.h

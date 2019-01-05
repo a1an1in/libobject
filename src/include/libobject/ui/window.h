@@ -38,6 +38,7 @@ struct window_s{
     void *(*create_timer)(Window *window);
     int (*remove_timer)(Window *window, void *timer);
     int (*destroy_timer)(Window *window, void *timer);
+    int (*poll_event)(Window *window);
 
     /*inherit methods*/
     int (*add_component)(Container *obj, void *pos, void *component);

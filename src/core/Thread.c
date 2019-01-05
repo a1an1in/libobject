@@ -57,14 +57,17 @@ static int __deconstrcut(Thread *thread)
 
     dbg_str(DBG_IMPORTANT, "thread deconstruct, thread addr:%p", thread);
 
+    dbg_str(DBG_IMPORTANT, "thread deconstruct, out");
     if (thread->tid !=0) {
-        ret = pthread_join(thread->tid, &tret);
-        if (ret != 0) {
-            dbg_str(OBJ_WARNNING, "can't join with thread tid=%d", thread->tid);
-        }
+        /*
+         *ret = pthread_join(thread->tid, &tret);
+         *if (ret != 0) {
+         *    dbg_str(OBJ_WARNNING, "can't join with thread tid=%d", thread->tid);
+         *}
+         */
     }
 
-    dbg_str(OBJ_DETAIL, "thread deconstruct, out");
+    dbg_str(DBG_IMPORTANT, "thread deconstruct, out");
 
     return 0;
 }
@@ -211,6 +214,7 @@ static void __join(Thread * thread)
     if ( thread->joinable ) {
         pthread_join(thread->tid,NULL);
         thread->joinable = 0;
+        thread->tid = 0;
     }
 }
 

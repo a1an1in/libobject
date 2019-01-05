@@ -34,6 +34,7 @@ struct sdl_window_s{
     void *(*create_timer)(Window *window);
     int (*remove_timer)(Window *window, void *timer);
     int (*destroy_timer)(Window *window, void *timer);
+    int (*poll_event)(Window *window);
 
 	SDL_Window* sdl_window;
 };

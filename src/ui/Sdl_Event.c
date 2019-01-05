@@ -377,8 +377,6 @@ int sdl_event()
 {
     allocator_t *allocator = allocator_get_default_alloc();
     Window *window;
-    Render *g;
-    __Event *event;
     char *set_str;
     char buf[2048];
 
@@ -388,13 +386,11 @@ int sdl_event()
      *window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
      */
     window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
-    g       = window->render;
-    event   = window->event;
 
     object_dump(window, "Sdl_Window", buf, 2048);
     dbg_str(DBG_DETAIL, "Window dump: %s", buf);
 
-    event->poll_event(event, window);
+    window->poll_event(window);
 
     object_destroy(window);
 
