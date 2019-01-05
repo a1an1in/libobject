@@ -31,16 +31,16 @@ struct text_field_s{
 	int (*load_resources)(Component *component, void *graph);
 	int (*load_ascii_info)(Component *component,void *graph);
 
-	int (*key_text_pressed)(Component *component,char c, void *graph);
-	int (*key_backspace_pressed)(Component *component,void *graph);
-	int (*key_up_pressed)(Component *component,void *graph);
-	int (*key_down_pressed)(Component *component,void *graph);
-	int (*key_left_pressed)(Component *component,void *graph);
-	int (*key_right_pressed)(Component *component,void *graph);
-	int (*key_pageup_pressed)(Component *component,void *graph);
-	int (*key_pagedown_pressed)(Component *component,void *graph);
-	int (*key_onelineup_pressed)(Component *component,void *graph);
-	int (*key_onelinedown_pressed)(Component *component,void *graph);
+	int (*on_key_text_pressed)(Component *component,char c, void *graph);
+	int (*on_key_backspace_pressed)(Component *component,void *graph);
+	int (*on_key_up_pressed)(Component *component,void *graph);
+	int (*on_key_down_pressed)(Component *component,void *graph);
+	int (*on_key_left_pressed)(Component *component,void *graph);
+	int (*on_key_right_pressed)(Component *component,void *graph);
+	int (*on_key_pageup_pressed)(Component *component,void *graph);
+	int (*on_key_pagedown_pressed)(Component *component,void *graph);
+	int (*on_key_onelineup_pressed)(Component *component,void *graph);
+	int (*on_key_onelinedown_pressed)(Component *component,void *graph);
 
 #define MAX_NAME_LEN 50
     char name[MAX_NAME_LEN];

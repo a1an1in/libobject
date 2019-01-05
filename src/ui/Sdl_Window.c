@@ -81,6 +81,22 @@ static int __set(Window *window, char *attrib, void *value)
         w->destroy_timer = value;
     } else if (strcmp(attrib, "poll_event") == 0) {
         w->poll_event = value;
+    } else if (strcmp(attrib, "set_window_title") == 0) {
+        w->set_window_title = value;
+    } else if (strcmp(attrib, "set_window_icon") == 0) {
+        w->set_window_icon = value;
+    } else if (strcmp(attrib, "set_window_size") == 0) {
+        w->set_window_size = value;
+    } else if (strcmp(attrib, "set_window_position") == 0) {
+        w->set_window_position = value;
+    } else if (strcmp(attrib, "full_screen") == 0) {
+        w->full_screen = value;
+    } else if (strcmp(attrib, "maximize_window") == 0) {
+        w->maximize_window = value;
+    } else if (strcmp(attrib, "minimize_window") == 0) {
+        w->minimize_window = value;
+    } else if (strcmp(attrib, "restore_window") == 0) {
+        w->restore_window = value;
     }
     else {
         dbg_str(SDL_INTERFACE_DETAIL, "sdl window set, not support %s setting", attrib);
@@ -177,7 +193,7 @@ static int __init_window(Window *window)
         ret = -1;
     } else {
         //Create window
-        w->sdl_window = SDL_CreateWindow("libcutils demo", 
+        w->sdl_window = SDL_CreateWindow("libobject demo", 
                                          SDL_WINDOWPOS_UNDEFINED, 
                                          SDL_WINDOWPOS_UNDEFINED, 
                                          window->screen_width, 
@@ -286,6 +302,47 @@ static int __poll_event(Window *window)
     return 0;
 }
 
+static void __set_window_title(Window *window, void *title) 
+{
+    Sdl_Window *w = (Sdl_Window *)window;
+    dbg_str(DBG_DETAIL, "window moved");
+}
+
+static void __set_window_icon(Window *window, void *title) 
+{
+    dbg_str(DBG_DETAIL, "window moved");
+}
+static void __set_window_size(Window *window, int width, int hight) 
+{
+    dbg_str(DBG_DETAIL, "window moved");
+}
+
+static void __set_window_position(Window *window, int x, int y) 
+{
+    dbg_str(DBG_DETAIL, "set window position");
+}
+
+static void __full_screen(Window *window, int x, int y) 
+{
+    dbg_str(DBG_DETAIL, "set window position");
+}
+
+static void __maximize_window(Window *window) 
+{
+    dbg_str(DBG_DETAIL, "set window position");
+}
+
+static void __minimize_window(Window *window) 
+{
+    dbg_str(DBG_DETAIL, "set window position");
+}
+
+static void __restore_window(Window *window) 
+{
+    dbg_str(DBG_DETAIL, "set window position");
+}
+
+
 static class_info_entry_t sdl_window_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Window", "window", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -305,8 +362,15 @@ static class_info_entry_t sdl_window_class_info[] = {
     [15] = {ENTRY_TYPE_FUNC_POINTER, "", "remove_timer", __remove_timer, sizeof(void *)}, 
     [16] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_timer", __destroy_timer, sizeof(void *)}, 
     [17] = {ENTRY_TYPE_FUNC_POINTER, "", "poll_event", __poll_event, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_END}, 
-
+    [18] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_title", __set_window_title, sizeof(void *)}, 
+    [19] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_icon", __set_window_icon, sizeof(void *)}, 
+    [20] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_size", __set_window_size, sizeof(void *)}, 
+    [21] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_position", __set_window_position, sizeof(void *)}, 
+    [22] = {ENTRY_TYPE_FUNC_POINTER, "", "full_screen", __full_screen, sizeof(void *)}, 
+    [23] = {ENTRY_TYPE_FUNC_POINTER, "", "maximize_window", __maximize_window, sizeof(void *)}, 
+    [24] = {ENTRY_TYPE_FUNC_POINTER, "", "minimize_window", __minimize_window, sizeof(void *)}, 
+    [25] = {ENTRY_TYPE_FUNC_POINTER, "", "restore_window", __restore_window, sizeof(void *)}, 
+    [26] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Sdl_Window", sdl_window_class_info);
 

@@ -37,7 +37,7 @@ static int __construct(Component *component, char *init_str)
 {
     dbg_str(DBG_DETAIL, "component construct, component addr:%p", component);
 
-    component->mouse_entered_flag = 0;
+    component->on_mouse_entered_flag = 0;
 
     return 0;
 }
@@ -75,40 +75,42 @@ static int __set(Component *component, char *attrib, void *value)
         component->load_resources = value;
     } else if (strcmp(attrib, "unload_resources") == 0) {
         component->unload_resources = value;
-    } else if (strcmp(attrib, "key_text_pressed") == 0) {
-        component->key_text_pressed = value;
-    } else if (strcmp(attrib, "key_backspace_pressed") == 0) {
-        component->key_backspace_pressed = value;
-    } else if (strcmp(attrib, "key_up_pressed") == 0) {
-        component->key_up_pressed = value;
-    } else if (strcmp(attrib, "key_down_pressed") == 0) {
-        component->key_down_pressed = value;
-    } else if (strcmp(attrib, "key_left_pressed") == 0) {
-        component->key_left_pressed = value;
-    } else if (strcmp(attrib, "key_right_pressed") == 0) {
-        component->key_right_pressed = value;
-    } else if (strcmp(attrib, "key_pageup_pressed") == 0) {
-        component->key_pageup_pressed = value;
-    } else if (strcmp(attrib, "key_pagedown_pressed") == 0) {
-        component->key_pagedown_pressed = value;
-    } else if (strcmp(attrib, "key_onelineup_pressed") == 0) {
-        component->key_onelineup_pressed = value;
-    } else if (strcmp(attrib, "key_onelinedown_pressed") == 0) {
-        component->key_onelinedown_pressed = value;
-    } else if (strcmp(attrib, "mouse_pressed") == 0) {
-        component->mouse_pressed = value;
-    } else if (strcmp(attrib, "mouse_moved") == 0) {
-        component->mouse_moved = value;
-    } else if (strcmp(attrib, "mouse_entered") == 0) {
-        component->mouse_entered = value;
-    } else if (strcmp(attrib, "mouse_exited") == 0) {
-        component->mouse_exited = value;
-    } else if (strcmp(attrib, "mouse_wheel_moved") == 0) {
-        component->mouse_wheel_moved = value;
-    } else if (strcmp(attrib, "window_moved") == 0) {
-        component->window_moved = value;
-    } else if (strcmp(attrib, "window_resized") == 0) {
-        component->window_resized = value;
+    } else if (strcmp(attrib, "on_key_text_pressed") == 0) {
+        component->on_key_text_pressed = value;
+    } else if (strcmp(attrib, "on_key_backspace_pressed") == 0) {
+        component->on_key_backspace_pressed = value;
+    } else if (strcmp(attrib, "on_key_up_pressed") == 0) {
+        component->on_key_up_pressed = value;
+    } else if (strcmp(attrib, "on_key_down_pressed") == 0) {
+        component->on_key_down_pressed = value;
+    } else if (strcmp(attrib, "on_key_left_pressed") == 0) {
+        component->on_key_left_pressed = value;
+    } else if (strcmp(attrib, "on_key_right_pressed") == 0) {
+        component->on_key_right_pressed = value;
+    } else if (strcmp(attrib, "on_key_pageup_pressed") == 0) {
+        component->on_key_pageup_pressed = value;
+    } else if (strcmp(attrib, "on_key_pagedown_pressed") == 0) {
+        component->on_key_pagedown_pressed = value;
+    } else if (strcmp(attrib, "on_key_onelineup_pressed") == 0) {
+        component->on_key_onelineup_pressed = value;
+    } else if (strcmp(attrib, "on_key_onelinedown_pressed") == 0) {
+        component->on_key_onelinedown_pressed = value;
+    } else if (strcmp(attrib, "on_key_esc_pressed") == 0) {
+        component->on_key_esc_pressed = value;
+    } else if (strcmp(attrib, "on_mouse_pressed") == 0) {
+        component->on_mouse_pressed = value;
+    } else if (strcmp(attrib, "on_mouse_moved") == 0) {
+        component->on_mouse_moved = value;
+    } else if (strcmp(attrib, "on_mouse_entered") == 0) {
+        component->on_mouse_entered = value;
+    } else if (strcmp(attrib, "on_mouse_exited") == 0) {
+        component->on_mouse_exited = value;
+    } else if (strcmp(attrib, "on_mouse_wheel_moved") == 0) {
+        component->on_mouse_wheel_moved = value;
+    } else if (strcmp(attrib, "on_window_moved") == 0) {
+        component->on_window_moved = value;
+    } else if (strcmp(attrib, "on_window_resized") == 0) {
+        component->on_window_resized = value;
     } else if (strcmp(attrib, "is_mouse_over_component") == 0) {
         component->is_mouse_over_component = value;
     } 
@@ -149,8 +151,8 @@ int __add_event_listener(Component *component, event_listener_t *listener)
 
 int __add_event_listener_cb(Component *component, char *name, void *value)
 {
-    if (strcmp(name, "do_mouse_pressed") == 0) {
-        component->listener.do_mouse_pressed = value;
+    if (strcmp(name, "do_on_mouse_pressed") == 0) {
+        component->listener.do_on_mouse_pressed = value;
     } else {
         dbg_str(DBG_WARNNING, "add_event_listener_cb %s, not support now", name);
     }
@@ -226,7 +228,7 @@ static int __draw(Component *component, void *render)
     container->for_each_component(container, draw_subcomponent_foreach_cb, g);
 }
 
-static void __key_text_pressed(Component *component, char c, void *render)
+static void __on_key_text_pressed(Component *component, char c, void *render)
 {
     Container *container = (Container *)component;
     Render *g             = (Render *)render;
@@ -239,10 +241,14 @@ static void __key_text_pressed(Component *component, char c, void *render)
         return;
     }
 
-    if (cur->key_text_pressed) cur->key_text_pressed(cur, c, g);
+    if (cur->on_key_text_pressed) cur->on_key_text_pressed(cur, c, g);
 }
 
-static void __key_up_pressed(Component *component, void *render) 
+static void __on_key_digit_pressed(Component *component, int d, void *render)
+{
+}
+
+static void __on_key_up_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
     Render *g             = (Render *)render;
@@ -253,11 +259,11 @@ static void __key_up_pressed(Component *component, void *render)
         dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
         return;
     }
-    if (cur->key_up_pressed) cur->key_up_pressed(cur, g); 
+    if (cur->on_key_up_pressed) cur->on_key_up_pressed(cur, g); 
 
 }
 
-static void __key_down_pressed(Component *component, void *render) 
+static void __on_key_down_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
     Render *g             = (Render *)render;
@@ -268,10 +274,10 @@ static void __key_down_pressed(Component *component, void *render)
         dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
         return;
     }
-    if (cur->key_down_pressed) cur->key_down_pressed(cur, g); 
+    if (cur->on_key_down_pressed) cur->on_key_down_pressed(cur, g); 
 }
 
-static void __key_left_pressed(Component *component, void *render) 
+static void __on_key_left_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
     Render *g             = (Render *)render;
@@ -282,10 +288,10 @@ static void __key_left_pressed(Component *component, void *render)
         dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
         return;
     }
-    if (cur->key_left_pressed) cur->key_left_pressed(cur, g); 
+    if (cur->on_key_left_pressed) cur->on_key_left_pressed(cur, g); 
 }
 
-static void __key_right_pressed(Component *component, void *render) 
+static void __on_key_right_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
     Render *g             = (Render *)render;
@@ -296,10 +302,10 @@ static void __key_right_pressed(Component *component, void *render)
         dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
         return;
     }
-    if (cur->key_right_pressed) cur->key_right_pressed(cur, g); 
+    if (cur->on_key_right_pressed) cur->on_key_right_pressed(cur, g); 
 }
 
-static void __key_pageup_pressed(Component *component, void *render) 
+static void __on_key_pageup_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
     Render *g             = (Render *)render;
@@ -310,10 +316,10 @@ static void __key_pageup_pressed(Component *component, void *render)
         dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
         return;
     }
-    if (cur->key_pageup_pressed) cur->key_pageup_pressed(cur, g); 
+    if (cur->on_key_pageup_pressed) cur->on_key_pageup_pressed(cur, g); 
 }
 
-static void __key_pagedown_pressed(Component *component, void *render) 
+static void __on_key_pagedown_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
     Render *g             = (Render *)render;
@@ -324,10 +330,10 @@ static void __key_pagedown_pressed(Component *component, void *render)
         dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
         return;
     }
-    if (cur->key_pagedown_pressed) cur->key_pagedown_pressed(cur, g); 
+    if (cur->on_key_pagedown_pressed) cur->on_key_pagedown_pressed(cur, g); 
 }
 
-static void __key_onelineup_pressed(Component *component, void *render) 
+static void __on_key_onelineup_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
     Render *g             = (Render *)render;
@@ -338,10 +344,10 @@ static void __key_onelineup_pressed(Component *component, void *render)
         dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
         return;
     }
-    if (cur->key_onelineup_pressed) cur->key_onelineup_pressed(cur, g); 
+    if (cur->on_key_onelineup_pressed) cur->on_key_onelineup_pressed(cur, g); 
 }
 
-static void __key_onelinedown_pressed(Component *component, void *render) 
+static void __on_key_onelinedown_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
     Render *g             = (Render *)render;
@@ -352,10 +358,10 @@ static void __key_onelinedown_pressed(Component *component, void *render)
         dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
         return;
     }
-    if (cur->key_onelinedown_pressed) cur->key_onelinedown_pressed(cur, g); 
+    if (cur->on_key_onelinedown_pressed) cur->on_key_onelinedown_pressed(cur, g); 
 }
 
-static void __key_backspace_pressed(Component *component, void *render) 
+static void __on_key_backspace_pressed(Component *component, void *render) 
 {
     Container *container = (Container *)component;
     Render *g             = (Render *)render;
@@ -366,11 +372,11 @@ static void __key_backspace_pressed(Component *component, void *render)
         dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
         return;
     }
-    if (cur->key_backspace_pressed) cur->key_backspace_pressed(cur, g); 
+    if (cur->on_key_backspace_pressed) cur->on_key_backspace_pressed(cur, g); 
 }
 
 static void 
-process_subcomponent_mouse_pressed_foreach_cb(void *key, void *element, 
+process_subcomponent_on_mouse_pressed_foreach_cb(void *key, void *element, 
                                               void *arg) 
 {
     Render *g       = (Render *)arg;
@@ -386,12 +392,12 @@ process_subcomponent_mouse_pressed_foreach_cb(void *key, void *element,
         return;
     }
 
-    if (component->mouse_pressed){
-        component->mouse_pressed(component, event, event->window);
+    if (component->on_mouse_pressed){
+        component->on_mouse_pressed(component, event, event->window);
     } 
 }
 
-static void __mouse_pressed(Component *component, void *event, void *window) 
+static void __on_mouse_pressed(Component *component, void *event, void *window) 
 {
     Container *container = (Container *)component;
     Window *w            = (Window *)window;
@@ -405,13 +411,13 @@ static void __mouse_pressed(Component *component, void *event, void *window)
 
     /*
      *dbg_str(DBG_DETAIL, 
-     *        "%s process mouse_pressed event: Mouse button %d pressed at %d, "
+     *        "%s process on_mouse_pressed event: Mouse button %d pressed at %d, "
      *        "%d with click count %d in window %d", 
      *        component->name, e->button, e->x, e->y, e->clicks, e->windowid); 
      */
 
     container->for_each_component(container, 
-                                  process_subcomponent_mouse_pressed_foreach_cb, 
+                                  process_subcomponent_on_mouse_pressed_foreach_cb, 
                                   event);
 }
 
@@ -440,7 +446,7 @@ int  __is_mouse_over_component(Component *component, void *event)
 }
 
 static void 
-process_subcomponent_mouse_moved_foreach_cb(void *key, void *element, void *arg) 
+process_subcomponent_on_mouse_moved_foreach_cb(void *key, void *element, void *arg) 
 {
     Render *g       = (Render *)arg;
     __Event *event = (__Event *)arg;
@@ -450,29 +456,29 @@ process_subcomponent_mouse_moved_foreach_cb(void *key, void *element, void *arg)
     component = (Component *)element;
 
     if (component->is_mouse_over_component(component, event) == 0) {
-        if (component->mouse_entered_flag == 1) {
-            if (component->mouse_exited){
-                component->mouse_exited(component, event, event->window);
+        if (component->on_mouse_entered_flag == 1) {
+            if (component->on_mouse_exited){
+                component->on_mouse_exited(component, event, event->window);
             }
-            component->mouse_entered_flag = 0;
+            component->on_mouse_entered_flag = 0;
         }
         return;
     }
 
-    if (component->mouse_entered_flag == 0) {
-        if (component->mouse_entered){
-            component->mouse_entered(component, event, event->window);
+    if (component->on_mouse_entered_flag == 0) {
+        if (component->on_mouse_entered){
+            component->on_mouse_entered(component, event, event->window);
         }
-        component->mouse_entered_flag = 1;
+        component->on_mouse_entered_flag = 1;
     }
 
-    if (component->mouse_moved) {
-        component->mouse_moved(component, event, event->window);
+    if (component->on_mouse_moved) {
+        component->on_mouse_moved(component, event, event->window);
     }
 }
 
 
-static void __mouse_moved(Component *component, void *event, void *window) 
+static void __on_mouse_moved(Component *component, void *event, void *window) 
 {
     Container *container = (Container *)component;
     Window *w            = (Window *)window;
@@ -488,12 +494,12 @@ static void __mouse_moved(Component *component, void *event, void *window)
         return;
     }
     container->for_each_component(container, 
-                                  process_subcomponent_mouse_moved_foreach_cb, 
+                                  process_subcomponent_on_mouse_moved_foreach_cb, 
                                   event);
 
 }
 
-static void __mouse_wheel_moved(Component *component, void *event, void *window) 
+static void __on_mouse_wheel_moved(Component *component, void *event, void *window) 
 {
     __Event *e = (__Event *)event;
 
@@ -502,12 +508,12 @@ static void __mouse_wheel_moved(Component *component, void *event, void *window)
             e->x, e->y, e->direction, e->windowid);
 }
 
-static void __window_moved(Component *component, void *event, void *window) 
+static void __on_window_moved(Component *component, void *event, void *window) 
 {
     dbg_str(DBG_DETAIL, "window moved");
 }
 
-static void __window_resized(Component *component, void *event, void *window) 
+static void __on_window_resized(Component *component, void *event, void *window) 
 {
     __Event *e = (__Event *)event;
 
@@ -526,28 +532,29 @@ static class_info_entry_t component_class_info[] = {
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_resources", __load_resources, sizeof(void *)}, 
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "unload_resources", __unload_resources, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "key_text_pressed", __key_text_pressed, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "key_backspace_pressed", __key_backspace_pressed, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "key_up_pressed", __key_up_pressed, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "key_down_pressed", __key_down_pressed, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "key_left_pressed", __key_left_pressed, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "key_right_pressed", __key_right_pressed, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "key_pageup_pressed", __key_pageup_pressed, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "key_pagedown_pressed", __key_pagedown_pressed, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "key_onelineup_pressed", __key_onelineup_pressed, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "key_onelinedown_pressed", __key_onelinedown_pressed, sizeof(void *)}, 
-    [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "mouse_pressed", __mouse_pressed, sizeof(void *)}, 
-    [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "mouse_moved", __mouse_moved, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "mouse_entered", NULL, sizeof(void *)}, 
-    [22] = {ENTRY_TYPE_VFUNC_POINTER, "", "mouse_exited", NULL, sizeof(void *)}, 
-    [23] = {ENTRY_TYPE_VFUNC_POINTER, "", "mouse_wheel_moved", __mouse_wheel_moved, sizeof(void *)}, 
-    [24] = {ENTRY_TYPE_VFUNC_POINTER, "", "window_moved", __window_moved, sizeof(void *)}, 
-    [25] = {ENTRY_TYPE_VFUNC_POINTER, "", "window_resized", __window_resized, sizeof(void *)}, 
-    [26] = {ENTRY_TYPE_VFUNC_POINTER, "", "is_mouse_over_component", __is_mouse_over_component, sizeof(void *)}, 
-    [27] = {ENTRY_TYPE_FUNC_POINTER, "", "add_event_listener", __add_event_listener, sizeof(void *)}, 
-    [28] = {ENTRY_TYPE_FUNC_POINTER, "", "add_event_listener_cb", __add_event_listener_cb, sizeof(void *)}, 
-    [29] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [30] = {ENTRY_TYPE_END}, 
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_text_pressed", __on_key_text_pressed, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_backspace_pressed", __on_key_backspace_pressed, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_up_pressed", __on_key_up_pressed, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_down_pressed", __on_key_down_pressed, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_left_pressed", __on_key_left_pressed, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_right_pressed", __on_key_right_pressed, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_pageup_pressed", __on_key_pageup_pressed, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_pagedown_pressed", __on_key_pagedown_pressed, sizeof(void *)}, 
+    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_onelineup_pressed", __on_key_onelineup_pressed, sizeof(void *)}, 
+    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_onelinedown_pressed", __on_key_onelinedown_pressed, sizeof(void *)}, 
+    [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_esc_pressed", NULL, sizeof(void *)}, 
+    [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_mouse_pressed", __on_mouse_pressed, sizeof(void *)}, 
+    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_mouse_moved", __on_mouse_moved, sizeof(void *)}, 
+    [22] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_mouse_entered", NULL, sizeof(void *)}, 
+    [23] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_mouse_exited", NULL, sizeof(void *)}, 
+    [24] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_mouse_wheel_moved", __on_mouse_wheel_moved, sizeof(void *)}, 
+    [25] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_window_moved", __on_window_moved, sizeof(void *)}, 
+    [26] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_window_resized", __on_window_resized, sizeof(void *)}, 
+    [27] = {ENTRY_TYPE_VFUNC_POINTER, "", "is_mouse_over_component", __is_mouse_over_component, sizeof(void *)}, 
+    [28] = {ENTRY_TYPE_FUNC_POINTER, "", "add_event_listener", __add_event_listener, sizeof(void *)}, 
+    [29] = {ENTRY_TYPE_FUNC_POINTER, "", "add_event_listener_cb", __add_event_listener_cb, sizeof(void *)}, 
+    [30] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
+    [31] = {ENTRY_TYPE_END}, 
 
 };
 REGISTER_CLASS("Component", component_class_info);

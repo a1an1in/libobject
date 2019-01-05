@@ -24,12 +24,12 @@ struct button_s{
 	int (*move)(Button *button);
 	int (*draw)(Component *component, void *graph);
 
-    void (*mouse_pressed)(Component *component,void *event, void *window);
-    void (*mouse_released)(Component *component,void *event, void *window);
-    void (*mouse_entered)(Component *component,void *event, void *window);
-    void (*mouse_exited)(Component *component,void *event, void *window);
-    void (*mouse_moved)(Component *component,void *event, void *window);
-    void (*mouse_dragged)(Component *component,void *event, void *window);
+    void (*on_mouse_pressed)(Component *component,void *event, void *window);
+    void (*on_mouse_released)(Component *component,void *event, void *window);
+    void (*on_mouse_entered)(Component *component,void *event, void *window);
+    void (*on_mouse_exited)(Component *component,void *event, void *window);
+    void (*on_mouse_moved)(Component *component,void *event, void *window);
+    void (*on_mouse_dragged)(Component *component,void *event, void *window);
 };
 
 #endif
