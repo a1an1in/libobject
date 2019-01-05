@@ -100,6 +100,8 @@ static int __set(Thread *thread, char *attrib, void *value)
         thread->set_run_routine = value;
     }else if (strcmp(attrib, "join") == 0) {
         thread->join = value;
+    }else if (strcmp(attrib, "detach") == 0) {
+        thread->detach = value;
     }
     else {
         dbg_str(OBJ_DETAIL, "thread set, not support %s setting", attrib);
@@ -214,6 +216,13 @@ static void __join(Thread * thread)
     }
 }
 
+static void __detach(Thread *thread) 
+{
+    if (thread->joinable) {
+        pthread_detach(thread->tid);
+    }
+}
+
 static class_info_entry_t thread_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -229,8 +238,9 @@ static class_info_entry_t thread_class_info[] = {
     [11 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "run", __run, sizeof(void *)}, 
     [12 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_run_routine", __set_run_routine, sizeof(void *)}, 
     [13 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_status", __get_status, sizeof(void *)}, 
-    [14 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "join", __join, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_END}, 
+    [14 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "join", __join, sizeof(void *)},
+    [15 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach", __detach, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_END}, 
 };
 
 REGISTER_CLASS("Thread", thread_class_info);
@@ -290,7 +300,44 @@ static void *func(void *arg)
     return 1;
 }
 
-int test_safe_thread()
+
+static void *func_detach(void *arg)
+{
+    Thread * thread = (Thread *)arg;
+    thread->detach(thread);
+    int i = 0;
+    while (i < 200 ) {
+        usleep(10000);
+        i++;
+        if ( i == 150 ) {
+            thread->stop(thread);
+        }
+        dbg_str(DBG_IMPORTANT," i= %d   I= %d " ,i,thread->tid);
+    }
+    
+    return 1;
+}
+
+
+static void *func_detach2(void *arg)
+{
+    Thread * thread = (Thread *)arg;
+    //hread->detach(thread);
+    int i = 0;
+    while (i < 200 ) {
+        usleep(10000);
+        i++;
+        if ( i == 150 ) {
+            thread->stop(thread);
+        }
+        dbg_str(DBG_IMPORTANT," i= %d   I= %d " ,i,thread->tid);
+    }
+    
+    return 1;
+}
+
+
+static int test_safe_thread()
 {
     Thread *thread;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -300,8 +347,55 @@ int test_safe_thread()
     thread->start(thread);
 
     thread->join(thread);
-
+    return 1;
 }
+
+static int test_thread_join()
+{
+    Thread *thread;
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;      
+    thread = OBJECT_NEW(allocator, Thread, NULL);
+    thread->set_run_routine(thread,func);
+    thread->start(thread);
+
+    thread->join(thread);
+    dbg_str(DBG_ERROR," main thread wait sub thread!!!!!!!!!!");
+    return 1;
+}
+
+static int  test_thread_detach1()
+{
+    Thread *thread;
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;      
+    thread = OBJECT_NEW(allocator, Thread, NULL);
+    thread->set_run_routine(thread,func_detach);
+    thread->start(thread);
+
+
+    sleep(5);
+    return 1;
+}
+
+static int  test_thread_detach2()
+{
+    Thread *thread;
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;      
+    thread = OBJECT_NEW(allocator, Thread, NULL);
+    thread->set_run_routine(thread,func_detach2);
+    thread->start(thread);
+    thread->detach(thread);  
+ 
+    sleep(5);
+    return 1;
+}
+
+
 
 REGISTER_STANDALONE_TEST_FUNC(test_obj_thread);
 REGISTER_STANDALONE_TEST_FUNC(test_safe_thread);
+REGISTER_STANDALONE_TEST_FUNC(test_thread_join);
+REGISTER_STANDALONE_TEST_FUNC(test_thread_detach1);
+REGISTER_STANDALONE_TEST_FUNC(test_thread_detach2);
