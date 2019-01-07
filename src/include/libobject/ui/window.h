@@ -47,7 +47,7 @@ struct window_s{
     int (*set_window_icon)(Window *window, void *title); 
     int (*set_window_size)(Window *window, int width, int hight); 
     int (*set_window_position)(Window *window, int x, int y);
-    int (*full_screen)(Window *window, int x, int y);
+    int (*full_screen)(Window *window);
     int (*maximize_window)(Window *window);
     int (*minimize_window)(Window *window);
     int (*restore_window)(Window *window);
