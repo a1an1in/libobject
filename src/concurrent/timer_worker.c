@@ -35,6 +35,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/concurrent/worker.h>
 #include <libobject/concurrent/producer.h>
+#include <libobject/core/utils/registry/registry.h>
 
 static struct timeval lasttime;
 static void
@@ -53,7 +54,7 @@ timer_worker_timeout_cb(int fd, short event, void *arg)
     dbg_str(DBG_SUC, "timeout_cb called at %d: %.3f seconds elapsed.", 
             (int)newtime.tv_sec, elapsed);
     dbg_str(DBG_DETAIL, "arg addr:%p", arg);
-    worker->work_callback(NULL);
+    worker->work_callback(worker->opaque);
 
     return;
 }
@@ -102,11 +103,11 @@ int timer_worker_destroy(Worker *worker)
 
 static void test_work_callback(void *task)
 {
-    dbg_str(DBG_SUC, "process timer task");
+    dbg_str(DBG_SUC, "timer opaque:%p", task);
 }
 
 #if 1
-void test_obj_timer_worker()
+int test_timer_worker(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     Worker *worker;
@@ -118,14 +119,18 @@ void test_obj_timer_worker()
     ev_tv.tv_sec  = 2;
     ev_tv.tv_usec = 0;
 
-    worker = peroid_timer_worker(allocator, &ev_tv, NULL, test_work_callback);
+    dbg_str(DBG_SUC, "opaque addr:%p", &ev_tv);
+    worker = peroid_timer_worker(allocator, &ev_tv, &ev_tv, test_work_callback);
     /*
      *worker = timer_worker(allocator, &ev_tv, NULL, test_work_callback);
      */
     pause();
     pause();
     timer_worker_destroy(worker);
+
+    return 1;
 }
+REGISTER_STANDALONE_TEST_FUNC(test_timer_worker);
 
 #else
 

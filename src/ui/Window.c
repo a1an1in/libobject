@@ -263,6 +263,36 @@ static void __on_key_text_pressed(Window *window, char c, void *render)
     Render *g             = (Render *)render;
 
     dbg_str(DBG_DETAIL, "on_text_key_pressed: %c", c);
+
+    switch (c) {
+        case '1':
+            window->maximize_window(window);
+            break;
+        case '2':
+            window->minimize_window(window);
+            break;
+        case '3':
+            window->restore_window(window);
+            break;
+        case '4':
+            window->full_screen(window);
+            break;
+        case '5':
+            break;
+        case '6':
+            break;
+        case '7':
+            break;
+        case '8':
+            break;
+        case '9':
+            break;
+        case '0':
+            break;
+        default:
+            break;
+
+    }
 }
 
 static void __on_key_esc_pressed(Window *window, void *render)

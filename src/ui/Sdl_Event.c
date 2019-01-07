@@ -393,6 +393,8 @@ int sdl_event()
     object_dump(window, "Sdl_Window", buf, 2048);
     dbg_str(DBG_DETAIL, "Window dump: %s", buf);
 
+    window->set_window_title(window, "hello world");
+
     window->poll_event(window);
 
     object_destroy(window);

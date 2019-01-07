@@ -38,6 +38,15 @@
 #include <libobject/ui/sdl_timer.h>
 #include <libobject/core/utils/config/config.h>
 
+static int __construct(Window *window, char *init_str)
+{
+    Sdl_Window *w = (Sdl_Window *)window;
+    dbg_str(DBG_IMPORTANT, "Sdl_window construct");
+
+    w->flags = 0;
+
+    return 0;
+}
 static int __set(Window *window, char *attrib, void *value)
 {
     Sdl_Window *w = (Sdl_Window *)window;
@@ -305,7 +314,8 @@ static int __poll_event(Window *window)
 static void __set_window_title(Window *window, void *title) 
 {
     Sdl_Window *w = (Sdl_Window *)window;
-    dbg_str(DBG_DETAIL, "window moved");
+    dbg_str(DBG_DETAIL, "set_window_title");
+    SDL_SetWindowTitle(w->sdl_window, title);
 }
 
 static void __set_window_icon(Window *window, void *title) 
@@ -322,55 +332,98 @@ static void __set_window_position(Window *window, int x, int y)
     dbg_str(DBG_DETAIL, "set window position");
 }
 
-static void __full_screen(Window *window, int x, int y) 
+#define FULLSCREEN_MASK (SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_FULLSCREEN)
+static void __full_screen(Window *window) 
 {
-    dbg_str(DBG_DETAIL, "set window position");
+    Sdl_Window *w = (Sdl_Window *)window;
+    uint32_t flags = w->flags;
+
+    /*
+     *dbg_str(DBG_DETAIL, "full_screen");
+     */
+    if (flags & SDL_WINDOW_FULLSCREEN){
+        w->flags &= ~SDL_WINDOW_FULLSCREEN;
+        SDL_SetWindowFullscreen(w->sdl_window, SDL_FALSE);
+        SDL_GetWindowSize(w->sdl_window, 
+                          &window->screen_width, 
+                          &window->screen_height);
+        dbg_str(DBG_DETAIL, "exit full_screen, window size, width=%d, height=%d", 
+                window->screen_width, window->screen_height);
+    } else {
+        w->flags |= SDL_WINDOW_FULLSCREEN;
+        SDL_SetWindowFullscreen(w->sdl_window, SDL_TRUE);
+        SDL_GetWindowSize(w->sdl_window, 
+                          &window->screen_width, 
+                          &window->screen_height);
+        dbg_str(DBG_DETAIL, "full_screen, window size, width=%d, height=%d", 
+                window->screen_width, window->screen_height);
+    }
 }
 
 static void __maximize_window(Window *window) 
 {
-    dbg_str(DBG_DETAIL, "set window position");
+    Sdl_Window *w = (Sdl_Window *)window;
+    dbg_str(DBG_DETAIL, "maximize_window");
+    SDL_MaximizeWindow(w->sdl_window);
+    SDL_GetWindowSize(w->sdl_window, 
+                      &window->screen_width, 
+                      &window->screen_height);
+    dbg_str(DBG_DETAIL, "maximize_window, window size, width=%d, height=%d", 
+            window->screen_width, window->screen_height);
 }
 
 static void __minimize_window(Window *window) 
 {
-    dbg_str(DBG_DETAIL, "set window position");
+    Sdl_Window *w = (Sdl_Window *)window;
+    dbg_str(DBG_DETAIL, "minimize_window");
+    SDL_MinimizeWindow(w->sdl_window);
+    SDL_GetWindowSize(w->sdl_window, 
+                      &window->screen_width, 
+                      &window->screen_height);
 }
 
 static void __restore_window(Window *window) 
 {
-    dbg_str(DBG_DETAIL, "set window position");
+    Sdl_Window *w = (Sdl_Window *)window;
+    SDL_RestoreWindow(w->sdl_window);
+    SDL_GetWindowSize(w->sdl_window, 
+                      &window->screen_width, 
+                      &window->screen_height);
+    dbg_str(DBG_DETAIL, "restore_window, window size, width=%d, height=%d", 
+            window->screen_width, window->screen_height);
 }
 
 
 static class_info_entry_t sdl_window_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Window", "window", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_render", __create_render, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_render", __destroy_render, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_font", __create_font, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_font", __destroy_font, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_event", __create_event, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_event", __destroy_event, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_background", __create_background, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_background", __destroy_background, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "init_window", __init_window, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_FUNC_POINTER, "", "open_window", __open_window, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_FUNC_POINTER, "", "close_window", __close_window, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_FUNC_POINTER, "", "create_timer", __create_timer, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_FUNC_POINTER, "", "remove_timer", __remove_timer, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_timer", __destroy_timer, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_FUNC_POINTER, "", "poll_event", __poll_event, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_title", __set_window_title, sizeof(void *)}, 
-    [19] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_icon", __set_window_icon, sizeof(void *)}, 
-    [20] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_size", __set_window_size, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_position", __set_window_position, sizeof(void *)}, 
-    [22] = {ENTRY_TYPE_FUNC_POINTER, "", "full_screen", __full_screen, sizeof(void *)}, 
-    [23] = {ENTRY_TYPE_FUNC_POINTER, "", "maximize_window", __maximize_window, sizeof(void *)}, 
-    [24] = {ENTRY_TYPE_FUNC_POINTER, "", "minimize_window", __minimize_window, sizeof(void *)}, 
-    [25] = {ENTRY_TYPE_FUNC_POINTER, "", "restore_window", __restore_window, sizeof(void *)}, 
-    [26] = {ENTRY_TYPE_END}, 
+    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
+    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", NULL, sizeof(void *)}, 
+    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
+    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
+    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_render", __create_render, sizeof(void *)}, 
+    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_render", __destroy_render, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_font", __create_font, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_font", __destroy_font, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_event", __create_event, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_event", __destroy_event, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "create_background", __create_background, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_background", __destroy_background, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_FUNC_POINTER, "", "init_window", __init_window, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_FUNC_POINTER, "", "open_window", __open_window, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_FUNC_POINTER, "", "close_window", __close_window, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_FUNC_POINTER, "", "create_timer", __create_timer, sizeof(void *)}, 
+    [17] = {ENTRY_TYPE_FUNC_POINTER, "", "remove_timer", __remove_timer, sizeof(void *)}, 
+    [18] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_timer", __destroy_timer, sizeof(void *)}, 
+    [19] = {ENTRY_TYPE_FUNC_POINTER, "", "poll_event", __poll_event, sizeof(void *)}, 
+    [20] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_title", __set_window_title, sizeof(void *)}, 
+    [21] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_icon", __set_window_icon, sizeof(void *)}, 
+    [22] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_size", __set_window_size, sizeof(void *)}, 
+    [23] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_position", __set_window_position, sizeof(void *)}, 
+    [24] = {ENTRY_TYPE_FUNC_POINTER, "", "full_screen", __full_screen, sizeof(void *)}, 
+    [25] = {ENTRY_TYPE_FUNC_POINTER, "", "maximize_window", __maximize_window, sizeof(void *)}, 
+    [26] = {ENTRY_TYPE_FUNC_POINTER, "", "minimize_window", __minimize_window, sizeof(void *)}, 
+    [27] = {ENTRY_TYPE_FUNC_POINTER, "", "restore_window", __restore_window, sizeof(void *)}, 
+    [28] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Sdl_Window", sdl_window_class_info);
 
