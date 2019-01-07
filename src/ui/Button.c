@@ -75,16 +75,16 @@ static int __set(Button *button, char *attrib, void *value)
 		button->move = value;
     } else if (strcmp(attrib, "draw") == 0) {
         button->draw = value;
-    } else if (strcmp(attrib, "mouse_pressed") == 0) {
-        button->mouse_pressed = value;
-    } else if (strcmp(attrib, "mouse_released") == 0) {
-        button->mouse_released = value;
-    } else if (strcmp(attrib, "mouse_entered") == 0) {
-        button->mouse_entered = value;
-    } else if (strcmp(attrib, "mouse_exited") == 0) {
-        button->mouse_exited = value;
-    } else if (strcmp(attrib, "mouse_moved") == 0) {
-        button->mouse_moved = value;
+    } else if (strcmp(attrib, "on_mouse_pressed") == 0) {
+        button->on_mouse_pressed = value;
+    } else if (strcmp(attrib, "on_mouse_released") == 0) {
+        button->on_mouse_released = value;
+    } else if (strcmp(attrib, "on_mouse_entered") == 0) {
+        button->on_mouse_entered = value;
+    } else if (strcmp(attrib, "on_mouse_exited") == 0) {
+        button->on_mouse_exited = value;
+    } else if (strcmp(attrib, "on_mouse_moved") == 0) {
+        button->on_mouse_moved = value;
     } 
     else if (strcmp(attrib, "add_event_listener") == 0) {
         button->add_event_listener = value;
@@ -134,24 +134,24 @@ static int __draw(Component *component, void *render)
     container->for_each_component(container, draw_subcomponent_foreach_cb, r);
 }
 
-static void __mouse_pressed(Component *component, void *event, void *window) 
+static void __on_mouse_pressed(Component *component, void *event, void *window) 
 {
     __Event *e = (__Event *)event;
 
     dbg_str(DBG_DETAIL, 
-            "EVENT: mouse pressed: %s process mouse_pressed event: Mouse button %d pressed at %d, "
+            "EVENT: mouse pressed: %s process on_mouse_pressed event: Mouse button %d pressed at %d, "
             "%d with click count %d in window %d", 
             component->name, e->button, e->x, e->y, e->clicks, e->windowid); 
 
-    component->listener.do_mouse_pressed(component, event, window);
+    component->listener.do_on_mouse_pressed(component, event, window);
 }
 
-static void __mouse_released(Component *component, void *event, void *window) 
+static void __on_mouse_released(Component *component, void *event, void *window) 
 {
 
 }
 
-static void __mouse_moved(Component *component, void *event, void *window) 
+static void __on_mouse_moved(Component *component, void *event, void *window) 
 {
     __Event *e = (__Event *)event;
 
@@ -162,7 +162,7 @@ static void __mouse_moved(Component *component, void *event, void *window)
 
 }
 
-static void __mouse_entered(Component *component, void *event, void *window) 
+static void __on_mouse_entered(Component *component, void *event, void *window) 
 {
     __Event *e = (__Event *)event;
 
@@ -170,7 +170,7 @@ static void __mouse_entered(Component *component, void *event, void *window)
             component->name, e->x, e->y, e->xrel, e->yrel, e->windowid);
 }
 
-static void __mouse_exited(Component *component, void *event, void *window) 
+static void __on_mouse_exited(Component *component, void *event, void *window) 
 {
     __Event *e = (__Event *)event;
 
@@ -186,11 +186,11 @@ static class_info_entry_t button_class_info[] = {
 	[4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
 	[5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "move", NULL, sizeof(void *)}, 
 	[6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "mouse_pressed", __mouse_pressed, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "mouse_released", __mouse_released, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "mouse_entered", __mouse_entered, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "mouse_exited", __mouse_exited, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "mouse_moved", __mouse_moved, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_pressed", __on_mouse_pressed, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_released", __on_mouse_released, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_entered", __on_mouse_entered, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_exited", __on_mouse_exited, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_moved", __on_mouse_moved, sizeof(void *)}, 
     [12] = {ENTRY_TYPE_IFUNC_POINTER, "", "add_event_listener", NULL, sizeof(void *)}, 
     [13] = {ENTRY_TYPE_IFUNC_POINTER, "", "add_event_listener_cb", NULL, sizeof(void *)}, 
 	[14] = {ENTRY_TYPE_END}, 
@@ -218,7 +218,7 @@ static void *new_button(allocator_t *allocator, int x, int y, int width, int hei
 #undef MAX_BUFFER_LEN
 }
 
-static void __do_mouse_pressed(Component *component, void *event, void *window) 
+static void __do_on_mouse_pressed(Component *component, void *event, void *window) 
 {
     __Event *e = (__Event *)event;
 
@@ -226,7 +226,7 @@ static void __do_mouse_pressed(Component *component, void *event, void *window)
 }
 
 static event_listener_t button_listener = {
-    .do_mouse_pressed = __do_mouse_pressed, 
+    .do_on_mouse_pressed = __do_on_mouse_pressed, 
 };
 
 static int button()
@@ -253,7 +253,7 @@ static int button()
 #if 0
     button->add_event_listener((Component *)button, &button_listener);
 #else
-    button->add_event_listener_cb((Component *)button, "do_mouse_pressed", __do_mouse_pressed);
+    button->add_event_listener_cb((Component *)button, "do_on_mouse_pressed", __do_on_mouse_pressed);
 #endif
     layout->add_component((Container *)layout, "North", NULL);
     layout->add_component((Container *)layout, "West", NULL);

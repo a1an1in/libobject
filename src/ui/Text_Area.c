@@ -260,7 +260,7 @@ static void move_cursor_up(Component *component)
     } else { //line down
         cursor_t bak  = *cursor;
         bak.y        += bak.height;
-        ta->key_onelinedown_pressed(component, r);
+        ta->on_key_onelinedown_pressed(component, r);
         *cursor       = bak;
         move_cursor_up(component);
         return ;
@@ -338,7 +338,7 @@ static void move_cursor_down(Component *component)
     }  else { /*last line*/
         cursor_t bak  = *cursor;
         bak.y        -= bak.height;
-        ta->key_onelineup_pressed(component, r);
+        ta->on_key_onelineup_pressed(component, r);
         *cursor       = bak;
         move_cursor_down(component);
     }
@@ -583,26 +583,26 @@ static int __set(Text_Area *ta, char *attrib, void *value)
         ta->draw = value;
     } else if (strcmp(attrib, "load_resources") == 0) {
         ta->load_resources = value;
-    } else if (strcmp(attrib, "key_text_pressed") == 0) {
-        ta->key_text_pressed = value;
-    } else if (strcmp(attrib, "key_backspace_pressed") == 0) {
-        ta->key_backspace_pressed = value;
-    } else if (strcmp(attrib, "key_up_pressed") == 0) {
-        ta->key_up_pressed = value;
-    } else if (strcmp(attrib, "key_down_pressed") == 0) {
-        ta->key_down_pressed = value;
-    } else if (strcmp(attrib, "key_left_pressed") == 0) {
-        ta->key_left_pressed = value;
-    } else if (strcmp(attrib, "key_right_pressed") == 0) {
-        ta->key_right_pressed = value;
-    } else if (strcmp(attrib, "key_pageup_pressed") == 0) {
-        ta->key_pageup_pressed = value;
-    } else if (strcmp(attrib, "key_pagedown_pressed") == 0) {
-        ta->key_pagedown_pressed = value;
-    } else if (strcmp(attrib, "key_onelineup_pressed") == 0) {
-        ta->key_onelineup_pressed = value;
-    } else if (strcmp(attrib, "key_onelinedown_pressed") == 0) {
-        ta->key_onelinedown_pressed = value;
+    } else if (strcmp(attrib, "on_key_text_pressed") == 0) {
+        ta->on_key_text_pressed = value;
+    } else if (strcmp(attrib, "on_key_backspace_pressed") == 0) {
+        ta->on_key_backspace_pressed = value;
+    } else if (strcmp(attrib, "on_key_up_pressed") == 0) {
+        ta->on_key_up_pressed = value;
+    } else if (strcmp(attrib, "on_key_down_pressed") == 0) {
+        ta->on_key_down_pressed = value;
+    } else if (strcmp(attrib, "on_key_left_pressed") == 0) {
+        ta->on_key_left_pressed = value;
+    } else if (strcmp(attrib, "on_key_right_pressed") == 0) {
+        ta->on_key_right_pressed = value;
+    } else if (strcmp(attrib, "on_key_pageup_pressed") == 0) {
+        ta->on_key_pageup_pressed = value;
+    } else if (strcmp(attrib, "on_key_pagedown_pressed") == 0) {
+        ta->on_key_pagedown_pressed = value;
+    } else if (strcmp(attrib, "on_key_onelineup_pressed") == 0) {
+        ta->on_key_onelineup_pressed = value;
+    } else if (strcmp(attrib, "on_key_onelinedown_pressed") == 0) {
+        ta->on_key_onelinedown_pressed = value;
     }
     /*attribs*/
     else if (strcmp(attrib, "name") == 0) {
@@ -715,7 +715,7 @@ static int __draw(Component *component, void *render)
     r->present(r);
 }
 
-static int __key_text_pressed(Component *component, char c, void *render)
+static int __on_key_text_pressed(Component *component, char c, void *render)
 {
     Render *r                 = (Render *)render;
     Text_Area *ta            = (Text_Area *)component;
@@ -758,7 +758,7 @@ static int __key_text_pressed(Component *component, char c, void *render)
     return 0;
 }
 
-static int __key_backspace_pressed(Component *component, void *render)
+static int __on_key_backspace_pressed(Component *component, void *render)
 {
     Render *r                 = (Render *)render;
     Text_Area *ta            = (Text_Area *)component;
@@ -772,7 +772,7 @@ static int __key_backspace_pressed(Component *component, void *render)
     int from, to;
     int line_count_of_a_screen;
 
-    dbg_str(DBG_DETAIL, "key_backspace_pressed");
+    dbg_str(DBG_DETAIL, "on_key_backspace_pressed");
 
     line_count_of_a_screen = ((Subject *)component)->height / ta->char_height;
     c                      = cursor->c;
@@ -807,7 +807,7 @@ static int __key_backspace_pressed(Component *component, void *render)
     return 0;
 }
 
-static int __key_up_pressed(Component *component, void *render)
+static int __on_key_up_pressed(Component *component, void *render)
 {
     Render *r          = (Render *)render;
     Text_Area *ta     = (Text_Area *)component;
@@ -823,7 +823,7 @@ static int __key_up_pressed(Component *component, void *render)
     return 0;
 }
 
-static int __key_down_pressed(Component *component, void *render)
+static int __on_key_down_pressed(Component *component, void *render)
 {
     Render *r         = (Render *)render;
     Text_Area *ta    = (Text_Area *)component;
@@ -838,14 +838,14 @@ static int __key_down_pressed(Component *component, void *render)
     return 0;
 }
 
-static int __key_left_pressed(Component *component, void *render)
+static int __on_key_left_pressed(Component *component, void *render)
 {
     Render *r         = (Render *)render;
     Text_Area *ta    = (Text_Area *)component;
     cursor_t *cursor = &ta->cursor;
 
     /*
-     *dbg_str(DBG_DETAIL, "key_left_pressed");
+     *dbg_str(DBG_DETAIL, "on_key_left_pressed");
      */
 
     reverse_cursor(component, r);
@@ -855,14 +855,14 @@ static int __key_left_pressed(Component *component, void *render)
     ta->cursor_count = 0;
 }
 
-static int __key_right_pressed(Component *component, void *render)
+static int __on_key_right_pressed(Component *component, void *render)
 {
     Render *r         = (Render *)render;
     Text_Area *ta    = (Text_Area *)component;
     cursor_t *cursor = &ta->cursor;
 
     /*
-     *dbg_str(DBG_DETAIL, "key_right_pressed");
+     *dbg_str(DBG_DETAIL, "on_key_right_pressed");
      */
 
     reverse_cursor(component, r);
@@ -872,7 +872,7 @@ static int __key_right_pressed(Component *component, void *render)
     ta->cursor_count = 0;
 }
 
-static int __key_pageup_pressed(Component *component, void *render)
+static int __on_key_pageup_pressed(Component *component, void *render)
 {
     Render *r               = (Render *)render;
     Text_Area *ta          = (Text_Area *)component;
@@ -884,7 +884,7 @@ static int __key_pageup_pressed(Component *component, void *render)
     Character *character;
     char c;
 
-    dbg_str(DBG_DETAIL, "key_pageup_pressed");
+    dbg_str(DBG_DETAIL, "on_key_pageup_pressed");
     line_count_of_a_screen = ((Subject *)component)->height / ta->char_height;
 
     if (ta->start_line - line_count_of_a_screen > 0) {
@@ -892,7 +892,7 @@ static int __key_pageup_pressed(Component *component, void *render)
     } else if (ta->start_line > 0) {
         ta->start_line = 0;
     } else {
-        dbg_str(DBG_WARNNING, "key_pageup_pressed");
+        dbg_str(DBG_WARNNING, "on_key_pageup_pressed");
         return 0;
     }
 
@@ -903,7 +903,7 @@ static int __key_pageup_pressed(Component *component, void *render)
     ta->draw(component, render); 
 }
 
-static int __key_pagedown_pressed(Component *component, void *render)
+static int __on_key_pagedown_pressed(Component *component, void *render)
 {
     Render *r               = (Render *)render;
     Text_Area *ta          = (Text_Area *)component;
@@ -915,7 +915,7 @@ static int __key_pagedown_pressed(Component *component, void *render)
     Character *character;
     char c;
 
-    dbg_str(DBG_DETAIL, "key_pagedown_pressed");
+    dbg_str(DBG_DETAIL, "on_key_pagedown_pressed");
     line_count_of_a_screen = ((Subject *)component)->height / ta->char_height;
 
     if (ta->start_line + line_count_of_a_screen < text->last_line_num ) {
@@ -930,7 +930,7 @@ static int __key_pagedown_pressed(Component *component, void *render)
     ta->draw(component, render); 
 }
 
-static int __key_onelineup_pressed(Component *component, void *render)
+static int __on_key_onelineup_pressed(Component *component, void *render)
 {
     Render *r         = (Render *)render;
     Text_Area *ta    = (Text_Area *)component;
@@ -944,7 +944,7 @@ static int __key_onelineup_pressed(Component *component, void *render)
     ta->draw(component, render); 
 }
 
-static int __key_onelinedown_pressed(Component *component, void *render)
+static int __on_key_onelinedown_pressed(Component *component, void *render)
 {
     Text_Area *ta    = (Text_Area *)component;
     Render *r         = (Render *)render;
@@ -972,16 +972,16 @@ static class_info_entry_t text_area_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
     [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_resources", __load_resources, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "key_text_pressed", __key_text_pressed, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "key_backspace_pressed", __key_backspace_pressed, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "key_up_pressed", __key_up_pressed, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "key_down_pressed", __key_down_pressed, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "key_left_pressed", __key_left_pressed, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_FUNC_POINTER, "", "key_right_pressed", __key_right_pressed, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_FUNC_POINTER, "", "key_pageup_pressed", __key_pageup_pressed, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_FUNC_POINTER, "", "key_pagedown_pressed", __key_pagedown_pressed, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_FUNC_POINTER, "", "key_onelineup_pressed", __key_onelineup_pressed, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_FUNC_POINTER, "", "key_onelinedown_pressed", __key_onelinedown_pressed, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_text_pressed", __on_key_text_pressed, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_backspace_pressed", __on_key_backspace_pressed, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_up_pressed", __on_key_up_pressed, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_down_pressed", __on_key_down_pressed, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_left_pressed", __on_key_left_pressed, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_right_pressed", __on_key_right_pressed, sizeof(void *)}, 
+    [13] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_pageup_pressed", __on_key_pageup_pressed, sizeof(void *)}, 
+    [14] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_pagedown_pressed", __on_key_pagedown_pressed, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_onelineup_pressed", __on_key_onelineup_pressed, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_onelinedown_pressed", __on_key_onelinedown_pressed, sizeof(void *)}, 
     [17] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
     [18] = {ENTRY_TYPE_END}, 
 

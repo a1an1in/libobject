@@ -45,9 +45,10 @@ static int __deconstrcut(Sdl_Audio *sdl_audio)
 {
     dbg_str(OBJ_DETAIL, "sdl_audio deconstruct, sdl_audio addr:%p", sdl_audio);
 #if 1
+    dbg_str(DBG_DETAIL, "audio device id=%d", sdl_audio->dev_id);
     SDL_CloseAudioDevice(sdl_audio->dev_id); 
+    dbg_str(DBG_DETAIL, "deconstruct audio device out");
 #endif
-	SDL_Quit();
     return 0;
 }
 
@@ -163,14 +164,14 @@ __writing_buffer_callback(void *opaque, void *stream, int len)
         }
     }
 
-    dbg_str(DBG_IMPORTANT, "audio_buffer_len =%d, read_pos=%d, len=%d",
+    dbg_str(DBG_DETAIL, "audio_buffer_len =%d, read_pos=%d, len=%d",
             audio->audio_buffer_len, audio->audio_read_pos, len);
 
 	SDL_MixAudioFormat(stream,
                        (uint8_t *)audio->audio_buffer + audio->audio_read_pos,
                        AUDIO_S16SYS,
                        len, SDL_MIX_MAXVOLUME);
-    dbg_buf(DBG_IMPORTANT, "write audio data to device:",
+    dbg_buf(DBG_DETAIL, "write audio data to device:",
             (void *)(audio->audio_buffer + audio->audio_read_pos), 20);
     
 	audio->audio_read_pos += len; 

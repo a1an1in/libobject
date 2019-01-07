@@ -38,6 +38,19 @@ struct window_s{
     void *(*create_timer)(Window *window);
     int (*remove_timer)(Window *window, void *timer);
     int (*destroy_timer)(Window *window, void *timer);
+    int (*poll_event)(Window *window);
+    void (*on_window_moved)(Window *window,void *event, void *win);
+    void (*on_window_resized)(Window *window,void *event, void *win);
+	int (*on_key_text_pressed)(Window *window,char c, void *graph);
+	int (*on_key_esc_pressed)(Component *component,void *graph);
+    int (*set_window_title)(Window *window, void *title);
+    int (*set_window_icon)(Window *window, void *title); 
+    int (*set_window_size)(Window *window, int width, int hight); 
+    int (*set_window_position)(Window *window, int x, int y);
+    int (*full_screen)(Window *window, int x, int y);
+    int (*maximize_window)(Window *window);
+    int (*minimize_window)(Window *window);
+    int (*restore_window)(Window *window);
 
     /*inherit methods*/
     int (*add_component)(Container *obj, void *pos, void *component);

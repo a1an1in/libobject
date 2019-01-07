@@ -331,14 +331,14 @@ static int __set(Text_Field *ta, char *attrib, void *value)
         ta->draw = value;
     } else if (strcmp(attrib, "load_resources") == 0) {
         ta->load_resources = value;
-    } else if (strcmp(attrib, "key_text_pressed") == 0) {
-        ta->key_text_pressed = value;
-    } else if (strcmp(attrib, "key_backspace_pressed") == 0) {
-        ta->key_backspace_pressed = value;
-    } else if (strcmp(attrib, "key_left_pressed") == 0) {
-        ta->key_left_pressed = value;
-    } else if (strcmp(attrib, "key_right_pressed") == 0) {
-        ta->key_right_pressed = value;
+    } else if (strcmp(attrib, "on_key_text_pressed") == 0) {
+        ta->on_key_text_pressed = value;
+    } else if (strcmp(attrib, "on_key_backspace_pressed") == 0) {
+        ta->on_key_backspace_pressed = value;
+    } else if (strcmp(attrib, "on_key_left_pressed") == 0) {
+        ta->on_key_left_pressed = value;
+    } else if (strcmp(attrib, "on_key_right_pressed") == 0) {
+        ta->on_key_right_pressed = value;
     }
     /*attribs*/
     else if (strcmp(attrib, "name") == 0) {
@@ -443,7 +443,7 @@ static int __draw(Component *component, void *render)
     return 0;
 }
 
-static int __key_text_pressed(Component *component, char c, void *render)
+static int __on_key_text_pressed(Component *component, char c, void *render)
 {
     Render *r                 = (Render *)render;
     Text_Field *ta           = (Text_Field *)component;
@@ -478,7 +478,7 @@ static int __key_text_pressed(Component *component, char c, void *render)
     return 0;
 }
 
-static int __key_backspace_pressed(Component *component, void *render)
+static int __on_key_backspace_pressed(Component *component, void *render)
 {
     Render *r             = (Render *)render;
     Text_Field *ta       = (Text_Field *)component;
@@ -489,7 +489,7 @@ static int __key_backspace_pressed(Component *component, void *render)
     char c;
     int ret;
 
-    dbg_str(DBG_DETAIL, "key_backspace_pressed");
+    dbg_str(DBG_DETAIL, "on_key_backspace_pressed");
 
     c                    = cursor->c;
 
@@ -512,7 +512,7 @@ static int __key_backspace_pressed(Component *component, void *render)
     return 0;
 }
 
-static int __key_left_pressed(Component *component, void *render)
+static int __on_key_left_pressed(Component *component, void *render)
 {
     Render *r         = (Render *)render;
     Text_Field *ta    = (Text_Field *)component;
@@ -525,7 +525,7 @@ static int __key_left_pressed(Component *component, void *render)
     ta->cursor_count = 0;
 }
 
-static int __key_right_pressed(Component *component, void *render)
+static int __on_key_right_pressed(Component *component, void *render)
 {
     Render *r         = (Render *)render;
     Text_Field *ta    = (Text_Field *)component;
@@ -546,10 +546,10 @@ static class_info_entry_t text_field_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
     [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_resources", __load_resources, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "key_text_pressed", __key_text_pressed, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "key_backspace_pressed", __key_backspace_pressed, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "key_left_pressed", __key_left_pressed, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "key_right_pressed", __key_right_pressed, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_text_pressed", __on_key_text_pressed, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_backspace_pressed", __on_key_backspace_pressed, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_left_pressed", __on_key_left_pressed, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_right_pressed", __on_key_right_pressed, sizeof(void *)}, 
     [11] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
     [12] = {ENTRY_TYPE_END}, 
 
