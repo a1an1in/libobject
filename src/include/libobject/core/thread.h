@@ -23,6 +23,7 @@ struct thread_s{
     int (*stop)(Thread *);
 
     void (*join)(Thread *);
+    void (*detach)(Thread *);
 
     int (*set_run_routine)(Thread *,void *);
 	/*virtual methods reimplement*/
