@@ -6,6 +6,13 @@
 #include <libobject/core/obj.h>
 #include <libobject/core/vector.h>
 
+
+
+/**
+ * note:this class String is not thread-safe. if u
+ * wanna put it into multi-thread-env.u should keep it
+ * thread safe by uself.
+ * ***/
 typedef struct string_s String;
 
 struct string_s{
@@ -126,7 +133,10 @@ struct string_s{
      * @date    2018/11/21
      */
     size_t  (*size)(String *);
-    
+    void    (*clear)(String *);
+    int     (*is_empty)(String *);
+    String *(*replace_all)(String *,char *oldstr,char * newstr);
+    String *(*replace)(String *,char *oldstr,char *newstr);
 	/*virtual methods reimplement*/
 
     

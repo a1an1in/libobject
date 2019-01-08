@@ -141,6 +141,14 @@ static int __set(String *string, char *attrib, void *value)
         string->append_objective_string=value;
     }else if(strcmp(attrib, "size")==0){
         string->size=value;
+    } else if(strcmp(attrib, "is_empty")==0){
+        string->is_empty=value;
+    } else if(strcmp(attrib, "clear")==0){
+        string->clear=value;
+    } else if(strcmp(attrib, "replace")==0){
+        string->replace=value;
+    } else if(strcmp(attrib, "replace_all")==0){
+        string->replace_all=value;
     } else if (strcmp(attrib, "name") == 0) {
         strncpy(string->name, value, strlen(value));
     } else {
@@ -417,6 +425,77 @@ static size_t  __size(String *string)
     return string->value_len;
 }
 
+static size_t __is_empty(String *string)
+{
+    return string->size(string) ? 0 : 1;
+}
+
+static void __clear(String *string)
+{   
+    string->value[0] = '\0';
+    string->value_len = 0;
+}
+
+static String * __replace(String *self,char *old,char *newstr)
+{
+    int start_pos = 0;
+    int end_pos   = 0;
+    int ret;
+    int old_len = strlen(old);
+    int new_len = strlen(newstr);
+    int str_len = self->size(self);
+
+    if (old == NULL || newstr == NULL) {
+        return self;
+    }
+
+    String *old_str = OBJECT_NEW(self->obj.allocator,String,NULL);
+    old_str->assign(old_str,old);
+    start_pos = self->find(self,old_str,start_pos);
+
+    if (start_pos < 0) {
+        goto end;
+    }
+
+    if (old_len <= new_len) {
+        ret = string_buf_auto_modulate(self, new_len-old_len);
+        if (ret < 0 ) {
+            goto end;
+        }   
+    }
+
+    end_pos = start_pos + new_len;
+    strncpy(self->value+end_pos,self->value+start_pos+old_len,str_len-(start_pos+old_len));
+    strncpy(self->value+start_pos,newstr,new_len);
+    self->value_len+=(new_len-old_len);
+    self->value[self->value_len] = '\0';
+
+end:
+    object_destroy(old_str);
+    return self;
+}
+
+static String * __replace_all(String *self,char *oldstr,char *newstr)
+{
+    String *pre = self;
+    String *cur = NULL;
+    if ( oldstr == NULL || newstr == NULL ) {
+        return self;
+    }
+    while (cur == NULL || strcmp(cur->c_str(cur),pre->c_str(pre)) != 0 ) {
+        if (cur != NULL ) { 
+            object_destroy(cur);
+            cur = NULL;
+        }
+        cur = OBJECT_NEW(self->obj.allocator,String,NULL);
+        cur->assign(cur,pre->c_str(pre));
+        pre = pre->replace(pre,oldstr,newstr);
+    }
+    object_destroy(cur);
+
+    return self;
+}
+
 static class_info_entry_t string_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -443,9 +522,13 @@ static class_info_entry_t string_class_info[] = {
     [22] = {ENTRY_TYPE_FUNC_POINTER, "", "append_str", __append_str, sizeof(void *)}, 
     [23] = {ENTRY_TYPE_FUNC_POINTER, "", "append_str_len", __append_str_len, sizeof(void *)}, 
     [24] = {ENTRY_TYPE_FUNC_POINTER, "", "append_objective_string", __append_objective_string, sizeof(void *)}, 
-    [25] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
-    [26] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
-    [27] = {ENTRY_TYPE_END}, 
+    [25] = {ENTRY_TYPE_FUNC_POINTER, "", "clear", __clear, sizeof(void *)}, 
+    [26] = {ENTRY_TYPE_FUNC_POINTER, "", "is_empty", __is_empty, sizeof(void *)}, 
+    [27] = {ENTRY_TYPE_FUNC_POINTER, "", "replace", __replace, sizeof(void *)}, 
+    [28] = {ENTRY_TYPE_FUNC_POINTER, "", "replace_all", __replace_all, sizeof(void *)}, 
+    [29] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
+    [30] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
+    [31] = {ENTRY_TYPE_END}, 
 };
 
 REGISTER_CLASS("String", string_class_info);
@@ -662,6 +745,92 @@ int test_string_substr()
     return 1;   
 }
 
+static int test_string_empty()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr, *substr;
+    int ret;
+    char *test = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign(string, test);
+    pstr->assign(pstr, "&");
+    substr = string->substr(string, 3, 10);
+    
+    dbg_str(DBG_SUC,"current string empty:%d str:%s",string->is_empty(string),string->c_str(string));
+    string->clear(string);
+    dbg_str(DBG_SUC,"after clear string operation. current is_empty %d str:%s",string->is_empty(string),string->c_str(string));
+    ret = string->is_empty(string);
+
+    object_destroy(string);
+    object_destroy(pstr);
+    object_destroy(substr);  
+
+    return ret;
+}
+
+static int test_string_replace()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr;
+    int ret;
+    char *test = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign(string, test);
+    pstr->assign(pstr, "&");
+    dbg_str(DBG_SUC,"before replaced :%s\n size:%d",string->c_str(string),string->size(string));
+    string->replace(string,"&","<#####>");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",string->c_str(string),string->size(string));
+
+    string->replace(string,"<#####>","&");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",string->c_str(string),string->size(string));
+
+    string->replace(string,"rsv_sug","@@@@@");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",string->c_str(string),string->size(string));
+
+    string->replace(string,"rsv_sug","@@@@@##############################");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",string->c_str(string),string->size(string));
+    
+    string->replace(string,"2520%2520%25E6%25A8%25A1","<@@@@>");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",string->c_str(string),string->size(string));
+
+    object_destroy(string);
+    object_destroy(pstr);
+
+    return 1;
+}
+
+static int test_string_replace_all()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr;
+    int ret;
+    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign(string, test);
+    pstr->assign(pstr, "&");
+    dbg_str(DBG_SUC,"before replaced :%s\n size:%d",string->c_str(string),string->size(string));
+    string->replace_all(string,"<##>","@");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",string->c_str(string),string->size(string));
+    
+    string->replace_all(string,"@","<>");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",string->c_str(string),string->size(string));
+     
+
+    object_destroy(string);
+    object_destroy(pstr);
+
+    return 1;
+}
+
 REGISTER_TEST_FUNC(test_c_str);
 REGISTER_TEST_FUNC(test_append_str);
 REGISTER_TEST_FUNC(test_append_str_len);
@@ -669,3 +838,8 @@ REGISTER_TEST_FUNC(test_size);
 REGISTER_TEST_FUNC(test_string_split);
 REGISTER_TEST_FUNC(test_string_find);
 REGISTER_TEST_FUNC(test_string_substr);
+REGISTER_STANDALONE_TEST_FUNC(test_string_empty);
+REGISTER_STANDALONE_TEST_FUNC(test_string_replace);
+REGISTER_STANDALONE_TEST_FUNC(test_string_replace_all);
+
+
