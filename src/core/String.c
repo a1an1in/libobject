@@ -679,6 +679,29 @@ int test_string_substr()
     return 1;   
 }
 
+static int test_string_empty()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr, *substr;
+    int ret;
+    char *test = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign(string, test);
+    pstr->assign(pstr, "&");
+    substr = string->substr(string, 3, 10);
+    
+    dbg_str(DBG_SUC,"current string empty:%d str:%s",string->is_empty(string),string->c_str(string));
+    string->clear(string);
+    dbg_str(DBG_SUC,"after clear string operation. current is_empty %d str:%s",string->is_empty(string),string->c_str(string));
+   
+    object_destroy(string);
+    object_destroy(pstr);
+    object_destroy(substr);  
+}
+
 REGISTER_TEST_FUNC(test_c_str);
 REGISTER_TEST_FUNC(test_append_str);
 REGISTER_TEST_FUNC(test_append_str_len);
@@ -686,3 +709,4 @@ REGISTER_TEST_FUNC(test_size);
 REGISTER_TEST_FUNC(test_string_split);
 REGISTER_TEST_FUNC(test_string_find);
 REGISTER_TEST_FUNC(test_string_substr);
+REGISTER_STANDALONE_TEST_FUNC(test_string_empty);
