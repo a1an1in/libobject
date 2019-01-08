@@ -135,6 +135,8 @@ struct string_s{
     size_t  (*size)(String *);
     void    (*clear)(String *);
     int     (*is_empty)(String *);
+    String *(*replace_all)(String *,char *oldstr,char * newstr);
+    String *(*replace)(String *,char *oldstr,char *newstr);
 	/*virtual methods reimplement*/
 
     
