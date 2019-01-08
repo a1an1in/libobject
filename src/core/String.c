@@ -141,6 +141,10 @@ static int __set(String *string, char *attrib, void *value)
         string->append_objective_string=value;
     }else if(strcmp(attrib, "size")==0){
         string->size=value;
+    } else if(strcmp(attrib, "is_empty")==0){
+        string->is_empty=value;
+    } else if(strcmp(attrib, "clear")==0){
+        string->clear=value;
     } else if (strcmp(attrib, "name") == 0) {
         strncpy(string->name, value, strlen(value));
     } else {
@@ -417,6 +421,17 @@ static size_t  __size(String *string)
     return string->value_len;
 }
 
+static size_t __is_empty(String *string)
+{
+    return string->size(string) ? 0 : 1;
+}
+
+static void __clear(String *string)
+{   
+    string->value[0] = '\0';
+    string->value_len = 0;
+}
+
 static class_info_entry_t string_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -443,9 +458,11 @@ static class_info_entry_t string_class_info[] = {
     [22] = {ENTRY_TYPE_FUNC_POINTER, "", "append_str", __append_str, sizeof(void *)}, 
     [23] = {ENTRY_TYPE_FUNC_POINTER, "", "append_str_len", __append_str_len, sizeof(void *)}, 
     [24] = {ENTRY_TYPE_FUNC_POINTER, "", "append_objective_string", __append_objective_string, sizeof(void *)}, 
-    [25] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
-    [26] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
-    [27] = {ENTRY_TYPE_END}, 
+    [25] = {ENTRY_TYPE_FUNC_POINTER, "", "clear", __clear, sizeof(void *)}, 
+    [26] = {ENTRY_TYPE_FUNC_POINTER, "", "is_empty", __is_empty, sizeof(void *)}, 
+    [27] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
+    [28] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
+    [29] = {ENTRY_TYPE_END}, 
 };
 
 REGISTER_CLASS("String", string_class_info);
