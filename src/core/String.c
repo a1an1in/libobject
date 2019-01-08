@@ -696,10 +696,13 @@ static int test_string_empty()
     dbg_str(DBG_SUC,"current string empty:%d str:%s",string->is_empty(string),string->c_str(string));
     string->clear(string);
     dbg_str(DBG_SUC,"after clear string operation. current is_empty %d str:%s",string->is_empty(string),string->c_str(string));
-   
+    ret = string->is_empty(string);
+
     object_destroy(string);
     object_destroy(pstr);
     object_destroy(substr);  
+
+    return ret;
 }
 
 REGISTER_TEST_FUNC(test_c_str);
