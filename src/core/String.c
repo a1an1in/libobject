@@ -831,6 +831,30 @@ static int test_string_replace_all()
     return 1;
 }
 
+static int test_string_replace_complex()
+{
+   allocator_t *allocator = allocator_get_default_alloc();
+   String * state_info = OBJECT_NEW(allocator,String ,NULL);    
+   state_info->assign(state_info,"[extractor_ready_failed] [video_codec_ready_failed] "   
+            "[audio_codec_ready_failed] [seek_ready_failed]");
+
+   state_info->replace(state_info,"extractor_ready_failed","extractor_ready_ok");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",state_info->c_str(state_info),state_info->size(state_info));  
+
+   state_info->replace(state_info,"video_codec_ready_failed","video_codec_ready_ok");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",state_info->c_str(state_info),state_info->size(state_info));
+
+   state_info->replace(state_info,"audio_codec_ready_failed","audio_codec_ready_ok");   
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",state_info->c_str(state_info),state_info->size(state_info));
+
+   state_info->replace(state_info,"seek_ready_failed","seek_ready_ok");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",state_info->c_str(state_info),state_info->size(state_info));
+    
+   object_destroy(state_info);
+   return 1;
+}
+
+
 REGISTER_TEST_FUNC(test_c_str);
 REGISTER_TEST_FUNC(test_append_str);
 REGISTER_TEST_FUNC(test_append_str_len);
@@ -841,5 +865,7 @@ REGISTER_TEST_FUNC(test_string_substr);
 REGISTER_STANDALONE_TEST_FUNC(test_string_empty);
 REGISTER_STANDALONE_TEST_FUNC(test_string_replace);
 REGISTER_STANDALONE_TEST_FUNC(test_string_replace_all);
+
+REGISTER_STANDALONE_TEST_FUNC(test_string_replace_complex);
 
 
