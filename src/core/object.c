@@ -225,7 +225,7 @@ end:
     return ret;
 }
 
-void * object_get_func_pointer(void *class_info_addr, char *func_pointer_name)
+void * __object_get_func(void *class_info_addr, char *func_pointer_name)
 {
     class_info_entry_t *entry = (class_info_entry_t *)class_info_addr;
     int i;
@@ -241,7 +241,7 @@ void * object_get_func_pointer(void *class_info_addr, char *func_pointer_name)
 }
 
 class_info_entry_t *
-object_get_entry_of_parent_class(void *class_info_addr)
+__object_get_entry_of_parent_class(void *class_info_addr)
 {
     class_info_entry_t *entry = (class_info_entry_t *)class_info_addr;
     int i;
@@ -255,13 +255,13 @@ object_get_entry_of_parent_class(void *class_info_addr)
     return NULL;
 }
 
-int object_init_func_pointer(void *obj,void *class_info_addr)
+int __object_init_normal_funcs(void *obj,void *class_info_addr)
 {
     class_info_entry_t *entry = (class_info_entry_t *)class_info_addr;
     int i;
     int (*set)(void *obj, char *attrib, void *value);
 
-    set = object_get_func_pointer(class_info_addr,"set");
+    set = __object_get_func(class_info_addr,"set");
     if (set == NULL) {
         dbg_str(OBJ_WARNNING,"obj_init_func_pointer,set func is NULL");
         return -1;
@@ -286,7 +286,7 @@ int object_init_func_pointer(void *obj,void *class_info_addr)
 }
 
 void *
-object_find_method_to_inherit(char *method_name,
+__object_find_func_to_inherit(char *method_name,
                               void *class_name)
 {
     class_info_entry_t *entry;
@@ -299,7 +299,7 @@ object_find_method_to_inherit(char *method_name,
 
     deamon = class_deamon_get_global_class_deamon();
     entry  = (class_info_entry_t *)class_deamon_search_class(deamon,
-                                                              (char *)class_name);
+                                                             (char *)class_name);
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
         if (    (entry[i].type == ENTRY_TYPE_FUNC_POINTER ||
                  entry[i].type == ENTRY_TYPE_VFUNC_POINTER) &&
@@ -318,11 +318,11 @@ object_find_method_to_inherit(char *method_name,
         parent_class_name = entry[0].type_name;
     }
 
-    return object_find_method_to_inherit(method_name,
-                                            parent_class_name);
+    return __object_find_func_to_inherit(method_name,
+                                         parent_class_name);
 }
 
-int object_inherit_methods(void *obj,void *class_info,void *parent_class_name)
+int __object_inherit_funcs(void *obj,void *class_info,void *parent_class_name)
 {
     class_info_entry_t *entry = (class_info_entry_t *)class_info;
     int (*set)(void *obj, char *attrib, void *value);
@@ -331,7 +331,7 @@ int object_inherit_methods(void *obj,void *class_info,void *parent_class_name)
 
     if (parent_class_name == NULL) return 0; 
 
-    set = object_get_func_pointer(class_info,"set");
+    set = __object_get_func(class_info,"set");
     if (set == NULL) {
         dbg_str(OBJ_WARNNING,"obj_init_func_pointer,set func is NULL");
         return -1;
@@ -339,7 +339,7 @@ int object_inherit_methods(void *obj,void *class_info,void *parent_class_name)
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
         if (entry[i].type == ENTRY_TYPE_IFUNC_POINTER) {
-            method = object_find_method_to_inherit(entry[i].value_name,
+            method = __object_find_func_to_inherit(entry[i].value_name,
                                                    parent_class_name);
             if (method != NULL)
                 set(obj, (char *)entry[i].value_name, method);
@@ -350,9 +350,9 @@ int object_inherit_methods(void *obj,void *class_info,void *parent_class_name)
 }
 
 void *
-object_find_reimplement_func_pointer(char *method_name,
-                                     char *start_type_name,
-                                     char *end_type_name)
+__object_find_reimplement_func(char *method_name,
+                               char *start_type_name,
+                               char *end_type_name)
 {
     class_info_entry_t *entry;
     class_deamon_t *deamon;
@@ -361,7 +361,7 @@ object_find_reimplement_func_pointer(char *method_name,
 
     if (strcmp(start_type_name,end_type_name) == 0) return NULL;
     if (start_type_name == NULL) {
-        dbg_str(OBJ_WARNNING,"object_find_reimplement_func_pointer, start addr is NULL");
+        dbg_str(OBJ_WARNNING,"__object_find_reimplement_func, start addr is NULL");
         return NULL;
     }
 
@@ -385,14 +385,14 @@ object_find_reimplement_func_pointer(char *method_name,
 
     }   
 
-    return object_find_reimplement_func_pointer(method_name,
-                                                subclass_name,
-                                                end_type_name);
+    return __object_find_reimplement_func(method_name,
+                                          subclass_name,
+                                          end_type_name);
 }
 
-int object_cover_vitual_func_pointer(void *obj,
-                                     char *cur_type_name,
-                                     char *type_name)
+int __object_override_vitual_funcs(void *obj,
+                                   char *cur_type_name,
+                                   char *type_name)
 {
     class_info_entry_t *entry;
     class_deamon_t *deamon;
@@ -406,7 +406,7 @@ int object_cover_vitual_func_pointer(void *obj,
     entry  = (class_info_entry_t *)
              class_deamon_search_class(deamon, (char *)cur_type_name);
 
-    set    = object_get_func_pointer(entry,"set");
+    set    = __object_get_func(entry,"set");
     if (set == NULL) {
         dbg_str(OBJ_WARNNING,"obj_init_func_pointer,set func is NULL");
         return -1;
@@ -414,9 +414,9 @@ int object_cover_vitual_func_pointer(void *obj,
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
         if (entry[i].type == ENTRY_TYPE_VFUNC_POINTER){
-            reimplement_func = object_find_reimplement_func_pointer(entry[i].value_name,
-                                                                    type_name,
-                                                                    cur_type_name);
+            reimplement_func = __object_find_reimplement_func(entry[i].value_name,
+                                                              type_name,
+                                                              cur_type_name);
             if (reimplement_func != NULL)
                 set(obj, (char *)entry[i].value_name, reimplement_func);
         }
@@ -442,7 +442,7 @@ static int __object_set(void *obj,
                 dbg_str(OBJ_DETAIL,"object name:%s",object->string);
                 deamon          = class_deamon_get_global_class_deamon();
                 class_info_addr = class_deamon_search_class(deamon,object->string);
-                sub_set         = object_get_func_pointer(class_info_addr,"set");
+                sub_set         = __object_get_func(class_info_addr,"set");
             }
 
             if (c->child) {
@@ -502,7 +502,7 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
 
     deamon = class_deamon_get_global_class_deamon();
     entry  = (class_info_entry_t *)class_deamon_search_class(deamon,(char *)type_name);
-    get    = object_get_func_pointer(entry,(char *)"get");
+    get = __object_get_func(entry,(char *)"get");
     if (get == NULL) {
         dbg_str(OBJ_WARNNING,"get func pointer is NULL");
         return -1;
@@ -586,8 +586,8 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
 
     deamon                = class_deamon_get_global_class_deamon();
     class_info            = class_deamon_search_class(deamon,(char *)cur_type_name);
-    construct             = object_get_func_pointer(class_info,"construct");
-    entry_of_parent_class = object_get_entry_of_parent_class(class_info);
+    construct             = __object_get_func(class_info,"construct");
+    entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
 
     dbg_str(OBJ_DETAIL,"obj_class addr:%p",class_info);
 
@@ -600,11 +600,11 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
         dbg_str(OBJ_DETAIL,"obj has not subclass");
     }
 
-    object_init_func_pointer(obj,class_info);
-    object_cover_vitual_func_pointer(obj, cur_type_name, type_name);
+    __object_init_normal_funcs(obj,class_info);
+    __object_override_vitual_funcs(obj, cur_type_name, type_name);
 
     if (entry_of_parent_class != NULL) {
-        object_inherit_methods(obj,class_info,entry_of_parent_class->type_name);
+        __object_inherit_funcs(obj,class_info,entry_of_parent_class->type_name);
     }
 
     dbg_str(OBJ_DETAIL,"obj addr:%p",obj);
@@ -633,8 +633,8 @@ int __object_destroy(void *obj, char *type_name)
 
     deamon                = class_deamon_get_global_class_deamon();
     class_info            = class_deamon_search_class(deamon,(char *)type_name);
-    deconstruct           = object_get_func_pointer(class_info,"deconstruct");
-    entry_of_parent_class = object_get_entry_of_parent_class(class_info);
+    deconstruct           = __object_get_func(class_info,"deconstruct");
+    entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
 
     if (deconstruct != NULL) 
         deconstruct(obj);
