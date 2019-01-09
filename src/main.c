@@ -111,7 +111,9 @@ int main(int argc, char *argv[])
 {
     int ret = 0;
 
-    libobject_set_run_path("./");
+    /*
+     *libobject_set_run_path("./");
+     */
     libobject_init();
     /*
      *INIT_LIBOBJECT();
@@ -120,6 +122,8 @@ int main(int argc, char *argv[])
     dbg_str(DBG_DETAIL, "main func start");
 
     args_process(NULL, cmds, argc, argv);
+
+    libobject_exit();
 
     dbg_str(DBG_DETAIL, "main func end");
 
