@@ -379,8 +379,16 @@ static int __present(Sdl_Render *render)
 
 static void *__create_yuvtexture(Sdl_Render *render, int w, int h)
 {
-    return SDL_CreateTexture(render->sdl_render, SDL_PIXELFORMAT_IYUV,
+    void *texture;
+    /*
+     *return SDL_CreateTexture(render->sdl_render, SDL_PIXELFORMAT_IYUV,
+     *                         SDL_TEXTUREACCESS_STREAMING, w, h);
+     */
+    texture =  SDL_CreateTexture(render->sdl_render, SDL_PIXELFORMAT_IYUV,
                              SDL_TEXTUREACCESS_STREAMING, w, h);
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+
+    return texture;
 }
 
 static int __destroy_texture(Sdl_Render *render, void *texture)
