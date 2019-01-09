@@ -461,13 +461,13 @@ static String * __replace(String *self,char *old,char *newstr)
         ret = string_buf_auto_modulate(self, new_len-old_len);
         if (ret < 0 ) {
             goto end;
-        }   
+        }
     }
 
     end_pos = start_pos + new_len;
-    strncpy(self->value+end_pos,self->value+start_pos+old_len,str_len-(start_pos+old_len));
-    strncpy(self->value+start_pos,newstr,new_len);
-    self->value_len+=(new_len-old_len);
+    memmove(self->value+end_pos,self->value+start_pos+old_len,str_len-(start_pos+old_len));
+    memmove(self->value+start_pos,newstr,new_len); 
+    self->value_len += (new_len-old_len);
     self->value[self->value_len] = '\0';
 
 end:
@@ -816,7 +816,11 @@ static int test_string_replace_all()
     pstr   = OBJECT_NEW(allocator, String, NULL);
 
     string->assign(string, test);
-    pstr->assign(pstr, "&");
+    pstr->assign(pstr, "#");
+
+    int pos = string->find(string,pstr,0);
+    dbg_str(DBG_SUC,"position:%d",pos);
+
     dbg_str(DBG_SUC,"before replaced :%s\n size:%d",string->c_str(string),string->size(string));
     string->replace_all(string,"<##>","@");
     dbg_str(DBG_SUC,"current replaced:%s\n size:%d",string->c_str(string),string->size(string));
@@ -831,6 +835,30 @@ static int test_string_replace_all()
     return 1;
 }
 
+static int test_string_replace_complex()
+{
+   allocator_t *allocator = allocator_get_default_alloc();
+   String * state_info = OBJECT_NEW(allocator,String ,NULL);    
+   state_info->assign(state_info,"[extractor_ready_failed] [video_codec_ready_failed] "   
+            "[audio_codec_ready_failed] [seek_ready_failed]");
+
+   state_info->replace(state_info,"extractor_ready_failed","extractor_ready_ok");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",state_info->c_str(state_info),state_info->size(state_info));  
+
+   state_info->replace(state_info,"video_codec_ready_failed","video_codec_ready_ok");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",state_info->c_str(state_info),state_info->size(state_info));
+
+   state_info->replace(state_info,"audio_codec_ready_failed","audio_codec_ready_ok");   
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",state_info->c_str(state_info),state_info->size(state_info));
+
+   state_info->replace(state_info,"seek_ready_failed","seek_ready_ok");
+    dbg_str(DBG_SUC,"current replaced:%s\n size:%d",state_info->c_str(state_info),state_info->size(state_info));
+    
+   object_destroy(state_info);
+   return 1;
+}
+
+
 REGISTER_TEST_FUNC(test_c_str);
 REGISTER_TEST_FUNC(test_append_str);
 REGISTER_TEST_FUNC(test_append_str_len);
@@ -841,5 +869,7 @@ REGISTER_TEST_FUNC(test_string_substr);
 REGISTER_STANDALONE_TEST_FUNC(test_string_empty);
 REGISTER_STANDALONE_TEST_FUNC(test_string_replace);
 REGISTER_STANDALONE_TEST_FUNC(test_string_replace_all);
+
+REGISTER_STANDALONE_TEST_FUNC(test_string_replace_complex);
 
 
