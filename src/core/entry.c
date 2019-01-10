@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/libobject.h>
+#include <libobject/concurrent/producer.h>
 
 #define MAX_LIBOBJECT_PATH_LEN 50
 #define DEFAULT_LIBOBJECT_RUN_PATH "/tmp"
@@ -30,6 +32,22 @@ char *libobject_get_run_path()
 int libobject_init()
 {
     execute_ctor_funcs();
+    /*
+     *default_producer_constructor();
+     */
+
+    return 0;
+}
+
+int libobject_exit()
+{
+    Producer *producer = global_get_default_producer();
+
+    printf("libobject_exit\n");
+    kill(0, SIGINT);
+    /*
+     *producer->parent.eb->break_flag = 1;
+     */
 
     return 0;
 }

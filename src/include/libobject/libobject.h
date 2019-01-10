@@ -19,5 +19,6 @@
 int libobject_set_run_path(char *path);
 char *libobject_get_run_path();
 int libobject_init();
+int libobject_exit();
 
 #endif

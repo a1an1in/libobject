@@ -333,16 +333,18 @@ static void __set_window_position(Window *window, int x, int y)
 }
 
 #define FULLSCREEN_MASK (SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_FULLSCREEN)
+#include <SDL2/SDL_video.h>
 static void __full_screen(Window *window) 
 {
     Sdl_Window *w = (Sdl_Window *)window;
+    SDL_Window * sdl_w = (SDL_Window *)w->sdl_window;
     uint32_t flags = w->flags;
 
     /*
      *dbg_str(DBG_DETAIL, "full_screen");
      */
-    if (flags & SDL_WINDOW_FULLSCREEN){
-        w->flags &= ~SDL_WINDOW_FULLSCREEN;
+    if (flags & FULLSCREEN_MASK){
+        w->flags &= ~FULLSCREEN_MASK;
         SDL_SetWindowFullscreen(w->sdl_window, SDL_FALSE);
         SDL_GetWindowSize(w->sdl_window, 
                           &window->screen_width, 
@@ -350,13 +352,17 @@ static void __full_screen(Window *window)
         dbg_str(DBG_DETAIL, "exit full_screen, window size, width=%d, height=%d", 
                 window->screen_width, window->screen_height);
     } else {
-        w->flags |= SDL_WINDOW_FULLSCREEN;
-        SDL_SetWindowFullscreen(w->sdl_window, SDL_TRUE);
+        w->flags |= FULLSCREEN_MASK;
+        SDL_SetWindowFullscreen(w->sdl_window, FULLSCREEN_MASK);
         SDL_GetWindowSize(w->sdl_window, 
                           &window->screen_width, 
                           &window->screen_height);
         dbg_str(DBG_DETAIL, "full_screen, window size, width=%d, height=%d", 
                 window->screen_width, window->screen_height);
+        /*
+         *dbg_str(DBG_DETAIL, "full_screen, w width=%d, height=%d", 
+         *        sdl_w->w, sdl_w->h);
+         */
     }
 }
 
