@@ -9,7 +9,6 @@ macro (set_cmake_evironment_variable)
     set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/linux)
     set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/linux)
     set (LIBRARY_DIR_PATH ${PROJECT_SOURCE_DIR}/lib/linux/)
-    set (ExternalLibs ${ExternalLibs} m)
 endmacro()
 
 macro (display_linux_platform_configs)
