@@ -6,8 +6,8 @@
 #cmake -DPLATFORM=android -DANDROID_ABI=arm64-v8a&&make&&
 #rm -rf CMakeFiles&&rm CMakeCache.txt&&
 rm -rf CMakeFiles&&rm CMakeCache.txt&&
+rm -rf /Users/alanlin/Library/Android/sdk/ndk-bundle/sysroot/usr/include/libobject&&
 cmake -DPLATFORM=android -DANDROID_ABI=armeabi-v7a&&make&&
-cp -rf lib/android/ ~/workspace/goya/android/goya/app/src/main/jni/lib
+cp -rf lib/android/ ~/workspace/goya-github/android/goya/app/src/main/jni/lib
 cp lib/android/armeabi-v7a/*.so /Users/alanlin/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-arm/usr/lib
-rm -rf /Users/alanlin/Library/Android/sdk/ndk-bundle/sysroot/usr/include/libobject
-cp -rf src/include/* /Users/alanlin/Library/Android/sdk/ndk-bundle/sysroot/usr/include/
+cp -rf src/include/libobject /Users/alanlin/Library/Android/sdk/ndk-bundle/sysroot/usr/include/

@@ -340,7 +340,7 @@ int set_break_signal(Event_Base* eb)
 {
     struct event *ev = &eb->break_event;
 
-    ev->ev_fd              = SIGINT;
+    ev->ev_fd              = SIGQUIT;
     ev->ev_events          = EV_SIGNAL|EV_PERSIST;
     ev->ev_timeout.tv_sec  = 0;
     ev->ev_timeout.tv_usec = 0;
