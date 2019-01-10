@@ -81,8 +81,6 @@ static int __set(Producer *producer, char *attrib, void *value)
     }
     else if (strcmp(attrib, "start") == 0) {
         producer->start = value;
-    }else if (strcmp(attrib, "detach") == 0) {
-        producer->detach = value;
     } 
     else {
         dbg_str(CONCURRENT_DETAIL, "producer set, not support %s setting", attrib);
@@ -149,8 +147,7 @@ static class_info_entry_t producer_class_info[] = {
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_dispatcher", __add_dispatcher, sizeof(void *)}, 
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del_dispatcher", __del_dispatcher, sizeof(void *)}, 
     [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "start", NULL, sizeof(void *)}, 
-    [10 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "detach", NULL, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_END}, 
+    [10] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Producer", producer_class_info);
 
