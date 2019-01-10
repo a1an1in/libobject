@@ -123,9 +123,9 @@ int main(int argc, char *argv[])
 
     args_process(NULL, cmds, argc, argv);
 
-    libobject_exit();
-
     dbg_str(DBG_DETAIL, "main func end");
+
+    libobject_exit();
 
     return ret;
 }

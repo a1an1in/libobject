@@ -167,34 +167,34 @@ extract_filename_in_macro(char *macro)
     	#define dbg_str(debug_switch,fmt,args...)\
             switch(debug_switch&0xf) {\
                 case DBG_PANIC:\
-                    __android_log_print(ANDROID_LOG_ERROR, "liboject", fmt, ##args);\
+                    __android_log_print(ANDROID_LOG_ERROR, "libobject", fmt, ##args);\
                     break;\
                 case DBG_FATAL:\
-                    __android_log_print(ANDROID_LOG_WARN, "liboject", fmt, ##args);\
+                    __android_log_print(ANDROID_LOG_WARN, "libobject", fmt, ##args);\
                     break;\
                 case DBG_ERROR:\
-                    __android_log_print(ANDROID_LOG_WARN, "liboject", fmt, ##args);\
+                    __android_log_print(ANDROID_LOG_WARN, "libobject", fmt, ##args);\
                     break;\
                 case DBG_WARNNING:\
-                    __android_log_print(ANDROID_LOG_WARN, "liboject", fmt, ##args);\
+                    __android_log_print(ANDROID_LOG_WARN, "libobject", fmt, ##args);\
                     break;\
                 case DBG_SUC:\
-                    __android_log_print(ANDROID_LOG_INFO, "liboject", fmt, ##args);\
+                    __android_log_print(ANDROID_LOG_INFO, "libobject", fmt, ##args);\
                     break;\
                 case DBG_CORRECT:\
-                    __android_log_print(ANDROID_LOG_INFO, "liboject", fmt, ##args);\
+                    __android_log_print(ANDROID_LOG_INFO, "libobject", fmt, ##args);\
                     break;\
                 case DBG_VIP:\
-                    __android_log_print(ANDROID_LOG_INFO, "liboject", fmt, ##args);\
+                    __android_log_print(ANDROID_LOG_INFO, "libobject", fmt, ##args);\
                     break;\
                 case DBG_FLOW:\
-                    __android_log_print(ANDROID_LOG_DEBUG, "liboject", fmt, ##args);\
+                    __android_log_print(ANDROID_LOG_DEBUG, "libobject", fmt, ##args);\
                     break;\
                 case DBG_IMPORTANT:\
-                    __android_log_print(ANDROID_LOG_DEBUG, "liboject", fmt, ##args);\
+                    __android_log_print(ANDROID_LOG_DEBUG, "libobject", fmt, ##args);\
                     break;\
                 case DBG_DETAIL:\
-                    __android_log_print(ANDROID_LOG_VERBOSE, "liboject", fmt, ##args);\
+                    __android_log_print(ANDROID_LOG_VERBOSE, "libobject", fmt, ##args);\
                     break;\
                 default:\
                     break;\

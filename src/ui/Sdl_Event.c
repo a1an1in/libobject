@@ -399,6 +399,7 @@ int sdl_event()
 
     object_destroy(window);
 
+
     free(set_str);
 }
 REGISTER_STANDALONE_TEST_FUNC(sdl_event);
