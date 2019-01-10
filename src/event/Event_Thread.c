@@ -209,6 +209,8 @@ static void *__start_routine(void *arg)
             "event_thread_unix_socket_server", count); 
     dbg_str(EV_IMPORTANT,"Event_Thread, start_routine:%p, server_addr:%s",
             arg, server_addr);
+            
+    et->detach(et);
 
     s = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
     s->bind(s, server_addr, NULL); 

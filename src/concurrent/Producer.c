@@ -173,7 +173,6 @@ int default_producer_constructor()
     global_default_producer = producer;
 
     producer->start(producer);
-    producer->detach(producer);
 
     return 0;
 }
