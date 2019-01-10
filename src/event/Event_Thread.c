@@ -193,6 +193,7 @@ static void event_thread_server_socket_ev_callback(int fd, short events, void *a
 static void *__start_routine(void *arg)
 {
     Event_Thread *et       = (Event_Thread *)arg;
+    Thread * tt            = et;
     allocator_t *allocator = et->parent.obj.allocator;
     Event_Base *eb         = et->eb;
     event_t *event         = &et->server_socket_event;
@@ -210,8 +211,7 @@ static void *__start_routine(void *arg)
     dbg_str(EV_IMPORTANT,"Event_Thread, start_routine:%p, server_addr:%s",
             arg, server_addr);
             
-    et->detach(et);
-
+    tt->detach(tt);
     s = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
     s->bind(s, server_addr, NULL); 
 
@@ -289,7 +289,7 @@ void test_obj_event_thread()
      *thread->set_start_arg(thread, thread);
      */
     thread->start(thread);
-
+    
     sleep(1);
     event.ev_fd              = -1;
     event.ev_events          = EV_READ | EV_PERSIST;
