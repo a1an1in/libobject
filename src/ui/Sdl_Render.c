@@ -386,7 +386,9 @@ static void *__create_yuvtexture(Sdl_Render *render, int w, int h)
      */
     texture =  SDL_CreateTexture(render->sdl_render, SDL_PIXELFORMAT_IYUV,
                              SDL_TEXTUREACCESS_STREAMING, w, h);
-    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    /*
+     *SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+     */
 
     return texture;
 }

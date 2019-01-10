@@ -213,7 +213,9 @@ static int __init_window(Window *window)
             ret = -1;
         } else {
             Sdl_Render *r = (Sdl_Render *)window->render;
-            r->screen_surface = SDL_GetWindowSurface(r->window);
+            /*
+             *r->screen_surface = SDL_GetWindowSurface(r->window);
+             */
             ret = 1;
         }
     }
