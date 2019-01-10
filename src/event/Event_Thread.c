@@ -92,6 +92,8 @@ static int __set(Event_Thread *thread, char *attrib, void *value)
     } /*vitural methods*/
     else if (strcmp(attrib, "start_routine") == 0) {
         thread->start_routine = value;
+    } else if (strcmp(attrib, "detach") == 0) {
+        thread->detach = value;
     }
     else {
         dbg_str(EV_DETAIL,"thread set, not support %s setting",attrib);
@@ -245,7 +247,8 @@ static class_info_entry_t event_thread_class_info[] = {
     [8 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_start_routine", NULL, sizeof(void *)}, 
     [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_start_arg", NULL, sizeof(void *)}, 
     [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "start_routine", __start_routine, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_END}, 
+    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach", NULL, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Event_Thread",event_thread_class_info);
 
