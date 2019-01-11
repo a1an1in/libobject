@@ -213,11 +213,11 @@ static void __run(Thread *thread)
     }
 }
 
-static void __join(Thread * thread)
+static void __join(Thread * thread,Thread * th)
 {
-    if ( thread->joinable ) {
-        thread->joinable = 0;
-        pthread_join(thread->tid,NULL);
+    if ( th->joinable ) {
+        th->joinable = 0;
+        pthread_join(th->get_tid(th),NULL);
     }
 }
 
@@ -329,6 +329,12 @@ static void *func_detach(void *arg)
     return 1;
 }
 
+static void * join_func(void *)
+{
+    dbg_str(DBG_IMPORTANT,"JOIN FUNC");
+    return NULL;
+}
+
 
 static void *func_detach2(void *arg)
 {
@@ -351,13 +357,17 @@ static void *func_detach2(void *arg)
 static int test_safe_thread()
 {
     Thread *thread;
+    Thread *thread_join;
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;      
     thread = OBJECT_NEW(allocator, Thread, NULL);
+    thread_join = OBJECT_NEW(allocator, Thread, NULL);
     thread->set_run_routine(thread,func);
     thread->start(thread);
-
-    thread->join(thread);
+    thread_join->set_run_routine(thread_join,join_func);
+    thread_join->start(thread);
+    thread_join->join(thread_join,thread);
+   // pthread_join(thread->get_tid(thread),NULL);
     return 1;
 }
 
@@ -397,7 +407,7 @@ static int  test_thread_detach2()
     thread = OBJECT_NEW(allocator, Thread, NULL);
     thread->set_run_routine(thread,func_detach2);
     thread->start(thread);
-    thread->detach(thread);  
+    //thread->detach(thread);  
  
     sleep(5);
     return 1;
