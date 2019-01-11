@@ -64,6 +64,7 @@ io_worker(allocator_t *allocator, int fd,
 
 int io_worker_destroy(Worker *worker)
 {
+    worker->resign(worker);
     return object_destroy(worker);
 }
 

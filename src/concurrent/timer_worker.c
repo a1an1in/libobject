@@ -98,6 +98,7 @@ Worker *timer_worker(allocator_t *allocator,
 
 int timer_worker_destroy(Worker *worker)
 {
+    worker->resign(worker);
     return object_destroy(worker);
 }
 
@@ -124,9 +125,9 @@ int test_timer_worker(TEST_ENTRY *entry)
     /*
      *worker = timer_worker(allocator, &ev_tv, NULL, test_work_callback);
      */
-    pause();
-    pause();
+    sleep(5);
     timer_worker_destroy(worker);
+    sleep(5);
 
     return 1;
 }

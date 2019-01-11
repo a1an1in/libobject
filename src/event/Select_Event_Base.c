@@ -128,6 +128,8 @@ static int __reclaim_io(Select_Base *b, event_t *e)
 
     //.. maxfdp
 
+    if (fd < 0) return 0;
+
     if (events & EV_READ)
         FD_CLR(fd, &b->event_readset_in);
 
