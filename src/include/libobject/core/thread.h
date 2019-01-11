@@ -21,7 +21,7 @@ struct thread_s{
     int (*set_opaque)(Thread *, void *);
     int (*get_status)(Thread *);
     int (*stop)(Thread *);
-
+    int (*get_tid)(Thread *);
     void (*join)(Thread *);
     void (*detach)(Thread *);
 
