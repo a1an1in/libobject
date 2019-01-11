@@ -194,6 +194,7 @@ static void * __get(__Event *event, char *attrib)
     return NULL;
 }
 
+#if 1
 static int __poll_event(__Event *event, void *window)
 {
     int quit             = 0;
@@ -363,6 +364,175 @@ static int __poll_event(__Event *event, void *window)
 
     return 0;
 }
+#else
+static int __poll_event(__Event *event, void *window)
+{
+    int quit             = 0;
+    SDL_Event *e         = &((Sdl_Event *)event)->ev;
+    Window *w            = (Window *)window;
+    Render *g             = w->render;
+    Component *component = (Component *)window, *cur;
+
+    dbg_str(DBG_DETAIL, "sdl event poll");
+
+    SDL_StartTextInput();
+
+    if (SDL_PollEvent(e) != 0) {
+        switch(e->type) {
+            case SDL_QUIT:
+                quit = 1; 
+                break;
+            case SDL_WINDOWEVENT:
+                switch (e->window.event) {
+                    case SDL_WINDOWEVENT_MOVED:
+                        event->windowid = e->button.windowID;
+                        event->window   = window;
+                        component->on_window_moved(component, event, window);
+                        break;
+                    case SDL_WINDOWEVENT_RESIZED:
+                        event->data1    = e->window.data1;
+                        event->data2    = e->window.data2;
+                        event->windowid = e->button.windowID;
+                        event->window   = window;
+                        component->on_window_resized(component, event, window);
+                        break;
+                }
+                break;
+            case SDL_KEYDOWN:
+                /*
+                 *print_key(&e->key.keysym, 
+                 *          (e->key.state == SDL_PRESSED) ? SDL_TRUE : SDL_FALSE, 
+                 *          (e->key.repeat) ? SDL_TRUE : SDL_FALSE);
+                 */
+
+                if ((e->key.repeat) ? SDL_TRUE : SDL_FALSE) {
+                    break;
+                }
+                switch(e->key.keysym.sym) {
+                    case SDLK_ESCAPE:
+                        component->on_key_esc_pressed(component, g);
+                        break;
+                    case SDLK_UP:
+                        /*
+                         *dbg_str(DBG_DETAIL, "SDLK_UP, code :%x", e->key.keysym.sym);
+                         */
+                        component->on_key_up_pressed(component, g);
+                        break;
+                    case SDLK_DOWN:
+                        /*
+                         *dbg_str(DBG_DETAIL, "SDLK_DOWN, code :%x", e->key.keysym.sym);
+                         */
+                        component->on_key_down_pressed(component, g);
+                        break;
+                    case SDLK_LEFT:
+                        /*
+                         *dbg_str(DBG_DETAIL, "SDLK_LEFT, code :%x", e->key.keysym.sym);
+                         */
+                        component->on_key_left_pressed(component, g);
+                        break;
+                    case SDLK_RIGHT:
+                        /*
+                         *dbg_str(DBG_DETAIL, "SDLK_RIGHT, code :%x", e->key.keysym.sym);
+                         */
+                        component->on_key_right_pressed(component, g);
+                        break;
+                    case SDLK_PAGEUP:
+                        component->on_key_pageup_pressed(component, g);
+                        break;
+                    case SDLK_PAGEDOWN:
+                        component->on_key_pagedown_pressed(component, g);
+                        break;
+                    case SDLK_BACKSPACE:
+                        /*
+                         *dbg_str(DBG_DETAIL, "BACKSPACE, code :%d", e->key.keysym.sym);
+                         */
+                        component->on_key_backspace_pressed(component, g);
+                        break;
+                    case SDLK_j:
+                        if (SDL_GetModState() & KMOD_CTRL) {
+                            component->on_key_onelineup_pressed(component, g);
+                        } else{
+                            dbg_str(DBG_IMPORTANT, "key j down");
+                        }
+                        break;
+                    case SDLK_k:
+                        if (SDL_GetModState() & KMOD_CTRL) {
+                            /*
+                             *dbg_str(DBG_IMPORTANT, "ctrl + k");
+                             */
+                            component->on_key_onelinedown_pressed(component, g);
+                        }
+                        break;
+                    default:
+                        break;
+                } 
+                break;
+            case SDL_KEYUP:
+                /*
+                 *dbg_str(DBG_DETAIL, "SDL_KEYUP");
+                 */
+                break;
+            case SDL_CONTROLLERBUTTONDOWN:
+                dbg_str(DBG_DETAIL, "SDL EVENT: Controller %d button %d down", 
+                        e->cbutton.which, e->cbutton.button);
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                event->x        = e->button.x;
+                event->y        = e->button.y;
+                event->button   = e->button.button;
+                event->clicks   = e->button.clicks;
+                event->windowid = e->button.windowID;
+                event->window   = window;
+
+                component->on_mouse_pressed(component, event, window);
+                break;
+            case SDL_MOUSEMOTION:
+                event->x        = e->motion.x;
+                event->xrel     = e->motion.xrel;
+                event->y        = e->motion.y;
+                event->yrel     = e->motion.yrel;
+                event->windowid = e->button.windowID;
+                event->window   = window;
+
+                component->on_mouse_moved(component, event, window);
+                break;
+            case SDL_MOUSEWHEEL: 
+                event->x         = e->wheel.x;
+                event->y         = e->wheel.y;
+                event->direction = e->wheel.direction;
+                event->windowid  = e->button.windowID;
+                event->window    = window;
+
+                component->on_mouse_wheel_moved(component, event, window);
+                break;
+            case SDL_TEXTEDITING:
+                print_text("EDIT", e->text.text);
+                break;
+            case SDL_TEXTINPUT:
+                event->window   = window;
+
+                component->on_key_text_pressed(component, e->text.text[0], g);
+                break;
+            case SDL_FINGERDOWN:
+            case SDL_FINGERUP:
+                dbg_str(DBG_DETAIL, 
+                        "SDL EVENT: Finger: %s touch=%ld, finger=%ld, x=%f, y=%f, dx=%f, dy=%f, pressure=%f", 
+                        (e->type == SDL_FINGERDOWN) ? "down" : "up", 
+                        (long) e->tfinger.touchId, 
+                        (long) e->tfinger.fingerId, 
+                        e->tfinger.x, e->tfinger.y, 
+                        e->tfinger.dx, e->tfinger.dy, e->tfinger.pressure);
+                break;
+            default:
+                break;
+        }
+    }
+
+    SDL_StopTextInput();
+
+    return 0;
+}
+#endif
 
 static class_info_entry_t sdl_event_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "__Event", "event", NULL, sizeof(void *)}, 
