@@ -45,6 +45,7 @@ static int __construct(Thread *thread, char *init_str)
     thread->is_run = 0;
     thread->arg = NULL;
     thread->joinable = 1;
+    thread->tid      = -1;
     dbg_str(DBG_IMPORTANT, "Thread construct, thread addr:%p", thread);
 
     return 0;
@@ -90,21 +91,22 @@ static int __set(Thread *thread, char *attrib, void *value)
         thread->set_start_arg = value;
     } else if (strcmp(attrib, "set_opaque") == 0) {
         thread->set_opaque = value;
-    }
-    else if (strcmp(attrib, "start_routine") == 0) {
+    } else if (strcmp(attrib, "start_routine") == 0) {
         thread->start_routine = value;
-    }else if (strcmp(attrib, "stop") == 0) {
+    } else if (strcmp(attrib, "stop") == 0) {
         thread->stop = value;
-    }else if (strcmp(attrib, "get_status") == 0) {
+    } else if (strcmp(attrib, "get_status") == 0) {
         thread->get_status = value;
-    }else if (strcmp(attrib, "run") == 0) {
+    } else if (strcmp(attrib, "run") == 0) {
         thread->run = value;
-    }else if (strcmp(attrib, "set_run_routine") == 0) {
+    } else if (strcmp(attrib, "set_run_routine") == 0) {
         thread->set_run_routine = value;
-    }else if (strcmp(attrib, "join") == 0) {
+    } else if (strcmp(attrib, "join") == 0) {
         thread->join = value;
-    }else if (strcmp(attrib, "detach") == 0) {
+    } else if (strcmp(attrib, "detach") == 0) {
         thread->detach = value;
+    } else if (strcmp(attrib, "get_tid") == 0) {
+        thread->get_tid = value;
     }
     else {
         dbg_str(OBJ_DETAIL, "thread set, not support %s setting", attrib);
@@ -211,12 +213,11 @@ static void __run(Thread *thread)
     }
 }
 
-static void __join(Thread * thread)
+static void __join(Thread * thread,Thread * th)
 {
-    if ( thread->joinable ) {
-        pthread_join(thread->tid,NULL);
-        thread->joinable = 0;
-        thread->tid = 0;
+    if ( th->joinable ) {
+        th->joinable = 0;
+        pthread_join(th->get_tid(th),NULL);
     }
 }
 
@@ -225,6 +226,11 @@ static void __detach(Thread *thread)
     if (thread->joinable) {
         pthread_detach(thread->tid);
     }
+}
+
+static int __get_tid(Thread *thread)
+{
+    return thread->tid;
 }
 
 static class_info_entry_t thread_class_info[] = {
@@ -244,7 +250,8 @@ static class_info_entry_t thread_class_info[] = {
     [13 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_status", __get_status, sizeof(void *)}, 
     [14 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "join", __join, sizeof(void *)},
     [15 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach", __detach, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_END}, 
+    [16 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach", __get_tid, sizeof(void *)}, 
+    [17] = {ENTRY_TYPE_END}, 
 };
 
 REGISTER_CLASS("Thread", thread_class_info);
@@ -322,6 +329,12 @@ static void *func_detach(void *arg)
     return 1;
 }
 
+static void * join_func(void *arg)
+{
+    dbg_str(DBG_IMPORTANT,"JOIN FUNC");
+    return NULL;
+}
+
 
 static void *func_detach2(void *arg)
 {
@@ -344,13 +357,17 @@ static void *func_detach2(void *arg)
 static int test_safe_thread()
 {
     Thread *thread;
+    Thread *thread_join;
     allocator_t *allocator = allocator_get_default_alloc();
     configurator_t * c;      
     thread = OBJECT_NEW(allocator, Thread, NULL);
+    thread_join = OBJECT_NEW(allocator, Thread, NULL);
     thread->set_run_routine(thread,func);
     thread->start(thread);
-
-    thread->join(thread);
+    thread_join->set_run_routine(thread_join,join_func);
+    thread_join->start(thread);
+    thread_join->join(thread_join,thread);
+   // pthread_join(thread->get_tid(thread),NULL);
     return 1;
 }
 
@@ -363,7 +380,7 @@ static int test_thread_join()
     thread->set_run_routine(thread,func);
     thread->start(thread);
 
-    thread->join(thread);
+    //thread->join(thread);
     dbg_str(DBG_ERROR," main thread wait sub thread!!!!!!!!!!");
     return 1;
 }
@@ -390,7 +407,7 @@ static int  test_thread_detach2()
     thread = OBJECT_NEW(allocator, Thread, NULL);
     thread->set_run_routine(thread,func_detach2);
     thread->start(thread);
-    thread->detach(thread);  
+    //thread->detach(thread);  
  
     sleep(5);
     return 1;

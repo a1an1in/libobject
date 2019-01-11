@@ -178,6 +178,8 @@ static void * producer(void *arg)
     int buf[6]={1,2,3,4,5,56};
     int i;
 
+    Thread * t1 = (Thread *)arg;
+    t1->detach(t1);
     //mutex_lock->lock(mutex_lock);
     #if 0
     pthread_mutex_lock(&mutex);
@@ -207,6 +209,9 @@ static void * producer(void *arg)
 {
 
     void *element;
+    Thread * t1 = (Thread *)arg;
+    t1->detach(t1);
+
     
     #if 0
     
@@ -265,11 +270,7 @@ static int test_condition_produce_consume()
     Thread * t2 = OBJECT_NEW(allocator,Thread,NULL);
     t2->set_run_routine(t2,consumer);
     t2->start(t2);
-    
 
-    
-    t1->join(t1);
-    t2->join(t2);
 
     object_destroy(condition);
     object_destroy(mutex_lock);
