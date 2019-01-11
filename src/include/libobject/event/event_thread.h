@@ -30,6 +30,7 @@ struct event_thread_s{
 
     /*inherited methods*/
     int (*start)(Event_Thread *);
+    void (*detach)(Event_Thread*);
     int (*set_start_routine)(Event_Thread *, void *);
     int (*set_start_arg)(Event_Thread *, void *);
 

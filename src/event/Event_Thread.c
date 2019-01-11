@@ -92,6 +92,8 @@ static int __set(Event_Thread *thread, char *attrib, void *value)
     } /*vitural methods*/
     else if (strcmp(attrib, "start_routine") == 0) {
         thread->start_routine = value;
+    } else if (strcmp(attrib, "detach") == 0) {
+        thread->detach = value;
     }
     else {
         dbg_str(EV_DETAIL,"thread set, not support %s setting",attrib);
@@ -191,6 +193,7 @@ static void event_thread_server_socket_ev_callback(int fd, short events, void *a
 static void *__start_routine(void *arg)
 {
     Event_Thread *et       = (Event_Thread *)arg;
+    Thread * tt            = et;
     allocator_t *allocator = et->parent.obj.allocator;
     Event_Base *eb         = et->eb;
     event_t *event         = &et->server_socket_event;
@@ -207,7 +210,8 @@ static void *__start_routine(void *arg)
             "event_thread_unix_socket_server", count); 
     dbg_str(EV_IMPORTANT,"Event_Thread, start_routine:%p, server_addr:%s",
             arg, server_addr);
-
+            
+    tt->detach(tt);
     s = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
     s->bind(s, server_addr, NULL); 
 
@@ -245,7 +249,8 @@ static class_info_entry_t event_thread_class_info[] = {
     [8 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_start_routine", NULL, sizeof(void *)}, 
     [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_start_arg", NULL, sizeof(void *)}, 
     [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "start_routine", __start_routine, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_END}, 
+    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach", NULL, sizeof(void *)}, 
+    [12] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Event_Thread",event_thread_class_info);
 
@@ -284,7 +289,7 @@ void test_obj_event_thread()
      *thread->set_start_arg(thread, thread);
      */
     thread->start(thread);
-
+    
     sleep(1);
     event.ev_fd              = -1;
     event.ev_events          = EV_READ | EV_PERSIST;
