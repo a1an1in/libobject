@@ -216,9 +216,8 @@ static void __run(Thread *thread)
 static void __join(Thread * thread)
 {
     if ( thread->joinable ) {
-        pthread_join(thread->tid,NULL);
         thread->joinable = 0;
-        thread->tid = 0;
+        pthread_join(thread->tid,NULL);
     }
 }
 
