@@ -22,7 +22,7 @@ struct thread_s{
     int (*get_status)(Thread *);
     int (*stop)(Thread *);
     int (*get_tid)(Thread *);
-    void (*join)(Thread *);
+    void (*join)(Thread *,Thread *);
     void (*detach)(Thread *);
 
     int (*set_run_routine)(Thread *,void *);
