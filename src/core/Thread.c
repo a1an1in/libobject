@@ -329,7 +329,7 @@ static void *func_detach(void *arg)
     return 1;
 }
 
-static void * join_func(void *)
+static void * join_func(void *arg)
 {
     dbg_str(DBG_IMPORTANT,"JOIN FUNC");
     return NULL;
@@ -380,7 +380,7 @@ static int test_thread_join()
     thread->set_run_routine(thread,func);
     thread->start(thread);
 
-    thread->join(thread);
+    //thread->join(thread);
     dbg_str(DBG_ERROR," main thread wait sub thread!!!!!!!!!!");
     return 1;
 }
