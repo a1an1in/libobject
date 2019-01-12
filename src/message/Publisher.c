@@ -139,6 +139,13 @@ static void test_on_pause(message_t *message, void *arg)
     dbg_str(DBG_DETAIL, "message arg:%p", arg);
 }
 
+static void test_xxxx(message_t *message, void *arg)
+{
+    Subscriber *subscriber = (Subscriber *)arg;
+    dbg_str(DBG_SUC, "subscriber receive a message:%s", (char *)message->what);
+    dbg_str(DBG_DETAIL, "message arg:%p", arg);
+}
+
 static int test_message_publisher()
 {
     Centor *centor;
@@ -147,6 +154,8 @@ static int test_message_publisher()
     allocator_t *allocator = allocator_get_default_alloc();
     char * test_str = "on_pause";
 
+    char *test_xxxx = "test_xxxx";
+
     centor     = OBJECT_NEW(allocator, Centor, NULL);
     publisher  = OBJECT_NEW(allocator, Publisher, NULL);
     subscriber = OBJECT_NEW(allocator, Subscriber, NULL);
@@ -154,6 +163,13 @@ static int test_message_publisher()
     subscriber->connect_centor(subscriber, centor);
     subscriber->add_method(subscriber, "on_pause", test_on_pause, allocator);
     subscriber->subscribe(subscriber, publisher);
+
+ 
+    subscriber->add_method(subscriber, "test_xxxx", test_xxxx, allocator);   
+    subscriber->subscribe(subscriber, publisher);
+ 
+    //subscriber->subscribe(subscriber, publisher);
+
     dbg_str(DBG_SUC, "%p subscribe a publisher, publisher addr:%p", subscriber, publisher);
     dbg_str(DBG_SUC, "message handler arg:%p", allocator);
 
