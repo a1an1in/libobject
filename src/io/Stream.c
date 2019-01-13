@@ -1,9 +1,9 @@
 /**
- * @file Response.c
+ * @File Stream.c
  * @Synopsis  
  * @author alan lin
- * @version 
- * @date 2019-01-01
+ * @version 1
+ * @date 2019-01-13
  */
 /* Copyright (c) 2015-2020 alan lin <a1an1in@sina.com>
  * Redistribution and use in source and binary forms, with or without
@@ -30,74 +30,50 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/net/http/Response.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/event/event_base.h>
+#include <libobject/io/stream.h>
 
-static int __construct(Response *response,char *init_str)
-{
-    allocator_t *allocator = response->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
-
-    dbg_str(DBG_DETAIL,"response construct, response addr:%p",response);
-
-    return 0;
-}
-
-static int __deconstrcut(Response *response)
-{
-    dbg_str(DBG_DETAIL,"response deconstruct,response addr:%p",response);
-
-    return 0;
-}
-
-static int __set(Response *response, char *attrib, void *value)
+static int __set(Stream *stream, char *attrib, void *value)
 {
     if (strcmp(attrib, "set") == 0) {
-        response->set = value;
+        stream->set = value;
     } else if (strcmp(attrib, "get") == 0) {
-        response->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        response->construct = value;
+        stream->get = value;
+    }
+    else if (strcmp(attrib, "construct") == 0) {
+        stream->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
-        response->deconstruct = value;
-    } 
-    else {
-        dbg_str(DBG_DETAIL,"response set, not support %s setting",attrib);
+        stream->deconstruct = value;
+    } else if (strcmp(attrib, "read") == 0) {
+        stream->read = value;
+    } else if (strcmp(attrib, "write") == 0) {
+        stream->write = value;
+    } else {
+        dbg_str(EV_DETAIL,"stream set, not support %s setting",attrib);
     }
 
     return 0;
 }
 
-static void *__get(Response *obj, char *attrib)
+static void *__get(Stream *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"response get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARNNING,"stream get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
 }
 
-static class_info_entry_t concurent_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
+static class_info_entry_t stream_class_info[] = {
+    [0] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
+    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
+    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
+    [3] = {ENTRY_TYPE_VFUNC_POINTER,"","read", NULL,sizeof(void *)},
+    [4] = {ENTRY_TYPE_VFUNC_POINTER,"","write", NULL,sizeof(void *)},
+    [5] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Response",concurent_class_info);
-
-int test_response()
-{
-    Response *response;
-    allocator_t *allocator = allocator_get_default_alloc();
-
-    response = OBJECT_NEW(allocator, Response, NULL);
-
-    object_destroy(response);
-}
-REGISTER_STANDALONE_TEST_FUNC(test_response);
+REGISTER_CLASS("Stream",stream_class_info);

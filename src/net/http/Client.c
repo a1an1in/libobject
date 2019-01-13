@@ -146,6 +146,7 @@ static int test_request_callback(void *task)
 
     dbg_str(DBG_SUC,"request callback run, cabllback opaque=%p", t->opaque);
 }
+
 int test_http_client(TEST_ENTRY *entry)
 {
     Http_Client *client;
@@ -157,6 +158,10 @@ int test_http_client(TEST_ENTRY *entry)
     req = client->get_request(client);
 
     req->set_method(req, "GET");
+    req->set_uri(req, "/hello");
+    req->set_http_version(req, "HTTP/1.1");
+    req->set_header(req, "Host", "http://127.0.0.1:8080");
+    req->write(req);
 
     response = client->request(client, test_request_callback, client);
 
