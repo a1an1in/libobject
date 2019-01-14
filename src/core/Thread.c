@@ -228,7 +228,7 @@ static void __detach(Thread *thread)
     }
 }
 
-static int __get_tid(Thread *thread)
+static pthread_t __get_tid(Thread *thread)
 {
     return thread->tid;
 }
@@ -250,7 +250,7 @@ static class_info_entry_t thread_class_info[] = {
     [13 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_status", __get_status, sizeof(void *)}, 
     [14 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "join", __join, sizeof(void *)},
     [15 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach", __detach, sizeof(void *)}, 
-    [16 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach", __get_tid, sizeof(void *)}, 
+    [16 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_tid", __get_tid, sizeof(void *)}, 
     [17] = {ENTRY_TYPE_END}, 
 };
 
@@ -353,7 +353,6 @@ static void *func_detach2(void *arg)
     return 1;
 }
 
-
 static int test_safe_thread()
 {
     Thread *thread;
@@ -413,6 +412,62 @@ static int  test_thread_detach2()
     return 1;
 }
 
+static void *func_join1(void *args)
+{
+    Thread * t = args;
+    
+    dbg_str(DBG_SUC,">>>>>>>>>func_join1 thread>>>>>>>tid:%ld",pthread_self());
+  
+    return  NULL;
+}
+
+static void *func_join2(void *args)
+{
+    Thread * t = args;
+    dbg_str(DBG_SUC,">>>>>>>>>func_join2 thread>>>>>>>tid:%ld",pthread_self());
+    
+    return  NULL;
+}
+
+
+static int test_thread_join2()
+{
+   
+    Thread *thread;
+
+    Thread *thread_join;
+    allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;      
+    thread = OBJECT_NEW(allocator, Thread, NULL);
+    thread->set_start_routine(thread,func_join1);
+    thread->start(thread);
+
+    thread_join = OBJECT_NEW(allocator, Thread, NULL);
+    thread_join->set_start_routine(thread_join,func_join2);
+    thread_join->start(thread_join);
+
+    
+    pthread_join(thread->get_tid(thread),NULL);
+    pthread_join(thread_join->get_tid(thread),NULL);
+
+    object_destroy(thread_join);
+    object_destroy(thread);
+
+    #if 0
+    pthread_t pid1,pid2;
+    pthread_create(&pid1,NULL,func_join1,NULL);
+    pthread_create(&pid2,NULL,func_join2,NULL);
+
+    pthread_join(pid1,NULL);
+    pthread_join(pid2,NULL);
+    
+    #endif 
+
+    return 1;
+
+}
+
+
 
 
 REGISTER_STANDALONE_TEST_FUNC(test_obj_thread);
@@ -420,3 +475,4 @@ REGISTER_STANDALONE_TEST_FUNC(test_safe_thread);
 REGISTER_STANDALONE_TEST_FUNC(test_thread_join);
 REGISTER_STANDALONE_TEST_FUNC(test_thread_detach1);
 REGISTER_STANDALONE_TEST_FUNC(test_thread_detach2);
+REGISTER_STANDALONE_TEST_FUNC(test_thread_join2);
