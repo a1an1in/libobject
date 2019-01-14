@@ -80,24 +80,22 @@ static void map_for_each_arg_callback(void *key, void *element, void *arg)
     Subscriber *subscriber = (Subscriber *)key;
     Publisher *publisher    =(Publisher *)element;
 
-    message_t **message     = (message_t **)(arg);
+    message_t *message     = (message_t *)(arg);
 
-    if (*message == NULL ) { 
+    if ( message == NULL ) { 
         return;
     } 
-    
-    if (publisher == (*message)->publisher) {
+
+    if (publisher == message->publisher) {
         dbg_str(DBG_SUC, "publisher %p publish a message which has a subscriber: %p", 
                 publisher,subscriber);
-        subscriber->message = (*message);
+        subscriber->message = message;
         subscriber->message_handler(subscriber);
     } else {
         dbg_str(DBG_WARNNING, 
                 "publisher %p publish a message, publisher in map %p ", 
-                (*message)->publisher, key);
+                (message)->publisher, key);
     }
-    message_destroy((*message));
-    (*message) = NULL;
 }
 
 static void message_centor_work_callback(void *task)
@@ -112,9 +110,9 @@ static void message_centor_work_callback(void *task)
                                   (void **)&message);
     dbg_str(DBG_DETAIL, "message addr %p, publisher addr:%p message queue size:%d ", message, message->publisher,centor->message_queue->size(centor->message_queue));
     centor->subscriber_map->for_each_arg(centor->subscriber_map, 
-                                          map_for_each_arg_callback, (void **)&message);
+                                          map_for_each_arg_callback, message);
 
-    //message_destroy(message);
+    message_destroy(message);
 }
 
 static int __construct(Centor *centor, char *init_str)

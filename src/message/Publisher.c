@@ -168,11 +168,11 @@ static int test_message_publisher()
 
  
     subscriber->add_method(subscriber, "test_xxxx", test_xxxx, allocator);   
-    subscriber->subscribe(subscriber, publisher);
+    //subscriber->subscribe(subscriber, publisher);
     
 
     subscriber->add_method(subscriber, "test_android", test_android, allocator);   
-    subscriber->subscribe(subscriber, publisher);
+    //subscriber->subscribe(subscriber, publisher);
 
     //subscriber->subscribe(subscriber, publisher);
 
