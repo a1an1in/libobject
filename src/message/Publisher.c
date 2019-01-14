@@ -156,6 +156,8 @@ static int test_message_publisher()
 
     char *test_xxxx = "test_xxxx";
 
+    char *test_android = "test_android";
+
     centor     = OBJECT_NEW(allocator, Centor, NULL);
     publisher  = OBJECT_NEW(allocator, Publisher, NULL);
     subscriber = OBJECT_NEW(allocator, Subscriber, NULL);
@@ -167,12 +169,19 @@ static int test_message_publisher()
  
     subscriber->add_method(subscriber, "test_xxxx", test_xxxx, allocator);   
     subscriber->subscribe(subscriber, publisher);
- 
+    
+
+    subscriber->add_method(subscriber, "test_android", test_android, allocator);   
+    subscriber->subscribe(subscriber, publisher);
+
     //subscriber->subscribe(subscriber, publisher);
 
     dbg_str(DBG_SUC, "%p subscribe a publisher, publisher addr:%p", subscriber, publisher);
     dbg_str(DBG_SUC, "message handler arg:%p", allocator);
 
+    publisher->connect_centor(publisher, centor);
+    publisher->publish_message(publisher, test_str, strlen(test_str));
+    
     publisher->connect_centor(publisher, centor);
     publisher->publish_message(publisher, test_str, strlen(test_str));
 
