@@ -26,6 +26,8 @@ struct buffer_s{
     int (*write)(Stream *, void *src, int len);
     int (*get_len)(Stream *);
     int (*set_size)(Stream *, int size);
+    int (*printf)(Buffer *buffer, const char *fmt, ...);
+    int (*memcopy)(Buffer *buffer, void *addr, int len);
 
     /*attribs*/
     void *addr;

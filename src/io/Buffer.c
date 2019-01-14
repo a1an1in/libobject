@@ -37,7 +37,7 @@
 #include <libobject/io/buffer.h>
 #include <libobject/core/utils/registry/registry.h>
 
-#define DEFAULT_BUFFER_SIZE 100
+#define DEFAULT_BUFFER_SIZE 1024
 
 static int __construct(Buffer *buffer,char *init_str)
 {
@@ -85,6 +85,10 @@ static int __set(Buffer *buffer, char *attrib, void *value)
         buffer->read = value;
     } else if (strcmp(attrib, "write") == 0) {
         buffer->write = value;
+    } else if (strcmp(attrib, "printf") == 0) {
+        buffer->printf = value;
+    } else if (strcmp(attrib, "memcopy") == 0) {
+        buffer->memcopy = value;
     } else if (strcmp(attrib, "get_len") == 0) {
         buffer->get_len = value;
     } else if (strcmp(attrib, "set_size") == 0) {
@@ -148,19 +152,21 @@ static int __read(Buffer *buffer, void *dst, int len)
     dbg_str(DBG_DETAIL, "read len=%d, w=%d, r=%d",
             l, buffer->w_offset, buffer->r_offset);
     if (buffer->w_offset > buffer->r_offset) {
-        dbg_str(DBG_DETAIL, "run at here");
         memcpy(dst, buffer->addr + buffer->r_offset, l);
     } else {
-        dbg_str(DBG_DETAIL, "run at here");
         memcpy(dst, buffer->addr + buffer->r_offset, 
                 buffer->size - buffer->r_offset);
-        dbg_buf(DBG_DETAIL, "read char:", buffer->addr + buffer->r_offset,
-                buffer->size - buffer->r_offset );
+        /*
+         *dbg_buf(DBG_DETAIL, "read char:", buffer->addr + buffer->r_offset,
+         *        buffer->size - buffer->r_offset );
+         */
         memcpy(dst + buffer->size - buffer->r_offset,
                 buffer->addr, 
                 l - buffer->size + buffer->r_offset);
-        dbg_buf(DBG_DETAIL, "read char:", buffer->addr,
-                l - buffer->size + buffer->r_offset);
+        /*
+         *dbg_buf(DBG_DETAIL, "read char:", buffer->addr,
+         *        l - buffer->size + buffer->r_offset);
+         */
     }
 
     buffer->r_offset = (buffer->r_offset + l) % buffer->size;
@@ -178,9 +184,6 @@ static int __write(Buffer *buffer, void *src, int len)
         buffer->w_offset == buffer->r_offset) {
         l = 0;
         dbg_str(DBG_WARNNING, "buffer is full");
-        dbg_str(DBG_WARNNING, "buffer->last_operation_flag=%d", buffer->last_operation_flag);
-        dbg_str(DBG_WARNNING, "buffer->w_offset = %d, buffer->r_offset=%d",
-               buffer->w_offset ,buffer->r_offset);
         goto end;
     } else if (buffer->w_offset == buffer->r_offset) {
         l =  buffer->size;
@@ -190,17 +193,12 @@ static int __write(Buffer *buffer, void *src, int len)
 
     l = l > len ? len : l;
 
-    dbg_str(DBG_DETAIL, "write len=%d", l);
     if (buffer->w_offset + l <= buffer->size) {
         memcpy(buffer->addr + buffer->w_offset, src, l);
-        dbg_buf(DBG_DETAIL, "write char:", src, l );
     } else {
         memcpy(buffer->addr + buffer->w_offset,
                src, buffer->size - buffer->w_offset);
-        dbg_buf(DBG_DETAIL, "write char:", src, buffer->size - buffer->w_offset );
         memcpy(buffer->addr,  src + buffer->size - buffer->w_offset, 
-                l -  buffer->size + buffer->w_offset);
-        dbg_buf(DBG_DETAIL, "write char:", src + buffer->size - buffer->w_offset,
                 l -  buffer->size + buffer->w_offset);
     }
 
@@ -211,6 +209,59 @@ end:
     return l;
 }
 
+static int __printf(Buffer *buffer, const char *fmt, ...)
+{
+    int ret;
+    va_list va;
+    int l;
+
+    if (buffer->last_operation_flag == BUFFER_WRITE_OPERATION &&
+        buffer->w_offset == buffer->r_offset) {
+        ret = l = 0;
+        dbg_str(DBG_WARNNING, "buffer is full");
+        goto end;
+    } else if (buffer->w_offset == buffer->r_offset) {
+        l =  buffer->size;
+    } else {
+        l = (buffer->r_offset - buffer->w_offset + buffer->size) % buffer->size;
+    }
+
+    va_start(va, fmt);
+    ret = vsnprintf(buffer->addr + buffer->w_offset,
+                    l, fmt, va);
+    buffer->w_offset = (buffer->w_offset + ret) % buffer->size;
+    va_end(va);
+
+end:
+    return ret;
+}
+
+static int __memcpy(Buffer *buffer, void *addr, int len)
+{
+    int ret;
+    va_list va;
+    int l;
+
+    if (buffer->last_operation_flag == BUFFER_WRITE_OPERATION &&
+        buffer->w_offset == buffer->r_offset) {
+        ret = l = 0;
+        dbg_str(DBG_WARNNING, "buffer is full");
+        goto end;
+    } else if (buffer->w_offset == buffer->r_offset) {
+        l =  buffer->size;
+    } else {
+        l = (buffer->r_offset - buffer->w_offset + buffer->size) % buffer->size;
+    }
+
+    l = l > len ? len : l;
+
+    ret = memcpy(buffer->addr + buffer->w_offset, addr, l);
+    buffer->w_offset = (buffer->w_offset + ret) % buffer->size;
+
+end:
+    return ret;
+}
+
 static class_info_entry_t buffer_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Stream","parent",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
@@ -219,9 +270,11 @@ static class_info_entry_t buffer_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","read", __read,sizeof(void *)},
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","write", __write,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","get_len", __get_len,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_size", __set_size,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_END},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","printf", __printf,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","memcopy", __memcpy,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","get_len", __get_len,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","set_size", __set_size,sizeof(void *)},
+    [11] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Buffer",buffer_class_info);
 

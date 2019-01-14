@@ -5,6 +5,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/core/map.h>
+#include <libobject/io/Buffer.h>
 
 typedef struct request_s Request;
 
@@ -22,6 +23,8 @@ struct request_s{
     int (*set_http_version)(Request *request, void *version);
     int (*set_header)(Request *request, void *key, void *value);
     int (*set_body)(Request *request, void *body);
+    int (*set_content_len)(Request *request, int content_len);
+    int (*set_buffer)(Request *request, Buffer *buffer);
     int (*write)(Request *request);
 
     /*attribs*/
@@ -30,6 +33,8 @@ struct request_s{
     void *uri;
     void *version;
     void *body;
+    int content_len;
+    Buffer *buffer;
 };
 
 #endif

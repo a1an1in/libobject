@@ -42,6 +42,7 @@ static int __construct(Request *request,char *init_str)
 
 
     request->header = OBJECT_NEW(allocator, RBTree_Map, NULL);
+    request->content_len = 0;
     return 0;
 }
 
@@ -73,6 +74,10 @@ static int __set(Request *request, char *attrib, void *value)
         request->set_header = value;
     } else if (strcmp(attrib, "set_body") == 0) {
         request->set_body = value;
+    } else if (strcmp(attrib, "set_content_len") == 0) {
+        request->set_content_len = value;
+    } else if (strcmp(attrib, "set_buffer") == 0) {
+        request->set_buffer = value;
     } else if (strcmp(attrib, "write") == 0) {
         request->write = value;
     } 
@@ -126,8 +131,47 @@ static int __set_body(Request *request, void *body)
     return 0;
 }
 
+static int __set_content_len(Request *request, int content_len)
+{
+    request->content_len = content_len;
+
+    return 0;
+}
+static int __set_buffer(Request *request, Buffer *buffer)
+{
+    request->buffer = buffer;
+    return 0;
+}
+
 int __write(Request *request)
 {
+    Buffer *b = request->buffer;
+    Map *header = request->header;
+    char *value;
+    int ret;
+
+    b->printf(b, "%s %s %s\r\n",
+              request->method, 
+              request->uri, 
+              request->version);
+
+    ret = header->search(header, "Host", (void **)&value);
+    if (ret == 1) {
+        b->printf(b, "Host: %s\r\n", (char *)value);
+    }
+
+    ret = header->search(header, "User-Agent", (void **)&value);
+    if (ret == 1) {
+        b->printf(b, "User-Agent: %s\r\n", (char *)value);
+    }
+
+    b->printf(b, "\r\n");
+
+    if (request->content_len != 0) {
+        b->memcopy(b, request->body, request->content_len);
+    }
+
+    dbg_str(DBG_DETAIL, "Request:%s", b->addr);
 }
 
 static class_info_entry_t concurent_class_info[] = {
@@ -141,8 +185,10 @@ static class_info_entry_t concurent_class_info[] = {
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_http_version",__set_http_version,sizeof(void *)},
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_header",__set_header,sizeof(void *)},
     [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_body",__set_body,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","write",__write,sizeof(void *)},
-    [11] = {ENTRY_TYPE_END},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","set_content_len",__set_content_len,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","set_buffer",__set_buffer,sizeof(void *)},
+    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","write",__write,sizeof(void *)},
+    [13] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Request",concurent_class_info);
 
