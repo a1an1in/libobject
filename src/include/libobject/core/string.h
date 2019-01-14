@@ -24,6 +24,7 @@ struct string_s{
     void *(*get)(void *obj, char *attrib);
     String *(*pre_alloc)(String *string,uint32_t size);
     String *(*assign)(String *string,char *s);
+    String *(*assign_char)(String *,char c,size_t count );
     String *(*append_char)(String *string,char c);
 	String *(*replace_char)(String *string,int index, char c);
     char (*at)(String *string,int index);
@@ -48,7 +49,7 @@ struct string_s{
      * @param vector 
      * @see
      * @note
-     * @author  wuyujie[1683358846@qq.com]
+     * @author  wuyujie[1683358846@q.com]
      * @date    2018/11/21
      */
     void (*split_string)(String *,String *separator,Vector *vector);
@@ -137,6 +138,12 @@ struct string_s{
     int     (*is_empty)(String *);
     String *(*replace_all)(String *,char *oldstr,char * newstr);
     String *(*replace)(String *,char *oldstr,char *newstr);
+
+    String *(*insert_char_count)(String *,size_t pos,char c,size_t count);
+    String *(*insert_cstr_normal)(String *,size_t pos,char *cstr);
+    String *(*insert_str_normal)(String *,size_t pos,String *cstr);
+    String *(*insert_cstr)(String * dest,size_t index,char * src,size_t pos,size_t count);
+    String *(*insert_str)(String * dest,size_t index,String * src,size_t pos,size_t count);
 	/*virtual methods reimplement*/
 
     

@@ -130,29 +130,40 @@ static int __set(String *string, char *attrib, void *value)
         string->find = value;
     } else if (strcmp(attrib, "substr") == 0) {
         string->substr = value;
-
-    }else if(strcmp(attrib, "c_str")==0){
-        string->c_str=value;
-    }else if(strcmp(attrib, "append_str")==0){
-        string->append_str=value;
-    }else if(strcmp(attrib, "append_str_len")==0){
-        string->append_str_len=value;
-    }else if(strcmp(attrib, "append_objective_string")==0){
-        string->append_objective_string=value;
-    }else if(strcmp(attrib, "size")==0){
-        string->size=value;
+    } else if(strcmp(attrib, "c_str")==0){
+         string->c_str=value;
+    } else if(strcmp(attrib, "append_str")==0){
+         string->append_str=value;
+    } else if(strcmp(attrib, "append_str_len")==0){
+         string->append_str_len=value;
+    } else if(strcmp(attrib, "append_objective_string")==0){
+         string->append_objective_string=value;
+    } else if(strcmp(attrib, "size")==0){
+         string->size=value;
     } else if(strcmp(attrib, "is_empty")==0){
-        string->is_empty=value;
+      string->is_empty=value;
     } else if(strcmp(attrib, "clear")==0){
-        string->clear=value;
+      string->clear=value;
     } else if(strcmp(attrib, "replace")==0){
-        string->replace=value;
+      string->replace=value;
     } else if(strcmp(attrib, "replace_all")==0){
-        string->replace_all=value;
+      string->replace_all=value;
+    } else if(strcmp(attrib, "insert_cstr")==0){
+      string->insert_cstr=value;
+    } else if(strcmp(attrib, "insert_str")==0){
+      string->insert_str=value;
+    } else if(strcmp(attrib, "insert_str_normal")==0){
+      string->insert_str_normal=value;
+    } else if(strcmp(attrib, "insert_cstr_normal")==0){
+      string->insert_cstr_normal=value;
+    } else if(strcmp(attrib, "assign_char")==0){
+      string->assign_char=value;
+    } else if(strcmp(attrib, "insert_char_count")==0){
+      string->insert_char_count=value;
     } else if (strcmp(attrib, "name") == 0) {
-        strncpy(string->name, value, strlen(value));
+      strncpy(string->name, value, strlen(value));
     } else {
-        dbg_str(OBJ_DETAIL, "string set, not support %s setting", attrib);
+         dbg_str(OBJ_DETAIL, "string set, not support %s setting", attrib);
     }
 
     return 0;
@@ -201,6 +212,21 @@ static String *__assign(String *string, char *s)
     return string;
 }
 
+static String *__assign_char(String *string,char c,size_t count)
+{
+    int i = 0;
+    int ret;
+    char * ptmp = (char *)allocator_mem_alloc(string->obj.allocator,count);
+    for (i = 0 ; i < count; i++) {
+        *(ptmp+i) = c;
+    }
+    *(ptmp + i) = '\0';
+    string->assign(string,ptmp);
+    allocator_mem_free(string->obj.allocator,ptmp);
+    ptmp = NULL;
+    return string;
+}
+
 static String *__append_char(String *string, char c)
 {
     int ret;
@@ -229,7 +255,6 @@ static char __at(String *string, int index)
 {
     return string->value[index];
 }
-
 
 static void __toupper_impact(String *string)
 {
@@ -496,6 +521,56 @@ static String * __replace_all(String *self,char *oldstr,char *newstr)
     return self;
 }
 
+static String * __insert_char_count(String *self,size_t pos,char c,size_t count)
+{
+    String * ptem = OBJECT_NEW(self->obj.allocator,String,NULL);
+    ptem->assign_char(ptem,c,count);
+    self->insert_str_normal(self,pos,ptem);
+    object_destroy(ptem);
+}
+
+static String * __insert_cstr(String *self,size_t index,char *src,size_t pos,size_t len)
+{
+    int size = strlen(src);
+    int dest_size = self->size(self);
+    int ret = 0;
+    if ( src == NULL || pos > (size - 1) ) {
+        dbg_str(DBG_ERROR,"src == NULL or pos data is unvalid pos %d src size:%d",pos,size);
+        goto end;
+    }
+
+    if (pos + len > size) {
+        len = size - pos;
+    }
+     
+    ret = string_buf_auto_modulate(self, len);
+    if (ret < 0 ) {
+            goto end;
+    }
+    
+    memmove(self->value+index+len,self->value+index,dest_size-index);
+    memmove(self->value+index,src+pos,len);
+    self->value_len += len;
+    self->value[self->value_len] = '\0';     
+end:
+    return  self;
+}
+
+static String * __insert_str(String *self,size_t index,String *src,size_t pos,size_t len)
+{
+    return self->insert_cstr(self,index,src->c_str(src),pos,len);
+}
+
+static String * __insert_str_normal(String * self,size_t index,String *cstr)
+{
+    return self->insert_str(self,index,cstr,0,cstr->size(cstr));
+}
+
+static String * __insert_cstr_normal(String * self,size_t index,char *cstr)
+{
+    return self->insert_cstr(self,index,cstr,0,strlen(cstr));
+}
+
 static class_info_entry_t string_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -526,13 +601,18 @@ static class_info_entry_t string_class_info[] = {
     [26] = {ENTRY_TYPE_FUNC_POINTER, "", "is_empty", __is_empty, sizeof(void *)}, 
     [27] = {ENTRY_TYPE_FUNC_POINTER, "", "replace", __replace, sizeof(void *)}, 
     [28] = {ENTRY_TYPE_FUNC_POINTER, "", "replace_all", __replace_all, sizeof(void *)}, 
-    [29] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
-    [30] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
-    [31] = {ENTRY_TYPE_END}, 
+    [29] = {ENTRY_TYPE_FUNC_POINTER, "", "insert_cstr", __insert_cstr, sizeof(void *)}, 
+    [30] = {ENTRY_TYPE_FUNC_POINTER, "", "insert_cstr_normal", __insert_cstr_normal, sizeof(void *)}, 
+    [31] = {ENTRY_TYPE_FUNC_POINTER, "", "insert_str_normal", __insert_str_normal, sizeof(void *)}, 
+    [32] = {ENTRY_TYPE_FUNC_POINTER, "", "insert_str", __insert_str, sizeof(void *)}, 
+    [33] = {ENTRY_TYPE_FUNC_POINTER, "", "assign_char", __assign_char, sizeof(void *)}, 
+    [34] = {ENTRY_TYPE_FUNC_POINTER, "", "insert_char_count", __insert_char_count, sizeof(void *)}, 
+    [35] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
+    [36] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
+    [37] = {ENTRY_TYPE_END}, 
 };
 
 REGISTER_CLASS("String", string_class_info);
-
 
 static void print_vector_data(int index, void *element)
 {  
@@ -858,6 +938,158 @@ static int test_string_replace_complex()
    return 1;
 }
 
+static int test_string_insert_cstr()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr;
+    int ret;
+    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign(string, test);
+    pstr->assign(pstr, "@@@@@@@");
+    
+    
+    string->insert_cstr(string,3,"@@@@vvvvvvv@@@",0,2000);
+    dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
+
+    dbg_str(DBG_SUC,"before insert:%s\n size:%d",string->c_str(string),string->size(string));
+    string->insert_cstr(string,3,"@@@@@@@",0,4);
+    dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
+    
+    string->insert_cstr(string,3,"@@@@fdasfasdf@@@",0,4);
+    dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
+
+    string->insert_cstr(string,3,"@@@@vvvvvvv@@@",0,2000);
+    dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
+
+    string->insert_cstr(string,3,"@@@vvvvvvvv@@@@",5,4);
+    dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
+
+    string->insert_cstr(string,3,"@@@@@@@",0,4);
+    dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
+
+     string->insert_cstr(string,3,"@@@@@@@",0,4);
+    dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
+
+    
+    object_destroy(string);
+    object_destroy(pstr);
+    
+    return 1;
+}
+
+static int test_string_insert_cstr_normal()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr;
+    int ret;
+    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign(string, test);
+    pstr->assign(pstr, "@@@@@@@");
+    
+    dbg_str(DBG_SUC,"before insert:%s\n size:%d",string->c_str(string),string->size(string));
+    string->insert_cstr_normal(string,3,"@@@@vvvvvvv@@@");
+    dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
+    
+    object_destroy(string);
+    object_destroy(pstr);
+    
+    return 1;
+}
+
+static int test_string_insert_str()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr;
+    int ret;
+    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign(string, test);
+    pstr->assign(pstr, "@@@@@@@");
+    
+    dbg_str(DBG_SUC,"before insert:%s\n size:%d",string->c_str(string),string->size(string));
+    string->insert_str(string,3,pstr,0,7);
+    dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
+    
+    object_destroy(string);
+    object_destroy(pstr);
+    
+    return 1;
+}
+
+static int test_string_insert_str_normal()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr;
+    int ret;
+    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign(string, test);
+    pstr->assign(pstr, "@@@@@@@");
+    
+    dbg_str(DBG_SUC,"before insert:%s\n size:%d",string->c_str(string),string->size(string));
+    string->insert_str_normal(string,3,pstr);
+    dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
+    
+    object_destroy(string);
+    object_destroy(pstr);
+    
+    return 1;
+}
+
+static int test_string_assign_char_count()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr;
+    int ret;
+    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign_char(string,'c',4);
+    dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
+
+    
+    object_destroy(string);
+    object_destroy(pstr);
+    
+    return 1;
+}
+
+static int test_string_insert_char_count()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr;
+    int ret;
+    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign(string,">>>>>>>>>");
+    string->insert_char_count(string,4,'c',4);
+    dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
+
+    
+    object_destroy(string);
+    object_destroy(pstr);
+    
+    return 1;
+}
 
 REGISTER_TEST_FUNC(test_c_str);
 REGISTER_TEST_FUNC(test_append_str);
@@ -869,7 +1101,10 @@ REGISTER_TEST_FUNC(test_string_substr);
 REGISTER_STANDALONE_TEST_FUNC(test_string_empty);
 REGISTER_STANDALONE_TEST_FUNC(test_string_replace);
 REGISTER_STANDALONE_TEST_FUNC(test_string_replace_all);
-
 REGISTER_STANDALONE_TEST_FUNC(test_string_replace_complex);
-
-
+REGISTER_STANDALONE_TEST_FUNC(test_string_insert_cstr);
+REGISTER_STANDALONE_TEST_FUNC(test_string_insert_cstr_normal);
+REGISTER_STANDALONE_TEST_FUNC(test_string_insert_str);
+REGISTER_STANDALONE_TEST_FUNC(test_string_insert_str_normal);
+REGISTER_STANDALONE_TEST_FUNC(test_string_assign_char_count);
+REGISTER_STANDALONE_TEST_FUNC(test_string_insert_char_count);
