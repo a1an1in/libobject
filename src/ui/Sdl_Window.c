@@ -345,6 +345,7 @@ static void __full_screen(Window *window)
     /*
      *dbg_str(DBG_DETAIL, "full_screen");
      */
+#if 0
     if (flags & FULLSCREEN_MASK){
         w->flags &= ~FULLSCREEN_MASK;
         SDL_SetWindowFullscreen(w->sdl_window, SDL_FALSE);
@@ -366,6 +367,15 @@ static void __full_screen(Window *window)
          *        sdl_w->w, sdl_w->h);
          */
     }
+#else 
+    w->flags |= FULLSCREEN_MASK;
+    SDL_SetWindowFullscreen(w->sdl_window, FULLSCREEN_MASK);
+    SDL_GetWindowSize(w->sdl_window, 
+                      &window->screen_width, 
+                      &window->screen_height);
+    dbg_str(DBG_DETAIL, "full_screen, window size, width=%d, height=%d", 
+            window->screen_width, window->screen_height);
+#endif
 }
 
 static void __maximize_window(Window *window) 

@@ -1,5 +1,5 @@
-#ifndef __SDL_WINDOW_H__
-#define __SDL_WINDOW_H__
+#ifndef __UI_SDL_WINDOW_H__
+#define __UI_SDL_WINDOW_H__
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>

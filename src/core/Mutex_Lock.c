@@ -39,14 +39,14 @@
 
 static int __construct(Mutex_Lock *lock, char *init_str)
 {
-    dbg_str(DBG_DETAIL, "muxtex lock construct, lock addr:%p", lock);
+    dbg_str(OBJ_DETAIL, "muxtex lock construct, lock addr:%p", lock);
 
     return pthread_mutex_init(&lock->mutex, NULL);
 }
 
 static int __deconstrcut(Mutex_Lock *lock)
 {
-    dbg_str(DBG_DETAIL, "mutex lock deconstruct, lock addr:%p", lock);
+    dbg_str(OBJ_DETAIL, "mutex lock deconstruct, lock addr:%p", lock);
 
     return pthread_mutex_destroy(&lock->mutex);
 }
@@ -70,7 +70,7 @@ static int __set(Mutex_Lock *lock, char *attrib, void *value)
         lock->unlock = value;
     }
     else {
-        dbg_str(DBG_DETAIL, "lock set, not support %s setting", attrib);
+        dbg_str(OBJ_DETAIL, "lock set, not support %s setting", attrib);
     }
 
     return 0;
@@ -80,7 +80,7 @@ static void *__get(Mutex_Lock *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING, "lock get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(OBJ_WARNNING, "lock get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -88,19 +88,19 @@ static void *__get(Mutex_Lock *obj, char *attrib)
 
 static int __lock(Mutex_Lock *lock)
 {
-    dbg_str(DBG_DETAIL, "mutex lock");
+    dbg_str(OBJ_DETAIL, "mutex lock");
     return pthread_mutex_lock(&lock->mutex);
 }
 
 static int __trylock(Mutex_Lock *lock)
 {
-    dbg_str(DBG_DETAIL, "mutex trylock");
+    dbg_str(OBJ_DETAIL, "mutex trylock");
     return pthread_mutex_trylock(&lock->mutex);
 }
 
 static int __unlock(Mutex_Lock *lock)
 {
-    dbg_str(DBG_DETAIL, "mutex unlock");
+    dbg_str(OBJ_DETAIL, "mutex unlock");
     return pthread_mutex_unlock(&lock->mutex);
 }
 
