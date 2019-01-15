@@ -63,6 +63,10 @@ static int __set(Response *response, char *attrib, void *value)
         response->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         response->deconstruct = value;
+    } else if (strcmp(attrib, "set_buffer") == 0) {
+        response->set_buffer = value;
+    } else if (strcmp(attrib, "read") == 0) {
+        response->read = value;
     } 
     else {
         dbg_str(DBG_DETAIL,"response set, not support %s setting",attrib);
@@ -81,34 +85,38 @@ static void *__get(Response *obj, char *attrib)
     return NULL;
 }
 
+static int __set_buffer(Response *response, Buffer *buffer)
+{
+    response->buffer = buffer;
+
+    return 0;
+}
+
+static int __read(Response *response)
+{
+    dbg_str(DBG_SUC, "read response");
+    return 1;
+}
+
 static class_info_entry_t concurent_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_buffer",__set_buffer,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","read",__read,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Response",concurent_class_info);
 
-void test_obj_response()
+int test_response()
 {
     Response *response;
     allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
 
-    c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Response", CJSON_STRING, "name", "alan response") ;  
-
-    response = OBJECT_NEW(allocator, Response,c->buf);
-
-    object_dump(response, "Response", buf, 2048);
-    dbg_str(DBG_DETAIL,"Response dump: %s",buf);
+    response = OBJECT_NEW(allocator, Response, NULL);
 
     object_destroy(response);
-    cfg_destroy(c);
 }
+REGISTER_STANDALONE_TEST_FUNC(test_response);
