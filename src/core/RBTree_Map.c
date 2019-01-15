@@ -125,8 +125,11 @@ static int __set(Map *m, char *attrib, void *value)
         map->destroy = value;
     } else if (strcmp(attrib, "set_cmp_func") == 0) {
         map->set_cmp_func = value;
-    }
-    else if (strcmp(attrib, "key_size") == 0) {
+    } else if (strcmp(attrib, "size") == 0) {
+         map->size = value;
+    } else if (strcmp(attrib, "is_empty") == 0) {
+        map->is_empty = value;
+    } else if (strcmp(attrib, "key_size") == 0) {
         map->key_size = *((uint16_t *)value);
     } else if (strcmp(attrib, "value_size") == 0) {
         map->value_size = *((uint16_t *)value);
@@ -286,6 +289,19 @@ static Iterator *__end(Map *map)
     return (Iterator *)iter;
 }
 
+static int __size(Map *map) 
+{   
+    int count = 0;
+    rbtree_map_t * rbtree_map = ((RBTree_Map *)map)->rbmap;
+    sync_trylock(&(rbtree_map->map_lock), NULL);
+    count = rbtree_map->count;
+    sync_unlock(&(rbtree_map->map_lock));
+    return count;
+}
+static int __is_empty(Map *map)
+{
+    return  ((RBTree_Map *)map)->size(map) > 0 ? 0 : 1 ;
+}
 static class_info_entry_t rbtree_map_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Map", "map", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -301,10 +317,12 @@ static class_info_entry_t rbtree_map_class_info[] = {
     [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
     [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", NULL, sizeof(void *)}, 
     [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_cmp_func", __set_cmp_func, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_UINT16_T, "", "key_size", NULL, sizeof(short)}, 
-    [15] = {ENTRY_TYPE_UINT16_T, "", "value_size", NULL, sizeof(short)}, 
-    [16] = {ENTRY_TYPE_UINT8_T, "", "key_type", NULL, sizeof(short)}, 
-    [17] = {ENTRY_TYPE_END}, 
+    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "is_empty", __is_empty, sizeof(void *)},
+    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "size", __size, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_UINT16_T, "", "key_size", NULL, sizeof(short)}, 
+    [17] = {ENTRY_TYPE_UINT16_T, "", "value_size", NULL, sizeof(short)}, 
+    [18] = {ENTRY_TYPE_UINT8_T, "", "key_type", NULL, sizeof(short)}, 
+    [19] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("RBTree_Map", rbtree_map_class_info);
 
@@ -593,3 +611,37 @@ int Test_rbtree_map_remove(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_FUNC(Test_rbtree_map_remove);
+int Test_rbtree_map_size(TEST_ENTRY *entry)
+{
+    Iterator *iter, *next, *prev;
+    Map *map;
+    allocator_t *allocator = allocator_get_default_alloc();
+    struct test *t, t0, t1, t2, t3, t4, t5;
+    int ret = 0;
+    init_test_instance(&t0, 0, 2);
+    init_test_instance(&t1, 1, 2);
+    init_test_instance(&t2, 2, 2);
+    init_test_instance(&t3, 3, 2);
+    init_test_instance(&t4, 4, 2);
+    init_test_instance(&t5, 5, 2);
+    map  = OBJECT_NEW(allocator, RBTree_Map, NULL);
+    dbg_str(DBG_IMPORTANT,"current map_size:%d",map->size(map));
+    map->set_cmp_func(map, string_key_cmp_func);
+    map->add(map, "test0", &t0);
+    map->add(map, "test1", &t1);
+    map->add(map, "test2", &t2);
+    map->add(map, "test3", &t3);
+    map->add(map, "test4", &t4);
+    map->add(map, "test5", &t5);
+   dbg_str(DBG_IMPORTANT,"after add current map_size:%d",map->size(map));
+    ret = map->remove(map, "test2", (void **)&t);
+    if (ret < 0) {
+        ret  = 0;
+    } else {
+        ret = assert_equal(t, &t2, sizeof(t2));
+    }
+    dbg_str(DBG_IMPORTANT,"after remove current map_size:%d",map->size(map));
+    object_destroy(map);
+    return ret;
+}
+REGISTER_TEST_FUNC(Test_rbtree_map_size);

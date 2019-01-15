@@ -160,6 +160,14 @@ static int __set(String *string, char *attrib, void *value)
       string->assign_char=value;
     } else if(strcmp(attrib, "insert_char_count")==0){
       string->insert_char_count=value;
+    } else if(strcmp(attrib, "compare")==0){
+      string->compare=value;
+    } else if(strcmp(attrib, "compare_ignore")==0){
+       string->compare_ignore=value;
+    } else if(strcmp(attrib, "equal_ignore")==0){
+       string->equal_ignore=value;
+    } else if(strcmp(attrib, "equal")==0){
+       string->equal=value;
     } else if (strcmp(attrib, "name") == 0) {
       strncpy(string->name, value, strlen(value));
     } else {
@@ -570,7 +578,23 @@ static String * __insert_cstr_normal(String * self,size_t index,char *cstr)
 {
     return self->insert_cstr(self,index,cstr,0,strlen(cstr));
 }
-
+static int  * __compare(String *self,String *obj)
+{
+    int max_size = self->size(self) > obj->size(obj) ? self->size(self):obj->size(obj);
+    return strncmp(self->c_str(self),obj->c_str(obj),max_size);
+}
+static int *__compare_ignore(String *self,String *obj)
+{
+    return strcasecmp(self->c_str(self),obj->c_str(obj));
+}
+static int  * __equal(String *self,String *obj)
+{
+    return self->compare(self,obj) == 0 ? 1:0;
+}
+static int *__equal_ignore(String *self,String *obj)
+{
+    return self->compare_ignore(self,obj) ==0 ? 1:0;
+}
 static class_info_entry_t string_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -607,9 +631,13 @@ static class_info_entry_t string_class_info[] = {
     [32] = {ENTRY_TYPE_FUNC_POINTER, "", "insert_str", __insert_str, sizeof(void *)}, 
     [33] = {ENTRY_TYPE_FUNC_POINTER, "", "assign_char", __assign_char, sizeof(void *)}, 
     [34] = {ENTRY_TYPE_FUNC_POINTER, "", "insert_char_count", __insert_char_count, sizeof(void *)}, 
-    [35] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
-    [36] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
-    [37] = {ENTRY_TYPE_END}, 
+    [35] = {ENTRY_TYPE_FUNC_POINTER, "", "compare", __compare, sizeof(void *)}, 
+    [36] = {ENTRY_TYPE_FUNC_POINTER, "", "compare_ignore", __compare_ignore, sizeof(void *)}, 
+    [37] = {ENTRY_TYPE_FUNC_POINTER, "", "equal", __equal, sizeof(void *)}, 
+    [38] = {ENTRY_TYPE_FUNC_POINTER, "", "equal_ignore", __equal_ignore, sizeof(void *)}, 
+    [39] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
+    [40] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
+    [41] = {ENTRY_TYPE_END}, 
 };
 
 REGISTER_CLASS("String", string_class_info);
@@ -1083,8 +1111,37 @@ static int test_string_insert_char_count()
     string->assign(string,">>>>>>>>>");
     string->insert_char_count(string,4,'c',4);
     dbg_str(DBG_SUC,"after insert:%s\n size:%d",string->c_str(string),string->size(string));
-
-    
+    object_destroy(string);
+    object_destroy(pstr);
+    return 1;
+}
+static int test_string_compare()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr;
+    int ret;
+    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
+    string = OBJECT_NEW(allocator, String, NULL);
+    pstr   = OBJECT_NEW(allocator, String, NULL);
+    string->assign(string,">>>>>>>>>");
+    pstr->assign(pstr,">>>>>>>>>");
+    ret = string->equal(string,pstr);
+    dbg_str(DBG_SUC," compare :%d ", ret );
+    pstr->assign(pstr,">>>>>>>>>fdsafdsaf");
+    ret = string->equal(string,pstr);
+    dbg_str(DBG_SUC," compare :%d ", ret );
+    pstr->clear(pstr);
+    string->clear(string);
+    pstr->assign(pstr,"abc");
+    string->assign(string,"ABC");
+    ret = string->equal_ignore(string,pstr);
+    dbg_str(DBG_SUC,"%s %s  compare :%d ", string->c_str(string),pstr->c_str(pstr),ret);
+    pstr->clear(pstr);
+    string->clear(string);
+    pstr->assign(pstr,"abc");
+    string->assign(string,"ABCd");
+    ret = string->equal_ignore(string,pstr);
+    dbg_str(DBG_SUC,"%s %s  compare :%d ", string->c_str(string),pstr->c_str(pstr),ret);
     object_destroy(string);
     object_destroy(pstr);
     
@@ -1108,3 +1165,4 @@ REGISTER_STANDALONE_TEST_FUNC(test_string_insert_str);
 REGISTER_STANDALONE_TEST_FUNC(test_string_insert_str_normal);
 REGISTER_STANDALONE_TEST_FUNC(test_string_assign_char_count);
 REGISTER_STANDALONE_TEST_FUNC(test_string_insert_char_count);
+REGISTER_STANDALONE_TEST_FUNC(test_string_compare);

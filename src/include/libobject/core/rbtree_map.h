@@ -29,7 +29,8 @@ struct RBTree_Map_s{
     Iterator *(*begin)(Map *map);
     Iterator *(*end)(Map *map);
     int (*destroy)(Map *map);
-
+    int (*size)(Map*);
+    int (*is_empty)(Map *);
 #define MAX_NAME_LEN 50
     char name[MAX_NAME_LEN];
 #undef MAX_NAME_LEN

@@ -144,6 +144,10 @@ struct string_s{
     String *(*insert_str_normal)(String *,size_t pos,String *cstr);
     String *(*insert_cstr)(String * dest,size_t index,char * src,size_t pos,size_t count);
     String *(*insert_str)(String * dest,size_t index,String * src,size_t pos,size_t count);
+    int  *  (*compare)(String *self,String *);
+    int  *  (*compare_ignore)(String *self,String *);
+    int  *  (*equal)(String *self,String *);
+    int  *  (*equal_ignore)(String *self,String *);
 	/*virtual methods reimplement*/
 
     
