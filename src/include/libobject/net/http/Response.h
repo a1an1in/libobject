@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
+#include <libobject/io/Buffer.h>
 
 typedef struct response_s Response;
 
@@ -16,6 +17,10 @@ struct response_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
+    int (*set_buffer)(Response *response, Buffer *buffer);
+    int (*read)(Response *response);
+
+    Buffer *buffer;
 
 };
 

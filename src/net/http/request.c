@@ -42,6 +42,7 @@ static int __construct(Request *request,char *init_str)
 
 
     request->header = OBJECT_NEW(allocator, RBTree_Map, NULL);
+    request->content_len = 0;
     return 0;
 }
 
@@ -63,14 +64,22 @@ static int __set(Request *request, char *attrib, void *value)
         request->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         request->deconstruct = value;
-    } else if (strcmp(attrib, "set_url") == 0) {
-        request->set_url = value;
     } else if (strcmp(attrib, "set_method") == 0) {
         request->set_method = value;
-    } else if (strcmp(attrib, "set_body") == 0) {
-        request->set_body = value;
+    } else if (strcmp(attrib, "set_uri") == 0) {
+        request->set_uri = value;
+    } else if (strcmp(attrib, "set_http_version") == 0) {
+        request->set_http_version = value;
     } else if (strcmp(attrib, "set_header") == 0) {
         request->set_header = value;
+    } else if (strcmp(attrib, "set_body") == 0) {
+        request->set_body = value;
+    } else if (strcmp(attrib, "set_content_len") == 0) {
+        request->set_content_len = value;
+    } else if (strcmp(attrib, "set_buffer") == 0) {
+        request->set_buffer = value;
+    } else if (strcmp(attrib, "write") == 0) {
+        request->write = value;
     } 
     else {
         dbg_str(EV_DETAIL,"request set, not support %s setting",attrib);
@@ -89,13 +98,6 @@ static void *__get(Request *obj, char *attrib)
     return NULL;
 }
 
-static int __set_url(Request *request, void *url)
-{
-    request->url = url;
-
-    return 0;
-}
-
 static int __set_method(Request *request, void *method)
 {
     request->method = method;
@@ -103,9 +105,16 @@ static int __set_method(Request *request, void *method)
     return 0;
 }
 
-static int __set_body(Request *request, void *body)
+static int __set_uri(Request *request, void *uri)
 {
-    request->body = body;
+    request->uri = uri;
+
+    return 0;
+}
+
+static int __set_http_version(Request *request, void *version)
+{
+    request->version = version;
 
     return 0;
 }
@@ -115,38 +124,81 @@ static int __set_header(Request *request, void *key, void *value)
     return request->header->add(request->header, key, value);
 }
 
+static int __set_body(Request *request, void *body)
+{
+    request->body = body;
+
+    return 0;
+}
+
+static int __set_content_len(Request *request, int content_len)
+{
+    request->content_len = content_len;
+
+    return 0;
+}
+static int __set_buffer(Request *request, Buffer *buffer)
+{
+    request->buffer = buffer;
+    return 0;
+}
+
+int __write(Request *request)
+{
+    Buffer *b = request->buffer;
+    Map *header = request->header;
+    char *value;
+    int ret;
+
+    b->printf(b, "%s %s %s\r\n",
+              request->method, 
+              request->uri, 
+              request->version);
+
+    ret = header->search(header, "Host", (void **)&value);
+    if (ret == 1) {
+        b->printf(b, "Host: %s\r\n", (char *)value);
+    }
+
+    ret = header->search(header, "User-Agent", (void **)&value);
+    if (ret == 1) {
+        b->printf(b, "User-Agent: %s\r\n", (char *)value);
+    }
+
+    b->printf(b, "\r\n");
+
+    if (request->content_len != 0) {
+        b->memcopy(b, request->body, request->content_len);
+    }
+
+    dbg_str(DBG_DETAIL, "Request:%s", b->addr);
+}
+
 static class_info_entry_t concurent_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
     [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_url",__set_url,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_method",__set_method,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_body",__set_body,sizeof(void *)},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_method",__set_method,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_uri",__set_uri,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_http_version",__set_http_version,sizeof(void *)},
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_header",__set_header,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_END},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_body",__set_body,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","set_content_len",__set_content_len,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","set_buffer",__set_buffer,sizeof(void *)},
+    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","write",__write,sizeof(void *)},
+    [13] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Request",concurent_class_info);
 
-void test_obj_request()
+int test_request()
 {
     Request *request;
     allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
 
-    c = cfg_alloc(allocator); 
-    dbg_str(EV_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Request", CJSON_STRING, "name", "alan request") ;  
-
-    request = OBJECT_NEW(allocator, Request,c->buf);
-
-    object_dump(request, "Request", buf, 2048);
-    dbg_str(EV_DETAIL,"Request dump: %s",buf);
+    request = OBJECT_NEW(allocator, Request, NULL);
 
     object_destroy(request);
-    cfg_destroy(c);
 }
+REGISTER_STANDALONE_TEST_FUNC(test_request);

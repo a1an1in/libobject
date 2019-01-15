@@ -36,12 +36,18 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/net/http/Client.h>
 
+static int __http_client_response_callback(void *task);
+
 static int __construct(Http_Client *client,char *init_str)
 {
     allocator_t *allocator = client->obj.allocator;
 
     client->req = OBJECT_NEW(allocator, Request, NULL);
+    client->resp = OBJECT_NEW(allocator, Response, NULL);
     client->host = "127.0.0.1";
+
+    client->req_buffer  = OBJECT_NEW(allocator, Buffer, NULL);
+    client->resp_buffer = OBJECT_NEW(allocator, Buffer, NULL);
 
     return 0;
 }
@@ -50,7 +56,11 @@ static int __deconstruct(Http_Client *client)
 {
     dbg_str(EV_DETAIL,"client deconstruct,client addr:%p",client);
 
+    object_destroy(client->req_buffer);
+    object_destroy(client->resp_buffer);
     object_destroy(client->req);
+    object_destroy(client->resp);
+
     if (client->c != NULL) {
         client_destroy(client->c);
     }
@@ -70,6 +80,8 @@ static int __set(Http_Client *client, char *attrib, void *value)
         client->deconstruct = value;
     } else if (strcmp(attrib, "get_request") == 0) {
         client->get_request = value;
+    } else if (strcmp(attrib, "get_response") == 0) {
+        client->get_response = value;
     } else if (strcmp(attrib, "request") == 0) {
         client->request = value;
     } else if (strcmp(attrib, "request_sync") == 0) {
@@ -97,26 +109,39 @@ static Request *__get_request(Http_Client *client)
     return client->req;
 }
 
+static Response *__get_response(Http_Client *client)
+{
+    return client->resp;
+}
+
 static int 
 __request(Http_Client *hc, int (*request_cb)(void *arg), void *arg)
 {
     allocator_t *allocator = hc->obj.allocator;
+    Request *req;
+    int len;
 
     if (hc->c != NULL) {
     } else {
         Client *c = NULL;
         char *str = "hello world";
 
+        req = hc->get_request(hc);
+        len = req->buffer->w_offset;
+
+        hc->request_cb = request_cb;
+        hc->request_cb_arg = arg;
+
         c = client(allocator, 
                    CLIENT_TYPE_INET_TCP, 
                    (char *)"127.0.0.1", //char *host, 
-                   (char *)"1990", //char *client_port, 
-                   request_cb, 
+                   (char *)"19923", //char *client_port, 
+                   __http_client_response_callback, 
                    arg);
 
         client_connect(c, "127.0.0.1", "8080");
 
-        client_send(c, str, strlen(str), 0);
+        client_send(c, req->buffer->addr, len, 0);
         hc->c  = c;
     }
 
@@ -134,30 +159,58 @@ static class_info_entry_t concurent_class_info[] = {
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstruct,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","get_request",__get_request,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","request",__request,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","request_sync",__request_sync,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_END},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","get_response",__get_response,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","request",__request,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","request_sync",__request_sync,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Http_Client",concurent_class_info);
 
-static int test_request_callback(void *task)
+static int __http_client_response_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
+    Http_Client *client = t->opaque;
+    Response *resp = client->get_response(client); 
+    int ret;
 
-    dbg_str(DBG_SUC,"request callback run, cabllback opaque=%p", t->opaque);
+    dbg_str(DBG_SUC,"http client response callback run, cabllback opaque=%p", 
+            t->opaque);
+
+    resp->set_buffer(resp, client->resp_buffer);
+    resp->buffer->memcopy(resp->buffer, t->buf, t->buf_len);
+    ret = resp->read(resp);
+    if (ret == 1) {
+        client->request_cb(client->resp, client->request_cb_arg);
+    }
 }
+
+static int test_request_callback(Response *resp, void *arg)
+{
+    dbg_str(DBG_SUC,"request callback run");
+}
+
 int test_http_client(TEST_ENTRY *entry)
 {
     Http_Client *client;
     Request *req;
     Response *response;
     allocator_t *allocator = allocator_get_default_alloc();
+    char *body = "hello world from libobject";
 
     client = OBJECT_NEW(allocator, Http_Client, NULL);
     req = client->get_request(client);
 
     req->set_method(req, "GET");
+    req->set_uri(req, "/hello");
+    req->set_http_version(req, "HTTP/1.1");
+    req->set_header(req, "Host", "127.0.0.1:8080");
+    req->set_header(req, "User-Agent", "libobject-http-client");
+    req->set_buffer(req, client->req_buffer);
+    req->set_body(req, body);
+    req->set_content_len(req, strlen(body));
+    req->write(req);
 
+    dbg_str(DBG_SUC,"request opaque=%p",  client);
     response = client->request(client, test_request_callback, client);
 
     pause();
