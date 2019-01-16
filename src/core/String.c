@@ -208,7 +208,7 @@ static String *__assign(String *string, char *s)
 {
     int len = strlen(s);
     int ret;
-
+    string->clear(string);
     ret = string_buf_auto_modulate(string, len);
     if (ret < 0) return string;
 
@@ -224,6 +224,7 @@ static String *__assign_char(String *string,char c,size_t count)
 {
     int i = 0;
     int ret;
+    string->clear(string);
     char * ptmp = (char *)allocator_mem_alloc(string->obj.allocator,count);
     for (i = 0 ; i < count; i++) {
         *(ptmp+i) = c;
