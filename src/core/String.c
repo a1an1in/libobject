@@ -581,23 +581,35 @@ static String * __insert_cstr_normal(String * self,size_t index,char *cstr)
 {
     return self->insert_cstr(self,index,cstr,0,strlen(cstr));
 }
+
 static int  * __compare(String *self,String *obj)
 {
     int max_size = self->size(self) > obj->size(obj) ? self->size(self):obj->size(obj);
     return strncmp(self->c_str(self),obj->c_str(obj),max_size);
 }
+
 static int *__compare_ignore(String *self,String *obj)
 {
     return strcasecmp(self->c_str(self),obj->c_str(obj));
 }
+
 static int  * __equal(String *self,String *obj)
 {
     return self->compare(self,obj) == 0 ? 1:0;
 }
+
 static int *__equal_ignore(String *self,String *obj)
 {
     return self->compare_ignore(self,obj) ==0 ? 1:0;
 }
+
+static String * __copy(String *self)
+{
+    String *ts = OBJECT_NEW(self->obj.allocator,String,NULL);
+    ts->assign(ts,self->c_str(self));
+    return ts;
+}
+
 static class_info_entry_t string_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -638,9 +650,10 @@ static class_info_entry_t string_class_info[] = {
     [36] = {ENTRY_TYPE_FUNC_POINTER, "", "compare_ignore", __compare_ignore, sizeof(void *)}, 
     [37] = {ENTRY_TYPE_FUNC_POINTER, "", "equal", __equal, sizeof(void *)}, 
     [38] = {ENTRY_TYPE_FUNC_POINTER, "", "equal_ignore", __equal_ignore, sizeof(void *)}, 
-    [39] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
-    [40] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
-    [41] = {ENTRY_TYPE_END}, 
+    [39] = {ENTRY_TYPE_FUNC_POINTER, "", "copy", __copy, sizeof(void *)}, 
+    [40] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
+    [41] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
+    [42] = {ENTRY_TYPE_END}, 
 };
 
 REGISTER_CLASS("String", string_class_info);
