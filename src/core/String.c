@@ -168,6 +168,8 @@ static int __set(String *string, char *attrib, void *value)
        string->equal_ignore=value;
     } else if(strcmp(attrib, "equal")==0){
        string->equal=value;
+    } else if(strcmp(attrib, "copy")==0){
+       string->copy=value;
     } else if (strcmp(attrib, "name") == 0) {
       strncpy(string->name, value, strlen(value));
     } else {

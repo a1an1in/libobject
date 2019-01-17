@@ -148,6 +148,7 @@ struct string_s{
     int  *  (*compare_ignore)(String *self,String *);
     int  *  (*equal)(String *self,String *);
     int  *  (*equal_ignore)(String *self,String *);
+    String *(*copy)(String *);
 	/*virtual methods reimplement*/
 
     
