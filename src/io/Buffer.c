@@ -37,36 +37,39 @@
 #include <libobject/io/buffer.h>
 #include <libobject/core/utils/registry/registry.h>
 
-#define DEFAULT_BUFFER_SIZE 1024
+#define DEFAULT_BUFFER_SIZE 4096
 
-static int __construct(Buffer *buffer,char *init_str)
+static int __construct(Buffer *self,char *init_str)
 {
-    allocator_t *allocator = ((Obj *)buffer)->allocator;
+    allocator_t *allocator = ((Obj *)self)->allocator;
 
-    if (buffer->size == 0) {
-        buffer->size  = DEFAULT_BUFFER_SIZE;
+    if (self->size == 0) {
+        self->size  = DEFAULT_BUFFER_SIZE + 1 ;
+    } else {
+        self->size = (self->size + 1 + sizeof(int) - 1 )&(~(sizeof(int) -1 )) ;
     }
-
-    buffer->addr = allocator_mem_alloc(allocator, buffer->size);
-    if (buffer->addr == NULL) {
+    
+    self->buffer = allocator_mem_alloc(allocator, self->size);
+    if (self->buffer == NULL) {
         dbg_str(DBG_ERROR, "allocator_mem_alloc");
         return -1;
     }
 
-    buffer->r_offset = 0;
-    buffer->w_offset = 0;
-    buffer->last_operation_flag = 0;
-
+    self->r_offset       = 0;
+    self->w_offset       = 0;
+    self->available_size = self->size - 1;
+    self->used_size      = 0;
+    self->ref_count      = 1;
     return 0;
 }
 
-static int __deconstrcut(Buffer *buffer)
+static int __deconstrcut(Buffer *self)
 {
-    allocator_t *allocator = ((Obj *)buffer)->allocator;
+    allocator_t *allocator = ((Obj *)self)->allocator;
 
-    dbg_str(EV_DETAIL,"buffer deconstruct,buffer addr:%p",buffer);
-    allocator_mem_free(allocator, buffer->addr);
-
+    dbg_str(EV_DETAIL,"buffer deconstruct,buffer addr:%p",self);
+    allocator_mem_free(allocator, self->buffer);
+    self->ref_count = 0;
     return 0;
 }
 
@@ -76,23 +79,32 @@ static int __set(Buffer *buffer, char *attrib, void *value)
         buffer->set = value;
     } else if (strcmp(attrib, "get") == 0) {
         buffer->get = value;
-    }
-    else if (strcmp(attrib, "construct") == 0) {
+    } else if (strcmp(attrib, "construct") == 0) {
         buffer->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         buffer->deconstruct = value;
-    } else if (strcmp(attrib, "read") == 0) {
-        buffer->read = value;
-    } else if (strcmp(attrib, "write") == 0) {
-        buffer->write = value;
-    } else if (strcmp(attrib, "printf") == 0) {
-        buffer->printf = value;
-    } else if (strcmp(attrib, "memcopy") == 0) {
-        buffer->memcopy = value;
-    } else if (strcmp(attrib, "get_len") == 0) {
-        buffer->get_len = value;
-    } else if (strcmp(attrib, "set_size") == 0) {
-        buffer->set_size = value;
+    } else if (strcmp(attrib, "buffer_read") == 0) {
+        buffer->buffer_read = value;
+    } else if (strcmp(attrib, "buffer_write") == 0) {
+        buffer->buffer_write = value;
+    } else if (strcmp(attrib, "size") == 0) {
+        buffer->size = value;
+    } else if (strcmp(attrib, "is_empty") == 0) {
+        buffer->is_empty = value;
+    } else if (strcmp(attrib, "clear") == 0) {
+        buffer->clear = value;
+    } else if (strcmp(attrib, "buffer_move") == 0) {
+        buffer->buffer_move = value;
+    } else if (strcmp(attrib, "buffer_find") == 0) {
+        buffer->buffer_find = value;
+    } else if (strcmp(attrib, "buffer_used_size") == 0) {
+        buffer->buffer_used_size = value;
+    } else if (strcmp(attrib, "buffer_free_size") == 0) {
+        buffer->buffer_free_size = value;
+    } else if (strcmp(attrib, "buffer_copy") == 0) {
+        buffer->buffer_copy = value;
+    } else if (strcmp(attrib, "buffer_remove") == 0) {
+        buffer->buffer_remove = value;
     } else {
         dbg_str(EV_DETAIL,"buffer set, not support %s setting",attrib);
     }
@@ -110,156 +122,203 @@ static void *__get(Buffer *obj, char *attrib)
     return NULL;
 }
 
-static int __get_len(Buffer *buffer)
+static int __size (Buffer *self)
 {
+    return self->size -1;
 }
 
-static int __set_size(Buffer *buffer, int size)
+static int __buffer_free_size(Buffer *self)
 {
-    allocator_t *allocator = ((Obj *)buffer)->allocator;
+    return self->available_size;
+} 
 
-    if (size != buffer->size) {
-        allocator_mem_free(allocator, buffer->addr);
-        buffer->size =  size;
-        buffer->addr = allocator_mem_alloc(allocator, size);
-        if (buffer->addr == NULL) {
-            dbg_str(DBG_ERROR, "allocator_mem_alloc");
-            return -1;
-        }
+static int __buffer_used_size(Buffer *self)
+{
+    return self->used_size;
+}
+
+static int __is_empty(Buffer *self)
+{
+    return self->used_size ? 0:1;
+}
+
+static int __clear(Buffer *self)
+{
+    self->r_offset       = 0;
+    self->w_offset       = 0;
+    self->used_size      = 0;
+    self->available_size = self->size -1 ;
+    return 1;
+}
+
+//读指针 追 写指针
+
+static  int __buffer_adapter_internal(Buffer *self)
+{
+    if (self->r_offset < self->w_offset) {
+        self->used_size = self->w_offset - self->r_offset;
+    } else if (self->r_offset > self->w_offset ) {
+        self->used_size = self->size - self->r_offset + self->w_offset;
+    } else {
+        self->used_size = 0;
     }
+
+    self->available_size = self->size -1 - self->used_size;
+    return 1;
+}
+
+static int __buffer_expand_container(Buffer *self,int len)
+{
+    int available_write_size = self->available_size;
+    int capacity = self->size ;
+    void * tmp_buffer = NULL;
+    if (len <= available_write_size) {
+        return 0;
+    }
+
+    len = (2*capacity + len + sizeof(int) - 1 )&(~(sizeof(int) -1 ));
+    tmp_buffer = self->buffer;
+    //allocator_mem_free(allocator,self->buffer);
+    self->buffer = allocator_mem_alloc(allocator, len);
+    if (self->buffer == NULL) {
+        dbg_str(DBG_ERROR, "allocator_mem_alloc");
+        self->buffer = tmp_buffer;
+        return -1;
+    }
+    
+    if (self->r_offset < self->w_offset){
+        memcpy(self->buffer+r_offset,tmp_buffer+r_offset,self->used_size);
+    } else if (self->w_offset < self->r_offset) {
+        memcpy(self->buffer,tmp_buffer,self->w_offset);
+        memcpy(self->buffer+r_offset,tmp_buffer+r_offset,self->size - self->r_offset);
+    } else {
+
+    }
+    allocator_mem_free(allocator,tmp_buffer);
+
+    self->size = len -1;
+    self->available_size = self->size - self->used_size - 1;
 
     return 0;
 }
 
-static int __read(Buffer *buffer, void *dst, int len)
+static int __buffer_read(Buffer *buffer, void *dst, int len)
 {
-    int l;
+   int  available_read_size = self->used_size;
+   int  internal_end_size   = self->size - self->r_offset;
 
-    if (buffer->last_operation_flag != BUFFER_WRITE_OPERATION &&
-        buffer->w_offset == buffer->r_offset) {
-        l = 0;
-        dbg_str(DBG_WARNNING, "buffer is nil");
-        goto end;
-    } else if (buffer->last_operation_flag == BUFFER_WRITE_OPERATION &&
-        buffer->w_offset == buffer->r_offset) {
-        l = buffer->size;
-    } else {
-        l = (buffer->w_offset - buffer->r_offset + buffer->size) % buffer->size;
-    }
+   if ( available_read_size == 0 || dst == NULL || len <= 0 ) {
+       len = 0;
+       return len;
+   }
+   //保证不会多读
+   if ( len > available_read_size ) {
+       len = available_read_size;
+   }
+   //两种情况
+   //r < w 
+   if (self->r_offset < self->w_offset) {
+       memcpy(dst,self->buffer+r_offset,len);
+       self->r_offset =+ len;
+   // r > w
+   } else if (self->r_offset > self->w_offset) {
+       if (internal_end_size >= len ) {
+           memcpy(dst,self->buffer+self->r_offset,len);
+           self->r_offset += len;
+       } else {
+           memcpy(dst,self->buffer+self->r_offset,internal_end_size);
+           self->r_offset += internal_end_size;
+           memcpy(dst+internal_end_size,self->buffer,len - internal_end_size);
+           self->r_offset = len - internal_end_size;
+       }
+   }
 
-    l = l > len ? len : l;
-
-    dbg_str(DBG_DETAIL, "read len=%d, w=%d, r=%d",
-            l, buffer->w_offset, buffer->r_offset);
-    if (buffer->w_offset > buffer->r_offset) {
-        memcpy(dst, buffer->addr + buffer->r_offset, l);
-    } else {
-        memcpy(dst, buffer->addr + buffer->r_offset, 
-                buffer->size - buffer->r_offset);
-        /*
-         *dbg_buf(DBG_DETAIL, "read char:", buffer->addr + buffer->r_offset,
-         *        buffer->size - buffer->r_offset );
-         */
-        memcpy(dst + buffer->size - buffer->r_offset,
-                buffer->addr, 
-                l - buffer->size + buffer->r_offset);
-        /*
-         *dbg_buf(DBG_DETAIL, "read char:", buffer->addr,
-         *        l - buffer->size + buffer->r_offset);
-         */
-    }
-
-    buffer->r_offset = (buffer->r_offset + l) % buffer->size;
-    buffer->last_operation_flag = BUFFER_READ_OPERATION;
-
-end:
-    return l;
+   self->buffer_adapter_internal(self);
+   return len;
 }
 
-static int __write(Buffer *buffer, void *src, int len)
-{
-    int l;
+static int __buffer_write(Buffer *self, void *src, int len)
+{ 
+    int available_write_size = self->available_size;
+    int internal_end_size    = self->size - self->w_offset;
 
-    if (buffer->last_operation_flag == BUFFER_WRITE_OPERATION &&
-        buffer->w_offset == buffer->r_offset) {
-        l = 0;
-        dbg_str(DBG_WARNNING, "buffer is full");
-        goto end;
-    } else if (buffer->w_offset == buffer->r_offset) {
-        l =  buffer->size;
-    } else {
-        l = (buffer->r_offset - buffer->w_offset + buffer->size) % buffer->size;
+    if (available_write_size == 0 || src == NULL || len <= 0 ) {
+        len = 0;
+        return len;
     }
-
-    l = l > len ? len : l;
-
-    if (buffer->w_offset + l <= buffer->size) {
-        memcpy(buffer->addr + buffer->w_offset, src, l);
-    } else {
-        memcpy(buffer->addr + buffer->w_offset,
-               src, buffer->size - buffer->w_offset);
-        memcpy(buffer->addr,  src + buffer->size - buffer->w_offset, 
-                l -  buffer->size + buffer->w_offset);
-    }
-
-    buffer->w_offset = (buffer->w_offset + l) % buffer->size;
-    buffer->last_operation_flag = BUFFER_WRITE_OPERATION;
-
-end:
-    return l;
+    //保证不会多写
+   if ( len > available_write_size ) {
+       len = available_write_size;
+   }
+   //两种情况
+   //r < w 
+   if (self->r_offset < self->w_offset ) {
+       if (len <= internal_end_size) {
+           memcpy(self->buffer+self->w_offset,src,len);
+           self->w_offset += len;
+       } else {
+           memcpy(self->buffer+self->w_offset,src,internal_end_size);
+           self->w_offset += internal_end_size;
+           memcpy(self->buffer,src+internal_end_size,len - internal_end_size);
+           self->w_offset = len - internal_end_size;
+       }
+   }
+   self->buffer_adapter_internal(self);
+   return len;
 }
 
-static int __printf(Buffer *buffer, const char *fmt, ...)
+static  int __buffer_find(Buffer *self,u_char c)
 {
-    int ret;
-    va_list va;
-    int l;
-
-    if (buffer->last_operation_flag == BUFFER_WRITE_OPERATION &&
-        buffer->w_offset == buffer->r_offset) {
-        ret = l = 0;
-        dbg_str(DBG_WARNNING, "buffer is full");
-        goto end;
-    } else if (buffer->w_offset == buffer->r_offset) {
-        l =  buffer->size;
-    } else {
-        l = (buffer->r_offset - buffer->w_offset + buffer->size) % buffer->size;
+    int i;
+    int internal_end_size;
+    if (self->is_empty(self)) {
+        return -1;
     }
 
-    va_start(va, fmt);
-    ret = vsnprintf(buffer->addr + buffer->w_offset,
-                    l, fmt, va);
-    buffer->w_offset = (buffer->w_offset + ret) % buffer->size;
-    va_end(va);
+    if (self->r_offset < self->w_offset) {
+        for (i = self->r_offset ;i < self->w_offset;i++) {
+             if (*(self->buffer+i) == c) {
+                 return i;
+             }
+        }
+    } else if (self->r_offset > self->w_offset) {
+        internal_end_size = self->size - self->r_offset;
+        for (i = self->r_offset;i < self->size;i++) {
+            if (*(self->buffer+i) == c) {
+                 return i;
+            }
+        }
 
-end:
-    return ret;
+        internal_end_size = self->used_size - internal_end_size;
+        for (i = 0 ;i < internal_end_size;i++){
+            if (*(self->buffer+i) == c) {
+                 return i;
+             }
+        }
+    }
+    return -1;
 }
 
-static int __memcpy(Buffer *buffer, void *addr, int len)
+static void __buffer_destroy(Buffer *self)
 {
-    int ret;
-    va_list va;
-    int l;
-
-    if (buffer->last_operation_flag == BUFFER_WRITE_OPERATION &&
-        buffer->w_offset == buffer->r_offset) {
-        ret = l = 0;
-        dbg_str(DBG_WARNNING, "buffer is full");
-        goto end;
-    } else if (buffer->w_offset == buffer->r_offset) {
-        l =  buffer->size;
-    } else {
-        l = (buffer->r_offset - buffer->w_offset + buffer->size) % buffer->size;
+    if (--self->ref_count == 0){
+        object_destroy(self);
     }
+}
 
-    l = l > len ? len : l;
+static int __buffer_copy_ref(Buffer *self,Buffer *dst)
+{   
+    if (dst == NULL||self == NULL ) {
+        return -1;
+    }
+    dst = self;
+    self->ref_count += 1;
+    return 0;
+}
 
-    ret = memcpy(buffer->addr + buffer->w_offset, addr, l);
-    buffer->w_offset = (buffer->w_offset + ret) % buffer->size;
+static int __buffer_copy(Buffer *self,Buffer *dst,size_t len ) 
+{   
 
-end:
-    return ret;
 }
 
 static class_info_entry_t buffer_class_info[] = {
