@@ -751,7 +751,6 @@ static int test_append_objective_string()
    parent->append_str(parent, substr->c_str(substr));
    printf(" c format value: %s \n", parent->c_str(parent));
 
-    /home/sun/android-ndk-r9d/toolchains/arm-linux-androideabi-4.8/prebuilt/linux-x86/bin/arm-linux-androideabi-gcc
    object_destroy(parent);
    object_destroy(substr);
    return 1;
