@@ -34,7 +34,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/event/event_base.h>
-#include <libobject/io/stream.h>
+#include <libobject/io/Stream.h>
 
 static int __set(Stream *stream, char *attrib, void *value)
 {
@@ -47,10 +47,10 @@ static int __set(Stream *stream, char *attrib, void *value)
         stream->construct = value;
     } else if (strcmp(attrib, "deconstruct") == 0) {
         stream->deconstruct = value;
-    } else if (strcmp(attrib, "read") == 0) {
-        stream->read = value;
-    } else if (strcmp(attrib, "write") == 0) {
-        stream->write = value;
+    } else if (strcmp(attrib, "buffer_read") == 0) {
+        stream->buffer_read = value;
+    } else if (strcmp(attrib, "buffer_write") == 0) {
+        stream->buffer_write = value;
     } else {
         dbg_str(EV_DETAIL,"stream set, not support %s setting",attrib);
     }
@@ -72,8 +72,8 @@ static class_info_entry_t stream_class_info[] = {
     [0] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
     [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
     [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_VFUNC_POINTER,"","read", NULL,sizeof(void *)},
-    [4] = {ENTRY_TYPE_VFUNC_POINTER,"","write", NULL,sizeof(void *)},
+    [3] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_read", NULL,sizeof(void *)},
+    [4] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_write", NULL,sizeof(void *)},
     [5] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Stream",stream_class_info);

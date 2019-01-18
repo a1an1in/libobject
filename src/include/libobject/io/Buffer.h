@@ -46,7 +46,7 @@ struct buffer_s{
     int    w_offset; 
     int    used_size;      //已经使用的空间
     int    available_size; //未使用的空间
-    int    size;           //总大小
+    int    capacity;           //总大小
     size_t ref_count;
     uint8_t last_operation_flag;
 };

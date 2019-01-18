@@ -16,8 +16,8 @@ struct stream_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
-    int (*read)(Stream *, void *dst, int len);
-    int (*write)(Stream *, void *src, int len);
+    int (*buffer_read)(Stream *, void *dst, int len);
+    int (*buffer_write)(Stream *, void *src, int len);
 };
 
 #endif

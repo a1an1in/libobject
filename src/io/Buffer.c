@@ -34,7 +34,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/event/event_base.h>
-#include <libobject/io/buffer.h>
+#include <libobject/io/Buffer.h>
 #include <libobject/core/utils/registry/registry.h>
 
 #define DEFAULT_BUFFER_SIZE 4096
@@ -43,21 +43,21 @@ static int __construct(Buffer *self,char *init_str)
 {
     allocator_t *allocator = ((Obj *)self)->allocator;
 
-    if (self->size == 0) {
-        self->size  = DEFAULT_BUFFER_SIZE + 1 ;
+    if (self->capacity == 0) {
+        self->capacity  = DEFAULT_BUFFER_SIZE + 1 ;
     } else {
-        self->size = (self->size + 1 + sizeof(int) - 1 )&(~(sizeof(int) -1 )) ;
+        self->capacity = (self->capacity + 1 + sizeof(int) - 1 )&(~(sizeof(int) - 1 )) ;
     }
     
-    self->buffer = allocator_mem_alloc(allocator, self->size);
+    self->buffer = allocator_mem_alloc(allocator, self->capacity);
     if (self->buffer == NULL) {
         dbg_str(DBG_ERROR, "allocator_mem_alloc");
         return -1;
     }
 
     self->r_offset       = 0;
-    self->w_offset       = 0;
-    self->available_size = self->size - 1;
+    self->w_offset       = 1;
+    self->available_size = self->capacity - 1;
     self->used_size      = 0;
     self->ref_count      = 1;
     return 0;
@@ -93,8 +93,8 @@ static int __set(Buffer *buffer, char *attrib, void *value)
         buffer->is_empty = value;
     } else if (strcmp(attrib, "clear") == 0) {
         buffer->clear = value;
-    } else if (strcmp(attrib, "buffer_move") == 0) {
-        buffer->buffer_move = value;
+    } else if (strcmp(attrib, "buffer_move_unref") == 0) {
+        buffer->buffer_move_unref = value;
     } else if (strcmp(attrib, "buffer_find") == 0) {
         buffer->buffer_find = value;
     } else if (strcmp(attrib, "buffer_used_size") == 0) {
@@ -103,8 +103,12 @@ static int __set(Buffer *buffer, char *attrib, void *value)
         buffer->buffer_free_size = value;
     } else if (strcmp(attrib, "buffer_copy") == 0) {
         buffer->buffer_copy = value;
-    } else if (strcmp(attrib, "buffer_remove") == 0) {
-        buffer->buffer_remove = value;
+    } else if (strcmp(attrib, "buffer_destroy") == 0) {
+        buffer->buffer_destroy = value;
+    } else if (strcmp(attrib, "buffer_adapter_internal") == 0) {
+        buffer->buffer_adapter_internal = value;
+    } else if (strcmp(attrib, "buffer_expand_container") == 0) {
+        buffer->buffer_expand_container = value;
     } else {
         dbg_str(EV_DETAIL,"buffer set, not support %s setting",attrib);
     }
@@ -124,7 +128,7 @@ static void *__get(Buffer *obj, char *attrib)
 
 static int __size (Buffer *self)
 {
-    return self->size -1;
+    return self->capacity -1;
 }
 
 static int __buffer_free_size(Buffer *self)
@@ -147,7 +151,7 @@ static int __clear(Buffer *self)
     self->r_offset       = 0;
     self->w_offset       = 0;
     self->used_size      = 0;
-    self->available_size = self->size -1 ;
+    self->available_size = self->capacity -1 ;
     return 1;
 }
 
@@ -158,19 +162,19 @@ static  int __buffer_adapter_internal(Buffer *self)
     if (self->r_offset < self->w_offset) {
         self->used_size = self->w_offset - self->r_offset;
     } else if (self->r_offset > self->w_offset ) {
-        self->used_size = self->size - self->r_offset + self->w_offset;
+        self->used_size = self->capacity - self->r_offset + self->w_offset;
     } else {
         self->used_size = 0;
     }
 
-    self->available_size = self->size -1 - self->used_size;
+    self->available_size = self->capacity -1 - self->used_size;
     return 1;
 }
 
 static int __buffer_expand_container(Buffer *self,int len)
 {
     int available_write_size = self->available_size;
-    int capacity = self->size ;
+    int capacity = self->capacity ;
     void * tmp_buffer = NULL;
     if (len <= available_write_size) {
         return 0;
@@ -179,7 +183,7 @@ static int __buffer_expand_container(Buffer *self,int len)
     len = (2*capacity + len + sizeof(int) - 1 )&(~(sizeof(int) -1 ));
     tmp_buffer = self->buffer;
     //allocator_mem_free(allocator,self->buffer);
-    self->buffer = allocator_mem_alloc(allocator, len);
+    self->buffer = allocator_mem_alloc((self->parent.obj).allocator, len);
     if (self->buffer == NULL) {
         dbg_str(DBG_ERROR, "allocator_mem_alloc");
         self->buffer = tmp_buffer;
@@ -187,25 +191,25 @@ static int __buffer_expand_container(Buffer *self,int len)
     }
     
     if (self->r_offset < self->w_offset){
-        memcpy(self->buffer+r_offset,tmp_buffer+r_offset,self->used_size);
+        memcpy(self->buffer+self->r_offset,tmp_buffer+self->r_offset,self->used_size);
     } else if (self->w_offset < self->r_offset) {
         memcpy(self->buffer,tmp_buffer,self->w_offset);
-        memcpy(self->buffer+r_offset,tmp_buffer+r_offset,self->size - self->r_offset);
+        memcpy(self->buffer+self->r_offset,tmp_buffer+self->r_offset,self->capacity - self->r_offset);
     } else {
 
     }
-    allocator_mem_free(allocator,tmp_buffer);
+    allocator_mem_free((self->parent.obj).allocator,tmp_buffer);
 
-    self->size = len -1;
-    self->available_size = self->size - self->used_size - 1;
+    self->capacity = len -1;
+    self->available_size = self->capacity - self->used_size - 1;
 
     return 0;
 }
 
-static int __buffer_read(Buffer *buffer, void *dst, int len)
+static int __buffer_read(Buffer *self, void *dst, int len)
 {
    int  available_read_size = self->used_size;
-   int  internal_end_size   = self->size - self->r_offset;
+   int  internal_end_size   = self->capacity - self->r_offset;
 
    if ( available_read_size == 0 || dst == NULL || len <= 0 ) {
        len = 0;
@@ -218,7 +222,7 @@ static int __buffer_read(Buffer *buffer, void *dst, int len)
    //两种情况
    //r < w 
    if (self->r_offset < self->w_offset) {
-       memcpy(dst,self->buffer+r_offset,len);
+       memcpy(dst,self->buffer+self->r_offset,len);
        self->r_offset =+ len;
    // r > w
    } else if (self->r_offset > self->w_offset) {
@@ -240,7 +244,7 @@ static int __buffer_read(Buffer *buffer, void *dst, int len)
 static int __buffer_write(Buffer *self, void *src, int len)
 { 
     int available_write_size = self->available_size;
-    int internal_end_size    = self->size - self->w_offset;
+    int internal_end_size    = self->capacity - self->w_offset;
 
     if (available_write_size == 0 || src == NULL || len <= 0 ) {
         len = 0;
@@ -262,7 +266,11 @@ static int __buffer_write(Buffer *self, void *src, int len)
            memcpy(self->buffer,src+internal_end_size,len - internal_end_size);
            self->w_offset = len - internal_end_size;
        }
+   } else if (self->r_offset > self->w_offset) {
+       memcpy(self->buffer+self->w_offset,src,len);
+       self->w_offset += len;
    }
+
    self->buffer_adapter_internal(self);
    return len;
 }
@@ -277,21 +285,21 @@ static  int __buffer_find(Buffer *self,u_char c)
 
     if (self->r_offset < self->w_offset) {
         for (i = self->r_offset ;i < self->w_offset;i++) {
-             if (*(self->buffer+i) == c) {
+             if (*((char*)self->buffer+i) == c) {
                  return i;
              }
         }
     } else if (self->r_offset > self->w_offset) {
-        internal_end_size = self->size - self->r_offset;
-        for (i = self->r_offset;i < self->size;i++) {
-            if (*(self->buffer+i) == c) {
+        internal_end_size = self->capacity - self->r_offset;
+        for (i = self->r_offset;i < self->capacity;i++) {
+            if (*((char*)self->buffer+i) == c) {
                  return i;
             }
         }
 
         internal_end_size = self->used_size - internal_end_size;
         for (i = 0 ;i < internal_end_size;i++){
-            if (*(self->buffer+i) == c) {
+            if (*((char*)self->buffer+i) == c) {
                  return i;
              }
         }
@@ -318,7 +326,12 @@ static int __buffer_copy_ref(Buffer *self,Buffer *dst)
 
 static int __buffer_copy(Buffer *self,Buffer *dst,size_t len ) 
 {   
+    return -1;
+}
 
+static int __buffer_move_unref(Buffer *self,Buffer*dst,size_t len)
+{
+    return -1;
 }
 
 static class_info_entry_t buffer_class_info[] = {
@@ -327,13 +340,21 @@ static class_info_entry_t buffer_class_info[] = {
     [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
     [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","read", __read,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","write", __write,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","printf", __printf,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","memcopy", __memcpy,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","get_len", __get_len,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","set_size", __set_size,sizeof(void *)},
-    [11] = {ENTRY_TYPE_END},
+    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_read", __buffer_read,sizeof(void *)},
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_write", __buffer_write,sizeof(void *)},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","size", __size,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","clear", __clear,sizeof(void *)},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","is_empty", __is_empty,sizeof(void *)},
+    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_copy_ref", __buffer_copy_ref,sizeof(void *)},
+    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_destroy", __buffer_destroy,sizeof(void *)},
+    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_move_unref", __buffer_move_unref,sizeof(void *)},
+    [13] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_copy", __buffer_copy,sizeof(void *)},
+    [14] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_expand_container", __buffer_expand_container,sizeof(void *)},
+    [15] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_adapter_internal", __buffer_adapter_internal,sizeof(void *)},
+    [16] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_used_size", __buffer_used_size,sizeof(void *)},
+    [17] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_free_size", __buffer_free_size,sizeof(void *)},
+    [18] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_find", __buffer_find,sizeof(void *)},
+    [19] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Buffer",buffer_class_info);
 
@@ -344,19 +365,28 @@ int Test_buffer(TEST_ENTRY *entry)
     char in[9] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'};
     char out[9];
     int len;
+    char *p = "fdasfasd";
+    char dst[100]={0};
 
     buffer = OBJECT_NEW(allocator, Buffer, NULL);
+    
+    len=buffer->buffer_write(buffer,p,strlen(p));
+    
+    dbg_str(DBG_SUC,"current buffer state: writed_size:%d used_size:%d avaiable_size:%d r_offset:%d w_offset:%d",
+                len,
+                buffer->buffer_used_size(buffer),
+                buffer->buffer_free_size(buffer),
+                buffer->r_offset,
+                buffer->w_offset);
 
-    buffer->set_size(buffer, 9);
-    buffer->write(buffer, in, 5);
-    dbg_buf(DBG_DETAIL, "write 5 char:", in, 5);
-    buffer->read(buffer, out, 4);
-    dbg_buf(DBG_DETAIL, "read 4 char:", out, 4);
-    buffer->write(buffer, in, 9);
-    dbg_buf(DBG_DETAIL, "write 9 char:", in, 9);
-    buffer->read(buffer, out, 9);
-    dbg_buf(DBG_DETAIL, "read 9 char:", out, 9);
+    buffer->buffer_read(buffer,dst,strlen(p));
 
+    dbg_str(DBG_SUC,"current buffer state: dst str:%s used_size:%d avaiable_size:%d r_offset:%d w_offset:%d",
+                dst,
+                buffer->buffer_used_size(buffer),
+                buffer->buffer_free_size(buffer),
+                buffer->r_offset,
+                buffer->w_offset);
 
     object_destroy(buffer);
 
