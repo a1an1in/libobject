@@ -1,5 +1,5 @@
 /**
- * @buffer Buffer.c
+ * @buffer RingBuffer.c
  * @Synopsis  
  * @author alan lin
  * @version 
@@ -34,12 +34,12 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/event/event_base.h>
-#include <libobject/io/Buffer.h>
+#include <libobject/io/RingBuffer.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/core/thread.h>
+#define DEFAULT_BUFFER_SIZE 1024
 
-#define DEFAULT_BUFFER_SIZE 4096
-
-static int __construct(Buffer *self,char *init_str)
+static int __construct(RingBuffer *self,char *init_str)
 {
     allocator_t *allocator = ((Obj *)self)->allocator;
 
@@ -63,7 +63,7 @@ static int __construct(Buffer *self,char *init_str)
     return 0;
 }
 
-static int __deconstrcut(Buffer *self)
+static int __deconstrcut(RingBuffer *self)
 {
     allocator_t *allocator = ((Obj *)self)->allocator;
 
@@ -73,7 +73,7 @@ static int __deconstrcut(Buffer *self)
     return 0;
 }
 
-static int __set(Buffer *buffer, char *attrib, void *value)
+static int __set(RingBuffer *buffer, char *attrib, void *value)
 {
     if (strcmp(attrib, "set") == 0) {
         buffer->set = value;
@@ -116,7 +116,7 @@ static int __set(Buffer *buffer, char *attrib, void *value)
     return 0;
 }
 
-static void *__get(Buffer *obj, char *attrib)
+static void *__get(RingBuffer *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
@@ -126,27 +126,27 @@ static void *__get(Buffer *obj, char *attrib)
     return NULL;
 }
 
-static int __size (Buffer *self)
+static int __size (RingBuffer *self)
 {
     return self->capacity -1;
 }
 
-static int __buffer_free_size(Buffer *self)
+static int __buffer_free_size(RingBuffer *self)
 {
     return self->available_size;
 } 
 
-static int __buffer_used_size(Buffer *self)
+static int __buffer_used_size(RingBuffer *self)
 {
     return self->used_size;
 }
 
-static int __is_empty(Buffer *self)
+static int __is_empty(RingBuffer *self)
 {
     return self->used_size ? 0:1;
 }
 
-static int __clear(Buffer *self)
+static int __clear(RingBuffer *self)
 {
     self->r_offset       = 0;
     self->w_offset       = 0;
@@ -157,7 +157,7 @@ static int __clear(Buffer *self)
 
 //读指针 追 写指针
 
-static  int __buffer_adapter_internal(Buffer *self)
+static  int __buffer_adapter_internal(RingBuffer *self)
 {
     if (self->r_offset < self->w_offset) {
         self->used_size = self->w_offset - self->r_offset;
@@ -171,7 +171,7 @@ static  int __buffer_adapter_internal(Buffer *self)
     return 1;
 }
 
-static int __buffer_expand_container(Buffer *self,int len)
+static int __buffer_expand_container(RingBuffer *self,int len)
 {
     int available_write_size = self->available_size;
     int capacity = self->capacity ;
@@ -206,7 +206,7 @@ static int __buffer_expand_container(Buffer *self,int len)
     return 0;
 }
 
-static int __buffer_read(Buffer *self, void *dst, int len)
+static int __buffer_read(RingBuffer *self, void *dst, int len)
 {
    int  available_read_size = self->used_size;
    int  internal_end_size   = self->capacity - self->r_offset;
@@ -223,7 +223,7 @@ static int __buffer_read(Buffer *self, void *dst, int len)
    //r < w 
    if (self->r_offset < self->w_offset) {
        memcpy(dst,self->buffer+self->r_offset,len);
-       self->r_offset =+ len;
+       self->r_offset += len;
    // r > w
    } else if (self->r_offset > self->w_offset) {
        if (internal_end_size >= len ) {
@@ -236,12 +236,12 @@ static int __buffer_read(Buffer *self, void *dst, int len)
            self->r_offset = len - internal_end_size;
        }
    }
-
+ 
    self->buffer_adapter_internal(self);
    return len;
 }
 
-static int __buffer_write(Buffer *self, void *src, int len)
+static int __buffer_write(RingBuffer *self, void *src, int len)
 { 
     int available_write_size = self->available_size;
     int internal_end_size    = self->capacity - self->w_offset;
@@ -275,7 +275,7 @@ static int __buffer_write(Buffer *self, void *src, int len)
    return len;
 }
 
-static  int __buffer_find(Buffer *self,u_char c)
+static  int __buffer_find(RingBuffer *self,u_char c)
 {
     int i;
     int internal_end_size;
@@ -307,14 +307,14 @@ static  int __buffer_find(Buffer *self,u_char c)
     return -1;
 }
 
-static void __buffer_destroy(Buffer *self)
+static void __buffer_destroy(RingBuffer *self)
 {
     if (--self->ref_count == 0){
         object_destroy(self);
     }
 }
 
-static int __buffer_copy_ref(Buffer *self,Buffer *dst)
+static int __buffer_copy_ref(RingBuffer *self,RingBuffer *dst)
 {   
     if (dst == NULL||self == NULL ) {
         return -1;
@@ -324,12 +324,12 @@ static int __buffer_copy_ref(Buffer *self,Buffer *dst)
     return 0;
 }
 
-static int __buffer_copy(Buffer *self,Buffer *dst,size_t len ) 
+static int __buffer_copy(RingBuffer *self,RingBuffer *dst,size_t len ) 
 {   
     return -1;
 }
 
-static int __buffer_move_unref(Buffer *self,Buffer*dst,size_t len)
+static int __buffer_move_unref(RingBuffer *self,RingBuffer*dst,size_t len)
 {
     return -1;
 }
@@ -356,11 +356,11 @@ static class_info_entry_t buffer_class_info[] = {
     [18] = {ENTRY_TYPE_VFUNC_POINTER,"","buffer_find", __buffer_find,sizeof(void *)},
     [19] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Buffer",buffer_class_info);
+REGISTER_CLASS("RingBuffer",buffer_class_info);
 
 int Test_buffer(TEST_ENTRY *entry)
 {
-    Buffer *buffer;
+    RingBuffer *buffer;
     allocator_t *allocator = allocator_get_default_alloc();
     char in[9] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'};
     char out[9];
@@ -368,7 +368,7 @@ int Test_buffer(TEST_ENTRY *entry)
     char *p = "fdasfasd";
     char dst[100]={0};
 
-    buffer = OBJECT_NEW(allocator, Buffer, NULL);
+    buffer = OBJECT_NEW(allocator, RingBuffer, NULL);
     
     len=buffer->buffer_write(buffer,p,strlen(p));
     
@@ -379,10 +379,72 @@ int Test_buffer(TEST_ENTRY *entry)
                 buffer->r_offset,
                 buffer->w_offset);
 
+   len=buffer->buffer_write(buffer,p,strlen(p));
+   dbg_str(DBG_SUC,"current buffer state: writed_size:%d used_size:%d avaiable_size:%d r_offset:%d w_offset:%d",
+                len,
+                buffer->buffer_used_size(buffer),
+                buffer->buffer_free_size(buffer),
+                buffer->r_offset,
+                buffer->w_offset);
+
+    len=buffer->buffer_write(buffer,p,strlen(p));
+    dbg_str(DBG_SUC,"current buffer state: writed_size:%d used_size:%d avaiable_size:%d r_offset:%d w_offset:%d",
+                len,
+                buffer->buffer_used_size(buffer),
+                buffer->buffer_free_size(buffer),
+                buffer->r_offset,
+                buffer->w_offset);
+  
+    
     buffer->buffer_read(buffer,dst,strlen(p));
 
     dbg_str(DBG_SUC,"current buffer state: dst str:%s used_size:%d avaiable_size:%d r_offset:%d w_offset:%d",
                 dst,
+                buffer->buffer_used_size(buffer),
+                buffer->buffer_free_size(buffer),
+                buffer->r_offset,
+                buffer->w_offset);
+    
+    buffer->buffer_read(buffer,dst,strlen(p));
+
+    dbg_str(DBG_SUC,"current buffer state: dst str:%s used_size:%d avaiable_size:%d r_offset:%d w_offset:%d",
+                dst,
+                buffer->buffer_used_size(buffer),
+                buffer->buffer_free_size(buffer),
+                buffer->r_offset,
+                buffer->w_offset);
+
+    memset(dst,0,100);
+    buffer->buffer_read(buffer,dst,strlen(p));
+
+    dbg_str(DBG_SUC,"current buffer state: dst str:%s used_size:%d avaiable_size:%d r_offset:%d w_offset:%d",
+                dst,
+                buffer->buffer_used_size(buffer),
+                buffer->buffer_free_size(buffer),
+                buffer->r_offset,
+                buffer->w_offset);
+
+    
+    len=buffer->buffer_write(buffer,p,strlen(p));
+   dbg_str(DBG_SUC,"current buffer state: writed_size:%d used_size:%d avaiable_size:%d r_offset:%d w_offset:%d",
+                len,
+                buffer->buffer_used_size(buffer),
+                buffer->buffer_free_size(buffer),
+                buffer->r_offset,
+                buffer->w_offset);
+
+    len=buffer->buffer_write(buffer,p,strlen(p));
+    dbg_str(DBG_SUC,"current buffer state: writed_size:%d used_size:%d avaiable_size:%d r_offset:%d w_offset:%d",
+                len,
+                buffer->buffer_used_size(buffer),
+                buffer->buffer_free_size(buffer),
+                buffer->r_offset,
+                buffer->w_offset);
+
+    
+    len=buffer->buffer_write(buffer,p,strlen(p));
+    dbg_str(DBG_SUC,"current buffer state: writed_size:%d used_size:%d avaiable_size:%d r_offset:%d w_offset:%d",
+                len,
                 buffer->buffer_used_size(buffer),
                 buffer->buffer_free_size(buffer),
                 buffer->r_offset,
@@ -393,3 +455,97 @@ int Test_buffer(TEST_ENTRY *entry)
     return 1;
 }
 REGISTER_TEST_FUNC(Test_buffer);
+
+
+
+static void* ringbuffer_producer(void * arg)
+{
+    RingBuffer * buffer = (RingBuffer *)arg;
+    char * p ="pruducer ";
+    int size ;
+    if (arg == NULL) {
+        return NULL;
+    }
+    //DO
+    while (1) {
+        size = buffer->buffer_write(buffer,p,strlen(p));
+        
+        if (size){
+            dbg_str(DBG_SUC,"producer buffer current producer size:%d  used_size:%d avaliable_size:%d",
+                    size,
+                    buffer->buffer_used_size(buffer),
+                    buffer->buffer_free_size(buffer));
+            usleep(200000);
+        }
+        else {
+            dbg_str(DBG_ERROR,"producer buffer is full");
+            dbg_str(DBG_ERROR,"producer buffer current producer size:%d  used_size:%d avaliable_size:%d",
+                    size,
+                    buffer->buffer_used_size(buffer),
+                    buffer->buffer_free_size(buffer));
+            usleep(1000000);
+        }
+    }
+    return NULL;
+}
+
+static void * ringbuffer_consumer(void *arg)
+{
+    RingBuffer * buffer = (RingBuffer *)arg;
+    char tmp[1024] = {0};
+    char * p ="pruducer ";
+    int size;
+    if (arg == NULL) {
+        return NULL;
+    }
+    //DO
+    while (1) {
+        size = buffer->buffer_read(buffer,tmp,sizeof(tmp)/sizeof(char));
+        //usleep(10000);
+        if (size){
+            dbg_str(DBG_SUC,"consume buffer:%s",tmp);
+            dbg_str(DBG_SUC,"consume buffer current consume size:%d  used_size:%d avaliable_size:%d",
+                    size,
+                    buffer->buffer_used_size(buffer),
+                    buffer->buffer_free_size(buffer));
+
+            memset(tmp,0,100);
+        }  else {
+            dbg_str(DBG_ERROR,"consume ringbuffer is nil ");
+            dbg_str(DBG_ERROR,"consume buffer current consume size:%d  used_size:%d avaliable_size:%d",
+                    size,
+                    buffer->buffer_used_size(buffer),
+                    buffer->buffer_free_size(buffer));
+
+            usleep(1000000);
+        }
+    }
+    return NULL;
+}
+
+
+static int test_ringbuffer_producer_consumer()
+{
+    allocator_t * allocator = allocator_get_default_alloc();
+    RingBuffer * buffer =   OBJECT_NEW(allocator,RingBuffer ,NULL);
+    
+    Thread * producer = OBJECT_NEW(allocator,Thread ,NULL);
+    producer->set_start_arg(producer,buffer);
+    producer->set_start_routine(producer,ringbuffer_producer);
+    producer->start(producer);
+    producer->detach(producer);
+    
+    Thread * consumer = OBJECT_NEW(allocator,Thread ,NULL);
+    consumer->set_start_arg(consumer,buffer);
+    consumer->set_start_routine(consumer,ringbuffer_consumer);
+    consumer->start(consumer);
+    consumer->detach(consumer);
+    pause();
+    object_destroy(buffer);
+    object_destroy(producer);
+    object_destroy(consumer);
+
+    return 1;
+}
+
+REGISTER_STANDALONE_TEST_FUNC(test_ringbuffer_producer_consumer);
