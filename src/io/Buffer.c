@@ -56,7 +56,7 @@ static int __construct(Buffer *self,char *init_str)
     }
 
     self->r_offset       = 0;
-    self->w_offset       = 1;
+    self->w_offset       = 0;
     self->available_size = self->capacity - 1;
     self->used_size      = 0;
     self->ref_count      = 1;
@@ -256,7 +256,7 @@ static int __buffer_write(Buffer *self, void *src, int len)
    }
    //两种情况
    //r < w 
-   if (self->r_offset < self->w_offset ) {
+   if (self->r_offset <= self->w_offset ) {
        if (len <= internal_end_size) {
            memcpy(self->buffer+self->w_offset,src,len);
            self->w_offset += len;
