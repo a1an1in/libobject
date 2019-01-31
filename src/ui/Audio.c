@@ -78,6 +78,8 @@ static int __set(Audio *audio, char *attrib, void *value)
         audio->play = value;
     } else if (strcmp(attrib, "pause") == 0) {
         audio->pause = value;
+    } else if (strcmp(attrib, "close") == 0) {
+        audio->close = value;
     } else {
         dbg_str(OBJ_WARNNING, "audio set,  \"%s\" setting is not support", attrib);
     }
@@ -156,6 +158,11 @@ static int __pause(Audio *audio)
     return 0;
 }
 
+static int __close(Audio *audio)
+{
+    return 0;
+}
+
 static class_info_entry_t audio_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -171,8 +178,9 @@ static class_info_entry_t audio_class_info[] = {
     [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "init", __init, sizeof(void *)}, 
     [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "play", __play, sizeof(void *)}, 
     [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "pause", __pause, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_NORMAL_POINTER, "", "String", NULL, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_END}, 
+    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "close", __close, sizeof(void *)}, 
+    [15] = {ENTRY_TYPE_NORMAL_POINTER, "", "String", NULL, sizeof(void *)}, 
+    [16] = {ENTRY_TYPE_END}, 
 
 };
 REGISTER_CLASS("Audio", audio_class_info);

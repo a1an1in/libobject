@@ -26,6 +26,7 @@ struct audio_s{
     int (*init)(Audio *audio);
     int (*play)(Audio *audio);
     int (*pause)(Audio *audio);
+    int (*close)(Audio *audio);
 
 	/*attribs*/
 	String *path;

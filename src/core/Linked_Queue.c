@@ -43,7 +43,7 @@ static int __construct(Linked_Queue *queue, char *init_str)
     allocator_t *allocator = queue->parent.obj.allocator;
     Queue *q = (Queue *)queue;
     int value_size = sizeof(void *);
-    int lock_type = 0;
+    int lock_type = 1;
 
     dbg_str(OBJ_DETAIL, "queue construct, queue addr:%p", queue);
 
@@ -362,7 +362,7 @@ static int Test_linked_queue_clear()
 }
 REGISTER_TEST_FUNC(Test_linked_queue_clear);
 
-static int test_linked_queue_is_empty()
+static int Test_linked_queue_is_empty()
 {
     int ret,i,j;
     int buf[10];
@@ -394,6 +394,33 @@ end:
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_linked_queue_is_empty);
+REGISTER_TEST_FUNC(Test_linked_queue_is_empty);
+
+static int Test_linked_queue_size()
+{
+    int ret,i,j;
+    int buf[10];
+    Queue * queue ;
+    allocator_t *allocator = allocator_get_default_alloc();
+
+    queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
+    
+    for( i = 0; i < 10; i++) {
+        queue->add(queue,&i);
+        buf[i] = i;
+    }
+
+    if (queue->size(queue) == 10) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
+
+    object_destroy(queue);
+
+    return ret;
+}
+REGISTER_TEST_FUNC(Test_linked_queue_size);
+
 
 

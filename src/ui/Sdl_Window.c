@@ -326,7 +326,10 @@ static void __set_window_icon(Window *window, void *title)
 }
 static void __set_window_size(Window *window, int width, int hight) 
 {
-    dbg_str(DBG_DETAIL, "window moved");
+    Sdl_Window *w = (Sdl_Window *)window;
+
+    dbg_str(DBG_DETAIL, "set window size");
+    SDL_SetWindowSize(w->sdl_window, width, hight);
 }
 
 static void __set_window_position(Window *window, int x, int y) 

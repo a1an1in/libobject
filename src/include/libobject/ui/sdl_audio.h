@@ -20,6 +20,7 @@ struct sdl_audio_s{
     int (*init)(Sdl_Audio *audio);
     int (*play)(Sdl_Audio *audio);
     int (*pause)(Sdl_Audio *audio);
+    int (*close)(Sdl_Audio *audio);
 
 	/*attribs*/
 	String *path;

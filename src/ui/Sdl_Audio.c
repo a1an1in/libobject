@@ -278,6 +278,15 @@ static int __pause(Sdl_Audio *sdl_audio)
     return 0;
 }
 
+static int __close(Sdl_Audio *sdl_audio)
+{
+    dbg_str(DBG_SUC, "sdl close audio in."); 
+    SDL_CloseAudioDevice(sdl_audio->dev_id);
+    dbg_str(DBG_SUC, "sdl close audio out"); 
+
+    return 1;
+}
+
 static class_info_entry_t sdl_audio_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Audio", "parent", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -287,8 +296,9 @@ static class_info_entry_t sdl_audio_class_info[] = {
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "init", __init, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "play", __play, sizeof(void *)}, 
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "pause", __pause, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_NORMAL_POINTER, "", "String", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_END}, 
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "close", __close, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_NORMAL_POINTER, "", "String", NULL, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_END}, 
 
 };
 REGISTER_CLASS("Sdl_Audio", sdl_audio_class_info);
