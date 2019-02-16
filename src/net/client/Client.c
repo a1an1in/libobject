@@ -30,10 +30,14 @@
  * 
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/net/client/client.h>
+#include <libobject/net/http/Response.h>
+#include <libobject/net/http/Client.h>
+#include <libobject/io/RingBuffer.h>
 
 static int __construct(Client *client, char *init_str)
 {
@@ -121,24 +125,34 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
     Worker *worker = (Worker *)arg;
     Client *client = (Client *)worker->opaque;
     Socket *socket = client->socket;
-#define EV_CALLBACK_MAX_BUF_LEN 1024 * 10
-    char buf[EV_CALLBACK_MAX_BUF_LEN];
+    Http_Client * http_client = client->opaque;
+    Response * response = http_client->resp;
+
+    int ret  = 0;
+    allocator_t *allocator = allocator_get_default_alloc();
+    String * tmp = http_client->current_http_chunck;
+
+#define EV_CALLBACK_MAX_BUF_LEN 1024 
+    char buf[EV_CALLBACK_MAX_BUF_LEN] = {0};
     int  buf_len = EV_CALLBACK_MAX_BUF_LEN, len = 0;
 #undef EV_CALLBACK_MAX_BUF_LEN
 
-    if (fd == socket->fd)
-        len = socket->recv(socket, buf, buf_len, 0);
-
-    if (worker->work_callback && len) {
-        net_task_t *task;
-        task = net_task_alloc(worker->obj.allocator, len);
-        memcpy(task->buf, buf, len);
-        task->buf_len = len;
-        task->opaque  = client->opaque;
-        worker->work_callback(task);
-        net_task_free(task);
+    if (fd != socket->fd)
+            dbg_str(DBG_WARNNING,"fd != socket->fd");
+   
+    len = socket->recv(socket, buf, buf_len, 0);
+    
+    ret = response->response_parse(response,buf,len);
+    if (ret < 0) {
+        dbg_str(DBG_ERROR,"http response parse error socketfd =%d ",fd);
+        worker->resign(worker);
+        client_close(client);
+        return 0;
     }
-
+    
+    if (response->current_size >= response->content_length) {
+            worker->work_callback(client->opaque);
+    }
     return 0;
 }
 

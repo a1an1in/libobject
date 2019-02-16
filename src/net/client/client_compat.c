@@ -77,10 +77,30 @@ int client_connect(void *client, char *host, char *service)
     return c->connect(c, host, service);
 }
 
+int client_nonblock(void *client)
+{
+    Client *c  = (Client *)client;
+    Socket * s = c->socket;
+    return s->setnonblocking(s);
+}
+
+int client_close(void *client)
+{
+    Client *c  = (Client *)client;
+    Socket * s = c->socket;
+    return s->close(s); 
+}
+
 int client_send(void *client, void *buf, int len, int flags)
 {
     Client *c = (Client *)client;
     return c->send(c, buf, len, flags);
+}
+
+int client_recv(void *client,void *buf,int len,int flags)
+{
+    Client *c = (Client *)client;
+    return c->recv(c, buf, len, flags);
 }
 
 int client_destroy(void *client)

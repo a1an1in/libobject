@@ -66,6 +66,7 @@ struct string_s{
      * @date    2018/11/21
      */
     int  (*find)(String *string,String *substr,int pos);
+    int  (*find_cstr)(String *string,char *substr,int pos);
     /**
      * @brief substr  截取子串
      *
@@ -144,10 +145,16 @@ struct string_s{
     String *(*insert_str_normal)(String *,size_t pos,String *cstr);
     String *(*insert_cstr)(String * dest,size_t index,char * src,size_t pos,size_t count);
     String *(*insert_str)(String * dest,size_t index,String * src,size_t pos,size_t count);
-    int  *  (*compare)(String *self,String *);
-    int  *  (*compare_ignore)(String *self,String *);
-    int  *  (*equal)(String *self,String *);
-    int  *  (*equal_ignore)(String *self,String *);
+    int    (*compare)(String *self,String *);
+    int    (*compare_ignore)(String *self,String *);
+    int    (*equal)(String *self,String *);
+    int    (*equal_ignore)(String *self,String *);
+
+    int    (*compare_cstr)(String *self,char *);
+    int    (*compare_ignore_cstr)(String *self,char *);
+    int    (*equal_cstr)(String *self,char *);
+    int    (*equal_ignore_cstr)(String *self,char *);
+
     String *(*copy)(String *);
 	/*virtual methods reimplement*/
 

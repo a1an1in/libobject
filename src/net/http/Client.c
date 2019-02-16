@@ -38,6 +38,8 @@
 
 static int __http_client_response_callback(void *task);
 
+static void __default_timeout_callback(void *);
+
 static int __construct(Http_Client *client,char *init_str)
 {
     allocator_t *allocator = client->obj.allocator;
@@ -46,9 +48,9 @@ static int __construct(Http_Client *client,char *init_str)
     client->resp = OBJECT_NEW(allocator, Response, NULL);
     client->host = "127.0.0.1";
 
-    client->req_buffer  = OBJECT_NEW(allocator, Buffer, NULL);
-    client->resp_buffer = OBJECT_NEW(allocator, Buffer, NULL);
-
+    // client->req_buffer  = OBJECT_NEW(allocator, RingBuffer, NULL);
+    // client->resp_buffer = OBJECT_NEW(allocator, RingBuffer, NULL);
+    client->current_http_chunck = OBJECT_NEW(allocator, String, NULL);
     return 0;
 }
 
@@ -56,11 +58,9 @@ static int __deconstruct(Http_Client *client)
 {
     dbg_str(EV_DETAIL,"client deconstruct,client addr:%p",client);
 
-    object_destroy(client->req_buffer);
-    object_destroy(client->resp_buffer);
     object_destroy(client->req);
     object_destroy(client->resp);
-
+    object_destroy(client->current_http_chunck);
     if (client->c != NULL) {
         client_destroy(client->c);
     }
@@ -86,6 +86,8 @@ static int __set(Http_Client *client, char *attrib, void *value)
         client->request = value;
     } else if (strcmp(attrib, "request_sync") == 0) {
         client->request_sync = value;
+    } else if (strcmp(attrib, "set_opt") == 0) {
+        client->set_opt = value;
     } 
     else {
         dbg_str(EV_DETAIL,"client set, not support %s setting",attrib);
@@ -115,33 +117,71 @@ static Response *__get_response(Http_Client *client)
 }
 
 static int 
-__request(Http_Client *hc, int (*request_cb)(void *arg), void *arg)
+__request(Http_Client *hc)
 {
     allocator_t *allocator = hc->obj.allocator;
     Request *req;
-    int len;
-
+    int ret,len;
+    char *host ,*port ,*request_ctx = NULL;
+    
     if (hc->c != NULL) {
     } else {
         Client *c = NULL;
         char *str = "hello world";
 
         req = hc->get_request(hc);
-        len = req->buffer->w_offset;
+        ret = req->write(req);
 
-        hc->request_cb = request_cb;
-        hc->request_cb_arg = arg;
+        if (ret < 0 ) {
+            return ret;
+        }
 
-        c = client(allocator, 
-                   CLIENT_TYPE_INET_TCP, 
-                   (char *)"127.0.0.1", //char *host, 
-                   (char *)"19923", //char *client_port, 
-                   __http_client_response_callback, 
-                   arg);
+        host = req->server_ip->c_str(req->server_ip);
+        port = req->port->c_str(req->port);
+        request_ctx = req->request_header_context->c_str(req->request_header_context);
+        len = req->request_header_context->size(req->request_header_context) ;
 
-        client_connect(c, "127.0.0.1", "8080");
+        //timeout_callback
+        req->timer = timer_worker(allocator,&req->ev_tv,hc,__default_timeout_callback);
+ 
+        if (req->request_cb && req->request_cb_arg) {
+            c = client(allocator, 
+                       CLIENT_TYPE_INET_TCP, 
+                       (char *)"127.0.0.1", //char *host, 
+                       (char *)"19923", //char *client_port, 
+                       req->request_cb, 
+                       req->request_cb_arg);
 
-        client_send(c, req->buffer->addr, len, 0);
+        } else if (req->request_cb && !req->request_cb_arg) {
+            c = client(allocator, 
+                       CLIENT_TYPE_INET_TCP, 
+                       (char *)"127.0.0.1", //char *host, 
+                       (char *)"19923", //char *client_port, 
+                       req->request_cb, 
+                       hc);
+        } else {
+             c = client(allocator, 
+                        CLIENT_TYPE_INET_TCP, 
+                        (char *)"127.0.0.1", //char *host, 
+                        (char *)"19923", //char *client_port, 
+                        __http_client_response_callback, 
+                        hc);
+        }
+
+        ret = client_connect(c,host,port);
+        if (ret < 0) {
+            dbg_str(DBG_ERROR,"http connect server(%s,%s) failed",host,port);
+            req->option_reset(req);
+            client_close(c);
+            return ret;
+        }
+        
+        client_send(c,
+                    request_ctx,
+                    len, 
+                    0);
+        req->option_reset(req);
+
         hc->c  = c;
     }
 
@@ -150,6 +190,17 @@ __request(Http_Client *hc, int (*request_cb)(void *arg), void *arg)
 
 static Response * __request_sync(Http_Client *client)
 {
+}
+
+static int __set_opt(Http_Client *client,http_opt_t opt,void *value)
+{
+    Request * req = NULL;
+    req = client->get_request(client);
+    if (req == NULL) {
+        return -1;
+    }
+    
+    return req->set_opt(req,opt,value);
 }
 
 static class_info_entry_t concurent_class_info[] = {
@@ -162,60 +213,83 @@ static class_info_entry_t concurent_class_info[] = {
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","get_response",__get_response,sizeof(void *)},
     [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","request",__request,sizeof(void *)},
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","request_sync",__request_sync,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_END},
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_opt",__set_opt,sizeof(void *)},
+    [10 ] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Http_Client",concurent_class_info);
 
-static int __http_client_response_callback(void *task)
+static int __http_client_response_callback(void *arg)
 {
-    net_task_t *t = (net_task_t *)task;
-    Http_Client *client = t->opaque;
-    Response *resp = client->get_response(client); 
-    int ret;
+    int ret = 0 ;
+    dbg_str(DBG_SUC,"default request callback run recv");
+    char buf[4096] = {0};
+    Http_Client * client = arg;
+    RingBuffer * ring_buf = client->resp->buffer;
+    ring_buf->buffer_read(ring_buf,buf,4096);
 
-    dbg_str(DBG_SUC,"http client response callback run, cabllback opaque=%p", 
-            t->opaque);
-
-    resp->set_buffer(resp, client->resp_buffer);
-    resp->buffer->memcopy(resp->buffer, t->buf, t->buf_len);
-    ret = resp->read(resp);
-    if (ret == 1) {
-        client->request_cb(client->resp, client->request_cb_arg);
-    }
+    dbg_str(DBG_SUC,"request callback run recv %s",buf);
+    return ret; 
 }
 
-static int test_request_callback(Response *resp, void *arg)
+static void __default_timeout_callback(void *arg)
 {
-    dbg_str(DBG_SUC,"request callback run");
+    Http_Client * client = (Http_Client *)arg;
+    Worker *worker = client->c->worker;
+    
+    dbg_str(DBG_ERROR," http request failed  timeout");
+    client_close(client->c);
 }
+
+static int test_request_callback(void *arg)
+{   
+    int len = 0;
+    dbg_str(DBG_SUC,"request callback run recv");
+    char buf[4096] = {0};
+    Http_Client * client = arg;
+    Client *c = client->c;
+
+    RingBuffer * ring_buf = client->resp->buffer;
+    ring_buf->buffer_read(ring_buf,buf,4096);
+
+    dbg_str(DBG_SUC,"request callback run recv %s",buf);
+    Request *req = client->req;
+
+    c->worker->resign(c->worker);
+    client_close(c);
+
+    return len; 
+} 
 
 int test_http_client(TEST_ENTRY *entry)
 {
+    int ret = 0 ;
     Http_Client *client;
-    Request *req;
     Response *response;
+    int t = 4;
     allocator_t *allocator = allocator_get_default_alloc();
     char *body = "hello world from libobject";
 
     client = OBJECT_NEW(allocator, Http_Client, NULL);
-    req = client->get_request(client);
 
-    req->set_method(req, "GET");
-    req->set_uri(req, "/hello");
-    req->set_http_version(req, "HTTP/1.1");
-    req->set_header(req, "Host", "127.0.0.1:8080");
-    req->set_header(req, "User-Agent", "libobject-http-client");
-    req->set_buffer(req, client->req_buffer);
-    req->set_body(req, body);
-    req->set_content_len(req, strlen(body));
-    req->write(req);
+    client->set_opt(client,HTTP_OPT_METHOD,"GET");
+    client->set_opt(client,HTTP_OPT_EFFECTIVE_URL,"127.0.0.1");
+    #if 1
+    client->set_opt(client,HTTP_OPT_CALLBACK,test_request_callback);
+    client->set_opt(client,HTTP_OPT_CALLBACKDATA,client);
+    client->set_opt(client,HTTP_OPT_TIMEOUT,&t);
+    #endif 
 
-    dbg_str(DBG_SUC,"request opaque=%p",  client);
-    response = client->request(client, test_request_callback, client);
+    #if 1
+    ret = client->request(client);
+    if ( ret < 0 ) {
+        dbg_str(DBG_ERROR,"http request error!");
+    }  
+    #endif
 
     pause();
+    
     object_destroy(client);
-
+    
     return 1;
 }
 REGISTER_STANDALONE_TEST_FUNC(test_http_client);

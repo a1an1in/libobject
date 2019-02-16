@@ -42,14 +42,21 @@ static int __construct(Response *response,char *init_str)
     char buf[2048];
 
     dbg_str(DBG_DETAIL,"response construct, response addr:%p",response);
-
+    response->buffer = OBJECT_NEW(response->obj.allocator,RingBuffer,NULL); 
+    response->response_context = OBJECT_NEW(allocator,String,NULL);
+    response->current_size  = 0;
+    response->content_length = 0;
     return 0;
 }
 
 static int __deconstrcut(Response *response)
 {
     dbg_str(DBG_DETAIL,"response deconstruct,response addr:%p",response);
-
+    object_destroy(response->buffer);
+    if (response->response_context) {
+        object_destroy(response->response_context);
+        response->response_context = NULL;
+    }
     return 0;
 }
 
@@ -67,6 +74,8 @@ static int __set(Response *response, char *attrib, void *value)
         response->set_buffer = value;
     } else if (strcmp(attrib, "read") == 0) {
         response->read = value;
+    } else if (strcmp(attrib, "response_parse") == 0) {
+        response->response_parse = value;
     } 
     else {
         dbg_str(DBG_DETAIL,"response set, not support %s setting",attrib);
@@ -85,11 +94,46 @@ static void *__get(Response *obj, char *attrib)
     return NULL;
 }
 
-static int __set_buffer(Response *response, Buffer *buffer)
+static int __set_buffer(Response *response, RingBuffer *buffer)
 {
     response->buffer = buffer;
 
     return 0;
+}
+
+static int __response_parse(Response *response,void *buffer,int len)
+{
+    if (len < 0 || buffer == NULL ) {
+        dbg_str(DBG_ERROR,"http client recv failed! recv_len =%d buffer addr:%p ",len,buffer);
+        return -1;
+    }
+
+    RingBuffer *rbuffer = response->buffer;
+    int pos_start,pos_end;
+    String *resp = response->response_context;
+    String *tmp = NULL;
+
+    if (len) {
+        rbuffer->buffer_write(rbuffer,buffer,len);
+    }
+
+    if (!response->content_length) {
+       resp->assign(resp,buffer);
+       pos_start = resp->find_cstr(resp,"Content-Length:",0);
+
+       pos_end = resp->find_cstr(resp,"\r\n",pos_start+15);
+       tmp = resp->substr(resp,pos_start+15,pos_end-(pos_start+15));
+       if (tmp == NULL) {  return -1;}
+       tmp->trim(tmp);
+       response->content_length = atoi(tmp->c_str(tmp));
+       resp->clear(resp);
+       tmp->clear(tmp);
+       object_destroy(tmp);
+       tmp = NULL;
+    }
+
+    response->current_size = rbuffer->buffer_used_size(rbuffer);
+    return len;
 }
 
 static int __read(Response *response)
@@ -106,7 +150,8 @@ static class_info_entry_t concurent_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_buffer",__set_buffer,sizeof(void *)},
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","read",__read,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_END},
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","response_parse",__response_parse,sizeof(void *)},
+    [8 ] = {ENTRY_TYPE_END},
 };
 REGISTER_CLASS("Response",concurent_class_info);
 

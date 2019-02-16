@@ -7,13 +7,14 @@
 #include <libobject/net/http/Request.h>
 #include <libobject/net/http/Response.h>
 #include <libobject/net/client/client.h>
-#include <libobject/io/Buffer.h>
+#include <libobject/io/RingBuffer.h>
+
 
 typedef struct http_client_s Http_Client;
 
 struct http_client_s{
 	Obj obj;
-
+    
 	int (*construct)(Http_Client *,char *init_str);
 	int (*deconstruct)(Http_Client *);
 	int (*set)(Http_Client *, char *attrib, void *value);
@@ -22,19 +23,19 @@ struct http_client_s{
 	/*virtual methods reimplement*/
     Request *(*get_request)(Http_Client *client);
     Response *(*get_response)(Http_Client *client);
-    int (*request)(Http_Client *client, int (*request_cb)(void *arg), void *arg);
+    int (*request)(Http_Client *client);
     Response *(*request_sync)(Http_Client *client);
+    int (*set_opt)(Http_Client *client,http_opt_t,void *);
 
     /*attribs*/
     Request *req;
     Response *resp;
-    int (*request_cb)(Response *resp, void *arg);
-    void *request_cb_arg;
     Client *c;
+   
     char *host;
-    Buffer *req_buffer;
-    Buffer *resp_buffer;
-
+    String * current_http_chunck;
+    // RingBuffer *req_buffer;
+    // RingBuffer *resp_buffer;  
 };
 
 #endif

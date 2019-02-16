@@ -37,7 +37,10 @@ struct socket_s{
     int (*bind)(Socket *socket, char *host, char *service);
     ssize_t (*write)(Socket *socket, const void *buf, size_t len);
     ssize_t (*send)(Socket *socket, const void *buf, size_t len, int flags);
-    ssize_t (*sendto)(Socket *socket, const void *buf, size_t len, int flags,
+    ssize_t (*sendto)(Socket *socket, 
+                      const void *buf, 
+                      size_t len,
+                      int flags,
                       const struct sockaddr *dest_addr,
                       socklen_t addrlen);
     ssize_t (*sendmsg)(Socket *socket, const struct msghdr *msg, int flags);
@@ -51,7 +54,23 @@ struct socket_s{
     int (*setsockopt)(Socket *socket, int level, int optname, sockoptval *val);
     int (*setnonblocking)(Socket *socket);
 
+    //-----------------------------------------------
+    void (*setblock)(Socket *,int isblock);
+    int  (*close)(Socket * socket);
+    int  (*shutdown)(Socket *socket,int ihow);
+    void (*setnoclosewait)(Socket *);
+
+    void (*setclosewait)(Socket *,int delaytime);
+    void (*setclosewaitdefault)(Socket *);
+    void (*set_timeout)(Socket *,int timeout);
+    int  (*get_timeout)(Socket *);
+    int  (*get_socketfd)(Socket*);
+    
     int fd;
+    int socket_type;
+    int isowner;
+    int timeout;
+
     char *local_host;
     char *local_service;
     char *remote_host;

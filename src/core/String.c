@@ -170,8 +170,18 @@ static int __set(String *string, char *attrib, void *value)
        string->equal=value;
     } else if(strcmp(attrib, "copy")==0){
        string->copy=value;
+    } else if(strcmp(attrib, "compare_cstr")==0){
+       string->compare_cstr=value;
+    } else if(strcmp(attrib, "compare_ignore_cstr")==0){
+       string->compare_ignore_cstr=value;
+    } else if(strcmp(attrib, "equal_cstr")==0){
+       string->equal_cstr=value;
+    } else if(strcmp(attrib, "equal_ignore_cstr")==0){
+       string->equal_ignore_cstr=value;
+    } else if(strcmp(attrib, "find_cstr")==0){
+       string->find_cstr=value;
     } else if (strcmp(attrib, "name") == 0) {
-      strncpy(string->name, value, strlen(value));
+       strncpy(string->name, value, strlen(value));
     } else {
          dbg_str(OBJ_DETAIL, "string set, not support %s setting", attrib);
     }
@@ -582,23 +592,23 @@ static String * __insert_cstr_normal(String * self,size_t index,char *cstr)
     return self->insert_cstr(self,index,cstr,0,strlen(cstr));
 }
 
-static int  * __compare(String *self,String *obj)
+static int   __compare(String *self,String *obj)
 {
     int max_size = self->size(self) > obj->size(obj) ? self->size(self):obj->size(obj);
     return strncmp(self->c_str(self),obj->c_str(obj),max_size);
 }
 
-static int *__compare_ignore(String *self,String *obj)
+static int __compare_ignore(String *self,String *obj)
 {
     return strcasecmp(self->c_str(self),obj->c_str(obj));
 }
 
-static int  * __equal(String *self,String *obj)
+static int  __equal(String *self,String *obj)
 {
     return self->compare(self,obj) == 0 ? 1:0;
 }
 
-static int *__equal_ignore(String *self,String *obj)
+static int __equal_ignore(String *self,String *obj)
 {
     return self->compare_ignore(self,obj) ==0 ? 1:0;
 }
@@ -610,6 +620,46 @@ static String * __copy(String *self)
     return ts;
 }
 
+static int  __compare_cstr(String *self,char *value)
+{   
+    int max_size,len1;
+    len1 = strlen(value);
+    max_size = self->size(self) > len1 ? self->size(self):len1;
+    return strncmp(self->c_str(self),value,max_size);
+}
+
+static int  __compare_ignore_cstr(String *self,char *value)
+{
+    return strcasecmp(self->c_str(self),value);
+}
+
+static int  __equal_cstr(String *self,char *value)
+{
+    return self->compare_cstr(self,value) == 0?1:0;
+}
+
+static int  __equal_ignore_cstr(String *self,char *value)
+{
+    return self->compare_ignore_cstr(self,value) == 0 ? 1 : 0;
+}
+
+static int  __find_cstr(String *string,char *substr,int pos)
+{
+    int len1 = string->value_len;
+    int len2 = strlen(substr);
+    char *p  = NULL;
+
+    if (NULL == string || NULL == substr || pos < 0 || len1 < len2) {
+        return -1;//exception happened
+    }
+    //a simple method
+    p = strstr(string->value + pos, substr);
+    if(NULL !=  p) {
+        return p - (string->value);
+    }
+    return -1;
+}
+    
 static class_info_entry_t string_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -651,9 +701,14 @@ static class_info_entry_t string_class_info[] = {
     [37] = {ENTRY_TYPE_FUNC_POINTER, "", "equal", __equal, sizeof(void *)}, 
     [38] = {ENTRY_TYPE_FUNC_POINTER, "", "equal_ignore", __equal_ignore, sizeof(void *)}, 
     [39] = {ENTRY_TYPE_FUNC_POINTER, "", "copy", __copy, sizeof(void *)}, 
-    [40] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
-    [41] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
-    [42] = {ENTRY_TYPE_END}, 
+    [40] = {ENTRY_TYPE_FUNC_POINTER, "", "compare_cstr", __compare_cstr, sizeof(void *)}, 
+    [41] = {ENTRY_TYPE_FUNC_POINTER, "", "compare_ignore_cstr", __compare_ignore_cstr, sizeof(void *)}, 
+    [42] = {ENTRY_TYPE_FUNC_POINTER, "", "equal_cstr", __equal_cstr, sizeof(void *)}, 
+    [43] = {ENTRY_TYPE_FUNC_POINTER, "", "equal_ignore_cstr", __equal_ignore_cstr, sizeof(void *)}, 
+    [44] = {ENTRY_TYPE_FUNC_POINTER, "", "find_cstr", __find_cstr, sizeof(void *)}, 
+    [45] = {ENTRY_TYPE_STRING, "char *", "name", NULL, 0}, 
+    [46] = {ENTRY_TYPE_STRING, "char *", "value", NULL, 0}, 
+    [47] = {ENTRY_TYPE_END}, 
 };
 
 REGISTER_CLASS("String", string_class_info);
@@ -1130,6 +1185,7 @@ static int test_string_insert_char_count()
     object_destroy(pstr);
     return 1;
 }
+
 static int test_string_compare()
 {
     allocator_t *allocator = allocator_get_default_alloc();

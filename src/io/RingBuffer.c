@@ -196,7 +196,7 @@ static int __buffer_expand_container(RingBuffer *self,int len)
         memcpy(self->buffer,tmp_buffer,self->w_offset);
         memcpy(self->buffer+self->r_offset,tmp_buffer+self->r_offset,self->capacity - self->r_offset);
     } else {
-
+        
     }
     allocator_mem_free((self->parent.obj).allocator,tmp_buffer);
 

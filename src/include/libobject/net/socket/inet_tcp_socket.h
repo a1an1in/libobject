@@ -2,9 +2,15 @@
 #define __INET_TCP_SOCKET_H__
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
 #include <libobject/net/socket/socket.h>
+
+#define RECV_BUFFER_LEN 1024
+
+
 
 typedef struct inet_tcp_socket_s Inet_Tcp_Socket;
 
@@ -36,6 +42,22 @@ struct inet_tcp_socket_s{
                         struct sockaddr *src_addr, 
                         socklen_t *addrlen);
     ssize_t (*recvmsg)(Inet_Tcp_Socket *socket, struct msghdr *msg, int flags);
+    
+    
+    void (*setblock)(Inet_Tcp_Socket *,int isblock);
+    int  (*close)(Inet_Tcp_Socket * socket);
+    int  (*shutdown)(Inet_Tcp_Socket *socket,int ihow);
+    void (*setnoclosewait)(Inet_Tcp_Socket *);
+
+    void (*setclosewait)(Inet_Tcp_Socket *,int delaytime);
+    void (*setclosewaitdefault)(Inet_Tcp_Socket *);
+    void (*set_timeout)(Inet_Tcp_Socket *,int timeout);
+    int  (*get_timeout)(Inet_Tcp_Socket *);
+
+    int (*get_socketfd)(Inet_Tcp_Socket *);
+    /*attr value*/
+    
+    int timeout;
 };
 
 #endif

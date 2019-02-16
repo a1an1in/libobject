@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
+#include <libobject/core/string.h>
 #include <libobject/concurrent/worker.h>
 #include <libobject/net/socket/socket.h>
 
@@ -24,7 +25,7 @@ struct client_s{
     ssize_t (*recv)(Client *client, void *buf, size_t len, int flags);
 	int (*trustee)(Client *client, struct timeval *tv,
                    void *work_callback, void *opaque);
-
+    
     Worker *worker;
     Socket *socket;
     void *opaque;

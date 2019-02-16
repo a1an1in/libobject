@@ -4,8 +4,55 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/obj.h>
-#include <libobject/core/map.h>
-#include <libobject/io/Buffer.h>
+#include <libobject/core/rbtree_map.h>
+#include <libobject/io/RingBuffer.h>
+#include <libobject/core/string.h>
+#include <libobject/concurrent/worker.h>
+
+#define HTTP_REQUEST_MAX_BUFFER  1024
+#define HTTP_REQUEST_MIN_BUFFER  100
+#define HTTP_REQUEST_MID_BUFFER  500
+
+
+
+
+typedef enum HTTP_OPTIONS{
+    HTTP_OPT_PROXY = 1,
+    HTTP_OPT_EFFECTIVE_URL,
+    HTTP_OPT_USERAGENT,
+    HTTP_OPT_USERPWD,
+    HTTP_OPT_JSON_FORMAT,
+    HTTP_OPT_TIMEOUT,
+    HTTP_OPT_ENCODING,
+    HTTP_OPT_CONNECTTIMEOUT, 
+    HTTP_OPT_REFER,
+    HTTP_OPT_ACCEPT,
+    HTTP_OPT_SSLKEY,
+    HTTP_OPT_METHOD_POST,
+    HTTP_OPT_METHOD_GET,
+    HTTP_OPT_CONTENT_LEN,
+    HTTP_OPT_POSTFIELDS,
+    HTTP_OPT_ACCEPT_LAN,
+    HTTP_OPT_CONNTENT_TYPE,
+    HTTP_OPT_HOST,
+    HTTP_OPT_ACCEPT_CHARSET,
+    HTTP_OPT_VERSION,
+    HTTP_OPT_METHOD,
+    HTTP_OPT_PORT,
+    HTTP_OPT_CONNTENT_LEN,
+    HTTP_OPT_CALLBACK,
+    HTTP_OPT_CALLBACKDATA
+}http_opt_t;
+
+typedef enum REQUEST_STATE{
+    REQUEST_STATE_OK,
+    REQUEST_STATE_ERROR,
+    REQUEST_STATE_TIMEOUT,
+    REQUEST_STATE_CONNECTTIMEOUT,
+    REQUEST_STATE_PROXY_ERROR
+}request_state_t;
+
+typedef int (*request_cb_t)(void *);
 
 typedef struct request_s Request;
 
@@ -18,23 +65,30 @@ struct request_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
-    int (*set_method)(Request *request, void *method);
-    int (*set_uri)(Request *request, void *url);
-    int (*set_http_version)(Request *request, void *version);
-    int (*set_header)(Request *request, void *key, void *value);
-    int (*set_body)(Request *request, void *body);
+
     int (*set_content_len)(Request *request, int content_len);
-    int (*set_buffer)(Request *request, Buffer *buffer);
     int (*write)(Request *request);
 
+    int (*set_opt)(Request *,http_opt_t,void *);
+    int (*option_valid)(Request *,http_opt_t);
+    void (*option_reset)(Request *);
+   
+    int (*request_cb)(void *arg);
+    void *request_cb_arg;
+
     /*attribs*/
-    Map *header;
-    void *method;
-    void *uri;
-    void *version;
-    void *body;
+    Worker *timer;
+    struct timeval ev_tv;
+    String * method;
+    String * url;
+    String * version;
+    String * arguments;
+    String *port;
+    String *server_ip;
     int content_len;
-    Buffer *buffer;
+    request_state_t request_result;
+    String * request_header_context;
+    RBTree_Map *map;
 };
 
 #endif

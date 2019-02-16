@@ -66,6 +66,8 @@ static int __construct(Socket *socket, char *init_str)
     socket->local_service  = allocator_mem_alloc(allocator, DEFAULT_MAX_PORT_STR_LEN);
     socket->remote_host    = allocator_mem_alloc(allocator, DEFAULT_MAX_IP_STR_LEN);
     socket->remote_service = allocator_mem_alloc(allocator, DEFAULT_MAX_PORT_STR_LEN);
+    
+    socket->fd = -1;
 
     return 0;
 }
@@ -126,6 +128,24 @@ static int __set(Socket *socket, char *attrib, void *value)
         socket->setsockopt = value;
     } else if (strcmp(attrib, "setnonblocking") == 0) {
         socket->setnonblocking = value;
+    } else if (strcmp(attrib, "close") == 0) {
+        socket->close = value;
+    } else if (strcmp(attrib, "setblock") == 0) {
+        socket->setblock = value;
+    } else if (strcmp(attrib, "shutdown") == 0) {
+        socket->shutdown = value;
+    } else if (strcmp(attrib, "setnoclosewait") == 0) {
+        socket->setnoclosewait = value;
+    } else if (strcmp(attrib, "setclosewait") == 0) {
+        socket->setclosewait = value;
+    } else if (strcmp(attrib, "setclosewaitdefault") == 0) {
+        socket->setclosewaitdefault = value;
+    } else if (strcmp(attrib, "get_timeout") == 0) {
+        socket->get_timeout = value;
+    } else if (strcmp(attrib, "set_timeout") == 0) {
+        socket->set_timeout = value;
+    } else if (strcmp(attrib, "get_socketfd") == 0) {
+        socket->get_socketfd = value;
     } 
     else if (strcmp(attrib, "local_host") == 0) {
         strncpy(socket->local_host, value, strlen(value));
@@ -161,7 +181,7 @@ static void *__get(Socket *socket, char *attrib)
     return NULL;
 }
 
-int __bind(Socket *socket, char *host, char *service)
+static int __bind(Socket *socket, char *host, char *service)
 {
     struct addrinfo  *addr, *addrsave, hint;
     int skfd, ret;
@@ -196,10 +216,12 @@ int __bind(Socket *socket, char *host, char *service)
         if ((ret = bind(socket->fd, addr->ai_addr, addr->ai_addrlen)) == 0)
             break;
     } while ((addr = addr->ai_next) != NULL);
-
+    
     if (addr == NULL) {
         dbg_str(NET_WARNNING, "bind error for %s %s", host, service);
     }
+
+    socket->setsockopt(socket,SOL_SOCKET,SO_REUSEADDR, (const void *)addr->ai_addr);
 
     freeaddrinfo(addrsave);
 
@@ -359,6 +381,70 @@ static int __setnonblocking(Socket *socket)
     return 0;
 }
 
+static int __close(Socket *socket)
+{
+    return close(socket->fd);
+}
+
+static  void __setblock(Socket *socket,int bBlock)
+{
+    int val = 0;
+
+    if ((val = fcntl(socket->fd, F_GETFL, 0)) == -1) {   
+        dbg_str(DBG_ERROR,"Socket fcntl getfl failed!");
+        return ;
+    }
+    if(!bBlock) {
+        val |= O_NONBLOCK;
+    }
+    else {
+        val &= ~O_NONBLOCK;
+    }
+
+    if (fcntl(socket->fd, F_SETFL, val) == -1) {
+        dbg_str(DBG_ERROR,"Socket fcntl setfl failed!");
+        return;
+    }
+}
+
+static int __shutdown(Socket *socket,int ihow)
+{
+    return shutdown(socket->fd,ihow);
+}
+
+static void __setnoclosewait(Socket *socket)
+{
+    struct linger stLinger;
+    stLinger.l_onoff = 1;       
+    stLinger.l_linger = 0;                  
+
+    if(socket->setsockopt(socket,SOL_SOCKET,SO_LINGER, (const void *)&stLinger) == -1) {
+        dbg_str(DBG_ERROR,"Socket setnoclosewait  failed!");
+    }
+}
+
+static void __setclosewait(Socket *socket,int delaytime)
+{
+    struct linger  stLinger;
+    stLinger.l_onoff = 1;  
+    stLinger.l_linger = delaytime; 
+
+    if(socket->setsockopt(socket,SOL_SOCKET,SO_LINGER, (const void *)&stLinger) == -1) {
+        dbg_str(DBG_ERROR,"Socket setclosewait  failed!");
+    }
+}
+
+static void __setclosewaitdefault(Socket *socket)
+{
+    struct linger stLinger;
+    stLinger.l_onoff  = 0;     
+    stLinger.l_linger = 0;
+
+    if(socket->setsockopt(socket,SOL_SOCKET,SO_LINGER, (const void *)&stLinger) == -1) {
+        dbg_str(DBG_ERROR,"Socket setclosewaitdefault  failed!");
+    }
+}
+
 static class_info_entry_t socket_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -381,11 +467,20 @@ static class_info_entry_t socket_class_info[] = {
     [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "getsockopt", __getsockopt, sizeof(void *)}, 
     [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "setsockopt", __setsockopt, sizeof(void *)}, 
     [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "setnonblocking", __setnonblocking, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_STRING, "", "local_host", NULL, sizeof(void *)}, 
-    [22] = {ENTRY_TYPE_STRING, "", "local_service", NULL, sizeof(void *)}, 
-    [23] = {ENTRY_TYPE_STRING, "", "remote_host", NULL, sizeof(void *)}, 
-    [24] = {ENTRY_TYPE_STRING, "", "remote_service", NULL, sizeof(void *)}, 
-    [25] = {ENTRY_TYPE_END}, 
+    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "close", __close, sizeof(void *)}, 
+    [22] = {ENTRY_TYPE_VFUNC_POINTER, "", "shutdown", __shutdown, sizeof(void *)}, 
+    [23] = {ENTRY_TYPE_VFUNC_POINTER, "", "setclosewait", __setclosewait, sizeof(void *)}, 
+    [24] = {ENTRY_TYPE_VFUNC_POINTER, "", "setnoclosewait", __setnoclosewait, sizeof(void *)}, 
+    [25] = {ENTRY_TYPE_VFUNC_POINTER, "", "setclosewaitdefault", __setclosewaitdefault, sizeof(void *)}, 
+    [26] = {ENTRY_TYPE_VFUNC_POINTER, "", "setblock", __setblock, sizeof(void *)}, 
+    [27] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_timeout", NULL, sizeof(void *)}, 
+    [28] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_timeout", NULL, sizeof(void *)}, 
+    [29] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_socketfd", NULL, sizeof(void *)}, 
+    [30] = {ENTRY_TYPE_STRING, "", "local_host", NULL, sizeof(void *)}, 
+    [31] = {ENTRY_TYPE_STRING, "", "local_service", NULL, sizeof(void *)}, 
+    [32] = {ENTRY_TYPE_STRING, "", "remote_host", NULL, sizeof(void *)}, 
+    [33] = {ENTRY_TYPE_STRING, "", "remote_service", NULL, sizeof(void *)}, 
+    [34] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Socket", socket_class_info);
 
