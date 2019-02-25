@@ -59,7 +59,7 @@ message_centor_ev_callback(int fd, short event, void *arg)
 
     switch(buf[0]) {
         case 'p': {
-                dbg_str(DBG_SUC, "a publisher pub a message");
+                dbg_str(DBG_DETAIL, "a publisher pub a message");
                 break;
             }
         default:
@@ -83,7 +83,7 @@ static void map_for_each_arg_callback(void *key, void *element, void *arg)
     message_t *message     = (message_t *)arg;
      
     if (publisher == message->publisher) {
-        dbg_str(DBG_SUC, "publisher %p publish a message which has a subscriber: %p", 
+        dbg_str(DBG_DETAIL, "publisher %p publish a message which has a subscriber: %p", 
                 key, subscriber);
         subscriber->message = message;
         subscriber->message_handler(subscriber);
@@ -100,7 +100,7 @@ static void message_centor_work_callback(void *task)
     Centor *centor = (Centor *)worker->opaque;
     message_t *message;
 
-    dbg_str(DBG_SUC, "centor worker callback");
+    dbg_str(DBG_DETAIL, "centor worker callback");
     dbg_str(DBG_DETAIL, "centor addr:%p", worker->opaque);
     centor->message_queue->remove(centor->message_queue, 
                                   (void **)&message);

@@ -137,7 +137,7 @@ __writing_buffer_callback(void *opaque, void *stream, int len)
         if(audio->audio_buffer_len == 0) {
             ret = audio->callback(audio->opaque, audio->audio_buffer); 
             if (ret <= 0) {
-                dbg_str(DBG_WARNNING, "read audio data nil");
+                dbg_str(DBG_DETAIL, "read audio data nil");
                 return 0;
             }
             audio->audio_read_pos = 0; 
@@ -151,7 +151,7 @@ __writing_buffer_callback(void *opaque, void *stream, int len)
             audio->audio_read_pos = 0; 
             ret = audio->callback(audio->opaque, buffer); 
             if (ret <= 0) {
-                dbg_str(DBG_WARNNING, "read audio data nil");
+                dbg_str(DBG_DETAIL, "read audio data nil");
                 return 0;
             }
             memcpy(audio->audio_buffer + audio->audio_buffer_len,

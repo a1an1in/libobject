@@ -53,6 +53,9 @@ static void message_handler(void *arg)
 
     subscriber->method_map->search(subscriber->method_map, message->what, (void **)&method);
     if (method != NULL) {
+        dbg_str(DBG_SUC, "subscriber handle message, opaque:%p, msg.what=%s",
+                subscriber->opaque,
+                message->what);
         method->func(message, method->arg);
     } else {
         dbg_str(DBG_DETAIL, "not found method, key=%s", message->what);
