@@ -7,25 +7,25 @@ This lib is designed for object-oriented programming using c language. It contai
 
 ## Installation
 
-### Mac OS
+* Mac OS
 
 ```
 ./build_mac.sh
 ```
 
-### Linux
+* Linux
 
 ```
 ./build_linux.sh
 ```
 
-### Android
+* Android
 
 ```
 ./build_android.sh
 ```
 
-### Windows
+* Windows
 
 ​	Sorry, I hav't test using Cmake on this platform.
 
