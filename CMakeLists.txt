@@ -4,6 +4,10 @@ init_platform()
 project (libobject)
 config_platform()
 
+#if (APPLE)
+    #message("app platform")
+#endif ()
+
 # The version number.
 set (LIBOBJECT_VERSION_MAJOR 1)
 set (LIBOBJECT_VERSION_MINOR 0)
@@ -18,7 +22,7 @@ display_configs("${PLATFORM}")
 #find_package(opengl)
 #find_package(CURL)
 
-option (MODULE_UI "ui module" ON)
+option (MODULE_UI "ui module" OFF)
 option (MODULE_BUS "bus module" OFF)
 
 # add compile paramater 
@@ -64,7 +68,7 @@ endif ()
 
 ADD_LIBRARY (object SHARED ${Source_Files})
 target_link_libraries(object ${ExternalLibs})
-message("ExternalLibs :${ExternalLibs}")
+message("-- ExternalLibs :${ExternalLibs}")
 
 add_executable(test ${Main_File})
 target_link_libraries(test object)

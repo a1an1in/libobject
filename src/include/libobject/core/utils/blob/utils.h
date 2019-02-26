@@ -55,7 +55,9 @@ extern int __BUILD_BUG_ON_CONDITION_FAILED;
 
 #elif defined(__APPLE__)
 #include <machine/endian.h>
-#include <machine/byte_order.h>
+/*
+ *#include <machine/byte_order.h>
+ */
 #define bswap_32(x) OSSwapInt32(x)
 #define bswap_64(x) OSSwapInt64(x)
 #elif defined(__FreeBSD__)

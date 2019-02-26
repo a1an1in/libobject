@@ -245,7 +245,9 @@ static int __open_window(Window *window)
     r->set_font(window->render, window->font);
 
     r->create(r);
-    r->set_color(r, 0xff, 0xff, 0xff, 0xff);
+    /*
+     *r->set_color(r, 0xff, 0xff, 0xff, 0xff);
+     */
     r->clear(r);
     r->present(r);
 

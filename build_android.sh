@@ -9,7 +9,10 @@ rm -rf CMakeFiles&&rm CMakeCache.txt&&
 rm -rf ${NDK_ROOT}/sysroot/usr/include/libobject&&
 rm -rf ~/workspace/goya-github/android/goya-alone/app/src/main/jni/include/libobject
 
-cmake -DPLATFORM=android -DANDROID_ABI=armeabi-v7a&&make&&
+mkdir -p build/android
+cd build/android
+cmake ../.. -DPLATFORM=android -DANDROID_ABI=armeabi-v7a&&make&&
+cd ../..
 
 cp -rf lib/android/ ~/workspace/goya-github/android/goya/app/src/main/jni/lib
 cp -rf lib/android/ ~/workspace/goya-github/android/goya-alone/app/src/main/jni/lib
