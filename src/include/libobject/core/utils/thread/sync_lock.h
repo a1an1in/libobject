@@ -60,20 +60,8 @@ typedef struct sync_lock_module{
 }sync_lock_module_t;
 
 extern sync_lock_module_t sync_lock_modules[SYNC_LOCK_TYPE_MAX_NUM];
+extern int sync_lock_init(struct sync_lock_s *slock,uint32_t sync_lock_type);
 
-static inline int sync_lock_init(struct sync_lock_s *slock,uint32_t sync_lock_type)
-{
-	if(sync_lock_type == 0){
-		slock->lock_ops = NULL;
-		return 1;
-	}
-	/*
-	 *console_str("sync_lock_init");
-	 */
-	slock->lock_ops = &sync_lock_modules[sync_lock_type].sl_ops;
-
-	return slock->lock_ops->sync_lock_init(slock);
-}
 static inline int sync_lock(struct sync_lock_s *slock,void *arg)
 {
 	if(slock->lock_ops == NULL){

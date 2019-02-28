@@ -11,6 +11,7 @@
 #include "debug_log.h"
 #include <libobject/user_mode.h>
 #include <libobject/core/utils/ini/iniparser.h>
+#include <libobject/core/utils/thread/sync_lock.h>
 
 
 enum debugger_type{
@@ -106,6 +107,7 @@ int debugger_dbg_buf(debugger_t *debugger,
 debugger_t *debugger_creator(char *ini_file_name,uint8_t lock_type);
 void debugger_init(debugger_t *debugger);
 void debugger_destroy(debugger_t *debugger);
+debugger_t *debugger_get_global_debugger();
 
 static inline char *
 extract_filename_in_macro(char *macro)
@@ -207,9 +209,18 @@ extract_filename_in_macro(char *macro)
 #else
     #ifdef OPEN_DEBUG
     	#define dbg_str(debug_switch,fmt,args...)\
-    		debugger_dbg_str(debugger_gp,debug_switch,"[" fmt "]--[%s:%d]",##args, extract_filename_in_macro(__FILE__), __LINE__);
+    		debugger_dbg_str(debugger_get_global_debugger(),\
+                    debug_switch,"[" fmt "]--[%s:%d]",\
+                    ##args,\
+                    extract_filename_in_macro(__FILE__),\
+                    __LINE__);
+
     	#define dbg_buf(debug_switch,const_str,buf,buf_len)\
-    		debugger_dbg_buf(debugger_gp,debug_switch,const_str,buf,buf_len,"[%s:%d]", extract_filename_in_macro(__FILE__), __LINE__) ;
+    		debugger_dbg_buf(debugger_get_global_debugger(),\
+                    debug_switch,const_str,buf,buf_len,\
+                    "[%s:%d]",\
+                    extract_filename_in_macro(__FILE__), \
+                    __LINE__);
     #else
     	#define dbg_str(debug_switch,fmt,args...) do{}while(0) 
     	#define dbg_buf(debug_switch,const_str,buf,buf_len) do{}while(0)  

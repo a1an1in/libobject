@@ -50,8 +50,6 @@
 #include <libobject/libobject.h>
 #include <libobject/test.h>
 
-#define LIBRARY_VERSION "libobject version: 2.0.0.0"
-
 #ifndef MAKELIB
 
 typedef struct config_list_s {
@@ -129,5 +127,17 @@ int main(int argc, char *argv[])
 
     return ret;
 }
+
+/*
+ *    static void
+ *init ()
+ *{
+ *    printf ("init_array\n");
+ *}
+ *
+ *static void (*const init_array []) ()
+ *    __attribute__ ((section (".ctors"), aligned (sizeof (void *))))
+ *    = { init };
+ */
 #endif
 

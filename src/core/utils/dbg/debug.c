@@ -55,6 +55,11 @@
 debugger_t *debugger_gp;
 debugger_module_t debugger_modules[MAX_DEBUGGER_MODULES_NUM];
 
+debugger_t *debugger_get_global_debugger()
+{
+    return debugger_gp;
+}
+
 void debugger_set_level_info(debugger_t *debugger, 
         uint32_t level, uint8_t color_value, const char *level_str)
 {

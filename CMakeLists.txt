@@ -29,6 +29,8 @@ option (MODULE_BUS "bus module" OFF)
 add_definitions(-DDEBUG)
 add_definitions(-O0 -g)
 add_definitions(-fPIC)
+#add_definitions(-Wl,--no-whole-archive)
+#add_definitions(-Wl,--whole-archive)
 add_definitions("-Wall -Wno-return-type -Wno-unused-variable -Wno-unused-function
                  -Wno-sometimes-uninitialized -Wno-char-subscripts -Wno-sometimes-uninitialized 
                  -Wno-unused-label -Wno-uninitialized -Wno-int-conversion -Wno-implicit-function-declaration
@@ -66,7 +68,8 @@ else ()
     #message("sources exclude bus module: ${Source_Files}")
 endif ()
 
-ADD_LIBRARY (object SHARED ${Source_Files})
+ADD_LIBRARY (object STATIC ${Source_Files})
+#ADD_LIBRARY (object SHARED ${Source_Files})
 target_link_libraries(object ${ExternalLibs})
 message("-- ExternalLibs :${ExternalLibs}")
 
@@ -82,6 +85,6 @@ SET_TARGET_PROPERTIES (object PROPERTIES VERSION 1.2 SOVERSION 1)
 
 
 install (TARGETS test DESTINATION bin)
-install (DIRECTORY ${LIBRARY_DIR_PATH} DESTINATION lib)
+install (TARGETS object DESTINATION lib)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/include/libobject DESTINATION include)
 

@@ -1,7 +1,8 @@
 #ifndef __ALLOCATOR_H__
 #define __ALLOCATOR_H__
 
-#include "libobject/core/utils/alloc/allocator_ctr_alloc.h"
+#include <libobject/core/utils/thread/sync_lock.h>
+#include <libobject/core/utils/alloc/allocator_ctr_alloc.h>
 
 enum allocator_type{
     ALLOCATOR_TYPE_SYS_MALLOC = 0,
