@@ -113,6 +113,8 @@ static int __set(Component *component, char *attrib, void *value)
         component->on_window_resized = value;
     } else if (strcmp(attrib, "is_mouse_over_component") == 0) {
         component->is_mouse_over_component = value;
+    } else if (strcmp(attrib, "set_name") == 0) {
+        component->set_name = value;
     } 
     /*inherit methods*/
     else if (strcmp(attrib, "add_event_listener") == 0) {
@@ -521,6 +523,11 @@ static void __on_window_resized(Component *component, void *event, void *window)
             e->data1, e->data2, e->windowid);
 }
 
+static void __set_name(Component *component,void *name)
+{
+    strncpy(component->name, name, strlen(name));
+}
+
 
 static class_info_entry_t component_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Container", "container", NULL, sizeof(void *)}, 
@@ -553,8 +560,9 @@ static class_info_entry_t component_class_info[] = {
     [27] = {ENTRY_TYPE_VFUNC_POINTER, "", "is_mouse_over_component", __is_mouse_over_component, sizeof(void *)}, 
     [28] = {ENTRY_TYPE_FUNC_POINTER, "", "add_event_listener", __add_event_listener, sizeof(void *)}, 
     [29] = {ENTRY_TYPE_FUNC_POINTER, "", "add_event_listener_cb", __add_event_listener_cb, sizeof(void *)}, 
-    [30] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [31] = {ENTRY_TYPE_END}, 
+    [30] = {ENTRY_TYPE_FUNC_POINTER, "", "set_name", __set_name, sizeof(void *)}, 
+    [31] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
+    [32] = {ENTRY_TYPE_END}, 
 
 };
 REGISTER_CLASS("Component", component_class_info);

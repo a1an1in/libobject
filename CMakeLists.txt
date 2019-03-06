@@ -74,7 +74,7 @@ target_link_libraries(object ${ExternalLibs})
 message("-- ExternalLibs :${ExternalLibs}")
 
 add_executable(test ${Main_File})
-target_link_libraries(test object)
+target_link_libraries(test -force_load object)
 
 #add_executable(test ${Main_File} ${Source_Files})
 #target_link_libraries(test ${ExternalLibs})

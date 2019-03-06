@@ -65,6 +65,10 @@ static int __set(Image *image, char *attrib, void *value)
         image->deconstruct = value;
     } else if (strcmp(attrib, "load_image") == 0) {
         image->load_image = value;
+    } else if (strcmp(attrib, "draw") == 0) {
+        image->draw = value;
+    } else if (strcmp(attrib, "set_name") == 0) {
+        image->set_name = value;
     } else {
         dbg_str(OBJ_WARNNING, "image set,  \"%s\" setting is not support", attrib);
     }
@@ -82,31 +86,22 @@ static void * __get(Image *image, char *attrib)
     return NULL;
 }
 
-static int __load_image(Image *image)
+static int __load_image(Image *image, void *path)
 {
-    dbg_str(DBG_SUC, "SDL_Graph load image");
+    dbg_str(DBG_SUC, "image load image");
 }
 
 static class_info_entry_t image_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
+    [0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
     [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
     [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
     [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_image", __load_image, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_NORMAL_POINTER, "", "String", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_END}, 
+    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "draw", NULL, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_name", NULL, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_NORMAL_POINTER, "", "String", NULL, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_END}, 
 
 };
 REGISTER_CLASS("Image", image_class_info);
-
-void test_obj_image()
-{
-    Image *image;
-    allocator_t *allocator = allocator_get_default_alloc();
-
-    image = OBJECT_NEW(allocator, Image, "");
-    image->path->assign(image->path, "hello world");
-}
-
-

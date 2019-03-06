@@ -34,6 +34,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ui/sdl_image.h>
 #include <libobject/ui/sdl_window.h>
+#include <libobject/ui/sdl_render.h>
 
 static int __construct(Image *image, char *init_str)
 {
@@ -72,6 +73,8 @@ static int __set(Image *image, char *attrib, void *value)
         i->deconstruct = value;
     } else if (strcmp(attrib, "load_image") == 0) {
         i->load_image = value;
+    } else if (strcmp(attrib, "draw") == 0) {
+        i->draw = value;
     } else {
         dbg_str(OBJ_WARNNING, "image set,  \"%s\" setting is not support", attrib);
     }
@@ -89,13 +92,55 @@ static void * __get(Image *image, char *attrib)
     return NULL;
 }
 
-static int __load_image(Image *image)
+static int __load_image(Image *image, void *path)
 {
-    Sdl_Image *i = (Sdl_Image *)image;
+    Sdl_Image *i   = (Sdl_Image *)image;
 
-    dbg_str(DBG_DETAIL, "Sdl_Render load image");
-    i->surface = SDL_LoadBMP(((Image *)image)->path->value);
-    dbg_str(DBG_DETAIL, "image path :\"%s\"", ((Image *)image)->path->value);
+    dbg_str(DBG_SUC, "Sdl_Render load image");
+
+    image->path->assign(image->path, path);
+    if (i->surface != NULL) {
+        SDL_FreeSurface(i->surface);
+    } else {
+        i->surface = SDL_LoadBMP(image->path->value);
+        if (i->surface == NULL) {
+            dbg_str(DBG_ERROR, "SDL_LoadBMP error");
+        }
+    }
+
+}
+
+static int __draw(Image *image, void *render)
+{
+    Sdl_Image *i   = (Sdl_Image *)image;
+    Sdl_Render *r = (Sdl_Render *)render;
+
+    dbg_str(DBG_SUC, "%s draw", ((Obj *)image)->name);
+
+    if (i->texture == NULL && i->surface != NULL) {
+        i->texture = SDL_CreateTextureFromSurface(r->sdl_render, i->surface);
+        if (i->texture == NULL) {
+            dbg_str(DBG_ERROR, "%s draw, SDL_CreateTextureFromSurface err",
+                    ((Obj *)image)->name);
+            return -1;
+        }
+
+        i->width   = i->surface->w;
+        i->height  = i->surface->h;
+        SDL_FreeSurface(i->surface);
+        i->surface = NULL;
+        dbg_str(DBG_DETAIL, "convert surface to texture, width=%d, height=%d",
+                i->width, i->height);
+    }
+
+    r->clear(r);
+    r->draw_image(r, 0, 0, image);
+    /*
+     *r->draw_image0(r, image);
+     */
+    r->present(r);
+
+    return 0;
 }
 
 static class_info_entry_t image_class_info[] = {
@@ -105,7 +150,8 @@ static class_info_entry_t image_class_info[] = {
     [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
     [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
     [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_image", __load_image, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_END}, 
+    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_END}, 
 
 };
 REGISTER_CLASS("Sdl_Image", image_class_info);
@@ -117,28 +163,30 @@ static int sdl_image()
     allocator_t *allocator = allocator_get_default_alloc();
     char *set_str;
     char buf[2048];
-    Sdl_Image *image;
+    Image *image;
 
     dbg_str(DBG_DETAIL, "sdl window draw_background");
 
     set_str = gen_window_setting_str();
 
-    window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
-    r       = window->render;
+    window = OBJECT_NEW(allocator, Sdl_Window, set_str);
+    image  = OBJECT_NEW(allocator, Sdl_Image, "");
 
     object_dump(window, "Sdl_Window", buf, 2048);
     dbg_str(DBG_DETAIL, "Window dump: %s", buf);
 
-    dbg_str(DBG_DETAIL, "render draw test");
-    image = r->load_image(r, "./bin/hello_world.bmp");
-    r->clear(r);
-    r->draw_image(r, 0, 0, image);
+    //???? unload
+    image->load_image(image, "../hello_world.bmp");
     /*
-     *r->set_color(r, 0x00, 0x0, 0x0, 0xff);
+     *image->load_image(image, "../lamp.jpg");
      */
-    r->present(r);
+    image->set_name(image, "image");
 
-    pause();
+    window->add_component((Container *)window, NULL, image);
+
+    window->update_window(window);
+    window->event->poll_event(window->event, window);
+
     object_destroy(image);
     object_destroy(window);
 

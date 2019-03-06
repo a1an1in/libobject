@@ -18,7 +18,8 @@ struct sdl_image_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods*/
-	int (*load_image)(Image *image);
+	int (*load_image)(Image *image, void *path);
+	int (*draw)(Image *image, void *render);
 
 	/*attribs*/
 	SDL_Surface* surface;

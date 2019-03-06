@@ -41,7 +41,9 @@ static int __construct(Window *window, char *init_str)
     window->create_event(window);
     window->open_window(window);
 
-    window->create_background(window, "./bin/hello_world.bmp");//must create after openning window
+    /*
+     *window->create_background(window, "./bin/hello_world.bmp");//must create after openning window
+     */
 
     return 0;
 }
@@ -50,7 +52,9 @@ static int __deconstrcut(Window *window)
 {
     dbg_str(DBG_IMPORTANT, "window deconstruct, window addr:%p", window);
 
-    window->destroy_background(window);
+    /*
+     *window->destroy_background(window);
+     */
     window->destroy_event(window);
     window->destroy_font(window);
     window->destroy_render(window);

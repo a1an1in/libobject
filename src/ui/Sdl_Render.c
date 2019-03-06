@@ -221,7 +221,7 @@ static void *__load_image(Sdl_Render *render, void *path)
     image = OBJECT_NEW(allocator, Sdl_Image, "");
     ((Image *)image)->path->assign(((Image *)image)->path, path);
     if (image->surface == NULL) {
-        image->load_image((Image *)image);
+        image->load_image((Image *)image, path);
     }
 
     if (image->surface != NULL) {
@@ -244,10 +244,14 @@ static int __unload_image(Sdl_Render *render, void *image)
 
 static int __draw_image(Sdl_Render *render, int x, int y, void *image)
 {
-    dbg_str(SDL_INTERFACE_DETAIL, "Sdl_Render draw_image");
     Sdl_Image *i = (Sdl_Image *)image;
-    SDL_Rect quad = { x, y, i->width, i->height};
-    SDL_RenderCopy(render->sdl_render, i->texture, NULL, &quad );
+
+    if (i->texture != NULL) {
+        SDL_Rect quad = { x, y, i->width, i->height};
+        SDL_RenderCopy(render->sdl_render, i->texture, NULL, &quad );
+    } else {
+        dbg_str(DBG_WARNNING, "draw_image, texture is null");
+    }
 }
 
 static int __draw_texture(Sdl_Render *render, int x, int y, 

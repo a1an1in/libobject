@@ -3,10 +3,11 @@
 
 #include <libobject/core/obj.h>
 #include <libobject/core/string.h>
+#include <libobject/ui/component.h>
 
 typedef struct image_s Image;
 struct image_s{
-	Obj obj;
+	Component component;
 
 	/*normal methods*/
 	int (*construct)(Image *image,char *init_str);
@@ -15,7 +16,9 @@ struct image_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods*/
-	int (*load_image)(Image *image);
+	int (*load_image)(Image *image, void *path);
+	int (*draw)(Image *image, void *render);
+    void (*set_name)(Image *image,void *name);
 
 	/*attribs*/
 	String *path;

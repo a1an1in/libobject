@@ -213,9 +213,7 @@ static int __init_window(Window *window)
             ret = -1;
         } else {
             Sdl_Render *r = (Sdl_Render *)window->render;
-            /*
-             *r->screen_surface = SDL_GetWindowSurface(r->window);
-             */
+            r->screen_surface = SDL_GetWindowSurface(r->window);
             ret = 1;
         }
     }
@@ -264,24 +262,19 @@ static int __close_window(Window *window)
 
     dbg_str(SDL_INTERFACE_DETAIL, "sdl window close_window");
 
-    dbg_str(DBG_IMPORTANT, "run at here");
     //release screen surface
     if (r->screen_surface)
         SDL_FreeSurface( r->screen_surface );
 
-    dbg_str(DBG_IMPORTANT, "run at here");
     //destroy render
     r->destroy((Render *)r);
     
-    dbg_str(DBG_IMPORTANT, "run at here");
     //Destroy window
     if (w->sdl_window)
         SDL_DestroyWindow(w->sdl_window);
 
-    dbg_str(DBG_IMPORTANT, "run at here");
     //Quit SDL subsystems
     SDL_Quit();
-    dbg_str(DBG_IMPORTANT, "run at here");
 }
 
 static void *__create_timer(Window *window)
@@ -462,7 +455,7 @@ char *gen_window_setting_str()
                     cjson_add_item_to_object(e, "Subject", s = cjson_create_object());{
                         cjson_add_number_to_object(s, "x", 0);
                         cjson_add_number_to_object(s, "y", 0);
-                        cjson_add_number_to_object(s, "width", 600);
+                        cjson_add_number_to_object(s, "width", 900);
                         cjson_add_number_to_object(s, "height", 600);
                         cjson_add_number_to_object(s, "x_speed", 1.2);
                         cjson_add_number_to_object(s, "y_speed", 2.3);
@@ -473,7 +466,7 @@ char *gen_window_setting_str()
                 cjson_add_string_to_object(c, "name", "Window");
             }
             cjson_add_string_to_object(w, "name", "Window");
-            cjson_add_number_to_object(w, "screen_width", 600);
+            cjson_add_number_to_object(w, "screen_width", 900);
             cjson_add_number_to_object(w, "screen_height", 600);
         }
     }
@@ -517,12 +510,11 @@ int sdl_window()
     dbg_str(SDL_INTERFACE_DETAIL, "Window dump: %s", buf);
 
     dbg_str(SDL_INTERFACE_DETAIL, "render draw test");
+    r->set_color(r, 0, 0, 0, 0xff);
     r->draw_image(r, 0, 0, window->background);
     r->present(r);
 
-    /*
-     *sleep(5);
-     */
+    sleep(5);
     r->clear(r);
     r->set_color(r, 0xf, 0x25, 0x56, 0xff);
     r->draw_line(r, 20, 0, 50, 50);

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ui/container.h>
+#include <libobject/ui/render.h>
 
 typedef struct component_s Component;
 
@@ -57,6 +58,7 @@ struct component_s{
 
     void (*on_window_moved)(Component *component,void *event, void *window);
     void (*on_window_resized)(Component *component,void *event, void *window);
+    void (*set_name)(Component *component,void *name);
 
 
 #define MAX_NAME_LEN 50
@@ -64,7 +66,6 @@ struct component_s{
 #undef MAX_NAME_LEN
     unsigned char on_mouse_entered_flag;
     event_listener_t listener;
-
 };
 
 #endif
