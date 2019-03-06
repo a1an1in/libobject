@@ -222,7 +222,7 @@ static void draw_subcomponent_foreach_cb(void *key, void *element, void *arg)
 static int __draw(Component *component, void *render)
 {
     Container *container = (Container *)component;
-    Render *g             = (Render *)render;
+    Render *g            = (Render *)render;
     dbg_str(DBG_DETAIL, "%s draw", ((Obj *)component)->name);
 
     container->for_each_component(container, draw_subcomponent_foreach_cb, g);

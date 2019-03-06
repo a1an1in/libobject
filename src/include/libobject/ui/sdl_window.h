@@ -48,5 +48,5 @@ struct sdl_window_s{
     uint32_t flags;
 };
 
-char *gen_window_setting_str();
+extern char *gen_window_setting_str();
 #endif

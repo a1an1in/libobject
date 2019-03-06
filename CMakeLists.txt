@@ -34,7 +34,7 @@ add_definitions(-fPIC)
 add_definitions("-Wall -Wno-return-type -Wno-unused-variable -Wno-unused-function
                  -Wno-sometimes-uninitialized -Wno-char-subscripts -Wno-sometimes-uninitialized 
                  -Wno-unused-label -Wno-uninitialized -Wno-int-conversion -Wno-implicit-function-declaration
-                 -Wno-uninitialized")
+                 -Wno-uninitialized -Wnullability-completeness")
 
 #add_subdirectory(src)
 find_source_files(Source_Files)
