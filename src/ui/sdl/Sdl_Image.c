@@ -39,7 +39,12 @@
 static int __construct(Image *image, char *init_str)
 {
     dbg_str(OBJ_DETAIL, "image construct, image addr:%p", image);
+    Sdl_Image *i = (Sdl_Image *)image;
 
+    i->texture = NULL;
+    i->surface = NULL;
+    image->width = 0;
+    image->height = 0;
     return 0;
 }
 
@@ -75,6 +80,10 @@ static int __set(Image *image, char *attrib, void *value)
         i->load_image = value;
     } else if (strcmp(attrib, "draw") == 0) {
         i->draw = value;
+    } else if (strcmp(attrib, "set_size") == 0) {
+        i->set_size = value;
+    } else if (strcmp(attrib, "change_size") == 0) {
+        i->change_size = value;
     } else {
         dbg_str(OBJ_WARNNING, "image set,  \"%s\" setting is not support", attrib);
     }
@@ -112,35 +121,74 @@ static int __load_image(Image *image, void *path)
 
 static int __draw(Image *image, void *render)
 {
-    Sdl_Image *i   = (Sdl_Image *)image;
+    Sdl_Image *si  = (Sdl_Image *)image;
     Sdl_Render *r = (Sdl_Render *)render;
 
     dbg_str(DBG_SUC, "%s draw", ((Obj *)image)->name);
 
-    if (i->texture == NULL && i->surface != NULL) {
-        i->texture = SDL_CreateTextureFromSurface(r->sdl_render, i->surface);
-        if (i->texture == NULL) {
+    if (si->texture == NULL && si->surface != NULL) {
+        si->texture = SDL_CreateTextureFromSurface(r->sdl_render, si->surface);
+        if (si->texture == NULL) {
             dbg_str(DBG_ERROR, "%s draw, SDL_CreateTextureFromSurface err",
                     ((Obj *)image)->name);
             return -1;
         }
 
-        i->width   = i->surface->w;
-        i->height  = i->surface->h;
-        SDL_FreeSurface(i->surface);
-        i->surface = NULL;
+        image->width  = si->surface->w;
+        image->height = si->surface->h;
+        SDL_FreeSurface(si->surface);
+        si->surface = NULL;
         dbg_str(DBG_DETAIL, "convert surface to texture, width=%d, height=%d",
-                i->width, i->height);
+                image->width, image->height);
     }
 
-    r->clear(r);
-    r->draw_image(r, 0, 0, image);
-    /*
-     *r->draw_image0(r, image);
-     */
-    r->present(r);
+    if (si->texture != NULL) {
+        r->draw_image(r, 0, 0, image);
+    } else {
+        si->texture = r->create_yuvtexture(r, image->width, image->height);
+    }
 
     return 0;
+}
+
+static int __change_size(Image *image, int width, int height)
+{
+    Component *c = (Component *)image;
+    Render *r = c->render;
+    Sdl_Image *si  = (Sdl_Image *)image;
+    int ret = 0;
+
+    if (image->width != width || image->height != height) {
+        image->width = width;
+        image->height = height;
+
+        if (si->texture != NULL) {
+            SDL_DestroyTexture(si->texture);
+        }
+        si->texture = r->create_yuvtexture(r, width, height);
+    }
+
+    return ret;
+}
+
+static int __set_size(Image *image, int width, int height)
+{
+    Component *c = (Component *)image;
+    Render *r = c->render;
+    Sdl_Image *si  = (Sdl_Image *)image;
+    int ret = 0;
+
+    if (image->width != width || image->height != height) {
+        image->width = width;
+        image->height = height;
+
+        if (si->texture != NULL) {
+            SDL_DestroyTexture(si->texture);
+        }
+        si->texture = r->create_yuvtexture(r, width, height);
+    }
+
+    return ret;
 }
 
 static class_info_entry_t image_class_info[] = {
@@ -151,7 +199,9 @@ static class_info_entry_t image_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
     [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_image", __load_image, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_END}, 
+    [7 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_size", NULL, sizeof(void *)}, 
+    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "change_size", __change_size, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_END}, 
 
 };
 REGISTER_CLASS("Sdl_Image", image_class_info);
@@ -177,22 +227,19 @@ static int sdl_image()
 
     //???? unload
     image->load_image(image, "../hello_world.bmp");
-    /*
-     *image->load_image(image, "../lamp.jpg");
-     */
     image->set_name(image, "image");
 
     window->add_component((Container *)window, NULL, image);
 
     window->update_window(window);
     window->event->poll_event(window->event, window);
-
     object_destroy(image);
     object_destroy(window);
 
     free(set_str);
     return 1;
 }
+
 REGISTER_STANDALONE_TEST_FUNC(sdl_image);
 
 

@@ -20,12 +20,12 @@ struct sdl_image_s{
 	/*virtual methods*/
 	int (*load_image)(Image *image, void *path);
 	int (*draw)(Image *image, void *render);
+    void (*set_size)(Image *image, int width, int height);
+    int (*change_size)(Image *image, int width, int height);
 
 	/*attribs*/
 	SDL_Surface* surface;
 	SDL_Texture* texture;
-	int width;
-	int height;
 };
 
 #endif

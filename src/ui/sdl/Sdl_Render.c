@@ -214,6 +214,7 @@ static void *__load_image(Sdl_Render *render, void *path)
 {
 
     Sdl_Image *image;
+    Image *i;
     allocator_t *allocator = ((Obj *)render)->allocator;
 
     dbg_str(SDL_INTERFACE_DETAIL, "SDL Render load_image");
@@ -226,8 +227,9 @@ static void *__load_image(Sdl_Render *render, void *path)
 
     if (image->surface != NULL) {
         image->texture = SDL_CreateTextureFromSurface(render->sdl_render, image->surface);
-        image->width   = image->surface->w;
-        image->height  = image->surface->h;
+        i = (Image *)image;
+        i->width   = image->surface->w;
+        i->height  = image->surface->h;
         SDL_FreeSurface(image->surface);
         image->surface = NULL;
     }
@@ -244,11 +246,12 @@ static int __unload_image(Sdl_Render *render, void *image)
 
 static int __draw_image(Sdl_Render *render, int x, int y, void *image)
 {
-    Sdl_Image *i = (Sdl_Image *)image;
+    Sdl_Image *si = (Sdl_Image *)image;
+    Image *i = (Image *)image;
 
-    if (i->texture != NULL) {
+    if (si->texture != NULL) {
         SDL_Rect quad = { x, y, i->width, i->height};
-        SDL_RenderCopy(render->sdl_render, i->texture, NULL, &quad );
+        SDL_RenderCopy(render->sdl_render, si->texture, NULL, &quad );
     } else {
         dbg_str(DBG_WARNNING, "draw_image, texture is null");
     }

@@ -69,6 +69,10 @@ static int __set(Image *image, char *attrib, void *value)
         image->draw = value;
     } else if (strcmp(attrib, "set_name") == 0) {
         image->set_name = value;
+    } else if (strcmp(attrib, "set_size") == 0) {
+        image->set_size = value;
+    } else if (strcmp(attrib, "change_size") == 0) {
+        image->change_size = value;
     } else {
         dbg_str(OBJ_WARNNING, "image set,  \"%s\" setting is not support", attrib);
     }
@@ -91,6 +95,12 @@ static int __load_image(Image *image, void *path)
     dbg_str(DBG_SUC, "image load image");
 }
 
+static void __set_size(Image *image, int width, int height)
+{
+    image->width = width;
+    image->height = height;
+}
+
 static class_info_entry_t image_class_info[] = {
     [0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
     [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
@@ -100,8 +110,10 @@ static class_info_entry_t image_class_info[] = {
     [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_image", __load_image, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "draw", NULL, sizeof(void *)}, 
     [7 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_name", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_NORMAL_POINTER, "", "String", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_END}, 
+    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set_size", __set_size, sizeof(void *)}, 
+    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "change_size", NULL, sizeof(void *)}, 
+    [10] = {ENTRY_TYPE_NORMAL_POINTER, "", "String", NULL, sizeof(void *)}, 
+    [11] = {ENTRY_TYPE_END}, 
 
 };
 REGISTER_CLASS("Image", image_class_info);

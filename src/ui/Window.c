@@ -187,9 +187,13 @@ static int __update_window(Window *window)
 
     dbg_str(DBG_DETAIL, "window update_window");
 
+    /*
+     *r->set_color(r, 0xff, 0xff, 0xff, 0xff);
+     */
+    r->set_color(r, 0, 0, 0, 0);
+    r->clear(r);
     component->draw(component, r);
     r->present(r);
-
 }
 
 static void

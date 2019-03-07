@@ -66,6 +66,7 @@ struct component_s{
 #undef MAX_NAME_LEN
     unsigned char on_mouse_entered_flag;
     event_listener_t listener;
+    Render *render;
 };
 
 #endif

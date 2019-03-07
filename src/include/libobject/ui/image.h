@@ -19,9 +19,13 @@ struct image_s{
 	int (*load_image)(Image *image, void *path);
 	int (*draw)(Image *image, void *render);
     void (*set_name)(Image *image,void *name);
+    void (*set_size)(Image *image, int width, int height);
+    int (*change_size)(Image *image, int width, int height);
 
 	/*attribs*/
 	String *path;
+	int width;
+	int height;
 };
 
 #endif

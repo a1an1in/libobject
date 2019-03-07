@@ -160,15 +160,3 @@ static class_info_entry_t subject_class_info[] = {
 
 };
 REGISTER_CLASS("Subject", subject_class_info);
-
-void test_obj_subject()
-{
-    Subject *subject;
-    allocator_t *allocator = allocator_get_default_alloc();
-
-    subject = OBJECT_NEW(allocator, Subject, "");
-
-    subject->move(subject);
-}
-
-

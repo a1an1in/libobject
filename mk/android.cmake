@@ -36,7 +36,7 @@ macro (set_cmake_evironment_variable)
     LINK_DIRECTORIES(
         ${CMAKE_ANDROID_NDK}/platforms/android-21/${ARCH_NAME}/usr/lib
         ${CMAKE_ANDROID_NDK}/sysroot/usr/lib
-        ${PROJECT_SOURCE_DIR}/lib/android)
+        ${PROJECT_SOURCE_DIR}/lib/android/${ANDROID_ABI})
 
     INCLUDE_DIRECTORIES(
         ${CMAKE_ANDROID_NDK}/sysroot/usr/include

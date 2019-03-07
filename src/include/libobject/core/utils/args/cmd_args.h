@@ -17,11 +17,11 @@ typedef struct args_processor_s{
 	void *base;
 }args_processor_t;
 
-args_processor_t * args_init(args_processor_t *p,void *base,cmd_config_t *c);
-cmd_config_t * args_find_entry(args_processor_t *p,char *cmd);
-int args_parse_args(args_processor_t *p,int argc, char *argv[]);
-void args_print_help_info(args_processor_t *p);
-void args_process(void *base,cmd_config_t *cmd_configs,int argc, char *argv[]);
-args_processor_t *args_get_processor_globle_addr();
-void test_args(int argc, char *argv[]);
+extern args_processor_t * args_init(args_processor_t *p,void *base,cmd_config_t *c);
+extern cmd_config_t * args_find_entry(args_processor_t *p,char *cmd);
+extern int args_parse_args(args_processor_t *p,int argc, char *argv[]);
+extern void args_print_help_info(args_processor_t *p);
+extern void args_process(void *base,cmd_config_t *cmd_configs,int argc, char *argv[]);
+extern args_processor_t *args_get_processor_globle_addr();
+extern void test_args(int argc, char *argv[]);
 #endif

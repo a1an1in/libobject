@@ -16,9 +16,9 @@
  *int libobject_init(libobject_t *libobject);
  */
 
-int libobject_set_run_path(char *path);
-char *libobject_get_run_path();
-int libobject_init();
-int libobject_exit();
+extern int libobject_set_run_path(char *path);
+extern char *libobject_get_run_path();
+extern int libobject_init();
+extern int libobject_exit();
 
 #endif

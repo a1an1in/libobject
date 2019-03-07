@@ -8,16 +8,19 @@
 rm -rf CMakeFiles&&rm CMakeCache.txt&&
 rm -rf ${NDK_ROOT}/sysroot/usr/include/libobject&&
 rm -rf ~/workspace/goya-github/android/goya-alone/app/src/main/jni/include/libobject
+rm ${NDK_ROOT}/platforms/android-21/arch-arm/usr/lib/libobject*
+rm ~/workspace/goya-github/android/goya-alone/app/src/main/jni/lib/armeabi-v7a/libobject.*
 
 mkdir -p build/android
 cd build/android
 cmake ../.. -DPLATFORM=android -DANDROID_ABI=armeabi-v7a -DMODULE_UI=on&&make&&
 cd ../..
 
-cp -rf lib/android/ ~/workspace/goya-github/android/goya/app/src/main/jni/lib
-cp -rf lib/android/ ~/workspace/goya-github/android/goya-alone/app/src/main/jni/lib
+#cp -rf lib/android/ ~/workspace/goya-github/android/goya/app/src/main/jni/lib
+#cp -rf lib/android/ ~/workspace/goya-github/android/goya-alone/app/src/main/jni/lib
 #cp lib/android/armeabi-v7a/*.so ${NDK_ROOT}/platforms/android-21/arch-arm/usr/lib
-cp lib/android/armeabi-v7a/*.a ${NDK_ROOT}/platforms/android-21/arch-arm/usr/lib
+cp lib/android/armeabi-v7a/*.so ${NDK_ROOT}/platforms/android-21/arch-arm/usr/lib
+cp -rf lib/android/armeabi-v7a/*.so ~/workspace/goya-github/android/goya-alone/app/src/main/jni/lib/armeabi-v7a
 
 cp -rf src/include/libobject ${NDK_ROOT}/sysroot/usr/include/
 cp -rf src/include/libobject ~/workspace/goya-github/android/goya-alone/app/src/main/jni/include/libobject

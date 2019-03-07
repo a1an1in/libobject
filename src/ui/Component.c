@@ -38,6 +38,7 @@ static int __construct(Component *component, char *init_str)
     dbg_str(DBG_DETAIL, "component construct, component addr:%p", component);
 
     component->on_mouse_entered_flag = 0;
+    component->render = NULL;
 
     return 0;
 }
@@ -227,6 +228,9 @@ static int __draw(Component *component, void *render)
     Render *g            = (Render *)render;
     dbg_str(DBG_DETAIL, "%s draw", ((Obj *)component)->name);
 
+    if (component->render != render) {
+        component->render = render;
+    }
     container->for_each_component(container, draw_subcomponent_foreach_cb, g);
 }
 
