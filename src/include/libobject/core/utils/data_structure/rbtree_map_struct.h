@@ -11,14 +11,14 @@ typedef int (*key_cmp_fpt)(void *key1,void *key2);
 #endif
 
 struct rbtree_map_node {
-  	struct rb_node node;
+  	struct rb_node_s node;
     uint8_t key_type;
   	void *key;
     void *value;
 };
 typedef struct rbtree_map_pos_s{
-	struct rb_node *rb_node_p;
-	struct rb_root *tree_root;
+	struct rb_node_s *rb_node_p;
+	struct rb_root_s *tree_root;
 	struct rbtree_map_s *map;
 }rbtree_map_pos_t;
 
@@ -31,7 +31,7 @@ typedef struct rbtree_map_s{
     uint8_t key_len;
     uint32_t count;
 	allocator_t *allocator;
-	struct rb_root *tree_root;
+	struct rb_root_s *tree_root;
 	rbtree_map_pos_t begin ,end;
 }rbtree_map_t;
 

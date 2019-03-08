@@ -209,14 +209,14 @@ extract_filename_in_macro(char *macro)
 #else
     #ifdef OPEN_DEBUG
     	#define dbg_str(debug_switch,fmt,args...)\
-    		debugger_dbg_str(debugger_get_global_debugger(),\
+    		debugger_dbg_str(debugger_gp,\
                     debug_switch,"[" fmt "]--[%s:%d]",\
                     ##args,\
                     extract_filename_in_macro(__FILE__),\
                     __LINE__);
 
     	#define dbg_buf(debug_switch,const_str,buf,buf_len)\
-    		debugger_dbg_buf(debugger_get_global_debugger(),\
+    		debugger_dbg_buf(debugger_gp,\
                     debug_switch,const_str,buf,buf_len,\
                     "[%s:%d]",\
                     extract_filename_in_macro(__FILE__), \

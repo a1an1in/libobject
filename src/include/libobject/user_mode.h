@@ -21,7 +21,9 @@
 /*
  *#define WINDOWS_USER_MODE
  */
-#define ANDROID_USER_MODE
+/*
+ *#define ANDROID_USER_MODE
+ */
 /*
  *#define LINUX_USER_MODE
  */

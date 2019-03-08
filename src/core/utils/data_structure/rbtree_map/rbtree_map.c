@@ -51,9 +51,9 @@
 #include <libobject/core/utils/registry/registry.h>
 
 struct rbtree_map_node * 
-__rbtree_map_search(rbtree_map_t *map, struct rb_root *root, void *key)
+__rbtree_map_search(rbtree_map_t *map, struct rb_root_s *root, void *key)
 {
-    struct rb_node *node     = root->rb_node;
+    struct rb_node_s *node     = root->rb_node;
     key_cmp_fpt key_cmp_func = map->key_cmp_func;
 
     while (node) {
@@ -80,10 +80,10 @@ __rbtree_map_search(rbtree_map_t *map, struct rb_root *root, void *key)
 }
 
 int 
-__rbtree_map_insert(rbtree_map_t *map, struct rb_root *root, 
+__rbtree_map_insert(rbtree_map_t *map, struct rb_root_s *root, 
                     struct rbtree_map_node *new_mnode)
 {
-    struct rb_node **new     = &(root->rb_node), *parent = NULL;
+    struct rb_node_s **new     = &(root->rb_node), *parent = NULL;
     key_cmp_fpt key_cmp_func = map->key_cmp_func;
     int result, len;
     struct rbtree_map_node *this;
@@ -117,8 +117,8 @@ __rbtree_map_insert(rbtree_map_t *map, struct rb_root *root,
 
 rbtree_map_pos_t* 
 rbtree_map_pos_init(rbtree_map_pos_t *pos, 
-                    struct rb_node *node, 
-                    struct rb_root *tree_root, 
+                    struct rb_node_s *node, 
+                    struct rb_root_s *tree_root, 
                     rbtree_map_t *map)
 {
     pos->tree_root = tree_root;
@@ -131,7 +131,7 @@ rbtree_map_pos_init(rbtree_map_pos_t *pos,
 rbtree_map_pos_t * 
 rbtree_map_pos_next(rbtree_map_pos_t *it, rbtree_map_pos_t *next)
 {
-    struct rb_node *node;
+    struct rb_node_s *node;
 
     if (it->rb_node_p == NULL) {
         node = NULL;
@@ -144,7 +144,7 @@ rbtree_map_pos_next(rbtree_map_pos_t *it, rbtree_map_pos_t *next)
 rbtree_map_pos_t* 
 rbtree_map_pos_prev(rbtree_map_pos_t *it, rbtree_map_pos_t *prev)
 {
-    struct rb_node *node;
+    struct rb_node_s *node;
 
     if (it->rb_node_p == NULL) {
         node = NULL;
@@ -223,7 +223,7 @@ int rbtree_map_set(rbtree_map_t *map, char *attrib, void *value)
 
 int rbtree_map_init(rbtree_map_t *map)
 {
-    struct rb_root *tree_root;
+    struct rb_root_s *tree_root;
 
     dbg_str(RBTMAP_DETAIL, "rbtree_map init");
 
@@ -232,8 +232,8 @@ int rbtree_map_init(rbtree_map_t *map)
         dbg_str(DBG_DETAIL, "set default key cmp func:%p", map->key_cmp_func);
     }
 
-    tree_root = (struct rb_root *)allocator_mem_alloc(map->allocator, 
-                                                      sizeof(struct rb_root));
+    tree_root = (struct rb_root_s *)allocator_mem_alloc(map->allocator, 
+                                                      sizeof(struct rb_root_s));
     tree_root->rb_node = NULL;
     map->tree_root     = tree_root;
     rbtree_map_pos_init(&map->end, NULL, tree_root, map);
@@ -262,7 +262,7 @@ rbtree_map_end(rbtree_map_t *map, rbtree_map_pos_t *end)
 int rbtree_map_insert(rbtree_map_t *map, void *key, void *value)
 {
     struct rbtree_map_node *mnode;
-    struct rb_root *tree_root = map->tree_root;
+    struct rb_root_s *tree_root = map->tree_root;
     int ret;
 
     dbg_str(RBTMAP_DETAIL, "rbtree_map_insert");
@@ -296,8 +296,8 @@ int rbtree_map_insert(rbtree_map_t *map, void *key, void *value)
 int rbtree_map_delete(rbtree_map_t *map, rbtree_map_pos_t *it)
 {
     struct rbtree_map_node *mnode;
-    struct rb_node *rb_node_p = it->rb_node_p;
-    struct rb_root *tree_root = map->tree_root;
+    struct rb_node_s *rb_node_p = it->rb_node_p;
+    struct rb_root_s *tree_root = map->tree_root;
 
     mnode = rb_entry(rb_node_p, struct rbtree_map_node, node);
 
@@ -321,8 +321,8 @@ int rbtree_map_delete(rbtree_map_t *map, rbtree_map_pos_t *it)
 int rbtree_map_remove(rbtree_map_t *map, rbtree_map_pos_t *it)
 {
     struct rbtree_map_node *mnode;
-    struct rb_node *rb_node_p = it->rb_node_p;
-    struct rb_root *tree_root = map->tree_root;
+    struct rb_node_s *rb_node_p = it->rb_node_p;
+    struct rb_root_s *tree_root = map->tree_root;
 
     mnode = rb_entry(rb_node_p, struct rbtree_map_node, node);
 
@@ -347,7 +347,7 @@ int
 rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it)
 {
     struct rbtree_map_node *mnode;
-    struct rb_root *tree_root = map->tree_root;
+    struct rb_root_s *tree_root = map->tree_root;
 
     dbg_str(RBTMAP_DETAIL, "rbtree_map_search");
 
@@ -380,7 +380,7 @@ int rbtree_map_count(rbtree_map_t *map)
 int rbtree_map_destroy(rbtree_map_t *map)
 {
     rbtree_map_pos_t it, end;
-    struct rb_root *tree_root = map->tree_root;
+    struct rb_root_s *tree_root = map->tree_root;
 
     dbg_str(RBTMAP_DETAIL, "rbtree_map_destroy");
 

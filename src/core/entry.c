@@ -47,7 +47,7 @@ int print_library_version()
 {
     ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, register version info:%s\n", 
                  REGISTRY_CTOR_PRIORITY_VERSION, 
-                 LIBRARY_VERSION);
+                 "libobject 1.0");
 
     return 0;
 }

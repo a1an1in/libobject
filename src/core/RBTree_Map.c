@@ -37,7 +37,7 @@
 
 static int
 __find_same_key_node(rbtree_map_t *map, 
-                     struct rb_node *node,
+                     struct rb_node_s *node,
                      key_cmp_fpt func,
                      void *key, List *list)
 {
@@ -197,8 +197,8 @@ static int __search(Map *map, void *key, void **element)
 static int __search_all_same_key(Map *map, void *key, List *list)
 {
     rbtree_map_t *rbtree_map = ((RBTree_Map *)map)->rbmap;
-    struct rb_root *root = rbtree_map->tree_root;
-    struct rb_node *node = root->rb_node;
+    struct rb_root_s *root = rbtree_map->tree_root;
+    struct rb_node_s *node = root->rb_node;
     int ret = 0;
     void **addr;
 
