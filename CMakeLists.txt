@@ -9,8 +9,16 @@ config_platform()
 #endif ()
 
 # The version number.
+# Version format major.minor.maintenance.build
 set (LIBOBJECT_VERSION_MAJOR 1)
-set (LIBOBJECT_VERSION_MINOR 0)
+set (LIBOBJECT_VERSION_MINOR 2)
+set (LIBOBJECT_VERSION_MAINTENANCE 2)
+set (LIBOBJECT_VERSION_BUILD 3)
+
+configure_file (
+    "${PROJECT_SOURCE_DIR}/src/include/libobject/version.h.in"
+    "${PROJECT_SOURCE_DIR}/src/include/libobject/version.h")
+
 # Set the output folder where your program will be created
 set (CMAKE_MACOSX_RPATH 1)
 # Debug/Release settings
@@ -34,7 +42,7 @@ add_definitions(-fPIC)
 add_definitions("-Wall -Wno-return-type -Wno-unused-variable -Wno-unused-function
                  -Wno-sometimes-uninitialized -Wno-char-subscripts -Wno-sometimes-uninitialized 
                  -Wno-unused-label -Wno-uninitialized -Wno-int-conversion -Wno-implicit-function-declaration
-                 -Wno-uninitialized -Wnullability-completeness")
+                 -Wno-uninitialized -Wno-nullability-completeness -Wno-expansion-to-defined")
 
 #add_subdirectory(src)
 find_source_files(Source_Files)
@@ -88,8 +96,10 @@ target_link_libraries(test object)
 #set_target_properties(object_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 SET_TARGET_PROPERTIES (object PROPERTIES VERSION 1.2 SOVERSION 1)
 SET_TARGET_PROPERTIES (object_static PROPERTIES OUTPUT_NAME "object")
+SET_TARGET_PROPERTIES (object_static PROPERTIES VERSION 1.2 SOVERSION 1)
 
 install (TARGETS test DESTINATION bin)
 install (TARGETS object DESTINATION lib)
+install (TARGETS object_static DESTINATION lib)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/include/libobject DESTINATION include)
 

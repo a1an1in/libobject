@@ -40,7 +40,7 @@ int object_config(char *config, int len, char *path, int type, char *name, void 
 
 #define OBJECT_NEW(allocator,type,set_str) \
 ({\
-    void *obj;\
+    void *obj = NULL;\
     int ret;\
     obj = OBJECT_ALLOC(allocator,type);\
     ret = object_set(obj, #type, set_str);\

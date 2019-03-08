@@ -18,7 +18,7 @@ macro (set_cmake_evironment_variable)
             ${PROJECT_SOURCE_DIR}/src/include)
         set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/ios/${IOS_PLATFORM})
         set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/ios/${IOS_PLATFORM})
-        #set (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr)
+        set (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr)
         #SET(ExternalLibs ${ExternalLibs} avformat avfilter swscale swresample avcodec avutil x264 vorbis vorbisenc
             #vorbisfile mp3lame vpx xvidcore opus fdk-aac theora xvidcore z iconv bz2 SDL2 SDL2_ttf yuv -force_load /usr/local/lib/libobject.a)
         SET(ExternalLibs ${ExternalLibs} avformat avfilter swscale swresample avcodec avutil SDL2 SDL2_ttf)

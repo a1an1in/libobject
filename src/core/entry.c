@@ -6,6 +6,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/libobject.h>
 #include <libobject/concurrent/producer.h>
+#include <libobject/version.h>
 
 #define MAX_LIBOBJECT_PATH_LEN 50
 #define DEFAULT_LIBOBJECT_RUN_PATH "/tmp"
@@ -43,11 +44,11 @@ int libobject_exit()
     return 0;
 }
 
-int print_library_version()
+static int print_library_version()
 {
-    ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, register version info:%s\n", 
-                 REGISTRY_CTOR_PRIORITY_VERSION, 
-                 "libobject 1.0");
+    printf("libobject version:%d.%d.%d.%d\n", 
+            LIBOBJECT_VERSION_MAJOR, LIBOBJECT_VERSION_MINOR,
+            LIBOBJECT_VERSION_MAINTENANCE, LIBOBJECT_VERSION_BUILD);
 
     return 0;
 }

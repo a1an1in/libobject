@@ -230,6 +230,14 @@ void * __object_get_func(void *class_info_addr, char *func_pointer_name)
     class_info_entry_t *entry = (class_info_entry_t *)class_info_addr;
     int i;
 
+    if (class_info_addr == 0) {
+        /*
+         *dbg_str(OBJ_WARNNING, "object_get_func:%s, class_info_addr is nil",
+         *        func_pointer_name);
+         */
+        return NULL;
+    }
+
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
         if (    strcmp((char *)entry[i].value_name, func_pointer_name) == 0 && 
                 entry[i].type == ENTRY_TYPE_FUNC_POINTER) {
@@ -245,6 +253,14 @@ __object_get_entry_of_parent_class(void *class_info_addr)
 {
     class_info_entry_t *entry = (class_info_entry_t *)class_info_addr;
     int i;
+
+    if (class_info_addr == 0) {
+        /*
+         *dbg_str(OBJ_WARNNING, "object_get_entry_of_parent_class:%s, class_info_addr is nil",
+         *        func_pointer_name);
+         */
+        return NULL;
+    }
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
         if ( entry[i].type == ENTRY_TYPE_OBJ) {
@@ -584,9 +600,17 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
 
     dbg_str(OBJ_DETAIL, "current obj type name =%s", cur_type_name);
 
-    deamon                = class_deamon_get_global_class_deamon();
-    class_info            = class_deamon_search_class(deamon, (char *)cur_type_name);
-    construct             = __object_get_func(class_info, "construct");
+    deamon = class_deamon_get_global_class_deamon();
+    if (deamon == NULL) {
+        return -1;
+    }
+
+    class_info = class_deamon_search_class(deamon, (char *)cur_type_name);
+    if (class_info == NULL) {
+        return -1;
+    }
+
+    construct = __object_get_func(class_info, "construct");
     entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
 
     dbg_str(OBJ_DETAIL, "obj_class addr:%p", class_info);
