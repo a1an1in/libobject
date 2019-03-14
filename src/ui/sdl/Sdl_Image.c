@@ -233,7 +233,7 @@ static int sdl_image()
 
     window->update_window(window);
     window->event->poll_event(window->event, window);
-    object_destroy(image);
+
     object_destroy(window);
 
     free(set_str);

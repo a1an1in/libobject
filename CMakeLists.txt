@@ -12,8 +12,8 @@ config_platform()
 # Version format major.minor.maintenance.build
 set (LIBOBJECT_VERSION_MAJOR 1)
 set (LIBOBJECT_VERSION_MINOR 2)
-set (LIBOBJECT_VERSION_MAINTENANCE 2)
-set (LIBOBJECT_VERSION_BUILD 3)
+set (LIBOBJECT_VERSION_MAINTENANCE 3)
+set (LIBOBJECT_VERSION_BUILD 7)
 
 configure_file (
     "${PROJECT_SOURCE_DIR}/src/include/libobject/version.h.in"
@@ -91,12 +91,12 @@ target_link_libraries(object_static ${ExternalLibs})
 
 add_executable(test ${Main_File})
 target_link_libraries(test object)
+ADD_DEPENDENCIES(test object)
 
 #set_target_properties(object PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 #set_target_properties(object_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 SET_TARGET_PROPERTIES (object PROPERTIES VERSION 1.2 SOVERSION 1)
 SET_TARGET_PROPERTIES (object_static PROPERTIES OUTPUT_NAME "object")
-SET_TARGET_PROPERTIES (object_static PROPERTIES VERSION 1.2 SOVERSION 1)
 
 install (TARGETS test DESTINATION bin)
 install (TARGETS object DESTINATION lib)

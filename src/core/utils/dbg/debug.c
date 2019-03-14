@@ -259,6 +259,8 @@ debugger_t *debugger_creator(char *ini_file_name, uint8_t lock_type)
     debugger =(debugger_t *)malloc(sizeof(debugger_t));
 
     debugger->d = d = iniparser_new(ini_file_name);
+    memset(debugger->ini_file_name, 0, sizeof(debugger->ini_file_name));
+    printf("sizeof file name=%d\n", sizeof(debugger->ini_file_name));
     memcpy(debugger->ini_file_name, ini_file_name, strlen(ini_file_name));
 
     type = iniparser_getint(d, (char *)"debugger:type", 0);
@@ -267,6 +269,7 @@ debugger_t *debugger_creator(char *ini_file_name, uint8_t lock_type)
         f = fopen(debugger->ini_file_name, "w");
         if(f == NULL){
             err = errno;
+            perror("fopen");
             console_str("open ini file failed, errno=%d", err);
             exit(1);
         }
