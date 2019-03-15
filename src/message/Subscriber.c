@@ -51,7 +51,8 @@ static void message_handler(void *arg)
             subscriber->opaque,
             message->what);
 
-    subscriber->method_map->search(subscriber->method_map, message->what, (void **)&method);
+    subscriber->method_map->search(subscriber->method_map,
+            message->what, (void **)&method);
     if (method != NULL) {
         dbg_str(DBG_SUC, "subscriber handle message, opaque:%p, msg.what=%s",
                 subscriber->opaque,
@@ -150,7 +151,8 @@ static int __subscribe(Subscriber *subscriber, void *publisher)
     dbg_str(DBG_DETAIL, "subscriber %p subscribe publisher %p", subscriber, publisher);
 
     subscriber->publisher = publisher;
-    centor->subscriber_map->add(centor->subscriber_map, subscriber, publisher);
+    centor->subscriber_map->add(centor->subscriber_map,
+            subscriber, publisher);
 
     centor->subscriber_map->for_each(centor->subscriber_map, __printf_map);
     return 0;

@@ -102,11 +102,15 @@ static void message_centor_work_callback(void *task)
 
     dbg_str(DBG_DETAIL, "centor worker callback");
     dbg_str(DBG_DETAIL, "centor addr:%p", worker->opaque);
+
     centor->message_queue->remove(centor->message_queue, 
                                   (void **)&message);
-    dbg_str(DBG_DETAIL, "message addr %p, publisher addr:%p", message, message->publisher);
+
+    dbg_str(DBG_DETAIL, "message addr %p, publisher addr:%p",
+            message, message->publisher);
+
     centor->subscriber_map->for_each_arg(centor->subscriber_map, 
-                                          map_for_each_arg_callback, message);
+                                         map_for_each_arg_callback, message);
 
     message_destroy(message);
 }
@@ -137,10 +141,13 @@ static int __construct(Centor *centor, char *init_str)
     centor->c = c;
 
     dbg_str(DBG_SUC, "centor add io_worker fd=%d", centor->s->fd);
-    centor->worker = io_worker(allocator, centor->s->fd, 
-                               NULL, message_centor_ev_callback, 
+    centor->worker = io_worker(allocator,
+                               centor->s->fd, 
+                               NULL,
+                               message_centor_ev_callback, 
                                message_centor_work_callback,
-                               NULL, centor);
+                               NULL,
+                               centor);
 
     centor->message_queue  = OBJECT_NEW(allocator, Linked_Queue, NULL);
     centor->subscriber_map = OBJECT_NEW(allocator, RBTree_Map, NULL);
