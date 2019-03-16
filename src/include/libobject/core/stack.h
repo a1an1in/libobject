@@ -19,6 +19,7 @@ struct stack_s{
 	/*virtual methods reimplement*/
     int (*push)(Stack *stack, void *element);
     int (*pop)(Stack *stack, void **element);
+    int (*count)(Stack *stack);
 };
 
 #endif

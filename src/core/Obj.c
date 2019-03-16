@@ -50,44 +50,158 @@ static int __deconstrcut(Obj *obj)
 
 static int __set(Obj *obj, char *attrib, void *value)
 {
-    if (strcmp(attrib, "set") == 0) {
-        obj->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        obj->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        obj->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        obj->deconstruct = value;
-    } else if (strcmp(attrib, "allocator") == 0) {
-        obj->allocator = value;
-        dbg_str(OBJ_DETAIL, "allocator addr:%p", obj->allocator);
-    } else {
-        dbg_str(OBJ_WARNNING, "obj set, \"%s\" setting is not supported", attrib);
+    class_info_entry_t * info, *entry;
+    class_deamon_t *deamon;
+    uint8_t *base = (uint8_t *)obj;
+    int ret = 0;
+
+    deamon = class_deamon_get_global_class_deamon();
+    info   = (class_info_entry_t *)
+              class_deamon_search_class(deamon,
+                                        obj->target_name);
+
+    entry  = __object_get_entry_of_class(info, attrib);
+    if (entry == NULL) {
+        return -1;
     }
 
-    return 0;
+    switch(entry->type) {
+        case ENTRY_TYPE_INT8_T:
+        case ENTRY_TYPE_UINT8_T:
+            {
+                uint8_t *addr = (base + entry->offset);
+                *addr = *((uint8_t *)value);
+                break;
+            }
+        case ENTRY_TYPE_INT16_T:
+        case ENTRY_TYPE_UINT16_T:
+            {
+                uint16_t *addr = (base + entry->offset);
+                *addr = *((uint16_t *)value);
+                break;
+            }
+        case ENTRY_TYPE_INT32_T:
+        case ENTRY_TYPE_UINT32_T:
+            {
+                uint32_t *addr = (base + entry->offset);
+                *addr = *((uint32_t *)value);
+                break;
+            }
+        case ENTRY_TYPE_INT64_T:
+        case ENTRY_TYPE_UINT64_T:
+            {
+                uint64_t *addr = (base + entry->offset);
+                *addr = *((uint64_t *)value);
+                break;
+            }
+        case ENTRY_TYPE_FLOAT_T:
+            break;
+        case ENTRY_TYPE_STRING:
+            {
+                char *addr = (base + entry->offset);
+                strcpy(addr, value);
+                break;
+            }
+        case ENTRY_TYPE_NORMAL_POINTER:
+        case ENTRY_TYPE_FUNC_POINTER:
+        case ENTRY_TYPE_VFUNC_POINTER:
+        case ENTRY_TYPE_IFUNC_POINTER:
+        case ENTRY_TYPE_OBJ_POINTER:
+            {
+                void **addr = (base + entry->offset);
+                *addr = value;
+                break;
+            }
+        default:
+            dbg_str(DBG_DETAIL, "set %s, not support %s item",
+                    obj->target_name,
+                    attrib);
+            ret = -1;
+            break;
+    }
+
+    return ret;
 }
 
 static void *__get(Obj *obj, char *attrib)
 {
-    if (strcmp(attrib, "allocator") == 0) {
-        return obj->allocator;
-    } else if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else {
-        dbg_str(OBJ_WARNNING, "obj get, \"%s\" getting attrib is not supported", attrib);
+    class_info_entry_t * info, *entry;
+    class_deamon_t *deamon;
+    uint8_t *base = (uint8_t *)obj;
+    void *addr;
+
+    deamon = class_deamon_get_global_class_deamon();
+    info   = (class_info_entry_t *)
+              class_deamon_search_class(deamon,
+                                        obj->target_name);
+
+    entry  = __object_get_entry_of_class(info, attrib);
+    if (entry == NULL) {
         return NULL;
     }
-    return NULL;
+
+    switch(entry->type) {
+        case ENTRY_TYPE_INT8_T:
+        case ENTRY_TYPE_UINT8_T:
+            {
+                addr = (base + entry->offset);
+                break;
+            }
+        case ENTRY_TYPE_INT16_T:
+        case ENTRY_TYPE_UINT16_T:
+            {
+                addr = (base + entry->offset);
+                break;
+            }
+        case ENTRY_TYPE_INT32_T:
+        case ENTRY_TYPE_UINT32_T:
+            {
+                addr = (base + entry->offset);
+                break;
+            }
+        case ENTRY_TYPE_INT64_T:
+        case ENTRY_TYPE_UINT64_T:
+            {
+                addr = (base + entry->offset);
+                break;
+            }
+        case ENTRY_TYPE_FLOAT_T:
+            break;
+        case ENTRY_TYPE_STRING:
+            {
+                dbg_str(DBG_SUC, "class name:%s get attrib:%s",
+                        obj->target_name,
+                        attrib);
+                addr = (base + entry->offset);
+                break;
+            }
+        case ENTRY_TYPE_NORMAL_POINTER:
+        case ENTRY_TYPE_FUNC_POINTER:
+        case ENTRY_TYPE_VFUNC_POINTER:
+        case ENTRY_TYPE_IFUNC_POINTER:
+        case ENTRY_TYPE_OBJ_POINTER:
+            {
+                addr = (base + entry->offset);
+                break;
+            }
+        default:
+            dbg_str(DBG_DETAIL, "get %s, not support %s item",
+                    obj->target_name,
+                    attrib);
+            addr = NULL;
+            break;
+    }
+
+    return addr;
 }
 
 static class_info_entry_t obj_class_info[] = {
-    [0] = {ENTRY_TYPE_NORMAL_POINTER, "allocator_t", "allocator", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_STRING, "", "name", NULL, 0}, 
+    [0] = {ENTRY_TYPE_NORMAL_POINTER, "allocator_t", "allocator", NULL, sizeof(void *), offset_of_class(Obj, allocator)}, 
+    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *), offset_of_class(Obj, set)}, 
+    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *), offset_of_class(Obj, get)}, 
+    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *), offset_of_class(Obj, construct)}, 
+    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *), offset_of_class(Obj, deconstruct)}, 
+    [5] = {ENTRY_TYPE_STRING, "", "name", NULL, sizeof(void *), offset_of_class(Obj, name)}, 
     [6] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Obj", obj_class_info);

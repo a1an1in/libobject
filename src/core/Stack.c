@@ -57,47 +57,15 @@ static int __deconstrcut(Stack *stack)
     return 0;
 }
 
-static int __set(Stack *stack, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        stack->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        stack->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        stack->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        stack->deconstruct = value;
-    }
-    else if (strcmp(attrib, "push") == 0) {
-        stack->push = value;
-    } else if (strcmp(attrib, "pop") == 0) {
-        stack->pop = value;
-    }
-    else {
-        dbg_str(DBG_DETAIL, "stack set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Stack *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(DBG_WARNNING, "stack get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t stack_class_info[] = {
     [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "push", NULL, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "pop", NULL, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_END}, 
+    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", NULL, sizeof(void *), offset_of_class(Stack, set)}, 
+    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", NULL, sizeof(void *), offset_of_class(Stack, get)}, 
+    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *), offset_of_class(Stack, construct)}, 
+    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *), offset_of_class(Stack, deconstruct)}, 
+    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "push", NULL, sizeof(void *), offset_of_class(Stack, push)}, 
+    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "pop", NULL, sizeof(void *), offset_of_class(Stack, pop)}, 
+    [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "count", NULL, sizeof(void *), offset_of_class(Stack, count)}, 
+    [8] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Stack", stack_class_info);

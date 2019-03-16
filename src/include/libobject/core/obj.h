@@ -13,6 +13,7 @@ struct obj_s{
     void *(*get)(void *obj, char *attrib);
 #define MAX_CLASS_NAME_LEN 20
     char name[MAX_CLASS_NAME_LEN];
+    char target_name[MAX_CLASS_NAME_LEN];
 #undef MAX_CLASS_NAME_LEN
 };
 

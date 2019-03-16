@@ -9,6 +9,7 @@ typedef struct array_stack_s {
     uint8_t *cur;
     int size;
     uint8_t *top;
+    int count;
 }array_stack_t;
  
 array_stack_t *array_stack_alloc(allocator_t *allocator);

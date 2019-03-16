@@ -31,6 +31,7 @@ typedef struct class_info_entry_s{
 	char *value_name;
 	void *value;
 	int value_len;
+	int offset;
 }class_info_entry_t;
 
 #endif

@@ -11,9 +11,9 @@ config_platform()
 # The version number.
 # Version format major.minor.maintenance.build
 set (LIBOBJECT_VERSION_MAJOR 2)
-set (LIBOBJECT_VERSION_MINOR 0)
+set (LIBOBJECT_VERSION_MINOR 1)
 set (LIBOBJECT_VERSION_MAINTENANCE 0)
-set (LIBOBJECT_VERSION_BUILD 0)
+set (LIBOBJECT_VERSION_BUILD 1)
 
 configure_file (
     "${PROJECT_SOURCE_DIR}/src/include/libobject/version.h.in"

@@ -41,6 +41,7 @@ int array_stack_init(array_stack_t *as)
         return -1;
     }
     as->cur = as->top;
+    as->count = 0;
 
     return ret;
 }
@@ -53,6 +54,7 @@ int array_stack_push(array_stack_t *as, void *data)
         memset(as->cur, 0, as->step);
         *((void **)as->cur) = data;
         as->cur += as->step;
+        as->count++;
     } else {
         ret = -1;
         dbg_str(DBG_WARNNING,"array stack is full");
@@ -68,6 +70,7 @@ int array_stack_pop(array_stack_t *as,void **out)
     if(as->cur > as->top) {
         as->cur -= as->step;
         *out = *((void **)(as->cur));
+        as->count--;
     } else {
         dbg_str(DBG_WARNNING,"array stack is null");
         ret = -1;
