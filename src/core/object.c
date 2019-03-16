@@ -328,43 +328,6 @@ __object_get_entry_of_class(void *class_info, char *entry_name)
 }
 
 void *
-__object_find_func_to_inherit(char *method_name, 
-                              void *class_name)
-{
-    class_info_entry_t *entry;
-    class_deamon_t *deamon;
-    char *parent_class_name = NULL;
-    class_info_entry_t * entry_of_parent_class; //class info entry of parent class
-    int i;
-
-    if (class_name == NULL) return NULL;
-
-    deamon = class_deamon_get_global_class_deamon();
-    entry  = (class_info_entry_t *)class_deamon_search_class(deamon, 
-                                                             (char *)class_name);
-    for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (    (entry[i].type == ENTRY_TYPE_FUNC_POINTER ||
-                 entry[i].type == ENTRY_TYPE_VFUNC_POINTER) &&
-                strcmp(entry[i].value_name, method_name) == 0)
-        {
-            if (entry[i].value == NULL) {
-                break;
-            } else {
-                return entry[i].value;
-            }
-        }
-
-    }   
-
-    if (entry[0].type == ENTRY_TYPE_OBJ) {
-        parent_class_name = entry[0].type_name;
-    }
-
-    return __object_find_func_to_inherit(method_name, 
-                                         parent_class_name);
-}
-
-void *
 __object_find_reimplement_func(char *method_name, 
                                char *start_type_name, 
                                char *end_type_name)
@@ -387,9 +350,9 @@ __object_find_reimplement_func(char *method_name,
         subclass_name = entry[0].type_name;
     }
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (    (entry[i].type == ENTRY_TYPE_FUNC_POINTER ||
-                entry[i].type == ENTRY_TYPE_VFUNC_POINTER) &&
-                strcmp(entry[i].value_name, method_name) == 0)
+        if (      (entry[i].type == ENTRY_TYPE_FUNC_POINTER 
+                    || entry[i].type == ENTRY_TYPE_VFUNC_POINTER) 
+                && strcmp(entry[i].value_name, method_name) == 0)
         {
             if (entry[i].value == NULL) {
                 break;
@@ -435,16 +398,13 @@ int __object_init_funcs(void *obj, void *class_info_addr)
 
 
 int 
-__object_inherit_funcs(void *obj,
-                       void *class_info, 
-                       void *parent_class_name)
+__object_inherit_funcs(void *obj, void *class_info)
 {
     class_info_entry_t *entry = (class_info_entry_t *)class_info;
     int (*set)(void *obj, char *attrib, void *value);
     int i;
     void *method;
-
-    if (parent_class_name == NULL) return 0; 
+    char *current_class_name;
 
     set = __object_get_func_recursively(class_info, "set");
     if (set == NULL) {
@@ -453,9 +413,13 @@ __object_inherit_funcs(void *obj,
     }
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (entry[i].type == ENTRY_TYPE_IFUNC_POINTER) {
-            method = __object_find_func_to_inherit(entry[i].value_name, 
-                                                   parent_class_name);
+        if (entry[i].value == NULL 
+                && (entry[i].type == ENTRY_TYPE_IFUNC_POINTER
+                    || entry[i].type == ENTRY_TYPE_VFUNC_POINTER
+                    || entry[i].type == ENTRY_TYPE_FUNC_POINTER)) 
+        {
+            method = __object_get_func_recursively(class_info,
+                                                   entry[i].value_name);
             if (method != NULL)
                 set(obj, (char *)entry[i].value_name, method);
         }
@@ -696,7 +660,7 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
     __object_init_funcs(obj, class_info);
 
     if (entry_of_parent_class != NULL) {
-        __object_inherit_funcs(obj, class_info, entry_of_parent_class->type_name);
+        __object_inherit_funcs(obj, class_info);
     }
     __object_override_vitual_funcs(obj, cur_type_name, type_name);
 

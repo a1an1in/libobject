@@ -511,7 +511,9 @@ int sdl_window()
 
     dbg_str(SDL_INTERFACE_DETAIL, "render draw test");
     r->set_color(r, 0, 0, 0, 0xff);
-    r->draw_image(r, 0, 0, window->background);
+    /*
+     *r->draw_image(r, 0, 0, window->background);
+     */
     r->present(r);
 
     sleep(5);

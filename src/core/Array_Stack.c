@@ -87,10 +87,12 @@ static class_info_entry_t array_stack_class_info[] = {
     [0] = {ENTRY_TYPE_OBJ, "Stack", "parent", NULL, sizeof(void *)}, 
     [1] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *), offset_of_class(Array_Stack, construct)}, 
     [2] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *), offset_of_class(Array_Stack, deconstruct)}, 
-    [3] = {ENTRY_TYPE_VFUNC_POINTER, "", "push", __push, sizeof(void *), offset_of_class(Array_Stack, push)}, 
-    [4] = {ENTRY_TYPE_VFUNC_POINTER, "", "pop", __pop, sizeof(void *), offset_of_class(Array_Stack, pop)}, 
-    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "count", __count, sizeof(void *), offset_of_class(Stack, count)}, 
-    [6] = {ENTRY_TYPE_END}, 
+    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "set", NULL, sizeof(void *), offset_of_class(Array_Stack, set)}, 
+    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "get", NULL, sizeof(void *), offset_of_class(Array_Stack, get)}, 
+    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "push", __push, sizeof(void *), offset_of_class(Array_Stack, push)}, 
+    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "pop", __pop, sizeof(void *), offset_of_class(Array_Stack, pop)}, 
+    [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "count", __count, sizeof(void *), offset_of_class(Stack, count)}, 
+    [8] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Array_Stack", array_stack_class_info);
 
@@ -111,6 +113,11 @@ int test_Array_Stack(TEST_ENTRY *entry)
     dbg_str(DBG_DETAIL, "push data:%d", a = (void *)7);
     stack->push(stack, a);
 
+
+    dbg_str(DBG_SUC, "arrary stack, obj.set addr:%p", ((Obj *)stack)->set);
+    dbg_str(DBG_SUC, "arrary stack, stack.set addr:%p", stack->set);
+    dbg_str(DBG_SUC, "arrary stack,  array_stack.set addr:%p",
+            ((Array_Stack *)stack)->set);
 
     if (stack->count(stack) != 4) {
         return -1;
