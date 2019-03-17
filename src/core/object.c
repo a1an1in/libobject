@@ -414,9 +414,8 @@ __object_inherit_funcs(void *obj, void *class_info)
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
         if (entry[i].value == NULL 
-                && (entry[i].type == ENTRY_TYPE_IFUNC_POINTER
-                    || entry[i].type == ENTRY_TYPE_VFUNC_POINTER
-                    || entry[i].type == ENTRY_TYPE_FUNC_POINTER)) 
+                   && (entry[i].type == ENTRY_TYPE_IFUNC_POINTER
+                    || entry[i].type == ENTRY_TYPE_VFUNC_POINTER)) 
         {
             method = __object_get_func_recursively(class_info,
                                                    entry[i].value_name);

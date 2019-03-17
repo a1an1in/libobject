@@ -84,15 +84,15 @@ static int __count(Stack *stack)
 }
 
 static class_info_entry_t array_stack_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Stack", "parent", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *), offset_of_class(Array_Stack, construct)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *), offset_of_class(Array_Stack, deconstruct)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "set", NULL, sizeof(void *), offset_of_class(Array_Stack, set)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "get", NULL, sizeof(void *), offset_of_class(Array_Stack, get)}, 
-    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "push", __push, sizeof(void *), offset_of_class(Array_Stack, push)}, 
-    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "pop", __pop, sizeof(void *), offset_of_class(Array_Stack, pop)}, 
-    [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "count", __count, sizeof(void *), offset_of_class(Stack, count)}, 
-    [8] = {ENTRY_TYPE_END}, 
+    INIT_OBJ_ENTRY(0, Stack, parent),
+    INIT_NFUNC_ENTRY(1, Array_Stack, construct, __construct),
+    INIT_NFUNC_ENTRY(2, Array_Stack, deconstruct, __deconstrcut),
+    INIT_IFUNC_ENTRY(3, Array_Stack, set, NULL),
+    INIT_IFUNC_ENTRY(4, Array_Stack, get, NULL),
+    INIT_VFUNC_ENTRY(5, Array_Stack, push, __push),
+    INIT_VFUNC_ENTRY(6, Array_Stack, pop, __pop),
+    INIT_VFUNC_ENTRY(7, Array_Stack, count, __count),
+    INIT_END_ENTRY(8),
 };
 REGISTER_CLASS("Array_Stack", array_stack_class_info);
 

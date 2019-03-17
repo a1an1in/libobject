@@ -37,35 +37,16 @@
 #include <libobject/event/event_base.h>
 #include <libobject/core/stack.h>
 
-static int __construct(Stack *stack, char *init_str)
-{
-    allocator_t *allocator = stack->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
-
-    dbg_str(DBG_DETAIL, "stack construct, stack addr:%p", stack);
-
-    return 0;
-}
-
-static int __deconstrcut(Stack *stack)
-{
-    dbg_str(DBG_DETAIL, "stack deconstruct, stack addr:%p", stack);
-    int ret;
-    void *tret;
-
-    return 0;
-}
 
 static class_info_entry_t stack_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", NULL, sizeof(void *), offset_of_class(Stack, set)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", NULL, sizeof(void *), offset_of_class(Stack, get)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *), offset_of_class(Stack, construct)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *), offset_of_class(Stack, deconstruct)}, 
-    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "push", NULL, sizeof(void *), offset_of_class(Stack, push)}, 
-    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "pop", NULL, sizeof(void *), offset_of_class(Stack, pop)}, 
-    [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "count", NULL, sizeof(void *), offset_of_class(Stack, count)}, 
-    [8] = {ENTRY_TYPE_END}, 
+    INIT_OBJ_ENTRY(0, Obj, obj),
+    INIT_NFUNC_ENTRY(1, Stack, construct, NULL),
+    INIT_NFUNC_ENTRY(2, Stack, deconstruct, NULL),
+    INIT_IFUNC_ENTRY(3, Stack, set, NULL),
+    INIT_IFUNC_ENTRY(4, Stack, get, NULL),
+    INIT_VFUNC_ENTRY(5, Stack, push, NULL),
+    INIT_VFUNC_ENTRY(6, Stack, pop, NULL),
+    INIT_VFUNC_ENTRY(7, Stack, count, NULL),
+    INIT_END_ENTRY(8),
 };
 REGISTER_CLASS("Stack", stack_class_info);

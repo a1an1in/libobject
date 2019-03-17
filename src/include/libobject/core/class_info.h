@@ -34,4 +34,15 @@ typedef struct class_info_entry_s{
 	int offset;
 }class_info_entry_t;
 
+#define INIT_OBJ_ENTRY(id, type_name, value_name) \
+    [id] = {ENTRY_TYPE_OBJ, #type_name, #value_name}
+#define INIT_NFUNC_ENTRY(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_FUNC_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
+#define INIT_VFUNC_ENTRY(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_VFUNC_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
+#define INIT_IFUNC_ENTRY(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_IFUNC_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
+#define INIT_END_ENTRY(id) \
+    [id] = {ENTRY_TYPE_END}
+
 #endif
