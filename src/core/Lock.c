@@ -57,50 +57,13 @@ static int __deconstrcut(Lock *lock)
     return 0;
 }
 
-static int __set(Lock *lock, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        lock->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        lock->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        lock->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        lock->deconstruct = value;
-    }
-    else if (strcmp(attrib, "lock") == 0) {
-        lock->lock = value;
-    } else if (strcmp(attrib, "trylock") == 0) {
-        lock->trylock = value;
-    } else if (strcmp(attrib, "unlock") == 0) {
-        lock->unlock = value;
-    }
-    else {
-        dbg_str(DBG_DETAIL, "lock set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Lock *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(DBG_WARNNING, "lock get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t lock_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "lock", NULL, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "trylock", NULL, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "unlock", NULL, sizeof(void *)}, 
-    [8] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Lock, construct, __construct),
+    Init_Nfunc_Entry(2 , Lock, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Lock, lock, NULL),
+    Init_Vfunc_Entry(4 , Lock, trylock, NULL),
+    Init_Vfunc_Entry(5 , Lock, unlock, NULL),
+    Init_End___Entry(6 ),
 };
 REGISTER_CLASS("Lock", lock_class_info);

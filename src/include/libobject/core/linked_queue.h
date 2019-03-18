@@ -32,6 +32,9 @@ struct linked_queue_s{
 
     int (*peek_front)(Linked_Queue *queue, void **element);
     int (*peek_back)(Linked_Queue *queue, void **element);
+
+    Iterator *(*begin)(Queue *queue);
+    Iterator *(*end)(Queue *queue);
     
     llist_t *llist;
 };

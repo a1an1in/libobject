@@ -99,14 +99,14 @@ static int __read(Response *response)
 }
 
 static class_info_entry_t concurent_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_buffer",__set_buffer,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","read",__read,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_END},
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Response, construct, __construct),
+    Init_Nfunc_Entry(2 , Response, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Response, set, NULL),
+    Init_Vfunc_Entry(4 , Response, get, NULL),
+    Init_Vfunc_Entry(5 , Response, set_buffer, __set_buffer),
+    Init_Vfunc_Entry(6 , Response, read, __read),
+    Init_End___Entry(7 ),
 };
 REGISTER_CLASS("Response",concurent_class_info);
 

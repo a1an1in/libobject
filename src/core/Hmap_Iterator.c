@@ -49,50 +49,6 @@ static int __deconstrcut(Iterator *iter)
     return 0;
 }
 
-static int __set(Iterator *iter, char *attrib, void *value)
-{
-    Hmap_Iterator *hiter = (Hmap_Iterator *)iter;
-
-    if (strcmp(attrib, "set") == 0) {
-        hiter->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        hiter->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        hiter->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        hiter->deconstruct = value;
-    } else if (strcmp(attrib, "next") == 0) {
-        hiter->next = value;
-    } else if (strcmp(attrib, "prev") == 0) {
-        hiter->prev = value;
-    } else if (strcmp(attrib, "equal") == 0) {
-        hiter->equal = value;
-    } else if (strcmp(attrib, "get_vpointer") == 0) {
-        hiter->get_vpointer = value;
-    } else if (strcmp(attrib, "get_kpointer") == 0) {
-        hiter->get_kpointer = value;
-    } else if (strcmp(attrib, "name") == 0) {
-        strncpy(hiter->name, value, strlen(value));
-    } else {
-        dbg_str(OBJ_DETAIL, "hiter set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Iterator *iter, char *attrib)
-{
-    Hmap_Iterator *hiter = (Hmap_Iterator *)iter;
-
-    if (strcmp(attrib, "name") == 0) {
-        return hiter->name;
-    } else {
-        dbg_str(OBJ_WARNNING, "iter get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static Iterator *__next(Iterator *it)
 {
     Iterator *next = it;
@@ -132,17 +88,15 @@ static void *__get_kpointer(Iterator *it)
 }
 
 static class_info_entry_t hmap_iter_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Iterator", "iter", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "next", __next, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "prev", __prev, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "equal", __equal, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get_vpointer", __get_vpointer, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get_kpointer", __get_kpointer, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0, Iterator, iter),
+    Init_Nfunc_Entry(1, Hmap_Iterator, construct, __construct),
+    Init_Nfunc_Entry(2, Hmap_Iterator, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3, Hmap_Iterator, next, __next),
+    Init_Vfunc_Entry(4, Hmap_Iterator, prev, __prev),
+    Init_Vfunc_Entry(5, Hmap_Iterator, equal, __equal),
+    Init_Vfunc_Entry(6, Hmap_Iterator, get_vpointer, __get_vpointer),
+    Init_Vfunc_Entry(7, Hmap_Iterator, get_kpointer, __get_kpointer),
+    Init_End___Entry(8),
 };
 REGISTER_CLASS("Hmap_Iterator", hmap_iter_class_info);
 

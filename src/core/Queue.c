@@ -57,74 +57,6 @@ static int __deconstrcut(Queue *queue)
     return 0;
 }
 
-static int __set(Queue *queue, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        queue->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        queue->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        queue->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        queue->deconstruct = value;
-    }
-    else if (strcmp(attrib, "add") == 0) {
-        queue->add = value;
-    } else if (strcmp(attrib, "add_front") == 0) {
-        queue->add_front = value;
-    } else if (strcmp(attrib, "add_back") == 0) {
-        queue->add_back = value;
-    } else if (strcmp(attrib, "remove") == 0) {
-        queue->remove = value;
-    } else if (strcmp(attrib, "remove_front") == 0) {
-        queue->remove_front = value;
-    } else if (strcmp(attrib, "remove_back") == 0) {
-        queue->remove_back = value;
-    } else if (strcmp(attrib, "for_each") == 0) {
-        queue->for_each = value;
-    } else if (strcmp(attrib, "for_each_arg2") == 0) {
-        queue->for_each_arg2 = value;
-    } else if (strcmp(attrib, "begin") == 0) {
-        queue->begin = value;
-    } else if (strcmp(attrib, "end") == 0) {
-        queue->end = value;
-    }else if (strcmp(attrib, "size") == 0) {
-        queue->size = value;
-    }else if (strcmp(attrib, "is_empty") == 0) {
-        queue->is_empty = value;
-    }else if (strcmp(attrib, "clear") == 0) {
-        queue->clear = value;
-    }else if (strcmp(attrib, "for_each_arg") == 0) {
-        queue->for_each_arg = value;
-    }else if (strcmp(attrib, "for_each_arg3") == 0) {
-        queue->for_each_arg3 = value;
-    }else if (strcmp(attrib, "for_each_arg4") == 0) {
-        queue->for_each_arg4 = value;
-    }else if (strcmp(attrib, "for_each_arg5") == 0) {
-        queue->for_each_arg5 = value;
-    }else if (strcmp(attrib, "peek_front") == 0) {
-        queue->peek_front = value;
-    }else if (strcmp(attrib, "peek_back") == 0) {
-        queue->peek_back = value;
-    }
-    else {
-        dbg_str(OBJ_DETAIL, "queue set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Queue *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(OBJ_WARNNING, "queue get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-
-    return NULL;
-}
-
 static void __for_each(Queue *queue, void (*func)(void *element))
 {
     Iterator *cur, *end;
@@ -235,32 +167,29 @@ __for_each_arg5(Queue *queue,
     }
 }
 
-
 static class_info_entry_t queue_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", NULL, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_front", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_back", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_front", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_back", NULL, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg", __for_each_arg, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", NULL, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", NULL, sizeof(void *)}, 
-	[15] = {ENTRY_TYPE_VFUNC_POINTER, "", "size", NULL, sizeof(void *)},
-    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "is_empty", NULL, sizeof(void *)},  
-    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "clear", NULL, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg2", __for_each_arg2, sizeof(void *)}, 
-    [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg3", __for_each_arg3, sizeof(void *)}, 
-    [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg4", __for_each_arg4, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg5", __for_each_arg5, sizeof(void *)},
-    [22] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_front", NULL, sizeof(void *)}, 
-    [23] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_back", NULL, sizeof(void *)}, 
-    [24] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Queue, construct, __construct),
+    Init_Nfunc_Entry(2 , Queue, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Queue, add, NULL),
+    Init_Vfunc_Entry(4 , Queue, add_front, NULL),
+    Init_Vfunc_Entry(5 , Queue, add_back, NULL),
+    Init_Vfunc_Entry(6 , Queue, remove, NULL),
+    Init_Vfunc_Entry(7 , Queue, remove_front, NULL),
+    Init_Vfunc_Entry(8 , Queue, remove_back, NULL),
+    Init_Vfunc_Entry(9 , Queue, begin, NULL),
+    Init_Vfunc_Entry(10, Queue, end, NULL),
+    Init_Vfunc_Entry(11, Queue, size, NULL),
+    Init_Vfunc_Entry(12, Queue, is_empty, NULL),
+    Init_Vfunc_Entry(13, Queue, clear, NULL),
+    Init_Vfunc_Entry(14, Queue, for_each, __for_each),
+    Init_Vfunc_Entry(15, Queue, for_each_arg, __for_each_arg),
+    Init_Vfunc_Entry(16, Queue, for_each_arg2, __for_each_arg2),
+    Init_Vfunc_Entry(17, Queue, for_each_arg3, __for_each_arg3),
+    Init_Vfunc_Entry(18, Queue, for_each_arg4, __for_each_arg4),
+    Init_Vfunc_Entry(19, Queue, for_each_arg5, __for_each_arg5),
+    Init_Vfunc_Entry(20, Queue, peek_front, NULL),
+    Init_Vfunc_Entry(21, Queue, peek_back, NULL),
+    Init_End___Entry(22),
 };
 REGISTER_CLASS("Queue", queue_class_info);

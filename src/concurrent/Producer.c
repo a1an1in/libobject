@@ -137,17 +137,15 @@ static int __del_dispatcher(Producer *producer, void *worker)
 }
 
 static class_info_entry_t producer_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Event_Thread", "parent", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_worker", __add_worker, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del_worker", __del_worker, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_dispatcher", __add_dispatcher, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del_dispatcher", __del_dispatcher, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "start", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0, Event_Thread, parent),
+    Init_Nfunc_Entry(1, Producer, construct, __construct),
+    Init_Nfunc_Entry(2, Producer, deconstruct, __deconstrcut),
+    Init_Nfunc_Entry(3, Producer, add_worker, __add_worker),
+    Init_Nfunc_Entry(4, Producer, del_worker, __del_worker),
+    Init_Vfunc_Entry(5, Producer, add_dispatcher, __add_dispatcher),
+    Init_Vfunc_Entry(6, Producer, del_dispatcher, __del_dispatcher),
+    Init_Vfunc_Entry(7, Producer, start, NULL),
+    Init_End___Entry(8),
 };
 REGISTER_CLASS("Producer", producer_class_info);
 

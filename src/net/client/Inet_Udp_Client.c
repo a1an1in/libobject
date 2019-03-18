@@ -103,19 +103,18 @@ static void *__get(Inet_Udp_Client *obj, char *attrib)
     return NULL;
 }
 
-
 static class_info_entry_t inet_udp_client_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Client", "parent", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "bind", NULL, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "connect", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "send", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "recv", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "trustee", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Client, parent),
+    Init_Nfunc_Entry(1 , Inet_Udp_Client, construct, __construct),
+    Init_Nfunc_Entry(2 , Inet_Udp_Client, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Inet_Udp_Client, set, NULL),
+    Init_Vfunc_Entry(4 , Inet_Udp_Client, get, NULL),
+    Init_Vfunc_Entry(5 , Inet_Udp_Client, bind, NULL),
+    Init_Vfunc_Entry(6 , Inet_Udp_Client, connect, NULL),
+    Init_Vfunc_Entry(7 , Inet_Udp_Client, send, NULL),
+    Init_Vfunc_Entry(8 , Inet_Udp_Client, recv, NULL),
+    Init_Vfunc_Entry(9 , Inet_Udp_Client, trustee, NULL),
+    Init_End___Entry(10),
 };
 REGISTER_CLASS("Inet_Udp_Client", inet_udp_client_class_info);
 

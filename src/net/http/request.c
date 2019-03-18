@@ -175,20 +175,20 @@ int __write(Request *request)
 }
 
 static class_info_entry_t concurent_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_method",__set_method,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_uri",__set_uri,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_http_version",__set_http_version,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_header",__set_header,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","set_body",__set_body,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","set_content_len",__set_content_len,sizeof(void *)},
-    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","set_buffer",__set_buffer,sizeof(void *)},
-    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","write",__write,sizeof(void *)},
-    [13] = {ENTRY_TYPE_END},
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Request, construct, __construct),
+    Init_Nfunc_Entry(2 , Request, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Request, set, NULL),
+    Init_Vfunc_Entry(4 , Request, get, NULL),
+    Init_Vfunc_Entry(5 , Request, set_method, __set_method),
+    Init_Vfunc_Entry(6 , Request, set_uri, __set_uri),
+    Init_Vfunc_Entry(7 , Request, set_http_version, __set_http_version),
+    Init_Vfunc_Entry(8 , Request, set_header, __set_header),
+    Init_Vfunc_Entry(9 , Request, set_body, __set_body),
+    Init_Vfunc_Entry(10, Request, set_content_len, __set_content_len),
+    Init_Vfunc_Entry(11, Request, set_buffer, __set_buffer),
+    Init_Vfunc_Entry(12, Request, write, __write),
+    Init_End___Entry(13),
 };
 REGISTER_CLASS("Request",concurent_class_info);
 

@@ -75,72 +75,6 @@ static int __deconstrcut(List *list)
     return 0;
 }
 
-static int __set(List *m, char *attrib, void *value)
-{
-    Linked_List *list = (Linked_List *)m;
-
-    if (strcmp(attrib, "set") == 0) {
-        list->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        list->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        list->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        list->deconstruct = value;
-    } 
-    else if (strcmp(attrib, "add") == 0) {
-        list->add = value;
-    } else if (strcmp(attrib, "add_front") == 0) {
-        list->add_front = value;
-    } else if (strcmp(attrib, "add_back") == 0) {
-        list->add_back = value;
-    } else if (strcmp(attrib, "remove") == 0) {
-        list->remove = value;
-    } else if (strcmp(attrib, "remove_front") == 0) {
-        list->remove_front = value;
-    } else if (strcmp(attrib, "remove_back") == 0) {
-        list->remove_back = value;
-    } else if (strcmp(attrib, "remove_element") == 0) {
-        list->remove_element = value;
-    } else if (strcmp(attrib, "count") == 0) {
-        list->count = value;
-    } else if (strcmp(attrib, "delete") == 0) {
-        list->delete = value;
-    } else if (strcmp(attrib, "detach_front") == 0) {
-        list->detach_front = value;
-    } else if (strcmp(attrib, "free_detached") == 0) {
-        list->free_detached = value;
-    } else if (strcmp(attrib, "for_each") == 0) {
-        list->for_each = value;
-    } else if (strcmp(attrib, "begin") == 0) {
-        list->begin = value;
-    } else if (strcmp(attrib, "end") == 0) {
-        list->end = value;
-    } else if (strcmp(attrib, "destroy") == 0) {
-        list->destroy = value;
-    }
-    else if (strcmp(attrib, "name") == 0) {
-        strncpy(list->name, value, strlen(value));
-    } else {
-        dbg_str(OBJ_WARNNING, "list set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(List *obj, char *attrib)
-{
-    Linked_List *list = (Linked_List *)obj;
-
-    if (strcmp(attrib, "name") == 0) {
-        return list->name;
-    } else {
-        dbg_str(OBJ_WARNNING, "llist list get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __add(List *list, void *value)
 {
     Linked_List *l = (Linked_List *)list;
@@ -274,25 +208,23 @@ static Iterator *__end(List *list)
 }
 
 static class_info_entry_t llist_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "List", "list", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "add", __add, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "add_front", __add_front, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "add_back", __add_back, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "remove_front", __remove_front, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "remove_back", __remove_back, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "remove_element", __remove_element, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_FUNC_POINTER, "", "count", __count, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_FUNC_POINTER, "", "delete", __delete, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_FUNC_POINTER, "", "detach_front", __detach_front, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_FUNC_POINTER, "", "free_detached", __free_detached, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_FUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_FUNC_POINTER, "", "end", __end, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , List, list),
+    Init_Nfunc_Entry(1 , Linked_List, construct, __construct),
+    Init_Nfunc_Entry(2 , Linked_List, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Linked_List, add, __add),
+    Init_Vfunc_Entry(4 , Linked_List, add_front, __add_front),
+    Init_Vfunc_Entry(5 , Linked_List, add_back, __add_back),
+    Init_Vfunc_Entry(6 , Linked_List, remove, __remove),
+    Init_Vfunc_Entry(7 , Linked_List, remove_front, __remove_front),
+    Init_Vfunc_Entry(8 , Linked_List, remove_back, __remove_back),
+    Init_Vfunc_Entry(9 , Linked_List, remove_element, __remove_element),
+    Init_Vfunc_Entry(10, Linked_List, count, __count),
+    Init_Vfunc_Entry(11, Linked_List, delete, __delete),
+    Init_Vfunc_Entry(12, Linked_List, detach_front, __detach_front),
+    Init_Vfunc_Entry(13, Linked_List, free_detached, __free_detached),
+    Init_Vfunc_Entry(14, Linked_List, begin, __begin),
+    Init_Vfunc_Entry(15, Linked_List, end, __end),
+    Init_End___Entry(16),
 };
 REGISTER_CLASS("Linked_List", llist_class_info);
 

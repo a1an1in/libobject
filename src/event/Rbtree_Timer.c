@@ -232,17 +232,17 @@ event_t * __first(Rbtree_Timer *timer)
 }
 
 static class_info_entry_t rbtree_timer_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Timer", "parent", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "add", __add, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "del", __del, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "timeout_next", __timeout_next, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "first", __first, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Timer, parent),
+    Init_Nfunc_Entry(1 , Rbtree_Timer, construct, __construct),
+    Init_Nfunc_Entry(2 , Rbtree_Timer, deconstruct, __deconstrcut),
+    Init_Nfunc_Entry(3 , Rbtree_Timer, set, NULL),
+    Init_Nfunc_Entry(4 , Rbtree_Timer, get, NULL),
+    Init_Vfunc_Entry(5 , Rbtree_Timer, add, __add),
+    Init_Vfunc_Entry(6 , Rbtree_Timer, del, __del),
+    Init_Vfunc_Entry(7 , Rbtree_Timer, remove, __remove),
+    Init_Vfunc_Entry(8 , Rbtree_Timer, timeout_next, __timeout_next),
+    Init_Vfunc_Entry(9 , Rbtree_Timer, first, __first),
+    Init_End___Entry(10),
 };
 REGISTER_CLASS("Rbtree_Timer", rbtree_timer_class_info);
 

@@ -38,14 +38,12 @@
 #include <libobject/core/stack.h>
 
 static class_info_entry_t stack_class_info[] = {
-    Init__Obj__Entry(0, Obj, obj),
-    Init_Nfunc_Entry(1, Stack, construct, NULL),
-    Init_Nfunc_Entry(2, Stack, deconstruct, NULL),
-    Init_Vfunc_Entry(3, Stack, set, NULL),
-    Init_Vfunc_Entry(4, Stack, get, NULL),
-    Init_Vfunc_Entry(5, Stack, push, NULL),
-    Init_Vfunc_Entry(6, Stack, pop, NULL),
-    Init_Vfunc_Entry(7, Stack, count, NULL),
-    Init__End__Entry(8),
+    Init_Obj___Entry(0, Obj, obj),
+    Init_Vfunc_Entry(1, Stack, set, NULL),
+    Init_Vfunc_Entry(2, Stack, get, NULL),
+    Init_Vfunc_Entry(3, Stack, push, NULL),
+    Init_Vfunc_Entry(4, Stack, pop, NULL),
+    Init_Vfunc_Entry(5, Stack, count, NULL),
+    Init_End___Entry(6),
 };
 REGISTER_CLASS("Stack", stack_class_info);

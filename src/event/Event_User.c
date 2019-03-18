@@ -36,55 +36,11 @@
 #include <libobject/event/event_user.h>
 #include <unistd.h>
 
-static int __construct(Event_User *event_user, char *init_str)
-{
-    dbg_str(EV_DETAIL, "event_user construct, event_user addr:%p", event_user);
-
-    return 0;
-}
-
-static int __deconstrcut(Event_User *event_user)
-{
-    dbg_str(EV_DETAIL, "event_user deconstruct, event_user addr:%p", event_user);
-
-    return 0;
-}
-
-static int __set(Event_User *event_user, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        event_user->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        event_user->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        event_user->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        event_user->deconstruct = value;
-    } 
-    else {
-        dbg_str(EV_DETAIL, "event_user set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Event_User *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING, "event_user get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t event_user_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Event_User, construct, NULL),
+    Init_Nfunc_Entry(2 , Event_User, deconstruct, NULL),
+    Init_End___Entry(3 ),
 };
 REGISTER_CLASS("Event_User", event_user_class_info);
 

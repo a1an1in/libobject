@@ -102,14 +102,14 @@ static void *__get(Inet_Tcp_Server *obj, char *attrib)
 }
 
 static class_info_entry_t concurent_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Server", "parent", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_IFUNC_POINTER, "", "bind", NULL, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_IFUNC_POINTER, "", "trustee", NULL, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Server, parent),
+    Init_Nfunc_Entry(1 , Inet_Tcp_Server, construct, __construct),
+    Init_Nfunc_Entry(2 , Inet_Tcp_Server, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Inet_Tcp_Server, set, NULL),
+    Init_Vfunc_Entry(4 , Inet_Tcp_Server, get, NULL),
+    Init_Vfunc_Entry(5 , Inet_Tcp_Server, bind, NULL),
+    Init_Vfunc_Entry(6 , Inet_Tcp_Server, trustee, NULL),
+    Init_End___Entry(7 ),
 };
 REGISTER_CLASS("Inet_Tcp_Server", concurent_class_info);
 

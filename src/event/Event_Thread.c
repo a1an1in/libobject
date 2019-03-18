@@ -238,19 +238,17 @@ static void *__start_routine(void *arg)
 }
 
 static class_info_entry_t event_thread_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Thread", "parent", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "add_event", __add_event, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "del_event", __del_event, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "start", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_start_routine", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_start_arg", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "start_routine", __start_routine, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach", NULL, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Thread, parent),
+    Init_Nfunc_Entry(1 , Event_Thread, construct, __construct),
+    Init_Nfunc_Entry(2 , Event_Thread, deconstruct, __deconstrcut),
+    Init_Nfunc_Entry(3 , Event_Thread, add_event, __add_event),
+    Init_Nfunc_Entry(4 , Event_Thread, del_event, __del_event),
+    Init_Vfunc_Entry(5 , Event_Thread, start, NULL),
+    Init_Vfunc_Entry(6 , Event_Thread, set_start_routine, NULL),
+    Init_Vfunc_Entry(7 , Event_Thread, set_start_arg, NULL),
+    Init_Vfunc_Entry(8 , Event_Thread, start_routine, __start_routine),
+    Init_Vfunc_Entry(9 , Event_Thread, detach, NULL),
+    Init_End___Entry(10),
 };
 REGISTER_CLASS("Event_Thread",event_thread_class_info);
 

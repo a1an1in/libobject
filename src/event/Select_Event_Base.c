@@ -190,16 +190,14 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
 }
 
 static class_info_entry_t select_base_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Event_Base", "base", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_FUNC_POINTER, "", "trustee_io", __trustee_io, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_FUNC_POINTER, "", "reclaim_io", __reclaim_io, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_FUNC_POINTER, "", "dispatch", __dispatch, sizeof(void *)}, 
-    [8] = {ENTRY_TYPE_IFUNC_POINTER, "", "activate_io", NULL, sizeof(void *)}, 
-    [9] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0, Event_Base, base),
+    Init_Nfunc_Entry(1, Select_Base, construct, __construct),
+    Init_Nfunc_Entry(2, Select_Base, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3, Select_Base, trustee_io, __trustee_io),
+    Init_Vfunc_Entry(4, Select_Base, reclaim_io, __reclaim_io),
+    Init_Vfunc_Entry(5, Select_Base, activate_io, NULL),
+    Init_Vfunc_Entry(6, Select_Base, dispatch, __dispatch),
+    Init_End___Entry(7),
 };
 REGISTER_CLASS("Select_Base", select_base_class_info);
 

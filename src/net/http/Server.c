@@ -91,12 +91,12 @@ static void *__get(Http_Server *obj, char *attrib)
 }
 
 static class_info_entry_t concurent_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstruct,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Http_Server, construct, __construct),
+    Init_Nfunc_Entry(2 , Http_Server, deconstruct, __deconstruct),
+    Init_Vfunc_Entry(3 , Http_Server, set, NULL),
+    Init_Vfunc_Entry(4 , Http_Server, get, NULL),
+    Init_End___Entry(5 ),
 };
 REGISTER_CLASS("Http_Server",concurent_class_info);
 

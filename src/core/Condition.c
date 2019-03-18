@@ -63,44 +63,6 @@ static int __deconstrcut(Condition *condition)
     return ret;
 }
 
-static int __set(Condition *condition, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        condition->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        condition->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        condition->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        condition->deconstruct = value;
-    } else if (strcmp(attrib, "setlock") == 0) {
-        condition->setlock = value;
-    } else if (strcmp(attrib, "wait") == 0) {
-        condition->wait = value;
-    } else if (strcmp(attrib, "signal") == 0) {
-        condition->signal = value;
-    } else if (strcmp(attrib, "broadcast") == 0) {
-        condition->broadcast = value;
-    }
-    else {
-        dbg_str(DBG_DETAIL, "condition set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Condition *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(DBG_WARNNING, 
-                "condition get, \"%s\" getting attrib is not supported", 
-                attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __setlock(Condition *condition, Mutex_Lock *lock)
 {
    
@@ -125,16 +87,14 @@ static int __broadcast(Condition *condition)
 }
 
 static class_info_entry_t condition_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "setlock", __setlock, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "wait", __wait, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "signal", __signal, sizeof(void *)}, 
-    [8] = {ENTRY_TYPE_VFUNC_POINTER, "", "broadcast", __broadcast, sizeof(void *)}, 
-    [9] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0, Obj, obj),
+    Init_Nfunc_Entry(1, Condition, construct, __construct),
+    Init_Nfunc_Entry(2, Condition, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3, Condition, setlock, __setlock),
+    Init_Vfunc_Entry(4, Condition, wait, __wait),
+    Init_Vfunc_Entry(5, Condition, signal, __signal),
+    Init_Vfunc_Entry(6, Condition, broadcast, __broadcast),
+    Init_End___Entry(7),
 };
 REGISTER_CLASS("Condition", condition_class_info);
 

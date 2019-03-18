@@ -33,48 +33,6 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/linkedlist_iterator.h>
 
-static int __set(Iterator *iter, char *attrib, void *value)
-{
-    LList_Iterator *li = (LList_Iterator *)iter;
-
-    if (strcmp(attrib, "set") == 0) {
-        li->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        li->get = value;
-    } else if (strcmp(attrib, "next") == 0) {
-        li->next = value;
-    } else if (strcmp(attrib, "prev") == 0) {
-        li->prev = value;
-    } else if (strcmp(attrib, "equal") == 0) {
-        li->equal = value;
-    } else if (strcmp(attrib, "get_vpointer") == 0) {
-        li->get_vpointer = value;
-    } else if (strcmp(attrib, "is_null") == 0) {
-        li->is_null = value;
-    } else if (strcmp(attrib, "clear") == 0) {
-        li->clear = value;
-    } else if (strcmp(attrib, "name") == 0) {
-        strncpy(li->name, value, strlen(value));
-    } else {
-        dbg_str(OBJ_DETAIL, "li set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Iterator *iter, char *attrib)
-{
-    LList_Iterator *li = (LList_Iterator *)iter;
-
-    if (strcmp(attrib, "name") == 0) {
-        return li->name;
-    } else {
-        dbg_str(OBJ_WARNNING, "iter get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static Iterator *__next(Iterator *it)
 {
     Iterator *next = it;
@@ -126,16 +84,14 @@ static int __clear(Iterator *it)
 }
 
 static class_info_entry_t hmap_iter_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Iterator", "iter", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "next", __next, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "prev", __prev, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_FUNC_POINTER, "", "equal", __equal, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_FUNC_POINTER, "", "get_vpointer", __get_vpointer, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_FUNC_POINTER, "", "is_null", __is_null, sizeof(void *)}, 
-    [8] = {ENTRY_TYPE_FUNC_POINTER, "", "clear", __clear, sizeof(void *)}, 
-    [9] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0, Iterator, iter),
+    Init_Vfunc_Entry(1, LList_Iterator, next, __next),
+    Init_Vfunc_Entry(2, LList_Iterator, prev, __prev),
+    Init_Vfunc_Entry(3, LList_Iterator, equal, __equal),
+    Init_Vfunc_Entry(4, LList_Iterator, get_vpointer, __get_vpointer),
+    Init_Vfunc_Entry(5, LList_Iterator, is_null, __is_null),
+    Init_Vfunc_Entry(6, LList_Iterator, clear, __clear),
+    Init_End___Entry(7),
 };
 REGISTER_CLASS("LList_Iterator", hmap_iter_class_info);
 
