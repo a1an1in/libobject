@@ -2,10 +2,10 @@
 #include <string.h>
 #include <libobject/core/utils/alloc/allocator.h>
 #include <libobject/core/utils/json/cjson.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/dbg/debug.h>
 
-static int str_split(char *str, char *delim, char **out, int *cnt) 
+int str_split(char *str, char *delim, char **out, int *cnt) 
 {
     int index = 0;
     char *ptr = NULL;
@@ -18,7 +18,7 @@ static int str_split(char *str, char *delim, char **out, int *cnt)
     return *cnt = index;
 }
 
-static int compute_slash_count(char *path)
+int compute_slash_count(char *path)
 {
     int i, len = strlen(path), cnt = 0;
 

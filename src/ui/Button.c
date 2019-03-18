@@ -34,6 +34,7 @@
 #include <libobject/ui/sdl_window.h>
 #include <libobject/ui/label.h>
 #include <libobject/core/utils/miscellany/buffer.h>
+#include <libobject/core/config.h>
 
 static int __construct(Button *button, char *init_str)
 {
@@ -202,16 +203,19 @@ static void *new_button(allocator_t *allocator, int x, int y, int width, int hei
 #define MAX_BUFFER_LEN 1024
     Subject *subject;
     char buf[MAX_BUFFER_LEN] = {0};
+    configurator_t * c;
 
-    object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "x", &x);
-    object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "y", &y);
-    object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "width", &width);
-    object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "height", &height);
-    object_config(buf, MAX_BUFFER_LEN, "/Component", OBJECT_STRING, "name", name) ;
+    c = cfg_alloc(allocator); 
+    cfg_config_num(c, "/Subject", "x", x);
+    cfg_config_num(c, "/Subject", "y", y);
+    cfg_config_num(c, "/Subject", "width", width);
+    cfg_config_num(c, "/Subject", "height", height);
+    cfg_config_str(c, "/Component", "name", name);
+    dbg_str(DBG_DETAIL, "config:%s", c->buf);
 
-    dbg_str(DBG_DETAIL, "\n%s", buf);
+    subject = OBJECT_NEW(allocator, Button, c->buf);
 
-    subject = OBJECT_NEW(allocator, Button, buf);
+    cfg_destroy(c);
 
     return subject;
 #undef MAX_BUFFER_LEN

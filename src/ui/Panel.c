@@ -33,6 +33,7 @@
 #include <libobject/ui/panel.h>
 #include <libobject/ui/sdl_window.h>
 #include <libobject/core/utils/miscellany/buffer.h>
+#include <libobject/core/config.h>
 
 static int __construct(Panel *panel, char *init_str)
 {
@@ -131,22 +132,26 @@ void test_ui_panel()
     char *set_str;
     char config[MAX_BUFFER_LEN] = {0};
     Subject *s;
+    configurator_t * c;
     int x = 0, y = 0, width = 400, height = 400;
 
     set_str = gen_window_setting_str();
     window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
 
-    memset(config, 0, MAX_BUFFER_LEN);
-    object_config(config, MAX_BUFFER_LEN, "/Component", OBJECT_STRING, "name", "layout") ;
-    layout  = OBJECT_NEW(allocator, Border_Layout, config);
+    c = cfg_alloc(allocator); 
+    cfg_config_str(c, "/Component", "name", "layout");
+    layout  = OBJECT_NEW(allocator, Border_Layout, c->buf);
+    cfg_destroy(c);
 
-    memset(config, 0, MAX_BUFFER_LEN);
-    object_config(config, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "x", &x);
-    object_config(config, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "y", &y);
-    object_config(config, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "width", &width);
-    object_config(config, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "height", &height);
-    object_config(config, MAX_BUFFER_LEN, "/Component", OBJECT_STRING, "name", "panel") ;
+    c = cfg_alloc(allocator); 
+    cfg_config_num(c, "/Subject", "x", x);
+    cfg_config_num(c, "/Subject", "y", y);
+    cfg_config_num(c, "/Subject", "width", width);
+    cfg_config_num(c, "/Subject", "height", height);
+    cfg_config_str(c, "/Component", "name", "panel");
+    dbg_str(DBG_DETAIL, "config:%s", c->buf);
     panel   = OBJECT_NEW(allocator, Panel, config);
+    cfg_destroy(c);
 
     layout->add_component((Container *)layout, "North", NULL);
     layout->add_component((Container *)layout, "West", NULL);

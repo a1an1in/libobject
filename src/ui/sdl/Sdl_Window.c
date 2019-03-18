@@ -36,7 +36,7 @@
 #include <libobject/ui/sdl_font.h>
 #include <libobject/ui/sdl_event.h>
 #include <libobject/ui/sdl_timer.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 
 static int __construct(Window *window, char *init_str)
 {

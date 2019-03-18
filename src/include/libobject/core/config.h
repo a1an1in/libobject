@@ -15,5 +15,7 @@ int cfg_config(configurator_t * c, const char *path, int type, const char *name,
 int cfg_config_str(configurator_t * c, const char *path, const char *name, void *value); 
 int cfg_config_num(configurator_t * c, const char *path, const char *name, int value);
 int cfg_destroy(configurator_t * c);
+int str_split(char *str, char *delim, char **out, int *cnt);
+int compute_slash_count(char *path);
 #endif
 

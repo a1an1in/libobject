@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/hash_map.h>
 #include <libobject/core/utils/registry/registry.h>
 
@@ -344,6 +344,7 @@ static int test_Hash_Map_set(TEST_ENTRY *entry)
     Map *map;
     allocator_t *allocator = allocator_get_default_alloc();
     int ret = 0;
+    char buf[2048] = {0};
 
     map  = OBJECT_NEW(allocator, Hash_Map, NULL);
 
@@ -358,6 +359,8 @@ static int test_Hash_Map_set(TEST_ENTRY *entry)
     if (*addr == 0x12345678) {
         ret = 1;
     }
+    object_dump(map, "Hash_Map", buf, 2048);
+    dbg_str(DBG_DETAIL, "Map dump: %s", buf);
 
     object_destroy(map);
 

@@ -90,34 +90,3 @@ static class_info_entry_t system_class_info[] = {
 
 };
 REGISTER_CLASS("System",system_class_info);
-
-void test_obj_system()
-{
-#define MAX_BUFFER_LEN 1024
-    System *system;
-    allocator_t *allocator = allocator_get_default_alloc();
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-    int alloc_count_be, alloc_count_end;
-
-    dbg_str(DBG_DETAIL,"test_obj_system");
-    alloc_count_be = allocator->alloc_count;
-
-    char config[MAX_BUFFER_LEN] = {0};
-
-    object_config(config, MAX_BUFFER_LEN, "/System", OBJECT_STRING, "name", "alan") ;
-    system  = OBJECT_NEW(allocator, System,config);
-
-    object_dump(system, "System", buf, 2048);
-    dbg_str(DBG_DETAIL,"System dump: %s",buf);
-
-    object_destroy(system);
-
-    alloc_count_end = allocator->alloc_count;
-    if (alloc_count_be != alloc_count_end) {
-        dbg_str(DBG_WARNNING, "there's mem leak in test_obj_system test");
-    }
-
-#undef MAX_BUFFER_LEN
-}

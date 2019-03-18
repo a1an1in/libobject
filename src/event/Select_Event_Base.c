@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/event/select_base.h>
 
 static int __construct(Select_Base *eb, char *init_str)
