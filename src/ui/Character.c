@@ -86,16 +86,15 @@ static int __assign(Character *character, uint32_t code)
 }
 
 static class_info_entry_t character_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_FUNC_POINTER, "", "assign", __assign, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_character", NULL, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_UINT32_T, "", "code", NULL, sizeof(void *)}, 
-    [8] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Character, construct, __construct),
+    Init_Nfunc_Entry(2 , Character, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Character, set, NULL),
+    Init_Vfunc_Entry(4 , Character, get, NULL),
+    Init_Vfunc_Entry(5 , Character, assign, __assign),
+    Init_Vfunc_Entry(6 , Character, load_character, NULL),
+    Init_U32___Entry(7 , Character, code, NULL),
+    Init_End___Entry(8 ),
 };
 REGISTER_CLASS("Character", character_class_info);
 

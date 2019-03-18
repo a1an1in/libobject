@@ -99,40 +99,6 @@ static int __deconstrcut(Subscriber *subscriber)
     return 0;
 }
 
-static int __set(Subscriber *subscriber, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        subscriber->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        subscriber->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        subscriber->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        subscriber->deconstruct = value;
-    } else if (strcmp(attrib, "connect_centor") == 0) {
-        subscriber->connect_centor = value;
-    } else if (strcmp(attrib, "subscribe") == 0) {
-        subscriber->subscribe = value;
-    } else if (strcmp(attrib, "add_method") == 0) {
-        subscriber->add_method = value;
-    } 
-    else {
-        dbg_str(EV_DETAIL, "subscriber set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Subscriber *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING, "subscriber get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __connect_centor(Subscriber *subscriber, void *centor)
 {
     dbg_str(DBG_DETAIL, "subscriber connect centor");
@@ -175,15 +141,15 @@ __add_method(Subscriber *subscriber,char *method_name,
 }
 
 static class_info_entry_t concurent_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "connect_centor", __connect_centor, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "subscribe", __subscribe, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_method", __add_method, sizeof(void *)}, 
-    [8] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Subscriber, construct, __construct),
+    Init_Nfunc_Entry(2 , Subscriber, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Subscriber, set, NULL),
+    Init_Vfunc_Entry(4 , Subscriber, get, NULL),
+    Init_Vfunc_Entry(5 , Subscriber, subscribe, __subscribe),
+    Init_Vfunc_Entry(6 , Subscriber, add_method, __add_method),
+    Init_Vfunc_Entry(7 , Subscriber, connect_centor, __connect_centor),
+    Init_End___Entry(8 ),
 };
 REGISTER_CLASS("Subscriber", concurent_class_info);
 

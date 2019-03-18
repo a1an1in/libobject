@@ -236,18 +236,17 @@ end:
 }
 
 static class_info_entry_t label_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_resources", __load_resources, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "unload_resources", __unload_resources, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [9 ] = {ENTRY_TYPE_INT8_T, "char", "text_overflow_flag", NULL, 0}, 
-    [10] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Label, construct, __construct),
+    Init_Nfunc_Entry(2 , Label, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Label, set, NULL),
+    Init_Vfunc_Entry(4 , Label, get, NULL),
+    Init_Vfunc_Entry(5 , Label, load_resources, __load_resources),
+    Init_Vfunc_Entry(6 , Label, unload_resources, __unload_resources),
+    Init_Vfunc_Entry(7 , Label, draw, __draw),
+    Init_Str___Entry(8 , Label, name, NULL),
+    Init_U8____Entry(9 , Label, text_overflow_flag, NULL),
+    Init_End___Entry(10),
 };
 REGISTER_CLASS("Label", label_class_info);
 

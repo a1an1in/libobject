@@ -179,22 +179,21 @@ static void __on_mouse_exited(Component *component, void *event, void *window)
 }
 
 static class_info_entry_t button_class_info[] = {
-	[0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-	[1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-	[2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-	[3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-	[4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-	[5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "move", NULL, sizeof(void *)}, 
-	[6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_pressed", __on_mouse_pressed, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_released", __on_mouse_released, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_entered", __on_mouse_entered, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_exited", __on_mouse_exited, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_moved", __on_mouse_moved, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_IFUNC_POINTER, "", "add_event_listener", NULL, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_IFUNC_POINTER, "", "add_event_listener_cb", NULL, sizeof(void *)}, 
-	[14] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Button, construct, __construct),
+    Init_Nfunc_Entry(2 , Button, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Button, set, NULL),
+    Init_Vfunc_Entry(4 , Button, get, NULL),
+    Init_Vfunc_Entry(5 , Button, move, NULL),
+    Init_Vfunc_Entry(6 , Button, draw, __draw),
+    Init_Vfunc_Entry(7 , Button, on_mouse_pressed, __on_mouse_pressed),
+    Init_Vfunc_Entry(8 , Button, on_mouse_released, __on_mouse_released),
+    Init_Vfunc_Entry(9 , Button, on_mouse_entered, __on_mouse_entered),
+    Init_Vfunc_Entry(10, Button, on_mouse_exited, __on_mouse_exited),
+    Init_Vfunc_Entry(11, Button, on_mouse_moved, __on_mouse_moved),
+    Init_Vfunc_Entry(12, Button, add_event_listener, NULL),
+    Init_Vfunc_Entry(13, Button, add_event_listener_cb, NULL),
+    Init_End___Entry(14),
 };
 REGISTER_CLASS("Button", button_class_info);
 

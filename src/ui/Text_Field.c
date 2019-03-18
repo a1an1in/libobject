@@ -539,20 +539,19 @@ static int __on_key_right_pressed(Component *component, void *render)
 }
 
 static class_info_entry_t text_field_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_resources", __load_resources, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_text_pressed", __on_key_text_pressed, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_backspace_pressed", __on_key_backspace_pressed, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_left_pressed", __on_key_left_pressed, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_right_pressed", __on_key_right_pressed, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [12] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Text_Field, construct, __construct),
+    Init_Nfunc_Entry(2 , Text_Field, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Text_Field, set, NULL),
+    Init_Vfunc_Entry(4 , Text_Field, get, NULL),
+    Init_Vfunc_Entry(5 , Text_Field, draw, __draw),
+    Init_Vfunc_Entry(6 , Text_Field, load_resources, __load_resources),
+    Init_Vfunc_Entry(7 , Text_Field, on_key_text_pressed, __on_key_text_pressed),
+    Init_Vfunc_Entry(8 , Text_Field, on_key_backspace_pressed, __on_key_backspace_pressed),
+    Init_Vfunc_Entry(9 , Text_Field, on_key_left_pressed, __on_key_left_pressed),
+    Init_Vfunc_Entry(10, Text_Field, on_key_right_pressed, __on_key_right_pressed),
+    Init_Str___Entry(11, Text_Field, name, NULL),
+    Init_End___Entry(12),
 };
 REGISTER_CLASS("Text_Field", text_field_class_info);
 

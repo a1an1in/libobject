@@ -295,20 +295,19 @@ static int __draw(Component *component, void *render)
 }
 
 static class_info_entry_t grid_layout_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "add_component", __add_component, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [8 ] = {ENTRY_TYPE_INT32_T, "int", "row_max", NULL, sizeof(int)}, 
-    [9 ] = {ENTRY_TYPE_INT32_T, "int", "col_max", NULL, sizeof(int)}, 
-    [10] = {ENTRY_TYPE_INT32_T, "int", "hgap", NULL, sizeof(int)}, 
-    [11] = {ENTRY_TYPE_INT32_T, "int", "vgap", NULL, sizeof(int)}, 
-    [12] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Grid_Layout, construct, __construct),
+    Init_Nfunc_Entry(2 , Grid_Layout, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Grid_Layout, set, NULL),
+    Init_Vfunc_Entry(4 , Grid_Layout, get, NULL),
+    Init_Vfunc_Entry(5 , Grid_Layout, add_component, __add_component),
+    Init_Vfunc_Entry(6 , Grid_Layout, draw, __draw),
+    Init_Str___Entry(7 , Grid_Layout, name, NULL),
+    Init_U32___Entry(8 , Grid_Layout, hgap, NULL),
+    Init_U32___Entry(9 , Grid_Layout, vgap, NULL),
+    Init_U32___Entry(10, Grid_Layout, row_max, NULL),
+    Init_U32___Entry(11, Grid_Layout, col_max, NULL),
+    Init_End___Entry(12),
 };
 REGISTER_CLASS("Grid_Layout", grid_layout_class_info);
 

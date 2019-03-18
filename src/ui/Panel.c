@@ -111,13 +111,13 @@ static int __draw(Component *component, void *graph)
 }
 
 static class_info_entry_t panel_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-	[5] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Panel, construct, __construct),
+    Init_Nfunc_Entry(2 , Panel, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Panel, set, NULL),
+    Init_Vfunc_Entry(4 , Panel, get, NULL),
+    Init_Vfunc_Entry(5 , Panel, draw, __draw),
+    Init_End___Entry(6 ),
 };
 REGISTER_CLASS("Panel", panel_class_info);
 

@@ -77,13 +77,12 @@ static void *__get(Menu *obj, char *attrib)
 }
 
 static class_info_entry_t menu_class_info[] = {
-	[0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-	[1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-	[2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-	[3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-	[4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-	[5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", NULL, sizeof(void *)}, 
-	[6 ] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Menu, construct, __construct),
+    Init_Nfunc_Entry(2 , Menu, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Menu, set, NULL),
+    Init_Vfunc_Entry(4 , Menu, get, NULL),
+    Init_Vfunc_Entry(5 , Menu, draw, NULL),
+    Init_End___Entry(6 ),
 };
 REGISTER_CLASS("Menu", menu_class_info);

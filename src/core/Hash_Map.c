@@ -161,7 +161,8 @@ static class_info_entry_t hash_map_class_info[] = {
     Init_U16___Entry(11, Hash_Map, value_size, NULL),
     Init_U16___Entry(12, Hash_Map, bucket_size, NULL),
     Init_U8____Entry(13, Hash_Map, key_type, NULL),
-    Init_End___Entry(14),
+    Init_Point_Entry(14, Hash_Map, test, NULL),
+    Init_End___Entry(15),
 };
 REGISTER_CLASS("Hash_Map", hash_map_class_info);
 
@@ -288,6 +289,10 @@ static int test_obj_hash_map_numeric_key(TEST_ENTRY *entry)
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_type", "1");
 
+    /*
+     *dbg_str(DBG_SUC, "config:%s", c->buf);
+     */
+
     map  = OBJECT_NEW(allocator, Hash_Map, c->buf);
 
     /*
@@ -333,3 +338,30 @@ static int test_obj_hash_map_numeric_key(TEST_ENTRY *entry)
 
 }
 REGISTER_TEST_FUNC(test_obj_hash_map_numeric_key);
+
+static int test_Hash_Map_set(TEST_ENTRY *entry)
+{
+    Map *map;
+    allocator_t *allocator = allocator_get_default_alloc();
+    int ret = 0;
+
+    map  = OBJECT_NEW(allocator, Hash_Map, NULL);
+
+    /*
+     *map->set_target_name(map, "Has_Map");
+     */
+    map->set(map, "Hash_Map/test", 0x12345678);
+
+    void **addr = map->get(map, "Hash_Map/test");
+    dbg_str(DBG_ERROR, "test addr:%p", *addr);
+
+    if (*addr == 0x12345678) {
+        ret = 1;
+    }
+
+    object_destroy(map);
+
+    return ret;
+
+}
+REGISTER_TEST_FUNC(test_Hash_Map_set);

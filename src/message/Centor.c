@@ -167,41 +167,13 @@ static int __deconstrcut(Centor *centor)
     return 0;
 }
 
-static int __set(Centor *centor, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        centor->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        centor->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        centor->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        centor->deconstruct = value;
-    } 
-    else {
-        dbg_str(DBG_DETAIL, "centor set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Centor *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(DBG_WARNNING, "centor get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t concurent_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Centor, construct, __construct),
+    Init_Nfunc_Entry(2 , Centor, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Centor, set, NULL),
+    Init_Vfunc_Entry(4 , Centor, get, NULL),
+    Init_End___Entry(5 ),
 };
 REGISTER_CLASS("Centor", concurent_class_info);
 

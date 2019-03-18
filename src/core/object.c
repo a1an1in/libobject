@@ -472,6 +472,7 @@ static int __object_set(void *obj,
     void *class_info_addr;
     cjson_t *next;
     cjson_t *object;
+    Obj *o = (Obj *)obj;
     int (*sub_set)(void *obj, char *attrib, void *value); 
 
     while (c) {
@@ -482,6 +483,7 @@ static int __object_set(void *obj,
                 deamon          = class_deamon_get_global_class_deamon();
                 class_info_addr = class_deamon_search_class(deamon, object->string);
                 sub_set         = __object_get_func_recursively(class_info_addr, "set");
+                strcpy(o->target_name, object->string);
             }
 
             if (c->child) {
@@ -492,6 +494,7 @@ static int __object_set(void *obj,
                 /*
                  *dbg_str(OBJ_DETAIL, "object name %s, set %s", object->string, c->string);
                  */
+
                 if (c->type & CJSON_NUMBER) {
                     set(obj, c->string, &(c->valueint));
                     /*

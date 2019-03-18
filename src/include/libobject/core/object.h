@@ -22,6 +22,8 @@ int object_destroy(void *obj);
 int object_config(char *config, int len, char *path, int type, char *name, void *value);
 class_info_entry_t *
 __object_get_entry_of_class(void *class_info, char *entry_name);
+int str_split(char *str, char *delim, char **out, int *cnt);
+int compute_slash_count(char *path);
 
 #define OBJECT_ALLOC(alloc, type) \
 ({\

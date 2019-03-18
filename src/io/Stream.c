@@ -69,11 +69,11 @@ static void *__get(Stream *obj, char *attrib)
 }
 
 static class_info_entry_t stream_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_VFUNC_POINTER,"","read", NULL,sizeof(void *)},
-    [4] = {ENTRY_TYPE_VFUNC_POINTER,"","write", NULL,sizeof(void *)},
-    [5] = {ENTRY_TYPE_END},
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Vfunc_Entry(1 , Stream, set, NULL),
+    Init_Vfunc_Entry(2 , Stream, get, NULL),
+    Init_Vfunc_Entry(3 , Stream, read, NULL),
+    Init_Vfunc_Entry(4 , Stream, write, NULL),
+    Init_End___Entry(5 ),
 };
 REGISTER_CLASS("Stream",stream_class_info);

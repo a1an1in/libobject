@@ -84,12 +84,12 @@ static void *__get(File *obj, char *attrib)
 }
 
 static class_info_entry_t file_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_END},
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , File, construct, __construct),
+    Init_Nfunc_Entry(2 , File, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , File, set, NULL),
+    Init_Vfunc_Entry(4 , File, get, NULL),
+    Init_End___Entry(5 ),
 };
 REGISTER_CLASS("File",file_class_info);
 

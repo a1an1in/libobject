@@ -520,19 +520,18 @@ int __get_line_count(Text *text)
 }
 
 static class_info_entry_t text_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "write_text", __write_text, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "write_char", __write_char, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "delete_char", __delete_char, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get_line_count", __get_line_count, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get_text_line_info", __get_text_line_info, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_NORMAL_POINTER, "", "List", NULL, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Text, construct, __construct),
+    Init_Nfunc_Entry(2 , Text, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Text, set, NULL),
+    Init_Vfunc_Entry(4 , Text, get, NULL),
+    Init_Vfunc_Entry(5 , Text, write_text, __write_text),
+    Init_Vfunc_Entry(6 , Text, write_char, __write_char),
+    Init_Vfunc_Entry(7 , Text, delete_char, __delete_char),
+    Init_Vfunc_Entry(8 , Text, get_line_count, __get_line_count),
+    Init_Vfunc_Entry(9 , Text, get_text_line_info, __get_text_line_info),
+    Init_Point_Entry(10, Text, line_info, NULL),
+    Init_End___Entry(11),
 };
 REGISTER_CLASS("Text", text_class_info);
 

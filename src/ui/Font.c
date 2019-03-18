@@ -95,20 +95,18 @@ static void * __get(Font *font, char *attrib)
 }
 
 static class_info_entry_t font_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_font", NULL, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "unload_font", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_ascii_character", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "unload_ascii_character", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_character_width", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_character_height", NULL, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_NORMAL_POINTER, "", "String", NULL, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Font, construct, __construct),
+    Init_Nfunc_Entry(2 , Font, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Font, set, NULL),
+    Init_Vfunc_Entry(4 , Font, get, NULL),
+    Init_Vfunc_Entry(5 , Font, load_font, NULL),
+    Init_Vfunc_Entry(6 , Font, unload_font, NULL),
+    Init_Vfunc_Entry(7 , Font, load_ascii_character, NULL),
+    Init_Vfunc_Entry(8 , Font, unload_ascii_character, NULL),
+    Init_Vfunc_Entry(9 , Font, get_character_width, NULL),
+    Init_Vfunc_Entry(10, Font, get_character_height, NULL),
+    Init_End___Entry(11),
 };
 REGISTER_CLASS("Font", font_class_info);
 

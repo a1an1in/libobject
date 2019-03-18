@@ -263,18 +263,18 @@ end:
 }
 
 static class_info_entry_t buffer_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Stream","parent",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","read", __read,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","write", __write,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","printf", __printf,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","memcopy", __memcpy,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER,"","get_len", __get_len,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","set_size", __set_size,sizeof(void *)},
-    [11] = {ENTRY_TYPE_END},
+    Init_Obj___Entry(0 , Stream, parent),
+    Init_Nfunc_Entry(1 , Buffer, construct, __construct),
+    Init_Nfunc_Entry(2 , Buffer, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Buffer, set, NULL),
+    Init_Vfunc_Entry(4 , Buffer, get, NULL),
+    Init_Vfunc_Entry(5 , Buffer, read, __read),
+    Init_Vfunc_Entry(6 , Buffer, write, __write),
+    Init_Vfunc_Entry(7 , Buffer, printf, __printf),
+    Init_Vfunc_Entry(8 , Buffer, memcopy, __memcpy),
+    Init_Vfunc_Entry(9 , Buffer, get_len, __get_len),
+    Init_Vfunc_Entry(10, Buffer, set_size, __set_size),
+    Init_End___Entry(11),
 };
 REGISTER_CLASS("Buffer",buffer_class_info);
 

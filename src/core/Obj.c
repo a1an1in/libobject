@@ -48,17 +48,54 @@ static int __deconstrcut(Obj *obj)
     return 0;
 }
 
+/**
+ * @Synopsis  
+ *
+ * @Param obj
+ * @Param attrib
+ *        if you want call this func, must designate class name in the attrib, like the format:"ClassName/attrib_name", or call set_target_name(ClassName) to tell the object which class's attrib you want to set.
+ * @Param value
+ *
+ * @Returns   
+ */
 static int __set(Obj *obj, char *attrib, void *value)
 {
     class_info_entry_t * info, *entry;
     class_deamon_t *deamon;
+    allocator_t *allocator = obj->allocator;
     uint8_t *base = (uint8_t *)obj;
     int ret = 0;
+    char *buf = NULL;  
+    char **out = NULL;  
+    int cnt;
+    char *target_name;
+
+    cnt = compute_slash_count(attrib);
+    if (cnt > 0 ) {
+        out = allocator_mem_alloc(allocator, sizeof(char *) * cnt);
+        if (out == NULL) {
+            dbg_str(OBJ_WARNNING, "Obj set alloc err");
+            return -1;
+        }
+        buf = allocator_mem_alloc(allocator, strlen(attrib));
+        if (buf == NULL) {
+            dbg_str(OBJ_WARNNING, "oss set alloc err");
+            return -1;
+        }
+        strcpy(buf, attrib);
+        str_split(buf, "/", out, &cnt);
+
+        dbg_str(DBG_WARNNING, "set class name:%s", out[cnt - 2]);
+        target_name = out[cnt - 2];
+        attrib = out[cnt - 1];
+    } else {
+        target_name = obj->target_name;
+    }
 
     deamon = class_deamon_get_global_class_deamon();
     info   = (class_info_entry_t *)
               class_deamon_search_class(deamon,
-                                        obj->target_name);
+                                        target_name);
 
     entry  = __object_get_entry_of_class(info, attrib);
     if (entry == NULL) {
@@ -120,20 +157,62 @@ static int __set(Obj *obj, char *attrib, void *value)
             break;
     }
 
+    if (out != NULL)
+        allocator_mem_free(allocator, out);
+    if (buf != NULL)
+        allocator_mem_free(allocator, buf);
+
     return ret;
 }
 
+/**
+ * @Synopsis  
+ *
+ * @Param obj
+ * @Param attrib
+ *        if you want call this func, must designate class name in the attrib, like the format:"ClassName/attrib_name", or call set_target_name(ClassName) to tell the object which class's attrib you want to get.
+ * @Param value
+ *
+ * @Returns   
+ */
 static void *__get(Obj *obj, char *attrib)
 {
     class_info_entry_t * info, *entry;
     class_deamon_t *deamon;
     uint8_t *base = (uint8_t *)obj;
+    allocator_t *allocator = obj->allocator;
     void *addr;
+    char *buf = NULL;  
+    char **out = NULL;  
+    int cnt;
+    char *target_name;
+
+    cnt = compute_slash_count(attrib);
+    if (cnt > 0 ) {
+        out = allocator_mem_alloc(allocator, sizeof(char *) * cnt);
+        if (out == NULL) {
+            dbg_str(OBJ_WARNNING, "Obj set alloc err");
+            return -1;
+        }
+        buf = allocator_mem_alloc(allocator, strlen(attrib));
+        if (buf == NULL) {
+            dbg_str(OBJ_WARNNING, "oss set alloc err");
+            return -1;
+        }
+        strcpy(buf, attrib);
+        str_split(buf, "/", out, &cnt);
+
+        dbg_str(DBG_WARNNING, "set class name:%s", out[cnt - 2]);
+        target_name = out[cnt - 2];
+        attrib = out[cnt - 1];
+    } else {
+        target_name = obj->target_name;
+    }
 
     deamon = class_deamon_get_global_class_deamon();
     info   = (class_info_entry_t *)
               class_deamon_search_class(deamon,
-                                        obj->target_name);
+                                        target_name);
 
     entry  = __object_get_entry_of_class(info, attrib);
     if (entry == NULL) {
@@ -192,7 +271,16 @@ static void *__get(Obj *obj, char *attrib)
             break;
     }
 
+    if (out != NULL)
+        allocator_mem_free(allocator, out);
+    if (buf != NULL)
+        allocator_mem_free(allocator, buf);
     return addr;
+}
+
+static int __set_target_name(Obj *obj, char *name)
+{
+    return strcpy(obj->target_name, name);
 }
 
 static class_info_entry_t obj_class_info[] = {
@@ -201,8 +289,9 @@ static class_info_entry_t obj_class_info[] = {
     [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *), offset_of_class(Obj, get)}, 
     [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *), offset_of_class(Obj, construct)}, 
     [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *), offset_of_class(Obj, deconstruct)}, 
-    [5] = {ENTRY_TYPE_STRING, "", "name", NULL, sizeof(void *), offset_of_class(Obj, name)}, 
-    [6] = {ENTRY_TYPE_END}, 
+    [5] = {ENTRY_TYPE_FUNC_POINTER, "", "set_target_name", __set_target_name, sizeof(void *), offset_of_class(Obj, deconstruct)}, 
+    [6] = {ENTRY_TYPE_STRING, "", "name", NULL, sizeof(void *), offset_of_class(Obj, name)}, 
+    [7] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Obj", obj_class_info);
 
