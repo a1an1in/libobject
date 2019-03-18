@@ -37,16 +37,15 @@
 #include <libobject/event/event_base.h>
 #include <libobject/core/stack.h>
 
-
 static class_info_entry_t stack_class_info[] = {
-    INIT_OBJ_ENTRY(0, Obj, obj),
-    INIT_NFUNC_ENTRY(1, Stack, construct, NULL),
-    INIT_NFUNC_ENTRY(2, Stack, deconstruct, NULL),
-    INIT_IFUNC_ENTRY(3, Stack, set, NULL),
-    INIT_IFUNC_ENTRY(4, Stack, get, NULL),
-    INIT_VFUNC_ENTRY(5, Stack, push, NULL),
-    INIT_VFUNC_ENTRY(6, Stack, pop, NULL),
-    INIT_VFUNC_ENTRY(7, Stack, count, NULL),
-    INIT_END_ENTRY(8),
+    Init__Obj__Entry(0, Obj, obj),
+    Init_Nfunc_Entry(1, Stack, construct, NULL),
+    Init_Nfunc_Entry(2, Stack, deconstruct, NULL),
+    Init_Vfunc_Entry(3, Stack, set, NULL),
+    Init_Vfunc_Entry(4, Stack, get, NULL),
+    Init_Vfunc_Entry(5, Stack, push, NULL),
+    Init_Vfunc_Entry(6, Stack, pop, NULL),
+    Init_Vfunc_Entry(7, Stack, count, NULL),
+    Init__End__Entry(8),
 };
 REGISTER_CLASS("Stack", stack_class_info);

@@ -84,15 +84,15 @@ static int __count(Stack *stack)
 }
 
 static class_info_entry_t array_stack_class_info[] = {
-    INIT_OBJ_ENTRY(0, Stack, parent),
-    INIT_NFUNC_ENTRY(1, Array_Stack, construct, __construct),
-    INIT_NFUNC_ENTRY(2, Array_Stack, deconstruct, __deconstrcut),
-    INIT_IFUNC_ENTRY(3, Array_Stack, set, NULL),
-    INIT_IFUNC_ENTRY(4, Array_Stack, get, NULL),
-    INIT_VFUNC_ENTRY(5, Array_Stack, push, __push),
-    INIT_VFUNC_ENTRY(6, Array_Stack, pop, __pop),
-    INIT_VFUNC_ENTRY(7, Array_Stack, count, __count),
-    INIT_END_ENTRY(8),
+    Init__Obj__Entry(0, Stack, parent),
+    Init_Nfunc_Entry(1, Array_Stack, construct, __construct),
+    Init_Nfunc_Entry(2, Array_Stack, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3, Array_Stack, set, NULL),
+    Init_Vfunc_Entry(4, Array_Stack, get, NULL),
+    Init_Vfunc_Entry(5, Array_Stack, push, __push),
+    Init_Vfunc_Entry(6, Array_Stack, pop, __pop),
+    Init_Vfunc_Entry(7, Array_Stack, count, __count),
+    Init__End__Entry(8),
 };
 REGISTER_CLASS("Array_Stack", array_stack_class_info);
 
