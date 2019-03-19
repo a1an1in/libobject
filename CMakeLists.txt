@@ -13,7 +13,7 @@ config_platform()
 set (LIBOBJECT_VERSION_MAJOR 1)
 set (LIBOBJECT_VERSION_MINOR 2)
 set (LIBOBJECT_VERSION_MAINTENANCE 3)
-set (LIBOBJECT_VERSION_BUILD 7)
+set (LIBOBJECT_VERSION_BUILD 8)
 
 configure_file (
     "${PROJECT_SOURCE_DIR}/src/include/libobject/version.h.in"
