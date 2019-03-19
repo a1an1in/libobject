@@ -276,44 +276,6 @@ static int __deconstrcut(Text *text)
     return 0;
 }
 
-static int __set(Text *text, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        text->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        text->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        text->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        text->deconstruct = value;
-    } else if (strcmp(attrib, "write_text") == 0) {
-        text->write_text = value;
-    } else if (strcmp(attrib, "write_char") == 0) {
-        text->write_char = value;
-    } else if (strcmp(attrib, "delete_char") == 0) {
-        text->delete_char = value;
-    } else if (strcmp(attrib, "get_line_count") == 0) {
-        text->get_line_count = value;
-    } else if (strcmp(attrib, "get_text_line_info") == 0) {
-        text->get_text_line_info = value;
-    }
-    else {
-        dbg_str(OBJ_WARNNING, "text set,  \"%s\" setting is not support", attrib);
-    }
-
-    return 0;
-}
-
-static void * __get(Text *text, char *attrib)
-{
-    if (strcmp(attrib, "") == 0){ 
-    } else {
-        dbg_str(OBJ_WARNNING, "text get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 /**
  * @synopsis __write_text 
  *

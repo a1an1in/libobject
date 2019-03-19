@@ -59,44 +59,6 @@ static int __deconstrcut(Select_Base *eb)
     return 0;
 }
 
-static int __set(Select_Base *eb, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        eb->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        eb->get = value;
-    } 
-    else if (strcmp(attrib, "construct") == 0) {
-        eb->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        eb->deconstruct = value;
-    } else if (strcmp(attrib, "trustee_io") == 0) {
-        eb->trustee_io = value;
-    } else if (strcmp(attrib, "reclaim_io") == 0) {
-        eb->reclaim_io = value;
-    } else if (strcmp(attrib, "dispatch") == 0) {
-        eb->dispatch = value;
-    } 
-    else if (strcmp(attrib, "activate_io") == 0) {
-        eb->activate_io = value;
-    }
-    else {
-        dbg_str(OBJ_DETAIL, "eb set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Select_Base *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(OBJ_WARNNING, "eb get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __trustee_io(Select_Base *b, event_t *e)
 {
     int fd = e->ev_fd;

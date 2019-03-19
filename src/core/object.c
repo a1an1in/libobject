@@ -383,6 +383,7 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
     if (entry_of_parent_class != NULL) {
         __object_inherit_funcs(obj, class_info);
     }
+
     __object_override_vitual_funcs(obj, cur_type_name, type_name);
 
 
@@ -416,7 +417,9 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
     Obj *o = (Obj *)obj;
 
     deamon = class_deamon_get_global_class_deamon();
-    entry  = (class_info_entry_t *)class_deamon_search_class(deamon, (char *)type_name);
+    entry  = (class_info_entry_t *)
+             class_deamon_search_class(deamon,
+                                       (char *)type_name);
 
     get = __object_get_func_recursively(entry, (char *)"get");
 
@@ -506,9 +509,9 @@ int __object_destroy(void *obj, char *type_name)
     class_info_entry_t * entry_of_parent_class;
     int (*deconstruct)(void *obj);
 
-    deamon                = class_deamon_get_global_class_deamon();
-    class_info            = class_deamon_search_class(deamon, (char *)type_name);
-    deconstruct           = __object_get_normal_func_of_class(class_info, "deconstruct");
+    deamon      = class_deamon_get_global_class_deamon();
+    class_info  = class_deamon_search_class(deamon, (char *)type_name);
+    deconstruct = __object_get_normal_func_of_class(class_info, "deconstruct");
     entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
 
     if (deconstruct != NULL) 

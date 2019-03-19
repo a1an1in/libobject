@@ -50,41 +50,6 @@ static int __deconstrcut(Panel *panel)
     return 0;
 }
 
-static int __set(Panel *panel, char *attrib, void *value)
-{
-    /*normal methods*/
-    if (strcmp(attrib, "set") == 0) {
-        panel->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        panel->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        panel->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        panel->deconstruct = value;
-    } 
-    /*vitual methods*/
-    else if (strcmp(attrib, "draw") == 0) {
-        panel->draw = value;
-    }
-    /*inherited methods*/
-    /*attribs*/
-    else {
-        dbg_str(DBG_DETAIL, "panel set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Panel *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(DBG_WARNNING, "panel get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static void draw_subcomponent_foreach_cb(void *key, void *element, void *arg) 
 {
     Component *component;

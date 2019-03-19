@@ -50,53 +50,6 @@ static int __deconstrcut(Audio *audio)
     return 0;
 }
 
-static int __set(Audio *audio, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        audio->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        audio->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        audio->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        audio->deconstruct = value;
-    } else if (strcmp(attrib, "set_freq") == 0) {
-        audio->set_freq = value;
-    } else if (strcmp(attrib, "set_format") == 0) {
-        audio->set_format = value;
-    } else if (strcmp(attrib, "set_channels") == 0) {
-        audio->set_channels = value;
-    } else if (strcmp(attrib, "set_buffer_size") == 0) {
-        audio->set_buffer_size = value;
-    } else if (strcmp(attrib, "set_callback") == 0) {
-        audio->set_callback = value;
-    } else if (strcmp(attrib, "set_callback_opaque") == 0) {
-        audio->set_callback_opaque = value;
-    } else if (strcmp(attrib, "init") == 0) {
-        audio->init = value;
-    } else if (strcmp(attrib, "play") == 0) {
-        audio->play = value;
-    } else if (strcmp(attrib, "pause") == 0) {
-        audio->pause = value;
-    } else if (strcmp(attrib, "close") == 0) {
-        audio->close = value;
-    } else {
-        dbg_str(OBJ_WARNNING, "audio set,  \"%s\" setting is not support", attrib);
-    }
-
-    return 0;
-}
-
-static void * __get(Audio *audio, char *attrib)
-{
-    if (strcmp(attrib, "x") == 0){ 
-    } else {
-        dbg_str(OBJ_WARNNING, "audio get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __set_freq(Audio *audio, int freq)
 {
     dbg_str(DBG_DETAIL, "set_freq=%d", freq);

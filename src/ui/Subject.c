@@ -77,68 +77,6 @@ static int __is_touching(Subject *me, Subject *subject)
     dbg_str(OBJ_DETAIL, "__is_touching");
 }
 
-static int __set(Subject *subject, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        subject->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        subject->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        subject->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        subject->deconstruct = value;
-    } else if (strcmp(attrib, "move") == 0) {
-        subject->move = value;
-    } else if (strcmp(attrib, "show") == 0) {
-        subject->show = value;
-    } else if (strcmp(attrib, "add_x_speed") == 0) {
-        subject->add_x_speed = value;
-    } else if (strcmp(attrib, "add_y_speed") == 0) {
-        subject->add_y_speed = value;
-    } else if (strcmp(attrib, "is_touching") == 0) {
-        subject->is_touching = value;
-    } else if (strcmp(attrib, "x") == 0) {
-        subject->x = *((uint32_t *)value);
-    } else if (strcmp(attrib, "y") == 0) {
-        subject->y = *((uint32_t *)value);
-    } else if (strcmp(attrib, "width") == 0) {
-        subject->width = *((uint32_t *)value);
-    } else if (strcmp(attrib, "height") == 0) {
-        subject->height = *((uint32_t *)value);
-    } else if (strcmp(attrib, "x_speed") == 0) {
-        subject->x_speed = *((int *)value);
-        dbg_str(DBG_DETAIL, "set x_speed =%f", subject->x_speed);
-    } else if (strcmp(attrib, "y_speed") == 0) {
-        subject->y_speed = *((int *)value);
-        dbg_str(DBG_DETAIL, "set y_speed =%f", subject->y_speed);
-    } else {
-        dbg_str(OBJ_WARNNING, "subject set,  \"%s\" setting is not support", attrib);
-    }
-
-    return 0;
-}
-
-static void * __get(Subject *subject, char *attrib)
-{
-    if (strcmp(attrib, "x") == 0) 
-        return &subject->x;
-    else if (strcmp(attrib, "y") == 0) 
-        return &subject->y;
-    else if (strcmp(attrib, "width") == 0) 
-        return &subject->width;
-    else if (strcmp(attrib, "height") == 0) 
-        return &subject->height;
-    else if (strcmp(attrib, "x_speed") == 0) 
-        return &subject->x_speed;
-    else if (strcmp(attrib, "y_speed") == 0) {
-        return &subject->y_speed;
-    } else {
-        dbg_str(OBJ_WARNNING, "subject get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t subject_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Subject, construct, __construct),

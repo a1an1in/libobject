@@ -88,55 +88,6 @@ static int __deconstrcut(Container *container)
     return 0;
 }
 
-static int __set(Container *container, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        container->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        container->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        container->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        container->deconstruct = value;
-    } else if (strcmp(attrib, "move") == 0) {/*virtual methods*/
-        container->move = value;
-    } else if (strcmp(attrib, "add_component") == 0) {
-        container->add_component = value;
-    } else if (strcmp(attrib, "update_component_position") == 0) {
-        container->update_component_position = value;
-    } else if (strcmp(attrib, "reset_component_position") == 0) {
-        container->reset_component_position = value;
-    } else if (strcmp(attrib, "search_component") == 0) {
-        container->search_component = value;
-    } else if (strcmp(attrib, "for_each_component") == 0) {
-        container->for_each_component = value;
-    }
-    else if (strcmp(attrib, "name") == 0) {/*attribs*/
-        strncpy(container->name, value, strlen(value));
-    } else if (strcmp(attrib, "map_type") == 0) {
-        container->map_type = *(uint8_t *)value;
-        dbg_str(DBG_DETAIL, "%s set map_type =%d", ((Obj *)container)->name, container->map_type);
-    } else {
-        dbg_str(DBG_DETAIL, "container set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Container *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else if (strcmp(attrib, "map_type") == 0) {
-        return &obj->map_type;
-    } else {
-        dbg_str(DBG_WARNNING, 
-                "container get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __move(Container *container)
 {
     dbg_str(DBG_DETAIL, "container move");

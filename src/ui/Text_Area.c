@@ -567,64 +567,6 @@ static int __deconstrcut(Text_Area *ta)
     return 0;
 }
 
-static int __set(Text_Area *ta, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        ta->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        ta->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        ta->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        ta->deconstruct = value;
-    }
-    /*vitual methods*/
-    else if (strcmp(attrib, "draw") == 0) {
-        ta->draw = value;
-    } else if (strcmp(attrib, "load_resources") == 0) {
-        ta->load_resources = value;
-    } else if (strcmp(attrib, "on_key_text_pressed") == 0) {
-        ta->on_key_text_pressed = value;
-    } else if (strcmp(attrib, "on_key_backspace_pressed") == 0) {
-        ta->on_key_backspace_pressed = value;
-    } else if (strcmp(attrib, "on_key_up_pressed") == 0) {
-        ta->on_key_up_pressed = value;
-    } else if (strcmp(attrib, "on_key_down_pressed") == 0) {
-        ta->on_key_down_pressed = value;
-    } else if (strcmp(attrib, "on_key_left_pressed") == 0) {
-        ta->on_key_left_pressed = value;
-    } else if (strcmp(attrib, "on_key_right_pressed") == 0) {
-        ta->on_key_right_pressed = value;
-    } else if (strcmp(attrib, "on_key_pageup_pressed") == 0) {
-        ta->on_key_pageup_pressed = value;
-    } else if (strcmp(attrib, "on_key_pagedown_pressed") == 0) {
-        ta->on_key_pagedown_pressed = value;
-    } else if (strcmp(attrib, "on_key_onelineup_pressed") == 0) {
-        ta->on_key_onelineup_pressed = value;
-    } else if (strcmp(attrib, "on_key_onelinedown_pressed") == 0) {
-        ta->on_key_onelinedown_pressed = value;
-    }
-    /*attribs*/
-    else if (strcmp(attrib, "name") == 0) {
-        strncpy(ta->name, value, strlen(value));
-    } else {
-        dbg_str(DBG_DETAIL, "ta set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Text_Area *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else {
-        dbg_str(DBG_WARNNING, "text_area get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __load_resources(Component *component, void *window)
 {
     Render *r      = ((Window *)window)->render;

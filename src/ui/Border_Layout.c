@@ -239,55 +239,6 @@ static int __deconstrcut(Border_Layout *border_layout)
     return 0;
 }
 
-static int __set(Border_Layout *border_layout, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        border_layout->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        border_layout->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        border_layout->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        border_layout->deconstruct = value;
-    }
-    /*vitual methods*/
-    else if (strcmp(attrib, "add_component") == 0) {
-        border_layout->add_component = value;
-    } else if (strcmp(attrib, "draw") == 0) {
-        border_layout->draw = value;
-    } else if (strcmp(attrib, "load_resources") == 0) {
-        border_layout->load_resources = value;
-    }
-    /*attribs*/
-    else if (strcmp(attrib, "name") == 0) {
-        dbg_str(DBG_SUC, "set border_layout name");
-        strncpy(border_layout->name, value, strlen(value));
-    } else if (strcmp(attrib, "hgap") == 0) {
-        border_layout->hgap = *((uint32_t *)value);
-    } else if (strcmp(attrib, "vgap") == 0) {
-        border_layout->vgap = *((uint32_t *)value);
-    } else {
-        dbg_str(DBG_DETAIL, "border_layout set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Border_Layout *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else if (strcmp(attrib, "hgap") == 0) {
-        return &obj->hgap;
-    } else if (strcmp(attrib, "vgap") == 0) {
-        return &obj->vgap;
-    } else {
-        dbg_str(DBG_WARNNING, "border_layout get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __add_component(Container *obj, void *pos, void *component)
 {
     Border_Layout *l                 = (Border_Layout *)obj;

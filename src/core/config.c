@@ -57,7 +57,10 @@ int cfg_destroy(configurator_t * c)
     return 0;
 }
 
-int cfg_config(configurator_t * c, const char *path, int type, const char *name, void *value) 
+int 
+cfg_config(configurator_t * c, 
+           const char *path, 
+           int type, const char *name, void *value) 
 {
     allocator_t *allocator = allocator_get_default_alloc();
     cjson_t *root, *object, *item;
@@ -143,7 +146,9 @@ end:
     return ret;
 }
 
-int cfg_config_num(configurator_t * c, const char *path, const char *name, int value) 
+int 
+cfg_config_num(configurator_t * c,
+               const char *path, const char *name, int value) 
 {
     allocator_t *allocator = allocator_get_default_alloc();
     cjson_t *root, *object, *item;
@@ -219,7 +224,9 @@ end:
     return ret;
 }
 
-int cfg_config_str(configurator_t * c, const char *path, const char *name, void *value) 
+int 
+cfg_config_str(configurator_t * c, 
+               const char *path, const char *name, void *value) 
 {
     allocator_t *allocator = allocator_get_default_alloc();
     cjson_t *root, *object, *item;

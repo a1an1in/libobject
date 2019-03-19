@@ -154,9 +154,9 @@ static class_info_entry_t hash_map_class_info[] = {
     Init_Vfunc_Entry(4 , Hash_Map, search, __search),
     Init_Vfunc_Entry(5 , Hash_Map, remove, __remove),
     Init_Vfunc_Entry(6 , Hash_Map, del, __del),
-    Init_Vfunc_Entry(7 , Hash_Map, for_each, NULL),
-    Init_Vfunc_Entry(8 , Hash_Map, begin, __begin),
-    Init_Vfunc_Entry(9 , Hash_Map, end, __end),
+    Init_Vfunc_Entry(7 , Hash_Map, begin, __begin),
+    Init_Vfunc_Entry(8 , Hash_Map, end, __end),
+    Init_Vfunc_Entry(9 , Hash_Map, for_each, NULL),
     Init_U16___Entry(10, Hash_Map, key_size, NULL),
     Init_U16___Entry(11, Hash_Map, value_size, NULL),
     Init_U16___Entry(12, Hash_Map, bucket_size, NULL),
@@ -348,13 +348,9 @@ static int test_Hash_Map_set(TEST_ENTRY *entry)
 
     map  = OBJECT_NEW(allocator, Hash_Map, NULL);
 
-    /*
-     *map->set_target_name(map, "Has_Map");
-     */
     map->set(map, "Hash_Map/test", 0x12345678);
 
     void **addr = map->get(map, "Hash_Map/test");
-    dbg_str(DBG_ERROR, "test addr:%p", *addr);
 
     if (*addr == 0x12345678) {
         ret = 1;

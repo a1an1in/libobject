@@ -61,54 +61,6 @@ static int __deconstrcut(Button *button)
 	return 0;
 }
 
-static int __set(Button *button, char *attrib, void *value)
-{
-	if (strcmp(attrib, "set") == 0) {
-		button->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-		button->get = value;
-	} else if (strcmp(attrib, "construct") == 0) {
-		button->construct = value;
-	} else if (strcmp(attrib, "deconstruct") == 0) {
-		button->deconstruct = value;
-	} 
-    else if (strcmp(attrib, "move") == 0) {
-		button->move = value;
-    } else if (strcmp(attrib, "draw") == 0) {
-        button->draw = value;
-    } else if (strcmp(attrib, "on_mouse_pressed") == 0) {
-        button->on_mouse_pressed = value;
-    } else if (strcmp(attrib, "on_mouse_released") == 0) {
-        button->on_mouse_released = value;
-    } else if (strcmp(attrib, "on_mouse_entered") == 0) {
-        button->on_mouse_entered = value;
-    } else if (strcmp(attrib, "on_mouse_exited") == 0) {
-        button->on_mouse_exited = value;
-    } else if (strcmp(attrib, "on_mouse_moved") == 0) {
-        button->on_mouse_moved = value;
-    } 
-    else if (strcmp(attrib, "add_event_listener") == 0) {
-        button->add_event_listener = value;
-    } else if (strcmp(attrib, "add_event_listener_cb") == 0) {
-        button->add_event_listener_cb = value;
-	} 
-    else {
-		dbg_str(DBG_DETAIL, "button set, not support %s setting", attrib);
-	}
-
-	return 0;
-}
-
-static void *__get(Button *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(DBG_WARNNING, "button get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static void draw_subcomponent_foreach_cb(void *key, void *element, void *arg) 
 {
     Component *component;

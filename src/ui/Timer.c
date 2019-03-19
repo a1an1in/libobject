@@ -47,37 +47,6 @@ static int __deconstrcut(__Timer *timer)
     return 0;
 }
 
-static int __set(__Timer *timer, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        timer->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        timer->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        timer->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        timer->deconstruct = value;
-    } else if (strcmp(attrib, "set_timer") == 0) {
-        timer->set_timer = value;
-    } else if (strcmp(attrib, "reuse") == 0) {
-        timer->reuse = value;
-    } else {
-        dbg_str(OBJ_WARNNING, "timer set,  \"%s\" setting is not support", attrib);
-    }
-
-    return 0;
-}
-
-static void * __get(__Timer *timer, char *attrib)
-{
-    if (strcmp(attrib, "") == 0){ 
-    } else {
-        dbg_str(OBJ_WARNNING, "timer get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t timer_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , __Timer, construct, __construct),

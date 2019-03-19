@@ -288,18 +288,17 @@ static int __close(Sdl_Audio *sdl_audio)
 }
 
 static class_info_entry_t sdl_audio_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Audio", "parent", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "init", __init, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "play", __play, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "pause", __pause, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "close", __close, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_NORMAL_POINTER, "", "String", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Audio, parent),
+    Init_Nfunc_Entry(1 , Sdl_Audio, construct, __construct),
+    Init_Nfunc_Entry(2 , Sdl_Audio, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Sdl_Audio, set, NULL),
+    Init_Vfunc_Entry(4 , Sdl_Audio, get, NULL),
+    Init_Vfunc_Entry(5 , Sdl_Audio, init, __init),
+    Init_Vfunc_Entry(6 , Sdl_Audio, play, __play),
+    Init_Vfunc_Entry(7 , Sdl_Audio, pause, __pause),
+    Init_Vfunc_Entry(8 , Sdl_Audio, close, __close),
+    Init_Str___Entry(9 , Sdl_Audio, path, NULL),
+    Init_End___Entry(10),
 };
 REGISTER_CLASS("Sdl_Audio", sdl_audio_class_info);
 

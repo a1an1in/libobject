@@ -97,50 +97,6 @@ static int __deconstrcut(Label *label)
     return 0;
 }
 
-static int __set(Label *label, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        label->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        label->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        label->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        label->deconstruct = value;
-    }
-    /*vitual methods*/
-    else if (strcmp(attrib, "draw") == 0) {
-        label->draw = value;
-    } else if (strcmp(attrib, "load_resources") == 0) {
-        label->load_resources = value;
-    } else if (strcmp(attrib, "unload_resources") == 0) {
-        label->unload_resources = value;
-    }
-    /*attribs*/
-    else if (strcmp(attrib, "name") == 0) {
-        strncpy(label->name, value, strlen(value));
-    } else if (strcmp(attrib, "text_overflow_flag") == 0) {
-        label->text_overflow_flag = *((uint8_t *)value);
-    } else {
-        dbg_str(DBG_DETAIL, "label set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Label *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else if (strcmp(attrib, "text_overflow_flag") == 0) {
-        return &obj->text_overflow_flag;
-    } else {
-        dbg_str(DBG_WARNNING, "label get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __load_resources(Component *component, void *window)
 {
     Render *r     = ((Window *)window)->render;

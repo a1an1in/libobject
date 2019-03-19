@@ -64,43 +64,6 @@ static int __deconstrcut(Rbtree_Timer *timer)
     return 0;
 }
 
-static int __set(Rbtree_Timer *timer, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        timer->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        timer->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        timer->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        timer->deconstruct = value;
-    } else if (strcmp(attrib, "add") == 0) {
-        timer->add = value;
-    } else if (strcmp(attrib, "del") == 0) {
-        timer->del = value;
-    } else if (strcmp(attrib, "remove") == 0) {
-        timer->remove = value;
-    } else if (strcmp(attrib, "timeout_next") == 0) {
-        timer->timeout_next = value;
-    } else if (strcmp(attrib, "first") == 0) {
-        timer->first = value;
-    } else {
-        dbg_str(EV_DETAIL, "timer set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Rbtree_Timer *timer, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(OBJ_WARNNING, "timer get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __add(Rbtree_Timer *timer, event_t *e)
 {
     rbtree_map_t *map = timer->map;
@@ -156,7 +119,6 @@ static int __remove(Rbtree_Timer *timer, event_t *e)
     return 0;
 }
 
-/* --------------------------------------------------------------------------*/
 /**
  * @Synopsis     get next timeout timeval
  *
@@ -165,7 +127,6 @@ static int __remove(Rbtree_Timer *timer, event_t *e)
  *
  * @Returns   
  */
-/* ----------------------------------------------------------------------------*/
 static int __timeout_next(Rbtree_Timer *timer, struct timeval **tv)
 {
     rbtree_map_t *map = timer->map;
@@ -202,7 +163,6 @@ static int __timeout_next(Rbtree_Timer *timer, struct timeval **tv)
     return 0;
 }
 
-/* --------------------------------------------------------------------------*/
 /**
  * @Synopsis      get first timeout event in the timer
  *
@@ -210,7 +170,6 @@ static int __timeout_next(Rbtree_Timer *timer, struct timeval **tv)
  *
  * @Returns       return timeout event
  */
-/* ----------------------------------------------------------------------------*/
 event_t * __first(Rbtree_Timer *timer)
 {
     rbtree_map_t *map = timer->map;

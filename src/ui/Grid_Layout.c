@@ -97,63 +97,6 @@ static int __deconstrcut(Grid_Layout *grid_layout)
     return 0;
 }
 
-static int __set(Grid_Layout *grid_layout, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        grid_layout->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        grid_layout->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        grid_layout->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        grid_layout->deconstruct = value;
-    }
-    /*vitual methods*/
-    else if (strcmp(attrib, "add_component") == 0) {
-        grid_layout->add_component = value;
-    } else if (strcmp(attrib, "draw") == 0) {
-        grid_layout->draw = value;
-    } else if (strcmp(attrib, "load_resources") == 0) {
-        grid_layout->load_resources = value;
-    }
-    /*attribs*/
-    else if (strcmp(attrib, "name") == 0) {
-        dbg_str(DBG_SUC, "set grid_layout name");
-        strncpy(grid_layout->name, value, strlen(value));
-    } else if (strcmp(attrib, "row_max") == 0) {
-        grid_layout->row_max = *((uint32_t *)value);
-    } else if (strcmp(attrib, "col_max") == 0) {
-        grid_layout->col_max = *((uint32_t *)value);
-    } else if (strcmp(attrib, "hgap") == 0) {
-        grid_layout->hgap = *((uint32_t *)value);
-    } else if (strcmp(attrib, "vgap") == 0) {
-        grid_layout->vgap = *((uint32_t *)value);
-    } else {
-        dbg_str(DBG_DETAIL, "grid_layout set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Grid_Layout *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else if (strcmp(attrib, "row_max") == 0) {
-        return &obj->row_max;
-    } else if (strcmp(attrib, "col_max") == 0) {
-        return &obj->col_max;
-    } else if (strcmp(attrib, "hgap") == 0) {
-        return &obj->hgap;
-    } else if (strcmp(attrib, "vgap") == 0) {
-        return &obj->vgap;
-    } else {
-        dbg_str(DBG_WARNNING, "grid_layout get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int get_x_axis_of_current_grid(Grid_Layout *obj)
 {
     Grid_Layout *l = obj;

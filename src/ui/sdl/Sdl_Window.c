@@ -47,83 +47,6 @@ static int __construct(Window *window, char *init_str)
 
     return 0;
 }
-static int __set(Window *window, char *attrib, void *value)
-{
-    Sdl_Window *w = (Sdl_Window *)window;
-    if (strcmp(attrib, "set") == 0) {
-        w->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        w->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        w->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        w->deconstruct = value;
-    } 
-    else if (strcmp(attrib, "move") == 0) {
-    } else if (strcmp(attrib, "create_font") == 0) {
-        w->create_font = value;
-    } else if (strcmp(attrib, "destroy_font") == 0) {
-        w->destroy_font = value;
-    } else if (strcmp(attrib, "create_render") == 0) {
-        w->create_render = value;
-    } else if (strcmp(attrib, "destroy_render") == 0) {
-        w->destroy_render = value;
-    } else if (strcmp(attrib, "create_event") == 0) {
-        w->create_event = value;
-    } else if (strcmp(attrib, "destroy_event") == 0) {
-        w->destroy_event = value;
-    } else if (strcmp(attrib, "create_background") == 0) {
-        w->create_background = value;
-    } else if (strcmp(attrib, "destroy_background") == 0) {
-        w->destroy_background = value;
-    } else if (strcmp(attrib, "init_window") == 0) {
-        w->init_window = value;
-    } else if (strcmp(attrib, "open_window") == 0) {
-        w->open_window = value;
-    } else if (strcmp(attrib, "close_window") == 0) {
-        w->close_window = value;
-    } else if (strcmp(attrib, "create_timer") == 0) {
-        w->create_timer = value;
-    } else if (strcmp(attrib, "remove_timer") == 0) {
-        w->remove_timer = value;
-    } else if (strcmp(attrib, "destroy_timer") == 0) {
-        w->destroy_timer = value;
-    } else if (strcmp(attrib, "poll_event") == 0) {
-        w->poll_event = value;
-    } else if (strcmp(attrib, "set_window_title") == 0) {
-        w->set_window_title = value;
-    } else if (strcmp(attrib, "set_window_icon") == 0) {
-        w->set_window_icon = value;
-    } else if (strcmp(attrib, "set_window_size") == 0) {
-        w->set_window_size = value;
-    } else if (strcmp(attrib, "set_window_position") == 0) {
-        w->set_window_position = value;
-    } else if (strcmp(attrib, "full_screen") == 0) {
-        w->full_screen = value;
-    } else if (strcmp(attrib, "maximize_window") == 0) {
-        w->maximize_window = value;
-    } else if (strcmp(attrib, "minimize_window") == 0) {
-        w->minimize_window = value;
-    } else if (strcmp(attrib, "restore_window") == 0) {
-        w->restore_window = value;
-    }
-    else {
-        dbg_str(SDL_INTERFACE_DETAIL, "sdl window set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Window *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else {
-        dbg_str(DBG_WARNNING, "sdl window get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
 
 static void *__create_render(Window *window, char *type)
 {
@@ -409,37 +332,36 @@ static void __restore_window(Window *window)
             window->screen_width, window->screen_height);
 }
 
-
 static class_info_entry_t sdl_window_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Window", "window", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", NULL, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_render", __create_render, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_render", __destroy_render, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_font", __create_font, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_font", __destroy_font, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "create_event", __create_event, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_event", __destroy_event, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "create_background", __create_background, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_background", __destroy_background, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_FUNC_POINTER, "", "init_window", __init_window, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_FUNC_POINTER, "", "open_window", __open_window, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_FUNC_POINTER, "", "close_window", __close_window, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_FUNC_POINTER, "", "create_timer", __create_timer, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_FUNC_POINTER, "", "remove_timer", __remove_timer, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_FUNC_POINTER, "", "destroy_timer", __destroy_timer, sizeof(void *)}, 
-    [19] = {ENTRY_TYPE_FUNC_POINTER, "", "poll_event", __poll_event, sizeof(void *)}, 
-    [20] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_title", __set_window_title, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_icon", __set_window_icon, sizeof(void *)}, 
-    [22] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_size", __set_window_size, sizeof(void *)}, 
-    [23] = {ENTRY_TYPE_FUNC_POINTER, "", "set_window_position", __set_window_position, sizeof(void *)}, 
-    [24] = {ENTRY_TYPE_FUNC_POINTER, "", "full_screen", __full_screen, sizeof(void *)}, 
-    [25] = {ENTRY_TYPE_FUNC_POINTER, "", "maximize_window", __maximize_window, sizeof(void *)}, 
-    [26] = {ENTRY_TYPE_FUNC_POINTER, "", "minimize_window", __minimize_window, sizeof(void *)}, 
-    [27] = {ENTRY_TYPE_FUNC_POINTER, "", "restore_window", __restore_window, sizeof(void *)}, 
-    [28] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Window, window),
+    Init_Nfunc_Entry(1 , Sdl_Window, construct, __construct),
+    Init_Nfunc_Entry(2 , Sdl_Window, deconstruct, NULL),
+    Init_Vfunc_Entry(3 , Sdl_Window, set, NULL),
+    Init_Vfunc_Entry(4 , Sdl_Window, get, NULL),
+    Init_Vfunc_Entry(5 , Sdl_Window, create_render, __create_render),
+    Init_Vfunc_Entry(6 , Sdl_Window, destroy_render, __destroy_render),
+    Init_Vfunc_Entry(7 , Sdl_Window, create_font, __create_font),
+    Init_Vfunc_Entry(8 , Sdl_Window, destroy_font, __destroy_font),
+    Init_Vfunc_Entry(9 , Sdl_Window, create_event, __create_event),
+    Init_Vfunc_Entry(10, Sdl_Window, destroy_event, __destroy_event),
+    Init_Vfunc_Entry(11, Sdl_Window, create_background, __create_background),
+    Init_Vfunc_Entry(12, Sdl_Window, destroy_background, __destroy_background),
+    Init_Vfunc_Entry(13, Sdl_Window, init_window, __init_window),
+    Init_Vfunc_Entry(14, Sdl_Window, open_window, __open_window),
+    Init_Vfunc_Entry(15, Sdl_Window, close_window, __close_window),
+    Init_Vfunc_Entry(16, Sdl_Window, create_timer, __create_timer),
+    Init_Vfunc_Entry(17, Sdl_Window, remove_timer, __remove_timer),
+    Init_Vfunc_Entry(18, Sdl_Window, destroy_timer, __destroy_timer),
+    Init_Vfunc_Entry(19, Sdl_Window, poll_event, __poll_event),
+    Init_Vfunc_Entry(20, Sdl_Window, set_window_title, __set_window_title),
+    Init_Vfunc_Entry(21, Sdl_Window, set_window_icon, __set_window_icon),
+    Init_Vfunc_Entry(22, Sdl_Window, set_window_size, __set_window_size),
+    Init_Vfunc_Entry(23, Sdl_Window, set_window_position, __set_window_position),
+    Init_Vfunc_Entry(24, Sdl_Window, full_screen, __full_screen),
+    Init_Vfunc_Entry(25, Sdl_Window, maximize_window, __maximize_window),
+    Init_Vfunc_Entry(26, Sdl_Window, minimize_window, __minimize_window),
+    Init_Vfunc_Entry(27, Sdl_Window, restore_window, __restore_window),
+    Init_End___Entry(28),
 };
 REGISTER_CLASS("Sdl_Window", sdl_window_class_info);
 

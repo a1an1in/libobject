@@ -53,47 +53,6 @@ static int __deconstrcut(Font *font)
     return 0;
 }
 
-static int __set(Font *font, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        font->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        font->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        font->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        font->deconstruct = value;
-    }
-    else if (strcmp(attrib, "load_font") == 0) {
-        font->load_font = value;
-    } else if (strcmp(attrib, "unload_font") == 0) {
-        font->unload_font = value;
-    } else if (strcmp(attrib, "load_ascii_character") == 0) {
-        font->load_ascii_character = value;
-    } else if (strcmp(attrib, "unload_ascii_character") == 0) {
-        font->unload_ascii_character = value;
-    } else if (strcmp(attrib, "get_character_width") == 0) {
-        font->get_character_width = value;
-    } else if (strcmp(attrib, "get_character_height") == 0) {
-        font->get_character_height = value;
-    }
-    else {
-        dbg_str(OBJ_WARNNING, "font set,  \"%s\" setting is not support", attrib);
-    }
-
-    return 0;
-}
-
-static void * __get(Font *font, char *attrib)
-{
-    if (strcmp(attrib, "") == 0){ 
-    } else {
-        dbg_str(OBJ_WARNNING, "font get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t font_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Font, construct, __construct),

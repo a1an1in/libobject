@@ -47,39 +47,6 @@ static int __deconstrcut(Character *character)
     return 0;
 }
 
-static int __set(Character *character, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        character->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        character->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        character->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        character->deconstruct = value;
-    } else if (strcmp(attrib, "load_character") == 0) {
-        character->load_character = value;
-    } else if (strcmp(attrib, "assign") == 0) {
-        character->assign = value;
-    } else if (strcmp(attrib, "load_character") == 0) {
-        character->load_character = value;
-    } else {
-        dbg_str(OBJ_WARNNING, "character set,  \"%s\" setting is not support", attrib);
-    }
-
-    return 0;
-}
-
-static void * __get(Character *character, char *attrib)
-{
-    if (strcmp(attrib, "") == 0){ 
-    } else {
-        dbg_str(OBJ_WARNNING, "character get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __assign(Character *character, uint32_t code)
 {
     character->code = code;

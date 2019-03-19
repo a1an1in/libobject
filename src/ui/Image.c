@@ -53,43 +53,6 @@ static int __deconstrcut(Image *image)
     return 0;
 }
 
-static int __set(Image *image, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        image->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        image->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        image->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        image->deconstruct = value;
-    } else if (strcmp(attrib, "load_image") == 0) {
-        image->load_image = value;
-    } else if (strcmp(attrib, "draw") == 0) {
-        image->draw = value;
-    } else if (strcmp(attrib, "set_name") == 0) {
-        image->set_name = value;
-    } else if (strcmp(attrib, "set_size") == 0) {
-        image->set_size = value;
-    } else if (strcmp(attrib, "change_size") == 0) {
-        image->change_size = value;
-    } else {
-        dbg_str(OBJ_WARNNING, "image set,  \"%s\" setting is not support", attrib);
-    }
-
-    return 0;
-}
-
-static void * __get(Image *image, char *attrib)
-{
-    if (strcmp(attrib, "x") == 0){ 
-    } else {
-        dbg_str(OBJ_WARNNING, "image get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __load_image(Image *image, void *path)
 {
     dbg_str(DBG_SUC, "image load image");

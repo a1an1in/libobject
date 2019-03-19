@@ -59,46 +59,6 @@ static int __deconstrcut(Producer *producer)
     return 0;
 }
 
-static int __set(Producer *producer, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        producer->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        producer->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        producer->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        producer->deconstruct = value;
-    }
-    else if (strcmp(attrib, "add_worker") == 0) {
-        producer->add_worker = value;
-    } else if (strcmp(attrib, "del_worker") == 0) {
-        producer->del_worker = value;
-    } else if (strcmp(attrib, "add_dispatcher") == 0) {
-        producer->add_dispatcher = value;
-    } else if (strcmp(attrib, "del_dispatcher") == 0) {
-        producer->del_dispatcher = value;
-    }
-    else if (strcmp(attrib, "start") == 0) {
-        producer->start = value;
-    } 
-    else {
-        dbg_str(CONCURRENT_DETAIL, "producer set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Producer *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(CONCURRENT_WARNNING, "producer get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __add_worker(Producer *producer, void *worker)
 {
     Worker *w            = (Worker *)worker;
