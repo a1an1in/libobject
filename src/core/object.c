@@ -35,7 +35,9 @@
 #include <libobject/core/obj.h>
 #include <libobject/core/config.h>
 
-void * __object_get_normal_func_of_class(void *class_info_addr, char *func_pointer_name)
+void * 
+__object_get_normal_func_of_class(void *class_info_addr, 
+                                  char *func_pointer_name)
 {
     class_info_entry_t *entry = (class_info_entry_t *)class_info_addr;
     int i;
