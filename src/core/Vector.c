@@ -128,15 +128,17 @@ static void __free_vector_elements(Vector *vector)
 static uint32_t __size(Vector * vector)
 {
     uint32_t count = 0;
+
     sync_trylock(&vector->vector->vector_lock, NULL);
     count = vector->vector->size;
     sync_unlock(&vector->vector->vector_lock);
+
     return count;
 } 
 
 static int  __empty(Vector * vector) 
 {
-    return vector->size(vector) == 0 ? 1:0;
+    return vector->size(vector) == 0 ? 1 : 0;
 }
 
 static void __clear(Vector *vector)

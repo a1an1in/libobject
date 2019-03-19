@@ -53,7 +53,7 @@ static int __deconstrcut(Obj *obj)
  *
  * @Param obj
  * @Param attrib
- *        if you want call this func, must designate class name in the attrib, like the format:"ClassName/attrib_name", or call set_target_name(ClassName) to tell the object which class's attrib you want to set.
+ *        if you want call this func, must designate class name in the attrib, like the format:"ClassName/attrib_name" to tell the object which class's attrib you want to set.
  * @Param value
  *
  * @Returns   
@@ -170,7 +170,7 @@ static int __set(Obj *obj, char *attrib, void *value)
  *
  * @Param obj
  * @Param attrib
- *        if you want call this func, must designate class name in the attrib, like the format:"ClassName/attrib_name", or call set_target_name(ClassName) to tell the object which class's attrib you want to get.
+ *        if you want call this func, must designate class name in the attrib, like the format:"ClassName/attrib_name" to tell the object which class's attrib you want to get.
  * @Param value
  *
  * @Returns   
@@ -203,8 +203,8 @@ static void *__get(Obj *obj, char *attrib)
         str_split(buf, "/", out, &cnt);
 
         dbg_str(DBG_WARNNING, "set class name:%s", out[cnt - 2]);
-        target_name = out[cnt - 2];
-        attrib = out[cnt - 1];
+        target_name = out[cnt - 2]; //class name
+        attrib = out[cnt - 1]; //real attrib name
     } else {
         target_name = obj->target_name;
     }
@@ -278,20 +278,14 @@ static void *__get(Obj *obj, char *attrib)
     return addr;
 }
 
-static int __set_target_name(Obj *obj, char *name)
-{
-    return strcpy(obj->target_name, name);
-}
-
 static class_info_entry_t obj_class_info[] = {
     [0] = {ENTRY_TYPE_NORMAL_POINTER, "allocator_t", "allocator", NULL, sizeof(void *), offset_of_class(Obj, allocator)}, 
     [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *), offset_of_class(Obj, set)}, 
     [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *), offset_of_class(Obj, get)}, 
     [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *), offset_of_class(Obj, construct)}, 
     [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *), offset_of_class(Obj, deconstruct)}, 
-    [5] = {ENTRY_TYPE_FUNC_POINTER, "", "set_target_name", __set_target_name, sizeof(void *), offset_of_class(Obj, deconstruct)}, 
-    [6] = {ENTRY_TYPE_STRING, "", "name", NULL, sizeof(void *), offset_of_class(Obj, name)}, 
-    [7] = {ENTRY_TYPE_END}, 
+    [5] = {ENTRY_TYPE_STRING, "", "name", NULL, sizeof(void *), offset_of_class(Obj, name)}, 
+    [6] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Obj", obj_class_info);
 

@@ -329,11 +329,6 @@ int object_set(void *obj, char *type_name, char *set_str)
 
     root = cjson_parse(set_str);
 
-    /*
-     *set_str = cjson_print(root);
-     *printf("%s", set_str);
-     */
-
     __object_set(obj, root, NULL);
     cjson_delete(root);
 

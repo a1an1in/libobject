@@ -36,38 +36,6 @@
 #include <libobject/event/event_base.h>
 #include <libobject/io/stream.h>
 
-static int __set(Stream *stream, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        stream->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        stream->get = value;
-    }
-    else if (strcmp(attrib, "construct") == 0) {
-        stream->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        stream->deconstruct = value;
-    } else if (strcmp(attrib, "read") == 0) {
-        stream->read = value;
-    } else if (strcmp(attrib, "write") == 0) {
-        stream->write = value;
-    } else {
-        dbg_str(EV_DETAIL,"stream set, not support %s setting",attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Stream *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING,"stream get, \"%s\" getting attrib is not supported",attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t stream_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Vfunc_Entry(1 , Stream, set, NULL),

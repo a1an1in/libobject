@@ -70,46 +70,6 @@ static int __deconstrcut(Buffer *buffer)
     return 0;
 }
 
-static int __set(Buffer *buffer, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        buffer->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        buffer->get = value;
-    }
-    else if (strcmp(attrib, "construct") == 0) {
-        buffer->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        buffer->deconstruct = value;
-    } else if (strcmp(attrib, "read") == 0) {
-        buffer->read = value;
-    } else if (strcmp(attrib, "write") == 0) {
-        buffer->write = value;
-    } else if (strcmp(attrib, "printf") == 0) {
-        buffer->printf = value;
-    } else if (strcmp(attrib, "memcopy") == 0) {
-        buffer->memcopy = value;
-    } else if (strcmp(attrib, "get_len") == 0) {
-        buffer->get_len = value;
-    } else if (strcmp(attrib, "set_size") == 0) {
-        buffer->set_size = value;
-    } else {
-        dbg_str(EV_DETAIL,"buffer set, not support %s setting",attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Buffer *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING,"buffer get, \"%s\" getting attrib is not supported",attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __get_len(Buffer *buffer)
 {
 }
