@@ -88,55 +88,6 @@ static int __deconstrcut(Container *container)
     return 0;
 }
 
-static int __set(Container *container, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        container->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        container->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        container->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        container->deconstruct = value;
-    } else if (strcmp(attrib, "move") == 0) {/*virtual methods*/
-        container->move = value;
-    } else if (strcmp(attrib, "add_component") == 0) {
-        container->add_component = value;
-    } else if (strcmp(attrib, "update_component_position") == 0) {
-        container->update_component_position = value;
-    } else if (strcmp(attrib, "reset_component_position") == 0) {
-        container->reset_component_position = value;
-    } else if (strcmp(attrib, "search_component") == 0) {
-        container->search_component = value;
-    } else if (strcmp(attrib, "for_each_component") == 0) {
-        container->for_each_component = value;
-    }
-    else if (strcmp(attrib, "name") == 0) {/*attribs*/
-        strncpy(container->name, value, strlen(value));
-    } else if (strcmp(attrib, "map_type") == 0) {
-        container->map_type = *(uint8_t *)value;
-        dbg_str(DBG_DETAIL, "%s set map_type =%d", ((Obj *)container)->name, container->map_type);
-    } else {
-        dbg_str(DBG_DETAIL, "container set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Container *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else if (strcmp(attrib, "map_type") == 0) {
-        return &obj->map_type;
-    } else {
-        dbg_str(DBG_WARNNING, 
-                "container get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __move(Container *container)
 {
     dbg_str(DBG_DETAIL, "container move");
@@ -282,20 +233,20 @@ static int __for_each_component(Container *obj,
 }
 
 static class_info_entry_t container_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Subject", "subject", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "move", __move, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_component", __add_component, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "update_component_position", __update_component_position, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "reset_component_position", __reset_component_position, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search_component", __search_component, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_component", __for_each_component, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [12] = {ENTRY_TYPE_UINT8_T, "uint8_t", "map_type", NULL, sizeof(int)}, 
-    [13] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Subject, subject),
+    Init_Nfunc_Entry(1 , Container, construct, __construct),
+    Init_Nfunc_Entry(2 , Container, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Container, set, NULL),
+    Init_Vfunc_Entry(4 , Container, get, NULL),
+    Init_Vfunc_Entry(5 , Container, move, __move),
+    Init_Vfunc_Entry(6 , Container, add_component, __add_component),
+    Init_Vfunc_Entry(7 , Container, update_component_position, __update_component_position),
+    Init_Vfunc_Entry(8 , Container, reset_component_position, __reset_component_position),
+    Init_Vfunc_Entry(9 , Container, search_component, __search_component),
+    Init_Vfunc_Entry(10, Container, for_each_component, __for_each_component),
+    Init_Str___Entry(11, Container, name, NULL),
+    Init_U8____Entry(12, Container, map_type, NULL),
+    Init_End___Entry(13),
 };
 REGISTER_CLASS("Container", container_class_info);
 

@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/event_base.h>
 #include <libobject/core/thread.h>
@@ -71,58 +71,6 @@ static int __deconstrcut(Thread *thread)
     dbg_str(DBG_IMPORTANT, "thread deconstruct, out");
 
     return 0;
-}
-
-static int __set(Thread *thread, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        thread->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        thread->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        thread->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        thread->deconstruct = value;
-    } else if (strcmp(attrib, "start") == 0) {
-        thread->start = value;
-    } else if (strcmp(attrib, "set_start_routine") == 0) {
-        thread->set_start_routine = value;
-    } else if (strcmp(attrib, "set_start_arg") == 0) {
-        thread->set_start_arg = value;
-    } else if (strcmp(attrib, "set_opaque") == 0) {
-        thread->set_opaque = value;
-    } else if (strcmp(attrib, "start_routine") == 0) {
-        thread->start_routine = value;
-    } else if (strcmp(attrib, "stop") == 0) {
-        thread->stop = value;
-    } else if (strcmp(attrib, "get_status") == 0) {
-        thread->get_status = value;
-    } else if (strcmp(attrib, "run") == 0) {
-        thread->run = value;
-    } else if (strcmp(attrib, "set_run_routine") == 0) {
-        thread->set_run_routine = value;
-    } else if (strcmp(attrib, "join") == 0) {
-        thread->join = value;
-    } else if (strcmp(attrib, "detach") == 0) {
-        thread->detach = value;
-    } else if (strcmp(attrib, "get_tid") == 0) {
-        thread->get_tid = value;
-    }
-    else {
-        dbg_str(OBJ_DETAIL, "thread set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Thread *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(OBJ_WARNNING, "thread get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
 }
 
 static int __start(Thread *thread)
@@ -234,26 +182,23 @@ static int __get_tid(Thread *thread)
 }
 
 static class_info_entry_t thread_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "start", __start, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set_start_routine", __set_start_routine, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set_start_arg", __set_start_arg, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set_opaque", __set_opaque, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "start_routine", __start_routine, sizeof(void *)}, 
-    [10 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "stop", __stop, sizeof(void *)}, 
-    [11 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "run", __run, sizeof(void *)}, 
-    [12 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_run_routine", __set_run_routine, sizeof(void *)}, 
-    [13 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "get_status", __get_status, sizeof(void *)}, 
-    [14 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "join", __join, sizeof(void *)},
-    [15 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach", __detach, sizeof(void *)}, 
-    [16 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach", __get_tid, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Thread, construct, __construct),
+    Init_Nfunc_Entry(2 , Thread, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Thread, start, __start),
+    Init_Vfunc_Entry(4 , Thread, set_start_routine, __set_start_routine),
+    Init_Vfunc_Entry(5 , Thread, set_start_arg, __set_start_arg),
+    Init_Vfunc_Entry(6 , Thread, set_opaque, __set_opaque),
+    Init_Vfunc_Entry(7 , Thread, start_routine, __start_routine),
+    Init_Vfunc_Entry(8 , Thread, stop, __stop),
+    Init_Vfunc_Entry(9 , Thread, run, __run),
+    Init_Vfunc_Entry(10, Thread, set_run_routine, __set_run_routine),
+    Init_Vfunc_Entry(11, Thread, get_status, __get_status),
+    Init_Vfunc_Entry(12, Thread, join, __join),
+    Init_Vfunc_Entry(13, Thread, detach, __detach),
+    Init_Vfunc_Entry(14, Thread, get_tid, __get_tid),
+    Init_End___Entry(15),
 };
-
 REGISTER_CLASS("Thread", thread_class_info);
 
 void *test_func(void *arg)

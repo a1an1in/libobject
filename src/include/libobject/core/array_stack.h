@@ -21,6 +21,7 @@ struct o_array_stack_s{
 	/*virtual methods reimplement*/
     int (*push)(Stack *stack, void *element);
     int (*pop)(Stack *stack, void **element);
+    int (*count)(Stack *stack);
 
     array_stack_t *core;
 };

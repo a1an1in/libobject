@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/rbtree_map.h>
 #include <libobject/core/linked_list.h>
 
@@ -89,74 +89,6 @@ static int __deconstrcut(Map *map)
     rbtree_map_destroy(((RBTree_Map *)map)->rbmap);
 
     return 0;
-}
-
-static int __set(Map *m, char *attrib, void *value)
-{
-    RBTree_Map *map = (RBTree_Map *)m;
-
-    if (strcmp(attrib, "set") == 0) {
-        map->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        map->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        map->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        map->deconstruct = value;
-    } else if (strcmp(attrib, "name") == 0) {
-        strncpy(map->name, value, strlen(value));
-    } else if (strcmp(attrib, "add") == 0) {
-        map->add = value;
-    } else if (strcmp(attrib, "search") == 0) {
-        map->search = value;
-    } else if (strcmp(attrib, "search_all_same_key") == 0) {
-        map->search_all_same_key = value;
-    } else if (strcmp(attrib, "remove") == 0) {
-        map->remove = value;
-    } else if (strcmp(attrib, "del") == 0) {
-        map->del = value;
-    } else if (strcmp(attrib, "for_each") == 0) {
-        map->for_each = value;
-    } else if (strcmp(attrib, "begin") == 0) {
-        map->begin = value;
-    } else if (strcmp(attrib, "end") == 0) {
-        map->end = value;
-    } else if (strcmp(attrib, "destroy") == 0) {
-        map->destroy = value;
-    } else if (strcmp(attrib, "set_cmp_func") == 0) {
-        map->set_cmp_func = value;
-    }
-    else if (strcmp(attrib, "key_size") == 0) {
-        map->key_size = *((uint16_t *)value);
-    } else if (strcmp(attrib, "value_size") == 0) {
-        map->value_size = *((uint16_t *)value);
-    } else if (strcmp(attrib, "key_type") == 0) {
-        map->key_type = *((uint8_t *)value);
-    } else {
-        dbg_str(RBTMAP_WARNNING, "map set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Map *obj, char *attrib)
-{
-    RBTree_Map *map = (RBTree_Map *)obj;
-
-    if (strcmp(attrib, "name") == 0) {
-        return map->name;
-    } else if (strcmp(attrib, "key_size") == 0) {
-        return &map->key_size;
-    } else if (strcmp(attrib, "value_size") == 0) {
-        return &map->value_size;
-    } else if (strcmp(attrib, "key_type") == 0) {
-        return &map->key_type;
-    } else {
-        dbg_str(RBTMAP_WARNNING, "rbtree map get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-
-    return NULL;
 }
 
 static int __set_cmp_func(Map *map, void *func)
@@ -287,24 +219,22 @@ static Iterator *__end(Map *map)
 }
 
 static class_info_entry_t rbtree_map_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Map", "map", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", __add, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search", __search, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search_all_same_key", __search_all_same_key, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del", __del, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", NULL, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_cmp_func", __set_cmp_func, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_UINT16_T, "", "key_size", NULL, sizeof(short)}, 
-    [15] = {ENTRY_TYPE_UINT16_T, "", "value_size", NULL, sizeof(short)}, 
-    [16] = {ENTRY_TYPE_UINT8_T, "", "key_type", NULL, sizeof(short)}, 
-    [17] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Map, map),
+    Init_Nfunc_Entry(1 , RBTree_Map, construct, __construct),
+    Init_Nfunc_Entry(2 , RBTree_Map, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , RBTree_Map, add, __add),
+    Init_Vfunc_Entry(4 , RBTree_Map, search, __search),
+    Init_Vfunc_Entry(5 , RBTree_Map, search_all_same_key, __search_all_same_key),
+    Init_Vfunc_Entry(6 , RBTree_Map, remove, __remove),
+    Init_Vfunc_Entry(7 , RBTree_Map, del, __del),
+    Init_Vfunc_Entry(8 , RBTree_Map, begin, __begin),
+    Init_Vfunc_Entry(9 , RBTree_Map, end, __end),
+    Init_Vfunc_Entry(10, RBTree_Map, set_cmp_func, __set_cmp_func),
+    Init_Vfunc_Entry(11, RBTree_Map, for_each, NULL),
+    Init_U16___Entry(12, RBTree_Map, key_size, NULL),
+    Init_U16___Entry(13, RBTree_Map, value_size, NULL),
+    Init_U8____Entry(14, RBTree_Map, key_type, NULL),
+    Init_End___Entry(15),
 };
 REGISTER_CLASS("RBTree_Map", rbtree_map_class_info);
 

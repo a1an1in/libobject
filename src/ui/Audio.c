@@ -50,53 +50,6 @@ static int __deconstrcut(Audio *audio)
     return 0;
 }
 
-static int __set(Audio *audio, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        audio->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        audio->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        audio->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        audio->deconstruct = value;
-    } else if (strcmp(attrib, "set_freq") == 0) {
-        audio->set_freq = value;
-    } else if (strcmp(attrib, "set_format") == 0) {
-        audio->set_format = value;
-    } else if (strcmp(attrib, "set_channels") == 0) {
-        audio->set_channels = value;
-    } else if (strcmp(attrib, "set_buffer_size") == 0) {
-        audio->set_buffer_size = value;
-    } else if (strcmp(attrib, "set_callback") == 0) {
-        audio->set_callback = value;
-    } else if (strcmp(attrib, "set_callback_opaque") == 0) {
-        audio->set_callback_opaque = value;
-    } else if (strcmp(attrib, "init") == 0) {
-        audio->init = value;
-    } else if (strcmp(attrib, "play") == 0) {
-        audio->play = value;
-    } else if (strcmp(attrib, "pause") == 0) {
-        audio->pause = value;
-    } else if (strcmp(attrib, "close") == 0) {
-        audio->close = value;
-    } else {
-        dbg_str(OBJ_WARNNING, "audio set,  \"%s\" setting is not support", attrib);
-    }
-
-    return 0;
-}
-
-static void * __get(Audio *audio, char *attrib)
-{
-    if (strcmp(attrib, "x") == 0){ 
-    } else {
-        dbg_str(OBJ_WARNNING, "audio get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __set_freq(Audio *audio, int freq)
 {
     dbg_str(DBG_DETAIL, "set_freq=%d", freq);
@@ -164,24 +117,23 @@ static int __close(Audio *audio)
 }
 
 static class_info_entry_t audio_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_freq", __set_freq, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_format", __set_format, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_channels", __set_channels, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_buffer_size", __set_buffer_size, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_callback", __set_callback, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_callback_opaque", __set_callback_opaque, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "init", __init, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "play", __play, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "pause", __pause, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "close", __close, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_NORMAL_POINTER, "", "String", NULL, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Audio, construct, __construct),
+    Init_Nfunc_Entry(2 , Audio, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Audio, set, NULL),
+    Init_Vfunc_Entry(4 , Audio, get, NULL),
+    Init_Vfunc_Entry(5 , Audio, set_freq, __set_freq),
+    Init_Vfunc_Entry(6 , Audio, set_format, __set_format),
+    Init_Vfunc_Entry(7 , Audio, set_channels, __set_channels),
+    Init_Vfunc_Entry(8 , Audio, set_buffer_size, __set_buffer_size),
+    Init_Vfunc_Entry(9 , Audio, set_callback, __set_callback),
+    Init_Vfunc_Entry(10, Audio, set_callback_opaque, __set_callback_opaque),
+    Init_Vfunc_Entry(11, Audio, init, __init),
+    Init_Vfunc_Entry(12, Audio, play, __play),
+    Init_Vfunc_Entry(13, Audio, pause, __pause),
+    Init_Vfunc_Entry(14, Audio, close, __close),
+    Init_Str___Entry(15, Audio, path, NULL),
+    Init_End___Entry(16),
 };
 REGISTER_CLASS("Audio", audio_class_info);
 

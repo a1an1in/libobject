@@ -34,6 +34,7 @@
 #include <libobject/ui/sdl_window.h>
 #include <libobject/ui/label.h>
 #include <libobject/core/utils/miscellany/buffer.h>
+#include <libobject/core/config.h>
 
 static int __construct(Button *button, char *init_str)
 {
@@ -58,54 +59,6 @@ static int __deconstrcut(Button *button)
 	dbg_str(DBG_IMPORTANT, "button deconstruct, button addr:%p", button);
 
 	return 0;
-}
-
-static int __set(Button *button, char *attrib, void *value)
-{
-	if (strcmp(attrib, "set") == 0) {
-		button->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-		button->get = value;
-	} else if (strcmp(attrib, "construct") == 0) {
-		button->construct = value;
-	} else if (strcmp(attrib, "deconstruct") == 0) {
-		button->deconstruct = value;
-	} 
-    else if (strcmp(attrib, "move") == 0) {
-		button->move = value;
-    } else if (strcmp(attrib, "draw") == 0) {
-        button->draw = value;
-    } else if (strcmp(attrib, "on_mouse_pressed") == 0) {
-        button->on_mouse_pressed = value;
-    } else if (strcmp(attrib, "on_mouse_released") == 0) {
-        button->on_mouse_released = value;
-    } else if (strcmp(attrib, "on_mouse_entered") == 0) {
-        button->on_mouse_entered = value;
-    } else if (strcmp(attrib, "on_mouse_exited") == 0) {
-        button->on_mouse_exited = value;
-    } else if (strcmp(attrib, "on_mouse_moved") == 0) {
-        button->on_mouse_moved = value;
-    } 
-    else if (strcmp(attrib, "add_event_listener") == 0) {
-        button->add_event_listener = value;
-    } else if (strcmp(attrib, "add_event_listener_cb") == 0) {
-        button->add_event_listener_cb = value;
-	} 
-    else {
-		dbg_str(DBG_DETAIL, "button set, not support %s setting", attrib);
-	}
-
-	return 0;
-}
-
-static void *__get(Button *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(DBG_WARNNING, "button get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
 }
 
 static void draw_subcomponent_foreach_cb(void *key, void *element, void *arg) 
@@ -179,22 +132,21 @@ static void __on_mouse_exited(Component *component, void *event, void *window)
 }
 
 static class_info_entry_t button_class_info[] = {
-	[0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-	[1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-	[2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-	[3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-	[4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-	[5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "move", NULL, sizeof(void *)}, 
-	[6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_pressed", __on_mouse_pressed, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_released", __on_mouse_released, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_entered", __on_mouse_entered, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_exited", __on_mouse_exited, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "on_mouse_moved", __on_mouse_moved, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_IFUNC_POINTER, "", "add_event_listener", NULL, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_IFUNC_POINTER, "", "add_event_listener_cb", NULL, sizeof(void *)}, 
-	[14] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Button, construct, __construct),
+    Init_Nfunc_Entry(2 , Button, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Button, set, NULL),
+    Init_Vfunc_Entry(4 , Button, get, NULL),
+    Init_Vfunc_Entry(5 , Button, move, NULL),
+    Init_Vfunc_Entry(6 , Button, draw, __draw),
+    Init_Vfunc_Entry(7 , Button, on_mouse_pressed, __on_mouse_pressed),
+    Init_Vfunc_Entry(8 , Button, on_mouse_released, __on_mouse_released),
+    Init_Vfunc_Entry(9 , Button, on_mouse_entered, __on_mouse_entered),
+    Init_Vfunc_Entry(10, Button, on_mouse_exited, __on_mouse_exited),
+    Init_Vfunc_Entry(11, Button, on_mouse_moved, __on_mouse_moved),
+    Init_Vfunc_Entry(12, Button, add_event_listener, NULL),
+    Init_Vfunc_Entry(13, Button, add_event_listener_cb, NULL),
+    Init_End___Entry(14),
 };
 REGISTER_CLASS("Button", button_class_info);
 
@@ -203,16 +155,19 @@ static void *new_button(allocator_t *allocator, int x, int y, int width, int hei
 #define MAX_BUFFER_LEN 1024
     Subject *subject;
     char buf[MAX_BUFFER_LEN] = {0};
+    configurator_t * c;
 
-    object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "x", &x);
-    object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "y", &y);
-    object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "width", &width);
-    object_config(buf, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "height", &height);
-    object_config(buf, MAX_BUFFER_LEN, "/Component", OBJECT_STRING, "name", name) ;
+    c = cfg_alloc(allocator); 
+    cfg_config_num(c, "/Subject", "x", x);
+    cfg_config_num(c, "/Subject", "y", y);
+    cfg_config_num(c, "/Subject", "width", width);
+    cfg_config_num(c, "/Subject", "height", height);
+    cfg_config_str(c, "/Component", "name", name);
+    dbg_str(DBG_DETAIL, "config:%s", c->buf);
 
-    dbg_str(DBG_DETAIL, "\n%s", buf);
+    subject = OBJECT_NEW(allocator, Button, c->buf);
 
-    subject = OBJECT_NEW(allocator, Button, buf);
+    cfg_destroy(c);
 
     return subject;
 #undef MAX_BUFFER_LEN

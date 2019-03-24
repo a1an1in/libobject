@@ -11,8 +11,11 @@ struct obj_s{
 	int (*deconstruct)(Obj *obj);
 	int (*set)(Obj *obj, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
+    int (*set_target_name)(Obj *obj, char *);
+
 #define MAX_CLASS_NAME_LEN 20
     char name[MAX_CLASS_NAME_LEN];
+    char target_name[MAX_CLASS_NAME_LEN];
 #undef MAX_CLASS_NAME_LEN
 };
 

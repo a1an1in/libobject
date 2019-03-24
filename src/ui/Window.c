@@ -63,123 +63,6 @@ static int __deconstrcut(Window *window)
     return 0;
 }
 
-static int __set(Window *window, char *attrib, void *value)
-{
-    /*normal methods*/
-    if (strcmp(attrib, "set") == 0) {
-        window->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        window->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        window->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        window->deconstruct = value;
-    } else if (strcmp(attrib, "update_window") == 0) {
-        window->update_window = value;
-    } 
-    /*vitual methods*/
-    else if (strcmp(attrib, "load_resources") == 0) {
-        window->load_resources = value;
-    } else if (strcmp(attrib, "unload_resources") == 0) { 
-        window->unload_resources = value;
-    } else if (strcmp(attrib, "move") == 0) { 
-        window->move = value;
-    } else if (strcmp(attrib, "create_font") == 0) {
-        window->create_font = value;
-    } else if (strcmp(attrib, "destroy_font") == 0) {
-        window->destroy_font = value;
-    } else if (strcmp(attrib, "create_render") == 0) {
-        window->create_render = value;
-    } else if (strcmp(attrib, "destroy_render") == 0) {
-        window->destroy_render = value;
-    } else if (strcmp(attrib, "create_event") == 0) {
-        window->create_event = value;
-    } else if (strcmp(attrib, "destroy_event") == 0) {
-        window->destroy_event = value;
-    } else if (strcmp(attrib, "create_background") == 0) {
-        window->create_background = value;
-    } else if (strcmp(attrib, "destroy_background") == 0) {
-        window->destroy_background = value;
-    } else if (strcmp(attrib, "init_window") == 0) {
-        window->init_window = value;
-    } else if (strcmp(attrib, "open_window") == 0) {
-        window->open_window = value;
-    } else if (strcmp(attrib, "close_window") == 0) {
-        window->close_window = value;
-    } else if (strcmp(attrib, "create_timer") == 0) {
-        window->create_timer = value;
-    } else if (strcmp(attrib, "remove_timer") == 0) {
-        window->remove_timer = value;
-    } else if (strcmp(attrib, "destroy_timer") == 0) {
-        window->destroy_timer = value;
-    } else if (strcmp(attrib, "poll_event") == 0) {
-        window->poll_event = value;
-    } else if (strcmp(attrib, "on_window_moved") == 0) {
-        window->on_window_moved = value;
-    } else if (strcmp(attrib, "on_window_resized") == 0) {
-        window->on_window_resized = value;
-    } else if (strcmp(attrib, "on_key_text_pressed") == 0) {
-        window->on_key_text_pressed = value;
-    } else if (strcmp(attrib, "on_key_esc_pressed") == 0) {
-        window->on_key_esc_pressed = value;
-    } else if (strcmp(attrib, "set_window_title") == 0) {
-        window->set_window_title = value;
-    } else if (strcmp(attrib, "set_window_icon") == 0) {
-        window->set_window_icon = value;
-    } else if (strcmp(attrib, "set_window_size") == 0) {
-        window->set_window_size = value;
-    } else if (strcmp(attrib, "set_window_position") == 0) {
-        window->set_window_position = value;
-    } else if (strcmp(attrib, "full_screen") == 0) {
-        window->full_screen = value;
-    } else if (strcmp(attrib, "maximize_window") == 0) {
-        window->maximize_window = value;
-    } else if (strcmp(attrib, "minimize_window") == 0) {
-        window->minimize_window = value;
-    } else if (strcmp(attrib, "restore_window") == 0) {
-        window->restore_window = value;
-    }
-    /*inherited methods*/
-    else if (strcmp(attrib, "add_component") == 0) {
-        window->add_component = value;
-    }
-    /*attribs*/
-    else if (strcmp(attrib, "name") == 0) { 
-        strncpy(window->name, value, strlen(value));
-    } else if (strcmp(attrib, "render_type") == 0) {
-        window->render_type = *((uint8_t *)value);
-    } else if (strcmp(attrib, "screen_width") == 0) {
-        window->screen_width = *((uint32_t *)value);
-    } else if (strcmp(attrib, "screen_height") == 0) {
-        window->screen_height = *((uint32_t *)value);
-    } else if (strcmp(attrib, "render") == 0) {
-        window->render = value;
-    } else {
-        dbg_str(DBG_DETAIL, "window set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Window *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else if (strcmp(attrib, "render_type") == 0) {
-        return &obj->render_type;
-    } else if (strcmp(attrib, "render") == 0) {
-        return obj->render;
-    } else if (strcmp(attrib, "screen_width") == 0) {
-        return &obj->screen_width;
-    } else if (strcmp(attrib, "screen_height") == 0) {
-        return &obj->screen_height;
-    } else {
-        dbg_str(DBG_WARNNING, "window get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __update_window(Window *window)
 {
     Render *r = window->render;
@@ -309,49 +192,49 @@ static void __on_key_esc_pressed(Window *window, void *render)
 }
 
 static class_info_entry_t window_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_resources", __load_resources, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "unload_resources", __unload_resources, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "update_window", __update_window, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "move", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_font", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_font", NULL, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_render", NULL, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_render", NULL, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_event", NULL, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_event", NULL, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_background", NULL, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_background", NULL, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "init_window", NULL, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "open_window", NULL, sizeof(void *)}, 
-    [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "close_window", NULL, sizeof(void *)}, 
-    [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_timer", NULL, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_timer", NULL, sizeof(void *)}, 
-    [22] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_timer", NULL, sizeof(void *)}, 
-    [23] = {ENTRY_TYPE_IFUNC_POINTER, "", "add_component", NULL, sizeof(void *)}, 
-    [24] = {ENTRY_TYPE_VFUNC_POINTER, "", "poll_event", NULL, sizeof(void *)}, 
-    [25] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_window_moved", NULL, sizeof(void *)}, 
-    [26] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_window_resized", NULL, sizeof(void *)}, 
-    [27] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_text_pressed", __on_key_text_pressed, sizeof(void *)}, 
-    [28] = {ENTRY_TYPE_VFUNC_POINTER, "", "on_key_esc_pressed", __on_key_esc_pressed, sizeof(void *)}, 
-    [29] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_window_title", NULL, sizeof(void *)}, 
-    [30] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_window_icon", NULL, sizeof(void *)}, 
-    [31] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_window_size", NULL, sizeof(void *)}, 
-    [32] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_window_position", NULL, sizeof(void *)}, 
-    [33] = {ENTRY_TYPE_VFUNC_POINTER, "", "full_screen", NULL, sizeof(void *)}, 
-    [34] = {ENTRY_TYPE_VFUNC_POINTER, "", "maximize_window", NULL, sizeof(void *)}, 
-    [35] = {ENTRY_TYPE_VFUNC_POINTER, "", "minimize_window", NULL, sizeof(void *)}, 
-    [36] = {ENTRY_TYPE_VFUNC_POINTER, "", "restore_window", NULL, sizeof(void *)}, 
-    [37] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [38] = {ENTRY_TYPE_UINT8_T, "uint8_t", "render_type", NULL, 0}, 
-    [39] = {ENTRY_TYPE_UINT32_T, "", "screen_width", NULL, sizeof(short)}, 
-    [40] = {ENTRY_TYPE_UINT32_T, "", "screen_height", NULL, sizeof(short)}, 
-    [41] = {ENTRY_TYPE_NORMAL_POINTER, "Render", "render", NULL, sizeof(float)}, 
-    [42] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Window, construct, __construct),
+    Init_Nfunc_Entry(2 , Window, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Window, set, NULL),
+    Init_Vfunc_Entry(4 , Window, get, NULL),
+    Init_Vfunc_Entry(5 , Window, load_resources, __load_resources),
+    Init_Vfunc_Entry(6 , Window, unload_resources, __unload_resources),
+    Init_Vfunc_Entry(7 , Window, update_window, __update_window),
+    Init_Vfunc_Entry(8 , Window, move, NULL),
+    Init_Vfunc_Entry(9 , Window, create_font, NULL),
+    Init_Vfunc_Entry(10, Window, destroy_font, NULL),
+    Init_Vfunc_Entry(11, Window, create_render, NULL),
+    Init_Vfunc_Entry(12, Window, destroy_render, NULL),
+    Init_Vfunc_Entry(13, Window, create_event, NULL),
+    Init_Vfunc_Entry(14, Window, destroy_event, NULL),
+    Init_Vfunc_Entry(15, Window, create_background, NULL),
+    Init_Vfunc_Entry(16, Window, destroy_background, NULL),
+    Init_Vfunc_Entry(17, Window, init_window, NULL),
+    Init_Vfunc_Entry(18, Window, open_window, NULL),
+    Init_Vfunc_Entry(19, Window, close_window, NULL),
+    Init_Vfunc_Entry(20, Window, create_timer, NULL),
+    Init_Vfunc_Entry(21, Window, remove_timer, NULL),
+    Init_Vfunc_Entry(22, Window, destroy_timer, NULL),
+    Init_Vfunc_Entry(23, Window, add_component, NULL),
+    Init_Vfunc_Entry(24, Window, poll_event, NULL),
+    Init_Vfunc_Entry(25, Window, on_window_moved, NULL),
+    Init_Vfunc_Entry(26, Window, on_window_resized, NULL),
+    Init_Vfunc_Entry(27, Window, on_key_text_pressed, __on_key_text_pressed),
+    Init_Vfunc_Entry(28, Window, on_key_esc_pressed, __on_key_esc_pressed),
+    Init_Vfunc_Entry(29, Window, set_window_title, NULL),
+    Init_Vfunc_Entry(30, Window, set_window_icon, NULL),
+    Init_Vfunc_Entry(31, Window, set_window_size, NULL),
+    Init_Vfunc_Entry(32, Window, set_window_position, NULL),
+    Init_Vfunc_Entry(33, Window, full_screen, NULL),
+    Init_Vfunc_Entry(34, Window, maximize_window, NULL),
+    Init_Vfunc_Entry(35, Window, minimize_window, NULL),
+    Init_Vfunc_Entry(36, Window, restore_window, NULL),
+    Init_Str___Entry(37, Window, name, NULL),
+    Init_U8____Entry(38, Window, render_type, NULL),
+    Init_U32___Entry(39, Window, screen_width, NULL),
+    Init_U32___Entry(40, Window, screen_height, NULL),
+    Init_Point_Entry(41, Window, render, NULL),
+    Init_End___Entry(42),
 };
 REGISTER_CLASS("Window", window_class_info);
 

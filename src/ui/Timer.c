@@ -47,47 +47,15 @@ static int __deconstrcut(__Timer *timer)
     return 0;
 }
 
-static int __set(__Timer *timer, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        timer->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        timer->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        timer->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        timer->deconstruct = value;
-    } else if (strcmp(attrib, "set_timer") == 0) {
-        timer->set_timer = value;
-    } else if (strcmp(attrib, "reuse") == 0) {
-        timer->reuse = value;
-    } else {
-        dbg_str(OBJ_WARNNING, "timer set,  \"%s\" setting is not support", attrib);
-    }
-
-    return 0;
-}
-
-static void * __get(__Timer *timer, char *attrib)
-{
-    if (strcmp(attrib, "") == 0){ 
-    } else {
-        dbg_str(OBJ_WARNNING, "timer get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t timer_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_timer", NULL, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "reuse", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , __Timer, construct, __construct),
+    Init_Nfunc_Entry(2 , __Timer, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , __Timer, set, NULL),
+    Init_Vfunc_Entry(4 , __Timer, get, NULL),
+    Init_Vfunc_Entry(5 , __Timer, set_timer, NULL),
+    Init_Vfunc_Entry(6 , __Timer, reuse, NULL),
+    Init_End___Entry(7 ),
 };
 REGISTER_CLASS("__Timer", timer_class_info);
 

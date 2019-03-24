@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/map.h>
 
 static int __construct(Map *map, char *init_str)
@@ -48,69 +48,13 @@ static int __deconstrcut(Map *map)
     return 0;
 }
 
-static int __set(Map *map, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        map->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        map->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        map->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        map->deconstruct = value;
-    } else if (strcmp(attrib, "name") == 0) {
-        strncpy(map->name, value, strlen(value));
-    } else if (strcmp(attrib, "add") == 0) {
-        map->add = value;
-    } else if (strcmp(attrib, "search") == 0) {
-        map->search = value;
-    } else if (strcmp(attrib, "search_all_same_key") == 0) {
-        map->search_all_same_key = value;
-    } else if (strcmp(attrib, "remove") == 0) {
-        map->remove = value;
-    } else if (strcmp(attrib, "del") == 0) {
-        map->del = value;
-    } else if (strcmp(attrib, "for_each") == 0) {
-        map->for_each = value;
-    } else if (strcmp(attrib, "for_each_arg") == 0) {
-        map->for_each_arg = value;
-    } else if (strcmp(attrib, "begin") == 0) {
-        map->begin = value;
-    } else if (strcmp(attrib, "end") == 0) {
-        map->end = value;
-    } else if (strcmp(attrib, "destroy") == 0) {
-        map->destroy = value;
-    } else if (strcmp(attrib, "set_cmp_func") == 0) {
-        map->set_cmp_func = value;
-    }
-    else if (strcmp(attrib, "name") == 0) {
-        strncpy(map->name, value, strlen(value));
-    } else {
-        dbg_str(OBJ_DETAIL, "map set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Map *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else if (strcmp(attrib, "for_each") == 0) {
-        return obj->for_each;
-    } else {
-        dbg_str(OBJ_WARNNING, "map get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static void __for_each(Map *map, void (*func)(void *key, void *element))
 {
     Iterator *cur, *end;
     void *key, *value;
 
     dbg_str(OBJ_IMPORTANT, "Map for_each");
+
     cur = map->begin(map);
     end = map->end(map);
 
@@ -154,24 +98,25 @@ static int __destroy(Map *map)
 }
 
 static class_info_entry_t map_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", NULL, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search_all_same_key", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg", __for_each_arg, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy", __destroy, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_cmp_func", NULL, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [17] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Map, construct, __construct),
+    Init_Nfunc_Entry(2 , Map, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Map, set, NULL),
+    Init_Vfunc_Entry(4 , Map, get, NULL),
+    Init_Vfunc_Entry(5 , Map, add, NULL),
+    Init_Vfunc_Entry(6 , Map, search, NULL),
+    Init_Vfunc_Entry(7 , Map, search_all_same_key, NULL),
+    Init_Vfunc_Entry(8 , Map, remove, NULL),
+    Init_Vfunc_Entry(9 , Map, del, NULL),
+    Init_Vfunc_Entry(10, Map, for_each, __for_each),
+    Init_Vfunc_Entry(11, Map, for_each_arg, __for_each_arg),
+    Init_Vfunc_Entry(12, Map, begin, __begin),
+    Init_Vfunc_Entry(13, Map, end, __end),
+    Init_Vfunc_Entry(14, Map, destroy, __destroy),
+    Init_Vfunc_Entry(15, Map, set_cmp_func, NULL),
+    Init_Nfunc_Entry(16, Map, set_target_name, NULL),
+    Init_Str___Entry(17, Map, name, NULL),
+    Init_End___Entry(18),
 };
 REGISTER_CLASS("Map", map_class_info);
 

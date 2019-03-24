@@ -31,6 +31,30 @@ typedef struct class_info_entry_s{
 	char *value_name;
 	void *value;
 	int value_len;
+	int offset;
 }class_info_entry_t;
 
+#define Init_Obj_Entry(id, type_name, value_name) \
+    [id] = {ENTRY_TYPE_OBJ, #type_name, #value_name}
+#define Init_Nfunc_Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_FUNC_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
+#define Init_Vfunc_Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_VFUNC_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
+#define Init_Point_Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_NORMAL_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
+
+#define Init_U32___Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_UINT32_T, "", #value_name, value, sizeof(uint32_t), offset_of_class(class_name, value_name)}
+#define Init_U16___Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_UINT16_T, "", #value_name, value, sizeof(uint16_t), offset_of_class(class_name, value_name)}
+#define Init_U8____Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_UINT8_T, "", #value_name, value, sizeof(uint8_t), offset_of_class(class_name, value_name)}
+#define Init_Float_Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_FLOAT_T, "", #value_name, value, sizeof(float), offset_of_class(class_name, value_name)}
+#define Init_Str___Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_STRING, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
+#define Init_End_Entry(id) \
+    [id] = {ENTRY_TYPE_END}
+#define Init_Obj___Entry Init_Obj_Entry
+#define Init_End___Entry Init_End_Entry
 #endif

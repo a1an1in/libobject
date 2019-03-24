@@ -53,43 +53,6 @@ static int __deconstrcut(Image *image)
     return 0;
 }
 
-static int __set(Image *image, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        image->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        image->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        image->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        image->deconstruct = value;
-    } else if (strcmp(attrib, "load_image") == 0) {
-        image->load_image = value;
-    } else if (strcmp(attrib, "draw") == 0) {
-        image->draw = value;
-    } else if (strcmp(attrib, "set_name") == 0) {
-        image->set_name = value;
-    } else if (strcmp(attrib, "set_size") == 0) {
-        image->set_size = value;
-    } else if (strcmp(attrib, "change_size") == 0) {
-        image->change_size = value;
-    } else {
-        dbg_str(OBJ_WARNNING, "image set,  \"%s\" setting is not support", attrib);
-    }
-
-    return 0;
-}
-
-static void * __get(Image *image, char *attrib)
-{
-    if (strcmp(attrib, "x") == 0){ 
-    } else {
-        dbg_str(OBJ_WARNNING, "image get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __load_image(Image *image, void *path)
 {
     dbg_str(DBG_SUC, "image load image");
@@ -102,18 +65,16 @@ static void __set_size(Image *image, int width, int height)
 }
 
 static class_info_entry_t image_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_image", __load_image, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "draw", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_name", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set_size", __set_size, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "change_size", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_NORMAL_POINTER, "", "String", NULL, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Image, construct, __construct),
+    Init_Nfunc_Entry(2 , Image, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Image, set, NULL),
+    Init_Vfunc_Entry(4 , Image, get, NULL),
+    Init_Vfunc_Entry(5 , Image, load_image, __load_image),
+    Init_Vfunc_Entry(6 , Image, draw, NULL),
+    Init_Vfunc_Entry(7 , Image, set_name, NULL),
+    Init_Vfunc_Entry(8 , Image, set_size, __set_size),
+    Init_Vfunc_Entry(9 , Image, change_size, NULL),
+    Init_End___Entry(10),
 };
 REGISTER_CLASS("Image", image_class_info);

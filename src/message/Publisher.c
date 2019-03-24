@@ -32,7 +32,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/message/publisher.h> 
 #include <libobject/message/centor.h>
@@ -54,40 +54,6 @@ static int __deconstrcut(Publisher *publisher)
     dbg_str(DBG_DETAIL, "publisher deconstruct, publisher addr:%p", publisher);
 
     return 0;
-}
-
-static int __set(Publisher *publisher, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        publisher->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        publisher->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        publisher->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        publisher->deconstruct = value;
-    } else if (strcmp(attrib, "connect_centor") == 0) {
-        publisher->connect_centor = value;
-    } else if (strcmp(attrib, "publish") == 0) {
-        publisher->publish = value;
-    } else if (strcmp(attrib, "publish_message") == 0) {
-        publisher->publish_message = value;
-    } 
-    else {
-        dbg_str(DBG_DETAIL, "publisher set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Publisher *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(DBG_WARNNING, "publisher get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
 }
 
 static int __connect_centor(Publisher *publish, Centor *centor)
@@ -120,15 +86,15 @@ __publish_message(Publisher *publisher, char *what, void *opaque)
 }
 
 static class_info_entry_t concurent_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "connect_centor", __connect_centor, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "publish", __publish, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "publish_message", __publish_message, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Publisher, construct, __construct),
+    Init_Nfunc_Entry(2 , Publisher, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Publisher, set, NULL),
+    Init_Vfunc_Entry(4 , Publisher, get, NULL),
+    Init_Vfunc_Entry(5 , Publisher, publish, __publish),
+    Init_Vfunc_Entry(6 , Publisher, publish_message, __publish_message),
+    Init_Vfunc_Entry(7 , Publisher, connect_centor, __connect_centor),
+    Init_End___Entry(8 ),
 };
 REGISTER_CLASS("Publisher", concurent_class_info);
 

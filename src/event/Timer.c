@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/event/event_base.h>
 #include <libobject/event/timer.h>
 
@@ -89,17 +89,17 @@ static void *__get(Timer *obj, char *attrib)
 
 
 static class_info_entry_t timer_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", NULL, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", NULL, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", NULL, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "timeout_next", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "first", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Timer, construct, NULL),
+    Init_Nfunc_Entry(2 , Timer, deconstruct, NULL),
+    Init_Nfunc_Entry(3 , Timer, set, NULL),
+    Init_Nfunc_Entry(4 , Timer, get, NULL),
+    Init_Vfunc_Entry(5 , Timer, add, NULL),
+    Init_Vfunc_Entry(6 , Timer, del, NULL),
+    Init_Vfunc_Entry(7 , Timer, remove, NULL),
+    Init_Vfunc_Entry(8 , Timer, timeout_next, NULL),
+    Init_Vfunc_Entry(9 , Timer, first, NULL),
+    Init_End___Entry(10),
 };
 REGISTER_CLASS("Timer", timer_class_info);
 

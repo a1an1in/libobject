@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <fcntl.h> 
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/event_base.h>
 #include <libobject/net/socket/socket.h>
@@ -360,32 +360,32 @@ static int __setnonblocking(Socket *socket)
 }
 
 static class_info_entry_t socket_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "bind", __bind, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "listen", __listen, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "accept", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "accept_fd", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "connect", __connect, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "write", __write, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "send", __send, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "sendto", __sendto, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "sendmsg", __sendmsg, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "read", __read, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "recv", __recv, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "recvfrom", __recvfrom, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "recvmsg", __recvmsg, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "getsockopt", __getsockopt, sizeof(void *)}, 
-    [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "setsockopt", __setsockopt, sizeof(void *)}, 
-    [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "setnonblocking", __setnonblocking, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_STRING, "", "local_host", NULL, sizeof(void *)}, 
-    [22] = {ENTRY_TYPE_STRING, "", "local_service", NULL, sizeof(void *)}, 
-    [23] = {ENTRY_TYPE_STRING, "", "remote_host", NULL, sizeof(void *)}, 
-    [24] = {ENTRY_TYPE_STRING, "", "remote_service", NULL, sizeof(void *)}, 
-    [25] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Socket, construct, __construct),
+    Init_Nfunc_Entry(2 , Socket, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Socket, set, NULL),
+    Init_Vfunc_Entry(4 , Socket, get, NULL),
+    Init_Vfunc_Entry(5 , Socket, bind, __bind),
+    Init_Vfunc_Entry(6 , Socket, listen, __listen),
+    Init_Vfunc_Entry(7 , Socket, accept, NULL),
+    Init_Vfunc_Entry(8 , Socket, accept_fd, NULL),
+    Init_Vfunc_Entry(9 , Socket, connect, __connect),
+    Init_Vfunc_Entry(10, Socket, write, __write),
+    Init_Vfunc_Entry(11, Socket, send, __send),
+    Init_Vfunc_Entry(12, Socket, sendto, __sendto),
+    Init_Vfunc_Entry(13, Socket, sendmsg, __sendmsg),
+    Init_Vfunc_Entry(14, Socket, read, __read),
+    Init_Vfunc_Entry(15, Socket, recv, __recv),
+    Init_Vfunc_Entry(16, Socket, recvfrom, __recvfrom),
+    Init_Vfunc_Entry(17, Socket, recvmsg, __recvmsg),
+    Init_Vfunc_Entry(18, Socket, getsockopt, __getsockopt),
+    Init_Vfunc_Entry(19, Socket, setsockopt, __setsockopt),
+    Init_Vfunc_Entry(20, Socket, setnonblocking, __setnonblocking),
+    Init_Str___Entry(21, Socket, local_host, NULL),
+    Init_Str___Entry(22, Socket, local_service, NULL),
+    Init_Str___Entry(23, Socket, remote_host, NULL),
+    Init_Str___Entry(24, Socket, remote_service, NULL),
+    Init_End___Entry(25),
 };
 REGISTER_CLASS("Socket", socket_class_info);
 

@@ -83,14 +83,13 @@ static void * __get(__Event *event, char *attrib)
 
 
 static class_info_entry_t event_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "poll_event", NULL, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , __Event, construct, __construct),
+    Init_Nfunc_Entry(2 , __Event, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , __Event, set, NULL),
+    Init_Vfunc_Entry(4 , __Event, get, NULL),
+    Init_Vfunc_Entry(5 , __Event, poll_event, NULL),
+    Init_End___Entry(6 ),
 };
 REGISTER_CLASS("__Event", event_class_info);
 

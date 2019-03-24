@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/net/http/Client.h>
@@ -66,42 +66,6 @@ static int __deconstruct(Http_Client *client)
     }
 
     return 0;
-}
-
-static int __set(Http_Client *client, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        client->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        client->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        client->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        client->deconstruct = value;
-    } else if (strcmp(attrib, "get_request") == 0) {
-        client->get_request = value;
-    } else if (strcmp(attrib, "get_response") == 0) {
-        client->get_response = value;
-    } else if (strcmp(attrib, "request") == 0) {
-        client->request = value;
-    } else if (strcmp(attrib, "request_sync") == 0) {
-        client->request_sync = value;
-    } 
-    else {
-        dbg_str(EV_DETAIL,"client set, not support %s setting",attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Http_Client *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING,"client get, \"%s\" getting attrib is not supported",attrib);
-        return NULL;
-    }
-    return NULL;
 }
 
 static Request *__get_request(Http_Client *client)
@@ -153,16 +117,16 @@ static Response * __request_sync(Http_Client *client)
 }
 
 static class_info_entry_t concurent_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstruct,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER,"","get_request",__get_request,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER,"","get_response",__get_response,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER,"","request",__request,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER,"","request_sync",__request_sync,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_END},
+    Init_Obj___Entry(0, Obj, obj),
+    Init_Nfunc_Entry(1, Http_Client, construct, __construct),
+    Init_Nfunc_Entry(2, Http_Client, deconstruct, __deconstruct),
+    Init_Vfunc_Entry(3, Http_Client, set, NULL),
+    Init_Vfunc_Entry(4, Http_Client, get, NULL),
+    Init_Vfunc_Entry(5, Http_Client, get_request, __get_request),
+    Init_Vfunc_Entry(6, Http_Client, get_response, __get_response),
+    Init_Vfunc_Entry(7, Http_Client, request, __request),
+    Init_Vfunc_Entry(8, Http_Client, request_sync, __request_sync),
+    Init_End___Entry(9),
 };
 REGISTER_CLASS("Http_Client",concurent_class_info);
 

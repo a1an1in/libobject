@@ -33,6 +33,7 @@
 #include <libobject/ui/panel.h>
 #include <libobject/ui/sdl_window.h>
 #include <libobject/core/utils/miscellany/buffer.h>
+#include <libobject/core/config.h>
 
 static int __construct(Panel *panel, char *init_str)
 {
@@ -47,41 +48,6 @@ static int __deconstrcut(Panel *panel)
     dbg_str(DBG_IMPORTANT, "panel deconstruct, panel addr:%p", panel);
 
     return 0;
-}
-
-static int __set(Panel *panel, char *attrib, void *value)
-{
-    /*normal methods*/
-    if (strcmp(attrib, "set") == 0) {
-        panel->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        panel->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        panel->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        panel->deconstruct = value;
-    } 
-    /*vitual methods*/
-    else if (strcmp(attrib, "draw") == 0) {
-        panel->draw = value;
-    }
-    /*inherited methods*/
-    /*attribs*/
-    else {
-        dbg_str(DBG_DETAIL, "panel set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Panel *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(DBG_WARNNING, "panel get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
 }
 
 static void draw_subcomponent_foreach_cb(void *key, void *element, void *arg) 
@@ -111,13 +77,13 @@ static int __draw(Component *component, void *graph)
 }
 
 static class_info_entry_t panel_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-	[5] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Panel, construct, __construct),
+    Init_Nfunc_Entry(2 , Panel, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Panel, set, NULL),
+    Init_Vfunc_Entry(4 , Panel, get, NULL),
+    Init_Vfunc_Entry(5 , Panel, draw, __draw),
+    Init_End___Entry(6 ),
 };
 REGISTER_CLASS("Panel", panel_class_info);
 
@@ -131,22 +97,26 @@ void test_ui_panel()
     char *set_str;
     char config[MAX_BUFFER_LEN] = {0};
     Subject *s;
+    configurator_t * c;
     int x = 0, y = 0, width = 400, height = 400;
 
     set_str = gen_window_setting_str();
     window  = OBJECT_NEW(allocator, Sdl_Window, set_str);
 
-    memset(config, 0, MAX_BUFFER_LEN);
-    object_config(config, MAX_BUFFER_LEN, "/Component", OBJECT_STRING, "name", "layout") ;
-    layout  = OBJECT_NEW(allocator, Border_Layout, config);
+    c = cfg_alloc(allocator); 
+    cfg_config_str(c, "/Component", "name", "layout");
+    layout  = OBJECT_NEW(allocator, Border_Layout, c->buf);
+    cfg_destroy(c);
 
-    memset(config, 0, MAX_BUFFER_LEN);
-    object_config(config, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "x", &x);
-    object_config(config, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "y", &y);
-    object_config(config, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "width", &width);
-    object_config(config, MAX_BUFFER_LEN, "/Subject", OBJECT_NUMBER, "height", &height);
-    object_config(config, MAX_BUFFER_LEN, "/Component", OBJECT_STRING, "name", "panel") ;
+    c = cfg_alloc(allocator); 
+    cfg_config_num(c, "/Subject", "x", x);
+    cfg_config_num(c, "/Subject", "y", y);
+    cfg_config_num(c, "/Subject", "width", width);
+    cfg_config_num(c, "/Subject", "height", height);
+    cfg_config_str(c, "/Component", "name", "panel");
+    dbg_str(DBG_DETAIL, "config:%s", c->buf);
     panel   = OBJECT_NEW(allocator, Panel, config);
+    cfg_destroy(c);
 
     layout->add_component((Container *)layout, "North", NULL);
     layout->add_component((Container *)layout, "West", NULL);

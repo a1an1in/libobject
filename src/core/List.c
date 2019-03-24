@@ -47,79 +47,6 @@ static int __deconstrcut(List *list)
     return 0;
 }
 
-static int __set(List *list, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        list->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        list->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        list->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        list->deconstruct = value;
-    } 
-    else if (strcmp(attrib, "add") == 0) {
-        list->add = value;
-    } else if (strcmp(attrib, "add_front") == 0) {
-        list->add_front = value;
-    } else if (strcmp(attrib, "add_back") == 0) {
-        list->add_back = value;
-    } else if (strcmp(attrib, "remove") == 0) {
-        list->remove = value;
-    } else if (strcmp(attrib, "remove_front") == 0) {
-        list->remove_front = value;
-    } else if (strcmp(attrib, "remove_back") == 0) {
-        list->remove_back = value;
-    } else if (strcmp(attrib, "remove_all") == 0) {
-        list->remove_all = value;
-    } else if (strcmp(attrib, "remove_element") == 0) {
-        list->remove_element = value;
-    } else if (strcmp(attrib, "count") == 0) {
-        list->count = value;
-    } else if (strcmp(attrib, "delete") == 0) {
-        list->delete = value;
-    } else if (strcmp(attrib, "detach_front") == 0) {
-        list->detach_front = value;
-    } else if (strcmp(attrib, "free_detached") == 0) {
-        list->free_detached = value;
-    } else if (strcmp(attrib, "for_each") == 0) {
-        list->for_each = value;
-    } else if (strcmp(attrib, "for_each_arg") == 0) {
-        list->for_each_arg = value;
-    } else if (strcmp(attrib, "begin") == 0) {
-        list->begin = value;
-    } else if (strcmp(attrib, "end") == 0) {
-        list->end = value;
-    } else if (strcmp(attrib, "destroy") == 0) {
-        list->destroy = value;
-    } 
-    else if (strcmp(attrib, "name") == 0) {
-        strncpy(list->name, value, strlen(value));
-    } else if (strcmp(attrib, "value_size") == 0) {
-        list->value_size = *(int *)value;
-
-    } else {
-        dbg_str(OBJ_DETAIL, "list set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(List *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else if (strcmp(attrib, "value_size") == 0) {
-        return &obj->value_size;
-    } else if (strcmp(attrib, "for_each") == 0) {
-        return obj->for_each;
-    } else {
-        dbg_str(OBJ_WARNNING, "list get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __add_back(List *list, void *value)
 {
     dbg_str(OBJ_DETAIL, "List insert");
@@ -197,30 +124,28 @@ static Iterator *__end(List *list)
 }
 
 static class_info_entry_t list_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", NULL, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_front", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_back", __add_back, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_front", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_back", __remove_back, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_all", __remove_all, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_element", __remove_element, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "count", NULL, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "delete", __delete, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "detach_front", NULL, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "free_detached", NULL, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each_arg", __for_each_arg, sizeof(void *)}, 
-    [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
-    [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy", NULL, sizeof(void *)}, 
-    [22] = {ENTRY_TYPE_UINT32_T, "", "value_size", NULL, sizeof(short)}, 
-    [23] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , List, construct, __construct),
+    Init_Nfunc_Entry(2 , List, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , List, add, NULL),
+    Init_Vfunc_Entry(4 , List, add_front, NULL),
+    Init_Vfunc_Entry(5 , List, add_back, __add_back),
+    Init_Vfunc_Entry(6 , List, remove, __remove),
+    Init_Vfunc_Entry(7 , List, remove_front, NULL),
+    Init_Vfunc_Entry(8 , List, remove_back, __remove_back),
+    Init_Vfunc_Entry(9 , List, remove_all, __remove_all),
+    Init_Vfunc_Entry(10, List, remove_element, __remove_element),
+    Init_Vfunc_Entry(11, List, count, NULL),
+    Init_Vfunc_Entry(12, List, delete, __delete),
+    Init_Vfunc_Entry(13, List, detach_front, NULL),
+    Init_Vfunc_Entry(14, List, free_detached, NULL),
+    Init_Vfunc_Entry(15, List, for_each, __for_each),
+    Init_Vfunc_Entry(16, List, for_each_arg, __for_each_arg),
+    Init_Vfunc_Entry(17, List, begin, __begin),
+    Init_Vfunc_Entry(18, List, end, __end),
+    Init_Vfunc_Entry(19, List, destroy, NULL),
+    Init_U32___Entry(20, List, value_size, NULL),
+    Init_End___Entry(21),
 };
 REGISTER_CLASS("List", list_class_info);
 

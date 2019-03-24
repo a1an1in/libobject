@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/concurrent/worker.h>
 #include <libobject/concurrent/producer.h>
@@ -53,41 +53,6 @@ static int __deconstrcut(Worker *worker)
     dbg_str(EV_DETAIL, "worker deconstruct, worker addr:%p", worker);
 
     return 0;
-}
-
-static int __set(Worker *worker, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        worker->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        worker->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        worker->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        worker->deconstruct = value;
-    }
-    else if (strcmp(attrib, "assign") == 0) {
-        worker->assign = value;
-    } else if (strcmp(attrib, "enroll") == 0) {
-        worker->enroll = value;
-    } else if (strcmp(attrib, "resign") == 0) {
-        worker->resign = value;
-    } 
-    else {
-        dbg_str(EV_DETAIL, "worker set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Worker *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING, "worker get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
 }
 
 static int  __assign(Worker *worker, int fd, int ev_events, 
@@ -131,15 +96,13 @@ static int __resign(Worker *worker)
 }
 
 static class_info_entry_t worker_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "assign", __assign, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "enroll", __enroll, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "resign", __resign, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Worker, construct, __construct),
+    Init_Nfunc_Entry(2 , Worker, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Worker, assign, __assign),
+    Init_Vfunc_Entry(4 , Worker, enroll, __enroll),
+    Init_Vfunc_Entry(5 , Worker, resign, __resign),
+    Init_End___Entry(6 ),
 };
 REGISTER_CLASS("Worker", worker_class_info);
 

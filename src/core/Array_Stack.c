@@ -32,10 +32,11 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/array_stack.h>
 #include <libobject/event/event_base.h>
+#include <libobject/core/utils/registry/registry.h>
 
 static int __construct(Stack *stack, char *init_str)
 {
@@ -61,40 +62,6 @@ static int __deconstrcut(Stack *stack)
     return 0;
 }
 
-static int __set(Stack *stack, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        stack->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        stack->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        stack->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        stack->deconstruct = value;
-    }
-    else if (strcmp(attrib, "push") == 0) {
-        stack->push = value;
-    } else if (strcmp(attrib, "pop") == 0) {
-        stack->pop = value;
-    }
-    else {
-        dbg_str(DBG_DETAIL, "stack set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Stack *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(DBG_WARNNING, "stack get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-
-    return NULL;
-}
-
 static int __push(Stack *stack, void *element)
 {
     Array_Stack *as = (Array_Stack *)stack;
@@ -109,19 +76,27 @@ static int __pop(Stack *stack, void **element)
     return array_stack_pop(as->core, element);
 }
 
+static int __count(Stack *stack) 
+{
+    Array_Stack *as = (Array_Stack *)stack;
+
+    return as->core->count;
+}
+
 static class_info_entry_t array_stack_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Stack", "parent", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "push", __push, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "pop", __pop, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0, Stack, parent),
+    Init_Nfunc_Entry(1, Array_Stack, construct, __construct),
+    Init_Nfunc_Entry(2, Array_Stack, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3, Array_Stack, set, NULL),
+    Init_Vfunc_Entry(4, Array_Stack, get, NULL),
+    Init_Vfunc_Entry(5, Array_Stack, push, __push),
+    Init_Vfunc_Entry(6, Array_Stack, pop, __pop),
+    Init_Vfunc_Entry(7, Array_Stack, count, __count),
+    Init_End___Entry(8),
 };
 REGISTER_CLASS("Array_Stack", array_stack_class_info);
 
-int test_obj_array_stack()
+int test_Array_Stack(TEST_ENTRY *entry)
 {
     Stack *stack;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -139,14 +114,37 @@ int test_obj_array_stack()
     stack->push(stack, a);
 
 
+    dbg_str(DBG_SUC, "arrary stack, obj.set addr:%p", ((Obj *)stack)->set);
+    dbg_str(DBG_SUC, "arrary stack, stack.set addr:%p", stack->set);
+    dbg_str(DBG_SUC, "arrary stack,  array_stack.set addr:%p",
+            ((Array_Stack *)stack)->set);
+
+    if (stack->count(stack) != 4) {
+        return -1;
+    }
+
     stack->pop(stack, (void **)&p);
-    dbg_str(DBG_DETAIL, "pop data:%d", p);
+    if (p != 7) {
+        return -1;
+    }
+
     stack->pop(stack, (void **)&p);
-    dbg_str(DBG_DETAIL, "pop data:%d", p);
+    if (p != 6) {
+        return -1;
+    }
+
     stack->pop(stack, (void **)&p);
-    dbg_str(DBG_DETAIL, "pop data:%d", p);
+    if (p != 5) {
+        return -1;
+    }
+
     stack->pop(stack, (void **)&p);
-    dbg_str(DBG_DETAIL, "pop data:%d", p);
+    if (p != 4) {
+        return -1;
+    }
 
     object_destroy(stack);
+
+    return 1;
 }
+REGISTER_TEST_FUNC(test_Array_Stack);

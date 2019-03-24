@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/net/client/client.h>
 
@@ -160,17 +160,17 @@ static int __trustee(Client *client, struct timeval *tv,
 }
 
 static class_info_entry_t client_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "bind", __bind, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "connect", __connect, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "send", __send, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "recv", __recv, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "trustee", __trustee, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Client, construct, __construct),
+    Init_Nfunc_Entry(2 , Client, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Client, set, NULL),
+    Init_Vfunc_Entry(4 , Client, get, NULL),
+    Init_Vfunc_Entry(5 , Client, bind, __bind),
+    Init_Vfunc_Entry(6 , Client, connect, __connect),
+    Init_Vfunc_Entry(7 , Client, send, __send),
+    Init_Vfunc_Entry(8 , Client, recv, __recv),
+    Init_Vfunc_Entry(9 , Client, trustee, __trustee),
+    Init_End___Entry(10),
 };
 REGISTER_CLASS("Client", client_class_info);
 

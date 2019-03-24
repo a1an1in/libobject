@@ -32,72 +32,18 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/event_base.h>
 #include <libobject/core/stack.h>
 
-static int __construct(Stack *stack, char *init_str)
-{
-    allocator_t *allocator = stack->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
-
-    dbg_str(DBG_DETAIL, "stack construct, stack addr:%p", stack);
-
-    return 0;
-}
-
-static int __deconstrcut(Stack *stack)
-{
-    dbg_str(DBG_DETAIL, "stack deconstruct, stack addr:%p", stack);
-    int ret;
-    void *tret;
-
-    return 0;
-}
-
-static int __set(Stack *stack, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        stack->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        stack->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        stack->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        stack->deconstruct = value;
-    }
-    else if (strcmp(attrib, "push") == 0) {
-        stack->push = value;
-    } else if (strcmp(attrib, "pop") == 0) {
-        stack->pop = value;
-    }
-    else {
-        dbg_str(DBG_DETAIL, "stack set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Stack *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(DBG_WARNNING, "stack get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t stack_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "push", NULL, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "pop", NULL, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0, Obj, obj),
+    Init_Vfunc_Entry(1, Stack, set, NULL),
+    Init_Vfunc_Entry(2, Stack, get, NULL),
+    Init_Vfunc_Entry(3, Stack, push, NULL),
+    Init_Vfunc_Entry(4, Stack, pop, NULL),
+    Init_Vfunc_Entry(5, Stack, count, NULL),
+    Init_End___Entry(6),
 };
 REGISTER_CLASS("Stack", stack_class_info);

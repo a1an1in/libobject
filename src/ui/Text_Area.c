@@ -567,64 +567,6 @@ static int __deconstrcut(Text_Area *ta)
     return 0;
 }
 
-static int __set(Text_Area *ta, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        ta->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        ta->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        ta->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        ta->deconstruct = value;
-    }
-    /*vitual methods*/
-    else if (strcmp(attrib, "draw") == 0) {
-        ta->draw = value;
-    } else if (strcmp(attrib, "load_resources") == 0) {
-        ta->load_resources = value;
-    } else if (strcmp(attrib, "on_key_text_pressed") == 0) {
-        ta->on_key_text_pressed = value;
-    } else if (strcmp(attrib, "on_key_backspace_pressed") == 0) {
-        ta->on_key_backspace_pressed = value;
-    } else if (strcmp(attrib, "on_key_up_pressed") == 0) {
-        ta->on_key_up_pressed = value;
-    } else if (strcmp(attrib, "on_key_down_pressed") == 0) {
-        ta->on_key_down_pressed = value;
-    } else if (strcmp(attrib, "on_key_left_pressed") == 0) {
-        ta->on_key_left_pressed = value;
-    } else if (strcmp(attrib, "on_key_right_pressed") == 0) {
-        ta->on_key_right_pressed = value;
-    } else if (strcmp(attrib, "on_key_pageup_pressed") == 0) {
-        ta->on_key_pageup_pressed = value;
-    } else if (strcmp(attrib, "on_key_pagedown_pressed") == 0) {
-        ta->on_key_pagedown_pressed = value;
-    } else if (strcmp(attrib, "on_key_onelineup_pressed") == 0) {
-        ta->on_key_onelineup_pressed = value;
-    } else if (strcmp(attrib, "on_key_onelinedown_pressed") == 0) {
-        ta->on_key_onelinedown_pressed = value;
-    }
-    /*attribs*/
-    else if (strcmp(attrib, "name") == 0) {
-        strncpy(ta->name, value, strlen(value));
-    } else {
-        dbg_str(DBG_DETAIL, "ta set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Text_Area *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else {
-        dbg_str(DBG_WARNNING, "text_area get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __load_resources(Component *component, void *window)
 {
     Render *r      = ((Window *)window)->render;
@@ -965,26 +907,25 @@ static int __on_key_onelinedown_pressed(Component *component, void *render)
 }
 
 static class_info_entry_t text_area_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_resources", __load_resources, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_text_pressed", __on_key_text_pressed, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_backspace_pressed", __on_key_backspace_pressed, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_up_pressed", __on_key_up_pressed, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_down_pressed", __on_key_down_pressed, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_left_pressed", __on_key_left_pressed, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_right_pressed", __on_key_right_pressed, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_pageup_pressed", __on_key_pageup_pressed, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_pagedown_pressed", __on_key_pagedown_pressed, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_onelineup_pressed", __on_key_onelineup_pressed, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_onelinedown_pressed", __on_key_onelinedown_pressed, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [18] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Text_Area, construct, __construct),
+    Init_Nfunc_Entry(2 , Text_Area, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Text_Area, set, NULL),
+    Init_Vfunc_Entry(4 , Text_Area, get, NULL),
+    Init_Vfunc_Entry(5 , Text_Area, draw, __draw),
+    Init_Vfunc_Entry(6 , Text_Area, load_resources, __load_resources),
+    Init_Vfunc_Entry(7 , Text_Area, on_key_text_pressed, __on_key_text_pressed),
+    Init_Vfunc_Entry(8 , Text_Area, on_key_backspace_pressed, __on_key_backspace_pressed),
+    Init_Vfunc_Entry(9 , Text_Area, on_key_up_pressed, __on_key_up_pressed),
+    Init_Vfunc_Entry(10, Text_Area, on_key_down_pressed, __on_key_down_pressed),
+    Init_Vfunc_Entry(11, Text_Area, on_key_left_pressed, __on_key_left_pressed),
+    Init_Vfunc_Entry(12, Text_Area, on_key_right_pressed, __on_key_right_pressed),
+    Init_Vfunc_Entry(13, Text_Area, on_key_pageup_pressed, __on_key_pageup_pressed),
+    Init_Vfunc_Entry(14, Text_Area, on_key_pagedown_pressed, __on_key_pagedown_pressed),
+    Init_Vfunc_Entry(15, Text_Area, on_key_onelineup_pressed, __on_key_onelinedown_pressed),
+    Init_Vfunc_Entry(16, Text_Area, on_key_onelinedown_pressed, __on_key_right_pressed),
+    Init_Str___Entry(17, Text_Area, name, NULL),
+    Init_End___Entry(18),
 };
 REGISTER_CLASS("Text_Area", text_area_class_info);
 

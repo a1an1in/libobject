@@ -34,7 +34,7 @@
 #include <libobject/ui/character.h>
 #include <libobject/ui/timer.h>
 #include <libobject/ui/label.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 
 static void modulate_component_position(Border_Layout *border_layout)
 {
@@ -237,55 +237,6 @@ static int __deconstrcut(Border_Layout *border_layout)
     dbg_str(DBG_IMPORTANT, "border_layout deconstruct");
 
     return 0;
-}
-
-static int __set(Border_Layout *border_layout, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        border_layout->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        border_layout->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        border_layout->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        border_layout->deconstruct = value;
-    }
-    /*vitual methods*/
-    else if (strcmp(attrib, "add_component") == 0) {
-        border_layout->add_component = value;
-    } else if (strcmp(attrib, "draw") == 0) {
-        border_layout->draw = value;
-    } else if (strcmp(attrib, "load_resources") == 0) {
-        border_layout->load_resources = value;
-    }
-    /*attribs*/
-    else if (strcmp(attrib, "name") == 0) {
-        dbg_str(DBG_SUC, "set border_layout name");
-        strncpy(border_layout->name, value, strlen(value));
-    } else if (strcmp(attrib, "hgap") == 0) {
-        border_layout->hgap = *((uint32_t *)value);
-    } else if (strcmp(attrib, "vgap") == 0) {
-        border_layout->vgap = *((uint32_t *)value);
-    } else {
-        dbg_str(DBG_DETAIL, "border_layout set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Border_Layout *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else if (strcmp(attrib, "hgap") == 0) {
-        return &obj->hgap;
-    } else if (strcmp(attrib, "vgap") == 0) {
-        return &obj->vgap;
-    } else {
-        dbg_str(DBG_WARNNING, "border_layout get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
 }
 
 static int __add_component(Container *obj, void *pos, void *component)
@@ -626,17 +577,17 @@ static int __draw(Component *component, void *render)
 }
 
 static class_info_entry_t border_layout_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "add_component", __add_component, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [8 ] = {ENTRY_TYPE_INT32_T, "int", "hgap", NULL, sizeof(int)}, 
-    [9 ] = {ENTRY_TYPE_INT32_T, "int", "vgap", NULL, sizeof(int)}, 
-    [10] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Border_Layout, construct, __construct),
+    Init_Nfunc_Entry(2 , Border_Layout, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Border_Layout, set, NULL),
+    Init_Vfunc_Entry(4 , Border_Layout, get, NULL),
+    Init_Vfunc_Entry(5 , Border_Layout, add_component, __add_component),
+    Init_Vfunc_Entry(6 , Border_Layout, draw, __draw),
+    Init_Str___Entry(7 , Border_Layout, name, NULL),
+    Init_U32___Entry(8 , Border_Layout, hgap, NULL),
+    Init_U32___Entry(9 , Border_Layout, vgap, NULL),
+    Init_End___Entry(10),
 };
 REGISTER_CLASS("Border_Layout", border_layout_class_info);
 

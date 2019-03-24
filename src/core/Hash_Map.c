@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/hash_map.h>
 #include <libobject/core/utils/registry/registry.h>
 
@@ -61,73 +61,6 @@ static int __deconstrcut(Map *map)
     hash_map_destroy(((Hash_Map *)map)->hmap);
 
     return 0;
-}
-
-static int __set(Map *m, char *attrib, void *value)
-{
-    Hash_Map *map = (Hash_Map *)m;
-
-    if (strcmp(attrib, "set") == 0) {
-        map->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        map->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        map->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        map->deconstruct = value;
-    } else if (strcmp(attrib, "name") == 0) {
-        strncpy(map->name, value, strlen(value));
-    } else if (strcmp(attrib, "add") == 0) {
-        map->add = value;
-    } else if (strcmp(attrib, "search") == 0) {
-        map->search = value;
-    } else if (strcmp(attrib, "remove") == 0) {
-        map->remove = value;
-    } else if (strcmp(attrib, "del") == 0) {
-        map->del = value;
-    } else if (strcmp(attrib, "for_each") == 0) {
-        map->for_each = value;
-    } else if (strcmp(attrib, "begin") == 0) {
-        map->begin = value;
-    } else if (strcmp(attrib, "end") == 0) {
-        map->end = value;
-    } else if (strcmp(attrib, "destroy") == 0) {
-        map->destroy = value;
-    } else if (strcmp(attrib, "key_size") == 0) {
-        map->key_size = *((uint16_t *)value);
-    } else if (strcmp(attrib, "value_size") == 0) {
-        map->value_size = *((uint16_t *)value);
-    } else if (strcmp(attrib, "bucket_size") == 0) {
-        map->bucket_size = *((uint16_t *)value);
-    } else if (strcmp(attrib, "key_type") == 0) {
-        map->key_type = *((uint8_t *)value);
-    } else {
-        dbg_str(HMAP_WARNNING, "map set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Map *obj, char *attrib)
-{
-    Hash_Map *map = (Hash_Map *)obj;
-
-    if (strcmp(attrib, "name") == 0) {
-        return map->name;
-    } else if (strcmp(attrib, "key_size") == 0) {
-        return &map->key_size;
-    } else if (strcmp(attrib, "value_size") == 0) {
-        return &map->value_size;
-    } else if (strcmp(attrib, "bucket_size") == 0) {
-        return &map->bucket_size;
-    } else if (strcmp(attrib, "key_type") == 0) {
-        return &map->key_type;
-    } else {
-        dbg_str(HMAP_WARNNING, "hash map get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-
-    return NULL;
 }
 
 static int __add(Map *map, void *key, void *value)
@@ -214,23 +147,22 @@ static Iterator *__end(Map *map)
 }
 
 static class_info_entry_t hash_map_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Map", "map", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", __add, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "search", __search, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "del", __del, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", NULL, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_UINT16_T, "", "key_size", NULL, sizeof(short)}, 
-    [13] = {ENTRY_TYPE_UINT16_T, "", "value_size", NULL, sizeof(short)}, 
-    [14] = {ENTRY_TYPE_UINT16_T, "", "bucket_size", NULL, sizeof(short)}, 
-    [15] = {ENTRY_TYPE_UINT8_T, "", "key_type", NULL, sizeof(short)}, 
-    [16] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Map, map),
+    Init_Nfunc_Entry(1 , Hash_Map, construct, __construct),
+    Init_Nfunc_Entry(2 , Hash_Map, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Hash_Map, add, __add),
+    Init_Vfunc_Entry(4 , Hash_Map, search, __search),
+    Init_Vfunc_Entry(5 , Hash_Map, remove, __remove),
+    Init_Vfunc_Entry(6 , Hash_Map, del, __del),
+    Init_Vfunc_Entry(7 , Hash_Map, begin, __begin),
+    Init_Vfunc_Entry(8 , Hash_Map, end, __end),
+    Init_Vfunc_Entry(9 , Hash_Map, for_each, NULL),
+    Init_U16___Entry(10, Hash_Map, key_size, NULL),
+    Init_U16___Entry(11, Hash_Map, value_size, NULL),
+    Init_U16___Entry(12, Hash_Map, bucket_size, NULL),
+    Init_U8____Entry(13, Hash_Map, key_type, NULL),
+    Init_Point_Entry(14, Hash_Map, test, NULL),
+    Init_End___Entry(15),
 };
 REGISTER_CLASS("Hash_Map", hash_map_class_info);
 
@@ -357,6 +289,10 @@ static int test_obj_hash_map_numeric_key(TEST_ENTRY *entry)
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
     cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_type", "1");
 
+    /*
+     *dbg_str(DBG_SUC, "config:%s", c->buf);
+     */
+
     map  = OBJECT_NEW(allocator, Hash_Map, c->buf);
 
     /*
@@ -402,3 +338,29 @@ static int test_obj_hash_map_numeric_key(TEST_ENTRY *entry)
 
 }
 REGISTER_TEST_FUNC(test_obj_hash_map_numeric_key);
+
+static int test_Hash_Map_set(TEST_ENTRY *entry)
+{
+    Map *map;
+    allocator_t *allocator = allocator_get_default_alloc();
+    int ret = 0;
+    char buf[2048] = {0};
+
+    map  = OBJECT_NEW(allocator, Hash_Map, NULL);
+
+    map->set(map, "Hash_Map/test", 0x12345678);
+
+    void **addr = map->get(map, "Hash_Map/test");
+
+    if (*addr == 0x12345678) {
+        ret = 1;
+    }
+    object_dump(map, "Hash_Map", buf, 2048);
+    dbg_str(DBG_DETAIL, "Map dump: %s", buf);
+
+    object_destroy(map);
+
+    return ret;
+
+}
+REGISTER_TEST_FUNC(test_Hash_Map_set);

@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/event_base.h>
 
@@ -87,50 +87,6 @@ static int __deconstrcut(Event_Base *eb)
     }
 
     return 0;
-}
-
-static int __set(Event_Base *eb, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        eb->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        eb->get = value;
-    } else if (strcmp(attrib, "loop") == 0) {
-        eb->loop = value;
-    } else if (strcmp(attrib, "add") == 0) {
-        eb->add = value;
-    } else if (strcmp(attrib, "del") == 0) {
-        eb->del = value;
-    } else if (strcmp(attrib, "activate_io") == 0) {
-        eb->activate_io = value;
-    } else if (strcmp(attrib, "activate_signal") == 0) {
-        eb->activate_signal = value;
-    }
-    else if (strcmp(attrib, "construct") == 0) {
-        eb->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        eb->deconstruct = value;
-    } else if (strcmp(attrib, "trustee_io") == 0) {
-        eb->trustee_io = value;
-    } else if (strcmp(attrib, "reclaim_io") == 0) {
-        eb->reclaim_io = value;
-    } else if (strcmp(attrib, "dispatch") == 0) {
-        eb->dispatch = value;
-    } else {
-        dbg_str(EV_DETAIL,"eb set, not support %s setting",attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Event_Base *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING,"eb get, \"%s\" getting attrib is not supported",attrib);
-        return NULL;
-    }
-    return NULL;
 }
 
 static int __add(Event_Base *eb, event_t *event)
@@ -316,20 +272,18 @@ static int __loop(Event_Base *eb)
 }
 
 static class_info_entry_t event_base_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER,"","loop",__loop,sizeof(void *)},
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","activate_io",__activate_io,sizeof(void *)},
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER,"","activate_signal",__activate_signal,sizeof(void *)},
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","construct",__construct,sizeof(void *)},
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER,"","add",__add,sizeof(void *)},
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER,"","del",__del,sizeof(void *)},
-    [10] = {ENTRY_TYPE_VFUNC_POINTER,"","trustee_io",NULL,sizeof(void *)},
-    [11] = {ENTRY_TYPE_VFUNC_POINTER,"","reclaim_io",NULL,sizeof(void *)},
-    [12] = {ENTRY_TYPE_VFUNC_POINTER,"","dispatch",NULL,sizeof(void *)},
-    [13] = {ENTRY_TYPE_END},
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Event_Base, construct, __construct),
+    Init_Nfunc_Entry(2 , Event_Base, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Event_Base, loop, __loop),
+    Init_Vfunc_Entry(4 , Event_Base, activate_io, __activate_io),
+    Init_Vfunc_Entry(5 , Event_Base, activate_signal, __activate_signal),
+    Init_Vfunc_Entry(6 , Event_Base, add, __add),
+    Init_Vfunc_Entry(7 , Event_Base, del, __del),
+    Init_Vfunc_Entry(8 , Event_Base, trustee_io, NULL),
+    Init_Vfunc_Entry(9 , Event_Base, reclaim_io, NULL),
+    Init_Vfunc_Entry(10, Event_Base, dispatch, NULL),
+    Init_End___Entry(11),
 };
 REGISTER_CLASS("Event_Base", event_base_class_info);
 

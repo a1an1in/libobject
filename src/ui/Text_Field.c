@@ -315,52 +315,6 @@ static int __deconstrcut(Text_Field *ta)
     return 0;
 }
 
-static int __set(Text_Field *ta, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        ta->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        ta->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        ta->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        ta->deconstruct = value;
-    }
-    /*vitual methods*/
-    else if (strcmp(attrib, "draw") == 0) {
-        ta->draw = value;
-    } else if (strcmp(attrib, "load_resources") == 0) {
-        ta->load_resources = value;
-    } else if (strcmp(attrib, "on_key_text_pressed") == 0) {
-        ta->on_key_text_pressed = value;
-    } else if (strcmp(attrib, "on_key_backspace_pressed") == 0) {
-        ta->on_key_backspace_pressed = value;
-    } else if (strcmp(attrib, "on_key_left_pressed") == 0) {
-        ta->on_key_left_pressed = value;
-    } else if (strcmp(attrib, "on_key_right_pressed") == 0) {
-        ta->on_key_right_pressed = value;
-    }
-    /*attribs*/
-    else if (strcmp(attrib, "name") == 0) {
-        strncpy(ta->name, value, strlen(value));
-    } else {
-        dbg_str(DBG_DETAIL, "ta set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Text_Field *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else {
-        dbg_str(DBG_WARNNING, "text_field get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __load_resources(Component *component, void *window)
 {
     Render *r      = ((Window *)window)->render;
@@ -539,20 +493,19 @@ static int __on_key_right_pressed(Component *component, void *render)
 }
 
 static class_info_entry_t text_field_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_resources", __load_resources, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_text_pressed", __on_key_text_pressed, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_backspace_pressed", __on_key_backspace_pressed, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_left_pressed", __on_key_left_pressed, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_FUNC_POINTER, "", "on_key_right_pressed", __on_key_right_pressed, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [12] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Text_Field, construct, __construct),
+    Init_Nfunc_Entry(2 , Text_Field, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Text_Field, set, NULL),
+    Init_Vfunc_Entry(4 , Text_Field, get, NULL),
+    Init_Vfunc_Entry(5 , Text_Field, draw, __draw),
+    Init_Vfunc_Entry(6 , Text_Field, load_resources, __load_resources),
+    Init_Vfunc_Entry(7 , Text_Field, on_key_text_pressed, __on_key_text_pressed),
+    Init_Vfunc_Entry(8 , Text_Field, on_key_backspace_pressed, __on_key_backspace_pressed),
+    Init_Vfunc_Entry(9 , Text_Field, on_key_left_pressed, __on_key_left_pressed),
+    Init_Vfunc_Entry(10, Text_Field, on_key_right_pressed, __on_key_right_pressed),
+    Init_Str___Entry(11, Text_Field, name, NULL),
+    Init_End___Entry(12),
 };
 REGISTER_CLASS("Text_Field", text_field_class_info);
 

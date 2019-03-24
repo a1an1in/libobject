@@ -46,117 +46,37 @@ static int __deconstrcut(Render *render)
     return 0;
 }
 
-static int __set(Render *render, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        render->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        render->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        render->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        render->deconstruct = value;
-    }
-    else if (strcmp(attrib, "move") == 0) {
-        render->move = value;
-    } else if (strcmp(attrib, "update_window") == 0) {
-        render->update_window = value;
-    } else if (strcmp(attrib, "set_window") == 0) {
-        render->set_window = value;
-    } else if (strcmp(attrib, "draw_image0") == 0) {
-        render->draw_image0 = value;
-    } else if (strcmp(attrib, "create") == 0) {
-        render->create = value;
-    } else if (strcmp(attrib, "destroy") == 0) {
-        render->destroy = value;
-    } else if (strcmp(attrib, "set_color") == 0) {
-        render->set_color = value;
-    } else if (strcmp(attrib, "set_font") == 0) {
-        render->set_font = value;
-    } else if (strcmp(attrib, "clear") == 0) {
-        render->clear = value;
-    } else if (strcmp(attrib, "draw_line") == 0) {
-        render->draw_line = value;
-    } else if (strcmp(attrib, "draw_rect") == 0) {
-        render->draw_rect = value;
-    } else if (strcmp(attrib, "fill_rect") == 0) {
-        render->fill_rect = value;
-    } else if (strcmp(attrib, "draw_image") == 0) {
-        render->draw_image = value;
-    } else if (strcmp(attrib, "draw_texture") == 0) {
-        render->draw_texture = value;
-    } else if (strcmp(attrib, "load_image") == 0) {
-        render->load_image = value;
-    } else if (strcmp(attrib, "load_text") == 0) {
-        render->load_text = value;
-    } else if (strcmp(attrib, "unload_text") == 0) {
-        render->unload_text = value;
-    } else if (strcmp(attrib, "write_text") == 0) {
-        render->write_text = value;
-    } else if (strcmp(attrib, "load_character") == 0) {
-        render->load_character = value;
-    } else if (strcmp(attrib, "unload_character") == 0) {
-        render->unload_character = value;
-    } else if (strcmp(attrib, "write_character") == 0) {
-        render->write_character = value;
-    } else if (strcmp(attrib, "present") == 0) {
-        render->present = value;
-    } else if (strcmp(attrib, "create_yuvtexture") == 0) {
-        render->create_yuvtexture = value;
-    } else if (strcmp(attrib, "destroy_texture") == 0) {
-        render->destroy_texture = value;
-    }
-    else if (strcmp(attrib, "name") == 0) {
-        strncpy(render->name, value, strlen(value));
-    } else {
-        dbg_str(DBG_DETAIL, "render set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Render *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else {
-        dbg_str(DBG_WARNNING, "render get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "update_window", NULL, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_window", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "draw_image0", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "create", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_color", NULL, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_font", NULL, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "clear", NULL, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "draw_line", NULL, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "draw_rect", NULL, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "fill_rect", NULL, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "draw_image", NULL, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "draw_texture", NULL, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_image", NULL, sizeof(void *)}, 
-    [19] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_text", NULL, sizeof(void *)}, 
-    [20] = {ENTRY_TYPE_VFUNC_POINTER, "", "unload_text", NULL, sizeof(void *)}, 
-    [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "write_text", NULL, sizeof(void *)}, 
-    [22] = {ENTRY_TYPE_VFUNC_POINTER, "", "load_character", NULL, sizeof(void *)}, 
-    [23] = {ENTRY_TYPE_VFUNC_POINTER, "", "unload_character", NULL, sizeof(void *)}, 
-    [24] = {ENTRY_TYPE_VFUNC_POINTER, "", "write_character", NULL, sizeof(void *)}, 
-    [25] = {ENTRY_TYPE_VFUNC_POINTER, "", "present", NULL, sizeof(void *)}, 
-    [26] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_yuvtexture", NULL, sizeof(void *)}, 
-    [27] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_texture", NULL, sizeof(void *)}, 
-    [28] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [29] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Render, construct, __construct),
+    Init_Nfunc_Entry(2 , Render, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Render, set, NULL),
+    Init_Vfunc_Entry(4 , Render, get, NULL),
+    Init_Vfunc_Entry(5 , Render, update_window, NULL),
+    Init_Vfunc_Entry(6 , Render, set_window, NULL),
+    Init_Vfunc_Entry(7 , Render, draw_image0, NULL),
+    Init_Vfunc_Entry(8 , Render, create, NULL),
+    Init_Vfunc_Entry(9 , Render, destroy, NULL),
+    Init_Vfunc_Entry(10, Render, set_color, NULL),
+    Init_Vfunc_Entry(11, Render, set_font, NULL),
+    Init_Vfunc_Entry(12, Render, clear, NULL),
+    Init_Vfunc_Entry(13, Render, draw_line, NULL),
+    Init_Vfunc_Entry(14, Render, draw_rect, NULL),
+    Init_Vfunc_Entry(15, Render, fill_rect, NULL),
+    Init_Vfunc_Entry(16, Render, draw_image, NULL),
+    Init_Vfunc_Entry(17, Render, draw_texture, NULL),
+    Init_Vfunc_Entry(18, Render, load_text, NULL),
+    Init_Vfunc_Entry(19, Render, load_image, NULL),
+    Init_Vfunc_Entry(20, Render, unload_text, NULL),
+    Init_Vfunc_Entry(21, Render, write_text, NULL),
+    Init_Vfunc_Entry(22, Render, load_character, NULL),
+    Init_Vfunc_Entry(23, Render, unload_character, NULL),
+    Init_Vfunc_Entry(24, Render, write_character, NULL),
+    Init_Vfunc_Entry(25, Render, present, NULL),
+    Init_Vfunc_Entry(26, Render, create_yuvtexture, NULL),
+    Init_Vfunc_Entry(27, Render, destroy_texture, NULL),
+    Init_Str___Entry(28, Render, name, NULL),
+    Init_End___Entry(29),
 };
 REGISTER_CLASS("Render", class_info);
 

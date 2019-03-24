@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/linked_queue.h>
 #include <libobject/event/event_base.h>
@@ -71,57 +71,6 @@ static int __deconstrcut(Linked_Queue *queue)
     llist_destroy(queue->llist);
 
     return 0;
-}
-
-static int __set(Linked_Queue *queue, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        queue->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        queue->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        queue->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        queue->deconstruct = value;
-    }
-    else if (strcmp(attrib, "add") == 0) {
-        queue->add = value;
-    } else if (strcmp(attrib, "add_front") == 0) {
-        queue->add_front = value;
-    } else if (strcmp(attrib, "add_back") == 0) {
-        queue->add_back = value;
-    } else if (strcmp(attrib, "remove") == 0) {
-        queue->remove = value;
-    } else if (strcmp(attrib, "remove_front") == 0) {
-        queue->remove_front = value;
-    } else if (strcmp(attrib, "remove_back") == 0) {
-        queue->remove_back = value;
-    }else if (strcmp(attrib, "size") == 0) {
-        queue->size = value;
-    }else if (strcmp(attrib, "is_empty") == 0) {
-        queue->is_empty = value;
-    }else if (strcmp(attrib, "clear") == 0) {
-        queue->clear = value;
-    }else if (strcmp(attrib, "peek_front") == 0) {
-        queue->peek_front = value;
-    }else if (strcmp(attrib, "peek_back") == 0) {
-        queue->peek_back = value;
-    }
-    else {
-        dbg_str(OBJ_DETAIL, "queue set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Linked_Queue *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(OBJ_WARNNING, "queue get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
 }
 
 static int __add(Linked_Queue *queue, void *element)
@@ -201,16 +150,17 @@ static void __clear(Linked_Queue *queue)
 {  
     list_pos_t pos ,next;
 
-    sync_lock(&(queue->llist->list_lock), NULL);
     if (!queue->is_empty(queue)) {   
+        sync_lock(&(queue->llist->list_lock), NULL);
+
         for(llist_begin(queue->llist, &pos), llist_pos_next(&pos, &next);
             !llist_pos_equal(&pos, &queue->llist->head);
              pos = next, llist_pos_next(&pos, &next))
         {
             llist_delete(queue->llist,&pos);
         }
-    sync_unlock(&(queue->llist->list_lock));
 
+        sync_unlock(&(queue->llist->list_lock));
     }
 }
 
@@ -247,25 +197,23 @@ static int __peek_back(Linked_Queue *queue, void **element)
 }
 
 static class_info_entry_t linked_queue_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Queue", "parent", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", __add, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_front", __add_front, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_back", __add_back, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_front", __remove_front, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_back", __remove_back, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "begin", __begin, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "end", __end, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "size", __size, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "is_empty", __is_empty, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "clear", __clear, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_front", __peek_front, sizeof(void *)},
-    [17] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_back", __peek_back, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Queue, parent),
+    Init_Nfunc_Entry(1 , Linked_Queue, construct, __construct),
+    Init_Nfunc_Entry(2 , Linked_Queue, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Linked_Queue, add, __add),
+    Init_Vfunc_Entry(4 , Linked_Queue, add_front, __add_front),
+    Init_Vfunc_Entry(5 , Linked_Queue, add_back, __add_back),
+    Init_Vfunc_Entry(6 , Linked_Queue, remove, __remove),
+    Init_Vfunc_Entry(7 , Linked_Queue, remove_front, __remove_front),
+    Init_Vfunc_Entry(8 , Linked_Queue, remove_back, __remove_back),
+    Init_Vfunc_Entry(9 , Linked_Queue, begin, __begin),
+    Init_Vfunc_Entry(10, Linked_Queue, end, __end),
+    Init_Vfunc_Entry(11, Linked_Queue, size, __size),
+    Init_Vfunc_Entry(12, Linked_Queue, is_empty, __is_empty),
+    Init_Vfunc_Entry(13, Linked_Queue, clear, __clear),
+    Init_Vfunc_Entry(14, Linked_Queue, peek_front, __peek_front),
+    Init_Vfunc_Entry(15, Linked_Queue, peek_back, __peek_back),
+    Init_End___Entry(16),
 };
 REGISTER_CLASS("Linked_Queue", linked_queue_class_info);
 

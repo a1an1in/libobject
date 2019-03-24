@@ -30,50 +30,18 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/event/event_base.h>
 #include <libobject/io/stream.h>
 
-static int __set(Stream *stream, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        stream->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        stream->get = value;
-    }
-    else if (strcmp(attrib, "construct") == 0) {
-        stream->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        stream->deconstruct = value;
-    } else if (strcmp(attrib, "read") == 0) {
-        stream->read = value;
-    } else if (strcmp(attrib, "write") == 0) {
-        stream->write = value;
-    } else {
-        dbg_str(EV_DETAIL,"stream set, not support %s setting",attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Stream *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING,"stream get, \"%s\" getting attrib is not supported",attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t stream_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ,"Obj","obj",NULL,sizeof(void *)},
-    [1] = {ENTRY_TYPE_FUNC_POINTER,"","set",__set,sizeof(void *)},
-    [2] = {ENTRY_TYPE_FUNC_POINTER,"","get",__get,sizeof(void *)},
-    [3] = {ENTRY_TYPE_VFUNC_POINTER,"","read", NULL,sizeof(void *)},
-    [4] = {ENTRY_TYPE_VFUNC_POINTER,"","write", NULL,sizeof(void *)},
-    [5] = {ENTRY_TYPE_END},
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Vfunc_Entry(1 , Stream, set, NULL),
+    Init_Vfunc_Entry(2 , Stream, get, NULL),
+    Init_Vfunc_Entry(3 , Stream, read, NULL),
+    Init_Vfunc_Entry(4 , Stream, write, NULL),
+    Init_End___Entry(5 ),
 };
 REGISTER_CLASS("Stream",stream_class_info);

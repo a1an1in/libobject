@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/vector.h>
 #include <libobject/core/utils/registry/registry.h>
 
@@ -59,65 +59,6 @@ static int __deconstrcut(Vector *vector)
     vector_destroy(vector->vector);
 
     return 0;
-}
-
-static int __set(Vector *vector, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        vector->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        vector->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        vector->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        vector->deconstruct = value;
-    } 
-    else if (strcmp(attrib, "add") == 0) {
-        vector->add = value;
-    } else if (strcmp(attrib, "add_back") == 0) {
-        vector->add_back = value;
-    } else if (strcmp(attrib, "remove") == 0) {
-        vector->remove = value;
-    } else if (strcmp(attrib, "remove_back") == 0) {
-        vector->remove_back = value;
-    } else if (strcmp(attrib, "add_at") == 0) {
-        vector->add_at = value;
-    } else if (strcmp(attrib, "peek_at") == 0) {
-        vector->peek_at = value;
-    } else if (strcmp(attrib, "for_each") == 0) {
-        vector->for_each = value;
-    } else if (strcmp(attrib,"free_vector_elements") == 0) {
-        vector->free_vector_elements = value;
-    } else if (strcmp(attrib,"size") == 0) {
-        vector->size = value;
-    }else if (strcmp(attrib,"clear") == 0) {
-        vector->clear = value;
-    } else if (strcmp(attrib,"empty") == 0) {
-        vector->empty = value;
-    }
-    else if (strcmp(attrib, "value_size") == 0) {
-        vector->value_size = *(uint32_t *)value;
-    } else if (strcmp(attrib, "capacity") == 0) {
-        vector->capacity = *(uint32_t *)value;
-    }
-    else {
-        dbg_str(OBJ_DETAIL, "vector set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Vector *vector, char *attrib)
-{
-    if (strcmp(attrib, "value_size") == 0) {
-        return &vector->value_size;
-    } else if (strcmp(attrib, "capacity") == 0) {
-        return &vector->capacity;
-    } else {
-        dbg_str(OBJ_WARNNING, "vector get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
 }
 
 static int __add(Vector *vector, void *value)
@@ -187,15 +128,17 @@ static void __free_vector_elements(Vector *vector)
 static uint32_t __size(Vector * vector)
 {
     uint32_t count = 0;
+
     sync_trylock(&vector->vector->vector_lock, NULL);
     count = vector->vector->size;
     sync_unlock(&vector->vector->vector_lock);
+
     return count;
 } 
 
 static int  __empty(Vector * vector) 
 {
-    return vector->size(vector) == 0 ? 1:0;
+    return vector->size(vector) == 0 ? 1 : 0;
 }
 
 static void __clear(Vector *vector)
@@ -214,25 +157,23 @@ static void __clear(Vector *vector)
 }
 
 static class_info_entry_t vector_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Obj", "obj", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add", __add, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_at", __add_at, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_back", __add_back, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove", __remove, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "remove_back", __remove_back, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_VFUNC_POINTER, "", "peek_at", __peek_at, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_VFUNC_POINTER, "", "for_each", __for_each, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_VFUNC_POINTER, "", "free_vector_elements", __free_vector_elements, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_VFUNC_POINTER, "", "clear", __clear, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_VFUNC_POINTER, "", "size", __size, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_VFUNC_POINTER, "", "empty", __empty, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_UINT32_T, "", "value_size", 0, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_UINT32_T, "", "capacity", 0, sizeof(void *)}, 
-    [18] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Vector, construct, __construct),
+    Init_Nfunc_Entry(2 , Vector, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Vector, add, __add),
+    Init_Vfunc_Entry(4 , Vector, add_at, __add_at),
+    Init_Vfunc_Entry(5 , Vector, add_back, __add_back),
+    Init_Vfunc_Entry(6 , Vector, remove, __remove),
+    Init_Vfunc_Entry(7 , Vector, remove_back, __remove_back),
+    Init_Vfunc_Entry(8 , Vector, peek_at, __peek_at),
+    Init_Vfunc_Entry(9 , Vector, for_each, __for_each),
+    Init_Vfunc_Entry(10, Vector, free_vector_elements, __free_vector_elements),
+    Init_Vfunc_Entry(11, Vector, clear, __clear),
+    Init_Vfunc_Entry(12, Vector, size, __size),
+    Init_Vfunc_Entry(13, Vector, empty, __empty),
+    Init_U32___Entry(15, Vector, value_size, NULL),
+    Init_U32___Entry(14, Vector, capacity, NULL),
+    Init_End___Entry(16),
 };
 REGISTER_CLASS("Vector", vector_class_info);
 

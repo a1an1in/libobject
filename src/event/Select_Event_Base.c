@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/event/select_base.h>
 
 static int __construct(Select_Base *eb, char *init_str)
@@ -57,44 +57,6 @@ static int __deconstrcut(Select_Base *eb)
     evsig_release((Event_Base *)eb);
 
     return 0;
-}
-
-static int __set(Select_Base *eb, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        eb->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        eb->get = value;
-    } 
-    else if (strcmp(attrib, "construct") == 0) {
-        eb->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        eb->deconstruct = value;
-    } else if (strcmp(attrib, "trustee_io") == 0) {
-        eb->trustee_io = value;
-    } else if (strcmp(attrib, "reclaim_io") == 0) {
-        eb->reclaim_io = value;
-    } else if (strcmp(attrib, "dispatch") == 0) {
-        eb->dispatch = value;
-    } 
-    else if (strcmp(attrib, "activate_io") == 0) {
-        eb->activate_io = value;
-    }
-    else {
-        dbg_str(OBJ_DETAIL, "eb set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Select_Base *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(OBJ_WARNNING, "eb get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
 }
 
 static int __trustee_io(Select_Base *b, event_t *e)
@@ -190,16 +152,14 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
 }
 
 static class_info_entry_t select_base_class_info[] = {
-    [0] = {ENTRY_TYPE_OBJ, "Event_Base", "base", NULL, sizeof(void *)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5] = {ENTRY_TYPE_FUNC_POINTER, "", "trustee_io", __trustee_io, sizeof(void *)}, 
-    [6] = {ENTRY_TYPE_FUNC_POINTER, "", "reclaim_io", __reclaim_io, sizeof(void *)}, 
-    [7] = {ENTRY_TYPE_FUNC_POINTER, "", "dispatch", __dispatch, sizeof(void *)}, 
-    [8] = {ENTRY_TYPE_IFUNC_POINTER, "", "activate_io", NULL, sizeof(void *)}, 
-    [9] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0, Event_Base, base),
+    Init_Nfunc_Entry(1, Select_Base, construct, __construct),
+    Init_Nfunc_Entry(2, Select_Base, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3, Select_Base, trustee_io, __trustee_io),
+    Init_Vfunc_Entry(4, Select_Base, reclaim_io, __reclaim_io),
+    Init_Vfunc_Entry(5, Select_Base, activate_io, NULL),
+    Init_Vfunc_Entry(6, Select_Base, dispatch, __dispatch),
+    Init_End___Entry(7),
 };
 REGISTER_CLASS("Select_Base", select_base_class_info);
 

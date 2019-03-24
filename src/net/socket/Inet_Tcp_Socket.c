@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/event_base.h>
 #include <libobject/net/socket/inet_tcp_socket.h>
@@ -147,24 +147,24 @@ static int __accept_fd(Inet_Tcp_Socket *socket,
 }
 
 static class_info_entry_t inet_tcp_socket_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Socket", "parent", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "bind", NULL, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "listen", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "accept", __accept, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "accept_fd", __accept_fd, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "connect", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_IFUNC_POINTER, "", "write", NULL, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_IFUNC_POINTER, "", "sendto", NULL, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_IFUNC_POINTER, "", "sendmsg", NULL, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_IFUNC_POINTER, "", "read", NULL, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_IFUNC_POINTER, "", "recv", NULL, sizeof(void *)}, 
-    [15] = {ENTRY_TYPE_IFUNC_POINTER, "", "recvfrom", NULL, sizeof(void *)}, 
-    [16] = {ENTRY_TYPE_IFUNC_POINTER, "", "recvmsg", NULL, sizeof(void *)}, 
-    [17] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Socket, parent),
+    Init_Nfunc_Entry(1 , Inet_Tcp_Socket, construct, __construct),
+    Init_Nfunc_Entry(2 , Inet_Tcp_Socket, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Inet_Tcp_Socket, set, NULL),
+    Init_Vfunc_Entry(4 , Inet_Tcp_Socket, get, NULL),
+    Init_Vfunc_Entry(5 , Inet_Tcp_Socket, bind, NULL),
+    Init_Vfunc_Entry(6 , Inet_Tcp_Socket, listen, NULL),
+    Init_Vfunc_Entry(7 , Inet_Tcp_Socket, accept, __accept),
+    Init_Vfunc_Entry(8 , Inet_Tcp_Socket, accept_fd, __accept_fd),
+    Init_Vfunc_Entry(9 , Inet_Tcp_Socket, connect, NULL),
+    Init_Vfunc_Entry(10, Inet_Tcp_Socket, write, NULL),
+    Init_Vfunc_Entry(11, Inet_Tcp_Socket, sendto, NULL),
+    Init_Vfunc_Entry(12, Inet_Tcp_Socket, sendmsg, NULL),
+    Init_Vfunc_Entry(13, Inet_Tcp_Socket, read, NULL),
+    Init_Vfunc_Entry(14, Inet_Tcp_Socket, recv, NULL),
+    Init_Vfunc_Entry(15, Inet_Tcp_Socket, recvfrom, NULL),
+    Init_Vfunc_Entry(16, Inet_Tcp_Socket, recvmsg, NULL),
+    Init_End___Entry(17),
 };
 REGISTER_CLASS("Inet_Tcp_Socket", inet_tcp_socket_class_info);
 

@@ -97,50 +97,6 @@ static int __deconstrcut(Label *label)
     return 0;
 }
 
-static int __set(Label *label, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        label->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        label->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        label->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        label->deconstruct = value;
-    }
-    /*vitual methods*/
-    else if (strcmp(attrib, "draw") == 0) {
-        label->draw = value;
-    } else if (strcmp(attrib, "load_resources") == 0) {
-        label->load_resources = value;
-    } else if (strcmp(attrib, "unload_resources") == 0) {
-        label->unload_resources = value;
-    }
-    /*attribs*/
-    else if (strcmp(attrib, "name") == 0) {
-        strncpy(label->name, value, strlen(value));
-    } else if (strcmp(attrib, "text_overflow_flag") == 0) {
-        label->text_overflow_flag = *((uint8_t *)value);
-    } else {
-        dbg_str(DBG_DETAIL, "label set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Label *obj, char *attrib)
-{
-    if (strcmp(attrib, "name") == 0) {
-        return obj->name;
-    } else if (strcmp(attrib, "text_overflow_flag") == 0) {
-        return &obj->text_overflow_flag;
-    } else {
-        dbg_str(DBG_WARNNING, "label get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __load_resources(Component *component, void *window)
 {
     Render *r     = ((Window *)window)->render;
@@ -236,18 +192,17 @@ end:
 }
 
 static class_info_entry_t label_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Component", "component", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_resources", __load_resources, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "unload_resources", __unload_resources, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_STRING, "char", "name", NULL, 0}, 
-    [9 ] = {ENTRY_TYPE_INT8_T, "char", "text_overflow_flag", NULL, 0}, 
-    [10] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Component, component),
+    Init_Nfunc_Entry(1 , Label, construct, __construct),
+    Init_Nfunc_Entry(2 , Label, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Label, set, NULL),
+    Init_Vfunc_Entry(4 , Label, get, NULL),
+    Init_Vfunc_Entry(5 , Label, load_resources, __load_resources),
+    Init_Vfunc_Entry(6 , Label, unload_resources, __unload_resources),
+    Init_Vfunc_Entry(7 , Label, draw, __draw),
+    Init_Str___Entry(8 , Label, name, NULL),
+    Init_U8____Entry(9 , Label, text_overflow_flag, NULL),
+    Init_End___Entry(10),
 };
 REGISTER_CLASS("Label", label_class_info);
 

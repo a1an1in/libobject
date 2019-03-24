@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/event_base.h>
 #include <libobject/net/socket/inet_udp_socket.h>
@@ -112,21 +112,21 @@ static void *__get(Inet_Udp_Socket *socket, char *attrib)
 }
 
 static class_info_entry_t inet_udp_socket_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Socket", "parent", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "bind", NULL, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "connect", NULL, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "write", NULL, sizeof(void *)}, 
-    [8 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "sendto", NULL, sizeof(void *)}, 
-    [9 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "sendmsg", NULL, sizeof(void *)}, 
-    [10] = {ENTRY_TYPE_IFUNC_POINTER, "", "read", NULL, sizeof(void *)}, 
-    [11] = {ENTRY_TYPE_IFUNC_POINTER, "", "recv", NULL, sizeof(void *)}, 
-    [12] = {ENTRY_TYPE_IFUNC_POINTER, "", "recvfrom", NULL, sizeof(void *)}, 
-    [13] = {ENTRY_TYPE_IFUNC_POINTER, "", "recvmsg", NULL, sizeof(void *)}, 
-    [14] = {ENTRY_TYPE_END}, 
+    Init_Obj___Entry(0 , Socket, parent),
+    Init_Nfunc_Entry(1 , Inet_Udp_Socket, construct, __construct),
+    Init_Nfunc_Entry(2 , Inet_Udp_Socket, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Inet_Udp_Socket, set, NULL),
+    Init_Vfunc_Entry(4 , Inet_Udp_Socket, get, NULL),
+    Init_Vfunc_Entry(5 , Inet_Udp_Socket, bind, NULL),
+    Init_Vfunc_Entry(6 , Inet_Udp_Socket, connect, NULL),
+    Init_Vfunc_Entry(7 , Inet_Udp_Socket, write, NULL),
+    Init_Vfunc_Entry(8 , Inet_Udp_Socket, sendto, NULL),
+    Init_Vfunc_Entry(9 , Inet_Udp_Socket, sendmsg, NULL),
+    Init_Vfunc_Entry(10, Inet_Udp_Socket, read, NULL),
+    Init_Vfunc_Entry(11, Inet_Udp_Socket, recv, NULL),
+    Init_Vfunc_Entry(12, Inet_Udp_Socket, recvfrom, NULL),
+    Init_Vfunc_Entry(13, Inet_Udp_Socket, recvmsg, NULL),
+    Init_End___Entry(14),
 };
 REGISTER_CLASS("Inet_Udp_Socket", inet_udp_socket_class_info);
 
