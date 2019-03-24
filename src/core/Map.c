@@ -54,6 +54,7 @@ static void __for_each(Map *map, void (*func)(void *key, void *element))
     void *key, *value;
 
     dbg_str(OBJ_IMPORTANT, "Map for_each");
+
     cur = map->begin(map);
     end = map->end(map);
 

@@ -54,50 +54,6 @@ static int __deconstrcut(Request *request)
     return 0;
 }
 
-static int __set(Request *request, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        request->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        request->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        request->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        request->deconstruct = value;
-    } else if (strcmp(attrib, "set_method") == 0) {
-        request->set_method = value;
-    } else if (strcmp(attrib, "set_uri") == 0) {
-        request->set_uri = value;
-    } else if (strcmp(attrib, "set_http_version") == 0) {
-        request->set_http_version = value;
-    } else if (strcmp(attrib, "set_header") == 0) {
-        request->set_header = value;
-    } else if (strcmp(attrib, "set_body") == 0) {
-        request->set_body = value;
-    } else if (strcmp(attrib, "set_content_len") == 0) {
-        request->set_content_len = value;
-    } else if (strcmp(attrib, "set_buffer") == 0) {
-        request->set_buffer = value;
-    } else if (strcmp(attrib, "write") == 0) {
-        request->write = value;
-    } 
-    else {
-        dbg_str(EV_DETAIL,"request set, not support %s setting",attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Request *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING,"request get, \"%s\" getting attrib is not supported",attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __set_method(Request *request, void *method)
 {
     request->method = method;

@@ -53,38 +53,6 @@ static int __deconstrcut(Response *response)
     return 0;
 }
 
-static int __set(Response *response, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        response->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        response->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        response->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        response->deconstruct = value;
-    } else if (strcmp(attrib, "set_buffer") == 0) {
-        response->set_buffer = value;
-    } else if (strcmp(attrib, "read") == 0) {
-        response->read = value;
-    } 
-    else {
-        dbg_str(DBG_DETAIL,"response set, not support %s setting",attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Response *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(DBG_WARNNING,"response get, \"%s\" getting attrib is not supported",attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __set_buffer(Response *response, Buffer *buffer)
 {
     response->buffer = buffer;

@@ -241,8 +241,3 @@ static int test_condition_produce_consume()
 
 
 REGISTER_STANDALONE_TEST_FUNC(test_condition_produce_consume);
-
-
-
-
-

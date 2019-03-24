@@ -68,42 +68,6 @@ static int __deconstruct(Http_Client *client)
     return 0;
 }
 
-static int __set(Http_Client *client, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        client->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        client->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        client->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        client->deconstruct = value;
-    } else if (strcmp(attrib, "get_request") == 0) {
-        client->get_request = value;
-    } else if (strcmp(attrib, "get_response") == 0) {
-        client->get_response = value;
-    } else if (strcmp(attrib, "request") == 0) {
-        client->request = value;
-    } else if (strcmp(attrib, "request_sync") == 0) {
-        client->request_sync = value;
-    } 
-    else {
-        dbg_str(EV_DETAIL,"client set, not support %s setting",attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Http_Client *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING,"client get, \"%s\" getting attrib is not supported",attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static Request *__get_request(Http_Client *client)
 {
     return client->req;
