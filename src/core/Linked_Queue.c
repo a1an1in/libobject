@@ -151,7 +151,9 @@ static void __clear(Linked_Queue *queue)
     list_pos_t pos ,next;
 
     if (!queue->is_empty(queue)) {   
-        sync_lock(&(queue->llist->list_lock), NULL);
+        /*
+         *sync_lock(&(queue->llist->list_lock), NULL);
+         */
 
         for(llist_begin(queue->llist, &pos), llist_pos_next(&pos, &next);
             !llist_pos_equal(&pos, &queue->llist->head);
@@ -160,7 +162,9 @@ static void __clear(Linked_Queue *queue)
             llist_delete(queue->llist,&pos);
         }
 
-        sync_unlock(&(queue->llist->list_lock));
+        /*
+         *sync_unlock(&(queue->llist->list_lock));
+         */
     }
 }
 

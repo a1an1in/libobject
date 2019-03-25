@@ -34,7 +34,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/event/event_base.h>
-#include <libobject/io/stream.h>
+#include <libobject/io/Stream.h>
 
 static class_info_entry_t stream_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
