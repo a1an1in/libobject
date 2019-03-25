@@ -34,7 +34,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/event/event_base.h>
-#include <libobject/io/buffer.h>
+#include <libobject/io/Buffer.h>
 #include <libobject/core/utils/registry/registry.h>
 
 #define DEFAULT_BUFFER_SIZE 1024
