@@ -1,5 +1,6 @@
 #! /bin/bash
-rm -rf CMakeFiles  CMakeCache.txt    cmake_install.cmake 
-cmake . -DPLATFORM=linux -DMODULE_UI=on
+rm -rf /usr/local/include/libobject
+mkdir -p build/mac
+cd build/mac
+cmake ../.. -DPLATFORM=linux -DMODULE_UI=off
 make
-make install
