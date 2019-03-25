@@ -6,6 +6,8 @@ macro (set_cmake_evironment_variable)
     INCLUDE_DIRECTORIES(/usr/local/include
         ${PROJECT_SOURCE_DIR}/src/include)
 
+    SET(ExternalLibs ${ExternalLibs} pthread)
+
     set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/linux)
     set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/linux)
     set (LIBRARY_DIR_PATH ${PROJECT_SOURCE_DIR}/lib/linux/)
