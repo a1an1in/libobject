@@ -31,8 +31,8 @@
  */
 #include <stdio.h>
 #include <unistd.h>
-#include <libobject/bus/busd.h>
-#include <libobject/bus/bus.h>
+#include <libobject/net/bus/busd.h>
+#include <libobject/net/bus/bus.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/miscellany/buffer.h>
 #include <libobject/core/utils/config/config.h>

@@ -35,7 +35,7 @@
 #include <libobject/core/utils/config/config.h>
 #include <libobject/core/hash_map.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/bus/bus.h>
+#include <libobject/net/bus/bus.h>
 
 static const blob_policy_t bus_policy[] = {
     [BUS_ID]            = { .name = "id",             .type = BLOB_TYPE_INT32 }, 

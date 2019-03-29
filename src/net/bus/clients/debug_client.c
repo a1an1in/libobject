@@ -1,5 +1,5 @@
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/bus/bus.h>
+#include <libobject/net/bus/bus.h>
 
 void bus_debug_client(char *bussiness, char *sw, char *level)
 {

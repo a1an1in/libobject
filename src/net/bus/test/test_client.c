@@ -1,5 +1,5 @@
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/bus/bus.h>
+#include <libobject/net/bus/bus.h>
 
 #if 1
 void test_bus_client()

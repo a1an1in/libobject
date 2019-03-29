@@ -1,6 +1,6 @@
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/bus/bus.h>
+#include <libobject/net/bus/bus.h>
 
 static const struct blob_policy_s debug_policy[] = {
 	[0] = { .name = "bussiness", .type = BLOB_TYPE_INT32 }, 
