@@ -630,13 +630,14 @@ static int test_append_objective_string()
    return 1;
 }
 
-static int test_size()
+static int test_string_size()
 {  
     allocator_t *allocator = allocator_get_default_alloc();
    //test find and split_string function
    int count = allocator->alloc_count;
    String *parent, *substr;
 
+   dbg_str(DBG_DETAIL,"string class size=%d", sizeof(String));
    parent = OBJECT_NEW(allocator, String, NULL);
    substr = OBJECT_NEW(allocator, String, NULL);
    parent->assign(parent, "abcdebf");  
@@ -1011,7 +1012,7 @@ static int test_string_insert_char_count()
 REGISTER_TEST_FUNC(test_c_str);
 REGISTER_TEST_FUNC(test_append_str);
 REGISTER_TEST_FUNC(test_append_str_len);
-REGISTER_TEST_FUNC(test_size);
+REGISTER_TEST_FUNC(test_string_size);
 REGISTER_TEST_FUNC(test_string_split);
 REGISTER_TEST_FUNC(test_string_find);
 REGISTER_TEST_FUNC(test_string_substr);
