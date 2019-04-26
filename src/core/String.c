@@ -45,7 +45,7 @@ static int string_buf_auto_modulate(String *string, int write_len)
             string->value_max_len = write_len;
         }
         string->value = (char *)allocator_mem_alloc(string->obj.allocator, 
-                                                    string->value_max_len);
+                string->value_max_len);
         if (string->value == NULL) {
             dbg_str(OBJ_WARNNING, "string assign alloc error");
             return -1;
@@ -57,7 +57,7 @@ static int string_buf_auto_modulate(String *string, int write_len)
 
         string->value_max_len = 2 * (string->value_len + write_len + 1);
         new_buf = (char *)allocator_mem_alloc(string->obj.allocator, 
-                                              string->value_max_len);
+                string->value_max_len);
         if (string->value == NULL) {
             dbg_str(OBJ_WARNNING, "string assign alloc error");
             return -1;
@@ -74,7 +74,7 @@ static int string_buf_auto_modulate(String *string, int write_len)
 static int __construct(String *string, char *init_str)
 {
     dbg_str(OBJ_DETAIL, "string construct, string addr:%p", string);
-    //maxsize 256
+
     string->value = (char *)allocator_mem_alloc(string->obj.allocator, 256);
     string->value_max_len = 256;
     return 0;
@@ -85,6 +85,9 @@ static int __deconstrcut(String *string)
     dbg_str(OBJ_DETAIL, "string deconstruct, string addr:%p", string);
     if (string->value)
         allocator_mem_free(string->obj.allocator, string->value);
+    if (string->splited_strings != NULL) {
+        object_destroy(string->splited_strings);
+    }
 
     return 0;
 }
@@ -97,11 +100,37 @@ static String *__pre_alloc(String *string, uint32_t size)
     else {
         allocator_mem_free(string->obj.allocator, string->value);
         string->value = (char *)allocator_mem_alloc(string->obj.allocator,
-                                                    size);
+                size);
         string->value_max_len = size;
         memset(string->value, 0, size);
     }
     return string;
+}
+
+static char *__get_cstr(String * str) 
+{
+    return str->value;
+}
+
+static size_t  __len(String *string) 
+{
+    return string->value_len;
+}
+
+static size_t __is_empty(String *string)
+{
+    return string->len(string) ? 0 : 1;
+}
+
+static void __clear(String *string)
+{   
+    string->value[0] = '\0';
+    string->value_len = 0;
+}
+
+static char __at(String *string, int index)
+{
+    return string->value[index];
 }
 
 static String *__assign(String *string, char *s)
@@ -117,21 +146,6 @@ static String *__assign(String *string, char *s)
     string->value_len  = len;
     string->value[len] = '\0';
 
-    return string;
-}
-
-static String *__assign_char(String *string, char c, size_t count)
-{
-    int i = 0;
-    int ret;
-    char * ptmp = (char *)allocator_mem_alloc(string->obj.allocator, count);
-    for (i = 0 ; i < count; i++) {
-        *(ptmp+i) = c;
-    }
-    *(ptmp + i) = '\0';
-    string->assign(string, ptmp);
-    allocator_mem_free(string->obj.allocator, ptmp);
-    ptmp = NULL;
     return string;
 }
 
@@ -152,16 +166,133 @@ static String *__append_char(String *string, char c)
     return string;
 }
 
-static String *__replace_char(String *string, int index, char c)
+static void __append_cstr(String *string, char *sub) 
+{   
+    int len;
+    int ret;
+    if (sub == NULL) {
+        dbg_str(DBG_WARNNING, "appending-string is null unvalid substring");
+        return ;
+    }
+    len = strlen(sub);
+    ret = string_buf_auto_modulate(string, len);
+
+    if (ret < 0 ) {
+        return ;
+    }
+
+    strncpy(string->value + string->value_len, sub, len);
+    string->value_len += len;
+    string->value[string->value_len] = '\0';
+
+}
+
+static void __append_string(String *string, String *sub)
+{
+    char *value = sub->get_cstr(sub);
+    string->append_cstr(string, value);
+}
+
+static String * 
+__insert_cstr(String *self, int offset, char *cstr)
+{
+    int dest_len = self->len(self);
+    int len = strlen(cstr);
+    int ret = 0;
+
+    if (cstr == NULL) {
+        dbg_str(DBG_ERROR, "insert ctr, but cstr is NULL");
+        goto end;
+    }
+
+    ret = string_buf_auto_modulate(self, dest_len + len);
+    if (ret < 0 ) {
+        goto end;
+    }
+
+    memmove(self->value + offset + len, 
+            self->value + offset, dest_len - offset);
+    memmove(self->value + offset, cstr, strlen(cstr));
+
+    self->value_len += len;
+    self->value[self->value_len] = '\0';     
+
+end:
+    return self;
+}
+
+static String *
+__insert_str(String *self, int offset, String *src)
+{
+    return self->insert_cstr(self, offset, src->get_cstr(src));
+}
+
+static String *
+__replace_char(String *string, int index, char c)
 {
     string->value[index] = c;
 
     return string;
 }
 
-static char __at(String *string, int index)
+static String * 
+__replace_cstr(String *self, char *old, char *newstr)
 {
-    return string->value[index];
+    int start_pos = 0;
+    int end_pos   = 0;
+    int ret;
+    int old_len = strlen(old);
+    int new_len = strlen(newstr);
+    int str_len = self->len(self);
+
+    if (old == NULL || newstr == NULL) {
+        return self;
+    }
+
+    start_pos = self->find(self, old, start_pos);
+
+    if (start_pos < 0) {
+        goto end;
+    }
+
+    if (old_len <= new_len) {
+        ret = string_buf_auto_modulate(self, new_len-old_len);
+        if (ret < 0 ) {
+            goto end;
+        }
+    }
+
+    end_pos = start_pos + new_len;
+    memmove(self->value+end_pos, self->value+start_pos+old_len,
+            str_len-(start_pos+old_len));
+    memmove(self->value+start_pos, newstr, new_len); 
+    self->value_len += (new_len-old_len);
+    self->value[self->value_len] = '\0';
+
+end:
+    return self;
+}
+
+static String * 
+__replace_cstr_all(String *self, char *oldstr, char *newstr)
+{
+    String *pre = self;
+    String *cur = NULL;
+    if ( oldstr == NULL || newstr == NULL ) {
+        return self;
+    }
+    while (cur == NULL || strcmp(cur->get_cstr(cur), pre->get_cstr(pre)) != 0 ) {
+        if (cur != NULL ) { 
+            object_destroy(cur);
+            cur = NULL;
+        }
+        cur = OBJECT_NEW(self->obj.allocator, String, NULL);
+        cur->assign(cur, pre->get_cstr(pre));
+        pre = pre->replace(pre, oldstr, newstr);
+    }
+    object_destroy(cur);
+
+    return self;
 }
 
 static void __toupper_impact(String *string)
@@ -239,23 +370,6 @@ static void __trim(String *string)
     }
 }
 
-static int __find(String *string, String *substr, int pos)
-{   
-    int len1 = string->value_len;
-    int len2 = substr->value_len;
-    char *p  = NULL;
-
-    if (NULL == string || NULL == substr || pos < 0 || len1 < len2) {
-        return -1;//exception happened
-    }
-    //a simple method
-    p = strstr(string->value + pos, substr->value);
-    if(NULL !=  p) {
-        return p - (string->value);
-    }
-    return -1;
-}
-
 static String *__substr(String  *string, int pos, int len)
 {
     int size = string->value_len;
@@ -263,230 +377,79 @@ static String *__substr(String  *string, int pos, int len)
     String *str;
 
     str = OBJECT_NEW(string->obj.allocator, String, NULL);
-    assert(pos <=  size);
-    for ( i  = pos;i < size && len ;i++) {
+
+    assert(pos <= size);
+
+    for (i  = pos;i < size && len ;i++) {
         str->append_char(str, string->value[i]);
         len--;
     }
+
     return str;
 }
 
-static void 
-__split_string(String *string, String *separator, Vector *vector)
-{
-    int start_pos = 0, pos;
-    String *pstr = NULL;
-    int i = 0;
-
-    if (NULL == string|| NULL == separator) {
-        vector->add_back(vector, (void *)string);
-        return;
-    }
-
-    while(1) {
-        pos = __find(string, separator, start_pos);
-        if (pos == start_pos) {
-            start_pos += separator->value_len;
-            continue;
-        }
-        if (pos < 0) {   
-            pstr = __substr(string, start_pos, string->value_len); 
-            vector->add_at(vector, i, pstr);       
-            break;
-        } else {
-            pstr = __substr(string, start_pos, pos-start_pos);
-            vector->add_at(vector, i, pstr);
-            start_pos = pos + separator->value_len;
-        }
-        i++;     
-    }
-}
-
-static char *__c_str(String * str) 
-{
-    return str->value;
-}
-
-static void __append_str(String *string, char *sub) 
+static int __find(String *string, char *key, int pos)
 {   
-    int len;
-    int ret;
-    if (sub == NULL) {
-        dbg_str(DBG_WARNNING, "appending-string is null unvalid substring");
-        return ;
-    }
-    len = strlen(sub);
-    ret = string_buf_auto_modulate(string, len);
+    int len1 = string->value_len;
+    int len2 = strlen(key);
+    char *p  = NULL;
 
-    if (ret < 0 ) {
-        return ;
-    }
-   
-    strncpy(string->value + string->value_len, sub, len);
-    string->value_len += len;
-    string->value[string->value_len] = '\0';
-
-}
-
-static void __append_str_len(String *string, char *sub, int len)
-{
-    int ret;
-    if (sub == NULL) {
-        dbg_str(DBG_WARNNING, "appending-string is null unvalid substring");
-        return ;
-    }
-
-    len = strlen(sub) > len ? len:strlen(sub);
-    ret = string_buf_auto_modulate(string, len);
-    if (ret < 0 ) {
-        return ;
-    }
-    strncpy(string->value+string->value_len, sub, len);
-    string->value_len += len;
-    string->value[string->value_len] = '\0';
-
-}
-
-static void __append_objective_string(String *string, String *sub)
-{
-    char *value = sub->c_str(sub);
-    string->append_str(string, value);
-}
-
-
-static size_t  __size(String *string) 
-{
-    return string->value_len;
-}
-
-static size_t __is_empty(String *string)
-{
-    return string->size(string) ? 0 : 1;
-}
-
-static void __clear(String *string)
-{   
-    string->value[0] = '\0';
-    string->value_len = 0;
-}
-
-static String * 
-__replace(String *self, char *old, char *newstr)
-{
-    int start_pos = 0;
-    int end_pos   = 0;
-    int ret;
-    int old_len = strlen(old);
-    int new_len = strlen(newstr);
-    int str_len = self->size(self);
-
-    if (old == NULL || newstr == NULL) {
-        return self;
-    }
-
-    String *old_str = OBJECT_NEW(self->obj.allocator, String, NULL);
-    old_str->assign(old_str, old);
-    start_pos = self->find(self, old_str, start_pos);
-
-    if (start_pos < 0) {
-        goto end;
-    }
-
-    if (old_len <= new_len) {
-        ret = string_buf_auto_modulate(self, new_len-old_len);
-        if (ret < 0 ) {
-            goto end;
-        }
-    }
-
-    end_pos = start_pos + new_len;
-    memmove(self->value+end_pos, self->value+start_pos+old_len,
-            str_len-(start_pos+old_len));
-    memmove(self->value+start_pos, newstr, new_len); 
-    self->value_len += (new_len-old_len);
-    self->value[self->value_len] = '\0';
-
-end:
-    object_destroy(old_str);
-    return self;
-}
-
-static String * __replace_all(String *self, char *oldstr, char *newstr)
-{
-    String *pre = self;
-    String *cur = NULL;
-    if ( oldstr == NULL || newstr == NULL ) {
-        return self;
-    }
-    while (cur == NULL || strcmp(cur->c_str(cur), pre->c_str(pre)) != 0 ) {
-        if (cur != NULL ) { 
-            object_destroy(cur);
-            cur = NULL;
-        }
-        cur = OBJECT_NEW(self->obj.allocator, String, NULL);
-        cur->assign(cur, pre->c_str(pre));
-        pre = pre->replace(pre, oldstr, newstr);
-    }
-    object_destroy(cur);
-
-    return self;
-}
-
-static String * 
-__insert_char_count(String *self, size_t pos, char c, size_t count)
-{
-    String * ptem = OBJECT_NEW(self->obj.allocator, String, NULL);
-    ptem->assign_char(ptem, c, count);
-    self->insert_str_normal(self, pos, ptem);
-    object_destroy(ptem);
-}
-
-static String * 
-__insert_cstr(String *self, size_t index, 
-              char *src, size_t pos, size_t len)
-{
-    int size = strlen(src);
-    int dest_size = self->size(self);
-    int ret = 0;
-    if ( src == NULL || pos > (size - 1) ) {
-        dbg_str(DBG_ERROR, "src == NULL or pos data is unvalid pos %d src size:%d", pos, size);
-        goto end;
-    }
-
-    if (pos + len > size) {
-        len = size - pos;
-    }
-     
-    ret = string_buf_auto_modulate(self, len);
-    if (ret < 0 ) {
-            goto end;
+    if (NULL == string || NULL == key || pos < 0 || len1 < len2) {
+        return -1;//exception happened
     }
     
-    memmove(self->value+index+len, self->value+index, dest_size-index);
-    memmove(self->value+index, src+pos, len);
-    self->value_len += len;
-    self->value[self->value_len] = '\0';     
-end:
-    return  self;
+    //a simple method
+    p = strstr(string->value + pos, key);
+    if(NULL !=  p) {
+        return p - (string->value);
+    }
+
+    return -1;
 }
 
-static String *
-__insert_str(String *self, size_t index, 
-             String *src, size_t pos, size_t len)
+static int __split_string(String *string, char *delims)
 {
-    return self->insert_cstr(self, index, src->c_str(src), pos, len);
+    int cnt = 0;
+    char *ptr = NULL;
+    char *p;
+    Vector *v;
+
+    if (string->splited_strings == NULL) {
+        v = OBJECT_NEW(string->obj.allocator, Vector, NULL);
+        string->splited_strings = v;
+    } else {
+        v = string->splited_strings;
+    }
+
+    for (   p = strtok_r(string->get_cstr(string), delims, &ptr);
+            p;
+            p = strtok_r(NULL, delims, &ptr)) 
+    {
+        /*
+         *dbg_str(DBG_SUC, "addr:%p, slim :%s", p, p);
+         */
+        if (p != NULL) {
+            *(p -1) = '\0';
+        }
+        cnt++;
+        v->add_back(v, p);
+    }
+
+    return cnt;
 }
 
-static String * 
-__insert_str_normal(String * self, size_t index, String *cstr)
+static char *__get_splited_string(String *string, int index)
 {
-    return self->insert_str(self, index, cstr, 0, cstr->size(cstr));
-}
+    Vector *v = string->splited_strings;
+    char *d;
 
-static String * 
-__insert_cstr_normal(String * self, size_t index, char *cstr)
-{
-    return self->insert_cstr(self, index, cstr, 0, strlen(cstr));
+    if (v == NULL) {
+        return NULL;
+    }
+    
+    v->peek_at(v, index, (void **)&d);
+
+    return d;
 }
 
 static class_info_entry_t string_class_info[] = {
@@ -495,228 +458,140 @@ static class_info_entry_t string_class_info[] = {
     Init_Nfunc_Entry(2 , String, deconstruct, __deconstrcut), 
     Init_Vfunc_Entry(3 , String, set, NULL), 
     Init_Vfunc_Entry(4 , String, get, NULL), 
-    Init_Vfunc_Entry(5 , String, pre_alloc, __pre_alloc), 
-    Init_Vfunc_Entry(6 , String, assign, __assign), 
-    Init_Vfunc_Entry(7 , String, replace_char, __replace_char), 
-    Init_Vfunc_Entry(8 , String, append_char, __append_char), 
-    Init_Vfunc_Entry(9 , String, at, __at), 
-    Init_Vfunc_Entry(10, String, toupper, __toupper_), 
-    Init_Vfunc_Entry(11, String, toupper_impact, __toupper_impact), 
-    Init_Vfunc_Entry(12, String, tolower_impact, __tolower_impact), 
-    Init_Vfunc_Entry(13, String, tolower, __tolower_), 
-    Init_Vfunc_Entry(14, String, ltrim, __ltrim), 
-    Init_Vfunc_Entry(15, String, rtrim, __rtrim), 
-    Init_Vfunc_Entry(16, String, trim, __trim), 
-    Init_Vfunc_Entry(17, String, split_string, __split_string), 
-    Init_Vfunc_Entry(18, String, substr, __substr), 
-    Init_Vfunc_Entry(19, String, find, __find), 
-    Init_Vfunc_Entry(20, String, c_str, __c_str), 
-    Init_Vfunc_Entry(21, String, size, __size), 
-    Init_Vfunc_Entry(22, String, append_str, __append_str), 
-    Init_Vfunc_Entry(23, String, append_str_len, __append_str_len), 
-    Init_Vfunc_Entry(24, String, append_objective_string, __append_objective_string), 
-    Init_Vfunc_Entry(25, String, clear, __clear), 
+    Init_Vfunc_Entry(5 , String, at, __at), 
+    Init_Vfunc_Entry(6 , String, get_cstr, __get_cstr), 
+    Init_Vfunc_Entry(7 , String, len, __len), 
+    Init_Vfunc_Entry(8 , String, clear, __clear), 
+    Init_Vfunc_Entry(9 , String, pre_alloc, __pre_alloc), 
+    Init_Vfunc_Entry(10, String, assign, __assign), 
+    Init_Vfunc_Entry(11, String, replace_char, __replace_char), 
+    Init_Vfunc_Entry(12, String, replace, __replace_cstr), 
+    Init_Vfunc_Entry(13, String, replace_all, __replace_cstr_all), 
+    Init_Vfunc_Entry(14, String, append_char, __append_char), 
+    Init_Vfunc_Entry(15, String, append_cstr, __append_cstr), 
+    Init_Vfunc_Entry(16, String, append_string, __append_string), 
+    Init_Vfunc_Entry(17, String, toupper, __toupper_), 
+    Init_Vfunc_Entry(18, String, toupper_impact, __toupper_impact), 
+    Init_Vfunc_Entry(19, String, tolower_impact, __tolower_impact), 
+    Init_Vfunc_Entry(20, String, tolower, __tolower_), 
+    Init_Vfunc_Entry(21, String, ltrim, __ltrim), 
+    Init_Vfunc_Entry(22, String, rtrim, __rtrim), 
+    Init_Vfunc_Entry(23, String, trim, __trim), 
+    Init_Vfunc_Entry(24, String, substr, __substr), 
+    Init_Vfunc_Entry(25, String, find, __find), 
     Init_Vfunc_Entry(26, String, is_empty, __is_empty), 
-    Init_Vfunc_Entry(27, String, replace, __replace), 
-    Init_Vfunc_Entry(28, String, replace_all, __replace_all), 
-    Init_Vfunc_Entry(29, String, insert_cstr, __insert_cstr), 
-    Init_Vfunc_Entry(30, String, insert_cstr_normal, __insert_cstr_normal), 
-    Init_Vfunc_Entry(31, String, insert_str_normal, __insert_str_normal), 
-    Init_Vfunc_Entry(32, String, insert_str, __insert_str), 
-    Init_Vfunc_Entry(33, String, assign_char, __assign_char), 
-    Init_Vfunc_Entry(34, String, insert_char_count, __insert_char_count), 
-    Init_Str___Entry(35, String, name, NULL), 
-    Init_Str___Entry(36, String, value, NULL), 
-    Init_End___Entry(37), 
+    Init_Vfunc_Entry(27, String, insert_cstr, __insert_cstr), 
+    Init_Vfunc_Entry(28, String, insert_str, __insert_str), 
+    Init_Vfunc_Entry(29, String, split_string, __split_string), 
+    Init_Vfunc_Entry(30, String, get_splited_string, __get_splited_string), 
+    Init_Str___Entry(31, String, name, NULL), 
+    Init_Str___Entry(32, String, value, NULL), 
+    Init_End___Entry(33), 
 };
 REGISTER_CLASS("String", string_class_info);
 
-static void print_vector_data(int index, void *element)
-{  
-    if (element !=  NULL) {
-        dbg_str(DBG_DETAIL, "index:%d value:%s  type_name:%s", 
-                index, ((String*)element)->value, 
-                ((String*)element)->obj.name);
+static int test_get_cstr() 
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *parent;
+    char *test = "abcdefg";
+    int ret;
+
+    parent = OBJECT_NEW(allocator, String, NULL);
+    parent->assign(parent, test);  
+
+    if (strcmp(parent->get_cstr(parent), test) == 0) {
+        ret = 1;
+    } else {
+        ret = 0;
     }
-}
 
-static int test_c_str() 
-{
-   allocator_t *allocator = allocator_get_default_alloc();
-   //test find and split_string function
-   int count = allocator->alloc_count;
-   String *parent;
-
-   parent = OBJECT_NEW(allocator, String, NULL);
-   parent->assign(parent, "abcdebf");  
-
-   printf(" c format value: %s \n", parent->c_str(parent));
-
-   object_destroy(parent);
-
-   return 1;
-}
-
-static int test_append_str()
-{  
-    allocator_t *allocator = allocator_get_default_alloc();
-   //test find and split_string function
-   int count = allocator->alloc_count;
-   String *parent, *substr;
-
-   parent = OBJECT_NEW(allocator, String, NULL);
-   substr = OBJECT_NEW(allocator, String, NULL);
-   parent->assign(parent, "abcdebf");  
-   substr->assign(substr, ">>>>>>>>>>>>>>>>>>>>>");
-    
-   parent->append_str(parent, ">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$");
-   printf(" c format value: %s \n", parent->c_str(parent));
-
-   object_destroy(parent);
-   object_destroy(substr);
-   return 1;
-}
-
-static int test_append_str_len()
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-   //test find and split_string function
-   int count=allocator->alloc_count;
-   String *parent, *substr;
-
-   parent = OBJECT_NEW(allocator, String, NULL);
-   substr = OBJECT_NEW(allocator, String, NULL);
-   parent->assign(parent, "abcdebf");  
-   substr->assign(substr, ">>>>>>>>>>>>>>>>>>>>>");
-    
-   parent->append_str_len(parent, ">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$", 4);
-   printf(" c format value: %s \n", parent->c_str(parent));
-
-   parent->append_str_len(parent, ">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$", 20);
-   printf(" c format value: %s \n", parent->c_str(parent));
-
-   parent->append_str_len(parent, ">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$", 40);
-   printf(" c format value: %s \n", parent->c_str(parent));
-
-   parent->append_str_len(parent, ">>>>>>>>>>>>>>>>>>>>>#########$$$$$$$$$$$$", 400000);
-   printf(" c format value: %s \n", parent->c_str(parent));
-
-   object_destroy(parent);
-   object_destroy(substr);
-   return 1;
-}
-
-static int test_append_objective_string()
-{ 
-   allocator_t *allocator = allocator_get_default_alloc();
-   //test find and split_string function
-   int count=allocator->alloc_count;
-   String *parent, *substr;
-
-   parent = OBJECT_NEW(allocator, String, NULL);
-   substr = OBJECT_NEW(allocator, String, NULL);
-   parent->assign(parent, "abcdebf");  
-   substr->assign(substr, "{}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>#########$$$$$$>>>>>>>>>>>>{}");
-    
-   parent->append_objective_string(parent, substr);
-   printf(" c format value: %s \n", parent->c_str(parent));
-
-   parent->append_str(parent, substr->c_str(substr));
-   printf(" c format value: %s \n", parent->c_str(parent));
-
-
-   object_destroy(parent);
-   object_destroy(substr);
-   return 1;
-}
-
-static int test_string_size()
-{  
-    allocator_t *allocator = allocator_get_default_alloc();
-   //test find and split_string function
-   int count = allocator->alloc_count;
-   String *parent, *substr;
-
-   dbg_str(DBG_DETAIL,"string class size=%d", sizeof(String));
-   parent = OBJECT_NEW(allocator, String, NULL);
-   substr = OBJECT_NEW(allocator, String, NULL);
-   parent->assign(parent, "abcdebf");  
-   substr->assign(substr, "{}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>#########$$$$$$>>>>>>>>>>>>{}");
-
-   printf("parent size %zu child size %zu \n", parent->size(parent), substr->size(substr)); 
-   
-   parent->append_objective_string(parent, substr);
-   printf(" c format value: %s \n", parent->c_str(parent));
-   printf("parent size %zu child size %zu \n", parent->size(parent), substr->size(substr)); 
-   
-   object_destroy(parent);
-   object_destroy(substr);
-   return 1;
-   
-}
-
-int test_string_split()
-{    
-
-    allocator_t *allocator = allocator_get_default_alloc();
-    //test find and split_string function
-    String *str_find, *str_separator;
-    Vector *vector;
-    int ret = 0;
-
-    str_find      = OBJECT_NEW(allocator, String, NULL);
-    vector        = OBJECT_NEW(allocator, Vector, NULL);
-    str_separator = OBJECT_NEW(allocator, String, NULL);
-
-    str_find->assign(str_find, "https://www.baidu.com/s?ie = utf-8&f = 3&rsv_bp = 1&rsv_idx = 1&tn = baidu&wd = "
-            "ffmpeg%20hls%20%20%E6%A8%A1%E5%9D%97&oq = ffmpeg%2520hls%2520%25E5%2588%2587%25E7%2589%2587&rsv_pq = f57123dc00006105&"
-            "rsv_t = 4a67K//PcOq6Y0swQnyeFtlQezzWiuwU1bS8vKp48Nn9joWPQd1BHAqFkqu9Y&rqlang = cn&rsv_enter = 1&inputT = 4580&"
-            "rsv_sug3 = 170&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25"
-            "E5%259D%2597&rsp = 0&rsv_sug4 = 5089");  
-
-
-#if 1
-    str_separator->assign(str_separator, "&");
-    //str_separator->assign(str_separator, "//");
-#else 
-    str_separator->assign(str_separator, "//");
-#endif 
-
-    str_find->split_string(str_find, str_separator, vector);
-
-    dbg_str(DBG_DETAIL, "vector len=%d", vector->size(vector));
-
-    ret = assert_int_equal(vector->size(vector), 19);
-
-    vector->for_each(vector, print_vector_data);
-    vector->free_vector_elements(vector);
-
-    object_destroy(str_find);
-    object_destroy(str_separator);
-    object_destroy(vector);
+    object_destroy(parent);
 
     return ret;
-
 }
 
-int test_string_find()
-{
+static int test_append_cstr()
+{  
     allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *pstr;
-    int ret = 0;
+    String *parent;
+    char *test1 = "abcdefg";
+    char *test2 = "hello world";
+    char test3[1024];
+    int ret;
 
-    string = OBJECT_NEW(allocator, String, NULL);
-    pstr   = OBJECT_NEW(allocator, String, NULL);
+    sprintf(test3, "%s%s", test1, test2);
 
-    string->assign(string, "rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25");
-    pstr->assign(pstr, "&");
+    parent = OBJECT_NEW(allocator, String, NULL);
+    parent->assign(parent, test1);  
 
-    int pos = string->find(string, pstr, 0);
+    parent->append_cstr(parent, test2);
 
-    ret = assert_int_equal(pos, 16);
-    dbg_str(DBG_DETAIL, "substr position: %d ", pos);
-    object_destroy(string);
-    object_destroy(pstr);
+    if (strcmp(parent->get_cstr(parent), test3) == 0) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
+
+    object_destroy(parent);
+
+    return ret;
+}
+
+static int test_append_string()
+{ 
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *parent, *substr;
+    char *test1 = "abcdefg";
+    char *test2 = "hello world";
+    char test3[1024];
+    int ret;
+
+    sprintf(test3, "%s%s", test1, test2);
+
+    parent = OBJECT_NEW(allocator, String, NULL);
+    parent->assign(parent, test1);  
+
+    substr = OBJECT_NEW(allocator, String, NULL);
+    substr->assign(substr, test2);
+
+    parent->append_string(parent, substr);
+    if (strcmp(parent->get_cstr(parent), test3) == 0) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
+
+    object_destroy(parent);
+    object_destroy(substr);
+
+    return ret;
+}
+
+static int test_string_len()
+{  
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *parent, *substr;
+    char *test1 = "abcdefg";
+    char *test2 = "hello world";
+    int ret;
+
+    parent = OBJECT_NEW(allocator, String, NULL);
+    parent->assign(parent, test1);  
+
+    substr = OBJECT_NEW(allocator, String, NULL);
+    substr->assign(substr, test2);
+
+    parent->append_string(parent, substr);
+    
+    if (parent->len(parent) != (strlen(test1) + strlen(test2))) {
+        ret = 0;
+    } else {
+        ret = 1;
+    }
+
+    object_destroy(parent);
+    object_destroy(substr);
 
     return ret;
 
@@ -725,22 +600,133 @@ int test_string_find()
 int test_string_substr()
 {
     allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *pstr, *substr;
+    String *string, *substr;
     int ret;
     char *test = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
 
     string = OBJECT_NEW(allocator, String, NULL);
-    pstr   = OBJECT_NEW(allocator, String, NULL);
 
     string->assign(string, test);
-    pstr->assign(pstr, "&");
     substr = string->substr(string, 3, 10);
-    printf("substr %s\n ", pstr->value);
+    
+    if (strcmp(substr->get_cstr(substr), "v//_sug1 =") == 0) {
+        ret = 1;
+    } else { 
+        ret = 0;
+    }
+
+    object_destroy(string);
+    object_destroy(substr);
+
+    return ret;   
+}
+
+static int test_string_insert_cstr()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string;
+    int ret;
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    string->assign(string, "@@@@@@@");
+
+    string->insert_cstr(string, 3, "vvvvvvv");
+    if (strcmp(string->get_cstr(string), "@@@vvvvvvv@@@@") == 0) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
+
+    object_destroy(string);
+
+    return ret;
+}
+
+static int test_string_insert_str()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string, *pstr;
+    int ret;
+    char *test = "";
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    string->assign(string, "@@@@@@@");
+
+    pstr = OBJECT_NEW(allocator, String, NULL);
+    pstr->assign(string, "vvvvvvv");
+
+    string->insert_str(string, 3, pstr);
+    if (strcmp(string->get_cstr(string), "@@@vvvvvvv@@@@") == 0) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
 
     object_destroy(string);
     object_destroy(pstr);
-    object_destroy(substr);
-    return 1;   
+
+    return ret;
+}
+
+int test_string_split()
+{    
+
+    allocator_t *allocator = allocator_get_default_alloc();
+    //test find and split_string function
+    String *str;
+    Vector *vector;
+    int ret = 0;
+    int i, cnt;
+    char *p;
+
+    str = OBJECT_NEW(allocator, String, NULL);
+
+    str->assign(str, "https://www.baidu.com/s?ie = utf-8&f = 3&rsv_bp = 1&rsv_idx = 1&tn = baidu&wd = "
+            "ffmpeg%20hls%20%20%E6%A8%A1%E5%9D%97&oq = ffmpeg%2520hls%2520%25E5%2588%2587%25E7%2589%2587&rsv_pq = f57123dc00006105&"
+            "rsv_t = 4a67K//PcOq6Y0swQnyeFtlQezzWiuwU1bS8vKp48Nn9joWPQd1BHAqFkqu9Y&rqlang = cn&rsv_enter = 1&inputT = 4580&"
+            "rsv_sug3 = 170&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25"
+            "E5%259D%2597&rsp = 0&rsv_sug4 = 5089");  
+
+    cnt = str->split_string(str, "&");
+
+    for (i = 0; i < cnt; i++) {
+        p = str->get_splited_string(str, i);
+        if (p != NULL) {
+            dbg_str(DBG_DETAIL, "%s", p);
+        }
+    }
+
+    if (cnt != 19) {
+        ret = 0;
+    } else {
+        ret = 1;
+    }
+
+    object_destroy(str);
+
+    return ret;
+
+}
+
+int test_string_find()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string;
+    int ret = 0;
+
+    string = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign(string, "rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25");
+
+    int pos = string->find(string, "&", 0);
+
+    ret = assert_int_equal(pos, 16);
+    dbg_str(DBG_DETAIL, "substr position: %d ", pos);
+
+    object_destroy(string);
+
+    return ret;
+
 }
 
 static int test_string_empty()
@@ -756,10 +742,10 @@ static int test_string_empty()
     string->assign(string, test);
     pstr->assign(pstr, "&");
     substr = string->substr(string, 3, 10);
-    
-    dbg_str(DBG_SUC, "current string empty:%d str:%s", string->is_empty(string), string->c_str(string));
+
+    dbg_str(DBG_SUC, "current string empty:%d str:%s", string->is_empty(string), string->get_cstr(string));
     string->clear(string);
-    dbg_str(DBG_SUC, "after clear string operation. current is_empty %d str:%s", string->is_empty(string), string->c_str(string));
+    dbg_str(DBG_SUC, "after clear string operation. current is_empty %d str:%s", string->is_empty(string), string->get_cstr(string));
     ret = string->is_empty(string);
 
     object_destroy(string);
@@ -781,21 +767,21 @@ static int test_string_replace()
 
     string->assign(string, test);
     pstr->assign(pstr, "&");
-    dbg_str(DBG_SUC, "before replaced :%s\n size:%d", string->c_str(string), string->size(string));
+    dbg_str(DBG_SUC, "before replaced :%s\n len:%d", string->get_cstr(string), string->len(string));
     string->replace(string, "&", "<#####>");
-    dbg_str(DBG_SUC, "current replaced:%s\n size:%d", string->c_str(string), string->size(string));
+    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
 
     string->replace(string, "<#####>", "&");
-    dbg_str(DBG_SUC, "current replaced:%s\n size:%d", string->c_str(string), string->size(string));
+    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
 
     string->replace(string, "rsv_sug", "@@@@@");
-    dbg_str(DBG_SUC, "current replaced:%s\n size:%d", string->c_str(string), string->size(string));
+    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
 
     string->replace(string, "rsv_sug", "@@@@@##############################");
-    dbg_str(DBG_SUC, "current replaced:%s\n size:%d", string->c_str(string), string->size(string));
-    
+    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
+
     string->replace(string, "2520%2520%25E6%25A8%25A1", "<@@@@>");
-    dbg_str(DBG_SUC, "current replaced:%s\n size:%d", string->c_str(string), string->size(string));
+    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
 
     object_destroy(string);
     object_destroy(pstr);
@@ -819,13 +805,13 @@ static int test_string_replace_all()
     int pos = string->find(string, pstr, 0);
     dbg_str(DBG_SUC, "position:%d", pos);
 
-    dbg_str(DBG_SUC, "before replaced :%s\n size:%d", string->c_str(string), string->size(string));
+    dbg_str(DBG_SUC, "before replaced :%s\n len:%d", string->get_cstr(string), string->len(string));
     string->replace_all(string, "<##>", "@");
-    dbg_str(DBG_SUC, "current replaced:%s\n size:%d", string->c_str(string), string->size(string));
-    
+    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
+
     string->replace_all(string, "@", "<>");
-    dbg_str(DBG_SUC, "current replaced:%s\n size:%d", string->c_str(string), string->size(string));
-     
+    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
+
 
     object_destroy(string);
     object_destroy(pstr);
@@ -833,196 +819,15 @@ static int test_string_replace_all()
     return 1;
 }
 
-static int test_string_replace_complex()
-{
-   allocator_t *allocator = allocator_get_default_alloc();
-   String * state_info = OBJECT_NEW(allocator, String , NULL);    
-   state_info->assign(state_info, "[extractor_ready_failed] [video_codec_ready_failed] "   
-            "[audio_codec_ready_failed] [seek_ready_failed]");
-
-   state_info->replace(state_info, "extractor_ready_failed", "extractor_ready_ok");
-    dbg_str(DBG_SUC, "current replaced:%s\n size:%d", state_info->c_str(state_info), state_info->size(state_info));  
-
-   state_info->replace(state_info, "video_codec_ready_failed", "video_codec_ready_ok");
-    dbg_str(DBG_SUC, "current replaced:%s\n size:%d", state_info->c_str(state_info), state_info->size(state_info));
-
-   state_info->replace(state_info, "audio_codec_ready_failed", "audio_codec_ready_ok");   
-    dbg_str(DBG_SUC, "current replaced:%s\n size:%d", state_info->c_str(state_info), state_info->size(state_info));
-
-   state_info->replace(state_info, "seek_ready_failed", "seek_ready_ok");
-    dbg_str(DBG_SUC, "current replaced:%s\n size:%d", state_info->c_str(state_info), state_info->size(state_info));
-    
-   object_destroy(state_info);
-   return 1;
-}
-
-static int test_string_insert_cstr()
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *pstr;
-    int ret;
-    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
-
-    string = OBJECT_NEW(allocator, String, NULL);
-    pstr   = OBJECT_NEW(allocator, String, NULL);
-
-    string->assign(string, test);
-    pstr->assign(pstr, "@@@@@@@");
-    
-    
-    string->insert_cstr(string, 3, "@@@@vvvvvvv@@@", 0, 2000);
-    dbg_str(DBG_SUC, "after insert:%s\n size:%d", string->c_str(string), string->size(string));
-
-    dbg_str(DBG_SUC, "before insert:%s\n size:%d", string->c_str(string), string->size(string));
-    string->insert_cstr(string, 3, "@@@@@@@", 0, 4);
-    dbg_str(DBG_SUC, "after insert:%s\n size:%d", string->c_str(string), string->size(string));
-    
-    string->insert_cstr(string, 3, "@@@@fdasfasdf@@@", 0, 4);
-    dbg_str(DBG_SUC, "after insert:%s\n size:%d", string->c_str(string), string->size(string));
-
-    string->insert_cstr(string, 3, "@@@@vvvvvvv@@@", 0, 2000);
-    dbg_str(DBG_SUC, "after insert:%s\n size:%d", string->c_str(string), string->size(string));
-
-    string->insert_cstr(string, 3, "@@@vvvvvvvv@@@@", 5, 4);
-    dbg_str(DBG_SUC, "after insert:%s\n size:%d", string->c_str(string), string->size(string));
-
-    string->insert_cstr(string, 3, "@@@@@@@", 0, 4);
-    dbg_str(DBG_SUC, "after insert:%s\n size:%d", string->c_str(string), string->size(string));
-
-     string->insert_cstr(string, 3, "@@@@@@@", 0, 4);
-    dbg_str(DBG_SUC, "after insert:%s\n size:%d", string->c_str(string), string->size(string));
-
-    
-    object_destroy(string);
-    object_destroy(pstr);
-    
-    return 1;
-}
-
-static int test_string_insert_cstr_normal()
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *pstr;
-    int ret;
-    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
-
-    string = OBJECT_NEW(allocator, String, NULL);
-    pstr   = OBJECT_NEW(allocator, String, NULL);
-
-    string->assign(string, test);
-    pstr->assign(pstr, "@@@@@@@");
-    
-    dbg_str(DBG_SUC, "before insert:%s\n size:%d", string->c_str(string), string->size(string));
-    string->insert_cstr_normal(string, 3, "@@@@vvvvvvv@@@");
-    dbg_str(DBG_SUC, "after insert:%s\n size:%d", string->c_str(string), string->size(string));
-    
-    object_destroy(string);
-    object_destroy(pstr);
-    
-    return 1;
-}
-
-static int test_string_insert_str()
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *pstr;
-    int ret;
-    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
-
-    string = OBJECT_NEW(allocator, String, NULL);
-    pstr   = OBJECT_NEW(allocator, String, NULL);
-
-    string->assign(string, test);
-    pstr->assign(pstr, "@@@@@@@");
-    
-    dbg_str(DBG_SUC, "before insert:%s\n size:%d", string->c_str(string), string->size(string));
-    string->insert_str(string, 3, pstr, 0, 7);
-    dbg_str(DBG_SUC, "after insert:%s\n size:%d", string->c_str(string), string->size(string));
-    
-    object_destroy(string);
-    object_destroy(pstr);
-    
-    return 1;
-}
-
-static int test_string_insert_str_normal()
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *pstr;
-    int ret;
-    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
-
-    string = OBJECT_NEW(allocator, String, NULL);
-    pstr   = OBJECT_NEW(allocator, String, NULL);
-
-    string->assign(string, test);
-    pstr->assign(pstr, "@@@@@@@");
-    
-    dbg_str(DBG_SUC, "before insert:%s\n size:%d", string->c_str(string), string->size(string));
-    string->insert_str_normal(string, 3, pstr);
-    dbg_str(DBG_SUC, "after insert:%s\n size:%d", string->c_str(string), string->size(string));
-    
-    object_destroy(string);
-    object_destroy(pstr);
-    
-    return 1;
-}
-
-static int test_string_assign_char_count()
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *pstr;
-    int ret;
-    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
-
-    string = OBJECT_NEW(allocator, String, NULL);
-    pstr   = OBJECT_NEW(allocator, String, NULL);
-
-    string->assign_char(string, 'c', 4);
-    dbg_str(DBG_SUC, "after insert:%s\n size:%d", string->c_str(string), string->size(string));
-
-    
-    object_destroy(string);
-    object_destroy(pstr);
-    
-    return 1;
-}
-
-static int test_string_insert_char_count()
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *pstr;
-    int ret;
-    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
-
-    string = OBJECT_NEW(allocator, String, NULL);
-    pstr   = OBJECT_NEW(allocator, String, NULL);
-
-    string->assign(string, ">>>>>>>>>");
-    string->insert_char_count(string, 4, 'c', 4);
-    dbg_str(DBG_SUC, "after insert:%s\n size:%d", string->c_str(string), string->size(string));
-
-    
-    object_destroy(string);
-    object_destroy(pstr);
-    
-    return 1;
-}
-
-REGISTER_TEST_FUNC(test_c_str);
-REGISTER_TEST_FUNC(test_append_str);
-REGISTER_TEST_FUNC(test_append_str_len);
-REGISTER_TEST_FUNC(test_string_size);
-REGISTER_TEST_FUNC(test_string_split);
+REGISTER_TEST_FUNC(test_get_cstr);
+REGISTER_TEST_FUNC(test_append_cstr);
+REGISTER_TEST_FUNC(test_append_string);
+REGISTER_TEST_FUNC(test_string_len);
 REGISTER_TEST_FUNC(test_string_find);
 REGISTER_TEST_FUNC(test_string_substr);
-REGISTER_STANDALONE_TEST_FUNC(test_string_empty);
-REGISTER_STANDALONE_TEST_FUNC(test_string_replace);
-REGISTER_STANDALONE_TEST_FUNC(test_string_replace_all);
-REGISTER_STANDALONE_TEST_FUNC(test_string_replace_complex);
-REGISTER_STANDALONE_TEST_FUNC(test_string_insert_cstr);
-REGISTER_STANDALONE_TEST_FUNC(test_string_insert_cstr_normal);
-REGISTER_STANDALONE_TEST_FUNC(test_string_insert_str);
-REGISTER_STANDALONE_TEST_FUNC(test_string_insert_str_normal);
-REGISTER_STANDALONE_TEST_FUNC(test_string_assign_char_count);
-REGISTER_STANDALONE_TEST_FUNC(test_string_insert_char_count);
+REGISTER_TEST_FUNC(test_string_empty);
+REGISTER_TEST_FUNC(test_string_replace);
+REGISTER_TEST_FUNC(test_string_replace_all);
+REGISTER_TEST_FUNC(test_string_insert_cstr);
+REGISTER_TEST_FUNC(test_string_insert_str);
+REGISTER_TEST_FUNC(test_string_split);
