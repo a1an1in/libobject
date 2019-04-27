@@ -34,6 +34,7 @@
 #include <libobject/core/object.h>
 #include <libobject/core/obj.h>
 #include <libobject/core/config.h>
+#include <libobject/core/string.h>
 
 void * 
 __object_get_normal_func_of_class(void *class_info_addr, 
@@ -138,6 +139,26 @@ __object_get_entry_of_class(void *class_info, char *entry_name)
     }   
 
     return NULL;
+}
+
+int 
+__object_get_class_size(void *class_info_addr)
+{
+    class_info_entry_t *entry = (class_info_entry_t *)class_info_addr;
+    int i, size = 0;
+
+    if (class_info_addr == 0) {
+        return size;
+    }
+
+    for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
+    }   
+
+    if (entry[i].type == ENTRY_TYPE_END) {
+        size = entry[i].value_len;
+    }
+
+    return size;
 }
 
 void *
@@ -277,6 +298,55 @@ int __object_override_vitual_funcs(void *obj,
     return 0;
 }
 
+void * object_new(allocator_t *allocator,
+                  char *type, char *config)
+{
+    Obj *o;
+    class_info_entry_t *entry;
+    class_deamon_t *deamon;
+    int size = 0, ret;
+
+    if (type == NULL) return NULL;
+
+    deamon = class_deamon_get_global_class_deamon();
+    entry  = (class_info_entry_t *)
+             class_deamon_search_class(deamon, type);
+
+    size   = __object_get_class_size(entry);
+    if (size == 0) return NULL;
+
+    o = (Obj *)allocator_mem_alloc(allocator, size);
+    if (o == NULL) {
+        dbg_str(DBG_ERROR, "alloc mem failed");
+        return NULL;
+    } else {
+        memset(o, 0, size);
+        o->allocator = allocator;
+        strcpy(o->name, type);
+    }
+
+    ret = object_set(o, type, config);
+    if (ret < 0) {
+        dbg_str(DBG_ERROR, "object set failed");
+        goto err_object_set;
+    }
+
+    ret = object_init(o, type);
+    if (ret < 0) {
+        dbg_str(DBG_ERROR, "object init failed");
+        goto err_object_init;
+    }
+
+    goto end;
+
+err_object_init:
+err_object_set:
+    allocator_mem_free(allocator, o);
+end:
+
+    return o;
+}
+
 static int __object_set(void *obj, 
                         cjson_t *c, 
                         int (*set)(void *obj, char *attrib, void *value)) 
@@ -400,7 +470,7 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
 
 int object_init(void *obj, char *type_name) 
 {
-    __object_init(obj, type_name, type_name);
+    return __object_init(obj, type_name, type_name);
 }
 
 int __object_dump(void *obj, char *type_name, cjson_t *object) 
@@ -527,6 +597,27 @@ int __object_destroy(void *obj, char *type_name)
 
 int object_destroy(void *obj) 
 {
-    __object_destroy(obj, ((Obj *)obj)->name);
-    return 0;
+    return __object_destroy(obj, ((Obj *)obj)->name);
 }
+
+static int test_object_new() 
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *parent;
+    char *test = "abcdefg";
+    int ret;
+
+    parent = object_new(allocator, "String", NULL);
+    parent->assign(parent, test);  
+
+    if (strcmp(parent->get_cstr(parent), test) == 0) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
+
+    object_destroy(parent);
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_object_new);

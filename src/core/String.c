@@ -327,15 +327,20 @@ static void __tolower_(String *string)
 static void __ltrim(String *string)
 {
     int size = string->value_len;
-    int i;
+    int i, cnt = 0;
 
     for (i = 0; i < size; i++) {
         if (isspace(string->value[i])) {
-            string->value++;
+            cnt++;
         } else {
             break;
         }   
-
+    }
+    if (cnt) {
+        string->value_len -= cnt;
+        memmove(string->value, string->value + cnt, 
+                string->value_len);
+       string->value[string->value_len] = '\0';
     }
 }
 
@@ -389,7 +394,6 @@ static int __find(String *string, char *key, int pos)
         return -1;//exception happened
     }
     
-    //a simple method
     p = strstr(string->value + pos, key);
     if(NULL !=  p) {
         return p - (string->value);
@@ -475,7 +479,7 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(28, String, get_splited_string, __get_splited_string), 
     Init_Str___Entry(29, String, name, NULL), 
     Init_Str___Entry(30, String, value, NULL), 
-    Init_End___Entry(31), 
+    Init_End2__Entry(31, String), 
 };
 REGISTER_CLASS("String", string_class_info);
 
@@ -785,6 +789,53 @@ static int test_string_empty()
     return ret;
 }
 
+static int test_string_ltrim()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string;
+    char *test = "  hello";
+    int ret;
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    string->assign(string, test);
+
+    string->ltrim(string);
+
+    if((strcmp(string->get_cstr(string), test + 2) == 0)) {
+        ret = 1;
+    } else { 
+        ret = 0;
+    }
+
+    object_destroy(string);
+
+    return ret;
+}
+
+static int test_string_rtrim()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string;
+    char *test = "hello  ";
+    char *expect = "hello";
+    int ret;
+
+    string = OBJECT_NEW(allocator, String, NULL);
+    string->assign(string, test);
+
+    string->rtrim(string);
+
+    if((strcmp(string->get_cstr(string), expect) == 0)) {
+        ret = 1;
+    } else { 
+        ret = 0;
+    }
+
+    object_destroy(string);
+
+    return ret;
+}
+
 REGISTER_TEST_FUNC(test_get_cstr);
 REGISTER_TEST_FUNC(test_append);
 REGISTER_TEST_FUNC(test_append_string);
@@ -797,3 +848,5 @@ REGISTER_TEST_FUNC(test_string_replace_all);
 REGISTER_TEST_FUNC(test_string_insert);
 REGISTER_TEST_FUNC(test_string_insert_string);
 REGISTER_TEST_FUNC(test_string_split);
+REGISTER_TEST_FUNC(test_string_ltrim);
+REGISTER_TEST_FUNC(test_string_rtrim);

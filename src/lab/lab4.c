@@ -54,8 +54,12 @@ static int test_macro(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_STANDALONE_TEST_FUNC(test_macro);
 
-static int test_strlen(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_memmove(TEST_ENTRY *entry, void *argc, void *argv)
 {
+    char test[] = "sockaddr_in{} and other Internet defns, hello world";
+
+    memmove(test, test + 11, strlen(test) - 11);
+    dbg_str(DBG_DETAIL, "%s", test);
     return 1;
 }
-REGISTER_TEST_FUNC(test_strlen);
+REGISTER_TEST_FUNC(test_memmove);
