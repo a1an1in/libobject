@@ -37,20 +37,22 @@
 #include <libobject/core/string.h>
 #include <libobject/core/vector.h>
 
-static int string_buf_auto_modulate(String *string, int write_len)
+static int __modulate_capacity(String *string, int write_len)
 {
     if (string->value_max_len == 0) {
         string->value_max_len = 100;
         if (write_len > string->value_max_len) {
             string->value_max_len = write_len;
         }
+
         string->value = (char *)allocator_mem_alloc(string->obj.allocator, 
                 string->value_max_len);
         if (string->value == NULL) {
             dbg_str(OBJ_WARNNING, "string assign alloc error");
             return -1;
         }
-    } else if ( string->value_max_len > string->value_len + 1 &&
+    } else if ( 
+            string->value_max_len > string->value_len + 1 &&
             string->value_max_len < string->value_len + write_len + 1)
     {
         char *new_buf;
@@ -62,6 +64,7 @@ static int string_buf_auto_modulate(String *string, int write_len)
             dbg_str(OBJ_WARNNING, "string assign alloc error");
             return -1;
         }
+
         strncpy(new_buf, string->value, string->value_len);
 
         allocator_mem_free(string->obj.allocator, string->value);
@@ -138,7 +141,7 @@ static String *__assign(String *string, char *s)
     int len = strlen(s);
     int ret;
 
-    ret = string_buf_auto_modulate(string, len);
+    ret = __modulate_capacity(string, len);
     if (ret < 0) return string;
 
     memset(string->value, 0, string->value_max_len);
@@ -153,7 +156,7 @@ static String *__append_char(String *string, char c)
 {
     int ret;
 
-    ret = string_buf_auto_modulate(string, 1);
+    ret = __modulate_capacity(string, 1);
     if (ret < 0) {
         dbg_str(DBG_WARNNING, "string buf_auto_modulate have problem, please check");
         return string;
@@ -166,16 +169,16 @@ static String *__append_char(String *string, char c)
     return string;
 }
 
-static void __append_cstr(String *string, char *sub) 
+static void __append(String *string, char *sub) 
 {   
     int len;
     int ret;
     if (sub == NULL) {
-        dbg_str(DBG_WARNNING, "appending-string is null unvalid substring");
+        dbg_str(DBG_WARNNING, "appending-string is null unvalid sub stringing");
         return ;
     }
     len = strlen(sub);
-    ret = string_buf_auto_modulate(string, len);
+    ret = __modulate_capacity(string, len);
 
     if (ret < 0 ) {
         return ;
@@ -190,11 +193,11 @@ static void __append_cstr(String *string, char *sub)
 static void __append_string(String *string, String *sub)
 {
     char *value = sub->get_cstr(sub);
-    string->append_cstr(string, value);
+    string->append(string, value);
 }
 
 static String * 
-__insert_cstr(String *self, int offset, char *cstr)
+__insert(String *self, int offset, char *cstr)
 {
     int dest_len = self->len(self);
     int len = strlen(cstr);
@@ -205,7 +208,7 @@ __insert_cstr(String *self, int offset, char *cstr)
         goto end;
     }
 
-    ret = string_buf_auto_modulate(self, dest_len + len);
+    ret = __modulate_capacity(self, dest_len + len);
     if (ret < 0 ) {
         goto end;
     }
@@ -222,9 +225,9 @@ end:
 }
 
 static String *
-__insert_str(String *self, int offset, String *src)
+__insert_string(String *self, int offset, String *src)
 {
-    return self->insert_cstr(self, offset, src->get_cstr(src));
+    return self->insert(self, offset, src->get_cstr(src));
 }
 
 static String *
@@ -236,7 +239,7 @@ __replace_char(String *string, int index, char c)
 }
 
 static String * 
-__replace_cstr(String *self, char *old, char *newstr)
+__replace(String *self, char *old, char *newstr)
 {
     int start_pos = 0;
     int end_pos   = 0;
@@ -256,7 +259,7 @@ __replace_cstr(String *self, char *old, char *newstr)
     }
 
     if (old_len <= new_len) {
-        ret = string_buf_auto_modulate(self, new_len-old_len);
+        ret = __modulate_capacity(self, new_len-old_len);
         if (ret < 0 ) {
             goto end;
         }
@@ -274,7 +277,7 @@ end:
 }
 
 static String * 
-__replace_cstr_all(String *self, char *oldstr, char *newstr)
+__replace_all(String *self, char *oldstr, char *newstr)
 {
     String *pre = self;
     String *cur = NULL;
@@ -295,7 +298,7 @@ __replace_cstr_all(String *self, char *oldstr, char *newstr)
     return self;
 }
 
-static void __toupper_impact(String *string)
+static void __toupper_(String *string)
 {
     int size = string->value_len;
     int i;
@@ -308,13 +311,7 @@ static void __toupper_impact(String *string)
     }       
 }
 
-static void  __toupper_(String *string, String *str)
-{
-    str->assign(str, string->value);
-    __toupper_impact(str);  
-}
-
-static void __tolower_impact(String *string)
+static void __tolower_(String *string)
 {
     int size = string->value_len;
     int i;
@@ -325,12 +322,6 @@ static void __tolower_impact(String *string)
             string->value[i] += 'a'-'A';
         }
     } 
-}
-
-static void __tolower_(String *string, String *str)
-{
-    str->assign(str, string->value);
-    __tolower_impact(str);
 }
 
 static void __ltrim(String *string)
@@ -370,7 +361,7 @@ static void __trim(String *string)
     }
 }
 
-static String *__substr(String  *string, int pos, int len)
+static String *__get_substring(String  *string, int pos, int len)
 {
     int size = string->value_len;
     int i;
@@ -380,7 +371,7 @@ static String *__substr(String  *string, int pos, int len)
 
     assert(pos <= size);
 
-    for (i  = pos;i < size && len ;i++) {
+    for (i = pos;i < size && len; i++) {
         str->append_char(str, string->value[i]);
         len--;
     }
@@ -465,28 +456,26 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(9 , String, pre_alloc, __pre_alloc), 
     Init_Vfunc_Entry(10, String, assign, __assign), 
     Init_Vfunc_Entry(11, String, replace_char, __replace_char), 
-    Init_Vfunc_Entry(12, String, replace, __replace_cstr), 
-    Init_Vfunc_Entry(13, String, replace_all, __replace_cstr_all), 
+    Init_Vfunc_Entry(12, String, replace, __replace), 
+    Init_Vfunc_Entry(13, String, replace_all, __replace_all), 
     Init_Vfunc_Entry(14, String, append_char, __append_char), 
-    Init_Vfunc_Entry(15, String, append_cstr, __append_cstr), 
+    Init_Vfunc_Entry(15, String, append, __append), 
     Init_Vfunc_Entry(16, String, append_string, __append_string), 
-    Init_Vfunc_Entry(17, String, toupper, __toupper_), 
-    Init_Vfunc_Entry(18, String, toupper_impact, __toupper_impact), 
-    Init_Vfunc_Entry(19, String, tolower_impact, __tolower_impact), 
+    Init_Vfunc_Entry(17, String, insert, __insert), 
+    Init_Vfunc_Entry(18, String, insert_string, __insert_string), 
+    Init_Vfunc_Entry(19, String, toupper, __toupper_), 
     Init_Vfunc_Entry(20, String, tolower, __tolower_), 
     Init_Vfunc_Entry(21, String, ltrim, __ltrim), 
     Init_Vfunc_Entry(22, String, rtrim, __rtrim), 
     Init_Vfunc_Entry(23, String, trim, __trim), 
-    Init_Vfunc_Entry(24, String, substr, __substr), 
+    Init_Vfunc_Entry(24, String, get_substring, __get_substring), 
     Init_Vfunc_Entry(25, String, find, __find), 
     Init_Vfunc_Entry(26, String, is_empty, __is_empty), 
-    Init_Vfunc_Entry(27, String, insert_cstr, __insert_cstr), 
-    Init_Vfunc_Entry(28, String, insert_str, __insert_str), 
-    Init_Vfunc_Entry(29, String, split_string, __split_string), 
-    Init_Vfunc_Entry(30, String, get_splited_string, __get_splited_string), 
-    Init_Str___Entry(31, String, name, NULL), 
-    Init_Str___Entry(32, String, value, NULL), 
-    Init_End___Entry(33), 
+    Init_Vfunc_Entry(27, String, split_string, __split_string), 
+    Init_Vfunc_Entry(28, String, get_splited_string, __get_splited_string), 
+    Init_Str___Entry(29, String, name, NULL), 
+    Init_Str___Entry(30, String, value, NULL), 
+    Init_End___Entry(31), 
 };
 REGISTER_CLASS("String", string_class_info);
 
@@ -511,7 +500,7 @@ static int test_get_cstr()
     return ret;
 }
 
-static int test_append_cstr()
+static int test_append()
 {  
     allocator_t *allocator = allocator_get_default_alloc();
     String *parent;
@@ -525,7 +514,7 @@ static int test_append_cstr()
     parent = OBJECT_NEW(allocator, String, NULL);
     parent->assign(parent, test1);  
 
-    parent->append_cstr(parent, test2);
+    parent->append(parent, test2);
 
     if (strcmp(parent->get_cstr(parent), test3) == 0) {
         ret = 1;
@@ -541,7 +530,7 @@ static int test_append_cstr()
 static int test_append_string()
 { 
     allocator_t *allocator = allocator_get_default_alloc();
-    String *parent, *substr;
+    String *parent, *substring;
     char *test1 = "abcdefg";
     char *test2 = "hello world";
     char test3[1024];
@@ -552,10 +541,10 @@ static int test_append_string()
     parent = OBJECT_NEW(allocator, String, NULL);
     parent->assign(parent, test1);  
 
-    substr = OBJECT_NEW(allocator, String, NULL);
-    substr->assign(substr, test2);
+    substring = OBJECT_NEW(allocator, String, NULL);
+    substring->assign(substring, test2);
 
-    parent->append_string(parent, substr);
+    parent->append_string(parent, substring);
     if (strcmp(parent->get_cstr(parent), test3) == 0) {
         ret = 1;
     } else {
@@ -563,7 +552,7 @@ static int test_append_string()
     }
 
     object_destroy(parent);
-    object_destroy(substr);
+    object_destroy(substring);
 
     return ret;
 }
@@ -571,7 +560,7 @@ static int test_append_string()
 static int test_string_len()
 {  
     allocator_t *allocator = allocator_get_default_alloc();
-    String *parent, *substr;
+    String *parent, *substring;
     char *test1 = "abcdefg";
     char *test2 = "hello world";
     int ret;
@@ -579,10 +568,10 @@ static int test_string_len()
     parent = OBJECT_NEW(allocator, String, NULL);
     parent->assign(parent, test1);  
 
-    substr = OBJECT_NEW(allocator, String, NULL);
-    substr->assign(substr, test2);
+    substring = OBJECT_NEW(allocator, String, NULL);
+    substring->assign(substring, test2);
 
-    parent->append_string(parent, substr);
+    parent->append_string(parent, substring);
     
     if (parent->len(parent) != (strlen(test1) + strlen(test2))) {
         ret = 0;
@@ -591,37 +580,37 @@ static int test_string_len()
     }
 
     object_destroy(parent);
-    object_destroy(substr);
+    object_destroy(substring);
 
     return ret;
 
 }
 
-int test_string_substr()
+int test_string_get_substring()
 {
     allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *substr;
+    String *string, *sub_str;
     int ret;
     char *test = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
 
     string = OBJECT_NEW(allocator, String, NULL);
 
     string->assign(string, test);
-    substr = string->substr(string, 3, 10);
+    sub_str = string->get_substring(string, 3, 10);
     
-    if (strcmp(substr->get_cstr(substr), "v//_sug1 =") == 0) {
+    if (strcmp(sub_str->get_cstr(sub_str), "v//_sug1 =") == 0) {
         ret = 1;
     } else { 
         ret = 0;
     }
 
     object_destroy(string);
-    object_destroy(substr);
+    object_destroy(sub_str);
 
     return ret;   
 }
 
-static int test_string_insert_cstr()
+static int test_string_insert()
 {
     allocator_t *allocator = allocator_get_default_alloc();
     String *string;
@@ -630,7 +619,7 @@ static int test_string_insert_cstr()
     string = OBJECT_NEW(allocator, String, NULL);
     string->assign(string, "@@@@@@@");
 
-    string->insert_cstr(string, 3, "vvvvvvv");
+    string->insert(string, 3, "vvvvvvv");
     if (strcmp(string->get_cstr(string), "@@@vvvvvvv@@@@") == 0) {
         ret = 1;
     } else {
@@ -642,28 +631,29 @@ static int test_string_insert_cstr()
     return ret;
 }
 
-static int test_string_insert_str()
+static int test_string_insert_string()
 {
     allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *pstr;
+    String *string, *sub_str;
     int ret;
     char *test = "";
 
     string = OBJECT_NEW(allocator, String, NULL);
     string->assign(string, "@@@@@@@");
 
-    pstr = OBJECT_NEW(allocator, String, NULL);
-    pstr->assign(string, "vvvvvvv");
+    sub_str = OBJECT_NEW(allocator, String, NULL);
+    sub_str->assign(sub_str, "vvvvvvv");
 
-    string->insert_str(string, 3, pstr);
+    string->insert_string(string, 3, sub_str);
     if (strcmp(string->get_cstr(string), "@@@vvvvvvv@@@@") == 0) {
         ret = 1;
     } else {
+        dbg_str(DBG_ERROR, "%s", string->get_cstr(string));
         ret = 0;
     }
 
     object_destroy(string);
-    object_destroy(pstr);
+    object_destroy(sub_str);
 
     return ret;
 }
@@ -721,113 +711,89 @@ int test_string_find()
     int pos = string->find(string, "&", 0);
 
     ret = assert_int_equal(pos, 16);
-    dbg_str(DBG_DETAIL, "substr position: %d ", pos);
+    dbg_str(DBG_DETAIL, "substring position: %d ", pos);
 
     object_destroy(string);
 
     return ret;
 
-}
-
-static int test_string_empty()
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *pstr, *substr;
-    int ret;
-    char *test = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
-
-    string = OBJECT_NEW(allocator, String, NULL);
-    pstr   = OBJECT_NEW(allocator, String, NULL);
-
-    string->assign(string, test);
-    pstr->assign(pstr, "&");
-    substr = string->substr(string, 3, 10);
-
-    dbg_str(DBG_SUC, "current string empty:%d str:%s", string->is_empty(string), string->get_cstr(string));
-    string->clear(string);
-    dbg_str(DBG_SUC, "after clear string operation. current is_empty %d str:%s", string->is_empty(string), string->get_cstr(string));
-    ret = string->is_empty(string);
-
-    object_destroy(string);
-    object_destroy(pstr);
-    object_destroy(substr);  
-
-    return ret;
 }
 
 static int test_string_replace()
 {
     allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *pstr;
-    int ret;
+    String *string;
     char *test = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+    char *test2 = "####rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+    int ret;
 
     string = OBJECT_NEW(allocator, String, NULL);
-    pstr   = OBJECT_NEW(allocator, String, NULL);
 
     string->assign(string, test);
-    pstr->assign(pstr, "&");
-    dbg_str(DBG_SUC, "before replaced :%s\n len:%d", string->get_cstr(string), string->len(string));
-    string->replace(string, "&", "<#####>");
-    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
+    string->replace(string, "&", "####");
 
-    string->replace(string, "<#####>", "&");
-    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
-
-    string->replace(string, "rsv_sug", "@@@@@");
-    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
-
-    string->replace(string, "rsv_sug", "@@@@@##############################");
-    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
-
-    string->replace(string, "2520%2520%25E6%25A8%25A1", "<@@@@>");
-    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
+    if (strcmp(string->get_cstr(string), test2) == 0){
+        ret = 1;
+    } else {
+        ret = 0;
+    }
 
     object_destroy(string);
-    object_destroy(pstr);
 
-    return 1;
+    return ret;
 }
 
 static int test_string_replace_all()
 {
     allocator_t *allocator = allocator_get_default_alloc();
-    String *string, *pstr;
+    String *string;
+    char *test = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+    char *test2 = "####rsv//_sug1 = 107####rsv_sug7 = 100####rsv_sug2 = 0####prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
     int ret;
-    char *test = "fasdkfj<##>asdkolfj<##>asdlfkjasd<##>ld";
 
     string = OBJECT_NEW(allocator, String, NULL);
-    pstr   = OBJECT_NEW(allocator, String, NULL);
 
     string->assign(string, test);
-    pstr->assign(pstr, "#");
+    string->replace_all(string, "&", "####");
 
-    int pos = string->find(string, pstr, 0);
-    dbg_str(DBG_SUC, "position:%d", pos);
-
-    dbg_str(DBG_SUC, "before replaced :%s\n len:%d", string->get_cstr(string), string->len(string));
-    string->replace_all(string, "<##>", "@");
-    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
-
-    string->replace_all(string, "@", "<>");
-    dbg_str(DBG_SUC, "current replaced:%s\n len:%d", string->get_cstr(string), string->len(string));
-
+    if (strcmp(string->get_cstr(string), test2) == 0){
+        ret = 1;
+    } else {
+        ret = 0;
+    }
 
     object_destroy(string);
-    object_destroy(pstr);
 
-    return 1;
+    return ret;
+}
+
+static int test_string_empty()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *string;
+    char *test = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+    int ret;
+
+    string = OBJECT_NEW(allocator, String, NULL);
+
+    string->assign(string, test);
+    string->clear(string);
+    ret = string->is_empty(string);
+
+    object_destroy(string);
+
+    return ret;
 }
 
 REGISTER_TEST_FUNC(test_get_cstr);
-REGISTER_TEST_FUNC(test_append_cstr);
+REGISTER_TEST_FUNC(test_append);
 REGISTER_TEST_FUNC(test_append_string);
 REGISTER_TEST_FUNC(test_string_len);
 REGISTER_TEST_FUNC(test_string_find);
-REGISTER_TEST_FUNC(test_string_substr);
+REGISTER_TEST_FUNC(test_string_get_substring);
 REGISTER_TEST_FUNC(test_string_empty);
 REGISTER_TEST_FUNC(test_string_replace);
 REGISTER_TEST_FUNC(test_string_replace_all);
-REGISTER_TEST_FUNC(test_string_insert_cstr);
-REGISTER_TEST_FUNC(test_string_insert_str);
+REGISTER_TEST_FUNC(test_string_insert);
+REGISTER_TEST_FUNC(test_string_insert_string);
 REGISTER_TEST_FUNC(test_string_split);
