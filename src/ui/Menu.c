@@ -83,6 +83,6 @@ static class_info_entry_t menu_class_info[] = {
     Init_Vfunc_Entry(3 , Menu, set, NULL),
     Init_Vfunc_Entry(4 , Menu, get, NULL),
     Init_Vfunc_Entry(5 , Menu, draw, NULL),
-    Init_End___Entry(6 ),
+    Init_End___Entry(6 , Menu),
 };
 REGISTER_CLASS("Menu", menu_class_info);

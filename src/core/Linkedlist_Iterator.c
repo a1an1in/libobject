@@ -91,7 +91,7 @@ static class_info_entry_t hmap_iter_class_info[] = {
     Init_Vfunc_Entry(4, LList_Iterator, get_vpointer, __get_vpointer),
     Init_Vfunc_Entry(5, LList_Iterator, is_null, __is_null),
     Init_Vfunc_Entry(6, LList_Iterator, clear, __clear),
-    Init_End___Entry(7),
+    Init_End___Entry(7, LList_Iterator),
 };
 REGISTER_CLASS("LList_Iterator", hmap_iter_class_info);
 

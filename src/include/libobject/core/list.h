@@ -13,10 +13,10 @@ struct _list_s{
 
 	int (*construct)(List *list,char *init_str);
 	int (*deconstruct)(List *list);
-	int (*set)(List *list, char *attrib, void *value);
-    void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
+	int (*set)(List *list, char *attrib, void *value);
+    void *(*get)(void *obj, char *attrib);
     int (*add)(List *list, void *value);
     int (*add_front)(List *list,void *value);
     int (*add_back)(List *list,void *value);
@@ -27,6 +27,7 @@ struct _list_s{
     int (*remove_element)(List *list, void *data);
     int (*remove_all)(List *list);
     int (*count)(List *list);
+    int (*is_empty)(List *list);
     int (*detach_front)(List *list,Iterator *iter);
     int (*free_detached)(List *list,Iterator *iter);
     void (*for_each)(List *list,void (*func)(void *element));

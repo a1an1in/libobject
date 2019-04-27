@@ -159,7 +159,7 @@ static class_info_entry_t select_base_class_info[] = {
     Init_Vfunc_Entry(4, Select_Base, reclaim_io, __reclaim_io),
     Init_Vfunc_Entry(5, Select_Base, activate_io, NULL),
     Init_Vfunc_Entry(6, Select_Base, dispatch, __dispatch),
-    Init_End___Entry(7),
+    Init_End___Entry(7, Select_Base),
 };
 REGISTER_CLASS("Select_Base", select_base_class_info);
 

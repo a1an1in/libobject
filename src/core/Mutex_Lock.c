@@ -76,7 +76,7 @@ static class_info_entry_t lock_class_info[] = {
     Init_Vfunc_Entry(3 , Mutex_Lock, lock, __lock),
     Init_Vfunc_Entry(4 , Mutex_Lock, trylock, __trylock),
     Init_Vfunc_Entry(5 , Mutex_Lock, unlock, __unlock),
-    Init_End___Entry(6 ),
+    Init_End___Entry(6 , Mutex_Lock),
 };
 REGISTER_CLASS("Mutex_Lock", lock_class_info);
 

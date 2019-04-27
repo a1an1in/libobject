@@ -105,7 +105,7 @@ static class_info_entry_t producer_class_info[] = {
     Init_Vfunc_Entry(5, Producer, add_dispatcher, __add_dispatcher),
     Init_Vfunc_Entry(6, Producer, del_dispatcher, __del_dispatcher),
     Init_Vfunc_Entry(7, Producer, start, NULL),
-    Init_End___Entry(8),
+    Init_End___Entry(8, Producer),
 };
 REGISTER_CLASS("Producer", producer_class_info);
 

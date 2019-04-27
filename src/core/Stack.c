@@ -44,6 +44,6 @@ static class_info_entry_t stack_class_info[] = {
     Init_Vfunc_Entry(3, Stack, push, NULL),
     Init_Vfunc_Entry(4, Stack, pop, NULL),
     Init_Vfunc_Entry(5, Stack, count, NULL),
-    Init_End___Entry(6),
+    Init_End___Entry(6, Stack),
 };
 REGISTER_CLASS("Stack", stack_class_info);

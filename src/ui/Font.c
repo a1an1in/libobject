@@ -65,7 +65,7 @@ static class_info_entry_t font_class_info[] = {
     Init_Vfunc_Entry(8 , Font, unload_ascii_character, NULL),
     Init_Vfunc_Entry(9 , Font, get_character_width, NULL),
     Init_Vfunc_Entry(10, Font, get_character_height, NULL),
-    Init_End___Entry(11),
+    Init_End___Entry(11, Font),
 };
 REGISTER_CLASS("Font", font_class_info);
 

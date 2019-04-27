@@ -479,11 +479,11 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(28, String, get_splited_string, __get_splited_string), 
     Init_Str___Entry(29, String, name, NULL), 
     Init_Str___Entry(30, String, value, NULL), 
-    Init_End2__Entry(31, String), 
+    Init_End___Entry(31, String), 
 };
 REGISTER_CLASS("String", string_class_info);
 
-static int test_get_cstr() 
+static int test_string_get_cstr() 
 {
     allocator_t *allocator = allocator_get_default_alloc();
     String *parent;
@@ -504,7 +504,7 @@ static int test_get_cstr()
     return ret;
 }
 
-static int test_append()
+static int test_string_append()
 {  
     allocator_t *allocator = allocator_get_default_alloc();
     String *parent;
@@ -531,7 +531,7 @@ static int test_append()
     return ret;
 }
 
-static int test_append_string()
+static int test_string_append_string()
 { 
     allocator_t *allocator = allocator_get_default_alloc();
     String *parent, *substring;
@@ -836,9 +836,9 @@ static int test_string_rtrim()
     return ret;
 }
 
-REGISTER_TEST_FUNC(test_get_cstr);
-REGISTER_TEST_FUNC(test_append);
-REGISTER_TEST_FUNC(test_append_string);
+REGISTER_TEST_FUNC(test_string_get_cstr);
+REGISTER_TEST_FUNC(test_string_append);
+REGISTER_TEST_FUNC(test_string_append_string);
 REGISTER_TEST_FUNC(test_string_len);
 REGISTER_TEST_FUNC(test_string_find);
 REGISTER_TEST_FUNC(test_string_get_substring);

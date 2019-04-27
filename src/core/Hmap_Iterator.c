@@ -96,7 +96,7 @@ static class_info_entry_t hmap_iter_class_info[] = {
     Init_Vfunc_Entry(5, Hmap_Iterator, equal, __equal),
     Init_Vfunc_Entry(6, Hmap_Iterator, get_vpointer, __get_vpointer),
     Init_Vfunc_Entry(7, Hmap_Iterator, get_kpointer, __get_kpointer),
-    Init_End___Entry(8),
+    Init_End___Entry(8, Hmap_Iterator),
 };
 REGISTER_CLASS("Hmap_Iterator", hmap_iter_class_info);
 

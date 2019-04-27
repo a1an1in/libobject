@@ -246,7 +246,7 @@ static class_info_entry_t container_class_info[] = {
     Init_Vfunc_Entry(10, Container, for_each_component, __for_each_component),
     Init_Str___Entry(11, Container, name, NULL),
     Init_U8____Entry(12, Container, map_type, NULL),
-    Init_End___Entry(13),
+    Init_End___Entry(13, Container),
 };
 REGISTER_CLASS("Container", container_class_info);
 

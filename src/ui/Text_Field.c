@@ -505,7 +505,7 @@ static class_info_entry_t text_field_class_info[] = {
     Init_Vfunc_Entry(9 , Text_Field, on_key_left_pressed, __on_key_left_pressed),
     Init_Vfunc_Entry(10, Text_Field, on_key_right_pressed, __on_key_right_pressed),
     Init_Str___Entry(11, Text_Field, name, NULL),
-    Init_End___Entry(12),
+    Init_End___Entry(12, Text_Field),
 };
 REGISTER_CLASS("Text_Field", text_field_class_info);
 

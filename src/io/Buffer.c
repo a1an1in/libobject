@@ -234,7 +234,7 @@ static class_info_entry_t buffer_class_info[] = {
     Init_Vfunc_Entry(8 , Buffer, memcopy, __memcpy),
     Init_Vfunc_Entry(9 , Buffer, get_len, __get_len),
     Init_Vfunc_Entry(10, Buffer, set_size, __set_size),
-    Init_End___Entry(11),
+    Init_End___Entry(11, Buffer),
 };
 REGISTER_CLASS("Buffer",buffer_class_info);
 

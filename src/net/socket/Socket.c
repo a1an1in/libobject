@@ -385,7 +385,7 @@ static class_info_entry_t socket_class_info[] = {
     Init_Str___Entry(22, Socket, local_service, NULL),
     Init_Str___Entry(23, Socket, remote_host, NULL),
     Init_Str___Entry(24, Socket, remote_service, NULL),
-    Init_End___Entry(25),
+    Init_End___Entry(25, Socket),
 };
 REGISTER_CLASS("Socket", socket_class_info);
 

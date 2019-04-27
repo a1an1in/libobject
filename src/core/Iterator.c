@@ -83,7 +83,7 @@ static class_info_entry_t iter_class_info[] = {
     Init_Vfunc_Entry(7 , Iterator, get_kpointer, NULL),
     Init_Vfunc_Entry(8 , Iterator, is_null, NULL),
     Init_Vfunc_Entry(9 , Iterator, clear, NULL),
-    Init_End___Entry(10),
+    Init_End___Entry(10, Iterator),
 };
 REGISTER_CLASS("Iterator", iter_class_info);
 

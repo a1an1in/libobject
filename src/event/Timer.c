@@ -99,7 +99,7 @@ static class_info_entry_t timer_class_info[] = {
     Init_Vfunc_Entry(7 , Timer, remove, NULL),
     Init_Vfunc_Entry(8 , Timer, timeout_next, NULL),
     Init_Vfunc_Entry(9 , Timer, first, NULL),
-    Init_End___Entry(10),
+    Init_End___Entry(10, Timer),
 };
 REGISTER_CLASS("Timer", timer_class_info);
 

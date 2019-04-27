@@ -173,7 +173,7 @@ static class_info_entry_t concurent_class_info[] = {
     Init_Nfunc_Entry(2 , Centor, deconstruct, __deconstrcut),
     Init_Vfunc_Entry(3 , Centor, set, NULL),
     Init_Vfunc_Entry(4 , Centor, get, NULL),
-    Init_End___Entry(5 ),
+    Init_End___Entry(5 , Centor),
 };
 REGISTER_CLASS("Centor", concurent_class_info);
 

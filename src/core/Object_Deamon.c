@@ -1,9 +1,9 @@
 /**
- * @file object_deamon.c
+ * @file Object_Deamon.c
  * @Synopsis  
  * @author alan lin
  * @version 
- * @date 2017-08-29
+ * @date 2019-04-27
  */
 /* 
  *  Copyright (c) 2015-2020 alan lin <a1an1in@sina.com>
@@ -35,3 +35,33 @@
 
 #include <libobject/core/object_deamon.h>
 #include <libobject/core/utils/dbg/debug.h>
+
+static Object_Cache *
+__get_cache(Object_Deamon *deamon, char *cache_name)
+{
+    dbg_str(DBG_DETAIL, "get a object cache");
+}
+
+static class_info_entry_t object_deamon_info[] = {
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Vfunc_Entry(1 , Object_Deamon, get_cache, __get_cache),
+    Init_End___Entry(2 , Object_Deamon),
+};
+REGISTER_CLASS("Object_Deamon", object_deamon_info);
+
+static int test_object_deamon_get_cache()
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    Object_Deamon *deamon;
+    int ret = 1;
+
+    deamon = object_new(allocator, "Object_Deamon", NULL);
+
+    deamon->get_cache(deamon, "http cache");
+
+    object_destroy(deamon);
+
+    return ret;
+}
+
+REGISTER_TEST_FUNC(test_object_deamon_get_cache);

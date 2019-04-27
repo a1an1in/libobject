@@ -1,7 +1,21 @@
 #ifndef __OBJECT_DEAMON_H__
 #define __OBJECT_DEAMON_H__
 
-typedef struct object_deamon_s{
-}object_deamon_t;
+#include <libobject/core/obj.h>
+#include <libobject/core/object_cache.h>
+
+typedef struct Object_Deamon_s Object_Deamon;
+
+struct Object_Deamon_s{
+	Obj obj;
+
+	int (*construct)(Object_Deamon *,char *init_str);
+	int (*deconstruct)(Object_Deamon *);
+
+	/*virtual methods reimplement*/
+	int (*set)(Object_Deamon *, char *attrib, void *value);
+    void *(*get)(Object_Deamon *, char *attrib);
+    Object_Cache *(*get_cache)(Object_Deamon *, char *cache_name);
+};
 
 #endif

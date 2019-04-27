@@ -476,7 +476,7 @@ static class_info_entry_t component_class_info[] = {
     Init_Vfunc_Entry(29, Component, add_event_listener_cb, __add_event_listener_cb),
     Init_Vfunc_Entry(30, Component, set_name, __set_name),
     Init_Str___Entry(31, Component, name, NULL),
-    Init_End___Entry(32),
+    Init_End___Entry(32, Component),
 };
 REGISTER_CLASS("Component", component_class_info);
 

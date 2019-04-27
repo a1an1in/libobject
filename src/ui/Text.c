@@ -493,7 +493,7 @@ static class_info_entry_t text_class_info[] = {
     Init_Vfunc_Entry(8 , Text, get_line_count, __get_line_count),
     Init_Vfunc_Entry(9 , Text, get_text_line_info, __get_text_line_info),
     Init_Point_Entry(10, Text, line_info, NULL),
-    Init_End___Entry(11),
+    Init_End___Entry(11, Text),
 };
 REGISTER_CLASS("Text", text_class_info);
 

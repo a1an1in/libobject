@@ -248,7 +248,7 @@ static class_info_entry_t event_thread_class_info[] = {
     Init_Vfunc_Entry(7 , Event_Thread, set_start_arg, NULL),
     Init_Vfunc_Entry(8 , Event_Thread, start_routine, __start_routine),
     Init_Vfunc_Entry(9 , Event_Thread, detach, NULL),
-    Init_End___Entry(10),
+    Init_End___Entry(10, Event_Thread),
 };
 REGISTER_CLASS("Event_Thread",event_thread_class_info);
 

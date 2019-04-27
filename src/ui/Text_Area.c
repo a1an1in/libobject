@@ -925,7 +925,7 @@ static class_info_entry_t text_area_class_info[] = {
     Init_Vfunc_Entry(15, Text_Area, on_key_onelineup_pressed, __on_key_onelinedown_pressed),
     Init_Vfunc_Entry(16, Text_Area, on_key_onelinedown_pressed, __on_key_right_pressed),
     Init_Str___Entry(17, Text_Area, name, NULL),
-    Init_End___Entry(18),
+    Init_End___Entry(18, Text_Area),
 };
 REGISTER_CLASS("Text_Area", text_area_class_info);
 

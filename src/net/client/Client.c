@@ -170,7 +170,7 @@ static class_info_entry_t client_class_info[] = {
     Init_Vfunc_Entry(7 , Client, send, __send),
     Init_Vfunc_Entry(8 , Client, recv, __recv),
     Init_Vfunc_Entry(9 , Client, trustee, __trustee),
-    Init_End___Entry(10),
+    Init_End___Entry(10, Client),
 };
 REGISTER_CLASS("Client", client_class_info);
 

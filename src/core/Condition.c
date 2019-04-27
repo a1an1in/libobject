@@ -94,7 +94,7 @@ static class_info_entry_t condition_class_info[] = {
     Init_Vfunc_Entry(4, Condition, wait, __wait),
     Init_Vfunc_Entry(5, Condition, signal, __signal),
     Init_Vfunc_Entry(6, Condition, broadcast, __broadcast),
-    Init_End___Entry(7),
+    Init_End___Entry(7, Condition),
 };
 REGISTER_CLASS("Condition", condition_class_info);
 

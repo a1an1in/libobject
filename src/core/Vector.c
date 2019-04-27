@@ -173,7 +173,7 @@ static class_info_entry_t vector_class_info[] = {
     Init_Vfunc_Entry(13, Vector, empty, __empty),
     Init_U32___Entry(15, Vector, value_size, NULL),
     Init_U32___Entry(14, Vector, capacity, NULL),
-    Init_End___Entry(16),
+    Init_End___Entry(16, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);
 

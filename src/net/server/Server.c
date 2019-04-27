@@ -204,7 +204,7 @@ static class_info_entry_t concurent_class_info[] = {
     Init_Vfunc_Entry(4 , Server, get, NULL),
     Init_Vfunc_Entry(5 , Server, bind, __bind),
     Init_Vfunc_Entry(6 , Server, trustee, __trustee),
-    Init_End___Entry(7 ),
+    Init_End___Entry(7 , Server),
 };
 REGISTER_CLASS("Server", concurent_class_info);
 

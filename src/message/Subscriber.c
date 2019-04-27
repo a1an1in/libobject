@@ -149,7 +149,7 @@ static class_info_entry_t concurent_class_info[] = {
     Init_Vfunc_Entry(5 , Subscriber, subscribe, __subscribe),
     Init_Vfunc_Entry(6 , Subscriber, add_method, __add_method),
     Init_Vfunc_Entry(7 , Subscriber, connect_centor, __connect_centor),
-    Init_End___Entry(8 ),
+    Init_End___Entry(8 , Subscriber),
 };
 REGISTER_CLASS("Subscriber", concurent_class_info);
 

@@ -250,7 +250,7 @@ static class_info_entry_t grid_layout_class_info[] = {
     Init_U32___Entry(9 , Grid_Layout, vgap, NULL),
     Init_U32___Entry(10, Grid_Layout, row_max, NULL),
     Init_U32___Entry(11, Grid_Layout, col_max, NULL),
-    Init_End___Entry(12),
+    Init_End___Entry(12, Grid_Layout),
 };
 REGISTER_CLASS("Grid_Layout", grid_layout_class_info);
 

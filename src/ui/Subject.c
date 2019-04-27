@@ -94,6 +94,6 @@ static class_info_entry_t subject_class_info[] = {
     Init_U32___Entry(13, Subject, height, NULL),
     Init_Float_Entry(14, Subject, x_speed, NULL),
     Init_Float_Entry(15, Subject, y_speed, NULL),
-    Init_End___Entry(16),
+    Init_End___Entry(16, Subject),
 };
 REGISTER_CLASS("Subject", subject_class_info);

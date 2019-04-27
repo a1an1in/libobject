@@ -133,7 +133,7 @@ static class_info_entry_t audio_class_info[] = {
     Init_Vfunc_Entry(13, Audio, pause, __pause),
     Init_Vfunc_Entry(14, Audio, close, __close),
     Init_Str___Entry(15, Audio, path, NULL),
-    Init_End___Entry(16),
+    Init_End___Entry(16, Audio),
 };
 REGISTER_CLASS("Audio", audio_class_info);
 

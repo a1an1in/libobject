@@ -76,18 +76,11 @@ else ()
     #message("sources exclude bus module: ${Source_Files}")
 endif ()
 
-#add_library (object static ${source_files})
-#target_link_libraries(object ${ExternalLibs})
-#message("-- ExternalLibs :${ExternalLibs}")
-
-#add_executable(test ${Main_File})
-#target_link_libraries(test -force_load object)
-
 ADD_LIBRARY (object SHARED ${Source_Files})
 target_link_libraries(object ${ExternalLibs})
 
-ADD_LIBRARY (object_static STATIC ${Source_Files})
-target_link_libraries(object_static ${ExternalLibs})
+#ADD_LIBRARY (object_static STATIC ${Source_Files})
+#target_link_libraries(object_static ${ExternalLibs})
 
 add_executable(test ${Main_File})
 target_link_libraries(test object)
@@ -96,10 +89,10 @@ ADD_DEPENDENCIES(test object)
 #set_target_properties(object PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 #set_target_properties(object_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 SET_TARGET_PROPERTIES (object PROPERTIES VERSION 1.2 SOVERSION 1)
-SET_TARGET_PROPERTIES (object_static PROPERTIES OUTPUT_NAME "object")
+#SET_TARGET_PROPERTIES (object_static PROPERTIES OUTPUT_NAME "object")
 
 install (TARGETS test DESTINATION bin)
 install (TARGETS object DESTINATION lib)
-install (TARGETS object_static DESTINATION lib)
+#install (TARGETS object_static DESTINATION lib)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/include/libobject DESTINATION include)
 

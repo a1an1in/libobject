@@ -93,14 +93,11 @@ static int __load_character(Character *character, void *render)
 }
 
 static class_info_entry_t character_class_info[] = {
-    [0 ] = {ENTRY_TYPE_OBJ, "Character", "character", NULL, sizeof(void *)}, 
-    [1 ] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *)}, 
-    [2 ] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *)}, 
-    [3 ] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *)}, 
-    [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
-    [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_character", __load_character, sizeof(void *)}, 
-    [6 ] = {ENTRY_TYPE_END}, 
-
+    Init_Obj___Entry(0 , Character, character),
+    Init_Nfunc_Entry(1 , Sdl_Character, construct, __construct),
+    Init_Nfunc_Entry(2 , Sdl_Character, deconstruct, __deconstrcut),
+    Init_Nfunc_Entry(3 , Sdl_Character, load_character, __load_character),
+    Init_End___Entry(4 , Sdl_Character),
 };
 REGISTER_CLASS("Sdl_Character", character_class_info);
 

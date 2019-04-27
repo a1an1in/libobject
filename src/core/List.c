@@ -81,6 +81,11 @@ static int __remove_element(List *list, void *data)
     dbg_str(OBJ_DETAIL, "List remove element");
 }
 
+static int __is_empty(List *list)
+{
+    return  list->count(list) == 0 ? 1 : 0;
+}
+
 static void __for_each(List *list, void (*func)(void *element))
 {
     Iterator *cur, *end;
@@ -144,8 +149,9 @@ static class_info_entry_t list_class_info[] = {
     Init_Vfunc_Entry(17, List, begin, __begin),
     Init_Vfunc_Entry(18, List, end, __end),
     Init_Vfunc_Entry(19, List, destroy, NULL),
-    Init_U32___Entry(20, List, value_size, NULL),
-    Init_End___Entry(21),
+    Init_Vfunc_Entry(20, List, is_empty, __is_empty),
+    Init_U32___Entry(21, List, value_size, NULL),
+    Init_End___Entry(22, List),
 };
 REGISTER_CLASS("List", list_class_info);
 

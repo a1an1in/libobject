@@ -89,7 +89,7 @@ static class_info_entry_t event_class_info[] = {
     Init_Vfunc_Entry(3 , __Event, set, NULL),
     Init_Vfunc_Entry(4 , __Event, get, NULL),
     Init_Vfunc_Entry(5 , __Event, poll_event, NULL),
-    Init_End___Entry(6 ),
+    Init_End___Entry(6 , __Event),
 };
 REGISTER_CLASS("__Event", event_class_info);
 

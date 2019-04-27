@@ -102,7 +102,7 @@ static class_info_entry_t worker_class_info[] = {
     Init_Vfunc_Entry(3 , Worker, assign, __assign),
     Init_Vfunc_Entry(4 , Worker, enroll, __enroll),
     Init_Vfunc_Entry(5 , Worker, resign, __resign),
-    Init_End___Entry(6 ),
+    Init_End___Entry(6 , Worker),
 };
 REGISTER_CLASS("Worker", worker_class_info);
 

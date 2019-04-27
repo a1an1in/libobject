@@ -89,7 +89,7 @@ static class_info_entry_t file_class_info[] = {
     Init_Nfunc_Entry(2 , File, deconstruct, __deconstrcut),
     Init_Vfunc_Entry(3 , File, set, NULL),
     Init_Vfunc_Entry(4 , File, get, NULL),
-    Init_End___Entry(5 ),
+    Init_End___Entry(5 , File),
 };
 REGISTER_CLASS("File",file_class_info);
 

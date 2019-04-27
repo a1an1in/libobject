@@ -234,7 +234,7 @@ static class_info_entry_t window_class_info[] = {
     Init_U32___Entry(39, Window, screen_width, NULL),
     Init_U32___Entry(40, Window, screen_height, NULL),
     Init_Point_Entry(41, Window, render, NULL),
-    Init_End___Entry(42),
+    Init_End___Entry(42, Window),
 };
 REGISTER_CLASS("Window", window_class_info);
 

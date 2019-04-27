@@ -361,7 +361,7 @@ static class_info_entry_t sdl_window_class_info[] = {
     Init_Vfunc_Entry(25, Sdl_Window, maximize_window, __maximize_window),
     Init_Vfunc_Entry(26, Sdl_Window, minimize_window, __minimize_window),
     Init_Vfunc_Entry(27, Sdl_Window, restore_window, __restore_window),
-    Init_End___Entry(28),
+    Init_End___Entry(28, Sdl_Window),
 };
 REGISTER_CLASS("Sdl_Window", sdl_window_class_info);
 

@@ -164,7 +164,7 @@ static class_info_entry_t inet_tcp_socket_class_info[] = {
     Init_Vfunc_Entry(14, Inet_Tcp_Socket, recv, NULL),
     Init_Vfunc_Entry(15, Inet_Tcp_Socket, recvfrom, NULL),
     Init_Vfunc_Entry(16, Inet_Tcp_Socket, recvmsg, NULL),
-    Init_End___Entry(17),
+    Init_End___Entry(17, Inet_Tcp_Socket),
 };
 REGISTER_CLASS("Inet_Tcp_Socket", inet_tcp_socket_class_info);
 

@@ -234,7 +234,7 @@ static class_info_entry_t rbtree_map_class_info[] = {
     Init_U16___Entry(12, RBTree_Map, key_size, NULL),
     Init_U16___Entry(13, RBTree_Map, value_size, NULL),
     Init_U8____Entry(14, RBTree_Map, key_type, NULL),
-    Init_End___Entry(15),
+    Init_End___Entry(15, RBTree_Map),
 };
 REGISTER_CLASS("RBTree_Map", rbtree_map_class_info);
 

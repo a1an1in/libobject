@@ -40,7 +40,7 @@ static class_info_entry_t event_user_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Event_User, construct, NULL),
     Init_Nfunc_Entry(2 , Event_User, deconstruct, NULL),
-    Init_End___Entry(3 ),
+    Init_End___Entry(3 , Event_User),
 };
 REGISTER_CLASS("Event_User", event_user_class_info);
 

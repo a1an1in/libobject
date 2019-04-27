@@ -114,7 +114,7 @@ static class_info_entry_t inet_udp_client_class_info[] = {
     Init_Vfunc_Entry(7 , Inet_Udp_Client, send, NULL),
     Init_Vfunc_Entry(8 , Inet_Udp_Client, recv, NULL),
     Init_Vfunc_Entry(9 , Inet_Udp_Client, trustee, NULL),
-    Init_End___Entry(10),
+    Init_End___Entry(10, Inet_Udp_Client),
 };
 REGISTER_CLASS("Inet_Udp_Client", inet_udp_client_class_info);
 

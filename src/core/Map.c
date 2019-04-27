@@ -116,7 +116,7 @@ static class_info_entry_t map_class_info[] = {
     Init_Vfunc_Entry(15, Map, set_cmp_func, NULL),
     Init_Nfunc_Entry(16, Map, set_target_name, NULL),
     Init_Str___Entry(17, Map, name, NULL),
-    Init_End___Entry(18),
+    Init_End___Entry(18, Map),
 };
 REGISTER_CLASS("Map", map_class_info);
 

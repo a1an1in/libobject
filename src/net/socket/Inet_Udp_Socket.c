@@ -126,7 +126,7 @@ static class_info_entry_t inet_udp_socket_class_info[] = {
     Init_Vfunc_Entry(11, Inet_Udp_Socket, recv, NULL),
     Init_Vfunc_Entry(12, Inet_Udp_Socket, recvfrom, NULL),
     Init_Vfunc_Entry(13, Inet_Udp_Socket, recvmsg, NULL),
-    Init_End___Entry(14),
+    Init_End___Entry(14, Inet_Udp_Socket),
 };
 REGISTER_CLASS("Inet_Udp_Socket", inet_udp_socket_class_info);
 

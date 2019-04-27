@@ -224,7 +224,7 @@ static class_info_entry_t llist_class_info[] = {
     Init_Vfunc_Entry(13, Linked_List, free_detached, __free_detached),
     Init_Vfunc_Entry(14, Linked_List, begin, __begin),
     Init_Vfunc_Entry(15, Linked_List, end, __end),
-    Init_End___Entry(16),
+    Init_End___Entry(16, Linked_List),
 };
 REGISTER_CLASS("Linked_List", llist_class_info);
 

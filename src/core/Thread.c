@@ -197,7 +197,7 @@ static class_info_entry_t thread_class_info[] = {
     Init_Vfunc_Entry(12, Thread, join, __join),
     Init_Vfunc_Entry(13, Thread, detach, __detach),
     Init_Vfunc_Entry(14, Thread, get_tid, __get_tid),
-    Init_End___Entry(15),
+    Init_End___Entry(15, Thread),
 };
 REGISTER_CLASS("Thread", thread_class_info);
 

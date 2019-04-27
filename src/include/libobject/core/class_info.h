@@ -53,9 +53,7 @@ typedef struct class_info_entry_s{
     [id] = {ENTRY_TYPE_FLOAT_T, "", #value_name, value, sizeof(float), offset_of_class(class_name, value_name)}
 #define Init_Str___Entry(id, class_name, value_name, value) \
     [id] = {ENTRY_TYPE_STRING, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
-#define Init_End_Entry(id) \
-    [id] = {ENTRY_TYPE_END}
-#define Init_End2__Entry(id, class_name) \
+#define Init_End_Entry(id, class_name) \
     [id] = {ENTRY_TYPE_END, #class_name, "", NULL, sizeof(class_name)}
 #define Init_Obj___Entry Init_Obj_Entry
 #define Init_End___Entry Init_End_Entry

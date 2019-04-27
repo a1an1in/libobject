@@ -61,7 +61,7 @@ static class_info_entry_t character_class_info[] = {
     Init_Vfunc_Entry(5 , Character, assign, __assign),
     Init_Vfunc_Entry(6 , Character, load_character, NULL),
     Init_U32___Entry(7 , Character, code, NULL),
-    Init_End___Entry(8 ),
+    Init_End___Entry(8 , Character),
 };
 REGISTER_CLASS("Character", character_class_info);
 

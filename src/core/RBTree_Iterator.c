@@ -97,6 +97,6 @@ static class_info_entry_t rbtree_iter_class_info[] = {
     Init_Vfunc_Entry(5, RBTree_Iterator, equal, __equal),
     Init_Vfunc_Entry(6, RBTree_Iterator, get_vpointer, __get_vpointer),
     Init_Vfunc_Entry(7, RBTree_Iterator, get_kpointer, __get_kpointer),
-    Init_End___Entry(8),
+    Init_End___Entry(8, RBTree_Iterator),
 };
 REGISTER_CLASS("RBTree_Iterator", rbtree_iter_class_info);

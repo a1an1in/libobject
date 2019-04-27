@@ -202,7 +202,7 @@ static class_info_entry_t label_class_info[] = {
     Init_Vfunc_Entry(7 , Label, draw, __draw),
     Init_Str___Entry(8 , Label, name, NULL),
     Init_U8____Entry(9 , Label, text_overflow_flag, NULL),
-    Init_End___Entry(10),
+    Init_End___Entry(10, Label),
 };
 REGISTER_CLASS("Label", label_class_info);
 

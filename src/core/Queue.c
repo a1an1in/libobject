@@ -190,6 +190,6 @@ static class_info_entry_t queue_class_info[] = {
     Init_Vfunc_Entry(19, Queue, for_each_arg5, __for_each_arg5),
     Init_Vfunc_Entry(20, Queue, peek_front, NULL),
     Init_Vfunc_Entry(21, Queue, peek_back, NULL),
-    Init_End___Entry(22),
+    Init_End___Entry(22, Queue),
 };
 REGISTER_CLASS("Queue", queue_class_info);

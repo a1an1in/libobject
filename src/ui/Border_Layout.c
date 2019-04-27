@@ -587,7 +587,7 @@ static class_info_entry_t border_layout_class_info[] = {
     Init_Str___Entry(7 , Border_Layout, name, NULL),
     Init_U32___Entry(8 , Border_Layout, hgap, NULL),
     Init_U32___Entry(9 , Border_Layout, vgap, NULL),
-    Init_End___Entry(10),
+    Init_End___Entry(10, Border_Layout),
 };
 REGISTER_CLASS("Border_Layout", border_layout_class_info);
 

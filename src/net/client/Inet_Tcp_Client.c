@@ -116,7 +116,7 @@ static class_info_entry_t inet_tcp_client_class_info[] = {
     Init_Vfunc_Entry(7 , Inet_Tcp_Client, send, NULL),
     Init_Vfunc_Entry(8 , Inet_Tcp_Client, recv, NULL),
     Init_Vfunc_Entry(9 , Inet_Tcp_Client, trustee, NULL),
-    Init_End___Entry(10),
+    Init_End___Entry(10, Inet_Tcp_Client),
 };
 REGISTER_CLASS("Inet_Tcp_Client", inet_tcp_client_class_info);
 

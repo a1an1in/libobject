@@ -283,7 +283,7 @@ static class_info_entry_t event_base_class_info[] = {
     Init_Vfunc_Entry(8 , Event_Base, trustee_io, NULL),
     Init_Vfunc_Entry(9 , Event_Base, reclaim_io, NULL),
     Init_Vfunc_Entry(10, Event_Base, dispatch, NULL),
-    Init_End___Entry(11),
+    Init_End___Entry(11, Event_Base),
 };
 REGISTER_CLASS("Event_Base", event_base_class_info);
 

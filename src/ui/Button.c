@@ -146,7 +146,7 @@ static class_info_entry_t button_class_info[] = {
     Init_Vfunc_Entry(11, Button, on_mouse_moved, __on_mouse_moved),
     Init_Vfunc_Entry(12, Button, add_event_listener, NULL),
     Init_Vfunc_Entry(13, Button, add_event_listener_cb, NULL),
-    Init_End___Entry(14),
+    Init_End___Entry(14, Button),
 };
 REGISTER_CLASS("Button", button_class_info);
 
