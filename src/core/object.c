@@ -35,6 +35,7 @@
 #include <libobject/core/obj.h>
 #include <libobject/core/config.h>
 #include <libobject/core/string.h>
+#include <libobject/core/object_cache.h>
 
 void * 
 __object_get_normal_func_of_class(void *class_info_addr, 
@@ -597,7 +598,28 @@ int __object_destroy(void *obj, char *type_name)
 
 int object_destroy(void *obj) 
 {
-    return __object_destroy(obj, ((Obj *)obj)->name);
+    Obj *o = (Obj *)obj;
+    Object_Cache *cache = o->cache;
+    List *list = NULL;
+    int ret = 0;
+    
+    if (o->cache) {
+        Map *map = cache->class_map;
+
+        ret = map->search(map, o->name, (void **)&list);
+        if (ret != 1) {
+            dbg_str(DBG_ERROR, "release object to cache error");
+            ret = -1;
+            goto end;
+        }
+
+        list->add(list, o);
+    } else {
+        __object_destroy(o, o->name);
+    }
+
+end:
+    return ret;
 }
 
 static int test_object_new() 

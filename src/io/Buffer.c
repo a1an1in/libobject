@@ -80,7 +80,7 @@ static int __set_size(Buffer *buffer, int size)
 
     if (size != buffer->size) {
         allocator_mem_free(allocator, buffer->addr);
-        buffer->size =  size;
+        buffer->size = size;
         buffer->addr = allocator_mem_alloc(allocator, size);
         if (buffer->addr == NULL) {
             dbg_str(DBG_ERROR, "allocator_mem_alloc");
@@ -111,7 +111,10 @@ static int __read(Buffer *buffer, void *dst, int len)
 
     dbg_str(DBG_DETAIL, "read len=%d, w=%d, r=%d",
             l, buffer->w_offset, buffer->r_offset);
+
     if (buffer->w_offset > buffer->r_offset) {
+        memcpy(dst, buffer->addr + buffer->r_offset, l);
+    } else if (l < buffer->size - buffer->r_offset) {
         memcpy(dst, buffer->addr + buffer->r_offset, l);
     } else {
         memcpy(dst, buffer->addr + buffer->r_offset, 
@@ -121,8 +124,8 @@ static int __read(Buffer *buffer, void *dst, int len)
          *        buffer->size - buffer->r_offset );
          */
         memcpy(dst + buffer->size - buffer->r_offset,
-                buffer->addr, 
-                l - buffer->size + buffer->r_offset);
+               buffer->addr, 
+               l - buffer->size + buffer->r_offset);
         /*
          *dbg_buf(DBG_DETAIL, "read char:", buffer->addr,
          *        l - buffer->size + buffer->r_offset);
@@ -135,6 +138,35 @@ static int __read(Buffer *buffer, void *dst, int len)
 end:
     return l;
 }
+
+static void * __find(Buffer *buffer, void *needle, int len)
+{
+    void *ret = NULL;
+
+    if (buffer->last_operation_flag != BUFFER_WRITE_OPERATION &&
+        buffer->w_offset == buffer->r_offset) {
+        dbg_str(DBG_WARNNING, "buffer is nil");
+        goto end;
+    } 
+
+    if (buffer->w_offset > buffer->r_offset) {
+        ret = strnstr(buffer->addr + buffer->r_offset,
+                      needle, buffer->w_offset - buffer->r_offset);
+    } else {
+        ret = strnstr(buffer->addr + buffer->r_offset,
+                      needle, buffer->size - buffer->r_offset);
+        if (ret != NULL) {
+            goto end;
+        }
+
+        ret = strnstr(buffer->addr,
+                      needle, buffer->w_offset);
+    }
+
+end:
+    return ret;
+}
+
 
 static int __write(Buffer *buffer, void *src, int len)
 {
@@ -230,11 +262,12 @@ static class_info_entry_t buffer_class_info[] = {
     Init_Vfunc_Entry(4 , Buffer, get, NULL),
     Init_Vfunc_Entry(5 , Buffer, read, __read),
     Init_Vfunc_Entry(6 , Buffer, write, __write),
-    Init_Vfunc_Entry(7 , Buffer, printf, __printf),
-    Init_Vfunc_Entry(8 , Buffer, memcopy, __memcpy),
-    Init_Vfunc_Entry(9 , Buffer, get_len, __get_len),
-    Init_Vfunc_Entry(10, Buffer, set_size, __set_size),
-    Init_End___Entry(11, Buffer),
+    Init_Vfunc_Entry(7 , Buffer, find, __find),
+    Init_Vfunc_Entry(8 , Buffer, printf, __printf),
+    Init_Vfunc_Entry(9 , Buffer, memcopy, __memcpy),
+    Init_Vfunc_Entry(10, Buffer, get_len, __get_len),
+    Init_Vfunc_Entry(11, Buffer, set_size, __set_size),
+    Init_End___Entry(12, Buffer),
 };
 REGISTER_CLASS("Buffer",buffer_class_info);
 
@@ -242,25 +275,92 @@ int Test_buffer(TEST_ENTRY *entry)
 {
     Buffer *buffer;
     allocator_t *allocator = allocator_get_default_alloc();
-    char in[9] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'};
-    char out[9];
-    int len;
+    char in[14] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'};
+    char out[14] = {'\0'};
+    int len, ret;
 
     buffer = OBJECT_NEW(allocator, Buffer, NULL);
 
     buffer->set_size(buffer, 9);
-    buffer->write(buffer, in, 5);
-    dbg_buf(DBG_DETAIL, "write 5 char:", in, 5);
-    buffer->read(buffer, out, 4);
-    dbg_buf(DBG_DETAIL, "read 4 char:", out, 4);
-    buffer->write(buffer, in, 9);
-    dbg_buf(DBG_DETAIL, "write 9 char:", in, 9);
-    buffer->read(buffer, out, 9);
-    dbg_buf(DBG_DETAIL, "read 9 char:", out, 9);
 
+    buffer->write(buffer, in, 5);
+    buffer->read(buffer, out, 4);
+    buffer->write(buffer, in + 5, 8);
+    buffer->read(buffer, out + 4, 9);
+
+    dbg_buf(DBG_DETAIL, "in:", in, 13);
+    dbg_buf(DBG_DETAIL, "out:", out, 13);
+
+    if (strncmp(in, out, 13) == 0) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
 
     object_destroy(buffer);
 
-    return 1;
+    return ret;
 }
 REGISTER_TEST_FUNC(Test_buffer);
+
+int Test_buffer_find(TEST_ENTRY *entry)
+{
+    Buffer *buffer;
+    allocator_t *allocator = allocator_get_default_alloc();
+    char *test = "abc hello world\r\n you gota work hard";
+    int len, ret;
+    void *addr;
+
+    len = strlen(test);
+
+    buffer = OBJECT_NEW(allocator, Buffer, NULL);
+
+    buffer->set_size(buffer, len);
+    buffer->write(buffer, test, len);
+    addr = buffer->find(buffer, "\r\n", len);
+
+    dbg_str(DBG_DETAIL, "test addr:%p, find addr:%p", (buffer->addr + 15), addr);
+    if (addr == (buffer->addr + 15)) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
+
+    object_destroy(buffer);
+
+    return ret;
+}
+REGISTER_TEST_FUNC(Test_buffer_find);
+
+int Test_buffer_find2(TEST_ENTRY *entry)
+{
+    Buffer *buffer;
+    allocator_t *allocator = allocator_get_default_alloc();
+    char *test = "abc hello world\r\n you gota work hard";
+    int len, ret;
+    void *addr;
+
+    len = strlen(test);
+
+    buffer = OBJECT_NEW(allocator, Buffer, NULL);
+
+    buffer->set_size(buffer, len);
+    buffer->write(buffer, test, len);
+
+    buffer->w_offset = buffer->r_offset = 22;
+    buffer->last_operation_flag = BUFFER_WRITE_OPERATION;
+
+    addr = buffer->find(buffer, "\r\n", len);
+
+    dbg_str(DBG_DETAIL, "test addr:%p, find addr:%p", (buffer->addr + 15), addr);
+    if (addr == (buffer->addr + 15)) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
+
+    object_destroy(buffer);
+
+    return ret;
+}
+REGISTER_TEST_FUNC(Test_buffer_find2);

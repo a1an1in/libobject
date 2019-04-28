@@ -41,15 +41,16 @@
 static int __construct(Object_Cache *cache,char *init_str)
 {
     allocator_t *allocator = ((Obj *)cache)->allocator;
+    Map *map = NULL;
     int ret = 0;
 
-    cache->class_map = object_new(allocator, "RBTree_Map", NULL);
-    if (cache->class_map == NULL) {
+    map = object_new(allocator, "RBTree_Map", NULL);
+    if (map == NULL) {
         dbg_str(DBG_ERROR, "object new object cache error");
         return -1;
     }
-
-    dbg_str(DBG_DETAIL, "map addr:%p", cache->class_map);
+    cache->class_map = map;
+    map->set_cmp_func(map, string_key_cmp_func);
 
     cache->object_list = object_new(allocator, "Linked_List", NULL);
     if (cache->object_list == NULL) {
@@ -68,6 +69,9 @@ end:
 
 void __free_object_in_object_list(void *object)
 {
+    Obj *o = (Obj *)object;
+
+    o->cache = NULL;
     object_destroy(object);
 }
 
@@ -81,7 +85,7 @@ static int __deconstruct(Object_Cache *cache)
 }
 
 static void *
-__get_object(Object_Cache *cache, char *class_name)
+__new(Object_Cache *cache, char *class_name)
 { 
     Map *map = cache->class_map;
     allocator_t *allocator = ((Obj *)cache)->allocator;
@@ -118,9 +122,12 @@ __get_object(Object_Cache *cache, char *class_name)
             }
             object_list->add_back(object_list, o);
         } else {
+            dbg_str(DBG_SUC, "get object from cache");
             list->remove(list, &o);
         }
     }
+
+    o->cache = cache;
 
     return o;
 }
@@ -129,12 +136,12 @@ static class_info_entry_t object_cache_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Object_Cache, construct, __construct),
     Init_Nfunc_Entry(2 , Object_Cache, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3 , Object_Cache, get_object, __get_object),
+    Init_Vfunc_Entry(3 , Object_Cache, new, __new),
     Init_End___Entry(4 , Object_Cache),
 };
 REGISTER_CLASS("Object_Cache", object_cache_info);
 
-static int test_object_cache_get_object()
+static int test_object_cache_new()
 {
     allocator_t *allocator = allocator_get_default_alloc();
     Object_Cache *cache;
@@ -144,7 +151,8 @@ static int test_object_cache_get_object()
 
     cache = object_new(allocator, "Object_Cache", NULL);
 
-    str = cache->get_object(cache, "String");
+    /*get object from cache firstly*/
+    str = cache->new(cache, "String");
     if (str == NULL) {
         goto end;
     }
@@ -156,6 +164,14 @@ static int test_object_cache_get_object()
     } else {
         ret = 0;
     }
+    object_destroy(str);
+
+    /*get object from cache secondly*/
+    str = cache->new(cache, "String");
+    if (str == NULL) {
+        goto end;
+    }
+    object_destroy(str);
 
 end:
     object_destroy(cache);
@@ -163,4 +179,4 @@ end:
     return ret;
 }
 
-REGISTER_TEST_FUNC(test_object_cache_get_object);
+REGISTER_TEST_FUNC(test_object_cache_new);

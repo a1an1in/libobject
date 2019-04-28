@@ -16,6 +16,7 @@ struct obj_s{
 #define MAX_CLASS_NAME_LEN 20
     char name[MAX_CLASS_NAME_LEN];
     char target_name[MAX_CLASS_NAME_LEN];
+    void *cache;
 #undef MAX_CLASS_NAME_LEN
 };
 

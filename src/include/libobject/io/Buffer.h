@@ -24,6 +24,7 @@ struct buffer_s{
 	/*virtual methods reimplement*/
     int (*read)(Stream *, void *dst, int len);
     int (*write)(Stream *, void *src, int len);
+    void * (*find)(Buffer *buffer, void *needle, int len);
     int (*get_len)(Stream *);
     int (*set_size)(Stream *, int size);
     int (*printf)(Buffer *buffer, const char *fmt, ...);
