@@ -280,17 +280,17 @@ __replace(String *self, char *old, char *newstr)
     }
 
     if (old_len <= new_len) {
-        ret = __modulate_capacity(self, new_len-old_len);
+        ret = __modulate_capacity(self, new_len - old_len);
         if (ret < 0 ) {
             goto end;
         }
     }
 
     end_pos = start_pos + new_len;
-    memmove(self->value+end_pos, self->value+start_pos+old_len,
-            str_len-(start_pos+old_len));
-    memmove(self->value+start_pos, newstr, new_len); 
-    self->value_len += (new_len-old_len);
+    memmove(self->value + end_pos, self->value + start_pos + old_len,
+            str_len - (start_pos + old_len));
+    memmove(self->value + start_pos, newstr, new_len); 
+    self->value_len += (new_len - old_len);
     self->value[self->value_len] = '\0';
 
 end:
@@ -305,7 +305,9 @@ __replace_all(String *self, char *oldstr, char *newstr)
     if ( oldstr == NULL || newstr == NULL ) {
         return self;
     }
-    while (cur == NULL || strcmp(cur->get_cstr(cur), pre->get_cstr(pre)) != 0 ) {
+    while (cur == NULL || 
+           strcmp(cur->get_cstr(cur), pre->get_cstr(pre)) != 0 )
+    {
         if (cur != NULL ) { 
             object_destroy(cur);
             cur = NULL;
@@ -423,7 +425,7 @@ static int __find(String *string, char *key, int pos)
     return -1;
 }
 
-static int __split_string(String *string, char *delims)
+static int __split(String *string, char *delims)
 {
     int cnt = 0;
     char *ptr = NULL;
@@ -454,7 +456,33 @@ static int __split_string(String *string, char *delims)
     return cnt;
 }
 
-static char *__get_splited_string(String *string, int index)
+static int __split_once(String *string, char *delims)
+{
+    int cnt = 0;
+    char *ptr = NULL;
+    char *p;
+    Vector *v;
+
+    if (string->splited_strings == NULL) {
+        v = OBJECT_NEW(string->obj.allocator, Vector, NULL);
+        string->splited_strings = v;
+    } else {
+        v = string->splited_strings;
+    }
+
+    v->add_back(v, string->get_cstr(string)); //first section
+
+    p = strtok_r(string->get_cstr(string), delims, &ptr);
+    if (ptr != NULL) {
+        *(ptr -1) = '\0';
+    }
+
+    v->add_back(v, ptr); //second section
+
+    return 2;
+}
+
+static char *__get_splited_cstr(String *string, int index)
 {
     Vector *v = string->splited_strings;
     char *d;
@@ -498,11 +526,12 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(26, String, get_substring, __get_substring), 
     Init_Vfunc_Entry(27, String, find, __find), 
     Init_Vfunc_Entry(28, String, is_empty, __is_empty), 
-    Init_Vfunc_Entry(29, String, split_string, __split_string), 
-    Init_Vfunc_Entry(30, String, get_splited_string, __get_splited_string), 
-    Init_Str___Entry(31, String, name, NULL), 
-    Init_Str___Entry(32, String, value, NULL), 
-    Init_End___Entry(33, String), 
+    Init_Vfunc_Entry(29, String, split, __split), 
+    Init_Vfunc_Entry(30, String, split_once, __split_once), 
+    Init_Vfunc_Entry(31, String, get_splited_cstr, __get_splited_cstr), 
+    Init_Str___Entry(32, String, name, NULL), 
+    Init_Str___Entry(33, String, value, NULL), 
+    Init_End___Entry(34, String), 
 };
 REGISTER_CLASS("String", string_class_info);
 
@@ -689,7 +718,7 @@ int test_string_split()
 {    
 
     allocator_t *allocator = allocator_get_default_alloc();
-    //test find and split_string function
+    //test find and split function
     String *str;
     Vector *vector;
     int ret = 0;
@@ -704,10 +733,10 @@ int test_string_split()
             "rsv_sug3 = 170&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25"
             "E5%259D%2597&rsp = 0&rsv_sug4 = 5089");  
 
-    cnt = str->split_string(str, "&");
+    cnt = str->split(str, "&");
 
     for (i = 0; i < cnt; i++) {
-        p = str->get_splited_string(str, i);
+        p = str->get_splited_cstr(str, i);
         if (p != NULL) {
             dbg_str(DBG_DETAIL, "%s", p);
         }

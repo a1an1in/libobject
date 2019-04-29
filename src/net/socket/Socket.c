@@ -31,6 +31,7 @@
  */
 #include <stdio.h>
 #include <fcntl.h> 
+#include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
@@ -258,7 +259,7 @@ static int __connect(Socket *socket, char *host, char *service)
     } while ((addr = addr->ai_next) != NULL);
 
     if (addr == NULL) {
-        dbg_str(NET_WARNNING, "connect error for %s %s", host, service);
+        dbg_str(NET_ERROR, "connect error for %s %s", host, service);
     }
 
     freeaddrinfo(addrsave);
@@ -275,7 +276,15 @@ static ssize_t __write(Socket *socket, const void *buf, size_t len)
 
 static ssize_t __send(Socket *socket, const void *buf, size_t len, int flags)
 {
-    return send(socket->fd, buf, len, flags);
+    int ret;
+
+    ret = send(socket->fd, buf, len, flags);
+
+    if (ret <= 0) {
+        dbg_str(NET_ERROR, "send error: %s", strerror(errno));
+    }
+
+    return ret;
 }
 
 static ssize_t 

@@ -43,6 +43,8 @@ static int __construct(RingBuffer *buffer,char *init_str)
 {
     allocator_t *allocator = ((Obj *)buffer)->allocator;
 
+    buffer->size = 0;
+
     if (buffer->size == 0) {
         buffer->size  = DEFAULT_BUFFER_SIZE;
     }
@@ -73,9 +75,13 @@ static int __deconstrcut(RingBuffer *buffer)
 static int __get_len(RingBuffer *buffer)
 {
     if (buffer->w_offset > buffer->r_offset) {
+        dbg_str(DBG_DETAIL,"get len: w_offset=%d, r_offset=%d, size=%d",
+                buffer->w_offset, buffer->r_offset, buffer->size);
         return buffer->w_offset - buffer->r_offset;
     } else {
-        return buffer->w_offset - buffer->r_offset + buffer->size;
+        dbg_str(DBG_DETAIL,"get len: w_offset=%d, r_offset=%d, size=%d",
+                buffer->w_offset, buffer->r_offset, buffer->size);
+        return (buffer->w_offset - buffer->r_offset + buffer->size);
     }
 }
 
@@ -289,8 +295,9 @@ static int __memcpy(RingBuffer *buffer, void *addr, int len)
 
     l = l > len ? len : l;
 
-    ret = memcpy(buffer->addr + buffer->w_offset, addr, l);
-    buffer->w_offset = (buffer->w_offset + ret) % buffer->size;
+    memcpy(buffer->addr + buffer->w_offset, addr, l);
+    dbg_str(DBG_DETAIL, "memcpy, ret=%d, l=%d", ret, l);
+    buffer->w_offset = (buffer->w_offset + l) % buffer->size;
 
 end:
     return ret;

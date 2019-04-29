@@ -56,11 +56,16 @@ void *client(allocator_t *allocator,
 
     if (!strcmp(type,CLIENT_TYPE_INET_UDP)){
         client = OBJECT_NEW(allocator, Inet_Udp_Client, NULL);
-        client->bind(client, host, service); 
+        if (service != NULL)
+            client->bind(client, host, service); 
         if (process_task_cb != NULL)
             client->trustee(client, NULL, (void *)process_task_cb, opaque);
     } else if (!strcmp(type,CLIENT_TYPE_INET_TCP)){
         client = OBJECT_NEW(allocator, Inet_Tcp_Client, NULL);
+        /*
+         *if (service != NULL)
+         *    client->bind(client, host, service); 
+         */
         if (process_task_cb != NULL)
             client->trustee(client, NULL, (void *)process_task_cb, opaque);
     } else {

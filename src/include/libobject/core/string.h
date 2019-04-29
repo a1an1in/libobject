@@ -47,8 +47,9 @@ struct string_s{
     String *(*replace_all)(String *,char *oldstr,char * newstr);
     String *(*insert)(String * dest,size_t index,char * src);
     String *(*insert_string)(String * dest,size_t index,String * src);
-    int (*split_string)(String *, char *);
-    char * (*get_splited_string)(String *, int);
+    int (*split)(String *, char *);
+    int (*split_once)(String *, char *);
+    char * (*get_splited_cstr)(String *, int);
     
 #define MAX_NAME_LEN 50
     char name[MAX_NAME_LEN];
