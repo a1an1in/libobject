@@ -24,7 +24,9 @@ struct string_s{
     void *(*get)(void *obj, char *attrib);
     String *(*pre_alloc)(String *string,uint32_t size);
     String *(*assign)(String *string,char *s);
+    String *(*assign_fixed_len)(String *string,char *s, int len);
     String *(*assign_char)(String *,char c,size_t count );
+    String *(*equals)(String *string,char *s);
     void (*append)(String *,char *);
     String *(*append_char)(String *string,char c);
     void (*append_string)(String *,String *);
@@ -38,7 +40,7 @@ struct string_s{
     int  (*find)(String *string, char *, int pos);
     String * (*get_substring)(String  *string,int pos,int len);  
     char *(*get_cstr)(String *);
-    size_t (*len)(String *);
+    size_t (*get_len)(String *);
     void (*clear)(String *);
     int (*is_empty)(String *);
     String *(*replace)(String *,char *oldstr,char *newstr);

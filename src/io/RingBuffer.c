@@ -1,5 +1,5 @@
 /**
- * @buffer Buffer.c
+ * @buffer RingBuffer.c
  * @Synopsis  
  * @author alan lin
  * @version 
@@ -34,12 +34,12 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/event/event_base.h>
-#include <libobject/io/Buffer.h>
+#include <libobject/io/RingBuffer.h>
 #include <libobject/core/utils/registry/registry.h>
 
 #define DEFAULT_BUFFER_SIZE 1024
 
-static int __construct(Buffer *buffer,char *init_str)
+static int __construct(RingBuffer *buffer,char *init_str)
 {
     allocator_t *allocator = ((Obj *)buffer)->allocator;
 
@@ -60,7 +60,7 @@ static int __construct(Buffer *buffer,char *init_str)
     return 0;
 }
 
-static int __deconstrcut(Buffer *buffer)
+static int __deconstrcut(RingBuffer *buffer)
 {
     allocator_t *allocator = ((Obj *)buffer)->allocator;
 
@@ -70,11 +70,16 @@ static int __deconstrcut(Buffer *buffer)
     return 0;
 }
 
-static int __get_len(Buffer *buffer)
+static int __get_len(RingBuffer *buffer)
 {
+    if (buffer->w_offset > buffer->r_offset) {
+        return buffer->w_offset - buffer->r_offset;
+    } else {
+        return buffer->w_offset - buffer->r_offset + buffer->size;
+    }
 }
 
-static int __set_size(Buffer *buffer, int size)
+static int __set_size(RingBuffer *buffer, int size)
 {
     allocator_t *allocator = ((Obj *)buffer)->allocator;
 
@@ -91,7 +96,7 @@ static int __set_size(Buffer *buffer, int size)
     return 0;
 }
 
-static int __read(Buffer *buffer, void *dst, int len)
+static int __read(RingBuffer *buffer, void *dst, int len)
 {
     int l;
 
@@ -139,7 +144,23 @@ end:
     return l;
 }
 
-static void * __find(Buffer *buffer, void *needle, int len)
+static int __read_to_string(RingBuffer *buffer, String *str, int len)
+{
+    int ret = 0;
+
+    if (len < str->value_max_len) {
+        str->assign_fixed_len(str, buffer->addr + buffer->r_offset, len);
+        buffer->r_offset = (buffer->r_offset + len) % buffer->size;
+        ret = 1;
+    } else {
+        dbg_str(DBG_ERROR, "string buffer is overflow, please reset");
+        ret = -1;
+    }
+
+    return ret;
+}
+
+static void * __find(RingBuffer *buffer, void *needle)
 {
     void *ret = NULL;
 
@@ -168,7 +189,28 @@ end:
 }
 
 
-static int __write(Buffer *buffer, void *src, int len)
+static int __get_len_to_needle(RingBuffer *buffer, void *needle)
+{
+    void *addr;
+    int len, needle_len, needle_offset;
+
+    needle_len = strlen(needle);
+
+    addr = buffer->find(buffer, needle);
+    if (addr != NULL) {
+        needle_offset = addr - buffer->addr;
+        len = needle_offset - buffer->r_offset;
+        if (len > 0) {
+            return len + needle_len;
+        } else {
+            return (len + buffer->size + needle_len) % buffer->size;
+        }
+    }
+
+    return -1;
+}
+
+static int __write(RingBuffer *buffer, void *src, int len)
 {
     int l;
 
@@ -201,7 +243,7 @@ end:
     return l;
 }
 
-static int __printf(Buffer *buffer, const char *fmt, ...)
+static int __printf(RingBuffer *buffer, const char *fmt, ...)
 {
     int ret;
     va_list va;
@@ -228,7 +270,7 @@ end:
     return ret;
 }
 
-static int __memcpy(Buffer *buffer, void *addr, int len)
+static int __memcpy(RingBuffer *buffer, void *addr, int len)
 {
     int ret;
     va_list va;
@@ -254,32 +296,34 @@ end:
     return ret;
 }
 
-static class_info_entry_t buffer_class_info[] = {
+static class_info_entry_t ring_buffer_class_info[] = {
     Init_Obj___Entry(0 , Stream, parent),
-    Init_Nfunc_Entry(1 , Buffer, construct, __construct),
-    Init_Nfunc_Entry(2 , Buffer, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Buffer, set, NULL),
-    Init_Vfunc_Entry(4 , Buffer, get, NULL),
-    Init_Vfunc_Entry(5 , Buffer, read, __read),
-    Init_Vfunc_Entry(6 , Buffer, write, __write),
-    Init_Vfunc_Entry(7 , Buffer, find, __find),
-    Init_Vfunc_Entry(8 , Buffer, printf, __printf),
-    Init_Vfunc_Entry(9 , Buffer, memcopy, __memcpy),
-    Init_Vfunc_Entry(10, Buffer, get_len, __get_len),
-    Init_Vfunc_Entry(11, Buffer, set_size, __set_size),
-    Init_End___Entry(12, Buffer),
+    Init_Nfunc_Entry(1 , RingBuffer, construct, __construct),
+    Init_Nfunc_Entry(2 , RingBuffer, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , RingBuffer, set, NULL),
+    Init_Vfunc_Entry(4 , RingBuffer, get, NULL),
+    Init_Vfunc_Entry(5 , RingBuffer, read, __read),
+    Init_Vfunc_Entry(6 , RingBuffer, read_to_string, __read_to_string),
+    Init_Vfunc_Entry(7 , RingBuffer, write, __write),
+    Init_Vfunc_Entry(8 , RingBuffer, find, __find),
+    Init_Vfunc_Entry(9 , RingBuffer, get_len_to_needle, __get_len_to_needle),
+    Init_Vfunc_Entry(10, RingBuffer, printf, __printf),
+    Init_Vfunc_Entry(11, RingBuffer, memcopy, __memcpy),
+    Init_Vfunc_Entry(12, RingBuffer, get_len, __get_len),
+    Init_Vfunc_Entry(13, RingBuffer, set_size, __set_size),
+    Init_End___Entry(14, RingBuffer),
 };
-REGISTER_CLASS("Buffer",buffer_class_info);
+REGISTER_CLASS("RingBuffer",ring_buffer_class_info);
 
-int Test_buffer(TEST_ENTRY *entry)
+int Test_ring_buffer(TEST_ENTRY *entry)
 {
-    Buffer *buffer;
+    RingBuffer *buffer;
     allocator_t *allocator = allocator_get_default_alloc();
     char in[14] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'};
     char out[14] = {'\0'};
     int len, ret;
 
-    buffer = OBJECT_NEW(allocator, Buffer, NULL);
+    buffer = OBJECT_NEW(allocator, RingBuffer, NULL);
 
     buffer->set_size(buffer, 9);
 
@@ -301,11 +345,11 @@ int Test_buffer(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(Test_buffer);
+REGISTER_TEST_FUNC(Test_ring_buffer);
 
-int Test_buffer_find(TEST_ENTRY *entry)
+int Test_ring_buffer_find(TEST_ENTRY *entry)
 {
-    Buffer *buffer;
+    RingBuffer *buffer;
     allocator_t *allocator = allocator_get_default_alloc();
     char *test = "abc hello world\r\n you gota work hard";
     int len, ret;
@@ -313,11 +357,11 @@ int Test_buffer_find(TEST_ENTRY *entry)
 
     len = strlen(test);
 
-    buffer = OBJECT_NEW(allocator, Buffer, NULL);
+    buffer = OBJECT_NEW(allocator, RingBuffer, NULL);
 
     buffer->set_size(buffer, len);
     buffer->write(buffer, test, len);
-    addr = buffer->find(buffer, "\r\n", len);
+    addr = buffer->find(buffer, "\r\n");
 
     dbg_str(DBG_DETAIL, "test addr:%p, find addr:%p", (buffer->addr + 15), addr);
     if (addr == (buffer->addr + 15)) {
@@ -330,19 +374,22 @@ int Test_buffer_find(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(Test_buffer_find);
+REGISTER_TEST_FUNC(Test_ring_buffer_find);
 
-int Test_buffer_find2(TEST_ENTRY *entry)
+int Test_ring_buffer_find2(TEST_ENTRY *entry)
 {
-    Buffer *buffer;
+    RingBuffer *buffer;
     allocator_t *allocator = allocator_get_default_alloc();
-    char *test = "abc hello world\r\n you gota work hard";
+    char *test = "abc hello "\
+                 "world\r\n "\
+                 "you gotta "\
+                 "wo rk hard";
     int len, ret;
     void *addr;
 
     len = strlen(test);
 
-    buffer = OBJECT_NEW(allocator, Buffer, NULL);
+    buffer = OBJECT_NEW(allocator, RingBuffer, NULL);
 
     buffer->set_size(buffer, len);
     buffer->write(buffer, test, len);
@@ -350,7 +397,7 @@ int Test_buffer_find2(TEST_ENTRY *entry)
     buffer->w_offset = buffer->r_offset = 22;
     buffer->last_operation_flag = BUFFER_WRITE_OPERATION;
 
-    addr = buffer->find(buffer, "\r\n", len);
+    addr = buffer->find(buffer, "\r\n");
 
     dbg_str(DBG_DETAIL, "test addr:%p, find addr:%p", (buffer->addr + 15), addr);
     if (addr == (buffer->addr + 15)) {
@@ -363,4 +410,41 @@ int Test_buffer_find2(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(Test_buffer_find2);
+REGISTER_TEST_FUNC(Test_ring_buffer_find2);
+
+int Test_ring_buffer_get_len_to_needle(TEST_ENTRY *entry)
+{
+    RingBuffer *buffer;
+    allocator_t *allocator = allocator_get_default_alloc();
+    char *test = "abc hello "\
+                 "world\r\n yo"\
+                 "u gotta wo"\
+                 "rk hardddd";
+    int len, ret;
+    void *addr;
+
+    len = strlen(test);
+
+    buffer = OBJECT_NEW(allocator, RingBuffer, NULL);
+
+    dbg_str(DBG_DETAIL, "buffer size=%d", len);
+    buffer->set_size(buffer, len);
+    buffer->write(buffer, test, len);
+
+    buffer->w_offset = buffer->r_offset = 20;
+    buffer->last_operation_flag = BUFFER_WRITE_OPERATION;
+
+    len = buffer->get_len_to_needle(buffer, "\r\n");
+
+    dbg_str(DBG_DETAIL, "len=%d", len);
+    if (len == 37) {
+        ret = 1;
+    } else {
+        ret = 0;
+    }
+
+    object_destroy(buffer);
+
+    return ret;
+}
+REGISTER_TEST_FUNC(Test_ring_buffer_get_len_to_needle);
