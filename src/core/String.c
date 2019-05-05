@@ -34,7 +34,7 @@
 #include <string.h>
 #include <assert.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/string.h>
+#include <libobject/core/String.h>
 #include <libobject/core/vector.h>
 
 static int __modulate_capacity(String *string, int write_len)
@@ -46,7 +46,7 @@ static int __modulate_capacity(String *string, int write_len)
         }
 
         string->value = (char *)allocator_mem_alloc(string->obj.allocator, 
-                string->value_max_len);
+                                                    string->value_max_len);
         if (string->value == NULL) {
             dbg_str(OBJ_WARNNING, "string assign alloc error");
             return -1;
@@ -59,7 +59,7 @@ static int __modulate_capacity(String *string, int write_len)
 
         string->value_max_len = 2 * (string->value_len + write_len + 1);
         new_buf = (char *)allocator_mem_alloc(string->obj.allocator, 
-                string->value_max_len);
+                                              string->value_max_len);
         if (string->value == NULL) {
             dbg_str(OBJ_WARNNING, "string assign alloc error");
             return -1;
@@ -79,6 +79,7 @@ static int __construct(String *string, char *init_str)
     dbg_str(OBJ_DETAIL, "string construct, string addr:%p", string);
 
     string->value = (char *)allocator_mem_alloc(string->obj.allocator, 256);
+    string->value_len = 0;
     string->value_max_len = 256;
     return 0;
 }
@@ -209,6 +210,24 @@ static void __append(String *string, char *sub)
     string->value_len += len;
     string->value[string->value_len] = '\0';
 
+}
+
+static void __append_fixed_len(String *string, char *sub, int len) 
+{   
+    int ret;
+    if (sub == NULL) {
+        dbg_str(DBG_WARNNING, "appending-string is null unvalid sub stringing");
+        return ;
+    }
+    ret = __modulate_capacity(string, len + string->value_len);
+
+    if (ret < 0 ) {
+        return ;
+    }
+
+    strncpy(string->value + string->value_len, sub, len);
+    string->value_len += len;
+    string->value[string->value_len] = '\0';
 }
 
 static void __append_string(String *string, String *sub)
@@ -456,9 +475,9 @@ static int __split(String *string, char *delims)
     return cnt;
 }
 
-static int __split_once(String *string, char *delims)
+static int __split_num_portion(String *string, char *delims, int num)
 {
-    int cnt = 0;
+    int cnt = 1;
     char *ptr = NULL;
     char *p;
     Vector *v;
@@ -472,14 +491,21 @@ static int __split_once(String *string, char *delims)
 
     v->add_back(v, string->get_cstr(string)); //first section
 
-    p = strtok_r(string->get_cstr(string), delims, &ptr);
-    if (ptr != NULL) {
-        *(ptr -1) = '\0';
+    for (   p = strtok_r(string->get_cstr(string), delims, &ptr);
+            p && cnt != num;
+            p = strtok_r(NULL, delims, &ptr)) 
+    {
+        /*
+         *dbg_str(DBG_SUC, "addr:%p, slim :%s", p, p);
+         */
+        if (p != NULL) {
+            *(p -1) = '\0';
+        }
+        cnt++;
+        v->add_back(v, ptr);
     }
 
-    v->add_back(v, ptr); //second section
-
-    return 2;
+    return cnt;
 }
 
 static char *__get_splited_cstr(String *string, int index)
@@ -507,31 +533,33 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(7 , String, get_len, __get_len), 
     Init_Vfunc_Entry(8 , String, clear, __clear), 
     Init_Vfunc_Entry(9 , String, pre_alloc, __pre_alloc), 
-    Init_Vfunc_Entry(10, String, assign, __assign), 
-    Init_Vfunc_Entry(11, String, assign_fixed_len, __assign_fixed_len), 
-    Init_Vfunc_Entry(12, String, equals, __equals), 
-    Init_Vfunc_Entry(13, String, replace_char, __replace_char), 
-    Init_Vfunc_Entry(14, String, replace, __replace), 
-    Init_Vfunc_Entry(15, String, replace_all, __replace_all), 
-    Init_Vfunc_Entry(16, String, append_char, __append_char), 
-    Init_Vfunc_Entry(17, String, append, __append), 
-    Init_Vfunc_Entry(18, String, append_string, __append_string), 
-    Init_Vfunc_Entry(19, String, insert, __insert), 
-    Init_Vfunc_Entry(20, String, insert_string, __insert_string), 
-    Init_Vfunc_Entry(21, String, toupper, __toupper_), 
-    Init_Vfunc_Entry(22, String, tolower, __tolower_), 
-    Init_Vfunc_Entry(23, String, ltrim, __ltrim), 
-    Init_Vfunc_Entry(24, String, rtrim, __rtrim), 
-    Init_Vfunc_Entry(25, String, trim, __trim), 
-    Init_Vfunc_Entry(26, String, get_substring, __get_substring), 
-    Init_Vfunc_Entry(27, String, find, __find), 
-    Init_Vfunc_Entry(28, String, is_empty, __is_empty), 
-    Init_Vfunc_Entry(29, String, split, __split), 
-    Init_Vfunc_Entry(30, String, split_once, __split_once), 
-    Init_Vfunc_Entry(31, String, get_splited_cstr, __get_splited_cstr), 
-    Init_Str___Entry(32, String, name, NULL), 
-    Init_Str___Entry(33, String, value, NULL), 
-    Init_End___Entry(34, String), 
+    Init_Vfunc_Entry(10, String, modulate_capacity, __modulate_capacity), 
+    Init_Vfunc_Entry(11, String, assign, __assign), 
+    Init_Vfunc_Entry(12, String, assign_fixed_len, __assign_fixed_len), 
+    Init_Vfunc_Entry(13, String, equals, __equals), 
+    Init_Vfunc_Entry(14, String, replace_char, __replace_char), 
+    Init_Vfunc_Entry(15, String, replace, __replace), 
+    Init_Vfunc_Entry(16, String, replace_all, __replace_all), 
+    Init_Vfunc_Entry(17, String, append_char, __append_char), 
+    Init_Vfunc_Entry(18, String, append, __append), 
+    Init_Vfunc_Entry(19, String, append_fixed_len, __append_fixed_len), 
+    Init_Vfunc_Entry(20, String, append_string, __append_string), 
+    Init_Vfunc_Entry(21, String, insert, __insert), 
+    Init_Vfunc_Entry(22, String, insert_string, __insert_string), 
+    Init_Vfunc_Entry(23, String, toupper, __toupper_), 
+    Init_Vfunc_Entry(24, String, tolower, __tolower_), 
+    Init_Vfunc_Entry(25, String, ltrim, __ltrim), 
+    Init_Vfunc_Entry(26, String, rtrim, __rtrim), 
+    Init_Vfunc_Entry(27, String, trim, __trim), 
+    Init_Vfunc_Entry(28, String, get_substring, __get_substring), 
+    Init_Vfunc_Entry(29, String, find, __find), 
+    Init_Vfunc_Entry(30, String, is_empty, __is_empty), 
+    Init_Vfunc_Entry(31, String, split, __split), 
+    Init_Vfunc_Entry(32, String, split_num_portion, __split_num_portion), 
+    Init_Vfunc_Entry(33, String, get_splited_cstr, __get_splited_cstr), 
+    Init_Str___Entry(34, String, name, NULL), 
+    Init_Str___Entry(35, String, value, NULL), 
+    Init_End___Entry(36, String), 
 };
 REGISTER_CLASS("String", string_class_info);
 

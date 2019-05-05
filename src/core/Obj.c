@@ -134,11 +134,19 @@ static int __set(Obj *obj, char *attrib, void *value)
         case ENTRY_TYPE_FLOAT_T:
             break;
         case ENTRY_TYPE_STRING:
+#if 0
             {
                 char *addr = (base + entry->offset);
                 strcpy(addr, value);
                 break;
             }
+#else
+            {
+                char **addr = (base + entry->offset);
+                *addr = value;
+                break;
+            }
+#endif
         case ENTRY_TYPE_NORMAL_POINTER:
         case ENTRY_TYPE_FUNC_POINTER:
         case ENTRY_TYPE_VFUNC_POINTER:

@@ -38,79 +38,74 @@
 
 static int __construct(File *file,char *init_str)
 {
-    allocator_t *allocator = file->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
-
-    dbg_str(EV_DETAIL,"file construct, file addr:%p",file);
-
-
     return 0;
 }
 
-static int __deconstrcut(File *file)
+static int __deconstruct(File *file)
 {
     dbg_str(EV_DETAIL,"file deconstruct,file addr:%p",file);
 
     return 0;
 }
 
-static int __set(File *file, char *attrib, void *value)
+static int __open(File *file, char *path, char *mode)
 {
-    if (strcmp(attrib, "set") == 0) {
-        file->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        file->get = value;
-    }
-    else if (strcmp(attrib, "construct") == 0) {
-        file->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        file->deconstruct = value;
-    } else {
-        dbg_str(EV_DETAIL,"file set, not support %s setting",attrib);
-    }
+    file->f = fopen(path, mode);
 
-    return 0;
+    if (file->f == NULL) {
+        perror("fopen");
+        return -1;
+    }
 }
 
-static void *__get(File *obj, char *attrib)
+int __read(File *file, void *dst, int len)
 {
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING,"file get, \"%s\" getting attrib is not supported",attrib);
-        return NULL;
-    }
-    return NULL;
+    return fread(dst, 1, len, file->f);
+}
+
+int __write(File *file, void *src, int len)
+{
+    return fwrite(src, 1, len, file->f);
+}
+
+static int __rename(File *file, char *path)
+{
+}
+
+static int __close(File *file)
+{
+    return fclose(file->f);
 }
 
 static class_info_entry_t file_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , File, construct, __construct),
-    Init_Nfunc_Entry(2 , File, deconstruct, __deconstrcut),
+    Init_Nfunc_Entry(2 , File, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3 , File, set, NULL),
     Init_Vfunc_Entry(4 , File, get, NULL),
-    Init_End___Entry(5 , File),
+    Init_Vfunc_Entry(5 , File, open, __open),
+    Init_Vfunc_Entry(6 , File, read, __read),
+    Init_Vfunc_Entry(7 , File, write, __write),
+    Init_Vfunc_Entry(8 , File, rename, __rename),
+    Init_Vfunc_Entry(9 , File, close, __close),
+    Init_End___Entry(10, File),
 };
-REGISTER_CLASS("File",file_class_info);
+REGISTER_CLASS("File", file_class_info);
 
-void test_obj_file()
+int test_file()
 {
     File *file;
+    char *content = "hello world";
     allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
 
-    c = cfg_alloc(allocator); 
-    dbg_str(EV_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/File", CJSON_STRING, "name", "alan file") ;  
+    file = OBJECT_NEW(allocator, File, NULL);
 
-    file = OBJECT_NEW(allocator, File,c->buf);
-
-    object_dump(file, "File", buf, 2048);
-    dbg_str(EV_DETAIL,"File dump: %s",buf);
-
+    file->open(file, "./test.txt", "w+");
+    file->write(file, content, strlen(content));
+    file->close(file);
+    pause();
     object_destroy(file);
-    cfg_destroy(c);
+
+    return 1;
 }
+REGISTER_TEST_FUNC(test_file);

@@ -22,12 +22,14 @@ struct string_s{
 	int (*deconstruct)(String *string);
 	int (*set)(String *string, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
+    int (*modulate_capacity)(String *string, int write_len);
     String *(*pre_alloc)(String *string,uint32_t size);
     String *(*assign)(String *string,char *s);
     String *(*assign_fixed_len)(String *string,char *s, int len);
     String *(*assign_char)(String *,char c,size_t count );
     String *(*equals)(String *string,char *s);
     void (*append)(String *,char *);
+    void (*append_fixed_len)(String *string, char *sub, int len);
     String *(*append_char)(String *string,char c);
     void (*append_string)(String *,String *);
 	String *(*replace_char)(String *string,int index, char c);
@@ -48,7 +50,7 @@ struct string_s{
     String *(*insert)(String * dest,size_t index,char * src);
     String *(*insert_string)(String * dest,size_t index,String * src);
     int (*split)(String *, char *);
-    int (*split_once)(String *, char *);
+    int (*split_num_portion)(String *string, char *delims, int num);
     char * (*get_splited_cstr)(String *, int);
     
 #define MAX_NAME_LEN 50

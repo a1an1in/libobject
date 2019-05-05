@@ -9,6 +9,11 @@
 
 typedef struct _map_s Map;
 
+/**
+ * map key type can be value and address, and the default compare function 
+ * only compare the value, if you key is address, you must set your function.
+ * we support string_key_cmp_func().
+ */
 struct _map_s{
 	Obj obj;
 
