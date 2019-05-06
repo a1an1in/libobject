@@ -113,7 +113,10 @@ Producer *global_get_default_producer()
 {
     Producer *producer = global_default_producer;
 
-    while (producer->parent.flags < EVTHREAD_STATE_RUNNING) sleep(1);
+    while (producer->parent.flags < EVTHREAD_STATE_RUNNING){
+        dbg_str(DBG_SUC, "default_producer not ready, waiting...");
+        usleep(100000);
+    }
     return producer;
 }
 
