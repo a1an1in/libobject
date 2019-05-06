@@ -108,4 +108,4 @@ int test_file()
 
     return 1;
 }
-REGISTER_TEST_FUNC(test_file);
+REGISTER_TEST_CMD(test_file);

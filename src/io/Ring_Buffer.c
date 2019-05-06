@@ -75,16 +75,12 @@ static int __deconstrcut(Ring_Buffer *buffer)
 static int __get_len(Ring_Buffer *buffer)
 {
     if (buffer->w_offset > buffer->r_offset) {
-        dbg_str(DBG_DETAIL,"get len: w_offset=%d, r_offset=%d, size=%d",
-                buffer->w_offset, buffer->r_offset, buffer->size);
         return buffer->w_offset - buffer->r_offset;
 
     } else if (buffer->last_operation_flag == BUFFER_READ_OPERATION &&
                buffer->w_offset > buffer->r_offset){
         return 0;
     } else {
-        dbg_str(DBG_DETAIL,"get len: w_offset=%d, r_offset=%d, size=%d",
-                buffer->w_offset, buffer->r_offset, buffer->size);
         return (buffer->w_offset - buffer->r_offset + buffer->size);
     }
 }
@@ -197,8 +193,10 @@ static int __read_to_buffer(Ring_Buffer *rb, Buffer *buffer, int len)
 
     l = l > len ? len : l;
 
-    dbg_str(DBG_DETAIL, "read len=%d, w=%d, r=%d",
-            l, rb->w_offset, rb->r_offset);
+    /*
+     *dbg_str(DBG_DETAIL, "read len=%d, w=%d, r=%d",
+     *        l, rb->w_offset, rb->r_offset);
+     */
 
     if (rb->w_offset > rb->r_offset) {
         l = buffer->write(buffer, rb->addr + rb->r_offset, l);
