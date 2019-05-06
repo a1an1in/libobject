@@ -21,8 +21,8 @@ macro (set_cmake_evironment_variable)
         set (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr)
         #SET(ExternalLibs ${ExternalLibs} avformat avfilter swscale swresample avcodec avutil x264 vorbis vorbisenc
             #vorbisfile mp3lame vpx xvidcore opus fdk-aac theora xvidcore z iconv bz2 SDL2 SDL2_ttf yuv -force_load /usr/local/lib/libobject.a)
-        SET(ExternalLibs ${ExternalLibs} avformat avfilter swscale swresample avcodec avutil SDL2 SDL2_ttf)
-        SET(ExternalLibs ${ExternalLibs} z iconv bz2)
+        #SET(ExternalLibs ${ExternalLibs} avformat avfilter swscale swresample avcodec avutil SDL2 SDL2_ttf)
+        #SET(ExternalLibs ${ExternalLibs} z iconv bz2)
         #SET(ExternalLibs ${ExternalLibs} "-force_load /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/lib/libobject.a")
         set (SYS_LIBRARY_PATH /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/lib )
 

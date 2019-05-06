@@ -30,7 +30,6 @@ display_configs("${PLATFORM}")
 #find_package(opengl)
 #find_package(CURL)
 
-option (MODULE_UI "ui module" OFF)
 option (MODULE_BUS "bus module" OFF)
 
 # add compile paramater 
@@ -51,18 +50,6 @@ find_main_file(Main_File)
 if (Main_File)
     list(REMOVE_ITEM Source_Files ${Main_File} )
     message("-- Main file path: ${Main_File}")
-endif ()
-
-if (MODULE_UI)
-    message("-- Turn ui module on")
-    #find_package(SDL2 REQUIRED)
-    SET(ExternalLibs ${ExternalLibs} SDL2 SDL2_ttf)
-else ()
-    message("-- Turn ui module off")
-    find_module_files(Exclude_UI_Module_Files ui)
-    #message("${Exclude_UI_Module_Files}")
-    exclude_files(Source_Files "${Source_Files}" "${Exclude_UI_Module_Files}")
-    #message("sources exclude ui module: ${Source_Files}")
 endif ()
 
 if (MODULE_BUS)
