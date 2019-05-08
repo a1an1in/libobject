@@ -35,7 +35,7 @@
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/message/message.h> 
-#include <libobject/message/publisher.h>
+#include <libobject/message/Publisher.h>
 
 message_t *message_alloc(allocator_t *allocator)
 {

@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
-#include <libobject/core/iterator.h>
-#include <libobject/core/list.h>
+#include <libobject/core/Obj.h>
+#include <libobject/core/Iterator.h>
+#include <libobject/core/List.h>
 
 typedef struct _map_s Map;
 

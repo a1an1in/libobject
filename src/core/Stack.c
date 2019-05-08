@@ -34,8 +34,8 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/event/event_base.h>
-#include <libobject/core/stack.h>
+#include <libobject/event/Event_Base.h>
+#include <libobject/core/Stack.h>
 
 static class_info_entry_t stack_class_info[] = {
     Init_Obj___Entry(0, Obj, obj),

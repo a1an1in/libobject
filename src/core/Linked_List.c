@@ -33,8 +33,8 @@
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
-#include <libobject/core/linked_list.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/core/Linked_List.h>
 
 static int __construct(List *list, char *init_str)
 {

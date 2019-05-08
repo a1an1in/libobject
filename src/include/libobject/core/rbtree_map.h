@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/data_structure/rbtree_map.h>
-#include <libobject/core/map.h>
-#include <libobject/core/rbtree_iterator.h>
+#include <libobject/core/Map.h>
+#include <libobject/core/Rbtree_Iterator.h>
 
 typedef struct RBTree_Map_s RBTree_Map;
 

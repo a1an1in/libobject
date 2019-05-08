@@ -30,13 +30,13 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/core/linked_list.h>
 #include <libobject/core/utils/registry/registry.h>
-#include <libobject/concurrent/producer.h>
-#include <libobject/concurrent/worker.h>
+#include <libobject/core/Linked_List.h>
+#include <libobject/concurrent/Producer.h>
+#include <libobject/concurrent/Worker.h>
 
 Producer *global_default_producer;
 

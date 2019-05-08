@@ -35,7 +35,7 @@
 #include <assert.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/String.h>
-#include <libobject/core/vector.h>
+#include <libobject/core/Vector.h>
 
 static int __modulate_capacity(String *string, int write_len)
 {

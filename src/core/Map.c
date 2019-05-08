@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
-#include <libobject/core/map.h>
+#include <libobject/core/Map.h>
 
 static int __construct(Map *map, char *init_str)
 {
@@ -48,15 +48,15 @@ static int __deconstrcut(Map *map)
     return 0;
 }
 
-static int __contain_key(Map *map,void *key)
+static int __contain_key(Map *map, void *key)
 {
 }
 
-static int __contain_value(Map *map,void *value)
+static int __contain_value(Map *map, void *value)
 {
 }
 
-static int __contain_key_and_value(Map *map,void *key, void *value)
+static int __contain_key_and_value(Map *map, void *key, void *value)
 {
 }
 

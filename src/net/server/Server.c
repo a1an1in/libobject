@@ -33,8 +33,8 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/net/server/server.h>
-#include <libobject/core/linked_list.h>
+#include <libobject/net/server/Server.h>
+#include <libobject/core/Linked_List.h>
 
 static int __construct(Server *server, char *init_str)
 {

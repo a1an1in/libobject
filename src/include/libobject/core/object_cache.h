@@ -1,9 +1,9 @@
 #ifndef __OBJECT_CACHE_H__
 #define __OBJECT_CACHE_H__
 
-#include <libobject/core/obj.h>
-#include <libobject/core/map.h>
-#include <libobject/core/list.h>
+#include <libobject/core/Obj.h>
+#include <libobject/core/Map.h>
+#include <libobject/core/List.h>
 
 typedef struct Object_Cache_s Object_Cache;
 

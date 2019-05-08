@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/iterator.h>
+#include <libobject/core/Iterator.h>
 
 static int __construct(Iterator *iter, char *init_str)
 {

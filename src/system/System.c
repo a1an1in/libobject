@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/system/system.h>
+#include <libobject/system/System.h>
 
 static int __construct(System *system,char *init_str)
 {

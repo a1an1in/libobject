@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
-#include <libobject/core/map.h>
+#include <libobject/core/Obj.h>
+#include <libobject/core/Map.h>
 #include <libobject/message/message.h>
 
 typedef struct subscriber_s Subscriber;

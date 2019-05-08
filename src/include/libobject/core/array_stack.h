@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
 #include <libobject/core/utils/data_structure/array_stack.h>
-#include <libobject/core/stack.h>
+#include <libobject/core/Obj.h>
+#include <libobject/core/Stack.h>
 
 typedef struct o_array_stack_s Array_Stack;
 

@@ -33,8 +33,8 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/concurrent/worker.h>
-#include <libobject/concurrent/producer.h>
+#include <libobject/concurrent/Worker.h>
+#include <libobject/concurrent/Producer.h>
 #include <libobject/core/utils/registry/registry.h>
 
 static struct timeval lasttime;

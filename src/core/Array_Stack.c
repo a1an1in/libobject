@@ -34,8 +34,8 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/core/array_stack.h>
-#include <libobject/event/event_base.h>
+#include <libobject/core/Array_Stack.h>
+#include <libobject/event/Event_Base.h>
 #include <libobject/core/utils/registry/registry.h>
 
 static int __construct(Stack *stack, char *init_str)

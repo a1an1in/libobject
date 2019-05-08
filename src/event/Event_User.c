@@ -33,7 +33,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/event/event_user.h>
+#include <libobject/event/Event_User.h>
 #include <unistd.h>
 
 static class_info_entry_t event_user_class_info[] = {

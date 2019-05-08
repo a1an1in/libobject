@@ -3,12 +3,12 @@
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
-#include <libobject/net/socket/socket.h>
-#include <libobject/concurrent/worker.h>
-#include <libobject/core/queue.h>
-#include <libobject/core/map.h>
-#include <libobject/core/lock.h>
+#include <libobject/core/Obj.h>
+#include <libobject/net/socket/Socket.h>
+#include <libobject/concurrent/Worker.h>
+#include <libobject/core/Queue.h>
+#include <libobject/core/Map.h>
+#include <libobject/core/Lock.h>
 
 typedef struct centor_s Centor;
 

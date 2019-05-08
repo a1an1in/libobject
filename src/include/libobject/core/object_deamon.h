@@ -1,8 +1,8 @@
 #ifndef __OBJECT_DEAMON_H__
 #define __OBJECT_DEAMON_H__
 
-#include <libobject/core/obj.h>
-#include <libobject/core/object_cache.h>
+#include <libobject/core/Obj.h>
+#include <libobject/core/Object_Cache.h>
 
 typedef struct Object_Deamon_s Object_Deamon;
 

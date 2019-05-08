@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/linkedlist_iterator.h>
+#include <libobject/core/Linkedlist_Iterator.h>
 
 static Iterator *__next(Iterator *it)
 {

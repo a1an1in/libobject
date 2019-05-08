@@ -7,7 +7,7 @@
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
+#include <libobject/core/Obj.h>
 #include <libobject/net/net_task.h>
 
 #define DEFAULT_MAX_IP_STR_LEN 64

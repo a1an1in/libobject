@@ -35,10 +35,10 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/message/subscriber.h> 
-#include <libobject/message/centor.h>
+#include <libobject/message/Subscriber.h> 
+#include <libobject/message/Centor.h>
 #include <libobject/message/message.h>
-#include <libobject/core/rbtree_map.h>
+#include <libobject/core/Rbtree_Map.h>
 
 static void message_handler(void *arg)
 {

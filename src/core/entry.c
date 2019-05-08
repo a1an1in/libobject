@@ -5,7 +5,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/libobject.h>
-#include <libobject/concurrent/producer.h>
+#include <libobject/concurrent/Producer.h>
 #include <libobject/version.h>
 
 #if (defined(ANDROID_USER_MODE))

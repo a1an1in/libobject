@@ -33,7 +33,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/concurrent/consumer.h>
+#include <libobject/concurrent/Consumer.h>
 
 static int __construct(Consumer *consumer, char *init_str)
 {

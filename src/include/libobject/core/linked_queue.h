@@ -5,9 +5,9 @@
 #include <pthread.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/data_structure/link_list.h>
-#include <libobject/core/obj.h>
-#include <libobject/core/queue.h>
-#include <libobject/core/linkedlist_iterator.h>
+#include <libobject/core/Obj.h>
+#include <libobject/core/Queue.h>
+#include <libobject/core/Linkedlist_Iterator.h>
 
 typedef struct linked_queue_s Linked_Queue;
 

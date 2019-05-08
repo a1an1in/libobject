@@ -4,11 +4,11 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
-#include <libobject/core/thread.h>
-#include <libobject/core/queue.h>
-#include <libobject/event/event_base.h>
-#include <libobject/net/socket/socket.h>
+#include <libobject/core/Obj.h>
+#include <libobject/core/Thread.h>
+#include <libobject/core/Queue.h>
+#include <libobject/event/Event_Base.h>
+#include <libobject/net/socket/Socket.h>
 
 typedef struct event_thread_s Event_Thread;
 

@@ -33,7 +33,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/concurrent/concurrent.h>
+#include <libobject/concurrent/Concurrent.h>
 
 static int __construct(Concurrent *eb, char *init_str)
 {

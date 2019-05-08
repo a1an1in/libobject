@@ -34,8 +34,8 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/event/event_base.h>
-#include <libobject/core/lock.h>
+#include <libobject/event/Event_Base.h>
+#include <libobject/core/Lock.h>
 
 static int __construct(Lock *lock, char *init_str)
 {

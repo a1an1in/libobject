@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
-#include <libobject/core/mutex_lock.h>
+#include <libobject/core/Obj.h>
+#include <libobject/core/Mutex_Lock.h>
 
 typedef struct condition_s Condition;
 

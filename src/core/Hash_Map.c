@@ -32,8 +32,8 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
-#include <libobject/core/hash_map.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/core/Hash_Map.h>
 
 static int __construct(Map *map, char *init_str)
 {
@@ -352,7 +352,7 @@ static int test_Hash_Map_set(TEST_ENTRY *entry)
 
     void **addr = map->get(map, "Hash_Map/test");
 
-    if (*addr == 0x12345678) {
+    if ((int)(*addr) == 0x12345678) {
         ret = 1;
     }
     object_dump(map, "Hash_Map", buf, 2048);

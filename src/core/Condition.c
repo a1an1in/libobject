@@ -34,11 +34,11 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/core/condition.h>
-#include <libobject/event/event_base.h>
-#include <libobject/core/thread.h>
-#include <libobject/core/mutex_lock.h>
-#include <libobject/core/linked_queue.h>
+#include <libobject/core/Condition.h>
+#include <libobject/event/Event_Base.h>
+#include <libobject/core/Thread.h>
+#include <libobject/core/Mutex_Lock.h>
+#include <libobject/core/Linked_Queue.h>
 
 static int __construct(Condition *condition, char *init_str)
 {

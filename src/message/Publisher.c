@@ -34,9 +34,9 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/message/publisher.h> 
-#include <libobject/message/centor.h>
-#include <libobject/message/subscriber.h>
+#include <libobject/message/Publisher.h> 
+#include <libobject/message/Centor.h>
+#include <libobject/message/Subscriber.h>
 
 static int __construct(Publisher *publisher, char *init_str)
 {

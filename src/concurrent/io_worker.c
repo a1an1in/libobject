@@ -38,8 +38,8 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/concurrent/worker.h>
-#include <libobject/concurrent/producer.h>
+#include <libobject/concurrent/Worker.h>
+#include <libobject/concurrent/Producer.h>
 
 Worker *
 io_worker(allocator_t *allocator, int fd, 

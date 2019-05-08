@@ -33,7 +33,7 @@
  * 
  */
 
-#include <libobject/core/object_deamon.h>
+#include <libobject/core/Object_Deamon.h>
 #include <libobject/core/utils/dbg/debug.h>
 
 static Object_Cache *

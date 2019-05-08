@@ -33,7 +33,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/net/server/inet_tcp_server.h>
+#include <libobject/net/server/Inet_Tcp_Server.h>
 
 static int __construct(Inet_Tcp_Server *server, char *init_str)
 {

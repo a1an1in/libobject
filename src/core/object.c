@@ -32,10 +32,10 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/object.h>
-#include <libobject/core/obj.h>
 #include <libobject/core/config.h>
+#include <libobject/core/Obj.h>
 #include <libobject/core/String.h>
-#include <libobject/core/object_cache.h>
+#include <libobject/core/Object_Cache.h>
 
 void * 
 __object_get_normal_func_of_class(void *class_info_addr, 

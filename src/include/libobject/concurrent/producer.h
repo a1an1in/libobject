@@ -3,11 +3,11 @@
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
-#include <libobject/core/hash_map.h>
-#include <libobject/core/list.h>
-#include <libobject/concurrent/dispatcher.h>
-#include <libobject/event/event_thread.h>
+#include <libobject/core/Obj.h>
+#include <libobject/core/Hash_Map.h>
+#include <libobject/core/List.h>
+#include <libobject/concurrent/Dispatcher.h>
+#include <libobject/event/Event_Thread.h>
 
 typedef struct producer_s Producer;
 

@@ -8,8 +8,8 @@
 #include <unistd.h>
 
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
-#include <libobject/event/event_base.h>
+#include <libobject/core/Obj.h>
+#include <libobject/event/Event_Base.h>
 
 typedef struct select_base_s Select_Base;
 

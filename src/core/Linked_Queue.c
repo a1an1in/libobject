@@ -34,8 +34,8 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/core/linked_queue.h>
-#include <libobject/event/event_base.h>
+#include <libobject/core/Linked_Queue.h>
+#include <libobject/event/Event_Base.h>
 
 static int __construct(Linked_Queue *queue, char *init_str)
 {

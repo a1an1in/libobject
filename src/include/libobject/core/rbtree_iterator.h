@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/data_structure/hash_list.h>
-#include <libobject/core/iterator.h>
+#include <libobject/core/Iterator.h>
 
 typedef struct rbtree_iterator_s RBTree_Iterator;
 

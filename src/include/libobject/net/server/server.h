@@ -3,10 +3,10 @@
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
-#include <libobject/net/socket/socket.h>
-#include <libobject/concurrent/worker.h>
-#include <libobject/core/list.h>
+#include <libobject/core/Obj.h>
+#include <libobject/net/socket/Socket.h>
+#include <libobject/concurrent/Worker.h>
+#include <libobject/core/List.h>
 
 typedef struct server_s Server;
 

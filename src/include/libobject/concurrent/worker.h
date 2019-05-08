@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
-#include <libobject/core/hash_map.h>
-#include <libobject/concurrent/producer.h>
+#include <libobject/core/Obj.h>
+#include <libobject/core/Hash_Map.h>
+#include <libobject/concurrent/Producer.h>
 #include <libobject/event/event.h>
 
 typedef struct worker_s Worker;

@@ -33,7 +33,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/net/client/inet_tcp_client.h>
+#include <libobject/net/client/Inet_Tcp_Client.h>
 
 static int __construct(Inet_Tcp_Client *client, char *init_str)
 {

@@ -32,8 +32,8 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
-#include <libobject/event/event_base.h>
-#include <libobject/event/timer.h>
+#include <libobject/event/Event_Base.h>
+#include <libobject/event/Timer.h>
 
 static int __construct(Timer *timer, char *init_str)
 {

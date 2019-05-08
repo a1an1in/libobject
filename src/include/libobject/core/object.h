@@ -2,7 +2,7 @@
 #define __OBJECT_H__
 
 #include <libobject/core/class_info.h>
-#include <libobject/core/obj.h>
+#include <libobject/core/Obj.h>
 #include <libobject/core/utils/json/cjson.h>
 
 #define OBJECT_FALSE   CJSON_FALSE  

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/data_structure/vector.h>
-#include <libobject/core/obj.h>
+#include <libobject/core/Obj.h>
 
 typedef struct _vector_s Vector;
 

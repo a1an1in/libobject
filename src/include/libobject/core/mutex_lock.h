@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
-#include <libobject/core/lock.h>
+#include <libobject/core/Obj.h>
+#include <libobject/core/Lock.h>
 #include <pthread.h>
 
 typedef struct mutex_lock_s Mutex_Lock;

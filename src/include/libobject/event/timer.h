@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
+#include <libobject/core/Obj.h>
 #include <libobject/event/event.h>
 
 typedef struct timer_s Timer;

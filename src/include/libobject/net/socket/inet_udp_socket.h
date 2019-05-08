@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
-#include <libobject/net/socket/socket.h>
+#include <libobject/core/Obj.h>
+#include <libobject/net/socket/Socket.h>
 
 typedef struct inet_udp_socket_s Inet_Udp_Socket;
 

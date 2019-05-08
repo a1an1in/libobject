@@ -4,8 +4,8 @@
 #include <libobject/basic_types.h>
 #include <libobject/core/utils/data_structure/vector.h>
 #include <libobject/core/utils/blob/blob.h>
-#include <libobject/core/map.h>
-#include <libobject/net/server/server.h>
+#include <libobject/core/Map.h>
+#include <libobject/net/server/Server.h>
 
 enum {
 	BUSD_ID,

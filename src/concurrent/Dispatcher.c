@@ -33,7 +33,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/concurrent/dispatcher.h>
+#include <libobject/concurrent/Dispatcher.h>
 
 static int __construct(Dispatcher *dispatcher, char *init_str)
 {

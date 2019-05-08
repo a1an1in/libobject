@@ -33,7 +33,7 @@
 #include <unistd.h>
 #include <libobject/core/utils/blob/blob.h>
 #include <libobject/core/utils/config/config.h>
-#include <libobject/core/hash_map.h>
+#include <libobject/core/Hash_Map.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/net/bus/bus.h>
 

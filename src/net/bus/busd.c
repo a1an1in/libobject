@@ -36,7 +36,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/miscellany/buffer.h>
 #include <libobject/core/utils/config/config.h>
-#include <libobject/core/hash_map.h>
+#include <libobject/core/Hash_Map.h>
 
 static const struct blob_policy_s busd_policy[] = {
     [BUSD_ID]             = { .name = "id",             .type = BLOB_TYPE_INT32 }, 

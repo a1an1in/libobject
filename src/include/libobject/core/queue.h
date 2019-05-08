@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/obj.h>
-#include <libobject/core/iterator.h>
+#include <libobject/core/Obj.h>
+#include <libobject/core/Iterator.h>
 
 typedef struct queue_s Queue;
 

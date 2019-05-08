@@ -34,7 +34,7 @@
  * 
  */
 
-#include <libobject/core/object_cache.h>
+#include <libobject/core/Object_Cache.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/String.h>
 
