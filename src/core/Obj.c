@@ -106,28 +106,28 @@ static int __set(Obj *obj, char *attrib, void *value)
         case ENTRY_TYPE_INT8_T:
         case ENTRY_TYPE_UINT8_T:
             {
-                uint8_t *addr = (base + entry->offset);
+                uint8_t *addr = (uint8_t *)(base + entry->offset);
                 *addr = *((uint8_t *)value);
                 break;
             }
         case ENTRY_TYPE_INT16_T:
         case ENTRY_TYPE_UINT16_T:
             {
-                uint16_t *addr = (base + entry->offset);
+                uint16_t *addr = (uint16_t *)(base + entry->offset);
                 *addr = *((uint16_t *)value);
                 break;
             }
         case ENTRY_TYPE_INT32_T:
         case ENTRY_TYPE_UINT32_T:
             {
-                uint32_t *addr = (base + entry->offset);
+                uint32_t *addr = (uint32_t *)(base + entry->offset);
                 *addr = *((uint32_t *)value);
                 break;
             }
         case ENTRY_TYPE_INT64_T:
         case ENTRY_TYPE_UINT64_T:
             {
-                uint64_t *addr = (base + entry->offset);
+                uint64_t *addr = (uint64_t *)(base + entry->offset);
                 *addr = *((uint64_t *)value);
                 break;
             }
@@ -142,7 +142,7 @@ static int __set(Obj *obj, char *attrib, void *value)
             }
 #else
             {
-                char **addr = (base + entry->offset);
+                char **addr = (char **)(base + entry->offset);
                 *addr = value;
                 break;
             }
@@ -153,7 +153,7 @@ static int __set(Obj *obj, char *attrib, void *value)
         case ENTRY_TYPE_IFUNC_POINTER:
         case ENTRY_TYPE_OBJ_POINTER:
             {
-                void **addr = (base + entry->offset);
+                void **addr = (void **)(base + entry->offset);
                 *addr = value;
                 break;
             }

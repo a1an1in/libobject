@@ -18,10 +18,10 @@ struct buffer_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
-    int (*read)(Stream *, void *dst, int len);
-    int (*write)(Stream *, void *src, int len);
-    int (*get_len)(Stream *);
-    int (*set_capacity)(Stream *, int size);
+    int (*read)(Buffer *, void *dst, int len);
+    int (*write)(Buffer *, void *src, int len);
+    int (*get_len)(Buffer *);
+    int (*set_capacity)(Buffer *, int size);
     int (*get_free_capacity)(Buffer *buffer);
 
     /*attribs*/

@@ -193,7 +193,7 @@ static void event_thread_server_socket_ev_callback(int fd, short events, void *a
 static void *__start_routine(void *arg)
 {
     Event_Thread *et       = (Event_Thread *)arg;
-    Thread * tt            = et;
+    Thread * tt            = (Thread *)et;
     allocator_t *allocator = et->parent.obj.allocator;
     Event_Base *eb         = et->eb;
     event_t *event         = &et->server_socket_event;

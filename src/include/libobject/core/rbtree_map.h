@@ -20,6 +20,9 @@ struct RBTree_Map_s{
 	/*virtual methods reimplement*/
     int (*set_cmp_func)(Map *map, void *func);
     int (*add)(Map *map,void *key,void *value);
+    int (*contain_key)(Map *map,void *key);
+    int (*contain_value)(Map *map,void *value);
+    int (*contain_key_and_value)(Map *map,void *key, void *value);
     int (*search)(Map *map,void *key,void **element);
     int (*search_all_same_key)(Map *map,void *key, List *list);
     int (*remove)(Map *map,void *key,void **element);

@@ -175,8 +175,8 @@ int Test_buffer(TEST_ENTRY *entry)
     buffer->read(buffer, out, 4);
     buffer->read(buffer, out + 4, 9);
 
-    dbg_buf(DBG_DETAIL, "in:", in, 13);
-    dbg_buf(DBG_DETAIL, "out:", out, 13);
+    dbg_buf(DBG_DETAIL, "in:", (uint8_t *)in, 13);
+    dbg_buf(DBG_DETAIL, "out:", (uint8_t *)out, 13);
 
     if (strncmp(in, out, 13) == 0) {
         ret = 1;

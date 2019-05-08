@@ -120,7 +120,9 @@ static int test_message_publisher()
     allocator_t *allocator = allocator_get_default_alloc();
     char * test_str = "on_pause";
 
-    char *test_xxxx = "test_xxxx";
+    /*
+     *char *test_xxxx = "test_xxxx";
+     */
 
     centor     = OBJECT_NEW(allocator, Centor, NULL);
     publisher  = OBJECT_NEW(allocator, Publisher, NULL);
@@ -128,11 +130,13 @@ static int test_message_publisher()
 
     subscriber->connect_centor(subscriber, centor);
     subscriber->add_method(subscriber, "on_pause", test_on_pause, allocator);
+    subscriber->add_method(subscriber, "test_xxxx", test_xxxx, allocator);   
     subscriber->subscribe(subscriber, publisher);
 
  
-    subscriber->add_method(subscriber, "test_xxxx", test_xxxx, allocator);   
-    subscriber->subscribe(subscriber, publisher);
+    /*
+     *subscriber->subscribe(subscriber, publisher);
+     */
  
     //subscriber->subscribe(subscriber, publisher);
 
@@ -149,4 +153,4 @@ static int test_message_publisher()
 
     return 1;
 }
-REGISTER_STANDALONE_TEST_FUNC(test_message_publisher);
+REGISTER_TEST_CMD(test_message_publisher);

@@ -114,13 +114,17 @@ static void __printf_map(void *key, void *element)
 static int __subscribe(Subscriber *subscriber, void *publisher)
 {
     Centor *centor = (Centor *)subscriber->centor;
+    Map *map = centor->subscriber_map; 
+    void *value;
+    int ret = 0;
+
     dbg_str(DBG_DETAIL, "subscriber %p subscribe publisher %p", subscriber, publisher);
 
     subscriber->publisher = publisher;
-    centor->subscriber_map->add(centor->subscriber_map,
-            subscriber, publisher);
 
-    centor->subscriber_map->for_each(centor->subscriber_map, __printf_map);
+    map->add(map, subscriber, publisher);
+
+    map->for_each(map, __printf_map);
     return 0;
 }
 

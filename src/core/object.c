@@ -34,7 +34,7 @@
 #include <libobject/core/object.h>
 #include <libobject/core/obj.h>
 #include <libobject/core/config.h>
-#include <libobject/core/string.h>
+#include <libobject/core/String.h>
 #include <libobject/core/object_cache.h>
 
 void * 

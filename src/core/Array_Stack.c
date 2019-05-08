@@ -124,22 +124,22 @@ int test_Array_Stack(TEST_ENTRY *entry)
     }
 
     stack->pop(stack, (void **)&p);
-    if (p != 7) {
+    if ((int)p != 7) {
         return -1;
     }
 
     stack->pop(stack, (void **)&p);
-    if (p != 6) {
+    if ((int)p != 6) {
         return -1;
     }
 
     stack->pop(stack, (void **)&p);
-    if (p != 5) {
+    if ((int)p != 5) {
         return -1;
     }
 
     stack->pop(stack, (void **)&p);
-    if (p != 4) {
+    if ((int)p != 4) {
         return -1;
     }
 

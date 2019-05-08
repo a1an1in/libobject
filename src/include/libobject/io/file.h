@@ -20,8 +20,8 @@ struct file_s{
 	/*virtual methods reimplement*/
     int (*open)(File *file, char *path, char *mode);
     int (*rename)(File *file, char *path);
-    int (*read)(Stream *, void *dst, int len);
-    int (*write)(Stream *, void *src, int len);
+    int (*read)(File *, void *dst, int len);
+    int (*write)(File *, void *src, int len);
     int (*close)(File *file);
 
     /*attribs*/

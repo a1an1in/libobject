@@ -24,14 +24,14 @@ struct ring_buffer_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
-    int (*read)(Stream *, void *dst, int len);
-    int (*read_to_string)(Stream *, String *str, int len);
+    int (*read)(Ring_Buffer *, void *dst, int len);
+    int (*read_to_string)(Ring_Buffer *, String *str, int len);
     int (*read_to_buffer)(Ring_Buffer *rb, Buffer *buffer, int len);
-    int (*write)(Stream *, void *src, int len);
+    int (*write)(Ring_Buffer *, void *src, int len);
     void *(*find)(Ring_Buffer *buffer, void *needle);
     int (*get_len_to_needle)(Ring_Buffer *buffer, void *needle);
-    int (*get_len)(Stream *);
-    int (*set_size)(Stream *, int size);
+    int (*get_len)(Ring_Buffer *);
+    int (*set_size)(Ring_Buffer *, int size);
     int (*printf)(Ring_Buffer *buffer, const char *fmt, ...);
     int (*memcopy)(Ring_Buffer *buffer, void *addr, int len);
 

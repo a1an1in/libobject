@@ -48,6 +48,18 @@ static int __deconstrcut(Map *map)
     return 0;
 }
 
+static int __contain_key(Map *map,void *key)
+{
+}
+
+static int __contain_value(Map *map,void *value)
+{
+}
+
+static int __contain_key_and_value(Map *map,void *key, void *value)
+{
+}
+
 static void __for_each(Map *map, void (*func)(void *key, void *element))
 {
     Iterator *cur, *end;
@@ -104,19 +116,22 @@ static class_info_entry_t map_class_info[] = {
     Init_Vfunc_Entry(3 , Map, set, NULL),
     Init_Vfunc_Entry(4 , Map, get, NULL),
     Init_Vfunc_Entry(5 , Map, add, NULL),
-    Init_Vfunc_Entry(6 , Map, search, NULL),
-    Init_Vfunc_Entry(7 , Map, search_all_same_key, NULL),
-    Init_Vfunc_Entry(8 , Map, remove, NULL),
-    Init_Vfunc_Entry(9 , Map, del, NULL),
-    Init_Vfunc_Entry(10, Map, for_each, __for_each),
-    Init_Vfunc_Entry(11, Map, for_each_arg, __for_each_arg),
-    Init_Vfunc_Entry(12, Map, begin, __begin),
-    Init_Vfunc_Entry(13, Map, end, __end),
-    Init_Vfunc_Entry(14, Map, destroy, __destroy),
-    Init_Vfunc_Entry(15, Map, set_cmp_func, NULL),
-    Init_Nfunc_Entry(16, Map, set_target_name, NULL),
-    Init_Str___Entry(17, Map, name, NULL),
-    Init_End___Entry(18, Map),
+    Init_Vfunc_Entry(6 , Map, contain_key, NULL),
+    Init_Vfunc_Entry(7 , Map, contain_value, NULL),
+    Init_Vfunc_Entry(8 , Map, contain_key_and_value, NULL),
+    Init_Vfunc_Entry(9 , Map, search, NULL),
+    Init_Vfunc_Entry(10, Map, search_all_same_key, NULL),
+    Init_Vfunc_Entry(11, Map, remove, NULL),
+    Init_Vfunc_Entry(12, Map, del, NULL),
+    Init_Vfunc_Entry(13, Map, for_each, __for_each),
+    Init_Vfunc_Entry(14, Map, for_each_arg, __for_each_arg),
+    Init_Vfunc_Entry(15, Map, begin, __begin),
+    Init_Vfunc_Entry(16, Map, end, __end),
+    Init_Vfunc_Entry(17, Map, destroy, __destroy),
+    Init_Vfunc_Entry(18, Map, set_cmp_func, NULL),
+    Init_Nfunc_Entry(19, Map, set_target_name, NULL),
+    Init_Str___Entry(20, Map, name, NULL),
+    Init_End___Entry(21, Map),
 };
 REGISTER_CLASS("Map", map_class_info);
 

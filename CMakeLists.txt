@@ -15,6 +15,9 @@ set (LIBOBJECT_VERSION_MINOR 1)
 set (LIBOBJECT_VERSION_MAINTENANCE 0)
 set (LIBOBJECT_VERSION_BUILD 1)
 
+message("-- CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+message("-- CMAKE_CURRENT_LIST_DIR: ${CMAKE_CURRENT_LIST_DIR}")
+
 configure_file (
     "${PROJECT_SOURCE_DIR}/src/include/libobject/version.h.in"
     "${PROJECT_SOURCE_DIR}/src/include/libobject/version.h")

@@ -27,7 +27,7 @@ struct string_s{
     String *(*assign)(String *string,char *s);
     String *(*assign_fixed_len)(String *string,char *s, int len);
     String *(*assign_char)(String *,char c,size_t count );
-    String *(*equals)(String *string,char *s);
+    int (*equals)(String *string,char *s);
     void (*append)(String *,char *);
     void (*append_fixed_len)(String *string, char *sub, int len);
     String *(*append_char)(String *string,char c);

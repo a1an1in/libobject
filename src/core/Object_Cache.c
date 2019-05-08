@@ -36,7 +36,7 @@
 
 #include <libobject/core/object_cache.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/string.h>
+#include <libobject/core/String.h>
 
 static int __construct(Object_Cache *cache,char *init_str)
 {
@@ -123,7 +123,7 @@ __new(Object_Cache *cache, char *class_name)
             object_list->add_back(object_list, o);
         } else {
             dbg_str(DBG_SUC, "get object from cache");
-            list->remove(list, &o);
+            list->remove(list, (void **)&o);
         }
     }
 
