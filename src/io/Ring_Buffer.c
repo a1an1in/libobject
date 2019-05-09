@@ -231,6 +231,7 @@ static void * __find(Ring_Buffer *buffer, void *needle)
         goto end;
     } 
 
+#if 1
     if (buffer->w_offset > buffer->r_offset) {
         ret = strnstr(buffer->addr + buffer->r_offset,
                       needle, buffer->w_offset - buffer->r_offset);
@@ -244,6 +245,7 @@ static void * __find(Ring_Buffer *buffer, void *needle)
         ret = strnstr(buffer->addr,
                       needle, buffer->w_offset);
     }
+#endif
 
 end:
     return ret;

@@ -35,7 +35,7 @@
 #include <libobject/net/bus/bus.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/miscellany/buffer.h>
-#include <libobject/core/utils/config/config.h>
+#include <libobject/core/config.h>
 #include <libobject/core/Hash_Map.h>
 
 static const struct blob_policy_s busd_policy[] = {

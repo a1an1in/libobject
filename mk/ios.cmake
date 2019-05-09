@@ -6,8 +6,8 @@ macro (set_cmake_evironment_variable)
         INCLUDE_DIRECTORIES(
             /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include
             ${PROJECT_SOURCE_DIR}/src/include)
-        set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/ios/${IOS_PLATFORM})
-        set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/ios/${IOS_PLATFORM})
+        set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/outputs/ios/bin/${IOS_PLATFORM})
+        set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/outputs/ios/lib/${IOS_PLATFORM})
         set (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr)
     elseif (IOS_PLATFORM STREQUAL "SIMULATOR64")
         LINK_DIRECTORIES(
@@ -16,8 +16,8 @@ macro (set_cmake_evironment_variable)
         INCLUDE_DIRECTORIES(
             /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/include
             ${PROJECT_SOURCE_DIR}/src/include)
-        set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/ios/${IOS_PLATFORM})
-        set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/ios/${IOS_PLATFORM})
+        set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/outputs/ios/bin/${IOS_PLATFORM})
+        set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/outputs/ios/lib/${IOS_PLATFORM})
         set (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr)
         #SET(ExternalLibs ${ExternalLibs} avformat avfilter swscale swresample avcodec avutil x264 vorbis vorbisenc
             #vorbisfile mp3lame vpx xvidcore opus fdk-aac theora xvidcore z iconv bz2 SDL2 SDL2_ttf yuv -force_load /usr/local/lib/libobject.a)

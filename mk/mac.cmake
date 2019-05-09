@@ -7,9 +7,8 @@ macro (set_cmake_evironment_variable)
         /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include
         ${PROJECT_SOURCE_DIR}/src/include)
 
-    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/mac)
-    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/mac)
-    set (LIBRARY_DIR_PATH ${PROJECT_SOURCE_DIR}/lib/mac/ )
+    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/outputs/mac/bin)
+    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/outputs/mac/lib)
 endmacro()
 
 macro (display_mac_platform_configs)

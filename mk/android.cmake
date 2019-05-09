@@ -12,7 +12,7 @@ macro (set_android_environment_variable)
     endif()
     set(CMAKE_ANDROID_NDK /Users/alanlin/Library/Android/sdk/ndk-bundle)
     set(CMAKE_ANDROID_STL_TYPE gnustl_static)
-    set(CMAKE_TOOLCHAIN_FILE /Users/alanlin/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake)
+    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_ANDROID_NDK}/build/cmake/android.toolchain.cmake)
 
     SET(ExternalLibs ${ExternalLibs} log)
 endmacro()
@@ -42,8 +42,8 @@ macro (set_cmake_evironment_variable)
         ${CMAKE_ANDROID_NDK}/sysroot/usr/include
         ${PROJECT_SOURCE_DIR}/src/include)
 
-    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/android/${ANDROID_ABI})
-    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/android/${ANDROID_ABI})
+    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/outputs/android/bin/${ANDROID_ABI})
+    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/outputs/android/lib/${ANDROID_ABI})
     set (CMAKE_INSTALL_PREFIX ${CMAKE_ANDROID_NDK}/sysroot/usr)
 
 endmacro()
