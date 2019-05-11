@@ -5,6 +5,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <stdio.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
 int test_gethostbyname(TEST_ENTRY *entry)
@@ -26,3 +28,4 @@ int test_gethostbyname(TEST_ENTRY *entry)
     return 1;
 }
 REGISTER_TEST_FUNC(test_gethostbyname);
+
