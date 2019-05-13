@@ -42,8 +42,8 @@ macro (set_cmake_evironment_variable)
         ${CMAKE_ANDROID_NDK}/sysroot/usr/include
         ${PROJECT_SOURCE_DIR}/src/include)
 
-    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/outputs/android/bin/${ANDROID_ABI})
-    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/outputs/android/lib/${ANDROID_ABI})
+    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/android/bin/${ANDROID_ABI})
+    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/android/lib/${ANDROID_ABI})
     set (CMAKE_INSTALL_PREFIX ${CMAKE_ANDROID_NDK}/sysroot/usr)
 
 endmacro()

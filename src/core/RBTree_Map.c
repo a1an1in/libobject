@@ -287,7 +287,7 @@ static void test_list_print(void *element)
     dbg_str(DBG_DETAIL, "list element value: %p", element);
 }
 
-int Test_rbtree_map_search_same_string_key()
+static int test_rbtree_map_search_same_string_key()
 {
     Map *map;
     List *list;
@@ -332,9 +332,9 @@ int Test_rbtree_map_search_same_string_key()
 
     return ret;
 }
-REGISTER_TEST_FUNC(Test_rbtree_map_search_same_string_key);
+REGISTER_TEST_FUNC(test_rbtree_map_search_same_string_key);
 
-int Test_rbtree_map_search_same_default_key(TEST_ENTRY *entry)
+static int test_rbtree_map_search_same_default_key(TEST_ENTRY *entry)
 {
     Map *map;
     List *list;
@@ -376,9 +376,9 @@ int Test_rbtree_map_search_same_default_key(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(Test_rbtree_map_search_same_default_key);
+REGISTER_TEST_FUNC(test_rbtree_map_search_same_default_key);
 
-int Test_rbtree_map_search_default_key(TEST_ENTRY *entry)
+static int test_rbtree_map_search_default_key(TEST_ENTRY *entry)
 {
     Iterator *iter, *next, *prev;
     Map *map;
@@ -441,9 +441,9 @@ end:
 
     return ret;
 }
-REGISTER_TEST_FUNC(Test_rbtree_map_search_default_key);
+REGISTER_TEST_FUNC(test_rbtree_map_search_default_key);
 
-int Test_rbtree_map_search_string_key(TEST_ENTRY *entry)
+static int test_rbtree_map_search_string_key(TEST_ENTRY *entry)
 {
     Iterator *iter, *next, *prev;
     Map *map;
@@ -487,9 +487,9 @@ int Test_rbtree_map_search_string_key(TEST_ENTRY *entry)
 
     return 1;
 }
-REGISTER_TEST_FUNC(Test_rbtree_map_search_string_key);
+REGISTER_TEST_FUNC(test_rbtree_map_search_string_key);
 
-int Test_rbtree_map_remove(TEST_ENTRY *entry)
+int test_rbtree_map_remove(TEST_ENTRY *entry)
 {
     Iterator *iter, *next, *prev;
     Map *map;
@@ -525,4 +525,4 @@ int Test_rbtree_map_remove(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(Test_rbtree_map_remove);
+REGISTER_TEST_FUNC(test_rbtree_map_remove);

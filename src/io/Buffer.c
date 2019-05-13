@@ -157,7 +157,7 @@ static class_info_entry_t buffer_class_info[] = {
 };
 REGISTER_CLASS("Buffer", buffer_class_info);
 
-int Test_buffer(TEST_ENTRY *entry)
+int test_buffer(TEST_ENTRY *entry)
 {
     Buffer *buffer;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -187,4 +187,4 @@ int Test_buffer(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(Test_buffer);
+REGISTER_TEST_FUNC(test_buffer);

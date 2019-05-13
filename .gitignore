@@ -38,7 +38,7 @@ bin/ios/
 bin/linux
 bin/mac
 lib/
-outputs/
+sysroot/
 
 *.swn
 *.swo

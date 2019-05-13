@@ -8,8 +8,8 @@ macro (set_cmake_evironment_variable)
 
     SET(ExternalLibs ${ExternalLibs} pthread m)
 
-    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/linux)
-    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib/linux)
+    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/linux/bin)
+    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/linux/lib)
     set (LIBRARY_DIR_PATH ${PROJECT_SOURCE_DIR}/lib/linux/)
 endmacro()
 

@@ -247,7 +247,7 @@ static void queue_print_int(void *element)
     dbg_str(DBG_IMPORTANT," element %d",*p);
 }
 
-int Test_peek_linked_queue_peek()
+int test_peek_linked_queue_peek()
 {
     int ret,i,j;
     int buf[10];
@@ -283,9 +283,9 @@ end:
 
     return ret;
 }
-REGISTER_TEST_FUNC(Test_peek_linked_queue_peek);
+REGISTER_TEST_FUNC(test_peek_linked_queue_peek);
 
-static int Test_linked_queue_clear()
+static int test_linked_queue_clear()
 {
     int ret,i,j;
     int buf[10];
@@ -312,9 +312,9 @@ static int Test_linked_queue_clear()
     return ret;
 
 }
-REGISTER_TEST_FUNC(Test_linked_queue_clear);
+REGISTER_TEST_FUNC(test_linked_queue_clear);
 
-static int Test_linked_queue_is_empty()
+static int test_linked_queue_is_empty()
 {
     int ret,i,j;
     int buf[10];
@@ -346,9 +346,9 @@ end:
 
     return ret;
 }
-REGISTER_TEST_FUNC(Test_linked_queue_is_empty);
+REGISTER_TEST_FUNC(test_linked_queue_is_empty);
 
-static int Test_linked_queue_size()
+static int test_linked_queue_size()
 {
     int ret,i,j;
     int buf[10];
@@ -372,7 +372,7 @@ static int Test_linked_queue_size()
 
     return ret;
 }
-REGISTER_TEST_FUNC(Test_linked_queue_size);
+REGISTER_TEST_FUNC(test_linked_queue_size);
 
 
 
