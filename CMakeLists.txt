@@ -15,6 +15,8 @@ set (LIBOBJECT_VERSION_MINOR 2)
 set (LIBOBJECT_VERSION_MAINTENANCE 0)
 set (LIBOBJECT_VERSION_BUILD 2)
 
+set (VERSION_NAME "${LIBOBJECT_VERSION_MAJOR}.${LIBOBJECT_VERSION_MINOR}.${LIBOBJECT_VERSION_MAINTENANCE}.${LIBOBJECT_VERSION_BUILD}")
+
 message("-- CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 message("-- CMAKE_CURRENT_LIST_DIR: ${CMAKE_CURRENT_LIST_DIR}")
 
@@ -53,6 +55,7 @@ add_definitions(-Wno-implicit-function-declaration)
 add_definitions(-Wno-uninitialized)
 add_definitions(-Wno-nullability-completeness)
 add_definitions(-Wno-expansion-to-defined)
+add_definitions(-Wno-nonportable-include-path)
 
 #add_subdirectory(src)
 find_source_files(Source_Files)
@@ -71,6 +74,8 @@ if ("${PLATFORM}" STREQUAL "android")
     add_executable(test ${Main_File})
     target_link_libraries(test object)
     ADD_DEPENDENCIES(test object)
+
+    SET_TARGET_PROPERTIES (object PROPERTIES VERSION ${VERSION_NAME} SOVERSION ${LIBOBJECT_VERSION_MAJOR})
 
     if ("${ANDROID_ABI}" STREQUAL "x86")
         install (TARGETS object DESTINATION ${CMAKE_ANDROID_NDK}/platforms/android-21/${ARCH_NAME}/usr/lib)
@@ -95,7 +100,7 @@ elseif ("${PLATFORM}" STREQUAL "ios")
     ADD_LIBRARY (object_static STATIC ${Source_Files})
     target_link_libraries(object_static ${ExternalLibs})
 
-    SET_TARGET_PROPERTIES (object_static PROPERTIES VERSION 1.2 SOVERSION 1)
+    SET_TARGET_PROPERTIES (object_static PROPERTIES VERSION ${VERSION_NAME} SOVERSION ${LIBOBJECT_VERSION_MAJOR})
     SET_TARGET_PROPERTIES (object_static PROPERTIES OUTPUT_NAME "object")
 
     install (TARGETS object_static DESTINATION lib)
@@ -114,7 +119,7 @@ else ()
 
     #set_target_properties(object PROPERTIES CLEAN_DIRECT_OUTPUT 1)
     #set_target_properties(object_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-    SET_TARGET_PROPERTIES (object PROPERTIES VERSION 1.2 SOVERSION 1)
+    SET_TARGET_PROPERTIES (object PROPERTIES VERSION ${VERSION_NAME} SOVERSION ${LIBOBJECT_VERSION_MAJOR})
     #SET_TARGET_PROPERTIES (object_static PROPERTIES OUTPUT_NAME "object")
     install (TARGETS test DESTINATION bin)
     install (TARGETS object DESTINATION lib)
