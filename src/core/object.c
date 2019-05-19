@@ -169,7 +169,7 @@ __object_find_reimplement_func(char *method_name,
 {
     class_info_entry_t *entry;
     class_deamon_t *deamon;
-    char *subclass_name = NULL;
+    char *super_class_name = NULL;
     int i;
 
     if (strcmp(start_type_name, end_type_name) == 0) return NULL;
@@ -182,7 +182,7 @@ __object_find_reimplement_func(char *method_name,
     entry  = (class_info_entry_t *)class_deamon_search_class(deamon, 
                                                              (char *)start_type_name);
     if (entry[0].type == ENTRY_TYPE_OBJ) {
-        subclass_name = entry[0].type_name;
+        super_class_name = entry[0].type_name;
     }
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
         if (    (entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
@@ -199,7 +199,7 @@ __object_find_reimplement_func(char *method_name,
     }   
 
     return __object_find_reimplement_func(method_name, 
-                                          subclass_name, 
+                                          super_class_name, 
                                           end_type_name);
 }
 
