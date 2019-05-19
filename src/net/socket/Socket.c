@@ -63,11 +63,6 @@ static int __construct(Socket *socket, char *init_str)
 
     dbg_str(EV_DETAIL, "socket construct, socket addr:%p", socket);
 
-    socket->local_host     = allocator_mem_alloc(allocator, DEFAULT_MAX_IP_STR_LEN);
-    socket->local_service  = allocator_mem_alloc(allocator, DEFAULT_MAX_PORT_STR_LEN);
-    socket->remote_host    = allocator_mem_alloc(allocator, DEFAULT_MAX_IP_STR_LEN);
-    socket->remote_service = allocator_mem_alloc(allocator, DEFAULT_MAX_PORT_STR_LEN);
-
     return 0;
 }
 
@@ -76,90 +71,8 @@ static int __deconstrcut(Socket *socket)
     allocator_t *allocator = socket->obj.allocator;
 
     dbg_str(EV_DETAIL, "socket deconstruct, socket addr:%p", socket);
-    allocator_mem_free(allocator, socket->local_host);
-    allocator_mem_free(allocator, socket->local_service);
-    allocator_mem_free(allocator, socket->remote_host);
-    allocator_mem_free(allocator, socket->remote_service);
 
     return 0;
-}
-
-static int __set(Socket *socket, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        socket->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        socket->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        socket->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        socket->deconstruct = value;
-    }
-    else if (strcmp(attrib, "bind") == 0) {
-        socket->bind = value;
-    } else if (strcmp(attrib, "listen") == 0) {
-        socket->listen = value;
-    } else if (strcmp(attrib, "accept") == 0) {
-        socket->accept = value;
-    } else if (strcmp(attrib, "accept_fd") == 0) {
-        socket->accept_fd = value;
-    } else if (strcmp(attrib, "connect") == 0) {
-        socket->connect = value;
-    } else if (strcmp(attrib, "write") == 0) {
-        socket->write = value;
-    } else if (strcmp(attrib, "send") == 0) {
-        socket->send = value;
-    } else if (strcmp(attrib, "sendto") == 0) {
-        socket->sendto = value;
-    } else if (strcmp(attrib, "sendmsg") == 0) {
-        socket->sendmsg = value;
-    } else if (strcmp(attrib, "read") == 0) {
-        socket->read = value;
-    } else if (strcmp(attrib, "recv") == 0) {
-        socket->recv = value;
-    } else if (strcmp(attrib, "recvfrom") == 0) {
-        socket->recvfrom = value;
-    } else if (strcmp(attrib, "recvmsg") == 0) {
-        socket->recvmsg = value;
-    } else if (strcmp(attrib, "getsockopt") == 0) {
-        socket->getsockopt = value;
-    } else if (strcmp(attrib, "setsockopt") == 0) {
-        socket->setsockopt = value;
-    } else if (strcmp(attrib, "setnonblocking") == 0) {
-        socket->setnonblocking = value;
-    } 
-    else if (strcmp(attrib, "local_host") == 0) {
-        strncpy(socket->local_host, value, strlen(value));
-    } else if (strcmp(attrib, "local_service") == 0) {
-        strncpy(socket->local_service, value, strlen(value));
-    } else if (strcmp(attrib, "remote_host") == 0) {
-        strncpy(socket->remote_host, value, strlen(value));
-    } else if (strcmp(attrib, "remote_service") == 0) {
-        strncpy(socket->remote_service, value, strlen(value));
-    }
-    else {
-        dbg_str(EV_DETAIL, "socket set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Socket *socket, char *attrib)
-{
-    if (strcmp(attrib, "local_host") == 0) {
-        return socket->local_host;
-    } else if (strcmp(attrib, "local_service") == 0) {
-        return socket->local_service;
-    } else if (strcmp(attrib, "remote_host") == 0) {
-        return socket->remote_host;
-    } else if (strcmp(attrib, "remote_service") == 0) {
-        return socket->remote_service;
-    }
-    else {
-        dbg_str(EV_WARNNING, "socket get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
 }
 
 int __bind(Socket *socket, char *host, char *service)
