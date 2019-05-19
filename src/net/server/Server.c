@@ -67,40 +67,6 @@ static int __deconstrcut(Server *server)
     return 0;
 }
 
-static int __set(Server *server, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        server->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        server->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        server->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        server->deconstruct = value;
-    }
-    else if (strcmp(attrib, "bind") == 0) {
-        server->bind = value;
-    } else if (strcmp(attrib, "trustee") == 0) {
-        server->trustee = value;
-    } 
-    else {
-        dbg_str(EV_DETAIL, "server set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Server *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING, "server get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-
-    return NULL;
-}
-
 static int __bind(Server *server, char *host, char *service)
 {
     Socket *socket = server->socket;

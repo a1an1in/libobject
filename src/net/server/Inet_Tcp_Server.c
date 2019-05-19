@@ -68,39 +68,6 @@ static int __deconstrcut(Inet_Tcp_Server *server)
     return 0;
 }
 
-static int __set(Inet_Tcp_Server *server, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        server->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        server->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        server->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        server->deconstruct = value;
-    } 
-    else if (strcmp(attrib, "bind") == 0) {
-        server->bind = value;
-    } else if (strcmp(attrib, "trustee") == 0) {
-        server->trustee = value;
-    }
-    else {
-        dbg_str(EV_DETAIL, "server set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Inet_Tcp_Server *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING, "server get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static class_info_entry_t concurent_class_info[] = {
     Init_Obj___Entry(0 , Server, parent),
     Init_Nfunc_Entry(1 , Inet_Tcp_Server, construct, __construct),

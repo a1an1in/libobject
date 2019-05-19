@@ -64,47 +64,6 @@ static int __deconstrcut(Inet_Tcp_Client *client)
     return 0;
 }
 
-static int __set(Inet_Tcp_Client *client, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        client->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        client->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        client->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        client->deconstruct = value;
-    } 
-    else if (strcmp(attrib, "bind") == 0) {
-        client->bind = value;
-    } else if (strcmp(attrib, "connect") == 0) {
-        client->connect = value;
-    } else if (strcmp(attrib, "recv") == 0) {
-        client->recv = value;
-    } else if (strcmp(attrib, "send") == 0) {
-        client->send = value;
-    } else if (strcmp(attrib, "trustee") == 0) {
-        client->trustee = value;
-    }
-    else {
-        dbg_str(NET_DETAIL, "client set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Inet_Tcp_Client *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(NET_WARNNING, "client get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-
-    return NULL;
-}
-
-
 static class_info_entry_t inet_tcp_client_class_info[] = {
     Init_Obj___Entry(0 , Client, parent),
     Init_Nfunc_Entry(1 , Inet_Tcp_Client, construct, __construct),

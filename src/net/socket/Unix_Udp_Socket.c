@@ -62,53 +62,6 @@ static int __deconstrcut(Unix_Udp_Socket *socket)
     return 0;
 }
 
-static int __set(Unix_Udp_Socket *socket, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        socket->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        socket->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        socket->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        socket->deconstruct = value;
-    } 
-    else if (strcmp(attrib, "bind") == 0) {
-        socket->bind = value;
-    } else if (strcmp(attrib, "connect") == 0) {
-        socket->connect = value;
-    } else if (strcmp(attrib, "write") == 0) {
-        socket->write = value;
-    } else if (strcmp(attrib, "sendto") == 0) {
-        socket->sendto = value;
-    } else if (strcmp(attrib, "sendmsg") == 0) {
-        socket->sendmsg = value;
-    } else if (strcmp(attrib, "read") == 0) {
-        socket->read = value;
-    } else if (strcmp(attrib, "recv") == 0) {
-        socket->recv = value;
-    } else if (strcmp(attrib, "recvfrom") == 0) {
-        socket->recvfrom = value;
-    } else if (strcmp(attrib, "recvmsg") == 0) {
-        socket->recvmsg = value;
-    } 
-    else {
-        dbg_str(NET_DETAIL, "socket set, not support %s setting", attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Unix_Udp_Socket *socket, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(NET_WARNNING, "socket get, \"%s\" getting attrib is not supported", attrib);
-        return NULL;
-    }
-    return NULL;
-}
-
 static int __bind(Unix_Udp_Socket *socket, char *host, char *service)
 {
      struct sockaddr_un un_addr;
