@@ -390,10 +390,10 @@ static class_info_entry_t socket_class_info[] = {
     Init_Vfunc_Entry(18, Socket, getsockopt, __getsockopt),
     Init_Vfunc_Entry(19, Socket, setsockopt, __setsockopt),
     Init_Vfunc_Entry(20, Socket, setnonblocking, __setnonblocking),
-    Init_Str___Entry(21, Socket, local_host, NULL),
-    Init_Str___Entry(22, Socket, local_service, NULL),
-    Init_Str___Entry(23, Socket, remote_host, NULL),
-    Init_Str___Entry(24, Socket, remote_service, NULL),
+    Init_Point_Entry(21, Socket, local_host, NULL),
+    Init_Point_Entry(22, Socket, local_service, NULL),
+    Init_Point_Entry(23, Socket, remote_host, NULL),
+    Init_Point_Entry(24, Socket, remote_service, NULL),
     Init_End___Entry(25, Socket),
 };
 REGISTER_CLASS("Socket", socket_class_info);

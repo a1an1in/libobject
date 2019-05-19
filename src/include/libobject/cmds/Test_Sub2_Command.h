@@ -2,6 +2,7 @@
 #define __TEST_SUB2_COMMAND_H__
 
 #include <stdio.h>
+#include <libobject/core/String.h>
 #include <libobject/cmds/Test_Sub1_Command.h>
 
 typedef struct Test_Sub2_Command_s Test_Sub2_Command;
@@ -18,7 +19,7 @@ struct Test_Sub2_Command_s{
     void * (*get_value)(Command *command,char *command_name, char *flag_name);
 
     int help;
-    char *option;
+    String *option;
 };
 
 #endif

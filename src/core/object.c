@@ -533,7 +533,9 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
             } else if (entry[i].type == ENTRY_TYPE_FLOAT_T) {
                 cjson_add_number_to_object(object, name, *((float *)value));
             } else if (entry[i].type == ENTRY_TYPE_STRING) {
-                cjson_add_string_to_object(object, name, (char *)value);
+                String *s = *(String **)value;
+                if (s != NULL)
+                    cjson_add_string_to_object(object, name, s->value);
             } else if (entry[i].type == ENTRY_TYPE_NORMAL_POINTER ||
                        entry[i].type == ENTRY_TYPE_OBJ_POINTER) 
             {

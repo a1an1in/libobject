@@ -557,8 +557,8 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(31, String, split, __split), 
     Init_Vfunc_Entry(32, String, split_num_portion, __split_num_portion), 
     Init_Vfunc_Entry(33, String, get_splited_cstr, __get_splited_cstr), 
-    Init_Str___Entry(34, String, name, NULL), 
-    Init_Str___Entry(35, String, value, NULL), 
+    Init_Point_Entry(34, String, name, NULL), 
+    Init_Point_Entry(35, String, value, NULL), 
     Init_End___Entry(36, String), 
 };
 REGISTER_CLASS("String", string_class_info);

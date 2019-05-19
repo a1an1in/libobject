@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/object.h>
+#include <libobject/core/String.h>
 
 static int __construct(Obj *obj, char *init_str)
 {
@@ -134,19 +135,17 @@ static int __set(Obj *obj, char *attrib, void *value)
         case ENTRY_TYPE_FLOAT_T:
             break;
         case ENTRY_TYPE_STRING:
-#if 0
             {
-                char *addr = (base + entry->offset);
-                strcpy(addr, value);
+                String **addr = (String **)(base + entry->offset);
+                if (*addr != NULL)
+                    strcpy((*addr)->value, (char *)value);
+                else {
+                    *addr = object_new(allocator, "String", NULL);
+                    strcpy((*addr)->value, (char *)value);
+                }
+
                 break;
             }
-#else
-            {
-                char **addr = (char **)(base + entry->offset);
-                *addr = value;
-                break;
-            }
-#endif
         case ENTRY_TYPE_NORMAL_POINTER:
         case ENTRY_TYPE_FUNC_POINTER:
         case ENTRY_TYPE_VFUNC_POINTER:
@@ -292,8 +291,10 @@ static class_info_entry_t obj_class_info[] = {
     [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *), offset_of_class(Obj, get)}, 
     [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *), offset_of_class(Obj, construct)}, 
     [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *), offset_of_class(Obj, deconstruct)}, 
-    [5] = {ENTRY_TYPE_STRING, "", "name", NULL, sizeof(void *), offset_of_class(Obj, name)}, 
-    [6] = {ENTRY_TYPE_END}, 
+    /*
+     *[5] = {ENTRY_TYPE_STRING, "", "name", NULL, sizeof(void *), offset_of_class(Obj, name)}, 
+     */
+    [5] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Obj", obj_class_info);
 

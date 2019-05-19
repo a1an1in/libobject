@@ -42,9 +42,6 @@ struct _map_s{
     /*inherit methods*/
     int (*set_target_name)(Obj *obj, char *);
 
-#define MAX_NAME_LEN 50
-    char name[MAX_NAME_LEN];
-#undef MAX_NAME_LEN
     Iterator *b, *e;
 };
 
