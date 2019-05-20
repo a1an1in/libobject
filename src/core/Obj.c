@@ -142,6 +142,7 @@ static int __set(Obj *obj, char *attrib, void *value)
                 else {
                     *addr = object_new(allocator, "String", NULL);
                     strcpy((*addr)->value, (char *)value);
+                    (*addr)->value_len = strlen((char *)value);
                 }
 
                 break;
