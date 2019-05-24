@@ -105,6 +105,7 @@ static int __add_front(List *list, void *value)
 static int __delete(List *list)
 {
     Linked_List *l = (Linked_List *)list;
+
     dbg_str(OBJ_DETAIL, "Link list delete");
 
     return llist_delete(l->llist, &l->llist->begin);

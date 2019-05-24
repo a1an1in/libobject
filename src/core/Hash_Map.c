@@ -56,6 +56,7 @@ static int __construct(Map *map, char *init_str)
 static int __deconstrcut(Map *map)
 {
     dbg_str(HMAP_DETAIL, "hash map deconstruct, map addr:%p", map);
+
     object_destroy(map->b);
     object_destroy(map->e);
     hash_map_destroy(((Hash_Map *)map)->hmap);
@@ -65,8 +66,9 @@ static int __deconstrcut(Map *map)
 
 static int __add(Map *map, void *key, void *value)
 {
-    dbg_str(HMAP_DETAIL, "Hash Map add");
     Hash_Map *hmap = (Hash_Map *)map;
+
+    dbg_str(HMAP_DETAIL, "Hash Map add");
 
     if (hmap->key_type) {
         hmap->hmap->key_type = hmap->key_type;
@@ -81,6 +83,7 @@ static int __search(Map *map, void *key, void **element)
     int ret;
 
     dbg_str(HMAP_IMPORTANT, "Hash Map search");
+
     ret = hash_map_search(((Hash_Map *)map)->hmap, key, &pos);
     if (ret == 1 && element != NULL) {
         *element = hash_map_pos_get_pointer(&pos);
@@ -96,6 +99,7 @@ static int __remove(Map *map, void *key, void **element)
     int ret;
 
     dbg_str(HMAP_IMPORTANT, "Hash Map remove");
+
     ret = hash_map_search(((Hash_Map *)map)->hmap, key, &pos);
     if (ret == 1 && element != NULL) {
         *element = hash_map_pos_get_pointer(&pos);
@@ -114,6 +118,7 @@ static int __del(Map *map, void *key)
 {
     hash_map_pos_t pos;
     int ret = -1;
+
     dbg_str(HMAP_DETAIL, "Hash Map del");
 
     ret = hash_map_search(((Hash_Map *)map)->hmap, key, &pos);

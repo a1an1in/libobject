@@ -24,8 +24,7 @@ static int __deconstruct(Command *command)
     return 0;
 }
 
-static void *
-__get_value(Command *command,char *command_name, char *flag_name)
+static void * __get_value(Command *command,char *command_name, char *flag_name)
 {
 }
 

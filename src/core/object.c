@@ -375,10 +375,6 @@ static int __object_set(void *obj,
             }
         } else {
             if (set) {
-                /*
-                 *dbg_str(OBJ_DETAIL, "object name %s, set %s", object->string, c->string);
-                 */
-
                 if (c->type & CJSON_NUMBER) {
                     set(obj, c->string, &(c->valueint));
                     /*
