@@ -46,6 +46,10 @@ static int __deconstrcut(Obj *obj)
     dbg_str(OBJ_DETAIL, "obj deconstruct, obj addr:%p", obj);
     allocator_mem_free(obj->allocator, obj);
 
+    if (obj->json != NULL) {
+        object_destroy(obj->json);
+    }
+
     return 0;
 }
 
@@ -286,16 +290,71 @@ static void *__get(Obj *obj, char *attrib)
     return addr;
 }
 
+/*
+ *int object_dump(void *obj, char *type_name, char *buf, int max_len) 
+ *{
+ *    cjson_t *root;
+ *    cjson_t *item;
+ *    char *out;
+ *    int len;
+ *
+ *    root = cjson_create_object();
+ *    item = cjson_create_object();
+ *    cjson_add_item_to_object(root, type_name, item);
+ *
+ *    __object_dump(obj, type_name, item);
+ *
+ *    out = cjson_print(root);
+ *    len = strlen(out);
+ *    len = len > max_len ? max_len: len; 
+ *    strncpy(buf, out, len);
+ *
+ *    strncpy(buf, out, max_len);
+ *    cjson_delete(root);
+ *    free(out);
+ *}
+ */
+
+static char *__to_json(Obj *obj) 
+{
+    String *json = (String *)obj->json;
+    cjson_t *root;
+    cjson_t *item;
+    char *out;
+    int len;
+
+    if (json == NULL) {
+        json = object_new(obj->allocator, "String", NULL);
+        obj->json = json;
+    } else {
+        json->clear(json);
+    }
+
+    root = cjson_create_object();
+    item = cjson_create_object();
+    cjson_add_item_to_object(root, obj->name, item);
+
+    __object_dump(obj, obj->name, item);
+
+    out = cjson_print(root);
+    json->assign(json, out);
+    cjson_delete(root);
+    free(out);
+
+    return json->get_cstr(json);
+}
+
 static class_info_entry_t obj_class_info[] = {
     [0] = {ENTRY_TYPE_NORMAL_POINTER, "allocator_t", "allocator", NULL, sizeof(void *), offset_of_class(Obj, allocator)}, 
-    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "set", __set, sizeof(void *), offset_of_class(Obj, set)}, 
-    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "get", __get, sizeof(void *), offset_of_class(Obj, get)}, 
-    [3] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *), offset_of_class(Obj, construct)}, 
-    [4] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *), offset_of_class(Obj, deconstruct)}, 
+    [1] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *), offset_of_class(Obj, construct)}, 
+    [2] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *), offset_of_class(Obj, deconstruct)}, 
+    [3] = {ENTRY_TYPE_VFUNC_POINTER, "", "set", __set, sizeof(void *), offset_of_class(Obj, set)}, 
+    [4] = {ENTRY_TYPE_VFUNC_POINTER, "", "get", __get, sizeof(void *), offset_of_class(Obj, get)}, 
+    [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "to_json", __to_json, sizeof(void *), offset_of_class(Obj, to_json)}, 
     /*
      *[5] = {ENTRY_TYPE_STRING, "", "name", NULL, sizeof(void *), offset_of_class(Obj, name)}, 
      */
-    [5] = {ENTRY_TYPE_END}, 
+    [6] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Obj", obj_class_info);
 

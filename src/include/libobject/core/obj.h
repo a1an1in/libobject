@@ -11,13 +11,15 @@ struct obj_s{
 	int (*deconstruct)(Obj *obj);
 	int (*set)(Obj *obj, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
+    char *(*to_json)(void *obj); 
     int (*set_target_name)(Obj *obj, char *);
 
 #define MAX_CLASS_NAME_LEN 20
     char name[MAX_CLASS_NAME_LEN];
     char target_name[MAX_CLASS_NAME_LEN];
-    void *cache;
 #undef MAX_CLASS_NAME_LEN
+    void *cache;
+    void *json;
 };
 
 #endif
