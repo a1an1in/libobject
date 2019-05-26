@@ -13,10 +13,11 @@ struct _vector_s{
 
 	int (*construct)(Vector *vector,char *init_str);
 	int (*deconstruct)(Vector *vector);
-	int (*set)(Vector *vector, char *attrib, void *value);
-    void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
+	int (*set)(Vector *vector, char *attrib, void *value);
+    void *(*get)(void *obj, char *attrib);
+    char *(*to_json)(Obj *obj);
     int (*add)(Vector *vector,void *value);
     int (*add_at)(Vector *vector,int index, void *value);
     int (*add_back)(Vector *vector,void *value);
@@ -32,6 +33,7 @@ struct _vector_s{
 
     vector_t *vector;
 	uint32_t value_size;
+	uint8_t value_type;
     uint32_t capacity;
 };
 

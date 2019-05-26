@@ -34,6 +34,7 @@
 #include <libobject/core/config.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Vector.h>
+#include <libobject/core/String.h>
 
 static int __construct(Vector *vector, char *init_str)
 {
@@ -156,24 +157,130 @@ static void __clear(Vector *vector)
     }
 }
 
+static char *__to_json(Obj *obj)
+{
+    Vector *vector = (Vector *)obj;
+	vector_pos_t pos, next;
+    vector_t *v = vector->vector;
+    cjson_t *root, *item = NULL;
+    String *json = (String *)obj->json;
+    void *element = NULL;
+    char *out;
+    int index = 0;
+
+    if (json == NULL) {
+        json = object_new(obj->allocator, "String", NULL);
+        obj->json = json;
+    } else {
+        json->clear(json);
+    }
+
+    root = cjson_create_array();
+
+	for(	vector_begin(v, &pos), vector_pos_next(&pos, &next);
+			!vector_pos_equal(&pos, &v->end);
+			pos = next, vector_pos_next(&pos, &next))
+	{
+        vector->peek_at(vector, index++, (void **)&element);
+
+        switch(vector->value_type) {
+            case VALUE_TYPE_INT8_T: {
+                    int8_t *num = (int8_t *)element;
+                    item = cjson_create_number(*num);
+                    break;
+                }
+            case VALUE_TYPE_UINT8_T: {
+                    uint8_t *num = (uint8_t *)element;
+                    item = cjson_create_number(*num);
+                    break;
+                }
+            case VALUE_TYPE_INT16_T: {
+                    int16_t *num = (int16_t *)element;
+                    item = cjson_create_number(*num);
+                    break;
+                }
+            case VALUE_TYPE_UINT16_T: {
+                    uint16_t *num = (uint16_t *)element;
+                    item = cjson_create_number(*num);
+                    break;
+                }
+            case VALUE_TYPE_INT32_T: {
+                    int32_t *num = (int32_t *)element;
+                    item = cjson_create_number(*num);
+                    break;
+                }
+            case VALUE_TYPE_UINT32_T: {
+                    uint32_t *num = (uint32_t *)element;
+                    item = cjson_create_number(*num);
+                    break;
+                }
+            case VALUE_TYPE_INT64_T: {
+                    int64_t *num = (int64_t *)element;
+                    item = cjson_create_number(*num);
+                    break;
+                }
+            case VALUE_TYPE_UINT64_T: {
+                    uint64_t *num = (uint64_t *)element;
+                    item = cjson_create_number(*num);
+                    break;
+                }
+            case VALUE_TYPE_FLOAT_T: {
+                    float *num = (float *)element;
+                    item = cjson_create_number(*num);
+                    break;
+                }
+            case VALUE_TYPE_STRING: {
+                    String *s = (String *)element;
+                    item = cjson_create_string(s->get_cstr(s));
+                    break;
+                }
+            case VALUE_TYPE_NORMAL_POINTER:
+                dbg_str(DBG_DETAIL, "value type:%d not supported now!!",
+                        vector->value_type);
+                break;
+            case VALUE_TYPE_OBJ_POINTER:
+                dbg_str(DBG_DETAIL, "value type:%d not supported now!!",
+                        vector->value_type);
+                break;
+            default:
+                break;
+        }
+
+        if (item != NULL)
+            cjson_add_item_to_array(root, item);
+        item = NULL;
+	}
+
+    out = cjson_print(root);
+    json->assign(json, out);
+    cjson_delete(root);
+    free(out);
+
+    return json->get_cstr(json);
+}
+
 static class_info_entry_t vector_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Vector, construct, __construct),
     Init_Nfunc_Entry(2 , Vector, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Vector, add, __add),
-    Init_Vfunc_Entry(4 , Vector, add_at, __add_at),
-    Init_Vfunc_Entry(5 , Vector, add_back, __add_back),
-    Init_Vfunc_Entry(6 , Vector, remove, __remove),
-    Init_Vfunc_Entry(7 , Vector, remove_back, __remove_back),
-    Init_Vfunc_Entry(8 , Vector, peek_at, __peek_at),
-    Init_Vfunc_Entry(9 , Vector, for_each, __for_each),
-    Init_Vfunc_Entry(10, Vector, free_vector_elements, __free_vector_elements),
-    Init_Vfunc_Entry(11, Vector, clear, __clear),
-    Init_Vfunc_Entry(12, Vector, size, __size),
-    Init_Vfunc_Entry(13, Vector, empty, __empty),
-    Init_U32___Entry(15, Vector, value_size, NULL),
-    Init_U32___Entry(14, Vector, capacity, NULL),
-    Init_End___Entry(16, Vector),
+    Init_Vfunc_Entry(3 , Vector, set, NULL),
+    Init_Vfunc_Entry(4 , Vector, get, NULL),
+    Init_Vfunc_Entry(5 , Vector, add, __add),
+    Init_Vfunc_Entry(6 , Vector, add_at, __add_at),
+    Init_Vfunc_Entry(7 , Vector, add_back, __add_back),
+    Init_Vfunc_Entry(8 , Vector, remove, __remove),
+    Init_Vfunc_Entry(9 , Vector, remove_back, __remove_back),
+    Init_Vfunc_Entry(10, Vector, peek_at, __peek_at),
+    Init_Vfunc_Entry(11, Vector, for_each, __for_each),
+    Init_Vfunc_Entry(12, Vector, free_vector_elements, __free_vector_elements),
+    Init_Vfunc_Entry(13, Vector, clear, __clear),
+    Init_Vfunc_Entry(14, Vector, size, __size),
+    Init_Vfunc_Entry(15, Vector, empty, __empty),
+    Init_Vfunc_Entry(16, Vector, to_json, __to_json),
+    Init_U32___Entry(17, Vector, value_size, NULL),
+    Init_U8____Entry(17, Vector, value_type, NULL),
+    Init_U32___Entry(18, Vector, capacity, NULL),
+    Init_End___Entry(19, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);
 
@@ -198,7 +305,7 @@ static struct test *init_test_instance(struct test *t, int a, int b)
     return t;
 }
 
-static int test_obj_vector(TEST_ENTRY *entry)
+static int test_vector(TEST_ENTRY *entry)
 {
     Vector *vector;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -317,5 +424,107 @@ static int test_obj_vector(TEST_ENTRY *entry)
     return 1;
 
 }
-REGISTER_TEST_FUNC(test_obj_vector);
+REGISTER_TEST_FUNC(test_vector);
+
+static int test_int_vector_to_json(TEST_ENTRY *entry)
+{
+    Vector *vector;
+    allocator_t *allocator = allocator_get_default_alloc();
+    int value_size = 25, capacity = 19, value_type = VALUE_TYPE_INT8_T;
+    int *t, t0 = 0, t1 = 1, t2 = 2, t3 = 3, t4 = 4, t5 = 5;
+    int ret;
+    char *result = "[0, 1, 2, 3, 4, 5]";
+
+    vector = OBJECT_NEW(allocator, Vector, NULL);
+    vector->set(vector, "/Vector/capacity", &capacity);
+    vector->set(vector, "/Vector/value_type", &value_type);
+
+    vector->add_at(vector, 0, &t0);
+    vector->add_at(vector, 1, &t1);
+    vector->add_at(vector, 2, &t2);
+    vector->add_at(vector, 3, &t3);
+    vector->add_at(vector, 4, &t4);
+    vector->add_at(vector, 5, &t5);
+
+    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
+    if (strcmp(result, vector->to_json(vector)) != 0) {
+        ret = 0;
+    } else {
+        ret = 1;
+    }
+
+    object_destroy(vector);
+    
+    return ret;
+
+}
+REGISTER_TEST_FUNC(test_int_vector_to_json);
+
+static int test_string_vector_to_json(TEST_ENTRY *entry)
+{
+    Vector *vector;
+    allocator_t *allocator = allocator_get_default_alloc();
+    int value_size = 25, capacity = 19, value_type = VALUE_TYPE_STRING;
+    /*
+     *char *t, t0 = "Sunday", t1 = "Monday", t2 = "Tuesday", 
+     *     t3 = "Wednesday", t4 = "Thursday", t5 = "Friday";
+     */
+    String *t0, *t1, *t2, *t3, *t4, *t5;
+    int ret;
+    char result[1024];
+
+    t0 = OBJECT_NEW(allocator, String, NULL);
+    t1 = OBJECT_NEW(allocator, String, NULL);
+    t2 = OBJECT_NEW(allocator, String, NULL);
+    t3 = OBJECT_NEW(allocator, String, NULL);
+    t4 = OBJECT_NEW(allocator, String, NULL);
+    t5 = OBJECT_NEW(allocator, String, NULL);
+
+    t0->assign(t0, "Monday");
+    t1->assign(t1, "Tuesday");
+    t2->assign(t2, "Wednesday");
+    t3->assign(t3, "Thursday");
+    t4->assign(t4, "Friday");
+    t5->assign(t5, "Saturday");
+
+    sprintf(result, "[\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"]", 
+            t0->get_cstr(t0),
+            t1->get_cstr(t1),
+            t2->get_cstr(t2),
+            t3->get_cstr(t3),
+            t4->get_cstr(t4),
+            t5->get_cstr(t5));
+
+    vector = OBJECT_NEW(allocator, Vector, NULL);
+    vector->set(vector, "/Vector/capacity", &capacity);
+    vector->set(vector, "/Vector/value_type", &value_type);
+
+    vector->add_at(vector, 0, t0);
+    vector->add_at(vector, 1, t1);
+    vector->add_at(vector, 2, t2);
+    vector->add_at(vector, 3, t3);
+    vector->add_at(vector, 4, t4);
+    vector->add_at(vector, 5, t5);
+
+    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
+    dbg_str(DBG_DETAIL, "result: %s", result);
+    if (strcmp(result, vector->to_json(vector)) != 0) {
+        ret = 0;
+    } else {
+        ret = 1;
+    }
+
+    object_destroy(vector);
+    object_destroy(t0);
+    object_destroy(t1);
+    object_destroy(t2);
+    object_destroy(t3);
+    object_destroy(t4);
+    object_destroy(t5);
+    
+    return ret;
+
+}
+REGISTER_TEST_FUNC(test_string_vector_to_json);
+
 
