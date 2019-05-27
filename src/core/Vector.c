@@ -465,20 +465,16 @@ static int test_string_vector_to_json(TEST_ENTRY *entry)
     Vector *vector;
     allocator_t *allocator = allocator_get_default_alloc();
     int value_size = 25, capacity = 19, value_type = VALUE_TYPE_STRING;
-    /*
-     *char *t, t0 = "Sunday", t1 = "Monday", t2 = "Tuesday", 
-     *     t3 = "Wednesday", t4 = "Thursday", t5 = "Friday";
-     */
     String *t0, *t1, *t2, *t3, *t4, *t5;
     int ret;
     char result[1024];
 
-    t0 = OBJECT_NEW(allocator, String, NULL);
-    t1 = OBJECT_NEW(allocator, String, NULL);
-    t2 = OBJECT_NEW(allocator, String, NULL);
-    t3 = OBJECT_NEW(allocator, String, NULL);
-    t4 = OBJECT_NEW(allocator, String, NULL);
-    t5 = OBJECT_NEW(allocator, String, NULL);
+    t0 = object_new(allocator, "String", NULL);
+    t1 = object_new(allocator, "String", NULL);
+    t2 = object_new(allocator, "String", NULL);
+    t3 = object_new(allocator, "String", NULL);
+    t4 = object_new(allocator, "String", NULL);
+    t5 = object_new(allocator, "String", NULL);
 
     t0->assign(t0, "Monday");
     t1->assign(t1, "Tuesday");
@@ -488,14 +484,10 @@ static int test_string_vector_to_json(TEST_ENTRY *entry)
     t5->assign(t5, "Saturday");
 
     sprintf(result, "[\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"]", 
-            t0->get_cstr(t0),
-            t1->get_cstr(t1),
-            t2->get_cstr(t2),
-            t3->get_cstr(t3),
-            t4->get_cstr(t4),
-            t5->get_cstr(t5));
+            t0->get_cstr(t0), t1->get_cstr(t1), t2->get_cstr(t2),
+            t3->get_cstr(t3), t4->get_cstr(t4), t5->get_cstr(t5));
 
-    vector = OBJECT_NEW(allocator, Vector, NULL);
+    vector = object_new(allocator, "Vector", NULL);
     vector->set(vector, "/Vector/capacity", &capacity);
     vector->set(vector, "/Vector/value_type", &value_type);
 
@@ -508,6 +500,7 @@ static int test_string_vector_to_json(TEST_ENTRY *entry)
 
     dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
     dbg_str(DBG_DETAIL, "result: %s", result);
+
     if (strcmp(result, vector->to_json(vector)) != 0) {
         ret = 0;
     } else {
