@@ -382,6 +382,12 @@ static int __object_set(void *obj,
                      */
                 } else if (c->type & OBJECT_STRING) {
                     set(obj, c->string, c->valuestring);
+                } else if (c->type & OBJECT_ARRAY) {
+                    char *out;
+
+                    out = cjson_print(c);
+                    dbg_str(DBG_DETAIL, "array json:%s", out);
+                    free(out);
                 }
             }
         }

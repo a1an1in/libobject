@@ -35,6 +35,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Vector.h>
 #include <libobject/core/String.h>
+#include <libobject/cmds/Command.h>
 
 static int __construct(Vector *vector, char *init_str)
 {
@@ -234,11 +235,13 @@ static char *__to_json(Obj *obj)
                     item = cjson_create_string(s->get_cstr(s));
                     break;
                 }
+            case VALUE_TYPE_OBJ_POINTER: {
+                    Obj *o = (Obj *)element;
+
+                    item = cjson_parse(o->to_json(o));
+                    break;
+                }
             case VALUE_TYPE_NORMAL_POINTER:
-                dbg_str(DBG_DETAIL, "value type:%d not supported now!!",
-                        vector->value_type);
-                break;
-            case VALUE_TYPE_OBJ_POINTER:
                 dbg_str(DBG_DETAIL, "value type:%d not supported now!!",
                         vector->value_type);
                 break;
@@ -519,5 +522,52 @@ static int test_string_vector_to_json(TEST_ENTRY *entry)
 
 }
 REGISTER_TEST_FUNC(test_string_vector_to_json);
+
+static int test_obj_vector_to_json(TEST_ENTRY *entry)
+{
+    allocator_t *allocator = allocator_get_default_alloc();
+    int value_type = VALUE_TYPE_OBJ_POINTER;
+    Vector *vector;
+    Command *cmd0 = NULL;
+    Command *cmd1 = NULL;
+    Command *cmd2 = NULL;
+    int ret = 0, help = 0;
+
+    cmd0 = object_new(allocator, "Test_Command", NULL);
+    cmd1 = object_new(allocator, "Test_Command", NULL);
+    cmd2 = object_new(allocator, "Test_Command", NULL);
+
+    vector = object_new(allocator, "Vector", NULL);
+    vector->set(vector, "/Vector/value_type", &value_type);
+
+    help = 0;
+    cmd0->set(cmd0, "/Test_Command/help", &help);
+    cmd0->set(cmd0, "/Test_Command/option", "test cmd0 option");
+
+    help = 1;
+    cmd1->set(cmd1, "/Test_Command/help", &help);
+    cmd1->set(cmd1, "/Test_Command/option", "test cmd1 option");
+
+    help = 2;
+    cmd2->set(cmd2, "/Test_Command/help", &help);
+    cmd2->set(cmd2, "/Test_Command/option", "test cmd2 option");
+
+    vector->add(vector, cmd0);
+    vector->add(vector, cmd1);
+    vector->add(vector, cmd2);
+
+    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
+
+    object_destroy(cmd0);
+    object_destroy(cmd1);
+    object_destroy(cmd2);
+    object_destroy(vector);
+
+    ret = 1;
+
+    return ret;
+
+}
+REGISTER_TEST_CMD(test_obj_vector_to_json);
 
 

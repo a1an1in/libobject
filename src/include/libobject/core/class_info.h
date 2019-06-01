@@ -15,6 +15,7 @@ enum class_info_type_e{
 	ENTRY_TYPE_UINT64_T,
 	ENTRY_TYPE_FLOAT_T,
 	ENTRY_TYPE_STRING,
+    ENTRY_TYPE_ARRAY,
 	ENTRY_TYPE_OBJ,
 	ENTRY_TYPE_NORMAL_POINTER,
 	ENTRY_TYPE_FUNC_POINTER,/*normal func pointer*/
@@ -43,6 +44,8 @@ typedef struct class_info_entry_s{
 #define Init_Point_Entry(id, class_name, value_name, value) \
     [id] = {ENTRY_TYPE_NORMAL_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
 
+#define Init_OP____Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_OBJ_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
 #define Init_U32___Entry(id, class_name, value_name, value) \
     [id] = {ENTRY_TYPE_UINT32_T, "", #value_name, value, sizeof(uint32_t), offset_of_class(class_name, value_name)}
 #define Init_U16___Entry(id, class_name, value_name, value) \

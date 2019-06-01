@@ -29,7 +29,7 @@ static void * __get_value(Command *command,char *command_name, char *flag_name)
 }
 
 static class_info_entry_t test_sub2_command_class_info[] = {
-    Init_Obj___Entry(0, Test_Sub1_Command, parent),
+    Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Test_Sub2_Command, construct, __construct),
     Init_Nfunc_Entry(2, Test_Sub2_Command, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3, Test_Sub2_Command, get, NULL),
@@ -50,8 +50,10 @@ static int test_sub2_command(TEST_ENTRY *entry)
 
     command = object_new(allocator, "Test_Sub2_Command", NULL);
 
-    command->set(command, "/Test_Sub1_Command/help", &help);
-    command->set(command, "/Test_Sub1_Command/option", "sub1 command option");
+    /*
+     *command->set(command, "/Test_Sub1_Command/help", &help);
+     *command->set(command, "/Test_Sub1_Command/option", "sub1 command option");
+     */
 
     help = 1;
     command->set(command, "/Test_Sub2_Command/help", &help);

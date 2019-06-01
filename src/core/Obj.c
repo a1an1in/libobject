@@ -290,31 +290,6 @@ static void *__get(Obj *obj, char *attrib)
     return addr;
 }
 
-/*
- *int object_dump(void *obj, char *type_name, char *buf, int max_len) 
- *{
- *    cjson_t *root;
- *    cjson_t *item;
- *    char *out;
- *    int len;
- *
- *    root = cjson_create_object();
- *    item = cjson_create_object();
- *    cjson_add_item_to_object(root, type_name, item);
- *
- *    __object_dump(obj, type_name, item);
- *
- *    out = cjson_print(root);
- *    len = strlen(out);
- *    len = len > max_len ? max_len: len; 
- *    strncpy(buf, out, len);
- *
- *    strncpy(buf, out, max_len);
- *    cjson_delete(root);
- *    free(out);
- *}
- */
-
 static char *__to_json(Obj *obj) 
 {
     String *json = (String *)obj->json;
