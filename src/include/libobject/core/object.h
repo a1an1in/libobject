@@ -21,6 +21,7 @@ int object_dump(void *obj, char *type_name, char *buf, int max_len);
 void * object_new(allocator_t *allocator, char *type, char *config);
 int object_destroy(void *obj);
 class_info_entry_t * __object_get_entry_of_class(void *class_info, char *entry_name);
+void * __object_get_func_recursively(void *class_info_addr, char *func_name);
 
 #define OBJECT_ALLOC(alloc, type) \
 ({\

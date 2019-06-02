@@ -512,6 +512,7 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
         } else {
             strcpy(o->target_name, type_name);
 
+            dbg_str(DBG_WARNNING, "get:%p, __get:%p", get, o->get);
             value = get(obj, entry[i].value_name);
             /*
              *if (value == NULL) continue;
@@ -538,11 +539,13 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
                 String *s = *(String **)value;
                 if (s != NULL)
                     cjson_add_string_to_object(object, name, s->value);
-            } else if (entry[i].type == ENTRY_TYPE_NORMAL_POINTER ||
-                       entry[i].type == ENTRY_TYPE_OBJ_POINTER) 
-            {
-                unsigned long long d = (unsigned long long) value;
-                cjson_add_number_to_object(object, name, d);
+            /*
+             *} else if (entry[i].type == ENTRY_TYPE_NORMAL_POINTER ||
+             *           entry[i].type == ENTRY_TYPE_OBJ_POINTER) 
+             *{
+             *    unsigned long long d = (unsigned long long) value;
+             *    cjson_add_number_to_object(object, name, d);
+             */
             } else {
                 dbg_str(OBJ_WARNNING, "type error, please check, type name :%s, entry name :%s, type =%d", 
                         type_name, entry[i].type_name, entry[i].type);

@@ -29,32 +29,14 @@ __get_value(Command *command,char *command_name, char *flag_name)
 {
 }
 
-static char *__to_json(Test_Command *command)
-{
-    Obj *obj = (Obj *)command;
-    String *json = obj->json;
-
-    if (json == NULL) {
-        json = object_new(obj->allocator, "String", NULL);
-        obj->json = json;
-    } else {
-        json->clear(json);
-    }
-
-    sprintf(json->value, "{\"option\":\"%s\", \"help\":%d}", command->option->get_cstr(command->option), command->help);
-
-    return json->get_cstr(json);
-}
-
 static class_info_entry_t test_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Test_Command, construct, __construct),
     Init_Nfunc_Entry(2, Test_Command, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Test_Command, to_json, __to_json),
-    Init_Vfunc_Entry(4, Test_Command, get_value, __get_value),
-    Init_Str___Entry(5, Test_Command, option, NULL),
-    Init_U32___Entry(6, Test_Command, help, 0),
-    Init_End___Entry(7, Test_Command),
+    Init_Vfunc_Entry(3, Test_Command, get_value, __get_value),
+    Init_Str___Entry(4, Test_Command, option, NULL),
+    Init_U32___Entry(5, Test_Command, help, 0),
+    Init_End___Entry(6, Test_Command),
 };
 REGISTER_CLASS("Test_Command", test_command_class_info);
 
@@ -111,6 +93,8 @@ static int test_new_command_with_init_data(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     Command *command = NULL;
+    Command *subcmd1 = NULL;
+    Command *subcmd2 = NULL;
     int ret = 0, help = 0;
     char *init_data = "{\
             \"Test_Command\":{\
@@ -122,6 +106,8 @@ static int test_new_command_with_init_data(TEST_ENTRY *entry)
     dbg_str(DBG_DETAIL, "allocator addr:%p", allocator);
 
     command = object_new(allocator, "Test_Command", init_data);
+
+
     dbg_str(DBG_DETAIL, "Test_Command dump: %s",
             command->to_json(command));
 

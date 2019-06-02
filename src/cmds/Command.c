@@ -9,6 +9,7 @@
 
 static int __construct(Command *command, char *init_str)
 {
+    command->vector = NULL;
     return 0;
 }
 
@@ -24,18 +25,21 @@ static int __deconstruct(Command *command)
 int __add_subcommand(Command *command, void *subcommand)
 {
     Vector *vector = command->vector;
+    int value_type = VALUE_TYPE_OBJ_POINTER;
     int ret = 0;
 
     if (vector == NULL) {
         vector = object_new(command->parent.allocator, 
-                            "RBTree_Map", NULL);
+                            "Vector", NULL);
         if (vector == NULL) {
             ret = -1;
             goto end;
         }
+        vector->set(vector, "/Vector/value_type", &value_type);
         command->vector = vector;
     }
 
+    dbg_str(DBG_SUC, "add subcommand");
     ret = vector->add(vector, subcommand);
 
 end:
