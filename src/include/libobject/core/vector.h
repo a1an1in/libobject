@@ -5,6 +5,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/data_structure/vector.h>
 #include <libobject/core/Obj.h>
+#include <libobject/core/String.h>
 
 typedef struct _vector_s Vector;
 
@@ -12,6 +13,7 @@ struct _vector_s{
 	Obj obj;
 
 	int (*construct)(Vector *vector,char *init_str);
+	int (*reconstruct)(Vector *vector);
 	int (*deconstruct)(Vector *vector);
 
 	/*virtual methods reimplement*/
@@ -27,14 +29,17 @@ struct _vector_s{
     void (*for_each)(Vector *vector,void (*func)(int index, void *element));
     void (*free_vector_elements)(Vector *vector);
     uint32_t (*size)(Vector *vector);
-    int    (*empty)(Vector *vector);
-
+    int (*empty)(Vector *vector);
     void (*clear)(Vector *vector);
 
+    /*attribs*/
     vector_t *vector;
 	uint32_t value_size;
 	uint8_t value_type;
     uint32_t capacity;
+    String *init_data;
+    String *class_name;
+    uint8_t trustee_flag;
 };
 
 #endif

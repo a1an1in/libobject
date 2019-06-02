@@ -381,6 +381,7 @@ static int __object_set(void *obj,
                      *set(obj, c->string, &(c->valuedouble));
                      */
                 } else if (c->type & OBJECT_STRING) {
+                    dbg_str(DBG_DETAIL, "set string %s", c->valuestring);
                     set(obj, c->string, c->valuestring);
                 } else if (c->type & OBJECT_ARRAY) {
                     char *out;

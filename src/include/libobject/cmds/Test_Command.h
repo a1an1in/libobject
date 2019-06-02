@@ -14,6 +14,7 @@ struct Test_Command_s{
 	int (*deconstruct)(Command *command);
 	int (*set)(Command *command, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
+    char *(*to_json)(void *obj); 
 
 	/*virtual methods reimplement*/
     void * (*get_value)(Command *command,char *command_name, char *flag_name);

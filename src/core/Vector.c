@@ -40,6 +40,7 @@
 static int __construct(Vector *vector, char *init_str)
 {
     allocator_t *allocator = vector->obj.allocator;
+
     dbg_str(OBJ_DETAIL, "vector construct, vector addr:%p", vector);
 
     vector->vector = vector_create(allocator, 0);
@@ -51,12 +52,156 @@ static int __construct(Vector *vector, char *init_str)
     }
     vector_init(vector->vector, vector->value_size, vector->capacity);
 
+    if (vector->init_data != NULL) {
+        cjson_t *c;
+
+        dbg_str(DBG_DETAIL, "vector init data:%s", 
+                vector->init_data->get_cstr(vector->init_data));
+
+        c = cjson_parse(vector->init_data->get_cstr(vector->init_data));
+        if (c->type & OBJECT_ARRAY) {
+            c = c->child;
+            dbg_str(DBG_DETAIL, "array name:%s", c->string);
+        }
+
+        while (c) {
+            if (c->type & CJSON_NUMBER) {
+                vector->add(vector, c->valueint);
+            } else if (c->type & OBJECT_STRING) {
+                String *s;
+                dbg_str(DBG_DETAIL, "vector element:%s", c->valuestring);
+                s = object_new(allocator, "String", NULL);
+                s->assign(s, c->valuestring);
+                vector->add(vector, s);
+            } else if (c->type & OBJECT_ARRAY) {
+                dbg_str(DBG_DETAIL, "vector element, not supported now!");
+            } else if (c->type & CJSON_OBJECT) {
+                char *out;
+                Obj *o;
+                char *class_name = vector->class_name->get_cstr(vector->class_name);
+                char init_str[1024];
+                out = cjson_print(c);
+                sprintf(init_str, "{\"%s\":%s}", class_name, out);
+                dbg_str(DBG_DETAIL, "init_str:%s", init_str);
+                o = object_new(allocator, class_name, init_str);
+                vector->add(vector, o);
+
+                dbg_str(DBG_DETAIL, "o: %s", o->to_json(o));
+                free(out);
+            } else {
+                dbg_str(DBG_DETAIL, "vector element, not supported now!");
+            }
+
+            c = c->next;
+        }
+
+        cjson_delete(c);
+    }
+
+    return 0;
+}
+
+static int __reconstruct(Vector *vector)
+{
+    allocator_t *allocator = vector->obj.allocator;
+
+    dbg_str(OBJ_DETAIL, "vector reconstruct, vector addr:%p", vector);
+
+    vector_destroy(vector->vector);
+
+    vector->vector = vector_create(allocator, 0);
+    if (vector->value_size == 0) {
+        vector->value_size = sizeof(void *);
+    }
+
+    if (vector->capacity == 0) {
+        vector->capacity = 10;
+    }
+
+    vector_init(vector->vector, vector->value_size, vector->capacity);
+
+    if (vector->init_data != NULL) {
+        cjson_t *c;
+        c = cjson_parse(vector->init_data->get_cstr(vector->init_data));
+        if (c->type & OBJECT_ARRAY) {
+            c = c->child;
+            /*
+             *dbg_str(DBG_DETAIL, "array name:%s", c->string);
+             */
+        }
+
+        while (c) {
+            if (c->type & CJSON_NUMBER) {
+                vector->add(vector, c->valueint);
+            } else if (c->type & OBJECT_STRING) {
+                String *s;
+                dbg_str(DBG_DETAIL, "vector element:%s", c->valuestring);
+                s = object_new(allocator, "String", NULL);
+                s->assign(s, c->valuestring);
+                vector->add(vector, s);
+            } else if (c->type & OBJECT_ARRAY) {
+                dbg_str(DBG_DETAIL, "vector element, not supported now!");
+            } else if (c->type & CJSON_OBJECT) {
+                char *out;
+                Obj *o;
+                char *class_name = vector->class_name->get_cstr(vector->class_name);
+                char init_str[1024];
+                out = cjson_print(c);
+                sprintf(init_str, "{\"%s\":%s}", class_name, out);
+                dbg_str(DBG_DETAIL, "init_str:%s", init_str);
+                o = object_new(allocator, class_name, init_str);
+                vector->add(vector, o);
+                free(out);
+            } else {
+                dbg_str(DBG_DETAIL, "vector element, not supported now!");
+            }
+
+            c = c->next;
+        }
+
+        cjson_delete(c);
+    }
+
     return 0;
 }
 
 static int __deconstrcut(Vector *vector)
 {
     dbg_str(OBJ_DETAIL, "vector deconstruct, vector addr:%p", vector);
+
+    if (vector->init_data != NULL) {
+        object_destroy(vector->init_data);
+    }
+
+    if (vector->class_name != NULL) {
+        object_destroy(vector->class_name);
+    }
+
+    if (vector->trustee_flag == 1) {
+        vector_pos_t pos, next;
+        vector_t *v = vector->vector;
+        void *element;
+        int index = 0;
+
+        for(	vector_begin(v, &pos), vector_pos_next(&pos, &next);
+                !vector_pos_equal(&pos, &v->end);
+                pos = next, vector_pos_next(&pos, &next))
+        {
+            vector->peek_at(vector, index++, (void **)&element);
+
+            if (    vector->value_type == VALUE_TYPE_OBJ_POINTER && 
+                    element != NULL) 
+            {
+                object_destroy(element);
+            } else if (vector->value_type  == VALUE_TYPE_STRING &&
+                       element != NULL)
+            {
+                object_destroy(element);
+            } else {
+            }
+            element = NULL;
+        }
+    }
 
     vector_destroy(vector->vector);
 
@@ -186,43 +331,43 @@ static char *__to_json(Obj *obj)
 
         switch(vector->value_type) {
             case VALUE_TYPE_INT8_T: {
-                    int8_t *num = (int8_t *)element;
-                    item = cjson_create_number(*num);
+                    int8_t num = (int8_t)element;
+                    item = cjson_create_number(num);
                     break;
                 }
             case VALUE_TYPE_UINT8_T: {
-                    uint8_t *num = (uint8_t *)element;
-                    item = cjson_create_number(*num);
+                    uint8_t num = (uint8_t)element;
+                    item = cjson_create_number(num);
                     break;
                 }
             case VALUE_TYPE_INT16_T: {
-                    int16_t *num = (int16_t *)element;
-                    item = cjson_create_number(*num);
+                    int16_t num = (int16_t)element;
+                    item = cjson_create_number(num);
                     break;
                 }
             case VALUE_TYPE_UINT16_T: {
-                    uint16_t *num = (uint16_t *)element;
-                    item = cjson_create_number(*num);
+                    uint16_t num = (uint16_t)element;
+                    item = cjson_create_number(num);
                     break;
                 }
             case VALUE_TYPE_INT32_T: {
-                    int32_t *num = (int32_t *)element;
-                    item = cjson_create_number(*num);
+                    int32_t num = (int32_t)element;
+                    item = cjson_create_number(num);
                     break;
                 }
             case VALUE_TYPE_UINT32_T: {
-                    uint32_t *num = (uint32_t *)element;
-                    item = cjson_create_number(*num);
+                    uint32_t num = (uint32_t)element;
+                    item = cjson_create_number(num);
                     break;
                 }
             case VALUE_TYPE_INT64_T: {
-                    int64_t *num = (int64_t *)element;
-                    item = cjson_create_number(*num);
+                    int64_t num = (int64_t)element;
+                    item = cjson_create_number(num);
                     break;
                 }
             case VALUE_TYPE_UINT64_T: {
-                    uint64_t *num = (uint64_t *)element;
-                    item = cjson_create_number(*num);
+                    uint64_t num = (uint64_t)element;
+                    item = cjson_create_number(num);
                     break;
                 }
             case VALUE_TYPE_FLOAT_T: {
@@ -237,7 +382,6 @@ static char *__to_json(Obj *obj)
                 }
             case VALUE_TYPE_OBJ_POINTER: {
                     Obj *o = (Obj *)element;
-
                     item = cjson_parse(o->to_json(o));
                     break;
                 }
@@ -265,25 +409,32 @@ static char *__to_json(Obj *obj)
 static class_info_entry_t vector_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Vector, construct, __construct),
-    Init_Nfunc_Entry(2 , Vector, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Vector, set, NULL),
-    Init_Vfunc_Entry(4 , Vector, get, NULL),
-    Init_Vfunc_Entry(5 , Vector, add, __add),
-    Init_Vfunc_Entry(6 , Vector, add_at, __add_at),
-    Init_Vfunc_Entry(7 , Vector, add_back, __add_back),
-    Init_Vfunc_Entry(8 , Vector, remove, __remove),
-    Init_Vfunc_Entry(9 , Vector, remove_back, __remove_back),
-    Init_Vfunc_Entry(10, Vector, peek_at, __peek_at),
-    Init_Vfunc_Entry(11, Vector, for_each, __for_each),
-    Init_Vfunc_Entry(12, Vector, free_vector_elements, __free_vector_elements),
-    Init_Vfunc_Entry(13, Vector, clear, __clear),
-    Init_Vfunc_Entry(14, Vector, size, __size),
-    Init_Vfunc_Entry(15, Vector, empty, __empty),
-    Init_Vfunc_Entry(16, Vector, to_json, __to_json),
-    Init_U32___Entry(17, Vector, value_size, NULL),
-    Init_U8____Entry(17, Vector, value_type, NULL),
-    Init_U32___Entry(18, Vector, capacity, NULL),
-    Init_End___Entry(19, Vector),
+    Init_Nfunc_Entry(2 , Vector, reconstruct, __reconstruct),
+    Init_Nfunc_Entry(3 , Vector, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(4 , Vector, set, NULL),
+    Init_Vfunc_Entry(5 , Vector, get, NULL),
+    Init_Vfunc_Entry(6 , Vector, add, __add),
+    Init_Vfunc_Entry(7 , Vector, add_at, __add_at),
+    Init_Vfunc_Entry(8 , Vector, add_back, __add_back),
+    Init_Vfunc_Entry(9 , Vector, remove, __remove),
+    Init_Vfunc_Entry(10, Vector, remove_back, __remove_back),
+    Init_Vfunc_Entry(11, Vector, peek_at, __peek_at),
+    Init_Vfunc_Entry(12, Vector, for_each, __for_each),
+    Init_Vfunc_Entry(13, Vector, free_vector_elements, __free_vector_elements),
+    Init_Vfunc_Entry(14, Vector, clear, __clear),
+    Init_Vfunc_Entry(15, Vector, size, __size),
+    Init_Vfunc_Entry(16, Vector, empty, __empty),
+    /*
+     *Init_Vfunc_Entry(17, Vector, to_json, NULL),
+     */
+    Init_Vfunc_Entry(17, Vector, to_json, __to_json),
+    Init_U32___Entry(18, Vector, value_size, NULL),
+    Init_U8____Entry(19, Vector, value_type, NULL),
+    Init_U32___Entry(20, Vector, capacity, NULL),
+    Init_Str___Entry(21, Vector, init_data, NULL),
+    Init_Str___Entry(22, Vector, class_name, NULL),
+    Init_U8____Entry(23, Vector, trustee_flag, 0),
+    Init_End___Entry(24, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);
 
@@ -434,7 +585,6 @@ static int test_int_vector_to_json(TEST_ENTRY *entry)
     Vector *vector;
     allocator_t *allocator = allocator_get_default_alloc();
     int value_size = 25, capacity = 19, value_type = VALUE_TYPE_INT8_T;
-    int *t, t0 = 0, t1 = 1, t2 = 2, t3 = 3, t4 = 4, t5 = 5;
     int ret;
     char *result = "[0, 1, 2, 3, 4, 5]";
 
@@ -442,12 +592,12 @@ static int test_int_vector_to_json(TEST_ENTRY *entry)
     vector->set(vector, "/Vector/capacity", &capacity);
     vector->set(vector, "/Vector/value_type", &value_type);
 
-    vector->add_at(vector, 0, &t0);
-    vector->add_at(vector, 1, &t1);
-    vector->add_at(vector, 2, &t2);
-    vector->add_at(vector, 3, &t3);
-    vector->add_at(vector, 4, &t4);
-    vector->add_at(vector, 5, &t5);
+    vector->add_at(vector, 0, 0);
+    vector->add_at(vector, 1, 1);
+    vector->add_at(vector, 2, 2);
+    vector->add_at(vector, 3, 3);
+    vector->add_at(vector, 4, 4);
+    vector->add_at(vector, 5, 5);
 
     dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
     if (strcmp(result, vector->to_json(vector)) != 0) {
@@ -571,3 +721,101 @@ static int test_obj_vector_to_json(TEST_ENTRY *entry)
 REGISTER_TEST_CMD(test_obj_vector_to_json);
 
 
+static int test_int_vector_set_init_data(TEST_ENTRY *entry)
+{
+    Vector *vector;
+    allocator_t *allocator = allocator_get_default_alloc();
+    int value_size = 25, capacity = 19, value_type = VALUE_TYPE_INT8_T;
+    int ret;
+    char *init_data = "[0, 1, 2, 3, 4, 5]";
+
+    vector = object_new(allocator, "Vector", NULL);
+    vector->set(vector, "/Vector/capacity", &capacity);
+    vector->set(vector, "/Vector/value_type", &value_type);
+    vector->set(vector, "/Vector/init_data", init_data);
+    vector->reconstruct(vector);
+
+    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
+    if (strcmp(init_data, vector->to_json(vector)) != 0) {
+        ret = 0;
+    } else {
+        ret = 1;
+    }
+
+    object_destroy(vector);
+    
+    return ret;
+
+}
+REGISTER_TEST_FUNC(test_int_vector_set_init_data);
+
+static int test_string_vector_set_init_data(TEST_ENTRY *entry)
+{
+    Vector *vector;
+    allocator_t *allocator = allocator_get_default_alloc();
+    int value_size = 25, capacity = 19, value_type = VALUE_TYPE_STRING;
+    uint8_t trustee_flag = 1;
+    int ret;
+    char *init_data = "[\"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\"]";
+
+    vector = object_new(allocator, "Vector", NULL);
+    vector->set(vector, "/Vector/capacity", &capacity);
+    vector->set(vector, "/Vector/value_type", &value_type);
+    vector->set(vector, "/Vector/init_data", init_data);
+    vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
+    vector->reconstruct(vector);
+
+    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
+    if (strcmp(init_data, vector->to_json(vector)) != 0) {
+        ret = 0;
+    } else {
+        ret = 1;
+    }
+
+    object_destroy(vector);
+    
+    return ret;
+
+}
+REGISTER_TEST_FUNC(test_string_vector_set_init_data);
+
+static int test_obj_vector_set_init_data(TEST_ENTRY *entry)
+{
+    Vector *vector;
+    allocator_t *allocator = allocator_get_default_alloc();
+    int value_size = 25, capacity = 19, value_type = VALUE_TYPE_OBJ_POINTER;
+    uint8_t trustee_flag = 1;
+    int ret;
+    char *init_data = "[\
+        {\
+            \"option\": \"test cmd0 option\",\
+            \"help\": 0\
+        }, {\
+            \"option\": \"test cmd1 option\",\
+            \"help\": 1\
+        }, {\
+            \"option\": \"test cmd2 option\",\
+            \"help\": 2\
+        }]";
+
+    vector = object_new(allocator, "Vector", NULL);
+    vector->set(vector, "/Vector/capacity", &capacity);
+    vector->set(vector, "/Vector/value_type", &value_type);
+    vector->set(vector, "/Vector/init_data", init_data);
+    vector->set(vector, "/Vector/class_name", "Test_Command");
+    vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
+    vector->reconstruct(vector);
+
+    dbg_str(DBG_DETAIL, "Vector json: %s", vector->to_json(vector));
+    if (strcmp(init_data, vector->to_json(vector)) != 0) {
+        ret = 0;
+    } else {
+        ret = 1;
+    }
+
+    object_destroy(vector);
+    
+    return ret;
+
+}
+REGISTER_TEST_FUNC(test_obj_vector_set_init_data);

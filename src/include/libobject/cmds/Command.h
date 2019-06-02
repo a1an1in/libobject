@@ -17,9 +17,9 @@ struct Command_s{
     void * (*get_value)(Command *command,char *command_name, char *flag_name);
 	int (*set)(Command *command, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
+    char *(*to_json)(void *obj); 
     int (*add_subcommand)(Command *command, void *subcommand);
     Command * (*get_subcommand)(Command *command, char *command_name);
-    char *(*to_json)(void *obj); 
 
     /*attribs*/
     Vector *vector;

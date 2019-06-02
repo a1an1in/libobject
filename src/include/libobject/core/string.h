@@ -4,8 +4,6 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
-#include <libobject/core/Vector.h>
-
 
 
 /**
@@ -59,7 +57,7 @@ struct string_s{
     char *value;
     int value_max_len;
     int value_len;
-    Vector *splited_strings;
+    void *splited_strings;
 };
 
 #endif

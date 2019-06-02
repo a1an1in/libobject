@@ -148,6 +148,7 @@ static int __set(Obj *obj, char *attrib, void *value)
                     strcpy((*addr)->value, (char *)value);
                     (*addr)->value_len = strlen((char *)value);
                 }
+                dbg_str(DBG_WARNNING, "set string %s", value);
 
                 break;
             }
@@ -260,9 +261,6 @@ static void *__get(Obj *obj, char *attrib)
             break;
         case ENTRY_TYPE_STRING:
             {
-                dbg_str(DBG_SUC, "class name:%s get attrib:%s",
-                        obj->target_name,
-                        attrib);
                 addr = (base + entry->offset);
                 break;
             }
