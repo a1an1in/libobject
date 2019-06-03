@@ -33,6 +33,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/object.h>
 #include <libobject/core/String.h>
+#include <libobject/core/Vector.h>
 
 static int __construct(Obj *obj, char *init_str)
 {
@@ -104,6 +105,8 @@ static int __set(Obj *obj, char *attrib, void *value)
 
     entry  = __object_get_entry_of_class(info, attrib);
     if (entry == NULL) {
+        dbg_str(DBG_WARNNING, "not found entry, target_name:%s, attrib:%s",
+                target_name, attrib);
         return -1;
     }
 
@@ -113,6 +116,7 @@ static int __set(Obj *obj, char *attrib, void *value)
             {
                 uint8_t *addr = (uint8_t *)(base + entry->offset);
                 *addr = *((uint8_t *)value);
+                dbg_str(DBG_WARNNING, "set int %d", *addr);
                 break;
             }
         case ENTRY_TYPE_INT16_T:
@@ -120,6 +124,7 @@ static int __set(Obj *obj, char *attrib, void *value)
             {
                 uint16_t *addr = (uint16_t *)(base + entry->offset);
                 *addr = *((uint16_t *)value);
+                dbg_str(DBG_WARNNING, "set uint %d", *addr);
                 break;
             }
         case ENTRY_TYPE_INT32_T:
@@ -127,6 +132,7 @@ static int __set(Obj *obj, char *attrib, void *value)
             {
                 uint32_t *addr = (uint32_t *)(base + entry->offset);
                 *addr = *((uint32_t *)value);
+                dbg_str(DBG_WARNNING, "set int32 %d", *addr);
                 break;
             }
         case ENTRY_TYPE_INT64_T:
@@ -134,6 +140,7 @@ static int __set(Obj *obj, char *attrib, void *value)
             {
                 uint64_t *addr = (uint64_t *)(base + entry->offset);
                 *addr = *((uint64_t *)value);
+                dbg_str(DBG_WARNNING, "set uint32 %d", *addr);
                 break;
             }
         case ENTRY_TYPE_FLOAT_T:
@@ -148,14 +155,58 @@ static int __set(Obj *obj, char *attrib, void *value)
                     strcpy((*addr)->value, (char *)value);
                     (*addr)->value_len = strlen((char *)value);
                 }
-                dbg_str(DBG_WARNNING, "set string %s", value);
+                /*
+                 *dbg_str(DBG_WARNNING, "set string %s", value);
+                 */
 
+                break;
+            }
+        case ENTRY_TYPE_VECTOR:
+            {
+                Vector **addr = (Vector **)(base + entry->offset);
+                Vector *v;
+                int value_type = VALUE_TYPE_OBJ_POINTER;
+                uint8_t trustee_flag = 1;
+                char *p = (char *)value;
+
+                if (*addr != NULL) {
+                    v = *addr;
+                    dbg_str(DBG_DETAIL, "run at here, v=%p", v);
+                } else {
+                    v = object_new(allocator, "Vector", NULL);
+                    dbg_str(DBG_DETAIL, "run at here, v=%p", v);
+                }
+                if (p[0] == '[') {
+                    /*
+                     *dbg_str(DBG_WARNNING, "%s set %s value:%s, value_type:%s", 
+                     *        target_name, attrib, value, entry->type_name);
+                     */
+                    v->set(v, "/Vector/value_type", &value_type);
+                    v->set(v, "/Vector/init_data", value);
+                    v->set(v, "/Vector/class_name", entry->type_name);
+                    v->set(v, "/Vector/trustee_flag", &trustee_flag);
+                    v->reconstruct(v);
+                    *addr = v;
+                    dbg_str(DBG_ERROR, "Vector offset:%p addr: %p",addr, *addr);
+                    dbg_str(DBG_DETAIL, "run at here, v=%p", v);
+                    /*
+                     *dbg_str(DBG_DETAIL, "Vector json: %s", v->to_json(v));
+                     */
+                    Vector **addr = (Vector **)(base + entry->offset);
+                    dbg_str(DBG_ERROR, "Vector offset:%p addr: %p",addr, *addr);
+                } else {
+                }
                 break;
             }
         case ENTRY_TYPE_NORMAL_POINTER:
         case ENTRY_TYPE_FUNC_POINTER:
         case ENTRY_TYPE_VFUNC_POINTER:
         case ENTRY_TYPE_IFUNC_POINTER:
+            {
+                void **addr = (void **)(base + entry->offset);
+                *addr = value;
+                break;
+            }
         case ENTRY_TYPE_OBJ_POINTER:
             {
                 void **addr = (void **)(base + entry->offset);
@@ -264,6 +315,13 @@ static void *__get(Obj *obj, char *attrib)
                 addr = (base + entry->offset);
                 break;
             }
+        case ENTRY_TYPE_VECTOR:
+            {
+                addr = (base + entry->offset);
+                void **v = addr;
+                dbg_str(DBG_DETAIL, "xxxxxxxxxxxget vector addr:%p", *v);
+                break;
+            }
         case ENTRY_TYPE_NORMAL_POINTER:
         case ENTRY_TYPE_FUNC_POINTER:
         case ENTRY_TYPE_VFUNC_POINTER:
@@ -318,6 +376,7 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
             }
             item = cjson_create_object();
             cjson_add_item_to_object(object, entry[i].type_name, item);
+            dbg_str(DBG_DETAIL, "%s to json", entry[i].type_name);
             __to_json__(obj, entry[i].type_name, item);
         } else if (entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
                    entry[i].type == ENTRY_TYPE_VFUNC_POINTER || 
@@ -327,7 +386,7 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
             strcpy(o->target_name, type_name);
 
             dbg_str(DBG_WARNNING, "get:%p, __get:%p", get, __get);
-            dbg_str(DBG_WARNNING, "value name:%s", entry[i].value_name);
+            dbg_str(DBG_WARNNING, "value name:%s to json", entry[i].value_name);
             value = get(obj, entry[i].value_name);
             /*
              *if (value == NULL) continue;
@@ -354,6 +413,15 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
                 String *s = *(String **)value;
                 if (s != NULL)
                     cjson_add_string_to_object(object, name, s->value);
+            } else if (entry[i].type == ENTRY_TYPE_VECTOR) {
+                Vector *v = *((Vector **)value);
+                if (v != NULL) {
+                    dbg_str(DBG_DETAIL, "Vector json: %s", v->to_json(v));
+                    item = cjson_parse(v->to_json(v));
+                    cjson_add_item_to_object(object, entry[i].value_name, item);
+                } else {
+                    dbg_str(DBG_ERROR, "Vector to json, but content is null, offset:%p", value);
+                }
             } else if (entry[i].type == ENTRY_TYPE_OBJ_POINTER) 
             {
                 Obj *o = *(Obj **)value;
@@ -386,6 +454,8 @@ static char *__to_json(Obj *obj)
     }
 
     root = cjson_create_object();
+
+    dbg_str(DBG_DETAIL, "%s to json", obj->name);
 
     __to_json__(obj, obj->name, root);
 

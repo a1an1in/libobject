@@ -89,8 +89,18 @@ static int test_unmarshal_command(TEST_ENTRY *entry)
     Command *subcmd1 = NULL;
     Command *subcmd2 = NULL;
     int ret = 0, help = 0;
-    char *init_data = "{\
-            \"Test_Command\":{\
+    char *init_data = "\
+        {\
+            \"Test_Command\": {\
+                \"Command\": {\
+                    \"vector\":	[{\
+                        \"option\":	\"test sub1 command option\",\
+                        \"help\":	1\
+                    }, {\
+                        \"option\":	\"test sub2 command option\",\
+                        \"help\":	2\
+                    }]\
+                },\
                 \"option\": \"test cmd option\",\
                 \"help\": 1\
             }\

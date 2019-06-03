@@ -348,9 +348,9 @@ end:
     return o;
 }
 
-static int __object_set(void *obj, 
-                        cjson_t *c, 
-                        int (*set)(void *obj, char *attrib, void *value)) 
+static int 
+__object_set(void *obj, char *type_name,
+             cjson_t *c, int (*set)(void *obj, char *attrib, void *value)) 
 {
     class_deamon_t *deamon;
     void *class_info_addr;
@@ -358,39 +358,48 @@ static int __object_set(void *obj,
     cjson_t *object;
     Obj *o = (Obj *)obj;
     int (*super_class_set)(void *obj, char *attrib, void *value); 
+    int cnt = 0;
 
     while (c) {
         if (c->type & CJSON_OBJECT) {
             object = c;
             if (object->string) {
-                dbg_str(OBJ_DETAIL, "object name:%s", object->string);
+                dbg_str(DBG_DETAIL, "set object name:%s", object->string);
                 deamon          = class_deamon_get_global_class_deamon();
                 class_info_addr = class_deamon_search_class(deamon, object->string);
                 super_class_set = __object_get_func_recursively(class_info_addr, "set");
-                strcpy(o->target_name, object->string);
+                dbg_str(DBG_DETAIL, "set addr:%p", super_class_set);
             }
 
             if (c->child) {
-                __object_set(obj, c->child, super_class_set);
+                __object_set(obj,object->string, c->child, super_class_set);
             }
         } else {
+            if (cnt == 0) {
+                strcpy(o->target_name, type_name);
+            }
+
             if (set) {
                 if (c->type & CJSON_NUMBER) {
+                    dbg_str(DBG_DETAIL, "set number: %s value \"%d\"", c->string, c->valueint);
                     set(obj, c->string, &(c->valueint));
                     /*
                      *set(obj, c->string, &(c->valuedouble));
                      */
                 } else if (c->type & OBJECT_STRING) {
-                    dbg_str(DBG_DETAIL, "set string %s", c->valuestring);
+                    dbg_str(DBG_DETAIL, "set string: %s value \"%s\"", c->string, c->valuestring);
                     set(obj, c->string, c->valuestring);
                 } else if (c->type & OBJECT_ARRAY) {
                     char *out;
-
                     out = cjson_print(c);
-                    dbg_str(DBG_DETAIL, "array json:%s", out);
+                    /*
+                     *dbg_str(DBG_DETAIL, "%s array json:%s",c->string, out);
+                     */
+                    set(obj, c->string, out);
                     free(out);
                 }
             }
+            cnt++;
         }
 
         c = c->next;
@@ -407,7 +416,7 @@ int object_set(void *obj, char *type_name, char *set_str)
 
     root = cjson_parse(set_str);
 
-    __object_set(obj, root, NULL);
+    __object_set(obj, type_name, root, NULL);
     cjson_delete(root);
 
     return 0;

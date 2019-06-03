@@ -15,7 +15,7 @@ enum class_info_type_e{
 	ENTRY_TYPE_UINT64_T,
 	ENTRY_TYPE_FLOAT_T,
 	ENTRY_TYPE_STRING,
-    ENTRY_TYPE_ARRAY,
+    ENTRY_TYPE_VECTOR,
 	ENTRY_TYPE_OBJ,
 	ENTRY_TYPE_NORMAL_POINTER,
 	ENTRY_TYPE_FUNC_POINTER,/*normal func pointer*/
@@ -28,7 +28,7 @@ enum class_info_type_e{
 
 typedef struct class_info_entry_s{
 	uint8_t type;
-	char *type_name;
+	char *type_name;   //value type name
 	char *value_name;
 	void *value;
 	int value_len;
@@ -56,6 +56,8 @@ typedef struct class_info_entry_s{
     [id] = {ENTRY_TYPE_FLOAT_T, "", #value_name, value, sizeof(float), offset_of_class(class_name, value_name)}
 #define Init_Str___Entry(id, class_name, value_name, value) \
     [id] = {ENTRY_TYPE_STRING, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
+#define Init_Vec___Entry(id, class_name, value_name, value, value_type) \
+    [id] = {ENTRY_TYPE_VECTOR, value_type, #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
 #define Init_End_Entry(id, class_name) \
     [id] = {ENTRY_TYPE_END, #class_name, "", NULL, sizeof(class_name)}
 #define Init_Obj___Entry Init_Obj_Entry

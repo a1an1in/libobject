@@ -9,7 +9,6 @@
 
 static int __construct(Command *command, char *init_str)
 {
-    command->vector = NULL;
     return 0;
 }
 
@@ -66,7 +65,7 @@ static class_info_entry_t command_class_info[] = {
     Init_Vfunc_Entry(6 , Command, add_subcommand, __add_subcommand),
     Init_Vfunc_Entry(7 , Command, get_subcommand, __get_subcommand),
     Init_Vfunc_Entry(8 , Command, get_value, __get_value),
-    Init_OP____Entry(9 , Command, vector, NULL),
+    Init_Vec___Entry(9 , Command, vector, NULL, "Test_Command"),
     Init_End___Entry(10, Command),
 };
 REGISTER_CLASS("Command", command_class_info);
