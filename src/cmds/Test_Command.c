@@ -40,7 +40,7 @@ static class_info_entry_t test_command_class_info[] = {
 };
 REGISTER_CLASS("Test_Command", test_command_class_info);
 
-static int test_command(TEST_ENTRY *entry)
+static int test_marshal_command(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     Command *command = NULL;
@@ -69,14 +69,7 @@ static int test_command(TEST_ENTRY *entry)
     command->add_subcommand(command, subcmd1);
     command->add_subcommand(command, subcmd2);
 
-    /*
-     *dbg_str(DBG_DETAIL, "Test_Sub1_Command dump: %s",
-     *        subcmd1->to_json(subcmd1));
-     *dbg_str(DBG_DETAIL, "Test_Sub2_Command dump: %s",
-     *        subcmd2->to_json(subcmd2));
-     */
-    dbg_str(DBG_DETAIL, "Test_Command dump: %s",
-            command->to_json(command));
+    dbg_str(DBG_DETAIL, "Test_Command dump: %s", command->to_json(command));
 
     object_destroy(subcmd1);
     object_destroy(subcmd2);
@@ -87,9 +80,9 @@ static int test_command(TEST_ENTRY *entry)
     return ret;
 
 }
-REGISTER_TEST_CMD(test_command);
+REGISTER_TEST_CMD(test_marshal_command);
 
-static int test_new_command_with_init_data(TEST_ENTRY *entry)
+static int test_unmarshal_command(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     Command *command = NULL;
@@ -107,12 +100,10 @@ static int test_new_command_with_init_data(TEST_ENTRY *entry)
 
     command = object_new(allocator, "Test_Command", init_data);
 
-
-    dbg_str(DBG_DETAIL, "Test_Command dump: %s",
-            command->to_json(command));
+    dbg_str(DBG_DETAIL, "Test_Command dump: %s", command->to_json(command));
 
     object_destroy(command);
 
     return 1;
 }
-REGISTER_TEST_CMD(test_new_command_with_init_data);
+REGISTER_TEST_CMD(test_unmarshal_command);
