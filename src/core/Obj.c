@@ -286,42 +286,15 @@ static void *__get(Obj *obj, char *attrib)
     switch(entry->type) {
         case ENTRY_TYPE_INT8_T:
         case ENTRY_TYPE_UINT8_T:
-            {
-                addr = (base + entry->offset);
-                break;
-            }
         case ENTRY_TYPE_INT16_T:
         case ENTRY_TYPE_UINT16_T:
-            {
-                addr = (base + entry->offset);
-                break;
-            }
         case ENTRY_TYPE_INT32_T:
         case ENTRY_TYPE_UINT32_T:
-            {
-                addr = (base + entry->offset);
-                break;
-            }
         case ENTRY_TYPE_INT64_T:
         case ENTRY_TYPE_UINT64_T:
-            {
-                addr = (base + entry->offset);
-                break;
-            }
         case ENTRY_TYPE_FLOAT_T:
-            break;
         case ENTRY_TYPE_STRING:
-            {
-                addr = (base + entry->offset);
-                break;
-            }
         case ENTRY_TYPE_VECTOR:
-            {
-                addr = (base + entry->offset);
-                void **v = addr;
-                dbg_str(DBG_DETAIL, "xxxxxxxxxxxget vector addr:%p", *v);
-                break;
-            }
         case ENTRY_TYPE_NORMAL_POINTER:
         case ENTRY_TYPE_FUNC_POINTER:
         case ENTRY_TYPE_VFUNC_POINTER:
