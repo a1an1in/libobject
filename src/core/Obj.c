@@ -177,23 +177,13 @@ static int __set(Obj *obj, char *attrib, void *value)
                     dbg_str(DBG_DETAIL, "run at here, v=%p", v);
                 }
                 if (p[0] == '[') {
-                    /*
-                     *dbg_str(DBG_WARNNING, "%s set %s value:%s, value_type:%s", 
-                     *        target_name, attrib, value, entry->type_name);
-                     */
                     v->set(v, "/Vector/value_type", &value_type);
                     v->set(v, "/Vector/init_data", value);
                     v->set(v, "/Vector/class_name", entry->type_name);
                     v->set(v, "/Vector/trustee_flag", &trustee_flag);
                     v->reconstruct(v);
                     *addr = v;
-                    dbg_str(DBG_ERROR, "Vector offset:%p addr: %p",addr, *addr);
-                    dbg_str(DBG_DETAIL, "run at here, v=%p", v);
-                    /*
-                     *dbg_str(DBG_DETAIL, "Vector json: %s", v->to_json(v));
-                     */
                     Vector **addr = (Vector **)(base + entry->offset);
-                    dbg_str(DBG_ERROR, "Vector offset:%p addr: %p",addr, *addr);
                 } else {
                 }
                 break;
@@ -393,7 +383,7 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
                     item = cjson_parse(v->to_json(v));
                     cjson_add_item_to_object(object, entry[i].value_name, item);
                 } else {
-                    dbg_str(DBG_ERROR, "Vector to json, but content is null, offset:%p", value);
+                    dbg_str(DBG_WARNNING, "Vector to json, but content is null, offset:%p", value);
                 }
             } else if (entry[i].type == ENTRY_TYPE_OBJ_POINTER) 
             {

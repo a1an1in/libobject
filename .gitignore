@@ -39,6 +39,8 @@ bin/linux
 bin/mac
 lib/
 sysroot/
+.idea
+cmake-build-debug/
 
 *.swn
 *.swo
