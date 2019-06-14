@@ -22,7 +22,8 @@ struct Command_s{
     Command * (*get_subcommand)(Command *command, char *command_name);
 
     /*attribs*/
-    Vector *vector;
+    Vector *subcommands;
+    Vector *options;
 };
 
 #endif

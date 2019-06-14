@@ -14,8 +14,8 @@ static int __construct(Command *command, char *init_str)
 
 static int __deconstruct(Command *command)
 {
-    if (command->vector != NULL) {
-        object_destroy(command->vector);
+    if (command->subcommands != NULL) {
+        object_destroy(command->subcommands);
     }
 
     return 0;
@@ -23,23 +23,23 @@ static int __deconstruct(Command *command)
 
 int __add_subcommand(Command *command, void *subcommand)
 {
-    Vector *vector = command->vector;
+    Vector *subcommands = command->subcommands;
     int value_type = VALUE_TYPE_OBJ_POINTER;
     int ret = 0;
 
-    if (vector == NULL) {
-        vector = object_new(command->parent.allocator, 
-                            "Vector", NULL);
-        if (vector == NULL) {
+    if (subcommands == NULL) {
+        subcommands = object_new(command->parent.allocator, 
+                                 "Vector", NULL);
+        if (subcommands == NULL) {
             ret = -1;
             goto end;
         }
-        vector->set(vector, "/Vector/value_type", &value_type);
-        command->vector = vector;
+        subcommands->set(subcommands, "/Vector/value_type", &value_type);
+        command->subcommands = subcommands;
     }
 
     dbg_str(DBG_SUC, "add subcommand");
-    ret = vector->add(vector, subcommand);
+    ret = subcommands->add(subcommands, subcommand);
 
 end:
     return ret;
@@ -65,7 +65,7 @@ static class_info_entry_t command_class_info[] = {
     Init_Vfunc_Entry(6 , Command, add_subcommand, __add_subcommand),
     Init_Vfunc_Entry(7 , Command, get_subcommand, __get_subcommand),
     Init_Vfunc_Entry(8 , Command, get_value, __get_value),
-    Init_Vec___Entry(9 , Command, vector, NULL, "Test_Command"),
+    Init_Vec___Entry(9 , Command, subcommands, NULL, "Test_Command"),
     Init_End___Entry(10, Command),
 };
 REGISTER_CLASS("Command", command_class_info);

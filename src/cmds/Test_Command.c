@@ -93,7 +93,7 @@ static int test_unmarshal_command(TEST_ENTRY *entry)
         {\
             \"Test_Command\": {\
                 \"Command\": {\
-                    \"vector\":	[{\
+                    \"subcommands\": [{\
                         \"option\":	\"test sub1 command option\",\
                         \"help\":	1\
                     }, {\
