@@ -32,7 +32,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Linked_Queue.h>
 #include <libobject/event/Event_Base.h>

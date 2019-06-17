@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/concurrent/Dispatcher.h>
 
@@ -98,7 +98,7 @@ void test_obj_dispatcher()
 
     c = cfg_alloc(allocator); 
     dbg_str(EV_SUC, "configurator_t addr:%p", c);
-    cfg_config(c, "/Dispatcher", CJSON_STRING, "name", "alan dispatcher") ;  
+    cfg_config_str(c, "/Dispatcher", "name", "alan dispatcher") ;  
 
     dispatcher = OBJECT_NEW(allocator, Dispatcher, c->buf);
 

@@ -33,7 +33,6 @@
 #include <fcntl.h> 
 #include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/net/socket/Socket.h>
@@ -58,7 +57,6 @@ static int __get_sockoptval_size(int optname)
 static int __construct(Socket *socket, char *init_str)
 {
     allocator_t *allocator = socket->obj.allocator;
-    configurator_t * c;
     char buf[2048];
 
     dbg_str(EV_DETAIL, "socket construct, socket addr:%p", socket);
@@ -311,24 +309,3 @@ static class_info_entry_t socket_class_info[] = {
 };
 REGISTER_CLASS("Socket", socket_class_info);
 
-void test_obj_socket()
-{
-    Socket *socket;
-    allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-
-    c = cfg_alloc(allocator); 
-    dbg_str(EV_SUC, "configurator_t addr:%p", c);
-    cfg_config(c, "/Socket", CJSON_STRING, "name", "alan socket") ;  
-
-    socket = OBJECT_NEW(allocator, Socket, c->buf);
-
-    object_dump(socket, "Socket", buf, 2048);
-    dbg_str(EV_DETAIL, "Socket dump: %s", buf);
-
-    object_destroy(socket);
-    cfg_destroy(c);
-}

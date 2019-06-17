@@ -2,8 +2,9 @@
 #include <string.h>
 #include <libobject/core/utils/alloc/allocator.h>
 #include <libobject/core/utils/json/cjson.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/registry/registry.h>
 
 int str_split(char *str, char *delim, char **out, int *cnt) 
 {
@@ -55,95 +56,6 @@ int cfg_destroy(configurator_t * c)
     allocator_mem_free(c->allocator, c);
 
     return 0;
-}
-
-int 
-cfg_config(configurator_t * c, 
-           const char *path, 
-           int type, const char *name, void *value) 
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-    cjson_t *root, *object, *item;
-    char *buf;  
-    char **out;  
-    char *p;
-    int cnt, j, ret = 0;
-
-    buf = (char *)allocator_mem_alloc(allocator, strlen(path));
-    if (buf == NULL) {
-        dbg_str(OBJ_WARNNING, "oss set alloc err");
-        return -1;
-    }
-    strcpy(buf, path);
-
-    cnt = compute_slash_count((char *)path);
-    out = (char **)allocator_mem_alloc(allocator, sizeof(char *) * cnt);
-    if (out == NULL) {
-        dbg_str(OBJ_WARNNING, "oss set alloc err");
-        allocator_mem_free(allocator, buf);
-        return -1;
-    }
-
-    str_split(buf, "/", out, &cnt);
-
-    if (strlen(c->buf) != 0) {
-        object = cjson_parse(c->buf);
-    } else {
-        object = cjson_create_object();
-    }
-
-    root = object;
-
-    for (j = 0; j < cnt; j++)  {     
-        item = cjson_get_object_item(object, out[j]);
-        if (item != NULL) {
-            object = item;
-        } else {
-            item = cjson_create_object();
-            cjson_add_item_to_object(object, out[j],item);
-            object = item;
-        }
-    } 
-
-    switch(type) {
-        case CJSON_FALSE:
-            break;
-        case CJSON_NUMBER:
-            {
-                int val = atoi(value);
-                cjson_add_number_to_object(item, name, val);
-                break;
-            }
-        case CJSON_STRING:
-            {
-                cjson_add_string_to_object(item, name, (char *)value);
-                break;
-            }
-        default:
-            break;
-    }
-
-    p = cjson_print(root);
-
-    if (strlen(p) > c->buf_len) {
-        dbg_str(OBJ_WARNNING,"config buffer is too small");
-        ret = -1;
-        goto err;
-    } else {
-        strcpy(c->buf, p);
-    }
-
-    goto end;
-
-err:
-end:
-    allocator_mem_free(allocator, buf);
-    allocator_mem_free(allocator, out);
-
-    free(p);
-    cjson_delete(root);
-
-    return ret;
 }
 
 int 
@@ -299,16 +211,32 @@ end:
 
     return ret;
 }
-int test_configurator(void)
+
+int test_cfg_config_num(TEST_ENTRY *entry)
 {
     configurator_t * c;
     allocator_t *allocator = allocator_get_default_alloc(); 
+    char *expectation ="\"Hash_Map\":	{\
+		\"key_size\":	10,\
+		\"value_size\":	25,\
+		\"bucket_size\":	15\
+	}";
+    int ret = 0;
 
     c = cfg_alloc(allocator);
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "10") ;  
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "25") ;  
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "15") ;     
+    cfg_config_num(c, "/Hash_Map", "key_size", 10);  
+    cfg_config_num(c, "/Hash_Map", "value_size", 25);  
+    cfg_config_num(c, "/Hash_Map", "bucket_size", 15);     
 
-    dbg_str(DBG_DETAIL,"config:%s",c->buf);
+    if (strcmp(expectation, c->buf) == 0) {
+        ret = 1;
+    } else {
+        dbg_str(DBG_DETAIL,"expectation:%s", expectation);
+        dbg_str(DBG_DETAIL,"config:%s",c->buf);
+    }
+
     cfg_destroy(c);
+
+    return ret;
 }
+REGISTER_TEST_CMD(test_cfg_config_num);

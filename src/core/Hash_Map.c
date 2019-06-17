@@ -31,7 +31,6 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Hash_Map.h>
 
@@ -49,6 +48,22 @@ static int __construct(Map *map, char *init_str)
 
     map->b = OBJECT_NEW(allocator, Hmap_Iterator, NULL);
     map->e = OBJECT_NEW(allocator, Hmap_Iterator, NULL);
+
+    return 0;
+}
+
+static int __reconstruct(Map *map)
+{
+    Hash_Map *h = (Hash_Map *)map;
+    allocator_t *allocator = map->obj.allocator;
+
+    hash_map_destroy(h->hmap);
+
+    if (h->bucket_size == 0) { h->bucket_size = 20; }
+
+    h->hmap = hash_map_alloc(allocator);
+
+    hash_map_init(h->hmap);
 
     return 0;
 }
@@ -154,20 +169,21 @@ static Iterator *__end(Map *map)
 static class_info_entry_t hash_map_class_info[] = {
     Init_Obj___Entry(0 , Map, map),
     Init_Nfunc_Entry(1 , Hash_Map, construct, __construct),
-    Init_Nfunc_Entry(2 , Hash_Map, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Hash_Map, add, __add),
-    Init_Vfunc_Entry(4 , Hash_Map, search, __search),
-    Init_Vfunc_Entry(5 , Hash_Map, remove, __remove),
-    Init_Vfunc_Entry(6 , Hash_Map, del, __del),
-    Init_Vfunc_Entry(7 , Hash_Map, begin, __begin),
-    Init_Vfunc_Entry(8 , Hash_Map, end, __end),
-    Init_Vfunc_Entry(9 , Hash_Map, for_each, NULL),
-    Init_U16___Entry(10, Hash_Map, key_size, NULL),
-    Init_U16___Entry(11, Hash_Map, value_size, NULL),
-    Init_U16___Entry(12, Hash_Map, bucket_size, NULL),
-    Init_U8____Entry(13, Hash_Map, key_type, NULL),
-    Init_Point_Entry(14, Hash_Map, test, NULL),
-    Init_End___Entry(15, Hash_Map),
+    Init_Nfunc_Entry(3 , Hash_Map, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(2 , Hash_Map, reconstruct, __reconstruct),
+    Init_Vfunc_Entry(4 , Hash_Map, add, __add),
+    Init_Vfunc_Entry(5 , Hash_Map, search, __search),
+    Init_Vfunc_Entry(6 , Hash_Map, remove, __remove),
+    Init_Vfunc_Entry(7 , Hash_Map, del, __del),
+    Init_Vfunc_Entry(8 , Hash_Map, begin, __begin),
+    Init_Vfunc_Entry(9 , Hash_Map, end, __end),
+    Init_Vfunc_Entry(10, Hash_Map, for_each, NULL),
+    Init_U16___Entry(11, Hash_Map, key_size, NULL),
+    Init_U16___Entry(12, Hash_Map, value_size, NULL),
+    Init_U16___Entry(13, Hash_Map, bucket_size, NULL),
+    Init_U8____Entry(14, Hash_Map, key_type, NULL),
+    Init_Point_Entry(15, Hash_Map, test, NULL),
+    Init_End___Entry(16, Hash_Map),
 };
 REGISTER_CLASS("Hash_Map", hash_map_class_info);
 
@@ -202,11 +218,11 @@ static int test_obj_hash_map_string_key(TEST_ENTRY *entry)
 {
     Map *map;
     allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
     cjson_t *root, *e, *s;
     char buf[2048] = {0};
     char set_str[2048] = {0};
     struct test *t, t0, t1, t2, t3, t4, t5;
+    int key_size = 40, value_size = 8, bucket_size = 10;
     int ret;
 
     init_test_instance(&t0, 0, 2);
@@ -218,13 +234,12 @@ static int test_obj_hash_map_string_key(TEST_ENTRY *entry)
 
     dbg_str(DBG_SUC, "hash_map test begin alloc count =%d", allocator->alloc_count);
 
-    c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "40") ;  
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "8") ;
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
+    map  = OBJECT_NEW(allocator, Hash_Map, NULL);
 
-    map  = OBJECT_NEW(allocator, Hash_Map, c->buf);
+    map->set(map, "/Hash_Map/key_size", &key_size);
+    map->set(map, "/Hash_Map/value_size", &value_size);
+    map->set(map, "/Hash_Map/bucket_size", &bucket_size);
+    map->reconstruct(map);
 
     /*
      *object_dump(map, "Hash_Map", buf, 2048);
@@ -261,8 +276,6 @@ static int test_obj_hash_map_string_key(TEST_ENTRY *entry)
 
     object_destroy(map);
 
-    cfg_destroy(c);
-
     dbg_str(DBG_SUC, "hash_map test end alloc count =%d", allocator->alloc_count);
 
     return ret;
@@ -274,31 +287,26 @@ static int test_obj_hash_map_numeric_key(TEST_ENTRY *entry)
 {
     Map *map;
     allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
     cjson_t *root, *e, *s;
     char buf[2048] = {0};
     char set_str[2048] = {0};
     int key;
     int ret;
     struct test *t, t0, t1, t2, t3, t4, t5;
+    int key_size = 40, value_size = 8, bucket_size = 10, key_type = 1;
 
     init_test_instance(&t0, 0, 2);
     init_test_instance(&t1, 1, 2);
 
     dbg_str(DBG_SUC, "hash_map test begin alloc count =%d", allocator->alloc_count);
 
-    c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "4") ;  
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "25") ;
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_type", "1");
+    map  = OBJECT_NEW(allocator, Hash_Map, NULL);
 
-    /*
-     *dbg_str(DBG_SUC, "config:%s", c->buf);
-     */
-
-    map  = OBJECT_NEW(allocator, Hash_Map, c->buf);
+    map->set(map, "/Hash_Map/key_size", &key_size);
+    map->set(map, "/Hash_Map/value_size", &value_size);
+    map->set(map, "/Hash_Map/bucket_size", &bucket_size);
+    map->set(map, "/Hash_Map/key_type", &key_type);
+    map->reconstruct(map);
 
     /*
      *object_dump(map, "Hash_Map", buf, 2048);
@@ -335,7 +343,6 @@ static int test_obj_hash_map_numeric_key(TEST_ENTRY *entry)
      */
 
     object_destroy(map);
-    cfg_destroy(c);
 
     dbg_str(DBG_SUC, "hash_map test end alloc count =%d", allocator->alloc_count);
 

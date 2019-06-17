@@ -24,7 +24,7 @@
 #include <libobject/event/event_compat.h>
 #include <libobject/core/Rbtree_Map.h>
 #include <libobject/core/Linked_List.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 
 static int gloable_evsig_send_fd;
 static int gloable_evsig_rcv_fd;

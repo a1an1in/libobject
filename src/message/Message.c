@@ -32,7 +32,6 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/message/message.h> 
 #include <libobject/message/Publisher.h>

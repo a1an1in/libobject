@@ -30,7 +30,7 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/registry/registry.h>
@@ -163,7 +163,7 @@ void test_obj_producer()
 
     c = cfg_alloc(allocator); 
     dbg_str(CONCURRENT_SUC, "configurator_t addr:%p", c);
-    cfg_config(c, "/Producer", CJSON_STRING, "name", "alan producer") ;  
+    cfg_config_str(c, "/Producer", "name", "alan producer") ;  
 
     producer = OBJECT_NEW(allocator, Producer, c->buf);
 

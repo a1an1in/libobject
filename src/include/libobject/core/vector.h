@@ -13,10 +13,10 @@ struct _vector_s{
 	Obj obj;
 
 	int (*construct)(Vector *vector,char *init_str);
-	int (*reconstruct)(Vector *vector);
 	int (*deconstruct)(Vector *vector);
 
 	/*virtual methods reimplement*/
+	int (*reconstruct)(Vector *vector);
 	int (*set)(Vector *vector, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     char *(*to_json)(Obj *obj);

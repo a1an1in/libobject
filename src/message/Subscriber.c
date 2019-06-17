@@ -33,7 +33,6 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/message/Subscriber.h> 
 #include <libobject/message/Centor.h>
@@ -73,7 +72,6 @@ static  void release_registered_method(void *key, void *element, void *arg)
 static int __construct(Subscriber *subscriber, char *init_str)
 {
     allocator_t *allocator = subscriber->obj.allocator;
-    configurator_t * config;
 
     dbg_str(EV_DETAIL, "subscriber construct, subscriber addr:%p", subscriber);
 

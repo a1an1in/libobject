@@ -31,7 +31,6 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/Rbtree_Map.h>
 #include <libobject/core/Linked_List.h>
 

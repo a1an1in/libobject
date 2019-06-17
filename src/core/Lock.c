@@ -32,7 +32,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/Lock.h>
@@ -40,8 +39,6 @@
 static int __construct(Lock *lock, char *init_str)
 {
     allocator_t *allocator = lock->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
 
     dbg_str(DBG_DETAIL, "lock construct, lock addr:%p", lock);
 

@@ -7,7 +7,7 @@
  */
 #include <libobject/cmds/Test_Sub2_Command.h>
 #include <libobject/core/utils/registry/registry.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/core/String.h>
 
 static int __construct(Command *command, char *init_str)

@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/core/Map.h>
 
 static int __construct(Map *map, char *init_str)
@@ -113,24 +113,25 @@ static class_info_entry_t map_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Map, construct, __construct),
     Init_Nfunc_Entry(2 , Map, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Map, set, NULL),
-    Init_Vfunc_Entry(4 , Map, get, NULL),
-    Init_Vfunc_Entry(5 , Map, add, NULL),
-    Init_Vfunc_Entry(6 , Map, contain_key, NULL),
-    Init_Vfunc_Entry(7 , Map, contain_value, NULL),
-    Init_Vfunc_Entry(8 , Map, contain_key_and_value, NULL),
-    Init_Vfunc_Entry(9 , Map, search, NULL),
-    Init_Vfunc_Entry(10, Map, search_all_same_key, NULL),
-    Init_Vfunc_Entry(11, Map, remove, NULL),
-    Init_Vfunc_Entry(12, Map, del, NULL),
-    Init_Vfunc_Entry(13, Map, for_each, __for_each),
-    Init_Vfunc_Entry(14, Map, for_each_arg, __for_each_arg),
-    Init_Vfunc_Entry(15, Map, begin, __begin),
-    Init_Vfunc_Entry(16, Map, end, __end),
-    Init_Vfunc_Entry(17, Map, destroy, __destroy),
-    Init_Vfunc_Entry(18, Map, set_cmp_func, NULL),
-    Init_Nfunc_Entry(19, Map, set_target_name, NULL),
-    Init_End___Entry(20, Map),
+    Init_Vfunc_Entry(3 , Map, reconstruct, NULL),
+    Init_Vfunc_Entry(4 , Map, set, NULL),
+    Init_Vfunc_Entry(5 , Map, get, NULL),
+    Init_Vfunc_Entry(6 , Map, add, NULL),
+    Init_Vfunc_Entry(7 , Map, contain_key, NULL),
+    Init_Vfunc_Entry(8 , Map, contain_value, NULL),
+    Init_Vfunc_Entry(9 , Map, contain_key_and_value, NULL),
+    Init_Vfunc_Entry(10, Map, search, NULL),
+    Init_Vfunc_Entry(11, Map, search_all_same_key, NULL),
+    Init_Vfunc_Entry(12, Map, remove, NULL),
+    Init_Vfunc_Entry(13, Map, del, NULL),
+    Init_Vfunc_Entry(14, Map, for_each, __for_each),
+    Init_Vfunc_Entry(15, Map, for_each_arg, __for_each_arg),
+    Init_Vfunc_Entry(16, Map, begin, __begin),
+    Init_Vfunc_Entry(17, Map, end, __end),
+    Init_Vfunc_Entry(18, Map, destroy, __destroy),
+    Init_Vfunc_Entry(19, Map, set_cmp_func, NULL),
+    Init_Nfunc_Entry(20, Map, set_target_name, NULL),
+    Init_End___Entry(21, Map),
 };
 REGISTER_CLASS("Map", map_class_info);
 
@@ -167,7 +168,7 @@ void test_obj_map()
     char buf[2048];
     c = cfg_alloc(allocator); 
     dbg_str(DBG_SUC, "configurator_t addr:%p", c);
-    cfg_config(c, "/Map", CJSON_STRING, "name", "alan map") ;  
+    cfg_config_str(c, "/Map", "name", "alan map") ;  
 
     map = OBJECT_NEW(allocator, Map, c->buf);
 

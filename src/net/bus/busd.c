@@ -35,7 +35,7 @@
 #include <libobject/net/bus/bus.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/miscellany/buffer.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/core/Hash_Map.h>
 
 static const struct blob_policy_s busd_policy[] = {
@@ -136,9 +136,9 @@ int busd_init(busd_t *busd,
 
     /*create object hash map*/
     c = cfg_alloc(busd->allocator); 
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "40") ;  
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "8") ;
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
+    cfg_config_num(c, "/Hash_Map", "key_size", 40) ;  
+    cfg_config_num(c, "/Hash_Map", "value_size", 8) ;
+    cfg_config_num(c, "/Hash_Map", "bucket_size", 10) ;
     busd->obj_map = OBJECT_NEW(busd->allocator, Hash_Map, c->buf);
     cfg_destroy(c);
 

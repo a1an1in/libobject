@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/concurrent/Consumer.h>
 
@@ -96,7 +96,7 @@ void test_obj_consumer()
 
     c = cfg_alloc(allocator); 
     dbg_str(EV_SUC, "configurator_t addr:%p", c);
-    cfg_config(c, "/Consumer", CJSON_STRING, "name", "alan consumer") ;  
+    cfg_config_str(c, "/Consumer", "name", "alan consumer") ;  
 
     consumer = OBJECT_NEW(allocator, Consumer, c->buf);
 

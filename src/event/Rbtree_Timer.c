@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/event/Rbtree_Timer.h>
 #include <libobject/core/utils/miscellany/buffer.h>
@@ -218,7 +218,7 @@ void test_obj_event_rbtree_timer()
 
     c = cfg_alloc(allocator); 
     dbg_str(EV_SUC, "configurator_t addr:%p", c);
-    cfg_config(c, "/Rbtree_Timer", CJSON_STRING, "name", "alan timer") ;  
+    cfg_config_str(c, "/Rbtree_Timer", "name", "alan timer") ;  
 
     timer = OBJECT_NEW(allocator, Rbtree_Timer, c->buf);
 

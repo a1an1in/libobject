@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/concurrent/Worker.h>
 #include <libobject/concurrent/Producer.h>

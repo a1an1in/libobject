@@ -32,7 +32,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Linked_List.h>
 
@@ -237,9 +236,7 @@ static void llist_list_print(void *element)
 int test_Linked_List(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
     char *set_str;
-    char buf[2048];
     List *list;
     char *str;
     char *str1 = "hello world1";
@@ -247,17 +244,11 @@ int test_Linked_List(TEST_ENTRY *entry)
     char *str3 = "hello world3";
     char *str4 = "hello world4";
     char *str5 = "hello world5";
+    int value_size = 8;
 
     dbg_str(DBG_DETAIL, "test_obj_llist_list");
 
-    c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
-    cfg_config_num(c, "/List", "value_size", 8) ;  
-
-    list = OBJECT_NEW(allocator, Linked_List, c->buf);
-
-    object_dump(list, "Linked_List", buf, 2048);
-    dbg_str(DBG_DETAIL, "List dump: %s", buf);
+    list = object_new(allocator, "Linked_List", NULL);
 
     list->add_back(list, str3);
     list->add_back(list, str4);
@@ -286,7 +277,6 @@ int test_Linked_List(TEST_ENTRY *entry)
     list->for_each(list, llist_list_print);
 
     object_destroy(list);
-    cfg_destroy(c);
 
     return 1;
 }

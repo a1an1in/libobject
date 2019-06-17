@@ -32,7 +32,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Condition.h>
 #include <libobject/event/Event_Base.h>
@@ -43,8 +42,6 @@
 static int __construct(Condition *condition, char *init_str)
 {
     allocator_t *allocator = condition->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
     int ret;
 
     ret = pthread_cond_init(&condition->cond,NULL);
@@ -97,31 +94,6 @@ static class_info_entry_t condition_class_info[] = {
     Init_End___Entry(7, Condition),
 };
 REGISTER_CLASS("Condition", condition_class_info);
-
-void test_obj_condition()
-{
-    Condition *condition;
-    allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-
-    c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
-    /*
-     *cfg_config(c, "/Condition", CJSON_STRING, "name", "alan condition") ;  
-     */
-
-    condition = OBJECT_NEW(allocator, Condition, NULL);
-
-    object_dump(condition, "Condition", buf, 2048);
-    dbg_str(DBG_DETAIL, "Condition dump: %s", buf);
-
-    object_destroy(condition);
-    cfg_destroy(c);
-}
-
 
 
  static Condition    * condition  ;
@@ -208,7 +180,6 @@ static int test_condition_produce_consume()
 
     
     allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
 
     condition  = OBJECT_NEW(allocator,Condition,NULL);
     mutex_lock = OBJECT_NEW(allocator,Mutex_Lock,NULL);
@@ -219,7 +190,6 @@ static int test_condition_produce_consume()
     dbg_str(DBG_ERROR,"Condition addr: %p",condition);
     dbg_str(DBG_ERROR,"Mutex_Lock addr: %p",mutex_lock);
     dbg_str(DBG_ERROR,"queue addr: %p",queue);
-
     
 
     Thread * t1 = OBJECT_NEW(allocator,Thread,NULL);

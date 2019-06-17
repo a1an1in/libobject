@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/concurrent/Concurrent.h>
 
@@ -98,7 +98,7 @@ void test_obj_concurrent()
 
     c = cfg_alloc(allocator); 
     dbg_str(EV_SUC, "configurator_t addr:%p", c);
-    cfg_config(c, "/Concurrent", CJSON_STRING, "name", "alan eb") ;  
+    cfg_config_str(c, "/Concurrent", "name", "alan eb") ;  
 
     eb = OBJECT_NEW(allocator, Concurrent, c->buf);
 

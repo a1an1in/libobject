@@ -31,7 +31,6 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Vector.h>
 #include <libobject/core/String.h>
@@ -409,8 +408,8 @@ static char *__to_json(Obj *obj)
 static class_info_entry_t vector_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Vector, construct, __construct),
-    Init_Nfunc_Entry(2 , Vector, reconstruct, __reconstruct),
-    Init_Nfunc_Entry(3 , Vector, deconstruct, __deconstrcut),
+    Init_Nfunc_Entry(2 , Vector, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Vector, reconstruct, __reconstruct),
     Init_Vfunc_Entry(4 , Vector, set, NULL),
     Init_Vfunc_Entry(5 , Vector, get, NULL),
     Init_Vfunc_Entry(6 , Vector, add, __add),
@@ -464,11 +463,10 @@ static int test_vector(TEST_ENTRY *entry)
     Vector *vector;
     allocator_t *allocator = allocator_get_default_alloc();
     int pre_alloc_count, after_alloc_count;
-    configurator_t * c;
     char *set_str;
     cjson_t *root, *e, *s;
     char buf[2048];
-    int value_size = 25;
+    int capacity = 10;
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret;
 
@@ -481,12 +479,10 @@ static int test_vector(TEST_ENTRY *entry)
     init_test_instance(&t4, 4, 2);
     init_test_instance(&t5, 5, 2);
 
-    c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
-    cfg_config_num(c, "/Vector", "capacity", 10) ;  
-    cfg_config_num(c, "/Vector", "value_size", value_size) ;
 
-    vector = OBJECT_NEW(allocator, Vector, c->buf);
+    vector = object_new(allocator, "Vector", NULL);
+    vector->set(vector, "/Vector/capacity", &capacity);
+    vector->reconstruct(vector);
 
     /*
      *object_dump(vector, "Vector", buf, 2048);
@@ -560,8 +556,6 @@ static int test_vector(TEST_ENTRY *entry)
 
     //vector->free_vector(vector);
     object_destroy(vector);
-    cfg_destroy(c);
-    
 
     after_alloc_count = allocator->alloc_count;
     ret = assert_equal(&pre_alloc_count, &after_alloc_count, sizeof(int));
@@ -591,6 +585,7 @@ static int test_int_vector_to_json(TEST_ENTRY *entry)
     vector = OBJECT_NEW(allocator, Vector, NULL);
     vector->set(vector, "/Vector/capacity", &capacity);
     vector->set(vector, "/Vector/value_type", &value_type);
+    vector->reconstruct(vector);
 
     vector->add_at(vector, 0, 0);
     vector->add_at(vector, 1, 1);
@@ -818,4 +813,4 @@ static int test_obj_vector_set_init_data(TEST_ENTRY *entry)
     return ret;
 
 }
-REGISTER_TEST_FUNC(test_obj_vector_set_init_data);
+REGISTER_TEST_CMD(test_obj_vector_set_init_data);

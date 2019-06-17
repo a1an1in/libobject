@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/blob/blob.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/core/Hash_Map.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/net/bus/bus.h>
@@ -111,9 +111,9 @@ int bus_init(bus_t *bus,
 
     /*create object hash map*/
     c = cfg_alloc(bus->allocator); 
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "key_size", "40") ;  
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "value_size", "8") ;
-    cfg_config(c, "/Hash_Map", CJSON_NUMBER, "bucket_size", "10") ;
+    cfg_config_num(c, "/Hash_Map", "key_size", 40) ;  
+    cfg_config_num(c, "/Hash_Map", "value_size", 8) ;
+    cfg_config_num(c, "/Hash_Map", "bucket_size", 10) ;
     bus->obj_map = OBJECT_NEW(bus->allocator, Hash_Map, c->buf);
     bus->req_map = OBJECT_NEW(bus->allocator, Hash_Map, c->buf);
 

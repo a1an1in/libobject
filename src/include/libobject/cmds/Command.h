@@ -6,6 +6,19 @@
 #include <libobject/core/Vector.h>
 
 typedef struct Command_s Command;
+typedef struct command_option_s command_option_t;
+
+
+struct command_option_s {
+    char *name;
+    char *alias;
+    char *usage;
+    int (*action)(void *, command_option_t *);
+    void *action_arg;
+    int type;
+    int int_value;
+    String *string_value;
+};
 
 struct Command_s{
 	Obj parent;

@@ -31,7 +31,6 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/event/Timer.h>
 
@@ -102,26 +101,4 @@ static class_info_entry_t timer_class_info[] = {
     Init_End___Entry(10, Timer),
 };
 REGISTER_CLASS("Timer", timer_class_info);
-
-void test_obj_event_timer()
-{
-    Timer *timer;
-    allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-    c = cfg_alloc(allocator); 
-    dbg_str(DBG_SUC, "configurator_t addr:%p", c);
-    cfg_config(c, "/Timer", CJSON_STRING, "name", "alan timer") ;  
-
-    timer = OBJECT_NEW(allocator, Timer, c->buf);
-
-    object_dump(timer, "Timer", buf, 2048);
-    dbg_str(DBG_DETAIL, "Timer dump: %s", buf);
-
-    object_destroy(timer);
-    cfg_destroy(c);
-}
-
 

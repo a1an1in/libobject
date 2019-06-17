@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/object.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/String.h>
 #include <libobject/core/Object_Cache.h>

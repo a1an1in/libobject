@@ -32,17 +32,12 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Queue.h>
 #include <libobject/event/Event_Base.h>
 
 static int __construct(Queue *queue, char *init_str)
 {
-    allocator_t *allocator = queue->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
-
     dbg_str(OBJ_DETAIL, "queue construct, queue addr:%p", queue);
 
     return 0;

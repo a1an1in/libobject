@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/net/client/Client.h>
 #include <libobject/net/client/Inet_Udp_Client.h>

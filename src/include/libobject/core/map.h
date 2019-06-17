@@ -19,11 +19,11 @@ struct _map_s{
 
 	int (*construct)(Map *map,char *init_str);
 	int (*deconstruct)(Map *map);
-	int (*set)(Map *map, char *attrib, void *value);
-    void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
-
+	int (*reconstruct)(Map *map);
+	int (*set)(Map *map, char *attrib, void *value);
+    void *(*get)(void *obj, char *attrib);
     int (*set_cmp_func)(Map *map, void *func);
     int (*add)(Map *map,void *key,void *value);
     int (*search)(Map *map,void *key,void **element);

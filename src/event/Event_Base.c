@@ -31,7 +31,7 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
+#include <libobject/core/utils/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
 
@@ -298,7 +298,7 @@ void test_obj_eb()
 
     c = cfg_alloc(allocator); 
     dbg_str(EV_SUC, "configurator_t addr:%p",c);
-    cfg_config(c, "/Event_Base", CJSON_STRING, "name", "alan eb") ;  
+    cfg_config_str(c, "/Event_Base", "name", "alan eb") ;  
 
     eb = OBJECT_NEW(allocator, Event_Base,c->buf);
 

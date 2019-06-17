@@ -33,7 +33,6 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/message/Centor.h> 
 #include <libobject/message/message.h> 
@@ -119,7 +118,6 @@ static int __construct(Centor *centor, char *init_str)
 {
     allocator_t *allocator = centor->obj.allocator;
     Socket *s, *c;
-    configurator_t * config;
     char server_addr[100];
     char *libobject_run_path;
     static int count;

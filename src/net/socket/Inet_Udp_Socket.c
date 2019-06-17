@@ -31,7 +31,6 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/net/socket/Inet_Udp_Socket.h>
@@ -81,37 +80,6 @@ static class_info_entry_t inet_udp_socket_class_info[] = {
     Init_End___Entry(14, Inet_Udp_Socket),
 };
 REGISTER_CLASS("Inet_Udp_Socket", inet_udp_socket_class_info);
-
-#if 0
-void test_obj_udp_socket()
-{
-    Inet_Udp_Socket *socket;
-    allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-
-    c = cfg_alloc(allocator); 
-    dbg_str(NET_SUC, "configurator_t addr:%p", c);
-    cfg_config(c, "/Inet_Udp_Socket", CJSON_STRING, "name", "alan socket") ;  
-    cfg_config(c, "/Inet_Udp_Socket", CJSON_STRING, "local_host", "192.168.1.122") ;  
-    cfg_config(c, "/Inet_Udp_Socket", CJSON_STRING, "local_service", "11011") ;  
-    cfg_config(c, "/Inet_Udp_Socket", CJSON_STRING, "remote_host", "192.168.1.122") ;  
-    cfg_config(c, "/Inet_Udp_Socket", CJSON_STRING, "remote_service", "11022") ;  
-
-    socket = OBJECT_NEW(allocator, Inet_Udp_Socket, c->buf);
-
-    object_dump(socket, "Inet_Udp_Socket", buf, 2048);
-    dbg_str(NET_DETAIL, "Inet_Udp_Socket dump: %s", buf);
-
-    socket->write(socket, "hello world", 5);
-    socket->read(socket, NULL, 0);
-
-    object_destroy(socket);
-    cfg_destroy(c);
-}
-#endif
 
 void test_inet_udp_socket_send()
 {

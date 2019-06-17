@@ -32,7 +32,6 @@
  */
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/message/Publisher.h> 
 #include <libobject/message/Centor.h>
@@ -41,8 +40,6 @@
 static int __construct(Publisher *publisher, char *init_str)
 {
     allocator_t *allocator = publisher->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
 
     dbg_str(DBG_DETAIL, "publisher construct, publisher addr:%p", publisher);
 
