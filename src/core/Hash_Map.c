@@ -52,6 +52,17 @@ static int __construct(Map *map, char *init_str)
     return 0;
 }
 
+static int __deconstrcut(Map *map)
+{
+    dbg_str(HMAP_DETAIL, "hash map deconstruct, map addr:%p", map);
+
+    object_destroy(map->b);
+    object_destroy(map->e);
+    hash_map_destroy(((Hash_Map *)map)->hmap);
+
+    return 0;
+}
+
 static int __reconstruct(Map *map)
 {
     Hash_Map *h = (Hash_Map *)map;
@@ -64,17 +75,6 @@ static int __reconstruct(Map *map)
     h->hmap = hash_map_alloc(allocator);
 
     hash_map_init(h->hmap);
-
-    return 0;
-}
-
-static int __deconstrcut(Map *map)
-{
-    dbg_str(HMAP_DETAIL, "hash map deconstruct, map addr:%p", map);
-
-    object_destroy(map->b);
-    object_destroy(map->e);
-    hash_map_destroy(((Hash_Map *)map)->hmap);
 
     return 0;
 }
@@ -235,7 +235,6 @@ static int test_obj_hash_map_string_key(TEST_ENTRY *entry)
     dbg_str(DBG_SUC, "hash_map test begin alloc count =%d", allocator->alloc_count);
 
     map  = OBJECT_NEW(allocator, Hash_Map, NULL);
-
     map->set(map, "/Hash_Map/key_size", &key_size);
     map->set(map, "/Hash_Map/value_size", &value_size);
     map->set(map, "/Hash_Map/bucket_size", &bucket_size);

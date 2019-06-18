@@ -100,70 +100,6 @@ static int __construct(Vector *vector, char *init_str)
     return 0;
 }
 
-static int __reconstruct(Vector *vector)
-{
-    allocator_t *allocator = vector->obj.allocator;
-
-    dbg_str(OBJ_DETAIL, "vector reconstruct, vector addr:%p", vector);
-
-    vector_destroy(vector->vector);
-
-    vector->vector = vector_create(allocator, 0);
-    if (vector->value_size == 0) {
-        vector->value_size = sizeof(void *);
-    }
-
-    if (vector->capacity == 0) {
-        vector->capacity = 10;
-    }
-
-    vector_init(vector->vector, vector->value_size, vector->capacity);
-
-    if (vector->init_data != NULL) {
-        cjson_t *c;
-        c = cjson_parse(vector->init_data->get_cstr(vector->init_data));
-        if (c->type & OBJECT_ARRAY) {
-            c = c->child;
-            /*
-             *dbg_str(DBG_DETAIL, "array name:%s", c->string);
-             */
-        }
-
-        while (c) {
-            if (c->type & CJSON_NUMBER) {
-                vector->add(vector, c->valueint);
-            } else if (c->type & OBJECT_STRING) {
-                String *s;
-                dbg_str(DBG_DETAIL, "vector element:%s", c->valuestring);
-                s = object_new(allocator, "String", NULL);
-                s->assign(s, c->valuestring);
-                vector->add(vector, s);
-            } else if (c->type & OBJECT_ARRAY) {
-                dbg_str(DBG_DETAIL, "vector element, not supported now!");
-            } else if (c->type & CJSON_OBJECT) {
-                char *out;
-                Obj *o;
-                char *class_name = vector->class_name->get_cstr(vector->class_name);
-                char init_str[1024];
-                out = cjson_print(c);
-                sprintf(init_str, "{\"%s\":%s}", class_name, out);
-                dbg_str(DBG_DETAIL, "init_str:%s", init_str);
-                o = object_new(allocator, class_name, init_str);
-                vector->add(vector, o);
-                free(out);
-            } else {
-                dbg_str(DBG_DETAIL, "vector element, not supported now!");
-            }
-
-            c = c->next;
-        }
-
-        cjson_delete(c);
-    }
-
-    return 0;
-}
-
 static int __deconstrcut(Vector *vector)
 {
     dbg_str(OBJ_DETAIL, "vector deconstruct, vector addr:%p", vector);
@@ -203,6 +139,19 @@ static int __deconstrcut(Vector *vector)
     }
 
     vector_destroy(vector->vector);
+
+    return 0;
+}
+
+static int __reconstruct(Vector *vector)
+{
+    allocator_t *allocator = vector->obj.allocator;
+
+    dbg_str(DBG_WARNNING, "vector reconstruct, vector addr:%p", vector);
+
+    vector_destroy(vector->vector);
+
+    vector->construct(vector, NULL);
 
     return 0;
 }
