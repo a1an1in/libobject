@@ -5,9 +5,9 @@
  * @version 
  * @date 2019-05-19
  */
-#include <libobject/cmds/Test_Command.h>
-#include <libobject/cmds/Test_Sub1_Command.h>
-#include <libobject/cmds/Test_Sub2_Command.h>
+#include <libobject/args/Test_Command.h>
+#include <libobject/args/Test_Sub1_Command.h>
+#include <libobject/args/Test_Sub2_Command.h>
 
 static int __construct(Command *command, char *init_str)
 {

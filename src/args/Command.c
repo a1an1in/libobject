@@ -5,7 +5,7 @@
  * @version 
  * @date 2019-05-19
  */
-#include <libobject/cmds/Command.h>
+#include <libobject/args/Command.h>
 
 static int __construct(Command *command, char *init_str)
 {

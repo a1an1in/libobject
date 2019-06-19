@@ -1,14 +1,14 @@
 #ifndef __TEST_SUB1_COMMAND_H__
-#define __TEST_SUB1_COMMAND_H__
+#define __TEST_SUB2_COMMAND_H__
 
 #include <stdio.h>
-#include <libobject/cmds/Command.h>
 #include <libobject/core/String.h>
+#include <libobject/args/Test_Sub1_Command.h>
 
-typedef struct Test_Sub1_Command_s Test_Sub1_Command;
+typedef struct Test_Sub2_Command_s Test_Sub2_Command;
 
-struct Test_Sub1_Command_s{
-	Command parent;
+struct Test_Sub2_Command_s{
+	Test_Sub1_Command parent;
 
 	int (*construct)(Command *command,char *init_str);
 	int (*deconstruct)(Command *command);
