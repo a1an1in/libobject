@@ -4,8 +4,13 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
+#include <libobject/ctest/Test_Case_Result.h>
 
 typedef struct _test_s Test;
+
+#define Init_Test_Case(test) \
+    ((Test *)test)->line = __LINE__;\
+    ((Test *)test)->file = __FILE__;
 
 struct _test_s{
 	Obj obj;

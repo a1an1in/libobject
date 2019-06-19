@@ -10,7 +10,25 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ctest/Test_Runner.h>
 #include <libobject/ctest/Test.h>
+#include <libobject/ctest/Test_Case_Result.h>
 #include <libobject/core/utils/data_structure/map.h>
+
+static int __construct(Test_Runner *runner, char *init_str)
+{
+    allocator_t *allocator = runner->obj.allocator;
+
+    runner->result = object_new(allocator, "Test_Result", NULL);
+
+    return 0;
+}
+
+static int __deconstruct(Test_Runner *runner)
+{
+    if (runner->result != NULL)
+        object_destroy(runner->result);
+
+    return 0;
+}
 
 static int __start(Test_Runner *runner)
 {
@@ -56,9 +74,15 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
     class_deamon_t *deamon;
     void *is_test_method = NULL;
     int (*test_method)(Test *test);
+    Vector *failed_cases, *success_cases;
+    Test_Case_Result *case_result;
     int i, ret;
 
     dbg_str(DBG_DETAIL,"%s", test_class_name);
+
+    failed_cases = runner->result->failed_cases;
+    success_cases = runner->result->success_cases;
+
     deamon = class_deamon_get_global_class_deamon();
     if (deamon == NULL) {
         return -1;
@@ -84,9 +108,16 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
             test->setup(test);
             ret = test_method(test);
             test->teardown(test);
+            case_result = object_new(allocator, "Test_Case_Result", NULL);
+            case_result->result = ret;
+            case_result->set(case_result, "result", &ret);
+            case_result->set(case_result, "file", test->file);
+            case_result->set(case_result, "line", &test->line);
             if (ret == 1) {
+                success_cases->add(success_cases, case_result);
                 dbg_str(DBG_SUC,"test %s.%s success", test_class_name, entry[i].value_name);
             } else {
+                failed_cases->add(failed_cases, case_result);
                 dbg_str(DBG_ERROR,"test %s.%s failed",test_class_name,  entry[i].value_name);
             }
         }
@@ -97,8 +128,8 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
 
 static class_info_entry_t test_runner_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
-    Init_Nfunc_Entry(1 , Test_Runner, construct, NULL),
-    Init_Nfunc_Entry(2 , Test_Runner, deconstruct, NULL),
+    Init_Nfunc_Entry(1 , Test_Runner, construct, __construct),
+    Init_Nfunc_Entry(2 , Test_Runner, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3 , Test_Runner, get, NULL),
     Init_Vfunc_Entry(4 , Test_Runner, set, NULL),
     Init_Vfunc_Entry(5 , Test_Runner, start, __start),

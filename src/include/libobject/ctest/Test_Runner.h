@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
+#include <libobject/ctest/Test_Result.h>
 
 typedef struct _test_runner_s Test_Runner;
 
@@ -18,6 +19,9 @@ struct _test_runner_s{
     void *(*get)(void *obj, char *attrib);
 	int (*start)(Test_Runner *runner);
 	int (*run_test)(Test_Runner *runner, char *test_class_name);
+
+    /*attribs*/
+    Test_Result *result;
 };
 
 #endif

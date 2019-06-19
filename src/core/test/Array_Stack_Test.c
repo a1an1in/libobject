@@ -1,9 +1,9 @@
 /**
- * @file Stack.c
+ * @file Array_Stack_Test.c
  * @Synopsis  
  * @author alan lin
  * @version 
- * @date 2017-10-11
+ * @date 2019-06-19
  */
 /* Copyright (c) 2015-2020 alan lin <a1an1in@sina.com>
  * Redistribution and use in source and binary forms, with or without
@@ -73,8 +73,12 @@ static int __teardown(Array_Stack_Test *test)
 static int __test_push(Array_Stack_Test *test)
 {
     Stack *stack = (Stack *)test->stack;
+    Test *t = (Test *)test;
 
     dbg_str(DBG_DETAIL,"Array_Stack_Test test_push");
+
+    Init_Test_Case(test);
+
     stack->push(stack, (void *)4);
     stack->push(stack, (void *)5);
     stack->push(stack, (void *)6);
@@ -91,8 +95,12 @@ static int __test_pop(Array_Stack_Test *test)
 {
     Stack *stack = (Stack *)test->stack;
     void *p;
+    Test *t = (Test *)test;
 
     dbg_str(DBG_DETAIL,"Array_Stack_Test test_pop");
+
+    Init_Test_Case(test);
+
     stack->push(stack, (void *)4);
     stack->push(stack, (void *)5);
     stack->push(stack, (void *)6);
@@ -129,8 +137,12 @@ static int __test_count(Array_Stack_Test *test)
 {
     Stack *stack = (Stack *)test->stack;
     void *p;
+    Test *t = (Test *)test;
 
     dbg_str(DBG_DETAIL,"Array_Stack_Test test_count");
+
+    Init_Test_Case(test);
+
     stack->push(stack, (void *)4);
 
     if (stack->count(stack) != 1) {
