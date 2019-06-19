@@ -5,7 +5,7 @@
  * @version 
  * @date 2019-05-19
  */
-#include <libobject/args/Test_Sub2_Command.h>
+#include <libobject/argument/Test_Sub2_Command.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/utils/config.h>
 #include <libobject/core/String.h>

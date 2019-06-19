@@ -34,7 +34,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Vector.h>
 #include <libobject/core/String.h>
-#include <libobject/args/Command.h>
+#include <libobject/argument/Command.h>
 
 static int __construct(Vector *vector, char *init_str)
 {

@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <libobject/core/String.h>
-#include <libobject/args/Test_Sub1_Command.h>
+#include <libobject/argument/Test_Sub1_Command.h>
 
 typedef struct Test_Sub2_Command_s Test_Sub2_Command;
 

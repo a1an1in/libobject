@@ -5,7 +5,7 @@
  * @version 
  * @date 2019-05-19
  */
-#include <libobject/args/Command.h>
+#include <libobject/argument/Command.h>
 
 static int __construct(Command *command, char *init_str)
 {
@@ -55,6 +55,14 @@ __get_value(Command *command,char *command_name, char *flag_name)
 {
 }
 
+static int __add_option(Command *command, Option *option)
+{
+}
+
+static Option *__get_option(Command *command, char *option_name)
+{
+}
+
 static class_info_entry_t command_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Command, construct, __construct),
@@ -64,8 +72,9 @@ static class_info_entry_t command_class_info[] = {
     Init_Vfunc_Entry(5 , Command, to_json, NULL),
     Init_Vfunc_Entry(6 , Command, add_subcommand, __add_subcommand),
     Init_Vfunc_Entry(7 , Command, get_subcommand, __get_subcommand),
-    Init_Vfunc_Entry(8 , Command, get_value, __get_value),
-    Init_Vec___Entry(9 , Command, subcommands, NULL, "Test_Command"),
-    Init_End___Entry(10, Command),
+    Init_Vfunc_Entry(8 , Command, add_option, __add_option),
+    Init_Vfunc_Entry(9 , Command, get_option, __get_option),
+    Init_Vec___Entry(10, Command, subcommands, NULL, "Test_Command"),
+    Init_End___Entry(11, Command),
 };
 REGISTER_CLASS("Command", command_class_info);
