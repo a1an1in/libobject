@@ -91,7 +91,13 @@ static int args_process_mockery(void *base, int argc, char **argv)
     return mockery(argc, argv);
 }
 
+static int args_process_test_runner(void *base, int argc, char **argv)
+{
+    return test_runner(argc, argv);
+}
+
 static cmd_config_t cmds[] = {
+    {"test_runner", args_process_test_runner, 0, "app", "N/A", "test framework"}, 
     {"mockery", args_process_mockery, 0, "app", "N/A", "test framework"}, 
     {"log_server", args_process_log_server, 0, "app", "N/A", "log server"}, 
     {"port", args_process_port, 1, "config", "NN(number)", "udp port, using to send/rcv msg with neighbor"}, 

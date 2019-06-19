@@ -114,6 +114,11 @@ static inline void * map_get_pointer(map_iterator_t *it)
     return it->map->it_ops->map_get_pointer(it);
 }
 
+static inline void * map_get_key(map_iterator_t *it)
+{
+    return it->map->it_ops->map_get_key(it);
+}
+
 static inline void 
 map_for_each(map_t *map,void (*func)(map_iterator_t *it))
 {

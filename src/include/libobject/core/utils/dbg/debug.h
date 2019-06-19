@@ -108,6 +108,7 @@ debugger_t *debugger_creator(char *ini_file_name,uint8_t lock_type);
 void debugger_init(debugger_t *debugger);
 void debugger_destroy(debugger_t *debugger);
 debugger_t *debugger_get_global_debugger();
+void debugger_set_all_businesses_level(debugger_t *debugger,int sw, int level);
 
 static inline char *
 extract_filename_in_macro(char *macro)

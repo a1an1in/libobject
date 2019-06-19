@@ -52,7 +52,7 @@ static int __construct(Map *map, char *init_str)
     return 0;
 }
 
-static int __deconstrcut(Map *map)
+static int __deconstruct(Map *map)
 {
     dbg_str(HMAP_DETAIL, "hash map deconstruct, map addr:%p", map);
 
@@ -169,7 +169,7 @@ static Iterator *__end(Map *map)
 static class_info_entry_t hash_map_class_info[] = {
     Init_Obj___Entry(0 , Map, map),
     Init_Nfunc_Entry(1 , Hash_Map, construct, __construct),
-    Init_Nfunc_Entry(3 , Hash_Map, deconstruct, __deconstrcut),
+    Init_Nfunc_Entry(3 , Hash_Map, deconstruct, __deconstruct),
     Init_Vfunc_Entry(2 , Hash_Map, reconstruct, __reconstruct),
     Init_Vfunc_Entry(4 , Hash_Map, add, __add),
     Init_Vfunc_Entry(5 , Hash_Map, search, __search),

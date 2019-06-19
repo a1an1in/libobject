@@ -71,9 +71,16 @@ static int __map_equal(map_iterator_t *it1, map_iterator_t *it2)
     return hash_map_pos_equal(&it1->pos.hash_map_pos, &it2->pos.hash_map_pos);
 
 }
+
 static void * __map_interator_get_pointer(map_iterator_t *it)
 {
     return hash_map_pos_get_pointer(&it->pos.hash_map_pos);
+
+}
+
+static void * __map_interator_get_key(map_iterator_t *it)
+{
+    return hash_map_pos_get_kpointer(&it->pos.hash_map_pos);
 
 }
 
@@ -97,7 +104,8 @@ int hash_map_pk_register()
             .map_next        = __map_next, 
             .map_prev        = __map_prev, 
             .map_equal       = __map_equal, 
-            .map_get_pointer = __map_interator_get_pointer
+            .map_get_pointer = __map_interator_get_pointer,
+            .map_get_key     = __map_interator_get_key,
         }
     };
     memcpy(&map_modules[MAP_TYPE_HASH_MAP], &m, sizeof(map_module_t));

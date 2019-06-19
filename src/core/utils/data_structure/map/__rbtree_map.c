@@ -84,6 +84,12 @@ static void * __map_interator_get_pointer(map_iterator_t *it)
 
 }
 
+static void * __map_interator_get_key(map_iterator_t *it)
+{
+    return rbtree_map_pos_get_kpointer(&it->pos.rbtree_map_pos);
+
+}
+
 int rbtree_map_pk_register()
 {
     map_module_t m = {
@@ -104,7 +110,8 @@ int rbtree_map_pk_register()
             .map_next        = __map_next, 
             .map_prev        = __map_prev, 
             .map_equal       = __map_equal, 
-            .map_get_pointer = __map_interator_get_pointer
+            .map_get_pointer = __map_interator_get_pointer,
+            .map_get_key     = __map_interator_get_key,
         }
     };
     memcpy(&map_modules[MAP_TYPE_RBTREE_MAP], &m, sizeof(map_module_t));

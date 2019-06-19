@@ -53,6 +53,7 @@ struct map_interator_operations{
     int (*map_prev)(map_iterator_t *it, map_iterator_t *next);
     int (*map_equal)(map_iterator_t *it1,map_iterator_t *it2);
     void *(*map_get_pointer)(map_iterator_t *it);
+    void *(*map_get_key)(map_iterator_t *it);
 };
 
 typedef struct map_module{

@@ -102,5 +102,6 @@ extern void test_obj_inet_udp_client_send();
 extern void test_obj_inet_tcp_server();
 extern void log_server();
 extern int mockery(int argc, char **argv);
+extern int test_runner(int argc, char **argv);
 
 #endif

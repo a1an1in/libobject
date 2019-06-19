@@ -45,7 +45,9 @@ static int __construct(Stack *stack, char *init_str)
     as->core = array_stack_alloc(allocator);
     array_stack_init(as->core);
 
-    dbg_str(DBG_DETAIL, "stack construct, stack addr:%p", stack);
+    /*
+     *dbg_str(DBG_DETAIL, "stack construct, stack addr:%p", stack);
+     */
 
     return 0;
 }
@@ -55,7 +57,9 @@ static int __deconstrcut(Stack *stack)
     Array_Stack *as = (Array_Stack *)stack;
     int ret;
 
-    dbg_str(DBG_DETAIL, "stack deconstruct, stack addr:%p", stack);
+    /*
+     *dbg_str(DBG_DETAIL, "stack deconstruct, stack addr:%p", stack);
+     */
     array_stack_destroy(as->core);
 
     return 0;
@@ -94,56 +98,3 @@ static class_info_entry_t array_stack_class_info[] = {
     Init_End___Entry(8, Array_Stack),
 };
 REGISTER_CLASS("Array_Stack", array_stack_class_info);
-
-int test_Array_Stack(TEST_ENTRY *entry)
-{
-    Stack *stack;
-    allocator_t *allocator = allocator_get_default_alloc();
-    void *a, *p;
-
-    stack  = OBJECT_NEW(allocator, Array_Stack, NULL);
-
-    dbg_str(DBG_DETAIL, "push data:%d", a = (void *)4 );
-    stack->push(stack, a);
-    dbg_str(DBG_DETAIL, "push data:%d", a = (void *)5 );
-    stack->push(stack, a);
-    dbg_str(DBG_DETAIL, "push data:%d", a = (void *)6 );
-    stack->push(stack, a);
-    dbg_str(DBG_DETAIL, "push data:%d", a = (void *)7);
-    stack->push(stack, a);
-
-
-    dbg_str(DBG_SUC, "arrary stack, obj.set addr:%p", ((Obj *)stack)->set);
-    dbg_str(DBG_SUC, "arrary stack, stack.set addr:%p", stack->set);
-    dbg_str(DBG_SUC, "arrary stack,  array_stack.set addr:%p",
-            ((Array_Stack *)stack)->set);
-
-    if (stack->count(stack) != 4) {
-        return -1;
-    }
-
-    stack->pop(stack, (void **)&p);
-    if ((int)p != 7) {
-        return -1;
-    }
-
-    stack->pop(stack, (void **)&p);
-    if ((int)p != 6) {
-        return -1;
-    }
-
-    stack->pop(stack, (void **)&p);
-    if ((int)p != 5) {
-        return -1;
-    }
-
-    stack->pop(stack, (void **)&p);
-    if ((int)p != 4) {
-        return -1;
-    }
-
-    object_destroy(stack);
-
-    return 1;
-}
-REGISTER_TEST_FUNC(test_Array_Stack);

@@ -186,7 +186,8 @@ static int __peek_at(Vector *vector, int index, void **value)
     return vector_peek_at(vector->vector, index, value);
 }
 
-static void __for_each(Vector *vector, void (*func)(int index, void *element))
+static void 
+__for_each(Vector *vector, void (*func)(int index, void *element))
 {
 	vector_pos_t pos, next;
     vector_t *v = vector->vector;
@@ -243,11 +244,11 @@ static void __clear(Vector *vector)
     void *element;
     int index =0;
 
-    for(vector_begin(v,&pos),vector_pos_next(&pos,&next);
-        !vector_pos_equal(&pos,&v->end);
-        pos=next,vector_pos_next(&pos,&next))
+    for (   vector_begin(v, &pos), vector_pos_next(&pos, &next);
+            !vector_pos_equal(&pos, &v->end);
+            pos=next, vector_pos_next(&pos, &next))
     {
-        vector->remove(vector,index,(void **)&element);
+        vector->remove(vector, index, (void **)&element);
     }
 }
 
