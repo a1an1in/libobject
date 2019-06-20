@@ -18,6 +18,10 @@ static int __deconstruct(Command *command)
         object_destroy(command->subcommands);
     }
 
+    if (command->options != NULL) {
+        object_destroy(command->options);
+    }
+
     return 0;
 }
 
@@ -50,13 +54,28 @@ Command * __get_subcommand(Command *command, char *command_name)
     return NULL;
 }
 
-static void *
-__get_value(Command *command,char *command_name, char *flag_name)
-{
-}
-
 static int __add_option(Command *command, Option *option)
 {
+    Vector *options = command->options;
+    int value_type = VALUE_TYPE_OBJ_POINTER;
+    int ret = 0;
+
+    if (options == NULL) {
+        options = object_new(command->parent.allocator, 
+                                 "Vector", NULL);
+        if (options == NULL) {
+            ret = -1;
+            goto end;
+        }
+        options->set(options, "/Vector/value_type", &value_type);
+        command->options = options;
+    }
+
+    dbg_str(DBG_SUC, "add option");
+    ret = options->add(options, option);
+
+end:
+    return ret;
 }
 
 static Option *__get_option(Command *command, char *option_name)

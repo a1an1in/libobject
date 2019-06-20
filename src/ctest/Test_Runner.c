@@ -108,6 +108,7 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
             test->setup(test);
             ret = test_method(test);
             test->teardown(test);
+
             case_result = object_new(allocator, "Test_Case_Result", NULL);
             case_result->result = ret;
             case_result->set(case_result, "result", &ret);
