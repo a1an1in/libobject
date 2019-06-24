@@ -508,6 +508,7 @@ static int __split_num_portion(String *string, char *delims, int num)
         string->splited_strings = v;
     } else {
         v = string->splited_strings;
+        v->clear(v);
     }
 
     v->add_back(v, string->get_cstr(string)); //first section
@@ -516,14 +517,13 @@ static int __split_num_portion(String *string, char *delims, int num)
             p && cnt != num;
             p = strtok_r(NULL, delims, &ptr)) 
     {
-        /*
-         *dbg_str(DBG_SUC, "addr:%p, slim :%s", p, p);
-         */
-        if (p != NULL) {
+        if (ptr != NULL) {
             *(p -1) = '\0';
+            cnt++;
+            v->add_back(v, ptr);
+            dbg_str(DBG_SUC, "vector size=%d", v->size(v));
+            dbg_str(DBG_SUC, "cur:%s, next :%s", p, ptr);
         }
-        cnt++;
-        v->add_back(v, ptr);
     }
 
     return cnt;

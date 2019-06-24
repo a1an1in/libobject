@@ -239,8 +239,8 @@ int vector_add_back(vector_t *vector, void *data)
     vector->size+=1;
     sync_unlock(&vector->vector_lock);
 
-    dbg_str(VECTOR_DETAIL, "vector_add_back, push_pos=%d, capacity=%d", 
-            push_pos, vector->capacity);
+    dbg_str(DBG_DETAIL, "vector_add_back, push_pos=%d, capacity=%d, size=%d", 
+            push_pos, vector->capacity, vector->size);
 
     return 0;
 }
@@ -369,7 +369,7 @@ int vector_peek_at(vector_t *vector, int index, void **element)
     sync_lock(&vector->vector_lock, NULL);
     *element = vector_head[index];
     sync_unlock(&vector->vector_lock);
-    dbg_str(VECTOR_DETAIL, "index=%d, element =%p", index, *element);
+    dbg_str(VECTOR_DETAIL, "peek at index=%d, element =%p", index, *element);
 
     return 0;
 }

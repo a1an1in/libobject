@@ -21,11 +21,12 @@ struct Command_s{
     char *(*to_json)(void *obj); 
     int (*add_subcommand)(Command *command, char *);
     Command *(*get_subcommand)(Command *command, char *command_name);
+    int (*has_subcommand)(Command *command, char *command_name);
     int (*action)(void *, Option *);
     int (*add_option)(Command *command, char *name, char *alias, char *value, 
                       char *usage, int (*action)(void *, Option *));
     Option *(*get_option)(Command *command, char *option_name);
-    Option *(*has_option)(Command *command, char *option_name);
+    int (*has_option)(Command *command, char *option_name);
     int (*parse_args)(Command *command);
     int (*set_args)(Command *command, int argc, char **argv);
 

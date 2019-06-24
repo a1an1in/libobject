@@ -248,8 +248,10 @@ static void __clear(Vector *vector)
             !vector_pos_equal(&pos, &v->end);
             pos=next, vector_pos_next(&pos, &next))
     {
-        vector->remove(vector, index, (void **)&element);
+        vector->remove(vector, index++, (void **)&element);
     }
+
+    vector_pos_init(&v->end, 0, v);
 }
 
 static char *__to_json(Obj *obj)
