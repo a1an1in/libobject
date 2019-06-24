@@ -12,8 +12,8 @@ config_platform()
 # Version format major.minor.maintenance.build
 set (LIBOBJECT_VERSION_MAJOR 2)
 set (LIBOBJECT_VERSION_MINOR 3)
-set (LIBOBJECT_VERSION_MAINTENANCE 1)
-set (LIBOBJECT_VERSION_BUILD 3)
+set (LIBOBJECT_VERSION_MAINTENANCE 2)
+set (LIBOBJECT_VERSION_BUILD 4)
 
 set (VERSION_NAME "${LIBOBJECT_VERSION_MAJOR}.${LIBOBJECT_VERSION_MINOR}.${LIBOBJECT_VERSION_MAINTENANCE}.${LIBOBJECT_VERSION_BUILD}")
 
@@ -72,9 +72,9 @@ if ("${PLATFORM}" STREQUAL "android")
     ADD_LIBRARY (object SHARED ${Source_Files})
     target_link_libraries(object ${ExternalLibs})
 
-    add_executable(test ${Main_File})
-    target_link_libraries(test object)
-    ADD_DEPENDENCIES(test object)
+    add_executable(cean ${Main_File})
+    target_link_libraries(cean object)
+    ADD_DEPENDENCIES(cean object)
 
     SET_TARGET_PROPERTIES (object PROPERTIES VERSION ${VERSION_NAME} SOVERSION ${LIBOBJECT_VERSION_MAJOR})
 
@@ -114,15 +114,15 @@ else ()
     #ADD_LIBRARY (object_static STATIC ${Source_Files})
     #target_link_libraries(object_static ${ExternalLibs})
 
-    add_executable(test ${Main_File})
-    target_link_libraries(test object)
-    ADD_DEPENDENCIES(test object)
+    add_executable(cean ${Main_File})
+    target_link_libraries(cean object)
+    ADD_DEPENDENCIES(cean object)
 
     #set_target_properties(object PROPERTIES CLEAN_DIRECT_OUTPUT 1)
     #set_target_properties(object_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
     SET_TARGET_PROPERTIES (object PROPERTIES VERSION ${VERSION_NAME} SOVERSION ${LIBOBJECT_VERSION_MAJOR})
     #SET_TARGET_PROPERTIES (object_static PROPERTIES OUTPUT_NAME "object")
-    install (TARGETS test DESTINATION bin)
+    install (TARGETS cean DESTINATION bin)
     install (TARGETS object DESTINATION lib)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/include/libobject DESTINATION include)
 endif()

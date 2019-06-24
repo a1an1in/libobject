@@ -14,6 +14,22 @@ static int __construct(Option *option, char *init_str)
 
 static int __deconstruct(Option *option)
 {
+    if (option->name != NULL) {
+        object_destroy(option->name);
+    }
+
+    if (option->alias != NULL) {
+        object_destroy(option->alias);
+    }
+
+    if (option->usage != NULL) {
+        object_destroy(option->usage);
+    }
+
+    if (option->value != NULL) {
+        object_destroy(option->value);
+    }
+
     return 0;
 }
 
@@ -27,10 +43,8 @@ static class_info_entry_t option_class_info[] = {
     Init_Str___Entry(6 , Option, name, NULL),
     Init_Str___Entry(7 , Option, alias, NULL),
     Init_Str___Entry(8 , Option, usage, NULL),
-    Init_Point_Entry(9 , Option, action, NULL),
-    Init_U32___Entry(10, Option, value_type, 0),
-    Init_U32___Entry(11, Option, int_value, 0),
-    Init_Str___Entry(12, Option, string_value, NULL),
-    Init_End___Entry(13, Option),
+    Init_Str___Entry(9 , Option, value, NULL),
+    Init_Point_Entry(10, Option, action, NULL),
+    Init_End___Entry(11, Option),
 };
 REGISTER_CLASS("Option", option_class_info);

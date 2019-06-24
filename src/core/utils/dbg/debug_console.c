@@ -52,17 +52,19 @@
 int console_print_print_str_vl(debugger_t *debugger, 
         size_t level, const char *fmt, va_list vl)
 {
-#define MAX_STR_LEN 1024
-    char dest[MAX_STR_LEN];
+    char dest[MAX_DBG_STR_LEN];
     size_t offset=0 , ret = 0;
 
-    memset(dest, '\0', MAX_STR_LEN);
-    offset = vsnprintf(dest, MAX_STR_LEN, fmt, vl);
+    memset(dest, '\0', MAX_DBG_STR_LEN);
+    offset = vsnprintf(dest, MAX_DBG_STR_LEN, fmt, vl);
 
 #if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(ANDROID_USER_MODE) || defined(MAC_USER_MODE))
     int reverse_color_flag, background_color, front_color, high_light_flag;
+
+#define MAX_STR_LEN 10
     char high_light_value[MAX_STR_LEN];
     char reverse_color_value[MAX_STR_LEN];
+#undef MAX_STR_LEN 
     size_t color_value;
 
     color_value        = debugger_get_level_color(debugger, level);
@@ -100,7 +102,6 @@ int console_print_print_str_vl(debugger_t *debugger,
 #endif
 
     return ret;
-#undef MAX_STR_LEN 
 }
 int console_print_print(debugger_t *debugger, size_t level, const char *fmt, ...)
 {

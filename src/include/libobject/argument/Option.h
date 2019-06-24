@@ -21,10 +21,8 @@ struct Option_s{
     String *name;
     String *alias;
     String *usage;
+    String *value;
     int (*action)(void *, Option *);
-    int value_type;
-    int int_value;
-    String *string_value;
 };
 
 #endif

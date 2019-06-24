@@ -14,6 +14,8 @@
 #include <libobject/core/utils/thread/sync_lock.h>
 
 
+#define MAX_DBG_STR_LEN 1024 * 10
+
 enum debugger_type{
 	DEBUGGER_TYPE_CONSOLE = 0,
 	DEBUGGER_TYPE_LOG,

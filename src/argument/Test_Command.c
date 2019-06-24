@@ -5,12 +5,23 @@
  * @version 
  * @date 2019-05-19
  */
+#include <libobject/argument/Application.h>
 #include <libobject/argument/Test_Command.h>
 #include <libobject/argument/Test_Sub1_Command.h>
 #include <libobject/argument/Test_Sub2_Command.h>
 
 static int __construct(Command *command, char *init_str)
 {
+    int ret = 0, help = 0;
+
+    help = 0;
+    command->set(command, "/Test_Command/help", &help);
+    command->set(command, "/Test_Command/option", "test command option");
+    command->set(command, "/Command/name", "Test");
+
+    command->add_subcommand(command, "Test_Sub1_Command");
+    command->add_subcommand(command, "Test_Sub2_Command");
+
     return 0;
 }
 
@@ -39,6 +50,7 @@ static class_info_entry_t test_command_class_info[] = {
     Init_End___Entry(6, Test_Command),
 };
 REGISTER_CLASS("Test_Command", test_command_class_info);
+REGISTER_APP_CMD("Test_Command");
 
 static int test_marshal_command(TEST_ENTRY *entry)
 {
@@ -51,28 +63,9 @@ static int test_marshal_command(TEST_ENTRY *entry)
     dbg_str(DBG_DETAIL, "allocator addr:%p", allocator);
 
     command = object_new(allocator, "Test_Command", NULL);
-    subcmd1 = object_new(allocator, "Test_Sub1_Command", NULL);
-    subcmd2 = object_new(allocator, "Test_Sub2_Command", NULL);
-
-    help = 0;
-    command->set(command, "/Test_Command/help", &help);
-    command->set(command, "/Test_Command/option", "test command option");
-
-    help = 1;
-    subcmd1->set(subcmd1, "/Test_Sub1_Command/help", &help);
-    subcmd1->set(subcmd1, "/Test_Sub1_Command/option", "test sub1 command option");
-
-    help = 2;
-    subcmd2->set(subcmd2, "/Test_Sub2_Command/help", &help);
-    subcmd2->set(subcmd2, "/Test_Sub2_Command/option", "test sub2 command option");
-
-    command->add_subcommand(command, subcmd1);
-    command->add_subcommand(command, subcmd2);
 
     dbg_str(DBG_DETAIL, "Test_Command dump: %s", command->to_json(command));
 
-    object_destroy(subcmd1);
-    object_destroy(subcmd2);
     object_destroy(command);
 
     ret = 1;
@@ -102,7 +95,7 @@ static int test_unmarshal_command(TEST_ENTRY *entry)
                     }]\
                 },\
                 \"option\": \"test cmd option\",\
-                \"help\": 1\
+                \"help\": 0\
             }\
         }";
 

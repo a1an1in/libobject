@@ -48,6 +48,7 @@
 #include <libobject/attrib_priority.h>
 #include <libobject/core/utils/args/cmd_args.h>
 #include <libobject/libobject.h>
+#include <libobject/argument/application.h>
 #include <libobject/test.h>
 
 #ifndef MAKELIB
@@ -106,6 +107,7 @@ static cmd_config_t cmds[] = {
     {NULL, NULL, 0, NULL, NULL, NULL}, 
 };
 
+#if 0
 /*
  * The libs used modules has been registered before main func, 
  * and debugger has been construct before main too. so can use
@@ -133,17 +135,12 @@ int main(int argc, char *argv[])
 
     return ret;
 }
+#else
+int main(int argc, char *argv[])
+{
+    return app(argc, argv);
+}
+#endif
 
-/*
- *    static void
- *init ()
- *{
- *    printf ("init_array\n");
- *}
- *
- *static void (*const init_array []) ()
- *    __attribute__ ((section (".ctors"), aligned (sizeof (void *))))
- *    = { init };
- */
 #endif
 

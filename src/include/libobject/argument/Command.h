@@ -19,16 +19,23 @@ struct Command_s{
 	int (*set)(Command *command, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     char *(*to_json)(void *obj); 
-    int (*add_subcommand)(Command *command, void *subcommand);
+    int (*add_subcommand)(Command *command, char *);
     Command *(*get_subcommand)(Command *command, char *command_name);
-    int (*add_option)(Command *command, Option *option);
+    int (*action)(void *, Option *);
+    int (*add_option)(Command *command, char *name, char *alias, char *value, 
+                      char *usage, int (*action)(void *, Option *));
     Option *(*get_option)(Command *command, char *option_name);
+    Option *(*has_option)(Command *command, char *option_name);
     int (*parse_args)(Command *command);
+    int (*set_args)(Command *command, int argc, char **argv);
 
     /*attribs*/
     Vector *subcommands;
     Vector *options;
     Vector *args;
+    String *name;
+    int argc;
+    char **argv;
 };
 
 #endif

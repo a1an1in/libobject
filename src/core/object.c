@@ -308,6 +308,9 @@ void * object_new(allocator_t *allocator,
     int size = 0, ret;
 
     if (type == NULL) return NULL;
+    if (allocator == NULL) {
+        allocator = allocator_get_default_alloc();
+    }
 
     deamon = class_deamon_get_global_class_deamon();
     entry  = (class_info_entry_t *)

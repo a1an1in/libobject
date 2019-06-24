@@ -56,6 +56,7 @@ static int __modulate_capacity(String *string, int write_len)
             string->value_max_len < string->value_len + write_len + 1)
     {
         char *new_buf;
+        int old = string->value_max_len;
 
         string->value_max_len = 2 * (string->value_len + write_len + 1);
         new_buf = (char *)allocator_mem_alloc(string->obj.allocator, 
@@ -63,6 +64,12 @@ static int __modulate_capacity(String *string, int write_len)
         if (string->value == NULL) {
             dbg_str(OBJ_WARNNING, "string assign alloc error");
             return -1;
+        } else {
+            dbg_str(OBJ_WARNNING, 
+                    "auto modulate string object max value len, "
+                    "write_len =%d, value_max_len from %d to %d",
+                    write_len, old, string->value_max_len);
+        
         }
 
         strncpy(new_buf, string->value, string->value_len);
@@ -129,6 +136,7 @@ static size_t __is_empty(String *string)
 static void __clear(String *string)
 {   
     string->value[0] = '\0';
+    memset(string->value, 0, string->value_max_len);
     string->value_len = 0;
 }
 
@@ -169,9 +177,14 @@ __assign_fixed_len(String *string, char *s, int len)
     return string;
 }
 
-static int __equals(String *string, char *s)
+static int __equal(String *string, char *s)
 {
     return strcmp(string->value, s) == 0;
+}
+
+static int __equal_string(String *s1, String *s2)
+{
+    return strcmp(s1->value, s2->value) == 0;
 }
 
 static String *__append_char(String *string, char c)
@@ -314,6 +327,14 @@ __replace(String *self, char *old, char *newstr)
 
 end:
     return self;
+}
+
+static String * 
+__replace_string(String *self, String *oldstr, String *newstr)
+{
+    return self->replace(self,
+                         oldstr->get_cstr(oldstr),
+                         newstr->get_cstr(newstr));
 }
 
 static String * 
@@ -536,7 +557,7 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(10, String, modulate_capacity, __modulate_capacity), 
     Init_Vfunc_Entry(11, String, assign, __assign), 
     Init_Vfunc_Entry(12, String, assign_fixed_len, __assign_fixed_len), 
-    Init_Vfunc_Entry(13, String, equals, __equals), 
+    Init_Vfunc_Entry(13, String, equal, __equal), 
     Init_Vfunc_Entry(14, String, replace_char, __replace_char), 
     Init_Vfunc_Entry(15, String, replace, __replace), 
     Init_Vfunc_Entry(16, String, replace_all, __replace_all), 

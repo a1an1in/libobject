@@ -185,12 +185,11 @@ void debugger_destroy(debugger_t *debugger)
 
 int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt, ...) 
 {
-#define MAX_FMT_STR_LEN 1024*4
     int ret = 0;
     va_list ap;
     uint32_t business_num = dbg_switch >> 8;
     uint8_t level = dbg_switch & 0xff;
-    char fmt_str[MAX_FMT_STR_LEN];
+    char fmt_str[MAX_DBG_STR_LEN];
     char *level_str;
     /* business print switch */
     if(!debugger_is_business_switch_on(debugger, business_num)){
@@ -203,7 +202,7 @@ int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt,
 
     sync_lock(&debugger->lock, NULL);
     va_start(ap, fmt);
-    vsnprintf(fmt_str, MAX_FMT_STR_LEN, fmt, ap);
+    vsnprintf(fmt_str, MAX_DBG_STR_LEN, fmt, ap);
     va_end(ap);
     level_str = (char *)debugger_get_level_str(debugger, level);
     ret = debugger->dbg_ops->dbg_string(debugger,
@@ -214,7 +213,6 @@ int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt,
     sync_unlock(&debugger->lock);
 
     return ret;
-#undef MAX_FMT_STR_LEN 
 }
 
 int debugger_dbg_buf(debugger_t *debugger, 
@@ -225,13 +223,12 @@ int debugger_dbg_buf(debugger_t *debugger,
                      const char *fmt, ...) 
 {
 #define MAX_BUFFER_STR_LEN 1024*4
-#define MAX_FMT_STR_LEN 1024
     int ret = 0;
     va_list ap;
     uint32_t business_num = dbg_switch >> 8;
     uint8_t level = dbg_switch & 0xff;
     char buffer_str[MAX_BUFFER_STR_LEN];
-    char fmt_str[MAX_FMT_STR_LEN];
+    char fmt_str[MAX_DBG_STR_LEN];
     char *level_str;
 
     if(!debugger_is_business_switch_on(debugger, business_num)){
@@ -242,7 +239,7 @@ int debugger_dbg_buf(debugger_t *debugger,
     }
     debug_string_buf_to_str(buf, buf_len, buffer_str, MAX_BUFFER_STR_LEN);
     va_start(ap, fmt);
-    vsnprintf(fmt_str, MAX_FMT_STR_LEN, fmt, ap);
+    vsnprintf(fmt_str, MAX_DBG_STR_LEN, fmt, ap);
     va_end(ap);
     level_str = (char*)debugger_get_level_str(debugger, level);
 
@@ -256,7 +253,6 @@ int debugger_dbg_buf(debugger_t *debugger,
 
     return ret;
 #undef MAX_BUFFER_STR_LEN
-#undef MAX_FMT_STR_LEN 
 }
 
 debugger_t *debugger_creator(char *ini_file_name, uint8_t lock_type)

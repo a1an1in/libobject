@@ -17,7 +17,26 @@ struct Application_s{
 	int (*set)(Application *app, char *attrib, void *value);
     void *(*get)(Application *, char *attrib);
     char *(*to_json)(Application *); 
-    void * (*get_value)(Application *app,char *app_name, char *flag_name);
+    int (*add_subcommand)(Application *, char *);
+    int (*run)(Application *, int argc, char *argv[]);
+
+    /*attribs*/
+    int argc;
+    char **argv;
 };
+
+extern int app(int argc, char *argv[]);
+extern int app_register_cmd(char *cmd);
+
+#define REGISTER_APP_CMD(app_cmd_name) \
+    __attribute__((constructor)) static void register_app_cmd()\
+    {\
+        ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, register app cmd %s\n",\
+                     REGISTRY_CTOR_PRIORITY_REGISTER_APP_CMD, app_cmd_name);\
+        \
+        __register_ctor_func1(REGISTRY_CTOR_PRIORITY_REGISTER_APP_CMD,\
+                (int (*)(void *))app_register_cmd,  app_cmd_name);\
+    }
+
 
 #endif

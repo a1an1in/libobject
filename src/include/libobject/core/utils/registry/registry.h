@@ -11,9 +11,10 @@
 #define REGISTRY_CTOR_PRIORITY_DEBUGGER                     6
 #define REGISTRY_CTOR_PRIORITY_DEFAULT_ALLOCATOR            7
 #define REGISTRY_CTOR_PRIORITY_OBJ_DEAMON                   8
-#define REGISTRY_CTOR_PRIORITY_REGISTER_CLASS               9
-#define REGISTRY_CTOR_PRIORITY_CONCURRENT                   10
-#define REGISTRY_CTOR_PRIORITY_EVBASE                       11
+#define REGISTRY_CTOR_PRIORITY_REGISTER_CLASS               9 
+#define REGISTRY_CTOR_PRIORITY_REGISTER_APP_CMD             10
+#define REGISTRY_CTOR_PRIORITY_CONCURRENT                   11
+#define REGISTRY_CTOR_PRIORITY_EVBASE                       12
 
 #define REGISTRY_DTOR_PRIORITY_EVBASE                       1
 #define REGISTRY_DTOR_PRIORITY_CONCURRENT                   2
