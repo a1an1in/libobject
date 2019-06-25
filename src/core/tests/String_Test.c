@@ -73,6 +73,7 @@ static int __setup(String_Test *test, char *init_str)
 static int __teardown(String_Test *test)
 {
     dbg_str(DBG_DETAIL,"String_Test teardown");
+    test->str->clear(test->str);
 
     return 0;
 }
@@ -128,6 +129,7 @@ static int __test_append_string(String_Test *test)
     char test3[1024];
     int ret;
 
+    Init_Test_Case(test);
     sprintf(test3, "%s%s", test1, test2);
 
     parent->assign(parent, test1);  
@@ -153,6 +155,7 @@ static int __test_len(String_Test *test)
     char *test1 = "abcdefg";
     int ret;
 
+    Init_Test_Case(test);
     parent->assign(parent, test1);  
     
     if (parent->get_len(parent) != strlen(test1)) {
@@ -171,6 +174,7 @@ static int __test_get_substring(String_Test *test)
     int ret;
     char *t = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
 
+    Init_Test_Case(test);
     string->assign(string, t);
     sub_str = string->get_substring(string, 3, 10);
     
@@ -190,6 +194,7 @@ static int __test_insert(String_Test *test)
     String *string = test->str;
     int ret;
 
+    Init_Test_Case(test);
     string->assign(string, "@@@@@@@");
 
     string->insert(string, 3, "vvvvvvv");
@@ -208,6 +213,7 @@ static int __test_insert_string(String_Test *test)
     String *string = test->str, *sub_str;
     int ret;
 
+    Init_Test_Case(test);
     string->assign(string, "@@@@@@@");
 
     sub_str = OBJECT_NEW(allocator, String, NULL);
@@ -234,6 +240,7 @@ static int __test_split(String_Test *test)
     int i, cnt;
     char *p;
 
+    Init_Test_Case(test);
     str->assign(str, "https://www.baidu.com/s?ie = utf-8&f = 3&rsv_bp = 1&rsv_idx = 1&tn = baidu&wd = "
             "ffmpeg%20hls%20%20%E6%A8%A1%E5%9D%97&oq = ffmpeg%2520hls%2520%25E5%2588%2587%25E7%2589%2587&rsv_pq = f57123dc00006105&"
             "rsv_t = 4a67K//PcOq6Y0swQnyeFtlQezzWiuwU1bS8vKp48Nn9joWPQd1BHAqFkqu9Y&rqlang = cn&rsv_enter = 1&inputT = 4580&"
@@ -263,6 +270,7 @@ static int __test_find(String_Test *test)
     String *string = test->str;
     int ret = 0;
 
+    Init_Test_Case(test);
     string->assign(string, "rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25");
 
     int pos = string->find(string, "&", 0);
@@ -281,6 +289,7 @@ static int __test_replace(String_Test *test)
     char *test2 = "####rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
     int ret;
 
+    Init_Test_Case(test);
     string->assign(string, test1);
     string->replace(string, "&", "####");
 
@@ -300,6 +309,7 @@ static int __test_replace_all(String_Test *test)
     char *test2 = "####rsv//_sug1 = 107####rsv_sug7 = 100####rsv_sug2 = 0####prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
     int ret;
 
+    Init_Test_Case(test);
     string->assign(string, test1);
     string->replace_all(string, "&", "####");
 
@@ -319,6 +329,7 @@ static int __test_empty(String_Test *test)
     char *test1 = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
     int ret;
 
+    Init_Test_Case(test);
     string->assign(string, test1);
     string->clear(string);
     ret = string->is_empty(string);
@@ -332,6 +343,7 @@ static int __test_ltrim(String_Test *test)
     char *t = "  hello";
     int ret;
 
+    Init_Test_Case(test);
     string->assign(string, t);
 
     string->ltrim(string);
@@ -352,6 +364,7 @@ static int __test_rtrim(String_Test *test)
     char *expect = "hello";
     int ret;
 
+    Init_Test_Case(test);
     string->assign(string, t);
 
     string->rtrim(string);

@@ -112,31 +112,7 @@ static int __deconstrcut(Vector *vector)
         object_destroy(vector->class_name);
     }
 
-    if (vector->trustee_flag == 1) {
-        vector_pos_t pos, next;
-        vector_t *v = vector->vector;
-        void *element;
-        int index = 0;
-
-        for(	vector_begin(v, &pos), vector_pos_next(&pos, &next);
-                !vector_pos_equal(&pos, &v->end);
-                pos = next, vector_pos_next(&pos, &next))
-        {
-            vector->peek_at(vector, index++, (void **)&element);
-
-            if (    vector->value_type == VALUE_TYPE_OBJ_POINTER && 
-                    element != NULL) 
-            {
-                object_destroy(element);
-            } else if (vector->value_type  == VALUE_TYPE_STRING &&
-                       element != NULL)
-            {
-                object_destroy(element);
-            } else {
-            }
-            element = NULL;
-        }
-    }
+    vector->clear(vector);
 
     vector_destroy(vector->vector);
 
@@ -239,16 +215,32 @@ static int  __empty(Vector * vector)
 
 static void __clear(Vector *vector)
 {
-    vector_pos_t pos,next;
     vector_t *v=vector->vector;
-    void *element;
-    int index =0;
 
-    for (   vector_begin(v, &pos), vector_pos_next(&pos, &next);
-            !vector_pos_equal(&pos, &v->end);
-            pos=next, vector_pos_next(&pos, &next))
-    {
-        vector->remove(vector, index++, (void **)&element);
+    if (vector->trustee_flag == 1) {
+        vector_pos_t pos, next;
+        vector_t *v = vector->vector;
+        void *element;
+        int index = 0;
+
+        for(	vector_begin(v, &pos), vector_pos_next(&pos, &next);
+                !vector_pos_equal(&pos, &v->end);
+                pos = next, vector_pos_next(&pos, &next))
+        {
+            vector->peek_at(vector, index++, (void **)&element);
+
+            if (    vector->value_type == VALUE_TYPE_OBJ_POINTER && 
+                    element != NULL) 
+            {
+                object_destroy(element);
+            } else if (vector->value_type  == VALUE_TYPE_STRING &&
+                       element != NULL)
+            {
+                object_destroy(element);
+            } else {
+            }
+            element = NULL;
+        }
     }
 
     vector_pos_init(&v->end, 0, v);
@@ -526,243 +518,3 @@ static int test_vector(TEST_ENTRY *entry)
 }
 REGISTER_TEST_FUNC(test_vector);
 
-static int test_int_vector_to_json(TEST_ENTRY *entry)
-{
-    Vector *vector;
-    allocator_t *allocator = allocator_get_default_alloc();
-    int value_size = 25, capacity = 19, value_type = VALUE_TYPE_INT8_T;
-    int ret;
-    char *result = "[0, 1, 2, 3, 4, 5]";
-
-    vector = OBJECT_NEW(allocator, Vector, NULL);
-    vector->set(vector, "/Vector/capacity", &capacity);
-    vector->set(vector, "/Vector/value_type", &value_type);
-    vector->reconstruct(vector);
-
-    vector->add_at(vector, 0, 0);
-    vector->add_at(vector, 1, 1);
-    vector->add_at(vector, 2, 2);
-    vector->add_at(vector, 3, 3);
-    vector->add_at(vector, 4, 4);
-    vector->add_at(vector, 5, 5);
-
-    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
-    if (strcmp(result, vector->to_json(vector)) != 0) {
-        ret = 0;
-    } else {
-        ret = 1;
-    }
-
-    object_destroy(vector);
-    
-    return ret;
-
-}
-REGISTER_TEST_FUNC(test_int_vector_to_json);
-
-static int test_string_vector_to_json(TEST_ENTRY *entry)
-{
-    Vector *vector;
-    allocator_t *allocator = allocator_get_default_alloc();
-    int value_size = 25, capacity = 19, value_type = VALUE_TYPE_STRING;
-    String *t0, *t1, *t2, *t3, *t4, *t5;
-    int ret;
-    char result[1024];
-
-    t0 = object_new(allocator, "String", NULL);
-    t1 = object_new(allocator, "String", NULL);
-    t2 = object_new(allocator, "String", NULL);
-    t3 = object_new(allocator, "String", NULL);
-    t4 = object_new(allocator, "String", NULL);
-    t5 = object_new(allocator, "String", NULL);
-
-    t0->assign(t0, "Monday");
-    t1->assign(t1, "Tuesday");
-    t2->assign(t2, "Wednesday");
-    t3->assign(t3, "Thursday");
-    t4->assign(t4, "Friday");
-    t5->assign(t5, "Saturday");
-
-    sprintf(result, "[\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"]", 
-            t0->get_cstr(t0), t1->get_cstr(t1), t2->get_cstr(t2),
-            t3->get_cstr(t3), t4->get_cstr(t4), t5->get_cstr(t5));
-
-    vector = object_new(allocator, "Vector", NULL);
-    vector->set(vector, "/Vector/capacity", &capacity);
-    vector->set(vector, "/Vector/value_type", &value_type);
-
-    vector->add_at(vector, 0, t0);
-    vector->add_at(vector, 1, t1);
-    vector->add_at(vector, 2, t2);
-    vector->add_at(vector, 3, t3);
-    vector->add_at(vector, 4, t4);
-    vector->add_at(vector, 5, t5);
-
-    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
-    dbg_str(DBG_DETAIL, "result: %s", result);
-
-    if (strcmp(result, vector->to_json(vector)) != 0) {
-        ret = 0;
-    } else {
-        ret = 1;
-    }
-
-    object_destroy(vector);
-    object_destroy(t0);
-    object_destroy(t1);
-    object_destroy(t2);
-    object_destroy(t3);
-    object_destroy(t4);
-    object_destroy(t5);
-    
-    return ret;
-
-}
-REGISTER_TEST_FUNC(test_string_vector_to_json);
-
-static int test_obj_vector_to_json(TEST_ENTRY *entry)
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-    int value_type = VALUE_TYPE_OBJ_POINTER;
-    Vector *vector;
-    Command *cmd0 = NULL;
-    Command *cmd1 = NULL;
-    Command *cmd2 = NULL;
-    int ret = 0, help = 0;
-
-    cmd0 = object_new(allocator, "Test_Command", NULL);
-    cmd1 = object_new(allocator, "Test_Command", NULL);
-    cmd2 = object_new(allocator, "Test_Command", NULL);
-
-    vector = object_new(allocator, "Vector", NULL);
-    vector->set(vector, "/Vector/value_type", &value_type);
-
-    help = 0;
-    cmd0->set(cmd0, "/Test_Command/help", &help);
-    cmd0->set(cmd0, "/Test_Command/option", "test cmd0 option");
-
-    help = 1;
-    cmd1->set(cmd1, "/Test_Command/help", &help);
-    cmd1->set(cmd1, "/Test_Command/option", "test cmd1 option");
-
-    help = 2;
-    cmd2->set(cmd2, "/Test_Command/help", &help);
-    cmd2->set(cmd2, "/Test_Command/option", "test cmd2 option");
-
-    vector->add(vector, cmd0);
-    vector->add(vector, cmd1);
-    vector->add(vector, cmd2);
-
-    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
-
-    object_destroy(cmd0);
-    object_destroy(cmd1);
-    object_destroy(cmd2);
-    object_destroy(vector);
-
-    ret = 1;
-
-    return ret;
-
-}
-REGISTER_TEST_CMD(test_obj_vector_to_json);
-
-
-static int test_int_vector_set_init_data(TEST_ENTRY *entry)
-{
-    Vector *vector;
-    allocator_t *allocator = allocator_get_default_alloc();
-    int value_size = 25, capacity = 19, value_type = VALUE_TYPE_INT8_T;
-    int ret;
-    char *init_data = "[0, 1, 2, 3, 4, 5]";
-
-    vector = object_new(allocator, "Vector", NULL);
-    vector->set(vector, "/Vector/capacity", &capacity);
-    vector->set(vector, "/Vector/value_type", &value_type);
-    vector->set(vector, "/Vector/init_data", init_data);
-    vector->reconstruct(vector);
-
-    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
-    if (strcmp(init_data, vector->to_json(vector)) != 0) {
-        ret = 0;
-    } else {
-        ret = 1;
-    }
-
-    object_destroy(vector);
-    
-    return ret;
-
-}
-REGISTER_TEST_FUNC(test_int_vector_set_init_data);
-
-static int test_string_vector_set_init_data(TEST_ENTRY *entry)
-{
-    Vector *vector;
-    allocator_t *allocator = allocator_get_default_alloc();
-    int value_size = 25, capacity = 19, value_type = VALUE_TYPE_STRING;
-    uint8_t trustee_flag = 1;
-    int ret;
-    char *init_data = "[\"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\"]";
-
-    vector = object_new(allocator, "Vector", NULL);
-    vector->set(vector, "/Vector/capacity", &capacity);
-    vector->set(vector, "/Vector/value_type", &value_type);
-    vector->set(vector, "/Vector/init_data", init_data);
-    vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
-    vector->reconstruct(vector);
-
-    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
-    if (strcmp(init_data, vector->to_json(vector)) != 0) {
-        ret = 0;
-    } else {
-        ret = 1;
-    }
-
-    object_destroy(vector);
-    
-    return ret;
-
-}
-REGISTER_TEST_FUNC(test_string_vector_set_init_data);
-
-static int test_obj_vector_set_init_data(TEST_ENTRY *entry)
-{
-    Vector *vector;
-    allocator_t *allocator = allocator_get_default_alloc();
-    int value_size = 25, capacity = 19, value_type = VALUE_TYPE_OBJ_POINTER;
-    uint8_t trustee_flag = 1;
-    int ret;
-    char *init_data = "[\
-        {\
-            \"option\": \"test cmd0 option\",\
-            \"help\": 0\
-        }, {\
-            \"option\": \"test cmd1 option\",\
-            \"help\": 1\
-        }, {\
-            \"option\": \"test cmd2 option\",\
-            \"help\": 2\
-        }]";
-
-    vector = object_new(allocator, "Vector", NULL);
-    vector->set(vector, "/Vector/capacity", &capacity);
-    vector->set(vector, "/Vector/value_type", &value_type);
-    vector->set(vector, "/Vector/init_data", init_data);
-    vector->set(vector, "/Vector/class_name", "Test_Command");
-    vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
-    vector->reconstruct(vector);
-
-    dbg_str(DBG_DETAIL, "Vector json: %s", vector->to_json(vector));
-    if (strcmp(init_data, vector->to_json(vector)) != 0) {
-        ret = 0;
-    } else {
-        ret = 1;
-    }
-
-    object_destroy(vector);
-    
-    return ret;
-
-}
-REGISTER_TEST_CMD(test_obj_vector_set_init_data);
