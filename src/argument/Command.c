@@ -83,12 +83,6 @@ static Command * __get_subcommand(Command *command, char *command_name)
     return NULL;
 }
 
-static int __has_subcommand(Command *command, char *command_name)
-{
-    return command->get_subcommand(command, command_name) == NULL ? 0 : 1;
-}
-
-
 static int 
 __add_option(Command *command,
              char *name, char *alias, char *value,
@@ -154,11 +148,6 @@ static Option *__get_option(Command *command, char *option_name)
     }
 
     return NULL;
-}
-
-static int __has_option(Command *command, char *option_name)
-{
-    return command->get_option(command, option_name) == NULL ? 0 : 1;
 }
 
 static int __set_args(Command *command, int argc, char **argv)

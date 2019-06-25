@@ -33,6 +33,7 @@ static int __action(Command *command)
 
     object_destroy(runner);
     dbg_str(DBG_DETAIL,"test_runner out");
+
     return 0;
 }
 
