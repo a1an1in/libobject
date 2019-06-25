@@ -15,6 +15,7 @@ struct Ctest_Command_s{
 
 	/*virtual methods reimplement*/
 	int (*set)(Command *command, char *attrib, void *value);
+	int (*action)(Command *command);
     void *(*get)(void *obj, char *attrib);
     char *(*to_json)(void *obj); 
 };

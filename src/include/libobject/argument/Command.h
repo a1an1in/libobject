@@ -22,7 +22,7 @@ struct Command_s{
     int (*add_subcommand)(Command *command, char *);
     Command *(*get_subcommand)(Command *command, char *command_name);
     int (*has_subcommand)(Command *command, char *command_name);
-    int (*action)(void *, Option *);
+    int (*action)(Command *);
     int (*add_option)(Command *command, char *name, char *alias, char *value, 
                       char *usage, int (*action)(void *, Option *));
     Option *(*get_option)(Command *command, char *option_name);
@@ -37,6 +37,7 @@ struct Command_s{
     String *name;
     int argc;
     char **argv;
+    Command *selected_subcommand;
 };
 
 #endif

@@ -32,6 +32,7 @@ static int __run(Application *app, int argc, char *argv[])
     char *json;
     int i = 0;
     Command *command = (Command *)app;
+    Command *selected_subcommand;
 
 
     for (i = 0; i < app_command_count; i++) {
@@ -40,6 +41,9 @@ static int __run(Application *app, int argc, char *argv[])
 
     command->set_args(command, argc, (char **)argv);
     command->parse_args(command);
+
+    selected_subcommand = command->selected_subcommand;
+    selected_subcommand->action(selected_subcommand);
 
     /*
      *json = app->to_json(app);

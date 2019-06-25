@@ -91,7 +91,9 @@ static int __set(Obj *obj, char *attrib, void *value)
         strcpy(buf, attrib);
         str_split(buf, "/", out, &cnt);
 
-        dbg_str(DBG_WARNNING, "set class name:%s", out[cnt - 2]);
+        /*
+         *dbg_str(DBG_WARNNING, "set class name:%s", out[cnt - 2]);
+         */
         target_name = out[cnt - 2];
         attrib = out[cnt - 1];
     } else {
@@ -116,7 +118,6 @@ static int __set(Obj *obj, char *attrib, void *value)
             {
                 uint8_t *addr = (uint8_t *)(base + entry->offset);
                 *addr = *((uint8_t *)value);
-                dbg_str(DBG_WARNNING, "set int %d", *addr);
                 break;
             }
         case ENTRY_TYPE_INT16_T:
@@ -124,7 +125,6 @@ static int __set(Obj *obj, char *attrib, void *value)
             {
                 uint16_t *addr = (uint16_t *)(base + entry->offset);
                 *addr = *((uint16_t *)value);
-                dbg_str(DBG_WARNNING, "set uint %d", *addr);
                 break;
             }
         case ENTRY_TYPE_INT32_T:
@@ -132,7 +132,6 @@ static int __set(Obj *obj, char *attrib, void *value)
             {
                 uint32_t *addr = (uint32_t *)(base + entry->offset);
                 *addr = *((uint32_t *)value);
-                dbg_str(DBG_WARNNING, "set int32 %d", *addr);
                 break;
             }
         case ENTRY_TYPE_INT64_T:
@@ -140,7 +139,6 @@ static int __set(Obj *obj, char *attrib, void *value)
             {
                 uint64_t *addr = (uint64_t *)(base + entry->offset);
                 *addr = *((uint64_t *)value);
-                dbg_str(DBG_WARNNING, "set uint32 %d", *addr);
                 break;
             }
         case ENTRY_TYPE_FLOAT_T:
@@ -171,10 +169,8 @@ static int __set(Obj *obj, char *attrib, void *value)
 
                 if (*addr != NULL) {
                     v = *addr;
-                    dbg_str(DBG_DETAIL, "run at here, v=%p", v);
                 } else {
                     v = object_new(allocator, "Vector", NULL);
-                    dbg_str(DBG_DETAIL, "run at here, v=%p", v);
                 }
                 if (p[0] == '[') {
                     v->set(v, "/Vector/value_type", &value_type);
@@ -348,8 +344,6 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
         } else {
             strcpy(o->target_name, type_name);
 
-            dbg_str(DBG_WARNNING, "get:%p, __get:%p", get, __get);
-            dbg_str(DBG_WARNNING, "value name:%s to json", entry[i].value_name);
             value = get(obj, entry[i].value_name);
             /*
              *if (value == NULL) continue;

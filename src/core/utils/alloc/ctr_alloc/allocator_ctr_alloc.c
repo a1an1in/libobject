@@ -235,7 +235,8 @@ static void __free(allocator_t *allocator, void *addr)
     }
     slab_list = container_of(addr, ctr_slab_t, data);
     if (slab_list->stat_flag == 0) {
-        dbg_str(ALLOC_WARNNING, "this addr has been released");
+        dbg_str(ALLOC_WARNNING, "this addr has been released, tag:%s",
+                slab_list->tag);
         return;
     }
 

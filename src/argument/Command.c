@@ -175,7 +175,7 @@ static int __parse_args(Command *command)
     Option *o;
     String *str = NULL;
     int ret = 0, cnt;
-    char *key = NULL, *key1 = NULL;
+    char *key = NULL, *value = NULL;
 
     dbg_str(DBG_SUC, "parse command %s", command->argv[0]);
     dbg_str(DBG_DETAIL, "argv0:%s argv1:%s, argv2:%s", 
@@ -198,9 +198,14 @@ static int __parse_args(Command *command)
                 cnt = str->split_num_portion(str, "=", 2); 
                 dbg_str(DBG_SUC, "key count :%d", cnt);
                 if (cnt == 2) {
-                    key = str->get_splited_cstr(str, 0);
-                    key1 = str->get_splited_cstr(str, 1);
-                    dbg_str(DBG_SUC, "find option key0:%s, key1:%s", key, key1);
+                    key   = str->get_splited_cstr(str, 0);
+                    value = str->get_splited_cstr(str, 1);
+
+                    o = command->get_option(command, key);
+                    if (o != NULL) {
+                        o->set(o, key, value);
+                        dbg_str(DBG_SUC, "set option key:%s, value:%s", key, value);
+                    }
                 } 
                 continue;
             } else {
@@ -211,6 +216,7 @@ static int __parse_args(Command *command)
                             command->argv[0], command->argv[i]);
                     c->set_args(c, command->argc - i, (char **)&command->argv[i]);
                     c->parse_args(c);
+                    command->selected_subcommand = c;
                     break;
                 }
                 dbg_str(DBG_SUC, "not recognize arg %s",command->argv[i]);
@@ -228,6 +234,11 @@ static int __parse_args(Command *command)
     return ret;
 }
 
+static int __action(Command *command)
+{
+    return 0;
+}
+
 static class_info_entry_t command_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Command, construct, __construct),
@@ -239,11 +250,12 @@ static class_info_entry_t command_class_info[] = {
     Init_Vfunc_Entry(7 , Command, get_subcommand, __get_subcommand),
     Init_Vfunc_Entry(8 , Command, add_option, __add_option),
     Init_Vfunc_Entry(9 , Command, get_option, __get_option),
-    Init_Vfunc_Entry(10, Command, set_args, __set_args),
-    Init_Vfunc_Entry(11, Command, parse_args, __parse_args),
-    Init_Vec___Entry(12, Command, subcommands, NULL, "Test_Command"),
-    Init_Vec___Entry(13, Command, options, NULL, "Option"),
-    Init_Str___Entry(14, Command, name, NULL),
-    Init_End___Entry(15, Command),
+    Init_Vfunc_Entry(10, Command, action, __action),
+    Init_Vfunc_Entry(11, Command, set_args, __set_args),
+    Init_Vfunc_Entry(12, Command, parse_args, __parse_args),
+    Init_Vec___Entry(13, Command, subcommands, NULL, "Test_Command"),
+    Init_Vec___Entry(14, Command, options, NULL, "Option"),
+    Init_Str___Entry(15, Command, name, NULL),
+    Init_End___Entry(16, Command),
 };
 REGISTER_CLASS("Command", command_class_info);
