@@ -43,7 +43,7 @@ static int __construct(Command *command, char *init_str)
     command->add_option(command, "--output-type", "-t", "json", "output file type", NULL);
     command->add_option(command, "--output-file", "-o", "test_report.json", "output file path", NULL);
 
-    command->set(command, "/Command/name", "CTest");
+    command->set(command, "/Command/name", "ctest");
 
     return 0;
 }

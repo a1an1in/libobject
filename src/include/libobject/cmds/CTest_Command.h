@@ -1,5 +1,5 @@
-#ifndef __TEST_SUB1_COMMAND_H__
-#define __TEST_SUB1_COMMAND_H__
+#ifndef __CTEST_COMMAND_H__
+#define __CTEST_COMMAND_H__
 
 #include <stdio.h>
 #include <libobject/argument/Command.h>

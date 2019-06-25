@@ -96,7 +96,7 @@ __add_option(Command *command,
 
     if (options == NULL) {
         options = object_new(command->parent.allocator, 
-                                 "Vector", NULL);
+                             "Vector", NULL);
         if (options == NULL) {
             ret = -1;
             goto end;
@@ -198,7 +198,6 @@ static int __parse_args(Command *command)
                 } 
                 continue;
             } else {
-                dbg_str(DBG_SUC, "run at here");
                 c = command->get_subcommand(command, command->argv[i]);
                 if (c != NULL) {
                     dbg_str(DBG_SUC, "%s found a command %s",
