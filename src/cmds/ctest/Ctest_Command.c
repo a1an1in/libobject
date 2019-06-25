@@ -26,8 +26,10 @@ static int __action(Command *command)
     failed_cases  = runner->result->failed_cases;
     success_cases = runner->result->success_cases;
 
-    printf("dump success_cases: %s\n",
-            success_cases->to_json(success_cases));
+    /*
+     *printf("dump success_cases: %s\n",
+     *        success_cases->to_json(success_cases));
+     */
     printf("dump failed_cases: %s\n",
             failed_cases->to_json(failed_cases));
 
