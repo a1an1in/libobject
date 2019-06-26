@@ -19,6 +19,10 @@ struct vector_test_s{
 	/*virtual methods reimplement*/
 	int (*setup)(Test *);
     void *(*teardown)(Test *);
+    int (*test_int_vector_add)(Test *test);
+    int (*test_int_vector_remove)(Test *test);
+    int (*test_int_vector_count)(Test *test);
+    int (*test_int_vector_clear)(Test *test);
     int (*test_int_vector_to_json)(Test *test);
     int (*test_string_vector_to_json)(Test *test);
     int (*test_obj_vector_to_json)(Test *test);

@@ -14,7 +14,7 @@ typedef struct vector_s{
 	uint32_t data_size;
 	uint32_t capacity;
 	uint32_t step;
-	uint32_t size;
+	uint32_t count;
 	void **vector_head;
 	sync_lock_t vector_lock;
 	uint8_t lock_type;

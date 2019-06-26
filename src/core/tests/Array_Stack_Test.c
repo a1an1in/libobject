@@ -57,7 +57,7 @@ static int __setup(Array_Stack_Test *test, char *init_str)
 
     dbg_str(DBG_DETAIL,"Array_Stack_Test set up");
     stack = object_new(allocator, "Array_Stack", NULL);
-    test->stack = stack;
+    test->stack = (Array_Stack *)stack;
 
     return 0;
 }

@@ -197,12 +197,12 @@ static void __free_vector_elements(Vector *vector)
     }
 }
 
-static uint32_t __size(Vector * vector)
+static uint32_t __count(Vector * vector)
 {
     uint32_t count = 0;
 
     sync_trylock(&vector->vector->vector_lock, NULL);
-    count = vector->vector->size;
+    count = vector->vector->count;
     sync_unlock(&vector->vector->vector_lock);
 
     return count;
@@ -210,19 +210,17 @@ static uint32_t __size(Vector * vector)
 
 static int  __empty(Vector * vector) 
 {
-    return vector->size(vector) == 0 ? 1 : 0;
+    return vector->count(vector) == 0 ? 1 : 0;
 }
 
 static void __clear(Vector *vector)
 {
-    vector_t *v=vector->vector;
+    vector_pos_t pos, next;
+    vector_t *v = vector->vector;
+    void *element;
+    int index = 0;
 
     if (vector->trustee_flag == 1) {
-        vector_pos_t pos, next;
-        vector_t *v = vector->vector;
-        void *element;
-        int index = 0;
-
         for(	vector_begin(v, &pos), vector_pos_next(&pos, &next);
                 !vector_pos_equal(&pos, &v->end);
                 pos = next, vector_pos_next(&pos, &next))
@@ -237,12 +235,21 @@ static void __clear(Vector *vector)
                        element != NULL)
             {
                 object_destroy(element);
+            } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER &&
+                       element != NULL)
+            {
+                allocator_mem_free(vector->obj.allocator, element);
+            } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
+                       element != NULL)
+            {
+                dbg_str(DBG_WARNNING, "not support clear unkown pointer");
             } else {
             }
             element = NULL;
         }
     }
 
+    vector->vector->count = 0;
     vector_pos_init(&v->end, 0, v);
 }
 
@@ -365,11 +372,8 @@ static class_info_entry_t vector_class_info[] = {
     Init_Vfunc_Entry(12, Vector, for_each, __for_each),
     Init_Vfunc_Entry(13, Vector, free_vector_elements, __free_vector_elements),
     Init_Vfunc_Entry(14, Vector, clear, __clear),
-    Init_Vfunc_Entry(15, Vector, size, __size),
+    Init_Vfunc_Entry(15, Vector, count, __count),
     Init_Vfunc_Entry(16, Vector, empty, __empty),
-    /*
-     *Init_Vfunc_Entry(17, Vector, to_json, NULL),
-     */
     Init_Vfunc_Entry(17, Vector, to_json, __to_json),
     Init_U32___Entry(18, Vector, value_size, NULL),
     Init_U8____Entry(19, Vector, value_type, NULL),
@@ -380,141 +384,3 @@ static class_info_entry_t vector_class_info[] = {
     Init_End___Entry(24, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);
-
-struct test{
-    int a;
-    int b;
-};
-
-static void print_vector_data(int index, void *element)
-{
-    struct test *t = (struct test *)element;
-    
-    dbg_str(DBG_DETAIL, "index=%d, a =%d b=%d", index, t->a, t->b);
-}
-
-static struct test *init_test_instance(struct test *t, int a, int b)
-{
-    t->a = a;
-    t->b = b;
-
-
-    return t;
-}
-
-static int test_vector(TEST_ENTRY *entry)
-{
-    Vector *vector;
-    allocator_t *allocator = allocator_get_default_alloc();
-    int pre_alloc_count, after_alloc_count;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-    int capacity = 10;
-    struct test *t, t0, t1, t2, t3, t4, t5;
-    int ret;
-
-    pre_alloc_count = allocator->alloc_count;
-
-    init_test_instance(&t0, 0, 2);
-    init_test_instance(&t1, 1, 2);
-    init_test_instance(&t2, 2, 2);
-    init_test_instance(&t3, 3, 2);
-    init_test_instance(&t4, 4, 2);
-    init_test_instance(&t5, 5, 2);
-
-
-    vector = object_new(allocator, "Vector", NULL);
-    vector->set(vector, "/Vector/capacity", &capacity);
-    vector->reconstruct(vector);
-
-    /*
-     *object_dump(vector, "Vector", buf, 2048);
-     *dbg_str(DBG_DETAIL, "Vector dump: %s", buf);
-     */
-
-    vector->add_at(vector, 0, &t0);
-    vector->add_at(vector, 1, &t1);
-    vector->add_at(vector, 2, &t2);
-    vector->add_at(vector, 3, &t3);
-    vector->add_at(vector, 4, &t4);
-    vector->add_at(vector, 5, &t5);
-
-    /*
-     *vector->add(vector, &t0);
-     *vector->add(vector, &t1);
-     *vector->add(vector, &t2);
-     *vector->add(vector, &t3);
-     *vector->add(vector, &t4);
-     *vector->add(vector, &t5);
-     */
-
-    /*
-     *dbg_str(DBG_DETAIL, "vector for each");
-     *vector->for_each(vector, print_vector_data);
-     */
-
-    vector->peek_at(vector, 1, (void **)&t);
-    dbg_str(DBG_DETAIL, "peak at index =%d a =%d b=%d", 1 , t->a, t->b);
-
-    ret = assert_equal(t, &t1, sizeof(void *));
-    if (ret == 0) {
-        return ret;
-    }
-
-    /*
-     *dbg_str(DBG_DETAIL, "vector for each");
-     *vector->for_each(vector, print_vector_data);
-     */
-
-    vector->remove(vector, 4, (void **)&t);
-    dbg_str(DBG_DETAIL, "remove index 4, t->a=%d t->b=%d", t->a, t->b);
-    ret = assert_equal(t, &t4, sizeof(void *));
-    if (ret == 0) {
-        return ret;
-    }
-
-    /*
-     *vector->remove_back(vector, (void **)&t);
-     *dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
-     *vector->remove_back(vector, (void **)&t);
-     *dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
-     *vector->remove_back(vector, (void **)&t);
-     *dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
-     *vector->remove_back(vector, (void **)&t);
-     *dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
-     *vector->remove_back(vector, (void **)&t);
-     *dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
-     *vector->remove_back(vector, (void **)&t);
-     *dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
-     *t = NULL;
-     *vector->remove_back(vector, (void **)&t);
-     *if (t != NULL)
-     *    dbg_str(DBG_DETAIL, "t0 a =%d b=%d", t->a, t->b);
-     */
-
-    /*
-     *dbg_str(DBG_DETAIL, "vector for each");
-     *vector->for_each(vector, print_vector_data);
-     */
-
-    //vector->free_vector(vector);
-    object_destroy(vector);
-
-    after_alloc_count = allocator->alloc_count;
-    ret = assert_equal(&pre_alloc_count, &after_alloc_count, sizeof(int));
-    if (ret == 0) {
-        dbg_str(DBG_WARNNING,
-                "vector has memory omit, pre_alloc_count=%d, after_alloc_count=%d",
-                pre_alloc_count, after_alloc_count);
-        /*
-         *allocator_mem_info(allocator);
-         */
-        return ret;
-    }
-
-    return 1;
-
-}
-REGISTER_TEST_FUNC(test_vector);
-

@@ -31,7 +31,7 @@ static int __action(Command *command)
      *        success_cases->to_json(success_cases));
      */
     printf("dump failed_cases: %s\n",
-            failed_cases->to_json(failed_cases));
+            failed_cases->to_json((Obj *)failed_cases));
 
     object_destroy(runner);
     dbg_str(DBG_DETAIL,"test_runner out");

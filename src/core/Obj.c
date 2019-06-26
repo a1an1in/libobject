@@ -373,8 +373,8 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
             } else if (entry[i].type == ENTRY_TYPE_VECTOR) {
                 Vector *v = *((Vector **)value);
                 if (v != NULL) {
-                    dbg_str(DBG_DETAIL, "Vector json: %s", v->to_json(v));
-                    item = cjson_parse(v->to_json(v));
+                    dbg_str(DBG_DETAIL, "Vector json: %s", v->to_json((Obj *)v));
+                    item = cjson_parse(v->to_json((Obj *)v));
                     cjson_add_item_to_object(object, entry[i].value_name, item);
                 } else {
                     dbg_str(DBG_WARNNING, "Vector to json, but content is null, offset:%p", value);

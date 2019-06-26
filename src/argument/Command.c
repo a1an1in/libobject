@@ -64,16 +64,16 @@ end:
 static Command * __get_subcommand(Command *command, char *command_name)
 {
     Vector *subcommands = command->subcommands;
-    int size;
+    int count;
     Command *c;
     int i;
 
     if (subcommands == NULL) return NULL;
 
-    size = subcommands->size(subcommands);
+    count = subcommands->count(subcommands);
 
-    for (i = 0; i < size; i++) {
-        subcommands->peek_at(subcommands, i, &c);
+    for (i = 0; i < count; i++) {
+        subcommands->peek_at(subcommands, i, (void **)&c);
         if (c->name->equal(c->name, command_name))  
         {
             return c;
@@ -130,16 +130,16 @@ end:
 static Option *__get_option(Command *command, char *option_name)
 {
     Vector *options = command->options;
-    int size;
+    int count;
     Option *o;
     int i;
 
     if (options == NULL) return NULL;
 
-    size = options->size(options);
+    count = options->count(options);
 
-    for (i = 0; i < size; i++) {
-        options->peek_at(options, i, &o);
+    for (i = 0; i < count; i++) {
+        options->peek_at(options, i, (void **)&o);
         if (    o->name->equal(o->name, option_name) || 
                 o->alias->equal(o->alias, option_name))
         {

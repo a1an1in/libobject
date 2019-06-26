@@ -521,7 +521,7 @@ static int __split_num_portion(String *string, char *delims, int num)
             *(p -1) = '\0';
             cnt++;
             v->add_back(v, ptr);
-            dbg_str(DBG_SUC, "vector size=%d", v->size(v));
+            dbg_str(DBG_SUC, "vector count=%d", v->count(v));
             dbg_str(DBG_SUC, "cur:%s, next :%s", p, ptr);
         }
     }
