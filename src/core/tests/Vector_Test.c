@@ -284,15 +284,15 @@ static int __test_obj_vector_to_json(Vector_Test *test)
 
     help = 0;
     obj0->set(obj0, "/Simplest_Obj/help", &help);
-    obj0->set(obj0, "/Simplest_Obj/option", "test obj0 option");
+    obj0->set(obj0, "/Simplest_Obj/name", "test obj0");
 
     help = 1;
     obj1->set(obj1, "/Simplest_Obj/help", &help);
-    obj1->set(obj1, "/Simplest_Obj/option", "test obj1 option");
+    obj1->set(obj1, "/Simplest_Obj/name", "test obj1");
 
     help = 2;
     obj2->set(obj2, "/Simplest_Obj/help", &help);
-    obj2->set(obj2, "/Simplest_Obj/option", "test obj2 option");
+    obj2->set(obj2, "/Simplest_Obj/name", "test obj2");
 
     vector->set(vector, "/Vector/value_type", &value_type);
     vector->set(vector, "/Vector/class_name", "Simplest_Obj");
@@ -370,15 +370,13 @@ static int __test_obj_vector_set_init_data(Vector_Test *test)
     uint8_t trustee_flag = 1;
     char *init_data = "[\
         {\
-            \"option\": \"test cmd0 option\",\
-            \"help\": 0\
-        }, {\
-            \"option\": \"test cmd1 option\",\
+            \"name\": \"simplest obj1\",\
             \"help\": 1\
         }, {\
-            \"option\": \"test cmd2 option\",\
+            \"name\": \"simplest obj2\",\
             \"help\": 2\
         }]";
+    char *expect = "[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]";
 
     Init_Test_Case(test);
     vector->set(vector, "/Vector/value_type", &value_type);
@@ -387,13 +385,21 @@ static int __test_obj_vector_set_init_data(Vector_Test *test)
     vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
     vector->reconstruct(vector);
 
-    dbg_str(DBG_DETAIL, "Vector json: %s", vector->to_json((Obj *)vector));
-    printf("Vector json: %s\n", vector->to_json((Obj *)vector));
-    if (strcmp(init_data, vector->to_json((Obj *)vector)) != 0) {
-        ret = 1;
+    String *string;
+    string = object_new(allocator, "String", NULL);
+    string->assign(string, vector->to_json((Obj *)vector));
+    string->replace_all(string, "\t", "");
+    string->replace_all(string, "\r", "");
+    string->replace_all(string, "\n", "");
+    if (strcmp(expect, string->get_cstr(string)) != 0) {
+        dbg_str(DBG_ERROR, "Vector json: %s", string->get_cstr(string));
+        dbg_str(DBG_ERROR, "expect: %s", expect);
+        ret = 0;
     } else {
         ret = 1;
     }
+
+    object_destroy(string);
 
     return ret;
 }

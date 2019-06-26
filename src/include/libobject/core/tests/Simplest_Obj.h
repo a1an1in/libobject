@@ -18,7 +18,7 @@ struct Simplest_Obj_s{
 	/*virtual methods reimplement*/
 
     int help;
-    String *option;
+    String *name;
 };
 
 #endif
