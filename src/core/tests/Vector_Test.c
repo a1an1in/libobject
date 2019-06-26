@@ -37,7 +37,7 @@
 #include <libobject/core/tests/Vector_Test.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/utils/registry/registry.h>
-#include <libobject/core/tests/Simplest_Test_Obj.h>
+#include <libobject/core/tests/Simplest_Obj.h>
 
 static int __construct(Test *test, char *init_str)
 {
@@ -278,24 +278,24 @@ static int __test_obj_vector_to_json(Vector_Test *test)
     Obj *obj2 = NULL;
 
     Init_Test_Case(test);
-    obj0 = object_new(allocator, "Simplest_Test_Obj", NULL);
-    obj1 = object_new(allocator, "Simplest_Test_Obj", NULL);
-    obj2 = object_new(allocator, "Simplest_Test_Obj", NULL);
+    obj0 = object_new(allocator, "Simplest_Obj", NULL);
+    obj1 = object_new(allocator, "Simplest_Obj", NULL);
+    obj2 = object_new(allocator, "Simplest_Obj", NULL);
 
     help = 0;
-    obj0->set(obj0, "/Simplest_Test_Obj/help", &help);
-    obj0->set(obj0, "/Simplest_Test_Obj/option", "test obj0 option");
+    obj0->set(obj0, "/Simplest_Obj/help", &help);
+    obj0->set(obj0, "/Simplest_Obj/option", "test obj0 option");
 
     help = 1;
-    obj1->set(obj1, "/Simplest_Test_Obj/help", &help);
-    obj1->set(obj1, "/Simplest_Test_Obj/option", "test obj1 option");
+    obj1->set(obj1, "/Simplest_Obj/help", &help);
+    obj1->set(obj1, "/Simplest_Obj/option", "test obj1 option");
 
     help = 2;
-    obj2->set(obj2, "/Simplest_Test_Obj/help", &help);
-    obj2->set(obj2, "/Simplest_Test_Obj/option", "test obj2 option");
+    obj2->set(obj2, "/Simplest_Obj/help", &help);
+    obj2->set(obj2, "/Simplest_Obj/option", "test obj2 option");
 
     vector->set(vector, "/Vector/value_type", &value_type);
-    vector->set(vector, "/Vector/class_name", "Simplest_Test_Obj");
+    vector->set(vector, "/Vector/class_name", "Simplest_Obj");
     vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
 
     vector->add(vector, obj0);
@@ -383,7 +383,7 @@ static int __test_obj_vector_set_init_data(Vector_Test *test)
     Init_Test_Case(test);
     vector->set(vector, "/Vector/value_type", &value_type);
     vector->set(vector, "/Vector/init_data", init_data);
-    vector->set(vector, "/Vector/class_name", "Simplest_Test_Obj");
+    vector->set(vector, "/Vector/class_name", "Simplest_Obj");
     vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
     vector->reconstruct(vector);
 

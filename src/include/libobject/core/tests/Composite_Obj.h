@@ -1,12 +1,12 @@
-#ifndef __TEST_OBJ_H__
-#define __TEST_OBJ_H__
+#ifndef __COMPOSITE_OBJ_H__
+#define __COMPOSITE_OBJ_H__
 
 #include <stdio.h>
 #include <libobject/core/String.h>
 
-typedef struct Simplest_Test_Obj_s Simplest_Test_Obj;
+typedef struct Composite_Obj_s Composite_Obj;
 
-struct Simplest_Test_Obj_s{
+struct Composite_Obj_s{
 	Obj parent;
 
 	int (*construct)(Obj *obj,char *init_str);

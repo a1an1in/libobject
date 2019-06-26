@@ -1,5 +1,5 @@
-#ifndef __ARRAY_STACK_TEST_H__
-#define __ARRAY_STACK_TEST_H__
+#ifndef __STRING_TEST_H__
+#define __STRING_TEST_H__
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
