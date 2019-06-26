@@ -57,6 +57,7 @@ static int __start(Test_Runner *runner)
 
         test_class = strstr(key, "_Test");
         if (test_class != NULL) {
+            dbg_str(DBG_SUC,"%s test", key);
             runner->run_test(runner, key);
         }
     }

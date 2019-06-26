@@ -107,14 +107,12 @@ static int __test_int_vector_add(Vector_Test *test)
 static int __test_int_vector_remove(Vector_Test *test)
 {
     Vector *vector = test->vector;
-    int capacity = 19, value_type = VALUE_TYPE_INT8_T;
+    int value_type = VALUE_TYPE_INT8_T;
     int *t = 0;
     int ret;
 
     Init_Test_Case(test);
-    vector->set(vector, "/Vector/capacity", &capacity);
     vector->set(vector, "/Vector/value_type", &value_type);
-    vector->reconstruct(vector);
 
     vector->add_at(vector, 0, 0);
     vector->add_at(vector, 1, 1);
@@ -136,14 +134,12 @@ static int __test_int_vector_remove(Vector_Test *test)
 static int __test_int_vector_count(Vector_Test *test)
 {
     Vector *vector = test->vector;
-    int capacity = 19, value_type = VALUE_TYPE_INT8_T;
+    int value_type = VALUE_TYPE_INT8_T;
     int *t = 0;
     int ret, count;
 
     Init_Test_Case(test);
-    vector->set(vector, "/Vector/capacity", &capacity);
     vector->set(vector, "/Vector/value_type", &value_type);
-    vector->reconstruct(vector);
 
     vector->add_at(vector, 0, 0);
     vector->add_at(vector, 1, 1);
@@ -165,14 +161,12 @@ static int __test_int_vector_count(Vector_Test *test)
 static int __test_int_vector_clear(Vector_Test *test)
 {
     Vector *vector = test->vector;
-    int capacity = 19, value_type = VALUE_TYPE_INT8_T;
+    int value_type = VALUE_TYPE_INT8_T;
     int *t = 0;
     int ret, count;
 
     Init_Test_Case(test);
-    vector->set(vector, "/Vector/capacity", &capacity);
     vector->set(vector, "/Vector/value_type", &value_type);
-    vector->reconstruct(vector);
 
     vector->add_at(vector, 0, 0);
     vector->add_at(vector, 1, 1);
@@ -195,14 +189,12 @@ static int __test_int_vector_clear(Vector_Test *test)
 static int __test_int_vector_to_json(Vector_Test *test)
 {
     Vector *vector = test->vector;
-    int capacity = 19, value_type = VALUE_TYPE_INT8_T;
+    int value_type = VALUE_TYPE_INT8_T;
     int ret;
     char *result = "[0, 1, 2, 3, 4, 5]";
 
     Init_Test_Case(test);
-    vector->set(vector, "/Vector/capacity", &capacity);
     vector->set(vector, "/Vector/value_type", &value_type);
-    vector->reconstruct(vector);
 
     vector->add_at(vector, 0, 0);
     vector->add_at(vector, 1, 1);
@@ -389,7 +381,6 @@ static int __test_obj_vector_set_init_data(Vector_Test *test)
         }]";
 
     Init_Test_Case(test);
-    vector->set(vector, "/Vector/capacity", &capacity);
     vector->set(vector, "/Vector/value_type", &value_type);
     vector->set(vector, "/Vector/init_data", init_data);
     vector->set(vector, "/Vector/class_name", "Simplest_Test_Obj");
