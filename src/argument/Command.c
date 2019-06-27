@@ -159,7 +159,7 @@ __add_argument(Command *command, char *value, char *usage)
 {
     Vector *args = command->args;
     Argument *arg;
-    int value_type = VALUE_TYPE_STRING;
+    int value_type = VALUE_TYPE_OBJ_POINTER;
     uint8_t trustee_flag = 1;
     int ret = 0;
 
