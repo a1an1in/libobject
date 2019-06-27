@@ -74,7 +74,7 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
     class_info_entry_t *entry;
     class_deamon_t *deamon;
     void *is_test_method = NULL;
-    int (*test_method)(Test *test);
+    void (*test_method)(Test *test);
     Vector *failed_cases, *success_cases;
     Test_Case_Result *case_result;
     int i, ret;
@@ -105,9 +105,9 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
 
         is_test_method = strstr(entry[i].value_name, "test_");
         if (is_test_method != NULL) {
-            test_method = (int (*)(Test *test))entry[i].value;
+            test_method = (void (*)(Test *test))entry[i].value;
             test->setup(test);
-            ret = test_method(test);
+            test_method(test);
             test->teardown(test);
 
             case_result = object_new(allocator, "Test_Case_Result", NULL);
@@ -115,8 +115,7 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
             case_result->set(case_result, "file", test->file);
             case_result->set(case_result, "line", &test->line);
 
-            if (ret == 0) { ret = test->ret; }
-            if (ret == 1) {
+            if (test->ret == 1) {
                 success_cases->add(success_cases, case_result);
                 dbg_str(DBG_SUC,"test %s.%s success", test_class_name, entry[i].value_name);
             } else {

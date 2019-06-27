@@ -8,10 +8,6 @@
 
 typedef struct _test_s Test;
 
-#define Init_Test_Case(test) \
-    ((Test *)test)->line = __LINE__;\
-    ((Test *)test)->file = __FILE__;
-
 #define ASSERT_EQUAL(test, peer1, peer2, len) \
 ({\
     int __ret;\

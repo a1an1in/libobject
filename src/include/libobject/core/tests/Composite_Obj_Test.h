@@ -19,8 +19,8 @@ struct composite_obj_test_s{
 	/*virtual methods reimplement*/
 	int (*setup)(Test *);
     void *(*teardown)(Test *);
-    int (*test_marshal_composite_obj)(Test *);
-    int (*test_unmarshal_composite_obj)(Test *);
+    void (*test_marshal_composite_obj)(Test *);
+    void (*test_unmarshal_composite_obj)(Test *);
 
     Composite_Obj *obj;
 };

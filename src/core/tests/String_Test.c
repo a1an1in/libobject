@@ -78,48 +78,32 @@ static int __teardown(String_Test *test)
     return 0;
 }
 
-static int __test_get_cstr(String_Test *test)
+static void __test_get_cstr(String_Test *test)
 {
-    String *str = test->str;
+    String *string = test->str;
     char *demo = "abcdefg";
-    int ret;
 
-    Init_Test_Case(test);
-    str->assign(str, demo);  
+    string->assign(string, demo);  
 
-    if (strcmp(str->get_cstr(str), demo) == 0) {
-        ret = 1;
-    } else {
-        ret = 0;
-    }
-
-    return ret;
+    ASSERT_EQUAL(test, string->get_cstr(string), demo, strlen(demo));
 }
 
-static int __test_append(String_Test *test)
+static void __test_append(String_Test *test)
 {
     String *parent = test->str;
     char *test1 = "abcdefg";
     char *test2 = "hello world";
     char test3[1024];
-    int ret;
 
-    Init_Test_Case(test);
     sprintf(test3, "%s%s", test1, test2);
 
     parent->assign(parent, test1);  
     parent->append(parent, test2);
 
-    if (strcmp(parent->get_cstr(parent), test3) == 0) {
-        ret = 1;
-    } else {
-        ret = 0;
-    }
-
-    return ret;
+    ASSERT_EQUAL(test, parent->get_cstr(parent), test3, strlen(test3));
 }
 
-static int __test_append_string(String_Test *test)
+static void __test_append_string(String_Test *test)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     String *substring;
@@ -127,9 +111,7 @@ static int __test_append_string(String_Test *test)
     char *test1 = "abcdefg";
     char *test2 = "hello world";
     char test3[1024];
-    int ret;
 
-    Init_Test_Case(test);
     sprintf(test3, "%s%s", test1, test2);
 
     parent->assign(parent, test1);  
@@ -138,109 +120,71 @@ static int __test_append_string(String_Test *test)
     substring->assign(substring, test2);
 
     parent->append_string(parent, substring);
-    if (strcmp(parent->get_cstr(parent), test3) == 0) {
-        ret = 1;
-    } else {
-        ret = 0;
-    }
+    ASSERT_EQUAL(test, parent->get_cstr(parent), test3, strlen(test3));
 
     object_destroy(substring);
-
-    return ret;
 }
 
-static int __test_len(String_Test *test)
+static void __test_len(String_Test *test)
 {
     String *parent = test->str;
     char *test1 = "abcdefg";
-    int ret;
 
-    Init_Test_Case(test);
     parent->assign(parent, test1);  
     
-    if (parent->get_len(parent) != strlen(test1)) {
-        ret = 0;
-    } else {
-        ret = 1;
-    }
-
-    return ret;
+    ASSERT_EQUAL(test, parent->get_cstr(parent), test1, strlen(test1));
 }
 
-static int __test_get_substring(String_Test *test)
+static void __test_get_substring(String_Test *test)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     String *string = test->str, *sub_str;
-    int ret;
+    char *test1 = "v//_sug1 =";
     char *t = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
 
-    Init_Test_Case(test);
     string->assign(string, t);
     sub_str = string->get_substring(string, 3, 10);
     
-    if (strcmp(sub_str->get_cstr(sub_str), "v//_sug1 =") == 0) {
-        ret = 1;
-    } else { 
-        ret = 0;
-    }
+    ASSERT_EQUAL(test, sub_str->get_cstr(sub_str), test1, strlen(test1));
 
     object_destroy(sub_str);
-
-    return ret;
 }
 
-static int __test_insert(String_Test *test)
+static void __test_insert(String_Test *test)
 {
     String *string = test->str;
-    int ret;
+    char *test1 = "@@@vvvvvvv@@@@";
 
-    Init_Test_Case(test);
     string->assign(string, "@@@@@@@");
 
     string->insert(string, 3, "vvvvvvv");
-    if (strcmp(string->get_cstr(string), "@@@vvvvvvv@@@@") == 0) {
-        ret = 1;
-    } else {
-        ret = 0;
-    }
-
-    return ret;
+    ASSERT_EQUAL(test, string->get_cstr(string), test1, strlen(test1));
 }
 
-static int __test_insert_string(String_Test *test)
+static void __test_insert_string(String_Test *test)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     String *string = test->str, *sub_str;
-    int ret;
+    char *test1 = "@@@vvvvvvv@@@@";
 
-    Init_Test_Case(test);
     string->assign(string, "@@@@@@@");
 
     sub_str = OBJECT_NEW(allocator, String, NULL);
     sub_str->assign(sub_str, "vvvvvvv");
 
     string->insert_string(string, 3, sub_str);
-    if (strcmp(string->get_cstr(string), "@@@vvvvvvv@@@@") == 0) {
-        ret = 1;
-    } else {
-        dbg_str(DBG_ERROR, "%s", string->get_cstr(string));
-        ret = 0;
-    }
+    ASSERT_EQUAL(test, string->get_cstr(string), test1, strlen(test1));
 
     object_destroy(sub_str);
-
-    return ret;
 }
 
-static int __test_split(String_Test *test)
+static void __test_split(String_Test *test)
 {
     //test find and split function
     String *str = test->str;
-    int ret = 0;
-    int i, cnt;
+    int i, cnt, expect_count = 19;
     char *p;
 
-    Init_Test_Case(test);
     str->assign(str, "https://www.baidu.com/s?ie = utf-8&f = 3&rsv_bp = 1&rsv_idx = 1&tn = baidu&wd = "
             "ffmpeg%20hls%20%20%E6%A8%A1%E5%9D%97&oq = ffmpeg%2520hls%2520%25E5%2588%2587%25E7%2589%2587&rsv_pq = f57123dc00006105&"
             "rsv_t = 4a67K//PcOq6Y0swQnyeFtlQezzWiuwU1bS8vKp48Nn9joWPQd1BHAqFkqu9Y&rqlang = cn&rsv_enter = 1&inputT = 4580&"
@@ -256,45 +200,33 @@ static int __test_split(String_Test *test)
         }
     }
 
-    if (cnt != 19) {
-        ret = 0;
-    } else {
-        ret = 1;
-    }
-
-    return ret;
+    ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
 }
 
-static int __test_find(String_Test *test)
+static void __test_find(String_Test *test)
 {
     String *string = test->str;
-    int ret = 0, expect_pos = 16, pos;
+    int expect_pos = 16, pos;
 
     string->assign(string, "rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25");
 
     pos = string->find(string, "&", 0);
-    ret = ASSERT_EQUAL(test, &pos, &expect_pos, sizeof(pos));
-
-    return ret;
-
+    ASSERT_EQUAL(test, &pos, &expect_pos, sizeof(pos));
 }
 
-static int __test_replace(String_Test *test)
+static void __test_replace(String_Test *test)
 {
     String *string = test->str;
     char *test1 = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
     char *test2 = "####rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
-    int ret;
 
     string->assign(string, test1);
     string->replace(string, "&", "####");
 
-    ret = ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
-
-    return ret;
+    ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
 }
 
-static int __test_replace_all(String_Test *test)
+static void __test_replace_all(String_Test *test)
 {
     String *string = test->str;
     char *test1 = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
@@ -305,11 +237,9 @@ static int __test_replace_all(String_Test *test)
     string->replace_all(string, "&", "####");
 
     ret = ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
-
-    return ret;
 }
 
-static int __test_empty(String_Test *test)
+static void __test_empty(String_Test *test)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     String *string = test->str;
@@ -321,11 +251,9 @@ static int __test_empty(String_Test *test)
     ret = string->is_empty(string);
 
     ret = ASSERT_EQUAL(test, &ret, &expect_ret, sizeof(ret));
-
-    return ret;
 }
 
-static int __test_ltrim(String_Test *test)
+static void __test_ltrim(String_Test *test)
 {
     String *string = test->str;
     char *t = "  hello";
@@ -335,11 +263,9 @@ static int __test_ltrim(String_Test *test)
     string->ltrim(string);
 
     ret = ASSERT_EQUAL(test, string->get_cstr(string), t + 2, strlen(t + 2));
-
-    return ret;
 }
 
-static int __test_rtrim(String_Test *test)
+static void __test_rtrim(String_Test *test)
 {
     String *string = test->str;
     char *t = "hello  ";
@@ -350,8 +276,6 @@ static int __test_rtrim(String_Test *test)
     string->rtrim(string);
 
     ret = ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
-
-    return ret;
 }
 
 static class_info_entry_t string_test_class_info[] = {

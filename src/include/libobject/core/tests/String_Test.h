@@ -19,20 +19,20 @@ struct string_test_s{
 	/*virtual methods reimplement*/
 	int (*setup)(Test *);
     void *(*teardown)(Test *);
-    int (*test_get_cstr)(Test *);
-    int (*test_append)(Test *);
-    int (*test_append_string)(Test *);
-    int (*test_len)(Test *);
-    int (*test_get_substring)(Test *);
-    int (*test_insert)(Test *);
-    int (*test_insert_string)(Test *);
-    int (*test_split)(Test *);
-    int (*test_find)(Test *);
-    int (*test_replace)(Test *);
-    int (*test_replace_all)(Test *);
-    int (*test_empty)(Test *);
-    int (*test_ltrim)(Test *);
-    int (*test_rtrim)(Test *);
+    void (*test_get_cstr)(Test *);
+    void (*test_append)(Test *);
+    void (*test_append_string)(Test *);
+    void (*test_len)(Test *);
+    void (*test_get_substring)(Test *);
+    void (*test_insert)(Test *);
+    void (*test_insert_string)(Test *);
+    void (*test_split)(Test *);
+    void (*test_find)(Test *);
+    void (*test_replace)(Test *);
+    void (*test_replace_all)(Test *);
+    void (*test_empty)(Test *);
+    void (*test_ltrim)(Test *);
+    void (*test_rtrim)(Test *);
 
     String *str;
 };

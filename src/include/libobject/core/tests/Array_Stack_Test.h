@@ -19,9 +19,9 @@ struct array_stack_test_s{
 	/*virtual methods reimplement*/
 	int (*setup)(Test *);
     void *(*teardown)(Test *);
-    int (*test_push)(Test *, void *element);
-    int (*test_pop)(Test *, void **element);
-    int (*test_count)(Test *);
+    void (*test_push)(Test *, void *element);
+    void (*test_pop)(Test *, void **element);
+    void (*test_count)(Test *);
 
     Array_Stack *stack;
 };

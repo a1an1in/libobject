@@ -65,12 +65,12 @@ static int __teardown(Composite_Obj_Test *test)
     return 0;
 }
 
-int __test_marshal_composite_obj(Composite_Obj_Test *test)
+static void __test_marshal_composite_obj(Composite_Obj_Test *test)
 {
     allocator_t *allocator = test->parent.obj.allocator;
     Composite_Obj *composite;
     Vector *vector;
-    int ret = 0, help = 1;
+    int help = 1;
     uint8_t trustee_flag = 1;
     int value_type = VALUE_TYPE_OBJ_POINTER;
     Obj *obj0 = NULL;
@@ -114,15 +114,13 @@ int __test_marshal_composite_obj(Composite_Obj_Test *test)
 
     object_destroy(string);
     object_destroy(composite);
-
-    return ret;
 }
 
-int __test_unmarshal_composite_obj(Composite_Obj_Test *test)
+static void __test_unmarshal_composite_obj(Composite_Obj_Test *test)
 {
     Composite_Obj *composite;
     allocator_t *allocator = test->parent.obj.allocator;
-    int ret = 0, help = 2;
+    int help = 2;
     String *string;
     char *init_data = "{\"Composite_Obj\": {\"name\": \"test unmarshal Composite_Obj\",\"help\": 1,\"vector\": [{\"name\":	\"simplest obj1\",\"help\":	1}, {\"name\":	\"simplest obj2\",\"help\":	2}]}}";
     char *expect    = "{\"name\":\"test unmarshal Composite_Obj\",\"help\":1,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]}";
@@ -139,8 +137,6 @@ int __test_unmarshal_composite_obj(Composite_Obj_Test *test)
 
     object_destroy(string);
     object_destroy(composite);
-
-    return ret;
 }
 
 static class_info_entry_t vector_test_class_info[] = {

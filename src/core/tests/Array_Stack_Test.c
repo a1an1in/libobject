@@ -70,91 +70,71 @@ static int __teardown(Array_Stack_Test *test)
     return 0;
 }
 
-static int __test_push(Array_Stack_Test *test)
+static void __test_push(Array_Stack_Test *test)
 {
     Stack *stack = (Stack *)test->stack;
     Test *t = (Test *)test;
-
-    dbg_str(DBG_DETAIL,"Array_Stack_Test test_push");
-
-    Init_Test_Case(test);
+    int count, expect_count = 4;
 
     stack->push(stack, (void *)4);
     stack->push(stack, (void *)5);
     stack->push(stack, (void *)6);
     stack->push(stack, (void *)7);
 
-    if (stack->count(stack) != 4) {
-        return -1;
-    }
-
-    return 1;
+    count = stack->count(stack);
+    ASSERT_EQUAL(test, &count, &expect_count, sizeof(expect_count));
 }
 
-static int __test_pop(Array_Stack_Test *test)
+static void __test_pop(Array_Stack_Test *test)
 {
     Stack *stack = (Stack *)test->stack;
     void *p;
+    int expect_value;
     Test *t = (Test *)test;
-
-    dbg_str(DBG_DETAIL,"Array_Stack_Test test_pop");
-
-    Init_Test_Case(test);
+    int count, expect_count = 4;
 
     stack->push(stack, (void *)4);
     stack->push(stack, (void *)5);
     stack->push(stack, (void *)6);
     stack->push(stack, (void *)7);
 
-    if (stack->count(stack) != 4) {
-        return -1;
-    }
+    count = stack->count(stack);
+    ASSERT_EQUAL(test, &count, &expect_count, sizeof(expect_count));
 
+    expect_value = 7;
     stack->pop(stack, (void **)&p);
-    if ((int)p != 7) {
-        return -1;
-    }
+    ASSERT_EQUAL(test, &p, &expect_value, sizeof(expect_value));
 
+    expect_value = 6;
     stack->pop(stack, (void **)&p);
-    if ((int)p != 6) {
-        return -1;
-    }
+    ASSERT_EQUAL(test, &p, &expect_value, sizeof(expect_value));
 
+    expect_value = 5;
     stack->pop(stack, (void **)&p);
-    if ((int)p != 5) {
-        return -1;
-    }
+    ASSERT_EQUAL(test, &p, &expect_value, sizeof(expect_value));
 
+    expect_value = 4;
     stack->pop(stack, (void **)&p);
-    if ((int)p != 4) {
-        return -1;
-    }
-
-    return 1;
+    ASSERT_EQUAL(test, &p, &expect_value, sizeof(expect_value));
 }
 
-static int __test_count(Array_Stack_Test *test) 
+static void __test_count(Array_Stack_Test *test) 
 {
     Stack *stack = (Stack *)test->stack;
     void *p;
     Test *t = (Test *)test;
-
-    dbg_str(DBG_DETAIL,"Array_Stack_Test test_count");
-
-    Init_Test_Case(test);
+    int count, expect_count = 1;
 
     stack->push(stack, (void *)4);
 
-    if (stack->count(stack) != 1) {
-        return -1;
-    }
+    count = stack->count(stack);
+    expect_count = 1;
+    ASSERT_EQUAL(test, &count, &expect_count, sizeof(expect_count));
 
     stack->pop(stack, (void **)&p);
-    if (stack->count(stack) != 0) {
-        return -1;
-    }
-
-    return 1;
+    count = stack->count(stack);
+    expect_count = 0;
+    ASSERT_EQUAL(test, &count, &expect_count, sizeof(expect_count));
 }
 
 static class_info_entry_t array_stack_test_class_info[] = {
