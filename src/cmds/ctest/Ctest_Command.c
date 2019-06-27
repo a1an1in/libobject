@@ -17,8 +17,19 @@ static int __action(Command *command)
     Test_Runner * runner;
     allocator_t *allocator = allocator_get_default_alloc();
     Vector *failed_cases, *success_cases;
+    int count;
+    Argument *arg;
 
     dbg_str(DBG_DETAIL,"test_runner in");
+
+    count = command->args->count(command->args);
+    if (count == 1) {
+        arg = command->get_argment(command, 0);
+        if (arg != NULL) {
+            dbg_str(DBG_SUC,"test_cases:%s", arg->value->get_cstr(arg->value));
+        }
+    }
+
     runner = object_new(allocator, "Test_Runner", NULL);
 
     runner->start(runner);
@@ -44,6 +55,8 @@ static int __construct(Command *command, char *init_str)
     command->add_option(command, "--run", "-r", "all", "run test cases", NULL);
     command->add_option(command, "--output-type", "-t", "json", "output file type", NULL);
     command->add_option(command, "--output-file", "-o", "test_report.json", "output file path", NULL);
+
+    command->add_argument(command, "", "test cases");
 
     command->set(command, "/Command/name", "ctest");
 

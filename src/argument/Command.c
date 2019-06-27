@@ -22,6 +22,10 @@ static int __deconstruct(Command *command)
         object_destroy(command->options);
     }
 
+    if (command->args != NULL) {
+        object_destroy(command->args);
+    }
+
     if (command->name != NULL) {
         object_destroy(command->name);
     }
@@ -150,6 +154,55 @@ static Option *__get_option(Command *command, char *option_name)
     return NULL;
 }
 
+static int 
+__add_argument(Command *command, char *value, char *usage)
+{
+    Vector *args = command->args;
+    Argument *arg;
+    int value_type = VALUE_TYPE_STRING;
+    uint8_t trustee_flag = 1;
+    int ret = 0;
+
+    if (args == NULL) {
+        args = object_new(command->parent.allocator, 
+                             "Vector", NULL);
+        if (args == NULL) {
+            ret = -1;
+            goto end;
+        }
+        args->set(args, "/Vector/value_type", &value_type);
+        args->set(args, "/Vector/trustee_flag", &trustee_flag);
+        command->args = args;
+    }
+
+    dbg_str(DBG_SUC, "add arg");
+
+    arg = object_new(command->parent.allocator, "Argument", NULL);
+
+    if (usage != NULL)
+        arg->set(arg, "usage", usage);
+    if (value != NULL)
+        arg->set(arg, "value", value);
+
+    ret = args->add(args, arg);
+
+end:
+    return ret;
+}
+
+static Argument *__get_argment(Command *command, int index)
+{
+    Vector *args = command->args;
+    int count;
+    Argument *arg;
+
+    if (args == NULL) return NULL;
+
+    args->peek_at(args, index, (void **)&arg);
+
+    return arg;
+}
+
 static int __set_args(Command *command, int argc, char **argv)
 {
     command->argc = argc;
@@ -163,8 +216,9 @@ static int __parse_args(Command *command)
     Command *c = NULL;
     Option *o;
     String *str = NULL;
-    int ret = 0, cnt;
+    int ret = 0, cnt, arg_cnt = 0;
     char *key = NULL, *value = NULL;
+    Argument *argument;
 
     dbg_str(DBG_SUC, "parse command %s", command->argv[0]);
     dbg_str(DBG_DETAIL, "argv0:%s argv1:%s, argv2:%s", 
@@ -206,8 +260,21 @@ static int __parse_args(Command *command)
                     c->parse_args(c);
                     command->selected_subcommand = c;
                     break;
+                } else {
+                    str = object_new(command->parent.allocator, "String", NULL);
+                    str->assign(str, command->argv[i]);
+                    if (command->args != NULL) {
+                        arg_cnt++;
+                        argument = command->get_argment(command, arg_cnt - 1);
+                        if (argument != NULL) {
+                            argument->set(argument, "value", command->argv[i]);
+                        } else {
+                            dbg_str(DBG_WARNNING, "not recognize arg %s",command->argv[i]);
+                        }
+                    } else {
+                        dbg_str(DBG_WARNNING, "not recognize arg %s",command->argv[i]);
+                    }
                 }
-                dbg_str(DBG_SUC, "not recognize arg %s",command->argv[i]);
             }
         }
     } else {
@@ -238,12 +305,14 @@ static class_info_entry_t command_class_info[] = {
     Init_Vfunc_Entry(7 , Command, get_subcommand, __get_subcommand),
     Init_Vfunc_Entry(8 , Command, add_option, __add_option),
     Init_Vfunc_Entry(9 , Command, get_option, __get_option),
-    Init_Vfunc_Entry(10, Command, action, __action),
-    Init_Vfunc_Entry(11, Command, set_args, __set_args),
-    Init_Vfunc_Entry(12, Command, parse_args, __parse_args),
-    Init_Vec___Entry(13, Command, subcommands, NULL, "Test_Command"),
-    Init_Vec___Entry(14, Command, options, NULL, "Option"),
-    Init_Str___Entry(15, Command, name, NULL),
-    Init_End___Entry(16, Command),
+    Init_Vfunc_Entry(10, Command, add_argument, __add_argument),
+    Init_Vfunc_Entry(11, Command, get_argment, __get_argment),
+    Init_Vfunc_Entry(12, Command, action, __action),
+    Init_Vfunc_Entry(13, Command, set_args, __set_args),
+    Init_Vfunc_Entry(14, Command, parse_args, __parse_args),
+    Init_Vec___Entry(15, Command, subcommands, NULL, "Test_Command"),
+    Init_Vec___Entry(16, Command, options, NULL, "Option"),
+    Init_Str___Entry(17, Command, name, NULL),
+    Init_End___Entry(18, Command),
 };
 REGISTER_CLASS("Command", command_class_info);

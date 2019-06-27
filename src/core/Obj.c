@@ -434,16 +434,3 @@ static class_info_entry_t obj_class_info[] = {
     [6] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Obj", obj_class_info);
-
-void test_obj()
-{
-    Obj *obj;
-    char buf[2048];
-    allocator_t *allocator = allocator_get_default_alloc();
-
-    obj = OBJECT_NEW(allocator, Obj, "");
-
-    object_dump(obj, "Obj", buf, 2048);
-}
-
-
