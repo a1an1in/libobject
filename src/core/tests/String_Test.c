@@ -268,15 +268,12 @@ static int __test_split(String_Test *test)
 static int __test_find(String_Test *test)
 {
     String *string = test->str;
-    int ret = 0;
+    int ret = 0, expect_pos = 16, pos;
 
-    Init_Test_Case(test);
     string->assign(string, "rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25");
 
-    int pos = string->find(string, "&", 0);
-
-    ret = assert_int_equal(pos, 16);
-    dbg_str(DBG_DETAIL, "substring position: %d ", pos);
+    pos = string->find(string, "&", 0);
+    ret = ASSERT_EQUAL(test, &pos, &expect_pos, sizeof(pos));
 
     return ret;
 
@@ -289,15 +286,10 @@ static int __test_replace(String_Test *test)
     char *test2 = "####rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
     int ret;
 
-    Init_Test_Case(test);
     string->assign(string, test1);
     string->replace(string, "&", "####");
 
-    if (strcmp(string->get_cstr(string), test2) == 0){
-        ret = 1;
-    } else {
-        ret = 0;
-    }
+    ret = ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
 
     return ret;
 }
@@ -309,15 +301,10 @@ static int __test_replace_all(String_Test *test)
     char *test2 = "####rsv//_sug1 = 107####rsv_sug7 = 100####rsv_sug2 = 0####prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
     int ret;
 
-    Init_Test_Case(test);
     string->assign(string, test1);
     string->replace_all(string, "&", "####");
 
-    if (strcmp(string->get_cstr(string), test2) == 0){
-        ret = 1;
-    } else {
-        ret = 0;
-    }
+    ret = ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
 
     return ret;
 }
@@ -327,12 +314,13 @@ static int __test_empty(String_Test *test)
     allocator_t *allocator = allocator_get_default_alloc();
     String *string = test->str;
     char *test1 = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
-    int ret;
+    int ret, expect_ret = 1;
 
-    Init_Test_Case(test);
     string->assign(string, test1);
     string->clear(string);
     ret = string->is_empty(string);
+
+    ret = ASSERT_EQUAL(test, &ret, &expect_ret, sizeof(ret));
 
     return ret;
 }
@@ -341,18 +329,12 @@ static int __test_ltrim(String_Test *test)
 {
     String *string = test->str;
     char *t = "  hello";
-    int ret;
+    int ret, expect_ret = 0;
 
-    Init_Test_Case(test);
     string->assign(string, t);
-
     string->ltrim(string);
 
-    if((strcmp(string->get_cstr(string), t + 2) == 0)) {
-        ret = 1;
-    } else { 
-        ret = 0;
-    }
+    ret = ASSERT_EQUAL(test, string->get_cstr(string), t + 2, strlen(t + 2));
 
     return ret;
 }
@@ -364,16 +346,10 @@ static int __test_rtrim(String_Test *test)
     char *expect = "hello";
     int ret;
 
-    Init_Test_Case(test);
     string->assign(string, t);
-
     string->rtrim(string);
 
-    if((strcmp(string->get_cstr(string), expect) == 0)) {
-        ret = 1;
-    } else { 
-        ret = 0;
-    }
+    ret = ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
 
     return ret;
 }

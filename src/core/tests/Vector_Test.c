@@ -84,9 +84,8 @@ static int __test_int_vector_add(Vector_Test *test)
     Vector *vector = test->vector;
     int capacity = 19, value_type = VALUE_TYPE_INT8_T;
     int *t = 0;
-    int ret;
+    int expect_ret = 1;
 
-    Init_Test_Case(test);
     vector->set(vector, "/Vector/capacity", &capacity);
     vector->set(vector, "/Vector/value_type", &value_type);
     vector->reconstruct(vector);
@@ -94,14 +93,9 @@ static int __test_int_vector_add(Vector_Test *test)
     vector->add_at(vector, 0, 1);
     vector->remove(vector, 0, (void **)&t);
 
-    if ((int)t != 1) {
-        dbg_str(DBG_ERROR,"r=%d, expect=%d", (int)t, 1);
-        ret = 0;
-    } else {
-        ret = 1;
-    }
+    ASSERT_EQUAL(test, &t, &expect_ret, sizeof(expect_ret));
 
-    return ret;
+    return 0;
 }
 
 static int __test_int_vector_remove(Vector_Test *test)
@@ -109,9 +103,8 @@ static int __test_int_vector_remove(Vector_Test *test)
     Vector *vector = test->vector;
     int value_type = VALUE_TYPE_INT8_T;
     int *t = 0;
-    int ret;
+    int ret = 3;
 
-    Init_Test_Case(test);
     vector->set(vector, "/Vector/value_type", &value_type);
 
     vector->add_at(vector, 0, 0);
@@ -122,12 +115,12 @@ static int __test_int_vector_remove(Vector_Test *test)
     vector->remove(vector, 2, (void **)&t);
     vector->peek_at(vector, 2, (void **)&t);
 
-    if ((int)t != 3) {
-        dbg_str(DBG_ERROR,"r=%d, expect=%d", (int)t, 3);
-        ret = 0;
+    ret = ASSERT_EQUAL(test, &t, &ret, sizeof(ret));
+    if (ret != 1) {
+        dbg_str(DBG_ERROR,"r=%d, expect=%d", (int)t, ret);
     } else {
-        ret = 1;
     }
+
     return ret;
 }
 
@@ -136,9 +129,8 @@ static int __test_int_vector_count(Vector_Test *test)
     Vector *vector = test->vector;
     int value_type = VALUE_TYPE_INT8_T;
     int *t = 0;
-    int ret, count;
+    int ret, count, expect_count = 5;
 
-    Init_Test_Case(test);
     vector->set(vector, "/Vector/value_type", &value_type);
 
     vector->add_at(vector, 0, 0);
@@ -148,11 +140,10 @@ static int __test_int_vector_count(Vector_Test *test)
     vector->add_at(vector, 4, 4);
     count = vector->count(vector);
 
-    if (count != 5) {
-        dbg_str(DBG_ERROR,"r=%d, expect=%d", count, 5);
-        ret = 0;
+    ret = ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
+    if (ret != 1) {
+        dbg_str(DBG_ERROR,"r=%d, expect=%d", (int)t, ret);
     } else {
-        ret = 1;
     }
 
     return ret;
@@ -163,7 +154,7 @@ static int __test_int_vector_clear(Vector_Test *test)
     Vector *vector = test->vector;
     int value_type = VALUE_TYPE_INT8_T;
     int *t = 0;
-    int ret, count;
+    int ret, count, expect_count = 0;
 
     Init_Test_Case(test);
     vector->set(vector, "/Vector/value_type", &value_type);
@@ -176,11 +167,10 @@ static int __test_int_vector_clear(Vector_Test *test)
     vector->clear(vector);
     count = vector->count(vector);
 
-    if (count != 0) {
-        dbg_str(DBG_ERROR,"r=%d, expect=%d", count, 0);
-        ret = 0;
+    ret = ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
+    if (ret != 1) {
+        dbg_str(DBG_ERROR,"r=%d, expect_count=%d", ret, expect_count);
     } else {
-        ret = 1;
     }
 
     return ret;
@@ -258,7 +248,7 @@ static int __test_string_vector_to_json(Vector_Test *test)
     dbg_str(DBG_DETAIL, "result: %s", result);
 
     if (strcmp(result, vector->to_json((Obj*)vector)) != 0) {
-        ret = 1;
+        ret = 0;
     } else {
         ret = 1;
     }
@@ -368,15 +358,8 @@ static int __test_obj_vector_set_init_data(Vector_Test *test)
     allocator_t *allocator = allocator_get_default_alloc();
     int capacity = 19, value_type = VALUE_TYPE_OBJ_POINTER;
     uint8_t trustee_flag = 1;
-    char *init_data = "[\
-        {\
-            \"name\": \"simplest obj1\",\
-            \"help\": 1\
-        }, {\
-            \"name\": \"simplest obj2\",\
-            \"help\": 2\
-        }]";
-    char *expect = "[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]";
+    char *init_data = "[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]";
+    String *string;
 
     Init_Test_Case(test);
     vector->set(vector, "/Vector/value_type", &value_type);
@@ -385,15 +368,14 @@ static int __test_obj_vector_set_init_data(Vector_Test *test)
     vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
     vector->reconstruct(vector);
 
-    String *string;
     string = object_new(allocator, "String", NULL);
     string->assign(string, vector->to_json((Obj *)vector));
     string->replace_all(string, "\t", "");
     string->replace_all(string, "\r", "");
     string->replace_all(string, "\n", "");
-    if (strcmp(expect, string->get_cstr(string)) != 0) {
+    if (strcmp(init_data, string->get_cstr(string)) != 0) {
         dbg_str(DBG_ERROR, "Vector json: %s", string->get_cstr(string));
-        dbg_str(DBG_ERROR, "expect: %s", expect);
+        dbg_str(DBG_ERROR, "expect: %s", init_data);
         ret = 0;
     } else {
         ret = 1;

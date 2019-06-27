@@ -90,7 +90,6 @@ int __test_marshal_composite_obj(Composite_Obj_Test *test)
     obj1->set(obj1, "/Simplest_Obj/name", "simplest obj2");
 
 
-    Init_Test_Case(test);
     composite = object_new(allocator, "Composite_Obj", NULL);
 
     help = 1;
@@ -111,13 +110,7 @@ int __test_marshal_composite_obj(Composite_Obj_Test *test)
     string->replace_all(string, "\r", "");
     string->replace_all(string, "\n", "");
 
-    if (strcmp(expect, string->get_cstr(string)) == 0) {
-        ret = 1;
-    } else {
-        dbg_str(DBG_ERROR, "dump Composite_Obj: %s", string->get_cstr(string));
-        dbg_str(DBG_ERROR, "expect json: %s", expect);
-        ret = 0;
-    }
+    ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
 
     object_destroy(string);
     object_destroy(composite);
@@ -130,38 +123,19 @@ int __test_unmarshal_composite_obj(Composite_Obj_Test *test)
     Composite_Obj *composite;
     allocator_t *allocator = test->parent.obj.allocator;
     int ret = 0, help = 2;
-    char *init_data = "{\
-            \"Composite_Obj\": {\
-                \"name\": \"test unmarshal Composite_Obj\",\
-                \"help\": 1,\
-                \"vector\": [{\
-                    \"name\":	\"simplest obj1\",\
-                    \"help\":	1\
-                }, {\
-                    \"name\":	\"simplest obj2\",\
-                    \"help\":	2\
-                }]\
-            }\
-        }";
-    char *expect = "{\"name\":\"test unmarshal Composite_Obj\",\"help\":1,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]}";
+    String *string;
+    char *init_data = "{\"Composite_Obj\": {\"name\": \"test unmarshal Composite_Obj\",\"help\": 1,\"vector\": [{\"name\":	\"simplest obj1\",\"help\":	1}, {\"name\":	\"simplest obj2\",\"help\":	2}]}}";
+    char *expect    = "{\"name\":\"test unmarshal Composite_Obj\",\"help\":1,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]}";
 
-    Init_Test_Case(test);
     composite = object_new(allocator, "Composite_Obj", init_data);
 
-    String *string;
     string = object_new(allocator, "String", NULL);
     string->assign(string, composite->to_json((Obj *)composite));
     string->replace_all(string, "\t", "");
     string->replace_all(string, "\r", "");
     string->replace_all(string, "\n", "");
 
-    if (strcmp(expect, string->get_cstr(string)) == 0) {
-        ret = 1;
-    } else {
-        dbg_str(DBG_ERROR, "dump Composite_Obj: %s", string->get_cstr(string));
-        dbg_str(DBG_ERROR, "expect json: %s", expect);
-        ret = 0;
-    }
+    ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
 
     object_destroy(string);
     object_destroy(composite);

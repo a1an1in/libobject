@@ -12,6 +12,16 @@ typedef struct _test_s Test;
     ((Test *)test)->line = __LINE__;\
     ((Test *)test)->file = __FILE__;
 
+#define ASSERT_EQUAL(test, peer1, peer2, len) \
+({\
+    int __ret;\
+    ((Test *)test)->line = __LINE__;\
+    ((Test *)test)->file = __FILE__;\
+    __ret = memcmp(peer1, peer2, len) == 0;\
+    ((Test *)test)->ret = __ret;\
+    __ret;\
+})
+
 struct _test_s{
 	Obj obj;
 
@@ -27,6 +37,7 @@ struct _test_s{
     /*attribs*/
     char *file;
     int line;
+    int ret;
 };
 
 #endif
