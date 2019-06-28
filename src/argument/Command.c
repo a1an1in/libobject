@@ -261,8 +261,6 @@ static int __parse_args(Command *command)
                     command->selected_subcommand = c;
                     break;
                 } else {
-                    str = object_new(command->parent.allocator, "String", NULL);
-                    str->assign(str, command->argv[i]);
                     if (command->args != NULL) {
                         arg_cnt++;
                         argument = command->get_argment(command, arg_cnt - 1);
