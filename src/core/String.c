@@ -162,7 +162,7 @@ static String *__assign(String *string, char *s)
 }
 
 static String *
-__assign_fixed_len(String *string, char *s, int len)
+__assign_n(String *string, char *s, int len)
 {
     int ret;
 
@@ -225,7 +225,7 @@ static void __append(String *string, char *sub)
 
 }
 
-static void __append_fixed_len(String *string, char *sub, int len) 
+static void __append_n(String *string, char *sub, int len) 
 {   
     int ret;
     if (sub == NULL) {
@@ -553,14 +553,14 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(9 , String, pre_alloc, __pre_alloc), 
     Init_Vfunc_Entry(10, String, modulate_capacity, __modulate_capacity), 
     Init_Vfunc_Entry(11, String, assign, __assign), 
-    Init_Vfunc_Entry(12, String, assign_fixed_len, __assign_fixed_len), 
+    Init_Vfunc_Entry(12, String, assign_n, __assign_n), 
     Init_Vfunc_Entry(13, String, equal, __equal), 
     Init_Vfunc_Entry(14, String, replace_char, __replace_char), 
     Init_Vfunc_Entry(15, String, replace, __replace), 
     Init_Vfunc_Entry(16, String, replace_n, __replace_n), 
     Init_Vfunc_Entry(17, String, append_char, __append_char), 
     Init_Vfunc_Entry(18, String, append, __append), 
-    Init_Vfunc_Entry(19, String, append_fixed_len, __append_fixed_len), 
+    Init_Vfunc_Entry(19, String, append_n, __append_n), 
     Init_Vfunc_Entry(20, String, append_string, __append_string), 
     Init_Vfunc_Entry(21, String, insert, __insert), 
     Init_Vfunc_Entry(22, String, insert_string, __insert_string), 

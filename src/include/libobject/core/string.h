@@ -23,11 +23,11 @@ struct string_s{
     int (*modulate_capacity)(String *string, int write_len);
     String *(*pre_alloc)(String *string,uint32_t size);
     String *(*assign)(String *string,char *s);
-    String *(*assign_fixed_len)(String *string,char *s, int len);
+    String *(*assign_n)(String *string,char *s, int len);
     String *(*assign_char)(String *,char c,size_t count );
     int (*equal)(String *string,char *s);
     void (*append)(String *,char *);
-    void (*append_fixed_len)(String *string, char *sub, int len);
+    void (*append_n)(String *string, char *sub, int len);
     String *(*append_char)(String *string,char c);
     void (*append_string)(String *,String *);
 	String *(*replace_char)(String *string,int index, char c);
