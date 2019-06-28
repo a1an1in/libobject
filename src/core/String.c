@@ -288,7 +288,7 @@ static String * __replace_char(String *string, int index, char c)
     return string;
 }
 
-static int __replace(String *self, char *old, char *newstr)
+static int __replace_(String *self, char *old, char *newstr)
 {
     int start_pos = 0;
     int end_pos   = 0;
@@ -328,6 +328,11 @@ end:
     return ret;
 }
 
+static int __replace(String *self, char *old, char *newstr)
+{
+    return self->replace_n(self, old, newstr, -1);
+}
+
 static int 
 __replace_n(String *self, char *oldstr, char *newstr, int max)
 {
@@ -337,7 +342,7 @@ __replace_n(String *self, char *oldstr, char *newstr, int max)
     if ( oldstr == NULL || newstr == NULL ) { return -1; }
 
     while (1) {
-        ret = pre->replace(pre, oldstr, newstr);
+        ret = __replace_(pre, oldstr, newstr);
         if (ret <= 0) {
             break;
         }
@@ -352,7 +357,7 @@ __replace_n(String *self, char *oldstr, char *newstr, int max)
     return count;
 }
 
-static void __toupper_(String *string)
+static void __to_upper(String *string)
 {
     int size = string->value_len;
     int i;
@@ -365,7 +370,7 @@ static void __toupper_(String *string)
     }       
 }
 
-static void __tolower_(String *string)
+static void __to_lower(String *string)
 {
     int size = string->value_len;
     int i;
@@ -564,8 +569,8 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(20, String, append_string, __append_string), 
     Init_Vfunc_Entry(21, String, insert, __insert), 
     Init_Vfunc_Entry(22, String, insert_string, __insert_string), 
-    Init_Vfunc_Entry(23, String, toupper, __toupper_), 
-    Init_Vfunc_Entry(24, String, tolower, __tolower_), 
+    Init_Vfunc_Entry(23, String, toupper, __to_upper), 
+    Init_Vfunc_Entry(24, String, tolower, __to_lower), 
     Init_Vfunc_Entry(25, String, ltrim, __ltrim), 
     Init_Vfunc_Entry(26, String, rtrim, __rtrim), 
     Init_Vfunc_Entry(27, String, trim, __trim), 

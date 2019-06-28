@@ -218,7 +218,7 @@ static void __test_replace(String_Test *test)
 {
     String *string = test->str;
     char *test1 = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
-    char *test2 = "####rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+    char *test2 = "####rsv//_sug1 = 107####rsv_sug7 = 100####rsv_sug2 = 0####prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
 
     string->assign(string, test1);
     string->replace(string, "&", "####");
@@ -226,15 +226,18 @@ static void __test_replace(String_Test *test)
     ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
 }
 
-static void __test_replace_all(String_Test *test)
+static void __test_replace_n(String_Test *test)
 {
     String *string = test->str;
     char *test1 = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
-    char *test2 = "####rsv//_sug1 = 107####rsv_sug7 = 100####rsv_sug2 = 0####prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+    /*
+     *char *test2 = "####rsv//_sug1 = 107####rsv_sug7 = 100####rsv_sug2 = 0####prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+     */
+    char *test2 = "####rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
     int ret;
 
     string->assign(string, test1);
-    string->replace_n(string, "&", "####", -1);
+    string->replace_n(string, "&", "####", 1);
 
     ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
 }
@@ -296,7 +299,7 @@ static class_info_entry_t string_test_class_info[] = {
     Init_Vfunc_Entry(14, String_Test, test_split, __test_split),
     Init_Vfunc_Entry(15, String_Test, test_find, __test_find),
     Init_Vfunc_Entry(16, String_Test, test_replace, __test_replace),
-    Init_Vfunc_Entry(17, String_Test, test_replace_all, __test_replace_all),
+    Init_Vfunc_Entry(17, String_Test, test_replace_n, __test_replace_n),
     Init_Vfunc_Entry(18, String_Test, test_empty, __test_empty),
     Init_Vfunc_Entry(19, String_Test, test_ltrim, __test_ltrim),
     Init_Vfunc_Entry(20, String_Test, test_rtrim, __test_rtrim),

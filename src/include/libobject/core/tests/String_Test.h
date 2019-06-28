@@ -29,7 +29,7 @@ struct string_test_s{
     void (*test_split)(Test *);
     void (*test_find)(Test *);
     void (*test_replace)(Test *);
-    void (*test_replace_all)(Test *);
+    void (*test_replace_n)(Test *);
     void (*test_empty)(Test *);
     void (*test_ltrim)(Test *);
     void (*test_rtrim)(Test *);
