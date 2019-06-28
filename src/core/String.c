@@ -329,7 +329,7 @@ end:
 }
 
 static int 
-__replace_limit(String *self, char *oldstr, char *newstr, int max)
+__replace_n(String *self, char *oldstr, char *newstr, int max)
 {
     String *pre = self;
     int ret = 0, count = 0;
@@ -456,6 +456,10 @@ static int __find(String *string, char *key, int pos)
     return -1;
 }
 
+static int __find_n(String *string, char *key, int pos, int count)
+{
+}
+
 static int __split(String *string, char *delims)
 {
     int cnt = 0;
@@ -487,7 +491,7 @@ static int __split(String *string, char *delims)
     return cnt;
 }
 
-static int __split_limit(String *string, char *delims, int num)
+static int __split_n(String *string, char *delims, int num)
 {
     int cnt = 1;
     char *ptr = NULL;
@@ -514,6 +518,8 @@ static int __split_limit(String *string, char *delims, int num)
             v->add_back(v, ptr);
             dbg_str(DBG_SUC, "vector count=%d", v->count(v));
             dbg_str(DBG_SUC, "cur:%s, next :%s", p, ptr);
+        } else {
+            break;
         }
     }
 
@@ -551,7 +557,7 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(13, String, equal, __equal), 
     Init_Vfunc_Entry(14, String, replace_char, __replace_char), 
     Init_Vfunc_Entry(15, String, replace, __replace), 
-    Init_Vfunc_Entry(16, String, replace_limit, __replace_limit), 
+    Init_Vfunc_Entry(16, String, replace_n, __replace_n), 
     Init_Vfunc_Entry(17, String, append_char, __append_char), 
     Init_Vfunc_Entry(18, String, append, __append), 
     Init_Vfunc_Entry(19, String, append_fixed_len, __append_fixed_len), 
@@ -567,7 +573,7 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(29, String, find, __find), 
     Init_Vfunc_Entry(30, String, is_empty, __is_empty), 
     Init_Vfunc_Entry(31, String, split, __split), 
-    Init_Vfunc_Entry(32, String, split_limit, __split_limit), 
+    Init_Vfunc_Entry(32, String, split_n, __split_n), 
     Init_Vfunc_Entry(33, String, get_splited_cstr, __get_splited_cstr), 
     Init_Point_Entry(34, String, name, NULL), 
     Init_Point_Entry(35, String, value, NULL), 

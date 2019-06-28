@@ -234,7 +234,7 @@ static void __test_replace_all(String_Test *test)
     int ret;
 
     string->assign(string, test1);
-    string->replace_limit(string, "&", "####", -1);
+    string->replace_n(string, "&", "####", -1);
 
     ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
 }

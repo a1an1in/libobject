@@ -106,9 +106,9 @@ static void __test_marshal_composite_obj(Composite_Obj_Test *test)
 
     string = object_new(allocator, "String", NULL);
     string->assign(string, composite->to_json((Obj *)composite));
-    string->replace_limit(string, "\t", "", -1);
-    string->replace_limit(string, "\r", "", -1);
-    string->replace_limit(string, "\n", "", -1);
+    string->replace_n(string, "\t", "", -1);
+    string->replace_n(string, "\r", "", -1);
+    string->replace_n(string, "\n", "", -1);
 
     ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
 
@@ -129,9 +129,9 @@ static void __test_unmarshal_composite_obj(Composite_Obj_Test *test)
 
     string = object_new(allocator, "String", NULL);
     string->assign(string, composite->to_json((Obj *)composite));
-    string->replace_limit(string, "\t", "", -1);
-    string->replace_limit(string, "\r", "", -1);
-    string->replace_limit(string, "\n", "", -1);
+    string->replace_n(string, "\t", "", -1);
+    string->replace_n(string, "\r", "", -1);
+    string->replace_n(string, "\n", "", -1);
 
     ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
 

@@ -44,11 +44,11 @@ struct string_s{
     void (*clear)(String *);
     int (*is_empty)(String *);
     int (*replace)(String *,char *oldstr,char *newstr);
-    int (*replace_limit)(String *,char *oldstr,char * newstr, int max);
+    int (*replace_n)(String *,char *oldstr,char * newstr, int max);
     String *(*insert)(String * dest,size_t index,char * src);
     String *(*insert_string)(String * dest,size_t index,String * src);
     int (*split)(String *, char *);
-    int (*split_limit)(String *string, char *delims, int num);
+    int (*split_n)(String *string, char *delims, int num);
     char * (*get_splited_cstr)(String *, int);
     
 #define MAX_NAME_LEN 50
