@@ -234,9 +234,9 @@ static void __test_replace_all(String_Test *test)
     int ret;
 
     string->assign(string, test1);
-    string->replace_all(string, "&", "####");
+    string->replace_limit(string, "&", "####", -1);
 
-    ret = ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
+    ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
 }
 
 static void __test_empty(String_Test *test)
@@ -298,9 +298,8 @@ static class_info_entry_t string_test_class_info[] = {
     Init_Vfunc_Entry(16, String_Test, test_replace, __test_replace),
     Init_Vfunc_Entry(17, String_Test, test_replace_all, __test_replace_all),
     Init_Vfunc_Entry(18, String_Test, test_empty, __test_empty),
-    Init_Vfunc_Entry(19, String_Test, test_replace_all, __test_replace_all),
-    Init_Vfunc_Entry(20, String_Test, test_ltrim, __test_ltrim),
-    Init_Vfunc_Entry(21, String_Test, test_rtrim, __test_rtrim),
-    Init_End___Entry(22, String_Test),
+    Init_Vfunc_Entry(19, String_Test, test_ltrim, __test_ltrim),
+    Init_Vfunc_Entry(20, String_Test, test_rtrim, __test_rtrim),
+    Init_End___Entry(21, String_Test),
 };
 REGISTER_CLASS("String_Test", string_test_class_info);

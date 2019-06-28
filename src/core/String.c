@@ -206,8 +206,8 @@ static String *__append_char(String *string, char c)
 
 static void __append(String *string, char *sub) 
 {   
-    int len;
-    int ret;
+    int len, ret;
+
     if (sub == NULL) {
         dbg_str(DBG_WARNNING, "appending-string is null unvalid sub stringing");
         return ;
@@ -249,8 +249,7 @@ static void __append_string(String *string, String *sub)
     string->append(string, value);
 }
 
-static String * 
-__insert(String *self, int offset, char *cstr)
+static String * __insert(String *self, int offset, char *cstr)
 {
     int dest_len = self->get_len(self);
     int len = strlen(cstr);
@@ -277,43 +276,42 @@ end:
     return self;
 }
 
-static String *
-__insert_string(String *self, int offset, String *src)
+static String * __insert_string(String *self, int offset, String *src)
 {
     return self->insert(self, offset, src->get_cstr(src));
 }
 
-static String *
-__replace_char(String *string, int index, char c)
+static String * __replace_char(String *string, int index, char c)
 {
     string->value[index] = c;
 
     return string;
 }
 
-static String * 
-__replace(String *self, char *old, char *newstr)
+static int __replace(String *self, char *old, char *newstr)
 {
     int start_pos = 0;
     int end_pos   = 0;
-    int ret;
+    int ret = 0;
     int old_len = strlen(old);
     int new_len = strlen(newstr);
     int str_len = self->get_len(self);
 
     if (old == NULL || newstr == NULL) {
-        return self;
+        return -1;
     }
 
     start_pos = self->find(self, old, start_pos);
 
     if (start_pos < 0) {
+        ret = -1;
         goto end;
     }
 
     if (old_len <= new_len) {
         ret = __modulate_capacity(self, new_len - old_len);
         if (ret < 0 ) {
+        ret = -1;
             goto end;
         }
     }
@@ -324,41 +322,34 @@ __replace(String *self, char *old, char *newstr)
     memmove(self->value + start_pos, newstr, new_len); 
     self->value_len += (new_len - old_len);
     self->value[self->value_len] = '\0';
+    ret = 1;
 
 end:
-    return self;
+    return ret;
 }
 
-static String * 
-__replace_string(String *self, String *oldstr, String *newstr)
-{
-    return self->replace(self,
-                         oldstr->get_cstr(oldstr),
-                         newstr->get_cstr(newstr));
-}
-
-static String * 
-__replace_all(String *self, char *oldstr, char *newstr)
+static int 
+__replace_limit(String *self, char *oldstr, char *newstr, int max)
 {
     String *pre = self;
-    String *cur = NULL;
-    if ( oldstr == NULL || newstr == NULL ) {
-        return self;
-    }
-    while (cur == NULL || 
-           strcmp(cur->get_cstr(cur), pre->get_cstr(pre)) != 0 )
-    {
-        if (cur != NULL ) { 
-            object_destroy(cur);
-            cur = NULL;
-        }
-        cur = OBJECT_NEW(self->obj.allocator, String, NULL);
-        cur->assign(cur, pre->get_cstr(pre));
-        pre = pre->replace(pre, oldstr, newstr);
-    }
-    object_destroy(cur);
+    int ret = 0, count = 0;
 
-    return self;
+    if ( oldstr == NULL || newstr == NULL ) { return -1; }
+
+    while (1) {
+        ret = pre->replace(pre, oldstr, newstr);
+        if (ret <= 0) {
+            break;
+        }
+
+        count++;
+
+        if (max > 0 && count == max) {
+            break;
+        }   
+    }
+
+    return count;
 }
 
 static void __toupper_(String *string)
@@ -496,7 +487,7 @@ static int __split(String *string, char *delims)
     return cnt;
 }
 
-static int __split_num_portion(String *string, char *delims, int num)
+static int __split_limit(String *string, char *delims, int num)
 {
     int cnt = 1;
     char *ptr = NULL;
@@ -560,7 +551,7 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(13, String, equal, __equal), 
     Init_Vfunc_Entry(14, String, replace_char, __replace_char), 
     Init_Vfunc_Entry(15, String, replace, __replace), 
-    Init_Vfunc_Entry(16, String, replace_all, __replace_all), 
+    Init_Vfunc_Entry(16, String, replace_limit, __replace_limit), 
     Init_Vfunc_Entry(17, String, append_char, __append_char), 
     Init_Vfunc_Entry(18, String, append, __append), 
     Init_Vfunc_Entry(19, String, append_fixed_len, __append_fixed_len), 
@@ -576,7 +567,7 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(29, String, find, __find), 
     Init_Vfunc_Entry(30, String, is_empty, __is_empty), 
     Init_Vfunc_Entry(31, String, split, __split), 
-    Init_Vfunc_Entry(32, String, split_num_portion, __split_num_portion), 
+    Init_Vfunc_Entry(32, String, split_limit, __split_limit), 
     Init_Vfunc_Entry(33, String, get_splited_cstr, __get_splited_cstr), 
     Init_Point_Entry(34, String, name, NULL), 
     Init_Point_Entry(35, String, value, NULL), 

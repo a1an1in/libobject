@@ -43,12 +43,12 @@ struct string_s{
     size_t (*get_len)(String *);
     void (*clear)(String *);
     int (*is_empty)(String *);
-    String *(*replace)(String *,char *oldstr,char *newstr);
-    String *(*replace_all)(String *,char *oldstr,char * newstr);
+    int (*replace)(String *,char *oldstr,char *newstr);
+    int (*replace_limit)(String *,char *oldstr,char * newstr, int max);
     String *(*insert)(String * dest,size_t index,char * src);
     String *(*insert_string)(String * dest,size_t index,String * src);
     int (*split)(String *, char *);
-    int (*split_num_portion)(String *string, char *delims, int num);
+    int (*split_limit)(String *string, char *delims, int num);
     char * (*get_splited_cstr)(String *, int);
     
 #define MAX_NAME_LEN 50

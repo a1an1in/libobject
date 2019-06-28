@@ -261,9 +261,9 @@ static void __test_obj_vector_to_json(Vector_Test *test)
 
     string = object_new(allocator, "String", NULL);
     string->assign(string, vector->to_json((Obj *)vector));
-    string->replace_all(string, "\t", "");
-    string->replace_all(string, "\r", "");
-    string->replace_all(string, "\n", "");
+    string->replace_limit(string, "\t", "", -1);
+    string->replace_limit(string, "\r", "", -1);
+    string->replace_limit(string, "\n", "", -1);
     ret = ASSERT_EQUAL(test, string->get_cstr(string), init_data, strlen(init_data));
 
     object_destroy(string);
@@ -321,9 +321,9 @@ static void __test_obj_vector_set_init_data(Vector_Test *test)
 
     string = object_new(allocator, "String", NULL);
     string->assign(string, vector->to_json((Obj *)vector));
-    string->replace_all(string, "\t", "");
-    string->replace_all(string, "\r", "");
-    string->replace_all(string, "\n", "");
+    string->replace_limit(string, "\t", "", -1);
+    string->replace_limit(string, "\r", "", -1);
+    string->replace_limit(string, "\n", "", -1);
 
     ret = ASSERT_EQUAL(test, string->get_cstr(string), init_data, strlen(init_data));
     if (ret != 1) {

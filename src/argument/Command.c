@@ -238,7 +238,7 @@ static int __parse_args(Command *command)
                     str = object_new(command->parent.allocator, "String", NULL);
                 }
                 str->assign(str, command->argv[i]);
-                cnt = str->split_num_portion(str, "=", 2); 
+                cnt = str->split_limit(str, "=", 2); 
                 dbg_str(DBG_SUC, "key count :%d", cnt);
                 if (cnt == 2) {
                     key   = str->get_splited_cstr(str, 0);
