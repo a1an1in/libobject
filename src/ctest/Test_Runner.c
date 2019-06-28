@@ -26,8 +26,73 @@ static int __deconstruct(Test_Runner *runner)
 {
     if (runner->result != NULL)
         object_destroy(runner->result);
+    if (runner->white_list != NULL)
+        object_destroy(runner->white_list);
 
     return 0;
+}
+
+static int __set_white_list(Test_Runner *runner, char *list)
+{
+    Vector *white_list; 
+    allocator_t *allocator = runner->obj.allocator;
+    String *str, *s;
+    int count, ret = 0, i;
+
+    if (strlen(str) == 0) { return -1; }
+
+    if (runner->white_list == NULL) {
+        int value_type = VALUE_TYPE_STRING;
+        uint8_t trustee_flag = 1;
+        white_list = object_new(allocator, "Vector", NULL);
+        white_list->set(white_list, "/Vector/value_type", &value_type);
+        white_list->set(white_list, "/Vector/trustee_flag", &trustee_flag);
+        runner->white_list = white_list;
+    }
+
+    str = object_new(allocator, "String", NULL);
+    str->assign(str, list);
+    count = str->split(str, ",");
+    if (count <= 0) {
+        ret = -1;
+        goto end;
+    }
+
+    for (i = 0; i < count; i++) {
+        s = object_new(allocator, "String", NULL);
+        s->assign(s, str->get_splited_cstr(str, i));
+        white_list->add(white_list, s);
+        dbg_str(DBG_SUC, "CTtest add white_list:%s", str->get_splited_cstr(str, i));
+    }
+
+    ret = 1;
+
+end:
+    object_destroy(str);
+
+    return ret;
+}
+
+static int __is_testcase_in_white_list(Test_Runner *runner, char *testcase)
+{
+    int ret = 0;
+    Vector *white_list = runner->white_list;
+    int count = white_list->count(white_list);
+    int i;
+    String *s;
+
+    if (white_list == NULL) { return 1; }
+    if (count == 0) { return 1; }
+
+    for (i = 0; i < count; i++) {
+        white_list->peek_at(white_list, i, &s);
+        if (strcmp(testcase, s->get_cstr(s)) == 0) {
+            ret = 1;
+            break;
+        } 
+    }
+
+    return ret;
 }
 
 static int __start(Test_Runner *runner)
@@ -36,6 +101,8 @@ static int __start(Test_Runner *runner)
     class_deamon_t *deamon;
     map_t *map;
     char *key, *test_class;
+    int ret = 0;
+    Vector *white_list = runner->white_list;
 
     dbg_str(DBG_DETAIL,"test_runner running");
 
@@ -57,6 +124,8 @@ static int __start(Test_Runner *runner)
 
         test_class = strstr(key, "_Test");
         if (test_class != NULL) {
+            ret = runner->is_testcase_in_white_list(runner, key);
+            if (ret == 0) continue;
             dbg_str(DBG_SUC,"%s test", key);
             runner->run_test(runner, key);
         }
@@ -134,9 +203,11 @@ static class_info_entry_t test_runner_class_info[] = {
     Init_Nfunc_Entry(2 , Test_Runner, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3 , Test_Runner, get, NULL),
     Init_Vfunc_Entry(4 , Test_Runner, set, NULL),
-    Init_Vfunc_Entry(5 , Test_Runner, start, __start),
-    Init_Vfunc_Entry(6 , Test_Runner, run_test, __run_test),
-    Init_End___Entry(7 , Test_Runner),
+    Init_Vfunc_Entry(5 , Test_Runner, set_white_list, __set_white_list),
+    Init_Vfunc_Entry(6 , Test_Runner, start, __start),
+    Init_Vfunc_Entry(7 , Test_Runner, run_test, __run_test),
+    Init_Vfunc_Entry(8 , Test_Runner, is_testcase_in_white_list, __is_testcase_in_white_list),
+    Init_End___Entry(9 , Test_Runner),
 };
 REGISTER_CLASS("Test_Runner", test_runner_class_info);
 

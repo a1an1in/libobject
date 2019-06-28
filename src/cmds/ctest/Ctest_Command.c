@@ -31,6 +31,9 @@ static int __action(Command *command)
     }
 
     runner = object_new(allocator, "Test_Runner", NULL);
+    if (arg != NULL) {
+        runner->set_white_list(runner, arg->value->get_cstr(arg->value));
+    }
 
     runner->start(runner);
 
