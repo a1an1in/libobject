@@ -526,9 +526,9 @@ static int __split_n(String *string, char *delims, int num)
         p = strtok_r(p, delims, &ptr);
         if (ptr != NULL) {
             cnt++;
+            v->add_back(v, ptr);
+            dbg_str(DBG_DETAIL, "cur:%s, next :%s", p, ptr);
         }
-        v->add_back(v, ptr);
-        dbg_str(DBG_DETAIL, "cur:%s, next :%s", p, ptr);
         p = ptr;
     } while (cnt < num && p != NULL);
 

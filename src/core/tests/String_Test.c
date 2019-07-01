@@ -216,7 +216,7 @@ static void __test_split_n(String_Test *test)
     str->assign(str, "https://www.baidu.com/s?ie=utf-8");  
 
     str->replace(str, "//", "/");
-    cnt = str->split_n(str, "@", 3);
+    cnt = str->split_n(str, "/", 3);
 
     for (i = 0; i < cnt; i++) {
         p = str->get_splited_cstr(str, i);

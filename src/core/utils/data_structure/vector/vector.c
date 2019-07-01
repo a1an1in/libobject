@@ -239,7 +239,7 @@ int vector_add_back(vector_t *vector, void *data)
     vector->count += 1;
     sync_unlock(&vector->vector_lock);
 
-    dbg_str(DBG_DETAIL, "vector_add_back, push_pos=%d, capacity=%d, count=%d", 
+    dbg_str(VECTOR_DETAIL, "vector_add_back, push_pos=%d, capacity=%d, count=%d", 
             push_pos - 1, vector->capacity, vector->count);
 
     return 0;

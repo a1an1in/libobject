@@ -52,7 +52,7 @@ static int __add_subcommand(Command *command, void *command_name)
         command->subcommands = subcommands;
     }
 
-    dbg_str(DBG_SUC, "add subcommand");
+    dbg_str(DBG_DETAIL, "add subcommand");
 
     c = object_new(command->parent.allocator, command_name, NULL);
     if (c != NULL) {
@@ -110,7 +110,7 @@ __add_option(Command *command,
         command->options = options;
     }
 
-    dbg_str(DBG_SUC, "add option");
+    dbg_str(DBG_DETAIL, "add option");
 
     o = object_new(command->parent.allocator, "Option", NULL);
 
@@ -175,7 +175,7 @@ __add_argument(Command *command, char *value, char *usage)
         command->args = args;
     }
 
-    dbg_str(DBG_SUC, "add arg");
+    dbg_str(DBG_DETAIL, "add arg");
 
     arg = object_new(command->parent.allocator, "Argument", NULL);
 
