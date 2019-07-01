@@ -524,10 +524,11 @@ static int __split_n(String *string, char *delims, int num)
 
     do {
         p = strtok_r(p, delims, &ptr);
-        cnt++;
+        if (ptr != NULL) {
+            cnt++;
+        }
         v->add_back(v, ptr);
-        dbg_str(DBG_DETAIL, "index: %d, vector count:%d, cur:%s, next :%s", 
-                cnt - 1, v->count(v), p, ptr);
+        dbg_str(DBG_DETAIL, "cur:%s, next :%s", p, ptr);
         p = ptr;
     } while (cnt < num && p != NULL);
 
