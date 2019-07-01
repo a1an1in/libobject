@@ -288,7 +288,7 @@ static String * __replace_char(String *string, int index, char c)
     return string;
 }
 
-static int __replace_(String *self, char *old, char *newstr)
+static int __replace_inner(String *self, char *old, char *newstr)
 {
     int start_pos = 0;
     int end_pos   = 0;
@@ -342,7 +342,7 @@ __replace_n(String *self, char *oldstr, char *newstr, int max)
     if ( oldstr == NULL || newstr == NULL ) { return -1; }
 
     while (1) {
-        ret = __replace_(pre, oldstr, newstr);
+        ret = __replace_inner(pre, oldstr, newstr);
         if (ret <= 0) {
             break;
         }
@@ -518,7 +518,7 @@ static int __split_n(String *string, char *delims, int num)
             p = strtok_r(NULL, delims, &ptr)) 
     {
         if (ptr != NULL) {
-            *(p -1) = '\0';
+            memset(p - strlen(delims), "\0", strlen(delims));
             cnt++;
             v->add_back(v, ptr);
             dbg_str(DBG_SUC, "vector count=%d", v->count(v));
