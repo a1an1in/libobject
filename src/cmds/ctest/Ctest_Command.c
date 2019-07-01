@@ -28,6 +28,8 @@ static int __action(Command *command)
         if (arg != NULL) {
             dbg_str(DBG_SUC,"test_cases:%s", arg->value->get_cstr(arg->value));
         }
+    } else if (count == 0) {
+        debugger_set_all_businesses_level(debugger_gp, 1, 6);
     }
 
     runner = object_new(allocator, "Test_Runner", NULL);

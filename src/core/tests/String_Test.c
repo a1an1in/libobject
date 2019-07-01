@@ -203,6 +203,34 @@ static void __test_split(String_Test *test)
     ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
 }
 
+static void __test_split_n(String_Test *test)
+{
+    //test find and split function
+    String *str = test->str;
+    int i, cnt, expect_count = 3;
+    char *p;
+    char *expect0 = "https:";
+    char *expect1 = "www.baidu.com";
+    char *expect2 = "s?ie=utf-8";
+
+    str->assign(str, "https://www.baidu.com/s?ie=utf-8");  
+
+    str->replace(str, "//", "/");
+    cnt = str->split_n(str, "/", 3);
+
+    for (i = 0; i < cnt; i++) {
+        p = str->get_splited_cstr(str, i);
+        if (p != NULL) {
+            dbg_str(DBG_SUC, "%d:%s", i, p);
+        }
+    }
+
+    ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
+    ASSERT_EQUAL(test, str->get_splited_cstr(str, 0), expect0, sizeof(expect0));
+    ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, sizeof(expect1));
+    ASSERT_EQUAL(test, str->get_splited_cstr(str, 2), expect2, sizeof(expect2));
+}
+
 static void __test_find(String_Test *test)
 {
     String *string = test->str;
@@ -297,12 +325,13 @@ static class_info_entry_t string_test_class_info[] = {
     Init_Vfunc_Entry(12, String_Test, test_insert, __test_insert),
     Init_Vfunc_Entry(13, String_Test, test_insert_string, __test_insert_string),
     Init_Vfunc_Entry(14, String_Test, test_split, __test_split),
-    Init_Vfunc_Entry(15, String_Test, test_find, __test_find),
-    Init_Vfunc_Entry(16, String_Test, test_replace, __test_replace),
-    Init_Vfunc_Entry(17, String_Test, test_replace_n, __test_replace_n),
-    Init_Vfunc_Entry(18, String_Test, test_empty, __test_empty),
-    Init_Vfunc_Entry(19, String_Test, test_ltrim, __test_ltrim),
-    Init_Vfunc_Entry(20, String_Test, test_rtrim, __test_rtrim),
-    Init_End___Entry(21, String_Test),
+    Init_Vfunc_Entry(15, String_Test, test_split_n, __test_split_n),
+    Init_Vfunc_Entry(16, String_Test, test_find, __test_find),
+    Init_Vfunc_Entry(17, String_Test, test_replace, __test_replace),
+    Init_Vfunc_Entry(18, String_Test, test_replace_n, __test_replace_n),
+    Init_Vfunc_Entry(19, String_Test, test_empty, __test_empty),
+    Init_Vfunc_Entry(20, String_Test, test_ltrim, __test_ltrim),
+    Init_Vfunc_Entry(21, String_Test, test_rtrim, __test_rtrim),
+    Init_End___Entry(22, String_Test),
 };
 REGISTER_CLASS("String_Test", string_test_class_info);

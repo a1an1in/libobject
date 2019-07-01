@@ -27,6 +27,7 @@ struct string_test_s{
     void (*test_insert)(Test *);
     void (*test_insert_string)(Test *);
     void (*test_split)(Test *);
+    void (*test_split_n)(Test *);
     void (*test_find)(Test *);
     void (*test_replace)(Test *);
     void (*test_replace_n)(Test *);

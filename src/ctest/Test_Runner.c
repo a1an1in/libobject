@@ -106,8 +106,6 @@ static int __start(Test_Runner *runner)
 
     dbg_str(DBG_DETAIL,"test_runner running");
 
-    debugger_set_all_businesses_level(debugger_gp, 1, 6);
-
     deamon = class_deamon_get_global_class_deamon();
     if (deamon == NULL) {
         return -1;
@@ -131,9 +129,7 @@ static int __start(Test_Runner *runner)
         }
     }
 
-    /*
-     *debugger_set_all_businesses_level(debugger_gp, 1, 9);
-     */
+    return 1;
 }
 
 static int __run_test(Test_Runner *runner, char *test_class_name)

@@ -135,9 +135,16 @@ static size_t __is_empty(String *string)
 
 static void __clear(String *string)
 {   
+    Vector *v;
+
     string->value[0] = '\0';
     memset(string->value, 0, string->value_max_len);
     string->value_len = 0;
+
+    if (string->splited_strings != NULL) {
+        v = (Vector *)string->splited_strings;
+        v->clear(v);
+    }
 }
 
 static char __at(String *string, int index)
@@ -513,20 +520,16 @@ static int __split_n(String *string, char *delims, int num)
 
     v->add_back(v, string->get_cstr(string)); //first section
 
-    for (   p = strtok_r(string->get_cstr(string), delims, &ptr);
-            p && cnt != num;
-            p = strtok_r(NULL, delims, &ptr)) 
-    {
-        if (ptr != NULL) {
-            memset(p - strlen(delims), "\0", strlen(delims));
-            cnt++;
-            v->add_back(v, ptr);
-            dbg_str(DBG_SUC, "vector count=%d", v->count(v));
-            dbg_str(DBG_SUC, "cur:%s, next :%s", p, ptr);
-        } else {
-            break;
-        }
-    }
+    p = string->get_cstr(string);
+
+    do {
+        p = strtok_r(p, delims, &ptr);
+        cnt++;
+        v->add_back(v, ptr);
+        dbg_str(DBG_DETAIL, "index: %d, vector count:%d, cur:%s, next :%s", 
+                cnt - 1, v->count(v), p, ptr);
+        p = ptr;
+    } while (cnt < num && p != NULL);
 
     return cnt;
 }
