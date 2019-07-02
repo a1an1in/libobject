@@ -19,22 +19,35 @@ static int __action(Command *command)
     Vector *failed_cases, *success_cases;
     int count;
     Argument *arg;
+    Option *o;
+    int set_white_list_flag = 0;
 
     dbg_str(DBG_DETAIL,"test_runner in");
 
+    runner = object_new(allocator, "Test_Runner", NULL);
+
+    /*test cases is designated by --run option*/
+    o = command->get_option(command, "--run");
+    if (o != NULL && o->value != NULL) {
+        if (!o->value->equal(o->value, "all")) {
+            runner->set_white_list(runner, o->value->get_cstr(o->value));
+            set_white_list_flag = 1;
+        }
+    }
+
+    /*test cases is designated by args*/
     count = command->args->count(command->args);
     if (count == 1) {
         arg = command->get_argment(command, 0);
         if (arg != NULL) {
             dbg_str(DBG_SUC,"test_cases:%s", arg->value->get_cstr(arg->value));
+            runner->set_white_list(runner, arg->value->get_cstr(arg->value));
+            set_white_list_flag = 1;
         }
-    } else if (count == 0) {
-        debugger_set_all_businesses_level(debugger_gp, 1, 6);
     }
 
-    runner = object_new(allocator, "Test_Runner", NULL);
-    if (arg != NULL) {
-        runner->set_white_list(runner, arg->value->get_cstr(arg->value));
+    if (set_white_list_flag == 0) {
+        debugger_set_all_businesses_level(debugger_gp, 1, 6);
     }
 
     runner->start(runner);
