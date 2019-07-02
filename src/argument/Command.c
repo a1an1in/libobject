@@ -246,7 +246,7 @@ static int __parse_args(Command *command)
 
                     o = command->get_option(command, key);
                     if (o != NULL) {
-                        o->set(o, key, value);
+                        o->set(o, "value", value);
                         dbg_str(DBG_SUC, "set option key:%s, value:%s", key, value);
                     }
                 } 

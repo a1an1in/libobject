@@ -51,9 +51,8 @@ static int __modulate_capacity(String *string, int write_len)
             dbg_str(OBJ_WARNNING, "string assign alloc error");
             return -1;
         }
-    } else if ( 
-            string->value_max_len > string->value_len + 1 &&
-            string->value_max_len < string->value_len + write_len + 1)
+    } else if (string->value_max_len > string->value_len + 1 &&
+               string->value_max_len < string->value_len + write_len + 1)
     {
         char *new_buf;
         int old = string->value_max_len;
@@ -168,8 +167,7 @@ static String *__assign(String *string, char *s)
     return string;
 }
 
-static String *
-__assign_n(String *string, char *s, int len)
+static String * __assign_n(String *string, char *s, int len)
 {
     int ret;
 
@@ -371,7 +369,6 @@ static void __to_upper(String *string)
 
     for (i = 0; i < size; i++) {
         if (islower(string->value[i])) {
-            //toupper(string->value[i]);
             string->value[i] += 'A'-'a';
         }
     }       
@@ -384,7 +381,6 @@ static void __to_lower(String *string)
 
     for (i = 0; i < size; i++) {
         if (isupper(string->value[i])) {
-            //tolower(string->value[i]);
             string->value[i] += 'a'-'A';
         }
     } 
