@@ -45,6 +45,9 @@ static class_info_entry_t option_class_info[] = {
     Init_Str___Entry(8 , Option, usage, NULL),
     Init_Str___Entry(9 , Option, value, NULL),
     Init_Point_Entry(10, Option, action, NULL),
-    Init_End___Entry(11, Option),
+    Init_Point_Entry(11, Option, opaque, NULL),
+    Init_Point_Entry(12, Option, command, NULL),
+    Init_U8____Entry(13, Option, set_flag, NULL),
+    Init_End___Entry(14, Option),
 };
 REGISTER_CLASS("Option", option_class_info);

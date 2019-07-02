@@ -26,6 +26,7 @@ struct _test_runner_s{
     /*attribs*/
     Test_Result *result;
     Vector *white_list;
+    uint8_t set_white_list_flag;
 };
 
 #endif

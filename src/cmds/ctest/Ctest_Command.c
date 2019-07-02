@@ -12,26 +12,55 @@
 #include <libobject/cmds/Ctest_Command.h>
 #include <libobject/argument/Application.h>
 
+static int __option_version_action_callback(Option *option, void *opaque)
+{
+    Option *o = option;
+    if (!o->value->equal(o->value, "ture")) {
+        dbg_str(DBG_ERROR,"user set -v option");
+    }
+}
+
+static int __option_run_action_callback(Option *option, void *opaque)
+{
+    Test_Runner *runner = (Test_Runner *)opaque;
+    Command *command = (Command *)option->command;
+    Option *o = option;
+
+    dbg_str(DBG_SUC,"option_run_action_callback");
+
+    if (!o->value->equal(o->value, "all")) {
+        runner->set_white_list(runner, o->value->get_cstr(o->value));
+        runner->set_white_list_flag = 1;
+    }
+
+}
+
 static int __action(Command *command)
 {
-    Test_Runner * runner;
+    Test_Runner *runner, **r;
     allocator_t *allocator = allocator_get_default_alloc();
     Vector *failed_cases, *success_cases;
     int count;
     Argument *arg;
     Option *o;
-    int set_white_list_flag = 0;
+    Vector *options = command->options;
+    uint8_t i, option_count = command->options->count(command->options);
 
     dbg_str(DBG_DETAIL,"test_runner in");
 
-    runner = object_new(allocator, "Test_Runner", NULL);
+    r = command->get(command, "/Command/opaque");
+    if (r == NULL) {
+        dbg_str(DBG_DETAIL,"not found test runner");
+        return -1;
+    } else {
+        runner = *r;
+    }
 
-    /*test cases is designated by --run option*/
-    o = command->get_option(command, "--run");
-    if (o != NULL && o->value != NULL) {
-        if (!o->value->equal(o->value, "all")) {
-            runner->set_white_list(runner, o->value->get_cstr(o->value));
-            set_white_list_flag = 1;
+    for (i = 0; i < option_count; i++) {
+        options->peek_at(options, i, (void **)&o);
+        if (o != NULL && o->set_flag == 1 && o->action != NULL) {
+            int (*option_action)(void *, void *) = o->action;
+            option_action(o, o->opaque);
         }
     }
 
@@ -42,11 +71,11 @@ static int __action(Command *command)
         if (arg != NULL) {
             dbg_str(DBG_SUC,"test_cases:%s", arg->value->get_cstr(arg->value));
             runner->set_white_list(runner, arg->value->get_cstr(arg->value));
-            set_white_list_flag = 1;
+            runner->set_white_list_flag = 1;
         }
     }
 
-    if (set_white_list_flag == 0) {
+    if (runner->set_white_list_flag == 0) {
         debugger_set_all_businesses_level(debugger_gp, 1, 6);
     }
 
@@ -62,7 +91,6 @@ static int __action(Command *command)
     printf("dump failed_cases: %s\n",
             failed_cases->to_json((Obj *)failed_cases));
 
-    object_destroy(runner);
     dbg_str(DBG_DETAIL,"test_runner out");
 
     return 0;
@@ -70,19 +98,31 @@ static int __action(Command *command)
 
 static int __construct(Command *command, char *init_str)
 {
-    command->add_option(command, "--run", "-r", "all", "run test cases", NULL);
-    command->add_option(command, "--output-type", "-t", "json", "output file type", NULL);
-    command->add_option(command, "--output-file", "-o", "test_report.json", "output file path", NULL);
+    Test_Runner * runner;
+
+    runner = object_new(command->parent.allocator, "Test_Runner", NULL);
+
+    dbg_str(DBG_DETAIL,"new runner:%p", runner);
+    command->add_option(command, "--run", "-r", "all", "run test cases", __option_run_action_callback, runner);
+    command->add_option(command, "--output-type", "-t", "json", "output file type", NULL, runner);
+    command->add_option(command, "--output-file", "-o", "test_report.json", "output file path", NULL, runner);
+    command->add_option(command, "--version", "-v", "false", "display version info", __option_version_action_callback, runner);
 
     command->add_argument(command, "", "test cases");
 
     command->set(command, "/Command/name", "ctest");
+    command->set(command, "/Command/opaque", runner);
 
     return 0;
 }
 
 static int __deconstruct(Command *command)
 {
+    Test_Runner * runner = (Test_Runner *)command->opaque;
+
+    if (runner != NULL)
+        object_destroy(runner);
+
     return 0;
 }
 

@@ -90,7 +90,7 @@ static Command * __get_subcommand(Command *command, char *command_name)
 static int 
 __add_option(Command *command,
              char *name, char *alias, char *value,
-             char *usage, int (*action)(void *, Option *))
+             char *usage, int (*action)(Option *, void *), void *opaque)
 {
     Vector *options = command->options;
     Option *o;
@@ -114,6 +114,7 @@ __add_option(Command *command,
 
     o = object_new(command->parent.allocator, "Option", NULL);
 
+    o->set(o, "command", command);
     if (name != NULL)
         o->set(o, "name", name);
     if (alias != NULL)
@@ -124,6 +125,8 @@ __add_option(Command *command,
         o->set(o, "value", value);
     if (action != NULL)
         o->set(o, "action", action);
+    if (opaque != NULL) 
+        o->set(o, "opaque", opaque);
 
     ret = options->add(options, o);
 
@@ -216,7 +219,7 @@ __parse_option_passing_value_with_equal_sign(
     String *str = NULL;
     Option *o;
     char *key = NULL, *value = NULL;
-    int ret = 0, cnt, arg_cnt = 0;
+    int ret = 0, cnt, arg_cnt = 0, set_flag = 1;
 
     str = object_new(command->parent.allocator, "String", NULL);
     str->assign(str, option);
@@ -229,6 +232,7 @@ __parse_option_passing_value_with_equal_sign(
         o = command->get_option(command, key);
         if (o != NULL) {
             o->set(o, "value", value);
+            o->set(o, "set_flag", &set_flag);
             dbg_str(DBG_SUC, "set option key:%s, value:%s", key, value);
         }
     } 
@@ -243,16 +247,26 @@ __parse_option_passing_value_with_space(
         Command *command, char *key, char *value)
 {
     Option *o;
+    uint8_t set_flag = 1;
 
     o = command->get_option(command, key);
     if (o != NULL) {
         o->set(o, "value", value);
+        o->set(o, "set_flag", &set_flag);
         dbg_str(DBG_SUC, "set option key:%s, value:%s", key, value);
     }
 }
 
 static int __parse_option_with_no_value(Command *command, char *option)
 {
+    Option *o;
+    uint8_t set_flag = 1;
+
+    o = command->get_option(command, option);
+    if (o != NULL) {
+        o->set(o, "value", "true");
+        o->set(o, "set_flag", &set_flag);
+    }
 }
 
 static int __does_option_contains_equal_sign(char *option)
@@ -288,6 +302,23 @@ static int __is_arg_option(Command *command, char *arg)
     return 0;
 }
 
+static int __does_option_need_value(Command *command, char *option)
+{
+    Option *o;
+
+    o = command->get_option(command, option);
+    if (o == NULL) return -1;
+    if (o != NULL && (o->value->equal(o->value, "true") ||
+                      o->value->equal(o->value, "True") ||
+                      o->value->equal(o->value, "false") ||
+                      o->value->equal(o->value, "False"))) 
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
 static int __parse_args(Command *command)
 {
     void *p;
@@ -306,56 +337,62 @@ static int __parse_args(Command *command)
 
     p = strstr(command->argv[0], 
                command->name->get_cstr(command->name));
-    if (p != NULL) {
-        for (i = 1; i < command->argc; i++) {
-            if (__is_arg_option(command, command->argv[i])) {
-                ret = __does_option_contains_equal_sign(command->argv[i]);
-                if (ret != 0) {
-                     __parse_option_passing_value_with_equal_sign(command, command->argv[i]);
-                     continue;
-                }
+    if (p == NULL) {
+        dbg_str(DBG_WARNNING, "args passed to wrong command");
+        ret = -1;
+    }
 
-                if (
-                        __is_arg_option(command, command->argv[i + 1]) ||
-                        __is_arg_subcommand(command, command->argv[i + 1])) 
-                {
-                    __parse_option_with_no_value(command, command->argv[i]);
-                    continue;
-                }
+    for (i = 1; i < command->argc; i++) {
+        if (__is_arg_option(command, command->argv[i])) {
+            /*first process option with equal sign*/
+            ret = __does_option_contains_equal_sign(command->argv[i]);
+            if (ret != 0) {
+                __parse_option_passing_value_with_equal_sign(command, command->argv[i]);
+                continue;
+            }
 
-                if (!__is_arg_subcommand(command, command->argv[i + 1])) {
-                    __parse_option_passing_value_with_space(command,
-                            command->argv[i], command->argv[i + i]);
-                    i++;
-                    continue;
-                }
+            /*second, process option without value*/
+            ret = __does_option_need_value(command, command->argv[i]);
+            if (ret < 0) {
+                dbg_str(DBG_WARNNING, "not recognized option");
+                continue;
+            }
+
+            if (ret == 0) {
+                __parse_option_with_no_value(command, command->argv[i]);
+                continue;
+            }
+
+            /*last process option need value, but pass with space*/
+            if (!__is_arg_subcommand(command, command->argv[i + 1])) {
+                __parse_option_passing_value_with_space(command,
+                        command->argv[i], command->argv[i + i]);
+                i++;
+                continue;
+            }
+        } else {
+            c = command->get_subcommand(command, command->argv[i]);
+            if (c != NULL) {
+                dbg_str(DBG_SUC, "%s found a command %s",
+                        command->argv[0], command->argv[i]);
+                c->set_args(c, command->argc - i, (char **)&command->argv[i]);
+                c->parse_args(c);
+                command->selected_subcommand = c;
+                break;
             } else {
-                c = command->get_subcommand(command, command->argv[i]);
-                if (c != NULL) {
-                    dbg_str(DBG_SUC, "%s found a command %s",
-                            command->argv[0], command->argv[i]);
-                    c->set_args(c, command->argc - i, (char **)&command->argv[i]);
-                    c->parse_args(c);
-                    command->selected_subcommand = c;
-                    break;
-                } else {
-                    if (command->args != NULL) {
-                        arg_cnt++;
-                        argument = command->get_argment(command, arg_cnt - 1);
-                        if (argument != NULL) {
-                            argument->set(argument, "value", command->argv[i]);
-                        } else {
-                            dbg_str(DBG_WARNNING, "not recognize arg %s",command->argv[i]);
-                        }
+                if (command->args != NULL) {
+                    arg_cnt++;
+                    argument = command->get_argment(command, arg_cnt - 1);
+                    if (argument != NULL) {
+                        argument->set(argument, "value", command->argv[i]);
                     } else {
                         dbg_str(DBG_WARNNING, "not recognize arg %s",command->argv[i]);
                     }
+                } else {
+                    dbg_str(DBG_WARNNING, "not recognize arg %s",command->argv[i]);
                 }
             }
         }
-    } else {
-        dbg_str(DBG_WARNNING, "args passed to wrong command");
-        ret = -1;
     }
 
     return ret;
@@ -385,6 +422,7 @@ static class_info_entry_t command_class_info[] = {
     Init_Vec___Entry(15, Command, subcommands, NULL, "Test_Command"),
     Init_Vec___Entry(16, Command, options, NULL, "Option"),
     Init_Str___Entry(17, Command, name, NULL),
-    Init_End___Entry(18, Command),
+    Init_Point_Entry(18, Command, opaque, NULL),
+    Init_End___Entry(19, Command),
 };
 REGISTER_CLASS("Command", command_class_info);

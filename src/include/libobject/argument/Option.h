@@ -22,7 +22,10 @@ struct Option_s{
     String *alias;
     String *usage;
     String *value;
-    int (*action)(void *, Option *);
+    void *opaque;
+    void *command;
+    int (*action)(void *, void *);
+    uint8_t set_flag;
 };
 
 #endif
