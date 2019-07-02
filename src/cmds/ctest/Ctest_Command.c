@@ -56,13 +56,7 @@ static int __action(Command *command)
         runner = *r;
     }
 
-    for (i = 0; i < option_count; i++) {
-        options->peek_at(options, i, (void **)&o);
-        if (o != NULL && o->set_flag == 1 && o->action != NULL) {
-            int (*option_action)(void *, void *) = o->action;
-            option_action(o, o->opaque);
-        }
-    }
+    command->run_option_actions(command);
 
     /*test cases is designated by args*/
     count = command->args->count(command->args);
@@ -130,7 +124,7 @@ static class_info_entry_t test_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Ctest_Command, construct, __construct),
     Init_Nfunc_Entry(2, Ctest_Command, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Ctest_Command, action, __action),
+    Init_Vfunc_Entry(3, Ctest_Command, run_action, __action),
     Init_End___Entry(4, Ctest_Command),
 };
 REGISTER_CLASS("Ctest_Command", test_command_class_info);

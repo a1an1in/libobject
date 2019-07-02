@@ -43,7 +43,7 @@ static int __run(Application *app, int argc, char *argv[])
     command->parse_args(command);
 
     selected_subcommand = command->selected_subcommand;
-    selected_subcommand->action(selected_subcommand);
+    selected_subcommand->run_action(selected_subcommand);
 
     /*
      *json = app->to_json(app);

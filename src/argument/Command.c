@@ -398,6 +398,24 @@ static int __parse_args(Command *command)
     return ret;
 }
 
+static int __run_option_actions(Command *command)
+{
+    Option *o;
+    Vector *options = command->options;
+    uint8_t i, option_count;
+
+    option_count = command->options->count(command->options);
+
+    for (i = 0; i < option_count; i++) {
+        options->peek_at(options, i, (void **)&o);
+        if (o != NULL && o->set_flag == 1 && o->action != NULL) {
+            int (*option_action)(void *, void *) = o->action;
+            option_action(o, o->opaque);
+        }
+    }
+    return 0;
+}
+
 static int __action(Command *command)
 {
     return 0;
@@ -416,13 +434,14 @@ static class_info_entry_t command_class_info[] = {
     Init_Vfunc_Entry(9 , Command, get_option, __get_option),
     Init_Vfunc_Entry(10, Command, add_argument, __add_argument),
     Init_Vfunc_Entry(11, Command, get_argment, __get_argment),
-    Init_Vfunc_Entry(12, Command, action, __action),
-    Init_Vfunc_Entry(13, Command, set_args, __set_args),
-    Init_Vfunc_Entry(14, Command, parse_args, __parse_args),
-    Init_Vec___Entry(15, Command, subcommands, NULL, "Test_Command"),
-    Init_Vec___Entry(16, Command, options, NULL, "Option"),
-    Init_Str___Entry(17, Command, name, NULL),
-    Init_Point_Entry(18, Command, opaque, NULL),
-    Init_End___Entry(19, Command),
+    Init_Vfunc_Entry(12, Command, run_action, __action),
+    Init_Vfunc_Entry(13, Command, run_option_actions, __run_option_actions),
+    Init_Vfunc_Entry(14, Command, set_args, __set_args),
+    Init_Vfunc_Entry(15, Command, parse_args, __parse_args),
+    Init_Vec___Entry(16, Command, subcommands, NULL, "Test_Command"),
+    Init_Vec___Entry(17, Command, options, NULL, "Option"),
+    Init_Str___Entry(18, Command, name, NULL),
+    Init_Point_Entry(19, Command, opaque, NULL),
+    Init_End___Entry(20, Command),
 };
 REGISTER_CLASS("Command", command_class_info);
