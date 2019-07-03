@@ -32,7 +32,8 @@ static int __deconstruct(Command *command)
     return 0;
 }
 
-static int __add_subcommand(Command *command, void *command_name)
+static int 
+__add_subcommand(Command *command, void *command_name)
 {
     Vector *subcommands = command->subcommands;
     int value_type = VALUE_TYPE_OBJ_POINTER;
@@ -65,7 +66,8 @@ end:
     return ret;
 }
 
-static Command * __get_subcommand(Command *command, char *command_name)
+static Command * 
+__get_subcommand(Command *command, char *command_name)
 {
     Vector *subcommands = command->subcommands;
     int count;
@@ -90,7 +92,8 @@ static Command * __get_subcommand(Command *command, char *command_name)
 static int 
 __add_option(Command *command,
              char *name, char *alias, char *value,
-             char *usage, int (*action)(Option *, void *), void *opaque)
+             char *usage, int (*action)(Option *, void *),
+             void *opaque)
 {
     Vector *options = command->options;
     Option *o;
@@ -213,8 +216,8 @@ static int __set_args(Command *command, int argc, char **argv)
 }
 
 static int
-__parse_option_passing_value_with_equal_sign(
-        Command *command, char *option)
+__parse_option_passing_value_with_equal_sign(Command *command,
+                                             char *option)
 {
     String *str = NULL;
     Option *o;
@@ -243,8 +246,8 @@ __parse_option_passing_value_with_equal_sign(
 }
 
 static int 
-__parse_option_passing_value_with_space(
-        Command *command, char *key, char *value)
+__parse_option_passing_value_with_space(Command *command, 
+                                        char *key, char *value)
 {
     Option *o;
     uint8_t set_flag = 1;
@@ -307,6 +310,7 @@ static int __does_option_need_value(Command *command, char *option)
     Option *o;
 
     o = command->get_option(command, option);
+
     if (o == NULL) return -1;
     if (o != NULL && (o->value->equal(o->value, "true") ||
                       o->value->equal(o->value, "True") ||
@@ -344,6 +348,7 @@ static int __parse_args(Command *command)
 
     for (i = 1; i < command->argc; i++) {
         if (__is_arg_option(command, command->argv[i])) {
+
             /*first process option with equal sign*/
             ret = __does_option_contains_equal_sign(command->argv[i]);
             if (ret != 0) {
@@ -351,13 +356,13 @@ static int __parse_args(Command *command)
                 continue;
             }
 
-            /*second, process option without value*/
             ret = __does_option_need_value(command, command->argv[i]);
             if (ret < 0) {
                 dbg_str(DBG_WARNNING, "not recognized option");
                 continue;
             }
 
+            /*second, process option without value*/
             if (ret == 0) {
                 __parse_option_with_no_value(command, command->argv[i]);
                 continue;
