@@ -26,10 +26,12 @@ struct Command_s{
                       char *usage, int (*action)(void *, Option *),
                       void *opaque);
     Option *(*get_option)(Command *command, char *option_name);
-    int (*add_argument)(Command *command, char *value, char *usage);
+    int (*add_argument)(Command *command, char *value, char *usage, 
+                        int (*action)(void *, void *), void *opaque);
     Argument *(*get_argment)(Command *command, int index);
     int (*run_action)(Command *);
     int (*run_option_actions)(Command *);
+    int (*run_argument_actions)(Command *);
     int (*parse_args)(Command *command);
     int (*set_args)(Command *command, int argc, char **argv);
 

@@ -147,16 +147,11 @@ static int __set(Obj *obj, char *attrib, void *value)
             {
                 String **addr = (String **)(base + entry->offset);
                 if (*addr != NULL)
-                    strcpy((*addr)->value, (char *)value);
+                    (*addr)->assign((*addr), (char *)value);
                 else {
                     *addr = object_new(allocator, "String", NULL);
-                    strcpy((*addr)->value, (char *)value);
-                    (*addr)->value_len = strlen((char *)value);
+                    (*addr)->assign((*addr), (char *)value);
                 }
-                /*
-                 *dbg_str(DBG_WARNNING, "set string %s", value);
-                 */
-
                 break;
             }
         case ENTRY_TYPE_VECTOR:

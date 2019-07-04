@@ -34,6 +34,9 @@ static class_info_entry_t arg_class_info[] = {
     Init_Vfunc_Entry(5 , Argument, to_json, NULL),
     Init_Str___Entry(6 , Argument, usage, NULL),
     Init_Str___Entry(7 , Argument, value, NULL),
-    Init_End___Entry(8 , Argument),
+    Init_Point_Entry(8 , Argument, action, NULL),
+    Init_Point_Entry(9 , Argument, opaque, NULL),
+    Init_U8____Entry(10, Argument, set_flag, NULL),
+    Init_End___Entry(11, Argument),
 };
 REGISTER_CLASS("Argument", arg_class_info);

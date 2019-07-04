@@ -26,6 +26,7 @@ struct Option_s{
     void *command;
     int (*action)(void *, void *);
     uint8_t set_flag;
+    uint8_t multi_value_flag;
 };
 
 #endif

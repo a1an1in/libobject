@@ -161,7 +161,12 @@ static Option *__get_option(Command *command, char *option_name)
 }
 
 static int 
-__add_argument(Command *command, char *value, char *usage)
+__add_argument(command, value, usage, action, opaque)
+Command *command; 
+char *value; 
+char *usage; 
+int (*action)(Argument *,  void *); 
+void *opaque;
 {
     Vector *args = command->args;
     Argument *arg;
@@ -189,6 +194,10 @@ __add_argument(Command *command, char *value, char *usage)
         arg->set(arg, "usage", usage);
     if (value != NULL)
         arg->set(arg, "value", value);
+    if (action != NULL)
+        arg->set(arg, "action", action);
+    if (opaque != NULL)
+        arg->set(arg, "opaque", opaque);
 
     ret = args->add(args, arg);
 
@@ -250,13 +259,23 @@ __parse_option_passing_value_with_space(Command *command,
                                         char *key, char *value)
 {
     Option *o;
-    uint8_t set_flag = 1;
+    uint8_t set_flag = 1, multi_value_flag = 1, *flag;
+    String *v;
 
     o = command->get_option(command, key);
     if (o != NULL) {
-        o->set(o, "value", value);
-        o->set(o, "set_flag", &set_flag);
-        dbg_str(DBG_SUC, "set option key:%s, value:%s", key, value);
+        flag = o->get(o, "set_flag");
+        if (*flag == 1) {
+            v = o->value;
+            o->set(o, "multi_value_flag", &multi_value_flag);
+            v->append(v, ";");
+            v->append(v, value);
+            dbg_str(DBG_SUC, "set option key:%s, value:%s", key, value);
+        } else {
+            o->set(o, "value", value);
+            o->set(o, "set_flag", &set_flag);
+            dbg_str(DBG_SUC, "set option key:%s, value:%s", key, value);
+        }
     }
 }
 
@@ -329,14 +348,17 @@ static int __parse_args(Command *command)
     int i;
     Command *c = NULL;
     int ret = 0, cnt, arg_cnt = 0;
+    int set_flag = 1;
     Argument *argument;
 
     dbg_str(DBG_SUC, "parse command %s", command->argv[0]);
-    dbg_str(DBG_DETAIL, "argv0:%s argv1:%s, argv2:%s", 
-            command->argv[0], command->argv[1], command->argv[2]);
 
     if (command->argc <= 0) {
         return 0;
+    }
+
+    for (i = 0; i < command->argc; i++) {
+        dbg_str(DBG_DETAIL, "argv[%d]:%s ", i, command->argv[i]);
     }
 
     p = strstr(command->argv[0], 
@@ -371,7 +393,7 @@ static int __parse_args(Command *command)
             /*last process option need value, but pass with space*/
             if (!__is_arg_subcommand(command, command->argv[i + 1])) {
                 __parse_option_passing_value_with_space(command,
-                        command->argv[i], command->argv[i + i]);
+                        command->argv[i], command->argv[i + 1]);
                 i++;
                 continue;
             }
@@ -389,7 +411,9 @@ static int __parse_args(Command *command)
                     arg_cnt++;
                     argument = command->get_argment(command, arg_cnt - 1);
                     if (argument != NULL) {
+                        dbg_str(DBG_SUC, "set arg %s",command->argv[i]);
                         argument->set(argument, "value", command->argv[i]);
+                        argument->set(argument, "set_flag", &set_flag);
                     } else {
                         dbg_str(DBG_WARNNING, "not recognize arg %s",command->argv[i]);
                     }
@@ -421,6 +445,24 @@ static int __run_option_actions(Command *command)
     return 0;
 }
 
+static int __run_argument_actions(Command *command)
+{
+    Argument *a;
+    Vector *arguments = command->args;
+    uint8_t i, argument_count;
+
+    argument_count = arguments->count(arguments);
+
+    for (i = 0; i < argument_count; i++) {
+        arguments->peek_at(arguments, i, (void **)&a);
+        if (a != NULL && a->set_flag == 1 && a->action != NULL) {
+            int (*argument_action)(void *, void *) = a->action;
+            argument_action(a, a->opaque);
+        }
+    }
+    return 0;
+}
+
 static int __action(Command *command)
 {
     return 0;
@@ -441,12 +483,13 @@ static class_info_entry_t command_class_info[] = {
     Init_Vfunc_Entry(11, Command, get_argment, __get_argment),
     Init_Vfunc_Entry(12, Command, run_action, __action),
     Init_Vfunc_Entry(13, Command, run_option_actions, __run_option_actions),
-    Init_Vfunc_Entry(14, Command, set_args, __set_args),
-    Init_Vfunc_Entry(15, Command, parse_args, __parse_args),
-    Init_Vec___Entry(16, Command, subcommands, NULL, "Test_Command"),
-    Init_Vec___Entry(17, Command, options, NULL, "Option"),
-    Init_Str___Entry(18, Command, name, NULL),
-    Init_Point_Entry(19, Command, opaque, NULL),
-    Init_End___Entry(20, Command),
+    Init_Vfunc_Entry(14, Command, run_argument_actions, __run_argument_actions),
+    Init_Vfunc_Entry(15, Command, set_args, __set_args),
+    Init_Vfunc_Entry(16, Command, parse_args, __parse_args),
+    Init_Vec___Entry(17, Command, subcommands, NULL, "Test_Command"),
+    Init_Vec___Entry(18, Command, options, NULL, "Option"),
+    Init_Str___Entry(19, Command, name, NULL),
+    Init_Point_Entry(20, Command, opaque, NULL),
+    Init_End___Entry(21, Command),
 };
 REGISTER_CLASS("Command", command_class_info);

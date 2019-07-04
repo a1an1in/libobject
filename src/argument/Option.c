@@ -9,6 +9,9 @@
 
 static int __construct(Option *option, char *init_str)
 {
+    option->set_flag = 0;
+    option->multi_value_flag = 0;
+
     return 0;
 }
 
@@ -48,6 +51,7 @@ static class_info_entry_t option_class_info[] = {
     Init_Point_Entry(11, Option, opaque, NULL),
     Init_Point_Entry(12, Option, command, NULL),
     Init_U8____Entry(13, Option, set_flag, NULL),
-    Init_End___Entry(14, Option),
+    Init_U8____Entry(14, Option, multi_value_flag, NULL),
+    Init_End___Entry(15, Option),
 };
 REGISTER_CLASS("Option", option_class_info);

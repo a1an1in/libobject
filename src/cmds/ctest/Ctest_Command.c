@@ -97,13 +97,12 @@ static int __construct(Command *command, char *init_str)
     runner = object_new(command->parent.allocator, "Test_Runner", NULL);
 
     dbg_str(DBG_DETAIL,"new runner:%p", runner);
+
     command->add_option(command, "--run", "-r", "all", "run test cases", __option_run_action_callback, runner);
     command->add_option(command, "--output-type", "-t", "json", "output file type", NULL, runner);
     command->add_option(command, "--output-file", "-o", "test_report.json", "output file path", NULL, runner);
     command->add_option(command, "--version", "-v", "false", "display version info", __option_version_action_callback, runner);
-
-    command->add_argument(command, "", "test cases");
-
+    command->add_argument(command, "", "test cases", NULL, NULL);
     command->set(command, "/Command/name", "ctest");
     command->set(command, "/Command/opaque", runner);
 

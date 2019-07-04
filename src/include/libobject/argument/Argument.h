@@ -20,6 +20,9 @@ struct Argument_s{
     /*attribs*/
     String *usage;
     String *value;
+    uint8_t set_flag;
+    int (*action)(void *, void *);
+    void *opaque;
 };
 
 #endif
