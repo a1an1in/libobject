@@ -210,9 +210,6 @@ int rbtree_map_set(rbtree_map_t *map, char *attrib, void *value)
         map->lock_type = *((uint8_t *)value);
     } else if (!strcmp(attrib, "key_type")) {
         map->key_type = *((uint8_t *)value);
-    } else if (!strcmp(attrib, "key_len")) {
-        map->key_len = *((uint8_t *)value);
-        dbg_str(DBG_DETAIL, "key len=%d", map->key_len);
     } else if (!strcmp(attrib, "key_cmp_func")) {
         map->key_cmp_func = (key_cmp_fpt)value;
     } else {
@@ -518,8 +515,6 @@ int test_rbtree_map_search_string_key(TEST_ENTRY *entry)
     rbtree_map_t *map;
     allocator_t *allocator = allocator_get_default_alloc();
     struct rbtree_map_node *mnode;
-    int key_len = 2, key_type = 1;
-
     struct test *t, t0, t1, t2, t3, t4, t5;
 
     init_test_instance(&t0, 0, 2);

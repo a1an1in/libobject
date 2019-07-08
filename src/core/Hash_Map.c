@@ -58,6 +58,7 @@ static int __deconstruct(Map *map)
 
     object_destroy(map->b);
     object_destroy(map->e);
+    map->clear(map);
     hash_map_destroy(((Hash_Map *)map)->hmap);
 
     return 0;
@@ -84,10 +85,6 @@ static int __add(Map *map, void *key, void *value)
     Hash_Map *hmap = (Hash_Map *)map;
 
     dbg_str(HMAP_DETAIL, "Hash Map add");
-
-    if (hmap->key_type) {
-        hmap->hmap->key_type = hmap->key_type;
-    }
 
     return hash_map_insert(hmap->hmap, key, value);
 }
@@ -236,11 +233,7 @@ static class_info_entry_t hash_map_class_info[] = {
     Init_Vfunc_Entry(11, Hash_Map, clear, NULL),
     Init_Vfunc_Entry(12, Hash_Map, for_each, NULL),
     Init_Vfunc_Entry(13, Hash_Map, set_cmp_func, __set_cmp_func),
-    Init_U16___Entry(14, Hash_Map, key_size, NULL),
-    Init_U16___Entry(15, Hash_Map, value_size, NULL),
-    Init_U16___Entry(16, Hash_Map, bucket_size, NULL),
-    Init_U8____Entry(17, Hash_Map, key_type, NULL),
-    Init_Point_Entry(18, Hash_Map, test, NULL),
-    Init_End___Entry(19, Hash_Map),
+    Init_U16___Entry(14, Hash_Map, bucket_size, NULL),
+    Init_End___Entry(15, Hash_Map),
 };
 REGISTER_CLASS("Hash_Map", hash_map_class_info);

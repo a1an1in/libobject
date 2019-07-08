@@ -70,8 +70,6 @@ static int __construct(Map *map, char *init_str)
     allocator_t *allocator = map->obj.allocator;
 
     rbm->rbmap = rbtree_map_alloc(allocator);
-
-    rbtree_map_set(rbm->rbmap, "key_len", &rbm->key_size);
     rbtree_map_init(rbm->rbmap); 
 
     map->b = OBJECT_NEW(allocator, RBTree_Iterator, NULL);
@@ -85,6 +83,7 @@ static int __deconstrcut(Map *map)
     dbg_str(RBTMAP_DETAIL, "hash map deconstruct, map addr:%p", map);
     object_destroy(map->b);
     object_destroy(map->e);
+    map->clear(map);
     rbtree_map_destroy(((RBTree_Map *)map)->rbmap);
 
     return 0;
@@ -102,10 +101,6 @@ static int __add(Map *map, void *key, void *value)
 {
     dbg_str(RBTMAP_DETAIL, "Rbtree Map add");
     RBTree_Map *rbmap = (RBTree_Map *)map;
-
-    if (rbmap->key_type) {
-        rbmap->rbmap->key_type = rbmap->key_type;
-    }
 
     return rbtree_map_insert(rbmap->rbmap, key, value);
 }
@@ -279,10 +274,7 @@ static class_info_entry_t rbtree_map_class_info[] = {
     Init_Vfunc_Entry(14, RBTree_Map, for_each, NULL),
     Init_Vfunc_Entry(15, RBTree_Map, count, __count),
     Init_Vfunc_Entry(16, RBTree_Map, clear, NULL),
-    Init_U16___Entry(17, RBTree_Map, key_size, NULL),
-    Init_U16___Entry(18, RBTree_Map, value_size, NULL),
-    Init_U8____Entry(19, RBTree_Map, key_type, NULL),
-    Init_End___Entry(20, RBTree_Map),
+    Init_End___Entry(17, RBTree_Map),
 };
 
 REGISTER_CLASS("RBTree_Map", rbtree_map_class_info);

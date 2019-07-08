@@ -35,15 +35,9 @@ struct Hash_Map_s{
     Iterator *(*begin)(Map *map);
     Iterator *(*end)(Map *map);
 
-#define MAX_NAME_LEN 50
-    char name[MAX_NAME_LEN];
-#undef MAX_NAME_LEN
+    /*attribs*/
     hash_map_t *hmap;
-    uint16_t key_size;
     uint16_t bucket_size;
-    uint16_t value_size;
-    uint8_t key_type;
-    void *test;
 };
 
 #endif
