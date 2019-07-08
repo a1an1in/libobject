@@ -178,7 +178,8 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
 
             case_result = object_new(allocator, "Test_Case_Result", NULL);
             case_result->set(case_result, "result", &test->ret);
-            case_result->set(case_result, "file", test->file);
+            if (test->file != NULL)
+                case_result->set(case_result, "file", test->file);
             case_result->set(case_result, "line", &test->line);
 
             if (test->ret == 1 || ret == 1) {

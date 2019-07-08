@@ -39,20 +39,12 @@ static int __construct(List *list, char *init_str)
 {
     llist_t *llist;
     allocator_t *allocator = ((Obj *)list)->allocator;
-    int value_size;
     int lock_type = 0;
 
     dbg_str(OBJ_DETAIL, "llist list construct, list addr:%p", list);
 
-    if (list->value_size == 0) {
-        value_size = sizeof(void *);
-        dbg_str(OBJ_DETAIL, "link list value is zero, we'll set it to default value 50");
-    } else {
-        value_size = list->value_size;
-    }
     llist = llist_alloc(allocator);
     llist_set(llist, "lock_type", &lock_type);
-    llist_set(llist, "data_size", &value_size);
     llist_init(llist);
 
     ((Linked_List *)list)->llist = llist;
@@ -227,57 +219,3 @@ static class_info_entry_t llist_class_info[] = {
     Init_End___Entry(16, Linked_List),
 };
 REGISTER_CLASS("Linked_List", llist_class_info);
-
-static void llist_list_print(void *element)
-{
-    dbg_str(OBJ_DETAIL, "value: %s", element);
-}
-
-int test_Linked_List(TEST_ENTRY *entry)
-{
-    allocator_t *allocator = allocator_get_default_alloc();
-    char *set_str;
-    List *list;
-    char *str;
-    char *str1 = "hello world1";
-    char *str2 = "hello world2";
-    char *str3 = "hello world3";
-    char *str4 = "hello world4";
-    char *str5 = "hello world5";
-    int value_size = 8;
-
-    dbg_str(DBG_DETAIL, "test_obj_llist_list");
-
-    list = object_new(allocator, "Linked_List", NULL);
-
-    list->add_back(list, str3);
-    list->add_back(list, str4);
-    list->add_back(list, str5);
-    list->add_front(list, str2);
-    list->add_front(list, str1);
-
-    dbg_str(DBG_DETAIL, "list for each test");
-    dbg_str(DBG_DETAIL, "list count=%d", list->count(list));
-    list->for_each(list, llist_list_print);
-
-#if 0
-    list->remove_back(list, (void **)&str);
-    dbg_str(DBG_DETAIL, "remove back:%s", str);
-    list->remove_front(list, (void **)&str);
-    dbg_str(DBG_DETAIL, "remove front:%s", str);
-#else
-    dbg_str(DBG_DETAIL, "remove element:%s", str2);
-    list->remove_element(list, (void *)str2);
-#endif
-
-    list->remove_all(list);
-
-    dbg_str(DBG_DETAIL, "list for each test");
-    dbg_str(DBG_DETAIL, "list count=%d", list->count(list));
-    list->for_each(list, llist_list_print);
-
-    object_destroy(list);
-
-    return 1;
-}
-REGISTER_TEST_FUNC(test_Linked_List);

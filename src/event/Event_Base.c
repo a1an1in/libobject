@@ -216,7 +216,7 @@ static int __activate_signal(Event_Base *eb, int fd, short events)
 
     dbg_str(EV_DETAIL,"event base active signal event, signal = %d, ncount=%d", fd, events);
 
-    list->remove_all(list);
+    list->clear(list);
 
     map->search_all_same_key(map, fd, list);
     if (list->count(list) != 0) {

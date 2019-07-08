@@ -70,10 +70,7 @@ llist_t *llist_alloc(allocator_t *allocator)
 
 int llist_set(llist_t *llist, char *attrib, void *value)
 {
-    if (!strcmp(attrib, "data_size")) {
-        llist->data_size = *((int *)value);
-        dbg_str(LINKLIST_DETAIL, "data_size=%d", llist->data_size);
-    } else if (!strcmp(attrib, "lock_type")) {
+    if (!strcmp(attrib, "lock_type")) {
         llist->lock_type = *((int *)value);
         dbg_str(LINKLIST_DETAIL, "lock_type=%d", llist->lock_type);
     } else {
@@ -407,7 +404,6 @@ int test_llist_add(TEST_ENTRY *entry)
 {
     llist_t *llist;
     allocator_t *allocator = allocator_get_default_alloc();
-    int data_size = sizeof(void *);
     int lock_type = 1;
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;
@@ -446,7 +442,6 @@ int test_llist_search(TEST_ENTRY *entry)
 {
     llist_t *llist;
     allocator_t *allocator = allocator_get_default_alloc();
-    int data_size = sizeof(void *);
     int lock_type = 1;
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 1;
@@ -476,7 +471,6 @@ int test_llist_remove_front(TEST_ENTRY *entry)
 {
     llist_t *llist;
     allocator_t *allocator = allocator_get_default_alloc();
-    int data_size = sizeof(void *);
     int lock_type = 1;
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;
