@@ -35,13 +35,8 @@ struct RBTree_Map_s{
     int (*count)(Map *map);
     int (*clear)(Map *map);
 
-#define MAX_NAME_LEN 50
-    char name[MAX_NAME_LEN];
-#undef MAX_NAME_LEN
+    /*attribs*/
     rbtree_map_t *rbmap;
-    uint16_t key_size;
-    uint16_t value_size;
-    uint8_t key_type;
     void *key_cmp_cb;
 };
 
