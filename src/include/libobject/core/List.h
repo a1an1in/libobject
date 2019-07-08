@@ -25,7 +25,7 @@ struct _list_s{
     int (*remove_front)(List *list, void **data);
     int (*remove_back)(List *list, void **data);
     int (*remove_element)(List *list, void *data);
-    int (*remove_all)(List *list);
+    int (*clear)(List *list);
     int (*count)(List *list);
     int (*is_empty)(List *list);
     int (*detach_front)(List *list,Iterator *iter);
@@ -36,11 +36,8 @@ struct _list_s{
     Iterator *(*end)(List *list);
     int (*destroy)(List *list);
 
-#define MAX_NAME_LEN 50
-    char name[MAX_NAME_LEN];
-#undef MAX_NAME_LEN
-	int value_size;
     Iterator *b, *e;
+    uint8_t trustee_flag, value_type;
 
 };
 

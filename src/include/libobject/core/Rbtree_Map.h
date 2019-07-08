@@ -32,6 +32,8 @@ struct RBTree_Map_s{
     Iterator *(*begin)(Map *map);
     Iterator *(*end)(Map *map);
     int (*destroy)(Map *map);
+    int (*count)(Map *map);
+    int (*clear)(Map *map);
 
 #define MAX_NAME_LEN 50
     char name[MAX_NAME_LEN];
