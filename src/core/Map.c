@@ -104,6 +104,50 @@ static Iterator *__end(Map *map)
     dbg_str(OBJ_DETAIL, "Map end");
 }
 
+static int __clear(Map *map)
+{
+    Iterator *cur, *end;
+    void *key, *value;
+    void *element;
+
+    cur = map->begin(map);
+    end = map->end(map);
+
+    for (; !end->equal(end, cur);
+           cur = map->begin(map), end = map->end(map)) 
+    {
+        key = cur->get_kpointer(cur);
+        map->remove(map, key, &element);
+
+        if (map->trustee_flag != 1) {
+            continue;
+        }
+
+        if (    map->value_type == VALUE_TYPE_OBJ_POINTER && 
+                element != NULL) 
+        {
+            object_destroy(element);
+        } else if (map->value_type  == VALUE_TYPE_STRING &&
+                   element != NULL)
+        {
+            object_destroy(element);
+        } else if (map->value_type  == VALUE_TYPE_ALLOC_POINTER &&
+                   element != NULL)
+        {
+            allocator_mem_free(map->obj.allocator, element);
+        } else if (map->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
+                   element != NULL)
+        {
+            dbg_str(DBG_WARNNING, "not support clear unkown pointer");
+        } else {
+        }
+
+        element = NULL;
+    }
+
+    return 0;
+}
+
 static int __destroy(Map *map)
 {
     dbg_str(OBJ_DETAIL, "Map destroy");
@@ -129,9 +173,13 @@ static class_info_entry_t map_class_info[] = {
     Init_Vfunc_Entry(16, Map, begin, __begin),
     Init_Vfunc_Entry(17, Map, end, __end),
     Init_Vfunc_Entry(18, Map, destroy, __destroy),
-    Init_Vfunc_Entry(19, Map, set_cmp_func, NULL),
-    Init_Nfunc_Entry(20, Map, set_target_name, NULL),
-    Init_End___Entry(21, Map),
+    Init_Vfunc_Entry(19, Map, count, NULL),
+    Init_Vfunc_Entry(20, Map, clear, __clear),
+    Init_Vfunc_Entry(21, Map, set_cmp_func, NULL),
+    Init_U8____Entry(22, Map, trustee_flag, NULL),
+    Init_U8____Entry(23, Map, value_type, NULL),
+    Init_U8____Entry(24, Map, key_type, NULL),
+    Init_End___Entry(25, Map),
 };
 REGISTER_CLASS("Map", map_class_info);
 

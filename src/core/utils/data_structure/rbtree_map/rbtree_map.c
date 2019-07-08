@@ -318,7 +318,7 @@ int rbtree_map_delete(rbtree_map_t *map, rbtree_map_pos_t *it)
     return 0;
 }
 
-int rbtree_map_remove(rbtree_map_t *map, rbtree_map_pos_t *it)
+int rbtree_map_remove(rbtree_map_t *map, rbtree_map_pos_t *it, void **element)
 {
     struct rbtree_map_node *mnode;
     struct rb_node_s *rb_node_p = it->rb_node_p;
@@ -335,6 +335,10 @@ int rbtree_map_remove(rbtree_map_t *map, rbtree_map_pos_t *it)
     rb_erase(rb_node_p, tree_root);
     map->count--;
     sync_unlock(&map->map_lock);
+
+    if (element != NULL) {
+        *element = mnode->value;
+    }
 
     if (mnode != NULL) {
         allocator_mem_free(map->allocator, mnode);

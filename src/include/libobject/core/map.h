@@ -6,6 +6,7 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/Iterator.h>
 #include <libobject/core/List.h>
+#include <libobject/core/string.h>
 
 typedef struct _map_s Map;
 
@@ -35,14 +36,18 @@ struct _map_s{
     int (*del)(Map *map, void *key);
     void (*for_each)(Map *map,void (*func)(void *key, void *element));
     void (*for_each_arg)(Map *map,void (*func)(void *key, void *element, void *arg),void *arg);
+    int (*destroy)(Map *map);
+    int (*count)(Map *map);
+    int (*clear)(Map *map);
     Iterator *(*begin)(Map *map);
     Iterator *(*end)(Map *map);
-    int (*destroy)(Map *map);
 
     /*inherit methods*/
     int (*set_target_name)(Obj *obj, char *);
 
     Iterator *b, *e;
+    uint8_t trustee_flag;
+	uint8_t key_type, value_type;
 };
 
 #endif

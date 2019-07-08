@@ -114,7 +114,7 @@ static int __remove(Rbtree_Timer *timer, event_t *e)
         return ret;
     }
     rbtree_map_search(map, &e->ev_timeout, &it);
-    rbtree_map_remove(map, &it);
+    rbtree_map_delete(map, &it);
 
     return 0;
 }

@@ -65,7 +65,7 @@ rbtree_map_pos_t * rbtree_map_begin(rbtree_map_t *map, rbtree_map_pos_t *begin);
 rbtree_map_pos_t * rbtree_map_end(rbtree_map_t *map, rbtree_map_pos_t *end);
 int rbtree_map_insert(rbtree_map_t *map,void *key,void *value);
 int rbtree_map_delete(rbtree_map_t *map, rbtree_map_pos_t *it);
-int rbtree_map_remove(rbtree_map_t *map, rbtree_map_pos_t *it);
+int rbtree_map_remove(rbtree_map_t *map, rbtree_map_pos_t *it, void **element);
 int rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it);
 int rbtree_map_destroy(rbtree_map_t *map);
 int rbtree_map_get_key_len(rbtree_map_t *map);

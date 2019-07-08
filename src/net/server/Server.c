@@ -172,27 +172,3 @@ static class_info_entry_t concurent_class_info[] = {
     Init_End___Entry(7 , Server),
 };
 REGISTER_CLASS("Server", concurent_class_info);
-
-/*
- *void test_obj_server()
- *{
- *    Server *server;
- *    allocator_t *allocator = allocator_get_default_alloc();
- *    configurator_t * c;
- *    char *set_str;
- *    cjson_t *root, *e, *s;
- *    char buf[2048];
- *
- *    c = cfg_alloc(allocator); 
- *    dbg_str(EV_SUC, "configurator_t addr:%p", c);
- *    cfg_config(c, "/Server", CJSON_STRING, "name", "alan server") ;  
- *
- *    server = OBJECT_NEW(allocator, Server, c->buf);
- *
- *    object_dump(server, "Server", buf, 2048);
- *    dbg_str(EV_DETAIL, "Server dump: %s", buf);
- *
- *    object_destroy(server);
- *    cfg_destroy(c);
- *}
- */
