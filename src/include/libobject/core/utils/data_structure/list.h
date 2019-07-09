@@ -72,7 +72,7 @@ extern void __list_add(struct list_head *new,
 #endif
 
 /**
- * list_add - add a new entry
+ * list_add_after - add a new entry
  * @new: new entry to be added
  * @head: list head to add it after
  *
@@ -80,24 +80,24 @@ extern void __list_add(struct list_head *new,
  * This is good for implementing stacks.
  */
 #ifndef CONFIG_DEBUG_LIST
-static inline void list_add(struct list_head *n, struct list_head *head)
+static inline void list_add_after(struct list_head *n, struct list_head *head)
 {
 	__list_add(n, head, head->next);
 }
 #else
-extern void list_add(struct list_head *new, struct list_head *head);
+extern void list_add_after(struct list_head *new, struct list_head *head);
 #endif
 
 
 /**
- * list_add_tail - add a new entry
+ * list_add_before - add a new entry
  * @new: new entry to be added
  * @head: list head to add it before
  *
  * Insert a new entry before the specified head.
  * This is useful for implementing queues.
  */
-static inline void list_add_tail(struct list_head *n, struct list_head *head)
+static inline void list_add_before(struct list_head *n, struct list_head *head)
 {
 	__list_add(n, head->prev, head);
 }
@@ -142,7 +142,7 @@ static inline void list_add_rcu(struct list_head *n, struct list_head *head)
 }
 
 /**
- * list_add_tail_rcu - add a new entry to rcu-protected list
+ * list_add_before_rcu - add a new entry to rcu-protected list
  * @new: new entry to be added
  * @head: list head to add it before
  *
@@ -151,13 +151,13 @@ static inline void list_add_rcu(struct list_head *n, struct list_head *head)
  *
  * The caller must take whatever precautions are necessary
  * (such as holding appropriate locks) to avoid racing
- * with another list-mutation primitive, such as list_add_tail_rcu()
+ * with another list-mutation primitive, such as list_add_before_rcu()
  * or list_del_rcu(), running on this same list.
  * However, it is perfectly legal to run concurrently with
  * the _rcu list-traversal primitives, such as
  * list_for_each_entry_rcu().
  */
-static inline void list_add_tail_rcu(struct list_head *n,
+static inline void list_add_before_rcu(struct list_head *n,
 					struct list_head *head)
 {
 	__list_add_rcu(n, head->prev, head);
@@ -284,7 +284,7 @@ static inline void list_del_init(struct list_head *entry)
 static inline void list_move(struct list_head *list, struct list_head *head)
 {
         __list_del(list->prev, list->next);
-        list_add(list, head);
+        list_add_after(list, head);
 }
 
 /**
@@ -296,7 +296,7 @@ static inline void list_move_tail(struct list_head *list,
 				  struct list_head *head)
 {
         __list_del(list->prev, list->next);
-        list_add_tail(list, head);
+        list_add_before(list, head);
 }
 
 /**

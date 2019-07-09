@@ -48,6 +48,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
+#include "libobject/core/utils/data_structure/list.h"
 #include <libobject/core/utils/alloc/inc_files.h>
 
 /*-----------------------------------------------------------------------------
@@ -84,7 +85,7 @@ void slab_attach_list(struct list_head *new_head, struct list_head *hl_head)
     head_list = container_of(hl_head, ctr_slab_head_list_t, list_head);
 
     sync_lock(&head_list->head_lock, NULL);
-    list_add(new_head, hl_head);
+    list_add_after(new_head, hl_head);
     head_list->count++;
     sync_unlock(&head_list->head_lock);
 }

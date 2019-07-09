@@ -142,6 +142,11 @@ static int __add_back(Vector *vector, void *value)
     return vector_add_back(vector->vector, value);
 }
 
+static int __add_at(Vector *vector, int index, void *value)
+{
+   return vector_add_at(vector->vector, index, value);
+}
+
 static int __remove(Vector *vector, int index, void **value)
 {
     return vector_remove(vector->vector, index, value);
@@ -150,11 +155,6 @@ static int __remove(Vector *vector, int index, void **value)
 static int __remove_back(Vector *vector, void **value)
 {
     return vector_remove_back(vector->vector, value);
-}
-
-static int __add_at(Vector *vector, int index, void *value)
-{
-   return vector_add_at(vector->vector, index, value);
 }
 
 static int __peek_at(Vector *vector, int index, void **value)

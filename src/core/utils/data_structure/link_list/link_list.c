@@ -110,7 +110,7 @@ int llist_add(llist_t *llist, list_pos_t *pos, void *data)
     p->data = data;
 
     sync_lock(&llist->list_lock, NULL);
-    list_add(&p->list_head, pos->list_head_p);
+    list_add_after(&p->list_head, pos->list_head_p);
     if (llist_pos_equal(pos, &llist->head)) {
         llist_pos_init(&llist->begin, &p->list_head, llist);
     }

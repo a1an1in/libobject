@@ -16,7 +16,6 @@
  * =====================================================================================
  */
 
-#include "libobject/core/utils/alloc/list.h"
 #include "libobject/core/utils/alloc/basic_types.h"
 #include "libobject/core/utils/alloc/allocator.h"
 #include "libobject/core/utils/alloc/allocator_ctr_alloc.h"
