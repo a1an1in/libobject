@@ -133,7 +133,7 @@ int llist_add_back(llist_t *llist, void *data)
 
     sync_lock(&llist->list_lock, NULL);
 
-    list_add_tail(&p->list_head, llist->head.list_head_p);
+    list_add_before(&p->list_head, llist->head.list_head_p);
     if (llist_pos_equal(&llist->head, &llist->begin)) {
         llist_pos_init(&llist->begin,
                        llist->head.list_head_p->next,
