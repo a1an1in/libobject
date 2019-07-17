@@ -41,8 +41,6 @@ static int __construct(List *list, char *init_str)
     allocator_t *allocator = ((Obj *)list)->allocator;
     int lock_type = 0;
 
-    dbg_str(OBJ_DETAIL, "llist list construct, list addr:%p", list);
-
     llist = llist_alloc(allocator);
     llist_set(llist, "lock_type", &lock_type);
     llist_init(llist);
@@ -57,8 +55,6 @@ static int __construct(List *list, char *init_str)
 
 static int __deconstrcut(List *list)
 {
-    dbg_str(OBJ_DETAIL, "llist list deconstruct, list addr:%p", list);
-
     object_destroy(list->b);
     object_destroy(list->e);
     llist_destroy(((Linked_List *)list)->llist);
@@ -70,16 +66,12 @@ static int __add(List *list, void *value)
 {
     Linked_List *l = (Linked_List *)list;
 
-    dbg_str(OBJ_DETAIL, "Link list add");
-
     return llist_add_back(l->llist, value);
 }
 
 static int __add_back(List *list, void *value)
 {
     Linked_List *l = (Linked_List *)list;
-
-    dbg_str(OBJ_DETAIL, "Link list push back");
 
     return llist_add_back(l->llist, value);
 }
@@ -88,16 +80,12 @@ static int __add_front(List *list, void *value)
 {
     Linked_List *l = (Linked_List *)list;
 
-    dbg_str(OBJ_DETAIL, "Link list push back");
-
     return llist_add_front(l->llist, value);
 }
 
 static int __delete(List *list)
 {
     Linked_List *l = (Linked_List *)list;
-
-    dbg_str(OBJ_DETAIL, "Link list delete");
 
     return llist_delete(l->llist, &l->llist->begin);
 }
@@ -106,16 +94,12 @@ static int __remove(List *list, void **data)
 {
     Linked_List *l = (Linked_List *)list;
 
-    dbg_str(OBJ_DETAIL, "Link list remove");
-
     return llist_remove_front(l->llist, data);
 }
 
 static int __remove_front(List *list, void **data)
 {
     Linked_List *l = (Linked_List *)list;
-
-    dbg_str(OBJ_DETAIL, "Link list remove front");
 
     return llist_remove_front(l->llist, data);
 }
@@ -124,16 +108,12 @@ static int __remove_back(List *list, void **data)
 {
     Linked_List *l = (Linked_List *)list;
 
-    dbg_str(OBJ_DETAIL, "Link list remove");
-
     return llist_remove_back(l->llist, data);
 }
 
 static int __remove_element(List *list, void *data)
 {
     Linked_List *l = (Linked_List *)list;
-
-    dbg_str(OBJ_DETAIL, "List remove element");
 
     return llist_remove_element(l->llist, data);
 }
@@ -179,8 +159,6 @@ static Iterator *__begin(List *list)
     allocator_t *allocator = list->obj.allocator;
     LList_Iterator *iter   = (LList_Iterator *)list->b;
 
-    dbg_str(OBJ_DETAIL, "Linked List begin");
-
     llist_begin(l->llist, &(iter->list_pos));
 
     return (Iterator *)iter;
@@ -191,8 +169,6 @@ static Iterator *__end(List *list)
     Linked_List *l         = (Linked_List *)list;
     allocator_t *allocator = list->obj.allocator;
     LList_Iterator *iter   = (LList_Iterator *)list->e;
-
-    dbg_str(OBJ_DETAIL, "Linked List end");
 
     llist_end(l->llist, &(iter->list_pos));
 
