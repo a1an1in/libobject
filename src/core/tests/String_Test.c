@@ -207,18 +207,16 @@ static void __test_split_n(String_Test *test)
 {
     //test find and split function
     String *str = test->str;
-    int i, cnt, expect_count = 3;
+    int i, cnt, expect_count = 2;
     char *p;
     char *expect0 = "https:";
-    char *expect1 = "www.baidu.com";
-    char *expect2 = "s?ie=utf-8";
+    char *expect1 = "www.baidu.com/s?ie=utf-8";
 
     str->assign(str, "https://www.baidu.com/s?ie=utf-8");  
 
-    str->replace(str, "//", "/");
-    cnt = str->split_n(str, "/", 3);
+    cnt = str->split_n(str, "//", 1);
 
-    for (i = 0; i < cnt; i++) {
+    for (i = 0; i <= cnt; i++) {
         p = str->get_splited_cstr(str, i);
         if (p != NULL) {
             dbg_str(DBG_SUC, "%d:%s", i, p);
@@ -228,30 +226,70 @@ static void __test_split_n(String_Test *test)
     ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
     ASSERT_EQUAL(test, str->get_splited_cstr(str, 0), expect0, sizeof(expect0));
     ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, sizeof(expect1));
-    ASSERT_EQUAL(test, str->get_splited_cstr(str, 2), expect2, sizeof(expect2));
+}
+
+static void __test_split_n_using_reg(String_Test *test)
+{
+    //test find and split function
+    String *str = test->str;
+    int i, cnt, expect_count = 2;
+    char *p;
+    char *expect0 = "https://www.";
+    char *expect1 = ".com/s?ie=utf-8";
+    int ret;
+
+    str->assign(str, "https://www.baidu.com/s?ie=utf-8");  
+
+    cnt = str->split_n(str, "b(.*)du", -1);
+
+    for (i = 0; i < cnt; i++) {
+        p = str->get_splited_cstr(str, i);
+        if (p != NULL) {
+            dbg_str(DBG_SUC, "%d:%s", i, p);
+        }
+    }
+
+    ret = ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
+    if (ret != 1) {
+        dbg_str(DBG_ERROR, "expect_count = %d, count=%d", expect_count, cnt);
+    }
+    ret = ASSERT_EQUAL(test, str->get_splited_cstr(str, 0), expect0, sizeof(expect0));
+    if (ret != 1) {
+        dbg_str(DBG_ERROR, "expect0 = %s, real=%s",
+                expect0, str->get_splited_cstr(str, 0));
+    }
+    ret = ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, sizeof(expect1));
+    if (ret != 1) {
+        dbg_str(DBG_ERROR, "expect1 = %s, real=%s",
+                expect1, str->get_splited_cstr(str, 1));
+    }
 }
 
 static void __test_find(String_Test *test)
 {
     String *string = test->str;
-    int expect_pos = 16, pos;
+    int expect_count = 3, count;
 
     string->assign(string, "rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25");
 
-    pos = string->find(string, "&", 0);
-    ASSERT_EQUAL(test, &pos, &expect_pos, sizeof(pos));
+    count = string->find(string, "&", 0);
+    ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
 }
 
 static void __test_replace(String_Test *test)
 {
     String *string = test->str;
-    char *test1 = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
-    char *test2 = "####rsv//_sug1 = 107####rsv_sug7 = 100####rsv_sug2 = 0####prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+    char *test1 = "&rsv//_sug1 = 107&rsv_sug2 = 100&rsv_sug3 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+    char *test2 = "####rsv//_sug1 = 107####rsv_sug2 = 100####rsv_sug3 = 0####prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+    int ret;
 
     string->assign(string, test1);
     string->replace(string, "&", "####");
 
-    ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
+    ret = ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
+    if (ret != 1) {
+        dbg_str(DBG_ERROR, "expect:%s, real:%s",  test2, string->get_cstr(string));
+    }
 }
 
 static void __test_replace_n(String_Test *test)
@@ -267,7 +305,11 @@ static void __test_replace_n(String_Test *test)
     string->assign(string, test1);
     string->replace_n(string, "&", "####", 1);
 
-    ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
+    ret = ASSERT_EQUAL(test, string->get_cstr(string), test2, strlen(test2));
+    if (ret != 1) {
+        dbg_str(DBG_ERROR, "expect:%s, real:%s",  test2, string->get_cstr(string));
+    }
+
 }
 
 static void __test_empty(String_Test *test)
@@ -324,14 +366,15 @@ static class_info_entry_t string_test_class_info[] = {
     Init_Vfunc_Entry(11, String_Test, test_get_substring, __test_get_substring),
     Init_Vfunc_Entry(12, String_Test, test_insert, __test_insert),
     Init_Vfunc_Entry(13, String_Test, test_insert_string, __test_insert_string),
-    Init_Vfunc_Entry(14, String_Test, test_split, __test_split),
-    Init_Vfunc_Entry(15, String_Test, test_split_n, __test_split_n),
-    Init_Vfunc_Entry(16, String_Test, test_find, __test_find),
-    Init_Vfunc_Entry(17, String_Test, test_replace, __test_replace),
+    Init_Vfunc_Entry(14, String_Test, test_split_n, __test_split_n),
+    Init_Vfunc_Entry(15, String_Test, test_split, __test_split),
+    Init_Vfunc_Entry(16, String_Test, test_split_n_using_reg, __test_split_n_using_reg),
+    Init_Vfunc_Entry(17, String_Test, test_find, __test_find),
     Init_Vfunc_Entry(18, String_Test, test_replace_n, __test_replace_n),
-    Init_Vfunc_Entry(19, String_Test, test_empty, __test_empty),
-    Init_Vfunc_Entry(20, String_Test, test_ltrim, __test_ltrim),
-    Init_Vfunc_Entry(21, String_Test, test_rtrim, __test_rtrim),
-    Init_End___Entry(22, String_Test),
+    Init_Vfunc_Entry(19, String_Test, test_replace, __test_replace),
+    Init_Vfunc_Entry(20, String_Test, test_empty, __test_empty),
+    Init_Vfunc_Entry(21, String_Test, test_ltrim, __test_ltrim),
+    Init_Vfunc_Entry(22, String_Test, test_rtrim, __test_rtrim),
+    Init_End___Entry(23, String_Test),
 };
 REGISTER_CLASS("String_Test", string_test_class_info);

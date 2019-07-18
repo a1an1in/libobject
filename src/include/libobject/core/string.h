@@ -38,6 +38,7 @@ struct string_s{
     void (*rtrim)(String *);
     void (*trim)(String *);
     int  (*find)(String *string, char *, int pos);
+    int  (*find_n)(String *string, char *, int pos, int max);
     String * (*get_substring)(String  *string,int pos,int len);  
     char *(*get_cstr)(String *);
     size_t (*get_len)(String *);

@@ -58,6 +58,7 @@ static int __set_white_list(Test_Runner *runner, char *list)
         goto end;
     }
 
+    dbg_str(DBG_SUC, "count =%d", count);
     for (i = 0; i < count; i++) {
         s = object_new(allocator, "String", NULL);
         s->assign(s, str->get_splited_cstr(str, i));

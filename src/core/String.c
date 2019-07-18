@@ -30,12 +30,33 @@
  * 
  */
 #include <stdio.h>
+#include <regex.h>
 #include <ctype.h>
 #include <string.h>
 #include <assert.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/String.h>
 #include <libobject/core/Vector.h>
+
+typedef struct string_piece_s {
+    void *start_pos;
+    int len;
+} string_piece_t;
+
+string_piece_t *
+__new_string_peice(allocator_t *allocator, 
+                   void *start_pos, int len) 
+{
+    string_piece_t *piece;
+
+    piece = (string_piece_t *) allocator_mem_alloc(allocator,
+                                                   sizeof(string_piece_t));
+
+    piece->start_pos = start_pos;
+    piece->len = len;
+
+    return piece;
+}
 
 static int __modulate_capacity(String *string, int write_len)
 {
@@ -293,71 +314,74 @@ static String * __replace_char(String *string, int index, char c)
     return string;
 }
 
-static int __replace_inner(String *self, char *old, char *newstr)
-{
-    int start_pos = 0;
-    int end_pos   = 0;
-    int ret = 0;
-    int old_len = strlen(old);
-    int new_len = strlen(newstr);
-    int str_len = self->get_len(self);
-
-    if (old == NULL || newstr == NULL) {
-        return -1;
-    }
-
-    start_pos = self->find(self, old, start_pos);
-
-    if (start_pos < 0) {
-        ret = -1;
-        goto end;
-    }
-
-    if (old_len <= new_len) {
-        ret = __modulate_capacity(self, new_len - old_len);
-        if (ret < 0 ) {
-        ret = -1;
-            goto end;
-        }
-    }
-
-    end_pos = start_pos + new_len;
-    memmove(self->value + end_pos, self->value + start_pos + old_len,
-            str_len - (start_pos + old_len));
-    memmove(self->value + start_pos, newstr, new_len); 
-    self->value_len += (new_len - old_len);
-    self->value[self->value_len] = '\0';
-    ret = 1;
-
-end:
-    return ret;
-}
-
 static int __replace(String *self, char *old, char *newstr)
 {
     return self->replace_n(self, old, newstr, -1);
 }
 
 static int 
-__replace_n(String *self, char *oldstr, char *newstr, int max)
+__replace_n(String *self, char *pattern, char *newstr, int max)
 {
-    String *pre = self;
-    int ret = 0, count = 0;
+    int start_offset = 0, old_offset;
+    int old_len, new_len, str_len;
+    Vector *v;
+    string_piece_t *piece = NULL;
+    int count, ret = 0;
 
-    if ( oldstr == NULL || newstr == NULL ) { return -1; }
+    if ( pattern == NULL || newstr == NULL ) { return -1; }
 
-    while (1) {
-        ret = __replace_inner(pre, oldstr, newstr);
+    new_len = strlen(newstr);
+    str_len = self->get_len(self);
+
+    do {
+        dbg_str(DBG_DETAIL, "replace, start offset =%d", start_offset);
+        ret = self->find_n(self, pattern, start_offset, 1);
         if (ret <= 0) {
-            break;
+            dbg_str(DBG_DETAIL, "replace, not found");
+            goto end;
+        } else if (ret > 1) {
+            ret = -1;
+            goto end;
         }
 
-        count++;
+        v = self->splited_strings;
+        if (v == NULL) {
+            ret = -1;
+            goto end;
+        }
 
-        if (max > 0 && count == max) {
-            break;
-        }   
-    }
+        v->peek_at(v, 0, (void **)&piece);
+        if (piece != NULL) {
+            old_len = piece->len;
+            old_offset = (int)(piece->start_pos - (void *)self->value);
+            dbg_str(DBG_DETAIL, "replace:%s", piece->start_pos);
+            dbg_str(DBG_DETAIL, "new_len:%d, piece_len:%d", new_len, piece->len);
+        } else {
+            dbg_str(DBG_WARNNING, "get_splited_cstr: not exist!!");
+        }
+
+        if (str_len <= str_len + new_len - old_len) {
+            ret = __modulate_capacity(self, str_len + new_len - old_len);
+            if (ret < 0 ) {
+                ret = -1;
+                goto end;
+            }
+        }
+
+        memmove(self->value + old_offset + new_len, 
+                self->value + old_offset + piece->len,
+                strlen(self->value + old_offset + piece->len));
+            dbg_str(DBG_DETAIL, "    replace:%s", self->value + old_offset);
+        memmove(self->value + old_offset, newstr, new_len); 
+            dbg_str(DBG_DETAIL, "    replace:%s",self->value + old_offset);
+        self->value_len += (new_len - old_len);
+        self->value[self->value_len] = '\0';
+        count++;
+        start_offset = old_offset + new_len;
+        dbg_str(DBG_DETAIL, "replaced:%s", self->value);
+    } while (count < max || max == -1);
+
+end:
 
     return count;
 }
@@ -446,87 +470,126 @@ static String *__get_substring(String  *string, int pos, int len)
     return str;
 }
 
-static int __find(String *string, char *key, int pos)
+static int __find(String *string, char *pattern, int offset)
 {   
-    int len1 = string->value_len;
-    int len2 = strlen(key);
-    char *p  = NULL;
-
-    if (NULL == string || NULL == key || pos < 0 || len1 < len2) {
-        return -1;//exception happened
-    }
-    
-    p = strstr(string->value + pos, key);
-    if(NULL !=  p) {
-        return p - (string->value);
-    }
-
-    return -1;
+    return string->find_n(string, pattern, offset, -1);
 }
 
-static int __find_n(String *string, char *key, int pos, int count)
-{
-}
-
-static int __split(String *string, char *delims)
+static int __find_n(String *string, char *pattern, int offset, int num)
 {
     int cnt = 0;
-    char *ptr = NULL;
-    char *p;
+    char *pos;
     Vector *v;
+    string_piece_t *piece;
+    allocator_t *allocator = string->obj.allocator;
+    regex_t regex;  
+    regmatch_t pmatch[1];  
+    int nmatch = 1, ret = -1;
 
     if (string->splited_strings == NULL) {
-        v = OBJECT_NEW(string->obj.allocator, Vector, NULL);
-        string->splited_strings = v;
-    } else {
-        v = string->splited_strings;
-    }
+        uint8_t trustee_flag = 1;
+        int value_type = VALUE_TYPE_ALLOC_POINTER;
 
-    for (   p = strtok_r(string->get_cstr(string), delims, &ptr);
-            p;
-            p = strtok_r(NULL, delims, &ptr)) 
-    {
-        /*
-         *dbg_str(DBG_SUC, "addr:%p, slim :%s", p, p);
-         */
-        if (p != NULL) {
-            *(p -1) = '\0';
-        }
-        cnt++;
-        v->add_back(v, p);
-    }
+        v = object_new(allocator, "Vector", NULL);
+        v->set(v, "/Vector/trustee_flag", &trustee_flag);
+        v->set(v, "/Vector/value_type", &value_type);
 
-    return cnt;
-}
-
-static int __split_n(String *string, char *delims, int num)
-{
-    int cnt = 1;
-    char *ptr = NULL;
-    char *p;
-    Vector *v;
-
-    if (string->splited_strings == NULL) {
-        v = OBJECT_NEW(string->obj.allocator, Vector, NULL);
         string->splited_strings = v;
     } else {
         v = string->splited_strings;
         v->clear(v);
     }
 
-    v->add_back(v, string->get_cstr(string)); //first section
+    ret = regcomp(&regex, pattern, REG_EXTENDED);  
+    if (ret) {
+        dbg_str(DBG_ERROR, "regex error");
+        return -1;
+    }
 
-    p = string->get_cstr(string);
+    pos = string->get_cstr(string);
+    if (strlen(pos) == 0) return 0;
+
+    pos += offset;
 
     do {
-        p = strtok_r(p, delims, &ptr);
-        if (ptr != NULL) {
+        ret = regexec(&regex, pos, nmatch, pmatch, 0);  
+        if(ret != REG_NOMATCH) { 
             cnt++;
-            v->add_back(v, ptr);
-            dbg_str(DBG_DETAIL, "cur:%s, next :%s", p, ptr);
+            piece = __new_string_peice(allocator, pos + pmatch[0].rm_so ,
+                                        pmatch[0].rm_eo - pmatch[0].rm_so); 
+            dbg_str(DBG_DETAIL, "found count:%d, offset:%d", cnt, 
+                    (int)(pos + pmatch[0].rm_so - string->get_cstr(string)));
+            v->add_back(v, piece); 
+            pos += pmatch[0].rm_eo; 
+        }  else {
+            break;
         }
-        p = ptr;
-    } while (cnt < num && p != NULL);
+
+    } while ((cnt < num || num < 0));
+
+    regfree(&regex);  
+
+    return cnt;
+}
+
+static int __split(String *string, char *delims)
+{
+    return string->split_n(string, delims, -1);
+}
+
+static int __split_n(String *string, char *delims, int num)
+{
+    int cnt = 0;
+    char *pos;
+    Vector *v;
+    string_piece_t *piece;
+    allocator_t *allocator = string->obj.allocator;
+    regex_t regex;  
+    regmatch_t pmatch[1];  
+    int nmatch = 1, ret = -1;
+
+    if (string->splited_strings == NULL) {
+        uint8_t trustee_flag = 1;
+        int value_type = VALUE_TYPE_ALLOC_POINTER;
+
+        v = object_new(allocator, "Vector", NULL);
+        v->set(v, "/Vector/trustee_flag", &trustee_flag);
+        v->set(v, "/Vector/value_type", &value_type);
+
+        string->splited_strings = v;
+    } else {
+        v = string->splited_strings;
+        v->clear(v);
+    }
+
+    ret = regcomp(&regex, delims, REG_EXTENDED);  
+    if (ret) {
+        dbg_str(DBG_ERROR, "regex error");
+        return -1;
+    }
+
+    pos = string->get_cstr(string);
+    if (strlen(pos) == 0) return 0;
+
+    do {
+        ret = regexec(&regex, pos, nmatch, pmatch, 0);  
+        if(ret != REG_NOMATCH) { 
+            cnt++;
+            piece = __new_string_peice(allocator, pos, pmatch[0].rm_so); 
+            v->add_back(v, piece); 
+            pos[pmatch[0].rm_eo - 1] = '\0';
+            pos[pmatch[0].rm_so] = '\0';
+            pos += pmatch[0].rm_eo; 
+        }  else {
+            cnt++;
+            piece = __new_string_peice(allocator, pos, strlen(pos)); 
+            v->add_back(v, piece); 
+            break;
+        }
+
+    } while ((cnt <= num || num < 0));
+
+    regfree(&regex);  
 
     return cnt;
 }
@@ -534,13 +597,19 @@ static int __split_n(String *string, char *delims, int num)
 static char *__get_splited_cstr(String *string, int index)
 {
     Vector *v = string->splited_strings;
-    char *d;
+    string_piece_t *piece = NULL;
+    char *d = NULL;
 
     if (v == NULL) {
         return NULL;
     }
     
-    v->peek_at(v, index, (void **)&d);
+    v->peek_at(v, index, (void **)&piece);
+    if (piece != NULL) {
+        d = piece->start_pos;
+    } else {
+        dbg_str(DBG_WARNNING, "get_splited_cstr: not exist!!");
+    }
 
     return d;
 }
@@ -576,12 +645,13 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(27, String, trim, __trim), 
     Init_Vfunc_Entry(28, String, get_substring, __get_substring), 
     Init_Vfunc_Entry(29, String, find, __find), 
-    Init_Vfunc_Entry(30, String, is_empty, __is_empty), 
-    Init_Vfunc_Entry(31, String, split, __split), 
-    Init_Vfunc_Entry(32, String, split_n, __split_n), 
-    Init_Vfunc_Entry(33, String, get_splited_cstr, __get_splited_cstr), 
-    Init_Point_Entry(34, String, name, NULL), 
-    Init_Point_Entry(35, String, value, NULL), 
-    Init_End___Entry(36, String), 
+    Init_Vfunc_Entry(30, String, find_n, __find_n), 
+    Init_Vfunc_Entry(31, String, is_empty, __is_empty), 
+    Init_Vfunc_Entry(32, String, split, __split), 
+    Init_Vfunc_Entry(33, String, split_n, __split_n), 
+    Init_Vfunc_Entry(34, String, get_splited_cstr, __get_splited_cstr), 
+    Init_Point_Entry(35, String, name, NULL), 
+    Init_Point_Entry(36, String, value, NULL), 
+    Init_End___Entry(37, String), 
 };
 REGISTER_CLASS("String", string_class_info);

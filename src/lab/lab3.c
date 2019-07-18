@@ -1,150 +1,100 @@
-/**
- * @file lab.c
- * @synopsis 
- * @author a1an1in@sina.com
- * @version 
- * @date 2016-10-11
- */
-/* Copyright (c) 2015-2020 alan lin <a1an1in@sina.com>
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 3. The name of the author may not be used to endorse or promote products
- * derived from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- */
 #include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>     /* basic system data types */
-#include <sys/socket.h>    /* basic socket definitions */
-#include <netinet/in.h>    /* sock_addr_in{} and other Internet defns */
-#include <arpa/inet.h>     /* inet(3) functions */
-#include <fcntl.h>         /* nonblocking */
-#include <sys/resource.h>  /*setrlimit */
-#include <signal.h>
-#include <sys/un.h>
-#include <libobject/core/utils/dbg/debug.h>
+#include <sys/types.h>
+#include <regex.h>
+#include <libobject/core/utils/registry/registry.h>
 
-#if 0
-typedef struct small_heap_s {
-    void *queue[1024];
-    int size;
-    int (*comparator)(void *element1, void *element2);
-}heap_t;
-
-int greater_than(void *element1, void *element2) 
+static int test_reg(TEST_ENTRY *entry, void *argc, void *argv)
 {
-    long long e1, e2;
+    int status ,i;  
+    int cflags = REG_EXTENDED;  
+    regmatch_t pmatch[5];  
+    const size_t nmatch = 5;  
+    char matched[1024];
+    regex_t reg;  
+    const char * pattern = "([0-9A-Za-z\\-_\\.]+)@([0-9a-z]+\\.[a-z]{2,3})";  
+    char * buf = "chenjiayi@126.com";  
+    regcomp(&reg,pattern,cflags);//编译正则模式  
+    status = regexec(&reg,buf,nmatch, pmatch, 0);//执行正则表达式和缓存的比较  
+    if(status == REG_NOMATCH) { 
+        printf("No match\n");  
+    }  
 
-    e1 = (long long) element1;
-    e2 = (long long) element2;
-    return (e1 < e2) ? 1 : 0;
-}
-
-void shiftup(heap_t *heap, int index, void *e)
-{
-    while(index > 0) {
-        int parent = (index - 1) / 2;
-        if (heap->comparator(e, heap->queue[parent])) {
-            break;
-        }
-        heap->queue[index] = heap->queue[parent];
-        index = parent;
+    for (int x = 0; x < 5 && pmatch[x].rm_so != -1; ++x) {
+        int len = pmatch[x].rm_eo - pmatch[x].rm_so;
+        memcpy(matched, buf + pmatch[x].rm_so, len);
+        matched[len] = '\0';
+        printf("matched:%s, len=%d \n", matched, len);
     }
-    heap->queue[index] = e;
+    regfree(&reg);  
+    return 0;
 }
+REGISTER_TEST_CMD(test_reg);
 
-void heap_add(heap_t *heap, void *e){
-
-    int index = heap->size;
-
-    shiftup(heap, index, e);
-    heap->size++;
-}
-
-void shiftdown(heap_t *heap, int index, void *e)
+static int test_reg3(TEST_ENTRY *entry, void *argc, void *argv)
 {
-    int size = heap->size;
-    int half = size / 2;
+    regex_t re;
+    regmatch_t subs[1024];
+    char matched[1024];
+    char src[1024]="This order was placed for QT3000, OK?";
+    char pattern[1024] = ",";
 
-    while (index < half) {
-        int child = 2 * index + 1;
-        int right = child + 1;
-        if (right < size && heap->comparator(heap->queue[child], heap->queue[right])) {
-            child = right;
-        }
-        if (heap->comparator(heap->queue[child], e)) {
-            break;
-        }
-        heap->queue[index] = heap->queue[child];
-        index = child;
+    int err = regcomp(&re, pattern, REG_EXTENDED);
+    if (err) {
+        printf("regex error");
+        return 1;
     }
 
-    heap->queue[index] = e;
-}
+    const char *ptr = src;
+    // 匹配模式字串以及子正则
+    err = regexec(&re, ptr, 4, subs, 0);
+    for (int x = 0; x < 4 && subs[x].rm_so != -1; ++x) {
+        int len = subs[x].rm_eo - subs[x].rm_so;
+        memcpy(matched, ptr + subs[x].rm_so, len);
+        matched[len] = '\0';
+        printf("matched:%s, len=%d \n", matched, len);
+    }
 
-int heap_remove(heap_t *heap, void **element)
-{
-    if (heap->size <= 0)
-        return -1;
-
-    *element = heap->queue[0];
-
-    shiftdown(heap, 0, heap->queue[heap->size - 1]);
-    heap->queue[heap->size--] = 0;
+    regfree(&re);
 
     return 0;
 }
+REGISTER_TEST_CMD(test_reg3);
 
-int heap_size(heap_t *heap)
+static int test_reg4(TEST_ENTRY *entry, void *argc, void *argv)
 {
-    return heap->size;
-}
+    char *bematch = "hhhericchd@gmail.com";
+    char *pattern = "h{3,10}(.*)@.{5}.(.*)";
+    char errbuf[1024];
+    char match[100];
+    regex_t reg;
+    int err,nm = 10;
+    regmatch_t pmatch[nm];
 
-int lab3()
-{
-    heap_t heap;
-
-    memset(&heap, 0, sizeof(heap_t));
-    heap.comparator = greater_than;
-    heap_add(&heap, (void *)4);
-    heap_add(&heap, (void *)3);
-    heap_add(&heap, (void *)7);
-    heap_add(&heap, (void *)2);
-
-    dbg_buf(DBG_DETAIL,"heap:", (void *)heap.queue, 20);
-    int size = heap_size(&heap);
-    void *element;
-    for(int i=0; i< size; i++){
-        heap_remove(&heap, &element);
-        dbg_str(DBG_DETAIL, "%d", (long long)element);
+    if(regcomp(&reg,pattern,REG_EXTENDED) < 0){
+        regerror(err,&reg,errbuf,sizeof(errbuf));
+        printf("err:%s\n",errbuf);
     }
 
+    err = regexec(&reg,bematch,nm,pmatch,0);
+
+    if(err == REG_NOMATCH){
+        printf("no match\n");
+        exit(-1);
+
+    }else if(err){
+        regerror(err,&reg,errbuf,sizeof(errbuf));
+        printf("err:%s\n",errbuf);
+        exit(-1);
+    }
+
+    for(int i=0;i<10 && pmatch[i].rm_so!=-1;i++){
+        int len = pmatch[i].rm_eo-pmatch[i].rm_so;
+        if(len){
+            memset(match,'\0',sizeof(match));
+            memcpy(match,bematch+pmatch[i].rm_so,len);
+            printf("%s\n",match);
+        }
+    }
     return 0;
 }
-
-
-#endif
-
-int lab3()
-{}
+REGISTER_TEST_CMD(test_reg4);
