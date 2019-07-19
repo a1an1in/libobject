@@ -203,18 +203,44 @@ static void __test_split(String_Test *test)
     ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
 }
 
-static void __test_split_n(String_Test *test)
+static int __test_split_n_case1(String_Test *test)
 {
     //test find and split function
     String *str = test->str;
     int i, cnt, expect_count = 2;
     char *p;
-    char *expect0 = "https:";
+    char *expect0 = "https";
     char *expect1 = "www.baidu.com/s?ie=utf-8";
 
     str->assign(str, "https://www.baidu.com/s?ie=utf-8");  
 
-    cnt = str->split_n(str, "//", 1);
+    cnt = str->split_n(str, "://", 1);
+
+    dbg_str(DBG_ERROR, "split count=%d", cnt);
+    for (i = 0; i <= cnt; i++) {
+        p = str->get_splited_cstr(str, i);
+        if (p != NULL) {
+            dbg_str(DBG_SUC, "%d:%s", i, p);
+        }
+    }
+
+    ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
+    ASSERT_EQUAL(test, str->get_splited_cstr(str, 0), expect0, strlen(expect0));
+    ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, strlen(expect1));
+}
+
+static int __test_split_n_case2(String_Test *test)
+{
+    //test find and split function
+    String *str = test->str;
+    int i, cnt, expect_count = 2;
+    char *p;
+    char *expect0 = "http";
+    char *expect1 = "mirrors.163.com/debian-archive/debian/tools/src/md5sum-w32_1.1.tar.gz";
+
+    str->assign(str, "http/mirrors.163.com/debian-archive/debian/tools/src/md5sum-w32_1.1.tar.gz");  
+
+    cnt = str->split_n(str, "/", 1);
 
     for (i = 0; i <= cnt; i++) {
         p = str->get_splited_cstr(str, i);
@@ -228,7 +254,18 @@ static void __test_split_n(String_Test *test)
     ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, strlen(expect1));
 }
 
-static void __test_split_n_using_reg_case1(String_Test *test)
+static int __test_split_n(String_Test *test)
+{
+    int ret;
+
+    ret = __test_split_n_case1(test);
+    if (ret != 1) return ret;
+    ret = __test_split_n_case2(test);
+
+    return ret;
+}
+
+static int __test_split_n_using_reg_case1(String_Test *test)
 {
     String *str = test->str;
     int i, cnt, expect_count = 2;
@@ -263,7 +300,7 @@ static void __test_split_n_using_reg_case1(String_Test *test)
                 expect1, str->get_splited_cstr(str, 1));
     }
 }
-static void __test_split_n_using_reg_case2(String_Test *test)
+static int __test_split_n_using_reg_case2(String_Test *test)
 {
     String *str = test->str;
     int i, cnt, expect_count = 10;
@@ -291,7 +328,10 @@ static void __test_split_n_using_reg_case2(String_Test *test)
 
 static int __test_split_n_using_reg(String_Test *test)
 {
-    __test_split_n_using_reg_case1(test);
+    int ret;
+
+    ret = __test_split_n_using_reg_case1(test);
+    if (ret != 1) return ret;
     __test_split_n_using_reg_case2(test);
 }
 

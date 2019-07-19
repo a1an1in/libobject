@@ -326,7 +326,7 @@ __replace_n(String *self, char *pattern, char *newstr, int max)
     int old_len, new_len, str_len;
     Vector *v;
     string_piece_t *piece = NULL;
-    int count, ret = 0;
+    int count = 0, ret = 0;
 
     if ( pattern == NULL || newstr == NULL ) { return -1; }
 
@@ -533,7 +533,7 @@ static int __split(String *string, char *delims)
 
 static int __split_n(String *string, char *delims, int num)
 {
-    int cnt = 0;
+    int piece_count = 0, count = 0;
     char *pos;
     Vector *v;
     string_piece_t *piece;
@@ -565,11 +565,11 @@ static int __split_n(String *string, char *delims, int num)
     pos = string->get_cstr(string);
     if (strlen(pos) == 0) return 0;
 
-    do {
+    while ((count++ < num || num < 0)) {
         ret = regexec_wrap(&regex, pos, nmatch, pmatch, 0);  
         if(ret != REG_NOMATCH) { 
             if (pmatch[0].rm_so != 0) {
-                cnt++;
+                piece_count++;
                 piece = __new_string_peice(allocator, pos, pmatch[0].rm_so); 
                 v->add_back(v, piece); 
             }
@@ -577,17 +577,17 @@ static int __split_n(String *string, char *delims, int num)
             pos[pmatch[0].rm_so] = '\0';
             pos += pmatch[0].rm_eo; 
         }  else {
-            cnt++;
-            piece = __new_string_peice(allocator, pos, strlen(pos)); 
-            v->add_back(v, piece); 
             break;
         }
+    }
 
-    } while ((cnt <= num || num < 0));
+    piece_count++;
+    piece = __new_string_peice(allocator, pos, strlen(pos)); 
+    v->add_back(v, piece); 
 
     regfree_wrap(&regex);  
 
-    return cnt;
+    return piece_count;
 }
 
 static char *__get_splited_cstr(String *string, int index)
