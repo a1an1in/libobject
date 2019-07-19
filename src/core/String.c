@@ -116,8 +116,8 @@ static int __deconstrcut(String *string)
     dbg_str(OBJ_DETAIL, "string deconstruct, string addr:%p", string);
     if (string->value)
         allocator_mem_free(string->obj.allocator, string->value);
-    if (string->splited_strings != NULL) {
-        object_destroy(string->splited_strings);
+    if (string->pieces != NULL) {
+        object_destroy(string->pieces);
     }
 
     return 0;
@@ -161,8 +161,8 @@ static void __clear(String *string)
     memset(string->value, 0, string->value_max_len);
     string->value_len = 0;
 
-    if (string->splited_strings != NULL) {
-        v = (Vector *)string->splited_strings;
+    if (string->pieces != NULL) {
+        v = (Vector *)string->pieces;
         v->clear(v);
     }
 }
@@ -334,7 +334,6 @@ __replace_n(String *self, char *pattern, char *newstr, int max)
     str_len = self->get_len(self);
 
     do {
-        dbg_str(DBG_DETAIL, "replace, start offset =%d", start_offset);
         ret = self->find_n(self, pattern, start_offset, 1);
         if (ret <= 0) {
             dbg_str(DBG_DETAIL, "replace, not found");
@@ -344,7 +343,7 @@ __replace_n(String *self, char *pattern, char *newstr, int max)
             goto end;
         }
 
-        v = self->splited_strings;
+        v = self->pieces;
         if (v == NULL) {
             ret = -1;
             goto end;
@@ -354,8 +353,6 @@ __replace_n(String *self, char *pattern, char *newstr, int max)
         if (piece != NULL) {
             old_len = piece->len;
             old_offset = (int)(piece->start_pos - (void *)self->value);
-            dbg_str(DBG_DETAIL, "replace:%s", piece->start_pos);
-            dbg_str(DBG_DETAIL, "new_len:%d, piece_len:%d", new_len, piece->len);
         } else {
             dbg_str(DBG_WARNNING, "get_splited_cstr: not exist!!");
         }
@@ -371,14 +368,11 @@ __replace_n(String *self, char *pattern, char *newstr, int max)
         memmove(self->value + old_offset + new_len, 
                 self->value + old_offset + piece->len,
                 strlen(self->value + old_offset + piece->len));
-            dbg_str(DBG_DETAIL, "    replace:%s", self->value + old_offset);
         memmove(self->value + old_offset, newstr, new_len); 
-            dbg_str(DBG_DETAIL, "    replace:%s",self->value + old_offset);
         self->value_len += (new_len - old_len);
         self->value[self->value_len] = '\0';
         count++;
         start_offset = old_offset + new_len;
-        dbg_str(DBG_DETAIL, "replaced:%s", self->value);
     } while (count < max || max == -1);
 
 end:
@@ -486,7 +480,7 @@ static int __find_n(String *string, char *pattern, int offset, int num)
     regmatch_t pmatch[1];  
     int nmatch = 1, ret = -1;
 
-    if (string->splited_strings == NULL) {
+    if (string->pieces == NULL) {
         uint8_t trustee_flag = 1;
         int value_type = VALUE_TYPE_ALLOC_POINTER;
 
@@ -494,13 +488,13 @@ static int __find_n(String *string, char *pattern, int offset, int num)
         v->set(v, "/Vector/trustee_flag", &trustee_flag);
         v->set(v, "/Vector/value_type", &value_type);
 
-        string->splited_strings = v;
+        string->pieces = v;
     } else {
-        v = string->splited_strings;
+        v = string->pieces;
         v->clear(v);
     }
 
-    ret = regcomp(&regex, pattern, REG_EXTENDED);  
+    ret = regcomp_wrap(&regex, pattern, REG_EXTENDED);  
     if (ret) {
         dbg_str(DBG_ERROR, "regex error");
         return -1;
@@ -512,7 +506,7 @@ static int __find_n(String *string, char *pattern, int offset, int num)
     pos += offset;
 
     do {
-        ret = regexec(&regex, pos, nmatch, pmatch, 0);  
+        ret = regexec_wrap(&regex, pos, nmatch, pmatch, 0);  
         if(ret != REG_NOMATCH) { 
             cnt++;
             piece = __new_string_peice(allocator, pos + pmatch[0].rm_so ,
@@ -527,7 +521,7 @@ static int __find_n(String *string, char *pattern, int offset, int num)
 
     } while ((cnt < num || num < 0));
 
-    regfree(&regex);  
+    regfree_wrap(&regex);  
 
     return cnt;
 }
@@ -548,7 +542,7 @@ static int __split_n(String *string, char *delims, int num)
     regmatch_t pmatch[1];  
     int nmatch = 1, ret = -1;
 
-    if (string->splited_strings == NULL) {
+    if (string->pieces == NULL) {
         uint8_t trustee_flag = 1;
         int value_type = VALUE_TYPE_ALLOC_POINTER;
 
@@ -556,13 +550,13 @@ static int __split_n(String *string, char *delims, int num)
         v->set(v, "/Vector/trustee_flag", &trustee_flag);
         v->set(v, "/Vector/value_type", &value_type);
 
-        string->splited_strings = v;
+        string->pieces = v;
     } else {
-        v = string->splited_strings;
+        v = string->pieces;
         v->clear(v);
     }
 
-    ret = regcomp(&regex, delims, REG_EXTENDED);  
+    ret = regcomp_wrap(&regex, delims, REG_EXTENDED);  
     if (ret) {
         dbg_str(DBG_ERROR, "regex error");
         return -1;
@@ -572,7 +566,7 @@ static int __split_n(String *string, char *delims, int num)
     if (strlen(pos) == 0) return 0;
 
     do {
-        ret = regexec(&regex, pos, nmatch, pmatch, 0);  
+        ret = regexec_wrap(&regex, pos, nmatch, pmatch, 0);  
         if(ret != REG_NOMATCH) { 
             cnt++;
             piece = __new_string_peice(allocator, pos, pmatch[0].rm_so); 
@@ -589,14 +583,14 @@ static int __split_n(String *string, char *delims, int num)
 
     } while ((cnt <= num || num < 0));
 
-    regfree(&regex);  
+    regfree_wrap(&regex);  
 
     return cnt;
 }
 
 static char *__get_splited_cstr(String *string, int index)
 {
-    Vector *v = string->splited_strings;
+    Vector *v = string->pieces;
     string_piece_t *piece = NULL;
     char *d = NULL;
 

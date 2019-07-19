@@ -58,7 +58,7 @@ struct string_s{
     char *value;
     int value_max_len;
     int value_len;
-    void *splited_strings;
+    void *pieces;
 };
 
 #endif
