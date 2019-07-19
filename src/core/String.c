@@ -49,8 +49,8 @@ __new_string_peice(allocator_t *allocator,
 {
     string_piece_t *piece;
 
-    piece = (string_piece_t *) allocator_mem_alloc(allocator,
-                                                   sizeof(string_piece_t));
+    piece = (string_piece_t *) 
+            allocator_mem_alloc(allocator, sizeof(string_piece_t));
 
     piece->start_pos = start_pos;
     piece->len = len;
@@ -510,7 +510,7 @@ static int __find_n(String *string, char *pattern, int offset, int num)
         if(ret != REG_NOMATCH) { 
             cnt++;
             piece = __new_string_peice(allocator, pos + pmatch[0].rm_so ,
-                                        pmatch[0].rm_eo - pmatch[0].rm_so); 
+                                       pmatch[0].rm_eo - pmatch[0].rm_so); 
             dbg_str(DBG_DETAIL, "found count:%d, offset:%d", cnt, 
                     (int)(pos + pmatch[0].rm_so - string->get_cstr(string)));
             v->add_back(v, piece); 
@@ -568,9 +568,11 @@ static int __split_n(String *string, char *delims, int num)
     do {
         ret = regexec_wrap(&regex, pos, nmatch, pmatch, 0);  
         if(ret != REG_NOMATCH) { 
-            cnt++;
-            piece = __new_string_peice(allocator, pos, pmatch[0].rm_so); 
-            v->add_back(v, piece); 
+            if (pmatch[0].rm_so != 0) {
+                cnt++;
+                piece = __new_string_peice(allocator, pos, pmatch[0].rm_so); 
+                v->add_back(v, piece); 
+            }
             pos[pmatch[0].rm_eo - 1] = '\0';
             pos[pmatch[0].rm_so] = '\0';
             pos += pmatch[0].rm_eo; 
@@ -589,6 +591,26 @@ static int __split_n(String *string, char *delims, int num)
 }
 
 static char *__get_splited_cstr(String *string, int index)
+{
+    Vector *v = string->pieces;
+    string_piece_t *piece = NULL;
+    char *d = NULL;
+
+    if (v == NULL) {
+        return NULL;
+    }
+    
+    v->peek_at(v, index, (void **)&piece);
+    if (piece != NULL) {
+        d = piece->start_pos;
+    } else {
+        dbg_str(DBG_WARNNING, "get_splited_cstr: not exist!!");
+    }
+
+    return d;
+}
+
+static char *__get_found_cstr(String *string, int index)
 {
     Vector *v = string->pieces;
     string_piece_t *piece = NULL;
@@ -644,7 +666,7 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(32, String, split, __split), 
     Init_Vfunc_Entry(33, String, split_n, __split_n), 
     Init_Vfunc_Entry(34, String, get_splited_cstr, __get_splited_cstr), 
-    Init_Point_Entry(35, String, name, NULL), 
+    Init_Vfunc_Entry(35, String, get_found_cstr, __get_found_cstr), 
     Init_Point_Entry(36, String, value, NULL), 
     Init_End___Entry(37, String), 
 };

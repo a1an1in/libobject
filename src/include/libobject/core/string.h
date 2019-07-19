@@ -51,10 +51,8 @@ struct string_s{
     int (*split)(String *, char *);
     int (*split_n)(String *string, char *delims, int num);
     char * (*get_splited_cstr)(String *, int);
+    char * (*get_found_cstr)(String *, int);
     
-#define MAX_NAME_LEN 50
-    char name[MAX_NAME_LEN];
-#undef MAX_NAME_LEN
     char *value;
     int value_max_len;
     int value_len;

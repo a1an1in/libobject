@@ -46,6 +46,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
+
 int check_endian( )
 {
     union w {  
@@ -56,7 +57,7 @@ int check_endian( )
     return(c.b ==1);
 }
 
-static int lab(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_check_endian(TEST_ENTRY *entry, void *argc, void *argv)
 {
     if(check_endian()) {
         dbg_str(DBG_DETAIL,"little endian");
@@ -66,5 +67,4 @@ static int lab(TEST_ENTRY *entry, void *argc, void *argv)
 
     return 1;
 }
-REGISTER_STANDALONE_TEST_FUNC(lab);
-
+REGISTER_TEST_CMD(test_check_endian);

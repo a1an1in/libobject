@@ -181,20 +181,7 @@ __for_each(Vector *vector, void (*func)(int index, void *element))
 
 static void __free_vector_elements(Vector *vector)
 {   
-    vector_pos_t pos, next;
-    vector_t *v = vector->vector;
-    void *element;
-    int index = 0;
-
-    for(vector_begin(v, &pos), vector_pos_next(&pos, &next);
-        !vector_pos_equal(&pos, &v->end);
-        pos = next, vector_pos_next(&pos, &next))
-    {
-        vector->peek_at(vector, index++, (void **)&element);
-        if(element != NULL){
-            object_destroy(element);
-        }
-    }
+    vector->clear(vector);
 }
 
 static uint32_t __count(Vector * vector)

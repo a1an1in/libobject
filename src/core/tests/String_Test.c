@@ -224,13 +224,12 @@ static void __test_split_n(String_Test *test)
     }
 
     ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
-    ASSERT_EQUAL(test, str->get_splited_cstr(str, 0), expect0, sizeof(expect0));
-    ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, sizeof(expect1));
+    ASSERT_EQUAL(test, str->get_splited_cstr(str, 0), expect0, strlen(expect0));
+    ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, strlen(expect1));
 }
 
-static void __test_split_n_using_reg(String_Test *test)
+static void __test_split_n_using_reg_case1(String_Test *test)
 {
-    //test find and split function
     String *str = test->str;
     int i, cnt, expect_count = 2;
     char *p;
@@ -253,16 +252,47 @@ static void __test_split_n_using_reg(String_Test *test)
     if (ret != 1) {
         dbg_str(DBG_ERROR, "expect_count = %d, count=%d", expect_count, cnt);
     }
-    ret = ASSERT_EQUAL(test, str->get_splited_cstr(str, 0), expect0, sizeof(expect0));
+    ret = ASSERT_EQUAL(test, str->get_splited_cstr(str, 0), expect0, strlen(expect0));
     if (ret != 1) {
         dbg_str(DBG_ERROR, "expect0 = %s, real=%s",
                 expect0, str->get_splited_cstr(str, 0));
     }
-    ret = ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, sizeof(expect1));
+    ret = ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, strlen(expect1));
     if (ret != 1) {
         dbg_str(DBG_ERROR, "expect1 = %s, real=%s",
                 expect1, str->get_splited_cstr(str, 1));
     }
+}
+static void __test_split_n_using_reg_case2(String_Test *test)
+{
+    String *str = test->str;
+    int i, cnt, expect_count = 10;
+    char *p;
+    int ret;
+
+    str->assign(str, "cat dog,desk push last, this is what. must be");  
+
+    cnt = str->split_n(str, "[, .]", -1);
+
+    for (i = 0; i < cnt; i++) {
+        p = str->get_splited_cstr(str, i);
+        if (p != NULL) {
+            dbg_str(DBG_SUC, "%d:%s", i, p);
+        }
+    }
+
+    ret = ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
+    if (ret != 1) {
+        dbg_str(DBG_ERROR, "expect_count = %d, count=%d", expect_count, cnt);
+    }
+
+    return ret;
+}
+
+static int __test_split_n_using_reg(String_Test *test)
+{
+    __test_split_n_using_reg_case1(test);
+    __test_split_n_using_reg_case2(test);
 }
 
 static void __test_find(String_Test *test)
