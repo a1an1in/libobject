@@ -94,8 +94,10 @@ __new(Object_Cache *cache, char *class_name)
     Obj *o = NULL;
     int ret = 0;
 
-    dbg_str(DBG_DETAIL, "get a object cache");
-    dbg_str(DBG_DETAIL, "map addr:%p", cache->class_map);
+    /*
+     *dbg_str(DBG_DETAIL, "get a object cache");
+     *dbg_str(DBG_DETAIL, "map addr:%p", cache->class_map);
+     */
     ret = map->search(map, class_name, (void **)&list);
     if (ret != 1) {
         list = object_new(allocator, "Linked_List", NULL);

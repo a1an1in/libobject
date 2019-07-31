@@ -162,29 +162,72 @@ __for_each_arg5(Queue *queue,
     }
 }
 
+static void __clear(Queue *queue)
+{
+    Iterator *cur, *end;
+    void *element;
+
+    cur = queue->begin(queue);
+    end = queue->end(queue);
+
+    for (; !end->equal(end, cur); 
+           cur = queue->begin(queue), end = queue->end(queue)) 
+    {
+        queue->remove(queue, &element);
+        if (queue->trustee_flag != 1) {
+            continue;
+        }
+
+        if (    queue->value_type == VALUE_TYPE_OBJ_POINTER && 
+                element != NULL) 
+        {
+            object_destroy(element);
+        } else if (queue->value_type  == VALUE_TYPE_STRING &&
+                   element != NULL)
+        {
+            object_destroy(element);
+        } else if (queue->value_type  == VALUE_TYPE_ALLOC_POINTER &&
+                   element != NULL)
+        {
+            allocator_mem_free(queue->obj.allocator, element);
+        } else if (queue->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
+                   element != NULL)
+        {
+            dbg_str(DBG_WARNNING, "not support clear unkown pointer");
+        } else {
+        }
+
+        element = NULL;
+    }
+}
+
 static class_info_entry_t queue_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Queue, construct, __construct),
     Init_Nfunc_Entry(2 , Queue, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Queue, add, NULL),
-    Init_Vfunc_Entry(4 , Queue, add_front, NULL),
-    Init_Vfunc_Entry(5 , Queue, add_back, NULL),
-    Init_Vfunc_Entry(6 , Queue, remove, NULL),
-    Init_Vfunc_Entry(7 , Queue, remove_front, NULL),
-    Init_Vfunc_Entry(8 , Queue, remove_back, NULL),
-    Init_Vfunc_Entry(9 , Queue, begin, NULL),
-    Init_Vfunc_Entry(10, Queue, end, NULL),
-    Init_Vfunc_Entry(11, Queue, size, NULL),
-    Init_Vfunc_Entry(12, Queue, is_empty, NULL),
-    Init_Vfunc_Entry(13, Queue, clear, NULL),
-    Init_Vfunc_Entry(14, Queue, for_each, __for_each),
-    Init_Vfunc_Entry(15, Queue, for_each_arg, __for_each_arg),
-    Init_Vfunc_Entry(16, Queue, for_each_arg2, __for_each_arg2),
-    Init_Vfunc_Entry(17, Queue, for_each_arg3, __for_each_arg3),
-    Init_Vfunc_Entry(18, Queue, for_each_arg4, __for_each_arg4),
-    Init_Vfunc_Entry(19, Queue, for_each_arg5, __for_each_arg5),
-    Init_Vfunc_Entry(20, Queue, peek_front, NULL),
-    Init_Vfunc_Entry(21, Queue, peek_back, NULL),
-    Init_End___Entry(22, Queue),
+    Init_Vfunc_Entry(3 , List, set, NULL),
+    Init_Vfunc_Entry(4 , List, get, NULL),
+    Init_Vfunc_Entry(5 , Queue, add, NULL),
+    Init_Vfunc_Entry(6 , Queue, add_front, NULL),
+    Init_Vfunc_Entry(7 , Queue, add_back, NULL),
+    Init_Vfunc_Entry(8 , Queue, remove, NULL),
+    Init_Vfunc_Entry(9 , Queue, remove_front, NULL),
+    Init_Vfunc_Entry(10, Queue, remove_back, NULL),
+    Init_Vfunc_Entry(11, Queue, begin, NULL),
+    Init_Vfunc_Entry(12, Queue, end, NULL),
+    Init_Vfunc_Entry(13, Queue, size, NULL),
+    Init_Vfunc_Entry(14, Queue, is_empty, NULL),
+    Init_Vfunc_Entry(15, Queue, clear, __clear),
+    Init_Vfunc_Entry(16, Queue, for_each, __for_each),
+    Init_Vfunc_Entry(17, Queue, for_each_arg, __for_each_arg),
+    Init_Vfunc_Entry(18, Queue, for_each_arg2, __for_each_arg2),
+    Init_Vfunc_Entry(19, Queue, for_each_arg3, __for_each_arg3),
+    Init_Vfunc_Entry(20, Queue, for_each_arg4, __for_each_arg4),
+    Init_Vfunc_Entry(21, Queue, for_each_arg5, __for_each_arg5),
+    Init_Vfunc_Entry(22, Queue, peek_front, NULL),
+    Init_Vfunc_Entry(23, Queue, peek_back, NULL),
+    Init_U8____Entry(24, Queue, trustee_flag, NULL),
+    Init_U8____Entry(25, Queue, value_type, NULL),
+    Init_End___Entry(26, Queue),
 };
 REGISTER_CLASS("Queue", queue_class_info);

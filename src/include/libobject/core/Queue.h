@@ -49,7 +49,9 @@ struct queue_s{
     Iterator *(*begin)(Queue *queue);
     Iterator *(*end)(Queue *queue);
 
+    /*attribs*/
     Iterator *b, *e;
+    uint8_t trustee_flag, value_type;
 };
 
 #endif

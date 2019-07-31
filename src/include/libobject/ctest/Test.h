@@ -21,6 +21,32 @@ typedef struct _test_s Test;
     __ret;\
 })
 
+#define ASSERT_NUM_GREAT(test, peer1, peer2) \
+({\
+    int __ret;\
+    ((Test *)test)->line = __LINE__;\
+    ((Test *)test)->file = __FILE__;\
+    __ret = peer1 > peer2 ? 1 : 0;\
+    ((Test *)test)->ret = __ret;\
+    if (__ret != 1) {\
+        return __ret;\
+    }\
+    __ret;\
+})
+
+#define ASSERT_NOT_EQUAL(test, peer1, peer2, len) \
+({\
+    int __ret;\
+    ((Test *)test)->line = __LINE__;\
+    ((Test *)test)->file = __FILE__;\
+    __ret = memcmp(peer1, peer2, len) != 0;\
+    ((Test *)test)->ret = __ret;\
+    if (__ret != 1) {\
+        return __ret;\
+    }\
+    __ret;\
+})
+
 struct _test_s{
 	Obj obj;
 

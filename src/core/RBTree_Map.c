@@ -216,6 +216,7 @@ static int __count(Map *map)
     return rbtree_map_count(rbtree_map);
 }
 
+/*deprecated*/
 static int __clear(Map *map)
 {
     rbtree_map_t *rbtree_map = ((RBTree_Map *)map)->rbmap;

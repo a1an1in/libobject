@@ -170,6 +170,7 @@ static int __count(Map *map)
     return hash_map_get_count(((Hash_Map *)map)->hmap);
 }
 
+/*deprecated*/
 static int __clear(Map *map)
 {
     void *element;
