@@ -419,6 +419,10 @@ static char *__to_json(Obj *obj)
     return json->get_cstr(json);
 }
 
+static char *__clear(Obj *obj) 
+{
+}
+
 static int 
 __override_virtual_funcs__(Obj *obj,
                            char *cur_class_name,
@@ -468,7 +472,8 @@ static class_info_entry_t obj_class_info[] = {
     [3] = {ENTRY_TYPE_VFUNC_POINTER, "", "set", __set, sizeof(void *), offset_of_class(Obj, set)}, 
     [4] = {ENTRY_TYPE_VFUNC_POINTER, "", "get", __get, sizeof(void *), offset_of_class(Obj, get)}, 
     [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "to_json", __to_json, sizeof(void *), offset_of_class(Obj, to_json)}, 
-    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "override_virtual_funcs", __override_virtual_funcs, sizeof(void *), offset_of_class(Obj, override_virtual_funcs)}, 
-    [7] = {ENTRY_TYPE_END}, 
+    [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "clear", __clear, sizeof(void *), offset_of_class(Obj, clear)}, 
+    [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "override_virtual_funcs", __override_virtual_funcs, sizeof(void *), offset_of_class(Obj, override_virtual_funcs)}, 
+    [8] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Obj", obj_class_info);

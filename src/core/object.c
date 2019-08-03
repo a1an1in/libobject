@@ -660,6 +660,7 @@ int object_destroy(void *obj)
 
         dbg_str(DBG_SUC, "obj destroy, add obj %s to cache", o->name);
 
+        o->clear(o);
         list->add(list, o);
     } else {
         __object_destroy(o, o->name);

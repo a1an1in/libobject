@@ -62,7 +62,8 @@ static int __clear(List *list)
         if (    list->value_type == VALUE_TYPE_OBJ_POINTER && 
                 element != NULL) 
         {
-            dbg_str(DBG_DETAIL, "clear list obj element");
+            dbg_str(DBG_DETAIL, "clear list obj element, class name:%s",
+                    ((Obj *)element)->name);
             object_destroy(element);
         } else if (list->value_type  == VALUE_TYPE_STRING &&
                    element != NULL)

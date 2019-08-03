@@ -94,6 +94,7 @@ static int __deconstruct(Object_Cache *cache)
     object_list->for_each(object_list, __clear_cache_flag_in_object_list);
     object_destroy(cache->class_map);
     object_destroy(object_list);
+    dbg_str(DBG_ERROR, "deconstruct cache end");
 }
 
 static void *
@@ -112,6 +113,7 @@ __new(Object_Cache *cache, char *class_name)
      */
     ret = map->search(map, class_name, (void **)&list);
     if (ret != 1) {
+        dbg_str(DBG_ERROR, "new list");
         list = object_new(allocator, "Linked_List", NULL);
         if (list == NULL) {
             dbg_str(DBG_ERROR, "get object, new list error");
@@ -142,6 +144,8 @@ __new(Object_Cache *cache, char *class_name)
             list->remove(list, (void **)&o);
         }
     }
+
+    dbg_str(DBG_SUC, "object list count=%d", object_list->count(object_list));
 
     o->cache = cache;
 

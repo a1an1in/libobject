@@ -33,7 +33,7 @@
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/core/Array_Stack.h>
+#include <libobject/core/Vector.h>
 #include <libobject/core/tests/Object_Cache_Test.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/utils/registry/registry.h>
@@ -69,19 +69,23 @@ static int __test_memery_leak(Object_Cache_Test *test)
     String *s2;
     String *s3;
     String *s4;
-    List *list0;
-    List *list1;
-    List *list2;
-    List *list3;
-    List *list4;
+    Vector *v0;
+    Vector *v1;
+    Vector *v2;
+    Vector *v3;
+    Vector *v4;
     allocator_t *allocator = test->parent.obj.allocator;
     int ret, pre_count, after_count;
 
-    object_destroy(test->cache);
+    /*
+     *object_destroy(test->cache);
+     */
 
     pre_count = allocator->alloc_count;
-    cache = object_new(allocator, "Object_Cache", NULL);
-    test->cache = cache;
+    /*
+     *cache = object_new(allocator, "Object_Cache", NULL);
+     *test->cache = cache;
+     */
 
     s0 = cache->new(cache, "String");
     s1 = cache->new(cache, "String");
@@ -89,39 +93,45 @@ static int __test_memery_leak(Object_Cache_Test *test)
     s3 = cache->new(cache, "String");
     s4 = cache->new(cache, "String");
 
-    list0 = cache->new(cache, "Linked_List");
-    list1 = cache->new(cache, "Linked_List");
-    list2 = cache->new(cache, "Linked_List");
-    list3 = cache->new(cache, "Linked_List");
-    list4 = cache->new(cache, "Linked_List");
+    v0 = cache->new(cache, "Vector");
+    v1 = cache->new(cache, "Vector");
+    v2 = cache->new(cache, "Vector");
+    v3 = cache->new(cache, "Vector");
+    v4 = cache->new(cache, "Vector");
 
     object_destroy(s0);
     object_destroy(s1);
     object_destroy(s2);
     object_destroy(s3);
 
-    object_destroy(list0);
-    object_destroy(list1);
-    object_destroy(list3);
-    object_destroy(list4);
+    object_destroy(v0);
+    object_destroy(v1);
+    object_destroy(v3);
+    object_destroy(v4);
 
-    s0 = cache->new(cache, "String");
-    s1 = cache->new(cache, "String");
-    s2 = cache->new(cache, "String");
-    s3 = cache->new(cache, "String");
-    s4 = cache->new(cache, "String");
+/*
+ *    s0 = cache->new(cache, "String");
+ *    s1 = cache->new(cache, "String");
+ *    s2 = cache->new(cache, "String");
+ *    s3 = cache->new(cache, "String");
+ *    s4 = cache->new(cache, "String");
+ *
+ *    v0 = cache->new(cache, "Vector");
+ *    v1 = cache->new(cache, "Vector");
+ *    v2 = cache->new(cache, "Vector");
+ *    v3 = cache->new(cache, "Vector");
+ *    v4 = cache->new(cache, "Vector");
+ */
 
-    list0 = cache->new(cache, "Linked_List");
-    list1 = cache->new(cache, "Linked_List");
-    list2 = cache->new(cache, "Linked_List");
-    list3 = cache->new(cache, "Linked_List");
-    list4 = cache->new(cache, "Linked_List");
-
-    object_destroy(test->cache);
+    /*
+     *object_destroy(test->cache);
+     */
     after_count = allocator->alloc_count;
 
-    cache = object_new(allocator, "Object_Cache", NULL);
-    test->cache = cache;
+    /*
+     *cache = object_new(allocator, "Object_Cache", NULL);
+     *test->cache = cache;
+     */
 
     ret = ASSERT_EQUAL(test, &pre_count, &after_count, sizeof(after_count));
     if (ret != 1) {
