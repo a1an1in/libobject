@@ -96,9 +96,19 @@ int class_deamon_register_class(class_deamon_t *class_deamon,
                                 char *class_name, 
                                 void *class_info_addr)
 {
+    map_iterator_t it;
+    int ret;
+
     if (class_deamon == NULL) {
         class_deamon = class_deamon_get_global_class_deamon();
     }
+
+    ret = map_search(class_deamon->map, class_name, &it);
+    if (ret == 1) {
+        dbg_str(DBG_WARNNING, "register class %s exists, please check!!!", class_name);
+        return -1;
+    }
+
     return map_insert(class_deamon->map, class_name, class_info_addr);
 }
 

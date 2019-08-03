@@ -39,7 +39,9 @@ static int __set_white_list(Test_Runner *runner, char *list)
     String *str, *s;
     int count, ret = 0, i;
 
-    if (strlen(str) == 0) { return -1; }
+    dbg_str(DBG_DETAIL, "set_white_list :%s", list);
+
+    if (strlen(list) == 0) { return -1; }
 
     if (runner->white_list == NULL) {
         int value_type = VALUE_TYPE_STRING;
@@ -58,7 +60,6 @@ static int __set_white_list(Test_Runner *runner, char *list)
         goto end;
     }
 
-    dbg_str(DBG_SUC, "count =%d", count);
     for (i = 0; i < count; i++) {
         s = object_new(allocator, "String", NULL);
         s->assign(s, str->get_splited_cstr(str, i));

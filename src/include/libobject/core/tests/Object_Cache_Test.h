@@ -1,14 +1,14 @@
-#ifndef __COMPOSITE_OBJ_TEST_H__
-#define __COMPOSITE_OBJ_TEST_H__
+#ifndef __MODULE_TEST_H__
+#define __MODULE_TEST_H__
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ctest/Test.h>
-#include <libobject/core/tests/Composite_Obj.h>
+#include <libobject/core/Object_Cache.h>
 
-typedef struct composite_obj_test_s Composite_Obj_Test;
+typedef struct object_cache_test_s Object_Cache_Test;
 
-struct composite_obj_test_s{
+struct object_cache_test_s{
 	Test parent;
 
 	int (*construct)(Test *,char *init_str);
@@ -19,11 +19,9 @@ struct composite_obj_test_s{
 	/*virtual methods reimplement*/
 	int (*setup)(Test *);
     void *(*teardown)(Test *);
-    void (*test_marshal_composite_obj)(Test *);
-    void (*test_unmarshal_composite_obj)(Test *);
-    void (*test_override_virtual_funcs)(Test *);
+    int (*test_memery_leak)(Object_Cache_Test *test);
 
-    Composite_Obj *obj;
+    Object_Cache *cache;
 };
 
 #endif

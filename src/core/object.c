@@ -37,6 +37,31 @@
 #include <libobject/core/String.h>
 #include <libobject/core/Object_Cache.h>
 
+void * __object_get_func_of_class(char *class_name,
+                                  char *func_name)
+{
+    class_info_entry_t *entry;
+    class_deamon_t *deamon;
+    int i;
+
+    dbg_str(DBG_DETAIL, "object_get_func_of_class");
+    deamon = class_deamon_get_global_class_deamon();
+    entry = (class_info_entry_t *) class_deamon_search_class(deamon, 
+                                                             class_name);
+    if (entry == NULL) return NULL;
+
+    for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
+        if (strcmp((char *)entry[i].value_name, func_name) == 0) {
+            dbg_str(DBG_DETAIL, "found func of class");
+            return entry[i].value;
+        }
+        dbg_str(DBG_DETAIL, "value_name:%s func_name:%s", entry[i].value_name, func_name);
+    }   
+    dbg_str(DBG_DETAIL, "not found func of class");
+
+    return NULL;
+}
+
 void * 
 __object_get_normal_func_of_class(void *class_info_addr, 
                                   char *func_pointer_name)
@@ -64,8 +89,8 @@ __object_get_normal_func_of_class(void *class_info_addr,
 }
 
 void * 
-__object_get_func_recursively(void *class_info_addr,
-                              char *func_name)
+__object_get_func_of_class_recursively(void *class_info_addr,
+                                       char *func_name)
 {
     class_info_entry_t *entry = (class_info_entry_t *)class_info_addr;
     char *parent_class_name = NULL;
@@ -92,8 +117,8 @@ __object_get_func_recursively(void *class_info_addr,
                  class_deamon_search_class(deamon,
                                            (char *)parent_class_name);
 
-        return __object_get_func_recursively(entry_of_parent_class,
-                                             func_name);
+        return __object_get_func_of_class_recursively(entry_of_parent_class,
+                                                      func_name);
     }
 
     return NULL;
@@ -209,7 +234,7 @@ int __object_init_funcs(void *obj, void *class_info_addr)
     int i;
     int (*set)(void *obj, char *attrib, void *value);
 
-    set = __object_get_func_recursively(class_info_addr, "set");
+    set = __object_get_func_of_class_recursively(class_info_addr, "set");
     if (set == NULL) {
         dbg_str(OBJ_WARNNING, "obj_init_func_pointer, set func is NULL");
         return -1;
@@ -241,7 +266,7 @@ __object_inherit_funcs(void *obj, void *class_info)
     void *method;
     char *current_class_name;
 
-    set = __object_get_func_recursively(class_info, "set");
+    set = __object_get_func_of_class_recursively(class_info, "set");
     if (set == NULL) {
         dbg_str(OBJ_WARNNING, "obj_init_func_pointer, set func is NULL");
         return -1;
@@ -253,7 +278,7 @@ __object_inherit_funcs(void *obj, void *class_info)
                  entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
                  entry[i].type == ENTRY_TYPE_VFUNC_POINTER)) 
         {
-            method = __object_get_func_recursively(class_info,
+            method = __object_get_func_of_class_recursively(class_info,
                                                    entry[i].value_name);
             if (method != NULL)
                 set(obj, (char *)entry[i].value_name, method);
@@ -264,7 +289,7 @@ __object_inherit_funcs(void *obj, void *class_info)
 }
 
 
-int __object_override_vitual_funcs(void *obj, 
+int __object_override_virtual_funcs(void *obj, 
                                    char *cur_type_name, 
                                    char *type_name)
 {
@@ -280,7 +305,7 @@ int __object_override_vitual_funcs(void *obj,
     entry  = (class_info_entry_t *)
              class_deamon_search_class(deamon, (char *)cur_type_name);
 
-    set    = __object_get_func_recursively(entry, "set");
+    set    = __object_get_func_of_class_recursively(entry, "set");
     if (set == NULL) {
         dbg_str(OBJ_WARNNING, "obj_init_func_pointer, set func is NULL");
         return -1;
@@ -370,7 +395,7 @@ __object_set(void *obj, char *type_name,
                 dbg_str(DBG_DETAIL, "set object name:%s", object->string);
                 deamon          = class_deamon_get_global_class_deamon();
                 class_info_addr = class_deamon_search_class(deamon, object->string);
-                super_class_set = __object_get_func_recursively(class_info_addr, "set");
+                super_class_set = __object_get_func_of_class_recursively(class_info_addr, "set");
                 dbg_str(DBG_DETAIL, "set addr:%p", super_class_set);
             }
 
@@ -469,7 +494,7 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
         __object_inherit_funcs(obj, class_info);
     }
 
-    __object_override_vitual_funcs(obj, cur_type_name, type_name);
+    __object_override_virtual_funcs(obj, cur_type_name, type_name);
 
 
     dbg_str(OBJ_DETAIL, "obj addr:%p", obj);
@@ -505,7 +530,7 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
              class_deamon_search_class(deamon,
                                        (char *)type_name);
 
-    get = __object_get_func_recursively(entry, (char *)"get");
+    get = __object_get_func_of_class_recursively(entry, (char *)"get");
 
     if (get == NULL) {
         dbg_str(OBJ_WARNNING, "get func pointer is NULL");
@@ -627,10 +652,13 @@ int object_destroy(void *obj)
 
         ret = map->search(map, o->name, (void **)&list);
         if (ret != 1) {
-            dbg_str(DBG_ERROR, "release object to cache error");
+            dbg_str(DBG_ERROR, "release object %s to cache, but not found class in the cache, cache addr:%p, class count=%d",
+                    o->name, o->cache, map->count(map));
             ret = -1;
             goto end;
         }
+
+        dbg_str(DBG_SUC, "obj destroy, add obj %s to cache", o->name);
 
         list->add(list, o);
     } else {

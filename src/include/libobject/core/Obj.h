@@ -14,6 +14,7 @@ struct obj_s{
     void *(*get)(void *obj, char *attrib);
     char *(*to_json)(void *obj); 
     int (*set_target_name)(Obj *obj, char *);
+    int (*override_virtual_funcs)(Obj *obj, char *func_name, void *value);
 
 #define MAX_CLASS_NAME_LEN 20
     char name[MAX_CLASS_NAME_LEN];

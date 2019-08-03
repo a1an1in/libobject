@@ -62,10 +62,12 @@ static int __clear(List *list)
         if (    list->value_type == VALUE_TYPE_OBJ_POINTER && 
                 element != NULL) 
         {
+            dbg_str(DBG_DETAIL, "clear list obj element");
             object_destroy(element);
         } else if (list->value_type  == VALUE_TYPE_STRING &&
                    element != NULL)
         {
+            dbg_str(DBG_DETAIL, "clear list string element");
             object_destroy(element);
         } else if (list->value_type  == VALUE_TYPE_ALLOC_POINTER &&
                    element != NULL)

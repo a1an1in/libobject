@@ -39,6 +39,11 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/tests/Composite_Obj_Test.h>
 
+static char *__to_json_new(Obj *obj) 
+{
+    dbg_str(DBG_SUC, "new to json");
+}
+
 static int __construct(Test *test, char *init_str)
 {
     return 0;
@@ -139,6 +144,22 @@ static void __test_unmarshal_composite_obj(Composite_Obj_Test *test)
     object_destroy(composite);
 }
 
+static void __test_override_virtual_funcs(Composite_Obj_Test *test)
+{
+    allocator_t *allocator = test->parent.obj.allocator;
+    Composite_Obj *composite;
+    Obj *o;
+
+    composite = object_new(allocator, "Composite_Obj", NULL);
+
+    o = (Obj *)composite;
+    o->override_virtual_funcs(o, "to_json", __to_json_new);
+
+    ASSERT_EQUAL(test, &composite->to_json, &composite->parent.to_json, sizeof(void *));
+
+    object_destroy(composite);
+}
+
 static class_info_entry_t vector_test_class_info[] = {
     Init_Obj___Entry(0 , Test, parent),
     Init_Nfunc_Entry(1 , Composite_Obj_Test, construct, __construct),
@@ -149,6 +170,7 @@ static class_info_entry_t vector_test_class_info[] = {
     Init_Vfunc_Entry(6 , Composite_Obj_Test, teardown, __teardown),
     Init_Vfunc_Entry(7 , Composite_Obj_Test, test_marshal_composite_obj, __test_marshal_composite_obj),
     Init_Vfunc_Entry(8 , Composite_Obj_Test, test_unmarshal_composite_obj, __test_unmarshal_composite_obj),
-    Init_End___Entry(9 , Composite_Obj_Test),
+    Init_Vfunc_Entry(9 , Composite_Obj_Test, test_override_virtual_funcs, __test_override_virtual_funcs),
+    Init_End___Entry(10, Composite_Obj_Test),
 };
 REGISTER_CLASS("Composite_Obj_Test", vector_test_class_info);

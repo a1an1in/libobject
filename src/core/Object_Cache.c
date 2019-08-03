@@ -43,7 +43,11 @@ static int __construct(Object_Cache *cache,char *init_str)
     allocator_t *allocator = ((Obj *)cache)->allocator;
     Map *map = NULL;
     int ret = 0;
+    uint8_t trustee_flag = 1;
+    List *list;
+    int value_type = VALUE_TYPE_OBJ_POINTER;
 
+    dbg_str(DBG_ERROR, "construct cache, cache addr:%p", cache);
     map = object_new(allocator, "RBTree_Map", NULL);
     if (map == NULL) {
         dbg_str(DBG_ERROR, "object new object cache error");
@@ -52,11 +56,15 @@ static int __construct(Object_Cache *cache,char *init_str)
     cache->class_map = map;
     map->set_cmp_func(map, string_key_cmp_func);
 
-    cache->object_list = object_new(allocator, "Linked_List", NULL);
-    if (cache->object_list == NULL) {
+    list = object_new(allocator, "Linked_List", NULL);
+    if (list == NULL) {
         ret = -1;
         goto error_new_object_list;
     }
+    list->set(list, "/List/trustee_flag", &trustee_flag);
+    list->set(list, "/List/value_type", &value_type);
+
+    cache->object_list = list;
 
     goto end;
 
@@ -67,20 +75,24 @@ end:
     return ret;
 }
 
-void __free_object_in_object_list(void *object)
+void __clear_cache_flag_in_object_list(void *object)
 {
     Obj *o = (Obj *)object;
 
     o->cache = NULL;
-    object_destroy(object);
+    /*
+     *object_destroy(object);
+     */
 }
 
 static int __deconstruct(Object_Cache *cache)
 {
     List *object_list = cache->object_list;
 
+    dbg_str(DBG_ERROR, "deconstruct cache, addr:%p", cache);
+
+    object_list->for_each(object_list, __clear_cache_flag_in_object_list);
     object_destroy(cache->class_map);
-    object_list->for_each(object_list, __free_object_in_object_list);
     object_destroy(object_list);
 }
 
@@ -112,6 +124,7 @@ __new(Object_Cache *cache, char *class_name)
             return NULL;
         }
 
+        dbg_str(DBG_SUC, "get object from cache, but cache hasn't %s class", class_name);
         map->add(map, class_name, list);
         object_list->add_back(object_list, o);
         object_list->add_back(object_list, list);
@@ -122,6 +135,7 @@ __new(Object_Cache *cache, char *class_name)
                 dbg_str(DBG_ERROR, "get object, new class %s error", class_name);
                 return NULL;
             }
+            dbg_str(DBG_SUC, "get object from cache, but cache is null");
             object_list->add_back(object_list, o);
         } else {
             dbg_str(DBG_SUC, "get object from cache");
