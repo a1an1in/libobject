@@ -26,6 +26,7 @@ struct string_s{
     String *(*assign_n)(String *string,char *s, int len);
     String *(*assign_char)(String *,char c,size_t count );
     int (*equal)(String *string,char *s);
+    void (*format)(String *, int max_len, char *fmt, ...);
     void (*append)(String *,char *);
     void (*append_n)(String *string, char *sub, int len);
     String *(*append_char)(String *string,char c);

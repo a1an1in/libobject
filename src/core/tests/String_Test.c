@@ -88,6 +88,21 @@ static void __test_get_cstr(String_Test *test)
     ASSERT_EQUAL(test, string->get_cstr(string), demo, strlen(demo));
 }
 
+static void __test_sprintf(String_Test *test)
+{
+    String *string = test->str;
+    char *test1 = "abcdefg";
+    char *test2 = "hello world";
+    char test3[1024];
+
+    sprintf(test3, "%s, %s", test1, test2);
+
+    string->clear(string);  
+    string->format(string, 1024, "%s, %s", test1, test2);
+
+    ASSERT_EQUAL(test, string->get_cstr(string), test3, strlen(test3));
+}
+
 static void __test_append(String_Test *test)
 {
     String *parent = test->str;
@@ -430,21 +445,22 @@ static class_info_entry_t string_test_class_info[] = {
     Init_Vfunc_Entry(5 , String_Test, setup, __setup),
     Init_Vfunc_Entry(6 , String_Test, teardown, __teardown),
     Init_Vfunc_Entry(7 , String_Test, test_get_cstr, __test_get_cstr),
-    Init_Vfunc_Entry(8 , String_Test, test_append, __test_append),
-    Init_Vfunc_Entry(9 , String_Test, test_append_string, __test_append_string),
-    Init_Vfunc_Entry(10, String_Test, test_len, __test_len),
-    Init_Vfunc_Entry(11, String_Test, test_get_substring, __test_get_substring),
-    Init_Vfunc_Entry(12, String_Test, test_insert, __test_insert),
-    Init_Vfunc_Entry(13, String_Test, test_insert_string, __test_insert_string),
-    Init_Vfunc_Entry(14, String_Test, test_split_n, __test_split_n),
-    Init_Vfunc_Entry(15, String_Test, test_split, __test_split),
-    Init_Vfunc_Entry(16, String_Test, test_split_n_using_reg, __test_split_n_using_reg),
-    Init_Vfunc_Entry(17, String_Test, test_find, __test_find),
-    Init_Vfunc_Entry(18, String_Test, test_replace_n, __test_replace_n),
-    Init_Vfunc_Entry(19, String_Test, test_replace, __test_replace),
-    Init_Vfunc_Entry(20, String_Test, test_empty, __test_empty),
-    Init_Vfunc_Entry(21, String_Test, test_ltrim, __test_ltrim),
-    Init_Vfunc_Entry(22, String_Test, test_rtrim, __test_rtrim),
-    Init_End___Entry(23, String_Test),
+    Init_Vfunc_Entry(8 , String_Test, test_sprintf, __test_sprintf),
+    Init_Vfunc_Entry(9 , String_Test, test_append, __test_append),
+    Init_Vfunc_Entry(10, String_Test, test_append_string, __test_append_string),
+    Init_Vfunc_Entry(11, String_Test, test_len, __test_len),
+    Init_Vfunc_Entry(12, String_Test, test_get_substring, __test_get_substring),
+    Init_Vfunc_Entry(13, String_Test, test_insert, __test_insert),
+    Init_Vfunc_Entry(14, String_Test, test_insert_string, __test_insert_string),
+    Init_Vfunc_Entry(15, String_Test, test_split_n, __test_split_n),
+    Init_Vfunc_Entry(16, String_Test, test_split, __test_split),
+    Init_Vfunc_Entry(17, String_Test, test_split_n_using_reg, __test_split_n_using_reg),
+    Init_Vfunc_Entry(18, String_Test, test_find, __test_find),
+    Init_Vfunc_Entry(19, String_Test, test_replace_n, __test_replace_n),
+    Init_Vfunc_Entry(20, String_Test, test_replace, __test_replace),
+    Init_Vfunc_Entry(21, String_Test, test_empty, __test_empty),
+    Init_Vfunc_Entry(22, String_Test, test_ltrim, __test_ltrim),
+    Init_Vfunc_Entry(23, String_Test, test_rtrim, __test_rtrim),
+    Init_End___Entry(24, String_Test),
 };
 REGISTER_CLASS("String_Test", string_test_class_info);

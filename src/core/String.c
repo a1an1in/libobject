@@ -230,6 +230,26 @@ static String *__append_char(String *string, char c)
     return string;
 }
 
+static int __format(String *string, int max_len, char *fmt, ...)
+{
+    allocator_t *allocator = string->obj.allocator;
+    int ret = 0;
+    va_list ap;
+    char *buf_addr;
+
+    buf_addr = allocator_mem_alloc(allocator, max_len);
+
+    va_start(ap, fmt);
+    ret = vsnprintf(buf_addr, max_len, fmt, ap);
+    va_end(ap);
+
+    string->append(string, buf_addr);
+
+    allocator_mem_free(allocator, buf_addr);
+
+    return ret;
+}
+
 static void __append(String *string, char *sub) 
 {   
     int len, ret;
@@ -649,25 +669,26 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(15, String, replace, __replace), 
     Init_Vfunc_Entry(16, String, replace_n, __replace_n), 
     Init_Vfunc_Entry(17, String, append_char, __append_char), 
-    Init_Vfunc_Entry(18, String, append, __append), 
-    Init_Vfunc_Entry(19, String, append_n, __append_n), 
-    Init_Vfunc_Entry(20, String, append_string, __append_string), 
-    Init_Vfunc_Entry(21, String, insert, __insert), 
-    Init_Vfunc_Entry(22, String, insert_string, __insert_string), 
-    Init_Vfunc_Entry(23, String, toupper, __to_upper), 
-    Init_Vfunc_Entry(24, String, tolower, __to_lower), 
-    Init_Vfunc_Entry(25, String, ltrim, __ltrim), 
-    Init_Vfunc_Entry(26, String, rtrim, __rtrim), 
-    Init_Vfunc_Entry(27, String, trim, __trim), 
-    Init_Vfunc_Entry(28, String, get_substring, __get_substring), 
-    Init_Vfunc_Entry(29, String, find, __find), 
-    Init_Vfunc_Entry(30, String, find_n, __find_n), 
-    Init_Vfunc_Entry(31, String, is_empty, __is_empty), 
-    Init_Vfunc_Entry(32, String, split, __split), 
-    Init_Vfunc_Entry(33, String, split_n, __split_n), 
-    Init_Vfunc_Entry(34, String, get_splited_cstr, __get_splited_cstr), 
-    Init_Vfunc_Entry(35, String, get_found_cstr, __get_found_cstr), 
-    Init_Point_Entry(36, String, value, NULL), 
-    Init_End___Entry(37, String), 
+    Init_Vfunc_Entry(18, String, format, __format), 
+    Init_Vfunc_Entry(19, String, append, __append), 
+    Init_Vfunc_Entry(20, String, append_n, __append_n), 
+    Init_Vfunc_Entry(21, String, append_string, __append_string), 
+    Init_Vfunc_Entry(22, String, insert, __insert), 
+    Init_Vfunc_Entry(23, String, insert_string, __insert_string), 
+    Init_Vfunc_Entry(24, String, toupper, __to_upper), 
+    Init_Vfunc_Entry(25, String, tolower, __to_lower), 
+    Init_Vfunc_Entry(26, String, ltrim, __ltrim), 
+    Init_Vfunc_Entry(27, String, rtrim, __rtrim), 
+    Init_Vfunc_Entry(28, String, trim, __trim), 
+    Init_Vfunc_Entry(29, String, get_substring, __get_substring), 
+    Init_Vfunc_Entry(30, String, find, __find), 
+    Init_Vfunc_Entry(31, String, find_n, __find_n), 
+    Init_Vfunc_Entry(32, String, is_empty, __is_empty), 
+    Init_Vfunc_Entry(33, String, split, __split), 
+    Init_Vfunc_Entry(34, String, split_n, __split_n), 
+    Init_Vfunc_Entry(35, String, get_splited_cstr, __get_splited_cstr), 
+    Init_Vfunc_Entry(36, String, get_found_cstr, __get_found_cstr), 
+    Init_Point_Entry(37, String, value, NULL), 
+    Init_End___Entry(38, String), 
 };
 REGISTER_CLASS("String", string_class_info);

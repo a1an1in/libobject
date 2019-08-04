@@ -20,6 +20,7 @@ struct string_test_s{
 	int (*setup)(Test *);
     void *(*teardown)(Test *);
     void (*test_get_cstr)(Test *);
+    void (*test_sprintf)(String_Test *test);
     void (*test_append)(Test *);
     void (*test_append_string)(Test *);
     void (*test_len)(Test *);

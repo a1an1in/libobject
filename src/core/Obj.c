@@ -183,11 +183,6 @@ static int __set(Obj *obj, char *attrib, void *value)
         case ENTRY_TYPE_FUNC_POINTER:
         case ENTRY_TYPE_VFUNC_POINTER:
         case ENTRY_TYPE_IFUNC_POINTER:
-            {
-                void **addr = (void **)(base + entry->offset);
-                *addr = value;
-                break;
-            }
         case ENTRY_TYPE_OBJ_POINTER:
             {
                 void **addr = (void **)(base + entry->offset);
