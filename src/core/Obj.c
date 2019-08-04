@@ -70,6 +70,7 @@ static int __set(Obj *obj, char *attrib, void *value)
     class_deamon_t *deamon;
     allocator_t *allocator = obj->allocator;
     uint8_t *base = (uint8_t *)obj;
+    int value_len;
     int ret = 0;
     char *buf = NULL;  
     char **out = NULL;  
@@ -115,34 +116,19 @@ static int __set(Obj *obj, char *attrib, void *value)
     switch(entry->type) {
         case ENTRY_TYPE_INT8_T:
         case ENTRY_TYPE_UINT8_T:
-            {
-                uint8_t *addr = (uint8_t *)(base + entry->offset);
-                *addr = *((uint8_t *)value);
-                break;
-            }
         case ENTRY_TYPE_INT16_T:
         case ENTRY_TYPE_UINT16_T:
-            {
-                uint16_t *addr = (uint16_t *)(base + entry->offset);
-                *addr = *((uint16_t *)value);
-                break;
-            }
         case ENTRY_TYPE_INT32_T:
         case ENTRY_TYPE_UINT32_T:
-            {
-                uint32_t *addr = (uint32_t *)(base + entry->offset);
-                *addr = *((uint32_t *)value);
-                break;
-            }
         case ENTRY_TYPE_INT64_T:
         case ENTRY_TYPE_UINT64_T:
+        case ENTRY_TYPE_FLOAT_T:
             {
-                uint64_t *addr = (uint64_t *)(base + entry->offset);
-                *addr = *((uint64_t *)value);
+                value_len = entry->value_len;
+                void *addr = (void *)(base + entry->offset);
+                memcpy(addr, value, value_len);
                 break;
             }
-        case ENTRY_TYPE_FLOAT_T:
-            break;
         case ENTRY_TYPE_STRING:
             {
                 String **addr = (String **)(base + entry->offset);

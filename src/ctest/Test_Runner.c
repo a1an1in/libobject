@@ -79,11 +79,13 @@ static int __is_testcase_in_white_list(Test_Runner *runner, char *testcase)
 {
     int ret = 0;
     Vector *white_list = runner->white_list;
-    int count = white_list->count(white_list);
+    int count;
     int i;
     String *s;
 
     if (white_list == NULL) { return 1; }
+
+    count = white_list->count(white_list);
     if (count == 0) { return 1; }
 
     for (i = 0; i < count; i++) {

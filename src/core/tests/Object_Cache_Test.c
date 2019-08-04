@@ -77,15 +77,11 @@ static int __test_memery_leak(Object_Cache_Test *test)
     allocator_t *allocator = test->parent.obj.allocator;
     int ret, pre_count, after_count;
 
-    /*
-     *object_destroy(test->cache);
-     */
+    object_destroy(test->cache);
 
     pre_count = allocator->alloc_count;
-    /*
-     *cache = object_new(allocator, "Object_Cache", NULL);
-     *test->cache = cache;
-     */
+    cache = object_new(allocator, "Object_Cache", NULL);
+    test->cache = cache;
 
     s0 = cache->new(cache, "String");
     s1 = cache->new(cache, "String");
@@ -109,29 +105,23 @@ static int __test_memery_leak(Object_Cache_Test *test)
     object_destroy(v3);
     object_destroy(v4);
 
-/*
- *    s0 = cache->new(cache, "String");
- *    s1 = cache->new(cache, "String");
- *    s2 = cache->new(cache, "String");
- *    s3 = cache->new(cache, "String");
- *    s4 = cache->new(cache, "String");
- *
- *    v0 = cache->new(cache, "Vector");
- *    v1 = cache->new(cache, "Vector");
- *    v2 = cache->new(cache, "Vector");
- *    v3 = cache->new(cache, "Vector");
- *    v4 = cache->new(cache, "Vector");
- */
+    s0 = cache->new(cache, "String");
+    s1 = cache->new(cache, "String");
+    s2 = cache->new(cache, "String");
+    s3 = cache->new(cache, "String");
+    s4 = cache->new(cache, "String");
 
-    /*
-     *object_destroy(test->cache);
-     */
+    v0 = cache->new(cache, "Vector");
+    v1 = cache->new(cache, "Vector");
+    v2 = cache->new(cache, "Vector");
+    v3 = cache->new(cache, "Vector");
+    v4 = cache->new(cache, "Vector");
+
+    object_destroy(test->cache);
     after_count = allocator->alloc_count;
 
-    /*
-     *cache = object_new(allocator, "Object_Cache", NULL);
-     *test->cache = cache;
-     */
+    cache = object_new(allocator, "Object_Cache", NULL);
+    test->cache = cache;
 
     ret = ASSERT_EQUAL(test, &pre_count, &after_count, sizeof(after_count));
     if (ret != 1) {
