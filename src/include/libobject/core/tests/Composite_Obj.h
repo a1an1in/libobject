@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/String.h>
 #include <libobject/core/Vector.h>
+#include <libobject/core/Number.h>
 
 typedef struct Composite_Obj_s Composite_Obj;
 
@@ -21,6 +22,7 @@ struct Composite_Obj_s{
     int help;
     String *name;
     Vector *vector;
+    Number *num;
 };
 
 #endif

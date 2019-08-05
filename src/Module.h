@@ -16,7 +16,6 @@ struct Module_s{
 	int (*set)(Module *module, char *attrib, void *value);
     void *(*get)(Module *, char *attrib);
     char *(*to_json)(Module *); 
-    void * (*get_value)(Module *module,char *module_name, char *flag_name);
 };
 
 #endif

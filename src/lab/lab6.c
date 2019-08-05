@@ -87,3 +87,38 @@ test_attribute_deprecated(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_CMD(test_attribute_deprecated);
 #endif
+
+static int 
+test_int_to_double(TEST_ENTRY *entry, void *argc, void *argv)
+{
+    double d = 12345;
+    int i = 5;
+    double *p = &i;
+
+
+    printf("xxx %ld\n", d);
+
+    d = -123456789;
+    i = d;
+    printf("%d\n", i);
+
+    return 1;
+}
+REGISTER_TEST_CMD(test_int_to_double);
+
+static int 
+test_int_to_short(TEST_ENTRY *entry, void *argc, void *argv)
+{
+    int i = 0x12345678;
+    short j;
+    short *p = &i;
+    char *c = &i;
+
+    j = i;
+    printf("%x\n", j);
+    printf("%x\n", *p);
+    printf("%x\n", *c);
+
+    return 1;
+}
+REGISTER_TEST_CMD(test_int_to_short);

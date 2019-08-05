@@ -14,6 +14,17 @@ enum class_info_type_e{
 	ENTRY_TYPE_INT64_T,
 	ENTRY_TYPE_UINT64_T,
 	ENTRY_TYPE_FLOAT_T,
+	ENTRY_TYPE_DOUBLE_T,
+	ENTRY_TYPE_SN8,
+	ENTRY_TYPE_UN8,
+	ENTRY_TYPE_SN16,
+	ENTRY_TYPE_UN16,
+	ENTRY_TYPE_SN32,
+	ENTRY_TYPE_UN32,
+	ENTRY_TYPE_SN64,
+	ENTRY_TYPE_UN64,
+	ENTRY_TYPE_FN,
+	ENTRY_TYPE_DN,
 	ENTRY_TYPE_STRING,
     ENTRY_TYPE_VECTOR,
 	ENTRY_TYPE_OBJ,
@@ -46,14 +57,28 @@ typedef struct class_info_entry_s{
 
 #define Init_OP____Entry(id, class_name, value_name, value) \
     [id] = {ENTRY_TYPE_OBJ_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
-#define Init_U32___Entry(id, class_name, value_name, value) \
-    [id] = {ENTRY_TYPE_UINT32_T, "", #value_name, value, sizeof(uint32_t), offset_of_class(class_name, value_name)}
-#define Init_U16___Entry(id, class_name, value_name, value) \
-    [id] = {ENTRY_TYPE_UINT16_T, "", #value_name, value, sizeof(uint16_t), offset_of_class(class_name, value_name)}
+#define Init_S8____Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_INT8_T, "", #value_name, value, sizeof(uint8_t), offset_of_class(class_name, value_name)}
 #define Init_U8____Entry(id, class_name, value_name, value) \
     [id] = {ENTRY_TYPE_UINT8_T, "", #value_name, value, sizeof(uint8_t), offset_of_class(class_name, value_name)}
+#define Init_S16___Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_INT16_T, "", #value_name, value, sizeof(uint16_t), offset_of_class(class_name, value_name)}
+#define Init_U16___Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_UINT16_T, "", #value_name, value, sizeof(uint16_t), offset_of_class(class_name, value_name)}
+#define Init_S32___Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_INT32_T, "", #value_name, value, sizeof(uint32_t), offset_of_class(class_name, value_name)}
+#define Init_U32___Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_UINT32_T, "", #value_name, value, sizeof(uint32_t), offset_of_class(class_name, value_name)}
 #define Init_Float_Entry(id, class_name, value_name, value) \
     [id] = {ENTRY_TYPE_FLOAT_T, "", #value_name, value, sizeof(float), offset_of_class(class_name, value_name)}
+#define Init_SN16__Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_SN16, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
+#define Init_UN16__Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_UN16, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
+#define Init_SN32__Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_SN32, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
+#define Init_UN32__Entry(id, class_name, value_name, value) \
+    [id] = {ENTRY_TYPE_UN32, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
 #define Init_Str___Entry(id, class_name, value_name, value) \
     [id] = {ENTRY_TYPE_STRING, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
 #define Init_Vec___Entry(id, class_name, value_name, value, value_type) \

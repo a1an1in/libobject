@@ -1,14 +1,14 @@
-#ifndef __MODULE_TEST_H__
-#define __MODULE_TEST_H__
+#ifndef __NUMBER_TEST_H__
+#define __NUMBER_TEST_H__
 
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ctest/Test.h>
-#include <libobject/core/tests/Module_Test.h>
+#include <libobject/core/Number.h>
 
-typedef struct module_test_s Module_Test;
+typedef struct number_test_s Number_Test;
 
-struct module_test_s{
+struct number_test_s{
 	Test parent;
 
 	int (*construct)(Test *,char *init_str);
@@ -19,7 +19,10 @@ struct module_test_s{
 	/*virtual methods reimplement*/
 	int (*setup)(Test *);
     void *(*teardown)(Test *);
+    int (*test_int_number)(Number_Test *test);
 
+    /*attrib*/
+    Number *number;
 };
 
 #endif

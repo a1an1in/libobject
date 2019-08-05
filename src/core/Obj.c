@@ -34,6 +34,7 @@
 #include <libobject/core/object.h>
 #include <libobject/core/String.h>
 #include <libobject/core/Vector.h>
+#include <libobject/core/Number.h>
 
 static int __construct(Obj *obj, char *init_str)
 {
@@ -115,18 +116,79 @@ static int __set(Obj *obj, char *attrib, void *value)
 
     switch(entry->type) {
         case ENTRY_TYPE_INT8_T:
+            {
+                int8_t t = (int8_t)(*((int *)value));
+                value_len = entry->value_len;
+                int8_t *addr = (int8_t *)(base + entry->offset);
+                *addr = t;
+                break;
+            }
         case ENTRY_TYPE_UINT8_T:
+            {
+                uint8_t t = (uint8_t)(*((int *)value));
+                value_len = entry->value_len;
+                uint8_t *addr = (uint8_t *)(base + entry->offset);
+                *addr = t;
+                break;
+            }
         case ENTRY_TYPE_INT16_T:
+            {
+                int16_t t = (int16_t)(*((int *)value));
+                value_len = entry->value_len;
+                int16_t *addr = (int16_t *)(base + entry->offset);
+                *addr = t;
+                break;
+            }
         case ENTRY_TYPE_UINT16_T:
+            {
+                uint16_t t = (uint16_t)(*((int *)value));
+                value_len = entry->value_len;
+                uint16_t *addr = (uint16_t *)(base + entry->offset);
+                *addr = t;
+                break;
+            }
         case ENTRY_TYPE_INT32_T:
+            {
+                int32_t t = (int32_t)(*((int *)value));
+                value_len = entry->value_len;
+                int32_t *addr = (int32_t *)(base + entry->offset);
+                *addr = t;
+                break;
+            }
         case ENTRY_TYPE_UINT32_T:
-        case ENTRY_TYPE_INT64_T:
-        case ENTRY_TYPE_UINT64_T:
+            {
+                uint32_t t = (uint32_t)(*((int *)value));
+                value_len = entry->value_len;
+                uint32_t *addr = (uint32_t *)(base + entry->offset);
+                *addr = t;
+                break;
+            }
         case ENTRY_TYPE_FLOAT_T:
             {
+                double t1 = *((double *)value);
+                float t2 = (double)t1;
                 value_len = entry->value_len;
-                void *addr = (void *)(base + entry->offset);
-                memcpy(addr, value, value_len);
+                float *addr = (float *)(base + entry->offset);
+                *addr = t2;
+                break;
+            }
+        case ENTRY_TYPE_DOUBLE_T:
+            {
+                value_len = entry->value_len;
+                float *addr = (float *)(base + entry->offset);
+                *addr = *((double *)value);
+                break;
+            }
+        case ENTRY_TYPE_SN32:
+            {
+                Number **addr = (Number **)(base + entry->offset);
+
+                if (*addr == NULL) {
+                    *addr = object_new(allocator, "Number", NULL);
+                    (*addr)->set_type((*addr), NUMBER_TYPE_SIGNED_INT);
+                }
+
+                (*addr)->set_value((*addr), value);
                 break;
             }
         case ENTRY_TYPE_STRING:
@@ -255,6 +317,7 @@ static void *__get(Obj *obj, char *attrib)
         case ENTRY_TYPE_INT64_T:
         case ENTRY_TYPE_UINT64_T:
         case ENTRY_TYPE_FLOAT_T:
+        case ENTRY_TYPE_SN32:
         case ENTRY_TYPE_STRING:
         case ENTRY_TYPE_VECTOR:
         case ENTRY_TYPE_NORMAL_POINTER:
@@ -290,6 +353,7 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
     cjson_t *item;
     void *value;
     char *name;
+    double d;
     Obj *o = (Obj *)obj;
 
     deamon = class_deamon_get_global_class_deamon();
@@ -346,6 +410,14 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
                 String *s = *(String **)value;
                 if (s != NULL)
                     cjson_add_string_to_object(object, name, s->value);
+            } else if (entry[i].type == ENTRY_TYPE_SN32) {
+                Number *number = *(Number **)value;
+                if (number == NULL) {
+                    dbg_str(DBG_WARNNING, "Number to json, but point is null, offset:%p", value);
+                    continue;
+                }
+                d = number->get_signed_int_value(number);
+                cjson_add_number_to_object(object, name, d);
             } else if (entry[i].type == ENTRY_TYPE_VECTOR) {
                 Vector *v = *((Vector **)value);
                 if (v != NULL) {

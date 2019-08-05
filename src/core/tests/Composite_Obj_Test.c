@@ -75,12 +75,12 @@ static void __test_marshal_composite_obj(Composite_Obj_Test *test)
     allocator_t *allocator = test->parent.obj.allocator;
     Composite_Obj *composite;
     Vector *vector;
-    int help = 1;
+    int help = 1, ret, num = 5;
     uint8_t trustee_flag = 1;
     int value_type = VALUE_TYPE_OBJ_POINTER;
     Obj *obj0 = NULL;
     Obj *obj1 = NULL;
-    char *expect = "{\"name\":\"test marshal Composite_Obj\",\"help\":1,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]}";
+    char *expect = "{\"name\":\"test marshal Composite_Obj\",\"help\":1,\"num\":5,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]}";
     String *string;
 
     obj0 = object_new(allocator, "Simplest_Obj", NULL);
@@ -100,6 +100,7 @@ static void __test_marshal_composite_obj(Composite_Obj_Test *test)
     help = 1;
     composite->set(composite, "name", "test marshal Composite_Obj");
     composite->set(composite, "help", &help);
+    composite->set(composite, "num", &num);
     vector = composite->vector;
 
     vector->set(vector, "/Vector/value_type", &value_type);
@@ -115,7 +116,10 @@ static void __test_marshal_composite_obj(Composite_Obj_Test *test)
     string->replace_n(string, "\r", "", -1);
     string->replace_n(string, "\n", "", -1);
 
-    ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
+    ret = ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
+    if (ret != 1) {
+        dbg_str(DBG_ERROR, "real:%s expect:%s", string->get_cstr(string), expect);
+    }
 
     object_destroy(string);
     object_destroy(composite);
@@ -127,8 +131,8 @@ static void __test_unmarshal_composite_obj(Composite_Obj_Test *test)
     allocator_t *allocator = test->parent.obj.allocator;
     int help = 2;
     String *string;
-    char *init_data = "{\"Composite_Obj\": {\"name\": \"test unmarshal Composite_Obj\",\"help\": 1,\"vector\": [{\"name\":	\"simplest obj1\",\"help\":	1}, {\"name\":	\"simplest obj2\",\"help\":	2}]}}";
-    char *expect    = "{\"name\":\"test unmarshal Composite_Obj\",\"help\":1,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]}";
+    char *init_data = "{\"Composite_Obj\": {\"name\": \"test unmarshal Composite_Obj\",\"help\": 1,\"num\":5,\"vector\": [{\"name\":	\"simplest obj1\",\"help\":	1}, {\"name\":	\"simplest obj2\",\"help\":	2}]}}";
+    char *expect    = "{\"name\":\"test unmarshal Composite_Obj\",\"help\":1,\"num\":5,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]}";
 
     composite = object_new(allocator, "Composite_Obj", init_data);
 

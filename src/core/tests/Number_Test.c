@@ -1,5 +1,5 @@
 /**
- * @file Module_Test.c
+ * @file Number_Test.c
  * @Synopsis  
  * @author alan lin
  * @version 
@@ -34,45 +34,66 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Array_Stack.h>
-#include <libobject/core/tests/Module_Test.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/utils/registry/registry.h>
-#include <libobject/core/tests/Module_Test.h>
+#include "Number_Test.h"
 
-static int __construct(Test *test, char *init_str)
-{
-    return 0;
-}
-
-static int __deconstrcut(Test *test)
-{
-    return 0;
-}
-
-static int __setup(Module_Test *test, char *init_str)
+static int __construct(Number_Test *test, char *init_str)
 {
     allocator_t *allocator = test->parent.obj.allocator;
 
-    dbg_str(DBG_DETAIL,"Module_Test set up");
+    test->number = (Number *)object_new(allocator, "Number", NULL);
 
     return 0;
 }
 
-static int __teardown(Module_Test *test)
+static int __deconstrcut(Number_Test *test)
 {
-    dbg_str(DBG_DETAIL,"Module_Test teardown");
+    object_destroy(test->number);
 
     return 0;
 }
 
-static class_info_entry_t module_test_class_info[] = {
+static int __setup(Number_Test *test, char *init_str)
+{
+    return 0;
+}
+
+static int __teardown(Number_Test *test)
+{
+    return 0;
+}
+
+static int __test_int_number(Number_Test *test)
+{
+    Number *number = test->number;
+    int d = -1, expect_d = -1, ret = 0;
+
+    number->clear(number);
+    number->set_type(number, NUMBER_TYPE_SIGNED_INT);
+
+	number->set_format_value(number, "%d", d);
+    expect_d = number->get_signed_int_value(number);
+
+    ret = ASSERT_EQUAL(test, &d, &expect_d, sizeof(d));
+    if (ret != 1) {
+        dbg_str(DBG_ERROR, "test int number, d = %d, expect_d=%d", 
+                d, expect_d);
+    } else {
+        dbg_str(DBG_SUC, "test int number, d = %d, expect_d=%d", 
+                d, expect_d);
+    }
+}
+
+static class_info_entry_t number_test_class_info[] = {
     Init_Obj___Entry(0 , Test, parent),
-    Init_Nfunc_Entry(1 , Module_Test, construct, __construct),
-    Init_Nfunc_Entry(2 , Module_Test, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Module_Test, set, NULL),
-    Init_Vfunc_Entry(4 , Module_Test, get, NULL),
-    Init_Vfunc_Entry(5 , Module_Test, setup, __setup),
-    Init_Vfunc_Entry(6 , Module_Test, teardown, __teardown),
-    Init_End___Entry(7 , Module_Test),
+    Init_Nfunc_Entry(1 , Number_Test, construct, __construct),
+    Init_Nfunc_Entry(2 , Number_Test, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Number_Test, set, NULL),
+    Init_Vfunc_Entry(4 , Number_Test, get, NULL),
+    Init_Vfunc_Entry(5 , Number_Test, setup, __setup),
+    Init_Vfunc_Entry(6 , Number_Test, teardown, __teardown),
+    Init_Vfunc_Entry(7 , Number_Test, test_int_number, __test_int_number),
+    Init_End___Entry(8 , Number_Test),
 };
-REGISTER_CLASS("Module_Test", module_test_class_info);
+REGISTER_CLASS("Number_Test", number_test_class_info);
