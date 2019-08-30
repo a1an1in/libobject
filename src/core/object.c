@@ -44,7 +44,7 @@ void * __object_get_func_of_class(char *class_name,
     class_deamon_t *deamon;
     int i;
 
-    dbg_str(DBG_DETAIL, "object_get_func_of_class");
+    dbg_str(OBJ_DETAIL, "object_get_func_of_class");
     deamon = class_deamon_get_global_class_deamon();
     entry = (class_info_entry_t *) class_deamon_search_class(deamon, 
                                                              class_name);
@@ -52,12 +52,12 @@ void * __object_get_func_of_class(char *class_name,
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
         if (strcmp((char *)entry[i].value_name, func_name) == 0) {
-            dbg_str(DBG_DETAIL, "found func of class");
+            dbg_str(OBJ_DETAIL, "found func of class");
             return entry[i].value;
         }
-        dbg_str(DBG_DETAIL, "value_name:%s func_name:%s", entry[i].value_name, func_name);
+        dbg_str(OBJ_DETAIL, "value_name:%s func_name:%s", entry[i].value_name, func_name);
     }   
-    dbg_str(DBG_DETAIL, "not found func of class");
+    dbg_str(OBJ_DETAIL, "not found func of class");
 
     return NULL;
 }
@@ -346,7 +346,7 @@ void * object_new(allocator_t *allocator,
 
     o = (Obj *)allocator_mem_alloc(allocator, size);
     if (o == NULL) {
-        dbg_str(DBG_ERROR, "alloc mem failed");
+        dbg_str(OBJ_ERROR, "alloc mem failed");
         return NULL;
     } else {
         memset(o, 0, size);
@@ -356,13 +356,13 @@ void * object_new(allocator_t *allocator,
 
     ret = object_set(o, type, config);
     if (ret < 0) {
-        dbg_str(DBG_ERROR, "object set failed");
+        dbg_str(OBJ_ERROR, "object set failed");
         goto err_object_set;
     }
 
     ret = object_init(o, type);
     if (ret < 0) {
-        dbg_str(DBG_ERROR, "object init failed");
+        dbg_str(OBJ_ERROR, "object init failed");
         goto err_object_init;
     }
 
@@ -392,11 +392,11 @@ __object_set(void *obj, char *type_name,
         if (c->type & CJSON_OBJECT) {
             object = c;
             if (object->string) {
-                dbg_str(DBG_DETAIL, "set object name:%s", object->string);
+                dbg_str(OBJ_DETAIL, "set object name:%s", object->string);
                 deamon          = class_deamon_get_global_class_deamon();
                 class_info_addr = class_deamon_search_class(deamon, object->string);
                 super_class_set = __object_get_func_of_class_recursively(class_info_addr, "set");
-                dbg_str(DBG_DETAIL, "set addr:%p", super_class_set);
+                dbg_str(OBJ_DETAIL, "set addr:%p", super_class_set);
             }
 
             if (c->child) {
@@ -409,19 +409,19 @@ __object_set(void *obj, char *type_name,
 
             if (set) {
                 if (c->type & CJSON_NUMBER) {
-                    dbg_str(DBG_DETAIL, "set number: %s value \"%d\"", c->string, c->valueint);
+                    dbg_str(OBJ_DETAIL, "set number: %s value \"%d\"", c->string, c->valueint);
                     set(obj, c->string, &(c->valueint));
                     /*
                      *set(obj, c->string, &(c->valuedouble));
                      */
                 } else if (c->type & OBJECT_STRING) {
-                    dbg_str(DBG_DETAIL, "set string: %s value \"%s\"", c->string, c->valuestring);
+                    dbg_str(OBJ_DETAIL, "set string: %s value \"%s\"", c->string, c->valuestring);
                     set(obj, c->string, c->valuestring);
                 } else if (c->type & OBJECT_ARRAY) {
                     char *out;
                     out = cjson_print(c);
                     /*
-                     *dbg_str(DBG_DETAIL, "%s array json:%s",c->string, out);
+                     *dbg_str(OBJ_DETAIL, "%s array json:%s",c->string, out);
                      */
                     set(obj, c->string, out);
                     free(out);
@@ -459,7 +459,7 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
     Obj *o = (Obj *)obj;
 
     /*
-     *dbg_str(DBG_WARNNING, "current obj type name =%s", cur_type_name);
+     *dbg_str(OBJ_WARNNING, "current obj type name =%s", cur_type_name);
      */
 
     deamon = class_deamon_get_global_class_deamon();
@@ -549,7 +549,7 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
         } else {
             strcpy(o->target_name, type_name);
 
-            dbg_str(DBG_WARNNING, "get:%p, __get:%p", get, o->get);
+            dbg_str(OBJ_WARNNING, "get:%p, __get:%p", get, o->get);
             value = get(obj, entry[i].value_name);
             /*
              *if (value == NULL) continue;
@@ -652,13 +652,13 @@ int object_destroy(void *obj)
 
         ret = map->search(map, o->name, (void **)&list);
         if (ret != 1) {
-            dbg_str(DBG_ERROR, "release object %s to cache, but not found class in the cache, cache addr:%p, class count=%d",
+            dbg_str(OBJ_ERROR, "release object %s to cache, but not found class in the cache, cache addr:%p, class count=%d",
                     o->name, o->cache, map->count(map));
             ret = -1;
             goto end;
         }
 
-        dbg_str(DBG_SUC, "obj destroy, add obj %s to cache", o->name);
+        dbg_str(OBJ_DETAIL, "obj destroy, add obj %s to cache", o->name);
 
         o->clear(o);
         list->add(list, o);

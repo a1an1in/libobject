@@ -35,6 +35,8 @@ net_task_alloc(allocator_t *allocator, int len)
         return NULL;
     }
 
+    memset(task->buf, 0, len);
+
     task->buf_len = len;
     task->allocator = allocator;
 

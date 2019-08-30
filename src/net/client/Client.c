@@ -92,7 +92,7 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
 
     if (worker->work_callback && len) {
         net_task_t *task;
-        task = net_task_alloc(worker->obj.allocator, len);
+        task = net_task_alloc(worker->obj.allocator, len + 1);
         memcpy(task->buf, buf, len);
         task->buf_len = len;
         task->opaque  = client->opaque;

@@ -62,13 +62,13 @@ static int __clear(List *list)
         if (    list->value_type == VALUE_TYPE_OBJ_POINTER && 
                 element != NULL) 
         {
-            dbg_str(DBG_DETAIL, "clear list obj element, class name:%s",
+            dbg_str(OBJ_DETAIL, "clear list obj element, class name:%s",
                     ((Obj *)element)->name);
             object_destroy(element);
         } else if (list->value_type  == VALUE_TYPE_STRING &&
                    element != NULL)
         {
-            dbg_str(DBG_DETAIL, "clear list string element");
+            dbg_str(OBJ_DETAIL, "clear list string element");
             object_destroy(element);
         } else if (list->value_type  == VALUE_TYPE_ALLOC_POINTER &&
                    element != NULL)
@@ -77,7 +77,7 @@ static int __clear(List *list)
         } else if (list->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
                    element != NULL)
         {
-            dbg_str(DBG_WARNNING, "not support clear unkown pointer");
+            dbg_str(OBJ_WARNNING, "not support clear unkown pointer");
         } else {
         }
 
@@ -102,7 +102,7 @@ static void __for_each(List *list, void (*func)(void *element))
     for (; !end->equal(end, cur); cur->next(cur)) {
         element = cur->get_vpointer(cur);
         /*
-         *dbg_str(DBG_IMPORTANT, "List for_each, element=%p", element);
+         *dbg_str(OBJ_IMPORTANT, "List for_each, element=%p", element);
          */
         func(element);
     }

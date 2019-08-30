@@ -47,10 +47,10 @@ static int __construct(Object_Cache *cache,char *init_str)
     List *list;
     int value_type = VALUE_TYPE_OBJ_POINTER;
 
-    dbg_str(DBG_ERROR, "construct cache, cache addr:%p", cache);
+    dbg_str(OBJ_ERROR, "construct cache, cache addr:%p", cache);
     map = object_new(allocator, "RBTree_Map", NULL);
     if (map == NULL) {
-        dbg_str(DBG_ERROR, "object new object cache error");
+        dbg_str(OBJ_ERROR, "object new object cache error");
         return -1;
     }
     cache->class_map = map;
@@ -89,12 +89,9 @@ static int __deconstruct(Object_Cache *cache)
 {
     List *object_list = cache->object_list;
 
-    dbg_str(DBG_ERROR, "deconstruct cache, addr:%p", cache);
-
     object_list->for_each(object_list, __clear_cache_flag_in_object_list);
     object_destroy(cache->class_map);
     object_destroy(object_list);
-    dbg_str(DBG_ERROR, "deconstruct cache end");
 }
 
 static void *
@@ -108,25 +105,25 @@ __new(Object_Cache *cache, char *class_name)
     int ret = 0;
 
     /*
-     *dbg_str(DBG_DETAIL, "get a object cache");
-     *dbg_str(DBG_DETAIL, "map addr:%p", cache->class_map);
+     *dbg_str(OBJ_DETAIL, "get a object cache");
+     *dbg_str(OBJ_DETAIL, "map addr:%p", cache->class_map);
      */
     ret = map->search(map, class_name, (void **)&list);
     if (ret != 1) {
-        dbg_str(DBG_ERROR, "new list");
+        dbg_str(OBJ_WARNNING, "new list");
         list = object_new(allocator, "Linked_List", NULL);
         if (list == NULL) {
-            dbg_str(DBG_ERROR, "get object, new list error");
+            dbg_str(OBJ_ERROR, "get object, new list error");
             return NULL;
         }
 
         o = object_new(allocator, class_name, NULL);
         if (o == NULL) {
-            dbg_str(DBG_ERROR, "get object, new class %s error", class_name);
+            dbg_str(OBJ_ERROR, "get object, new class %s error", class_name);
             return NULL;
         }
 
-        dbg_str(DBG_SUC, "get object from cache, but cache hasn't %s class", class_name);
+        dbg_str(OBJ_DETAIL, "get object from cache, but cache hasn't %s class", class_name);
         map->add(map, class_name, list);
         object_list->add_back(object_list, o);
         object_list->add_back(object_list, list);
@@ -134,18 +131,16 @@ __new(Object_Cache *cache, char *class_name)
         if (list->is_empty(list)) {
             o = object_new(allocator, class_name, NULL);
             if (o == NULL) {
-                dbg_str(DBG_ERROR, "get object, new class %s error", class_name);
+                dbg_str(OBJ_ERROR, "get object, new class %s error", class_name);
                 return NULL;
             }
-            dbg_str(DBG_SUC, "get object from cache, but cache is null");
+            dbg_str(OBJ_DETAIL, "get object from cache, but cache is null");
             object_list->add_back(object_list, o);
         } else {
-            dbg_str(DBG_SUC, "get object from cache");
+            dbg_str(OBJ_SUC, "get object from cache");
             list->remove(list, (void **)&o);
         }
     }
-
-    dbg_str(DBG_SUC, "object list count=%d", object_list->count(object_list));
 
     o->cache = cache;
 

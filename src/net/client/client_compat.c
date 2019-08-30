@@ -114,7 +114,7 @@ static int test_obj_client_recv(TEST_ENTRY *entry, void *argc, void *argv)
     pause();
     object_destroy(c);
 }
-REGISTER_STANDALONE_TEST_FUNC(test_obj_client_recv);
+REGISTER_TEST_CMD(test_obj_client_recv);
 
 static int test_obj_client_send(TEST_ENTRY *entry, void *argc, void *argv)
 {
@@ -136,7 +136,7 @@ static int test_obj_client_send(TEST_ENTRY *entry, void *argc, void *argv)
     pause();
     object_destroy(c);
 }
-REGISTER_STANDALONE_TEST_FUNC(test_obj_client_send);
+REGISTER_TEST_CMD(test_obj_client_send);
 
 static int test_obj_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
 {
@@ -158,6 +158,6 @@ static int test_obj_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
     pause();
     object_destroy(c);
 }
-REGISTER_STANDALONE_TEST_FUNC(test_obj_inet_tcp_client);
+REGISTER_TEST_CMD(test_obj_inet_tcp_client);
 
 #endif
