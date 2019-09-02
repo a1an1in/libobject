@@ -39,7 +39,7 @@
 #include <libobject/message/message.h>
 #include <libobject/core/Rbtree_Map.h>
 
-static void message_handler(void *arg)
+static void __message_handler(void *arg)
 {
     Subscriber *subscriber = (Subscriber *)arg;
     message_method_t *method = NULL;
@@ -63,7 +63,7 @@ static void message_handler(void *arg)
 
 }
 
-static  void release_registered_method(void *key, void *element, void *arg)
+static  void __release_registered_method(void *key, void *element, void *arg)
 {
     allocator_t *allocator = (allocator_t *)arg;
     allocator_mem_free(allocator, element);
@@ -75,7 +75,7 @@ static int __construct(Subscriber *subscriber, char *init_str)
 
     dbg_str(EV_DETAIL, "subscriber construct, subscriber addr:%p", subscriber);
 
-    subscriber->message_handler = message_handler;
+    subscriber->message_handler = __message_handler;
 
     subscriber->method_map = OBJECT_NEW(allocator, RBTree_Map, NULL);
     subscriber->method_map->set_cmp_func(subscriber->method_map, 
@@ -90,7 +90,7 @@ static int __deconstrcut(Subscriber *subscriber)
 
     dbg_str(EV_DETAIL, "subscriber deconstruct, subscriber addr:%p", subscriber);
     subscriber->method_map->for_each_arg(subscriber->method_map,
-                                         release_registered_method,
+                                         __release_registered_method,
                                          allocator);
     object_destroy(subscriber->method_map);
 
