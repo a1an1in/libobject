@@ -1,4 +1,4 @@
-#include "sha1.h"
+#include <libobject/crypto/digest/sha1.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 

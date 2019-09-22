@@ -172,7 +172,8 @@ static const uint64_t crc64_tab[256] = {
     UINT64_C(0x536fa08fdfd90e51), UINT64_C(0x29b7d047efec8728),
 };
 
-uint64_t crc64(uint64_t crc, const unsigned char *buf, uint64_t l) {
+uint64_t crc64(uint64_t crc, const unsigned char *buf, uint64_t l)
+{
     uint64_t j;
 
     for (j = 0; j < l; j++) {
