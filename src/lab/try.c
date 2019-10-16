@@ -67,6 +67,13 @@ enum {
                 } else if (frame.error_code == e) {                                                   \
                     exception_flag = EXCEPTION_HANDLED;
 
+#define CATCH_DEFAULT                                                                                 \
+                    if (exception_flag == EXCEPTION_ENTERED) {                                        \
+                        pthread_setspecific(try_key,                                                  \
+                                            ((exception_frame_t*)pthread_getspecific(try_key))->prev);\
+                     }                                                                                \
+                } else {                                                                              \
+                    exception_flag = EXCEPTION_HANDLED;
 
 #define FINALLY                                                                                       \
                     if (exception_flag == EXCEPTION_ENTERED) {                                        \
@@ -229,7 +236,7 @@ static int test_try_catch5(TEST_ENTRY *enTRY, void *argc, void *argv)
         try_catch_test_fuc();
     } CATCH (1) {
         printf("CATCH 1 at level1\n");
-    } CATCH (5) {
+    } CATCH_DEFAULT {
         printf("CATCH 5 at level1\n");
     }
     ENDTRY;
