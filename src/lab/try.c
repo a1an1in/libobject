@@ -72,7 +72,7 @@ enum {
                         pthread_setspecific(try_key,                                                  \
                                             ((exception_frame_t*)pthread_getspecific(try_key))->prev);\
                      }                                                                                \
-                } else {                                                                              \
+                } else if (frame.error_code < 0){                                                                              \
                     exception_flag = EXCEPTION_HANDLED;
 
 #define FINALLY                                                                                       \
@@ -129,19 +129,19 @@ static int test_try_catch3(TEST_ENTRY *enTRY, void *argc, void *argv)
 #if 1
     TRY {
         TRY {
-            THROW(1, "recall B");
-        } CATCH (1) {
-            printf("CATCH 1 at level2\n");
-        } CATCH (2) {
-            printf("CATCH 2 at level2\n");
+            THROW(-1, "recall B");
+        } CATCH (-1) {
+            printf("CATCH -1 at level2\n");
+        } CATCH (-2) {
+            printf("CATCH -2 at level2\n");
         }
         ENDTRY;
-        printf("throw 2\n");
-        THROW(2, NULL);
-    } CATCH (1) {
-        printf("CATCH 1 at level1\n");
-    } CATCH (2) {
-        printf("CATCH 2 at level1\n");
+        printf("throw -2\n");
+        THROW(-2, NULL);
+    } CATCH (-1) {
+        printf("CATCH -1 at level1\n");
+    } CATCH (-2) {
+        printf("CATCH -2 at level1\n");
     }
     ENDTRY;
 #endif
@@ -154,46 +154,46 @@ void *thread(void *args) {
     pthread_t selfid = pthread_self();
 
     TRY {
-        THROW (1, "throw 1");
-    } CATCH (1) {
-        printf("CATCH 1 : %ld\n", selfid);
+        THROW (-1, "throw -1");
+    } CATCH (-1) {
+        printf("CATCH -1 : %ld\n", selfid);
     }
     ENDTRY;
 
     TRY {
-        THROW(2, "throw 2");
-    } CATCH (2){
-        printf("CATCH 2 : %ld\n", selfid);
+        THROW(-2, "throw -2");
+    } CATCH (-2){
+        printf("CATCH -2 : %ld\n", selfid);
     }
     ENDTRY;
 
     TRY {
-        THROW(3, "throw 3");
-    } CATCH (3){
-        printf("CATCH 3 : %ld\n", selfid);
+        THROW(-3, "throw -3");
+    } CATCH (-3){
+        printf("CATCH -3 : %ld\n", selfid);
     }
     ENDTRY;
 
     TRY {
-        THROW(4, "throw 4");
-    } CATCH (4){
-        printf("CATCH 4 : %ld\n", selfid);
+        THROW(-4, "throw -4");
+    } CATCH (-4){
+        printf("CATCH -4 : %ld\n", selfid);
     }
     ENDTRY;
 
     TRY {
-        THROW(1, "1 Again");
-        THROW(2, "2 Again");
-        THROW(3, "3 Again");
-        THROW(4, "4 Again");
-    } CATCH (1){
-        printf("CATCH 1 again : %ld\n", selfid);
-    } CATCH (2){
-        printf("CATCH 2 again : %ld\n", selfid);
-    } CATCH (3){
-        printf("CATCH 3 again : %ld\n", selfid);
-    } CATCH (4){
-        printf("CATCH 4 again : %ld\n", selfid);
+        THROW(-1, "-1 Again");
+        THROW(-2, "-2 Again");
+        THROW(-3, "-3 Again");
+        THROW(-4, "-4 Again");
+    } CATCH (-1){
+        printf("CATCH -1 again : %ld\n", selfid);
+    } CATCH (-2){
+        printf("CATCH -2 again : %ld\n", selfid);
+    } CATCH (-3){
+        printf("CATCH -3 again : %ld\n", selfid);
+    } CATCH (-4){
+        printf("CATCH -4 again : %ld\n", selfid);
     } FINALLY {
         printf("finaly: %ld\n", selfid);
     };
@@ -223,7 +223,7 @@ REGISTER_TEST_FUNC(test_try_catch4);
 static try_catch_test_fuc()
 {
     TRY {
-        THROW(5, "recall B");
+        THROW(-5, "recall B");
     }
     ENDTRY;
 }
@@ -234,10 +234,10 @@ static int test_try_catch5(TEST_ENTRY *enTRY, void *argc, void *argv)
 #if 1
     TRY {
         try_catch_test_fuc();
-    } CATCH (1) {
-        printf("CATCH 1 at level1\n");
+    } CATCH (-1) {
+        printf("CATCH -1 at level1\n");
     } CATCH_DEFAULT {
-        printf("CATCH 5 at level1\n");
+        printf("CATCH -5 at level1\n");
     }
     ENDTRY;
 #endif
