@@ -34,9 +34,9 @@ typedef struct exception_frame_s {
     const char *file;
     int error_code;
     struct exception_frame_s *prev;
-#define EXCEPTIN_MESSAGE_LENGTH  512
-    char message[EXCEPTIN_MESSAGE_LENGTH + 1];
-#undef EXCEPTIN_MESSAGE_LENGTH
+#define EXCEPTION_MESSAGE_LENGTH  512
+    char message[EXCEPTION_MESSAGE_LENGTH + 1];
+#undef EXCEPTION_MESSAGE_LENGTH
 } exception_frame_t;
 
 enum {
@@ -59,7 +59,7 @@ enum {
                 if (exception_flag == EXCEPTION_ENTERED) {
 
 
-#define CATCH(e)                                                                                      \
+#define CATCH_EQ(e)                                                                                   \
                     if (exception_flag == EXCEPTION_ENTERED) {                                        \
                         pthread_setspecific(try_key,                                                  \
                                             ((exception_frame_t*)pthread_getspecific(try_key))->prev);\
@@ -67,13 +67,15 @@ enum {
                 } else if (frame.error_code == e) {                                                   \
                     exception_flag = EXCEPTION_HANDLED;
 
-#define CATCH_DEFAULT                                                                                 \
+
+#define CATCH(e)                                                                                \
                     if (exception_flag == EXCEPTION_ENTERED) {                                        \
                         pthread_setspecific(try_key,                                                  \
                                             ((exception_frame_t*)pthread_getspecific(try_key))->prev);\
                      }                                                                                \
-                } else if (frame.error_code < 0){                                                                              \
-                    exception_flag = EXCEPTION_HANDLED;
+                } else if (frame.error_code < e){                                                     \
+                    exception_flag = EXCEPTION_HANDLED;                                               \
+                    e = frame.error_code;
 
 #define FINALLY                                                                                       \
                     if (exception_flag == EXCEPTION_ENTERED) {                                        \
@@ -125,23 +127,22 @@ void exception_throw(int error_code, const char *func, const char *file, int lin
 static int test_try_catch3(TEST_ENTRY *enTRY, void *argc, void *argv)
 {
     exception_init();
+    int ret;
 
 #if 1
     TRY {
         TRY {
             THROW(-1, "recall B");
-        } CATCH (-1) {
-            printf("CATCH -1 at level2\n");
-        } CATCH (-2) {
-            printf("CATCH -2 at level2\n");
+        } CATCH (ret) {
+            printf("CATCH %d at level2\n", ret);
         }
         ENDTRY;
         printf("throw -2\n");
         THROW(-2, NULL);
-    } CATCH (-1) {
+    } CATCH_EQ (-1) {
         printf("CATCH -1 at level1\n");
-    } CATCH (-2) {
-        printf("CATCH -2 at level1\n");
+    } CATCH (ret) {
+        printf("CATCH %d at level1\n", ret);
     }
     ENDTRY;
 #endif
@@ -155,28 +156,28 @@ void *thread(void *args) {
 
     TRY {
         THROW (-1, "throw -1");
-    } CATCH (-1) {
+    } CATCH_EQ (-1) {
         printf("CATCH -1 : %ld\n", selfid);
     }
     ENDTRY;
 
     TRY {
         THROW(-2, "throw -2");
-    } CATCH (-2){
+    } CATCH_EQ (-2){
         printf("CATCH -2 : %ld\n", selfid);
     }
     ENDTRY;
 
     TRY {
         THROW(-3, "throw -3");
-    } CATCH (-3){
+    } CATCH_EQ (-3){
         printf("CATCH -3 : %ld\n", selfid);
     }
     ENDTRY;
 
     TRY {
         THROW(-4, "throw -4");
-    } CATCH (-4){
+    } CATCH_EQ (-4){
         printf("CATCH -4 : %ld\n", selfid);
     }
     ENDTRY;
@@ -186,13 +187,13 @@ void *thread(void *args) {
         THROW(-2, "-2 Again");
         THROW(-3, "-3 Again");
         THROW(-4, "-4 Again");
-    } CATCH (-1){
+    } CATCH_EQ (-1){
         printf("CATCH -1 again : %ld\n", selfid);
-    } CATCH (-2){
+    } CATCH_EQ (-2){
         printf("CATCH -2 again : %ld\n", selfid);
-    } CATCH (-3){
+    } CATCH_EQ (-3){
         printf("CATCH -3 again : %ld\n", selfid);
-    } CATCH (-4){
+    } CATCH_EQ (-4){
         printf("CATCH -4 again : %ld\n", selfid);
     } FINALLY {
         printf("finaly: %ld\n", selfid);
@@ -229,16 +230,18 @@ static try_catch_test_fuc()
 }
 static int test_try_catch5(TEST_ENTRY *enTRY, void *argc, void *argv)
 {
+    int ret = -2;
+
     exception_init();
 
 #if 1
     TRY {
         try_catch_test_fuc();
-    } CATCH (-1) {
-        printf("CATCH -1 at level1\n");
-    } CATCH_DEFAULT {
-        printf("CATCH -5 at level1\n");
-    }
+    } CATCH (ret) {
+        printf("CATCH error code, ret =%d\n", ret);
+    } FINALLY {
+        printf("run at finally\n");
+    };
     ENDTRY;
 #endif
 }
