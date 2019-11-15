@@ -13,6 +13,7 @@ int base64_encode(String *src, String *dst)
 
     s = src->get_cstr(src);
     s_len = strlen(s);  
+
     if(s_len % 3 == 0)  
         len = s_len / 3 * 4;  
     else  
