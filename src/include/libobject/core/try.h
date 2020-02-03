@@ -27,6 +27,7 @@ extern void exception_throw(int error_code, const char *func, const char *file, 
 extern pthread_key_t try_key;
 
 #define THROW(e, cause, ...)  exception_throw(e, __func__, __FILE__, __LINE__, cause, ##__VA_ARGS__, NULL)
+#define ERROR_MESSAGE() frame.message
 
 #define TRY                                                                             \
     do {                                                                                \
@@ -74,7 +75,7 @@ extern pthread_key_t try_key;
             }                                                                           \
         }                                                                               \
         if (exception_flag == EXCEPTION_THROWN)  {                                      \
-            exception_throw(frame.error_code, frame.func, frame.file, frame.line, NULL);\
+            exception_throw(frame.error_code, frame.func, frame.file, frame.line, frame.message);\
         }                                                                               \
     } while (0)
 

@@ -157,7 +157,6 @@ static int __free_detached(List *list, Iterator *iter)
 static Iterator *__begin(List *list)
 {
     Linked_List *l         = (Linked_List *)list;
-    allocator_t *allocator = list->obj.allocator;
     LList_Iterator *iter   = (LList_Iterator *)list->b;
 
     llist_begin(l->llist, &(iter->list_pos));
@@ -168,7 +167,6 @@ static Iterator *__begin(List *list)
 static Iterator *__end(List *list)
 {
     Linked_List *l         = (Linked_List *)list;
-    allocator_t *allocator = list->obj.allocator;
     LList_Iterator *iter   = (LList_Iterator *)list->e;
 
     llist_end(l->llist, &(iter->list_pos));

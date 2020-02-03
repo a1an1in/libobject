@@ -114,8 +114,8 @@ __object_get_func_of_class_recursively(void *class_info_addr,
         parent_class_name = entry[0].type_name;
         deamon = class_deamon_get_global_class_deamon();
         entry_of_parent_class  = (class_info_entry_t *)
-                 class_deamon_search_class(deamon,
-                                           (char *)parent_class_name);
+                                 class_deamon_search_class(deamon,
+                                                           (char *)parent_class_name);
 
         return __object_get_func_of_class_recursively(entry_of_parent_class,
                                                       func_name);

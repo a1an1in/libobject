@@ -9,6 +9,7 @@
 #include <libobject/argument/Application.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/libobject.h>
+#include <libobject/core/try.h>
 
 #define MAX_APP_COMMANDS_COUNT 1024
 static char *app_commands[MAX_APP_COMMANDS_COUNT];
@@ -71,14 +72,23 @@ int app_register_cmd(char *cmd)
 int app(int argc, char *argv[])
 {
     Application *app;
+    int ret = 0;
 
     libobject_init();
+    exception_init();
 
     app = object_new(NULL, "Application", NULL);
-    app->run(app, argc, argv);
-    object_destroy(app);
 
-    libobject_exit();
+    TRY {
+        app->run(app, argc, argv);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "app run errorno: %d, error_message: %s", ret, ERROR_MESSAGE());
+    } FINALLY {
+        dbg_str(DBG_SUC, "exit app!");
+        object_destroy(app);
+        libobject_exit();
+    }
+    ENDTRY;
 }
 
 
