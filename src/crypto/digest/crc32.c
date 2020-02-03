@@ -70,7 +70,7 @@ static const unsigned int crc32tab[] = {
 };
 
 static unsigned int 
-crc32(unsigned int crc, const unsigned char *buf, unsigned int size)
+crc32(unsigned int crc, const char *buf, unsigned int size)
 {
     unsigned int i;
 
@@ -88,7 +88,7 @@ test_crc32(TEST_ENTRY *entry, void *argc, void *argv)
     unsigned int expect = 0xCBF43926;
     unsigned int ret, result;
 
-    result = (unsigned int)crc32(0, "123456789",9);
+    result = (unsigned int)crc32(0, "123456789", 9);
     ret = assert_equal(&result, &expect, sizeof(result));
     if (ret == 1) {
         dbg_str(DBG_SUC, "sucess"); 

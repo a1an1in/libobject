@@ -88,41 +88,6 @@ test_attribute_deprecated(TEST_ENTRY *entry, void *argc, void *argv)
 REGISTER_TEST_CMD(test_attribute_deprecated);
 #endif
 
-static int 
-test_int_to_double(TEST_ENTRY *entry, void *argc, void *argv)
-{
-    double d = 12345;
-    int i = 5;
-    double *p = &i;
-
-
-    printf("xxx %ld\n", d);
-
-    d = -123456789;
-    i = d;
-    printf("%d\n", i);
-
-    return 1;
-}
-REGISTER_TEST_CMD(test_int_to_double);
-
-static int 
-test_int_to_short(TEST_ENTRY *entry, void *argc, void *argv)
-{
-    int i = 0x12345678;
-    short j;
-    short *p = &i;
-    char *c = &i;
-
-    j = i;
-    printf("%x\n", j);
-    printf("%x\n", *p);
-    printf("%x\n", *c);
-
-    return 1;
-}
-REGISTER_TEST_CMD(test_int_to_short);
-
 int ex(int a, int b)
 {
     int d = 1;
@@ -172,24 +137,3 @@ int test_hex_to_int()
     }
 }
 REGISTER_TEST_CMD(test_hex_to_int);
-
-int test_zhishu()
-{
-    char buf[1024] = {'\0'};
-    long d;
-    long i, len;
-
-    scanf("%d", &d);
-
-    for (i = 2; i < d; i++) {
-        if (d % i == 0) {
-            sprintf(buf + strlen(buf), 1024 - strlen(buf), "%ld ", i);
-            d = d / i;
-            i --;
-        }
-    }
-    printf ("%s\n", buf);
-
-    return 0;
-}
-REGISTER_TEST_CMD(test_zhishu);

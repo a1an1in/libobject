@@ -90,7 +90,7 @@ static int __teardown(Hash_Map_Test *test)
 
 static int __test_count(Hash_Map_Test *test)
 {
-    Map *map = test->map;
+    Map *map = (Map *)test->map;
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;
     int count, expect_count = 5;
@@ -111,7 +111,7 @@ static int __test_count(Hash_Map_Test *test)
     map->add(map, "test5", &t5);
 
     dbg_str(DBG_DETAIL, "run at here");
-    ret = map->remove(map, "test2", &t);
+    ret = map->remove(map, "test2", (void **)&t);
     count = map->count(map);
 
     ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
@@ -129,7 +129,7 @@ static int __test_count(Hash_Map_Test *test)
 
 static int __test_clear(Hash_Map_Test *test)
 {
-    Map *map = test->map;
+    Map *map = (Map *)test->map;
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;
     int count, expect_count = 0;
@@ -158,7 +158,7 @@ static int __test_clear(Hash_Map_Test *test)
 
 static int __test_clear_string_value(Hash_Map_Test *test)
 {
-    Map *map = test->map;
+    Map *map = (Map *)test->map;
     allocator_t *allocator = test->parent.obj.allocator;
     String *t0, *t1, *t2, *t3, *t4, *t5;
     int ret = 0;
@@ -206,7 +206,7 @@ static int __test_clear_string_value(Hash_Map_Test *test)
 
 static int __test_clear_object_value(Hash_Map_Test *test)
 {
-    Map *map = test->map;
+    Map *map = (Map *)test->map;
     allocator_t *allocator = test->parent.obj.allocator;
     Obj *obj1 = NULL;
     Obj *obj2 = NULL;
@@ -246,7 +246,7 @@ static int __test_clear_object_value(Hash_Map_Test *test)
 
 static int __test_add(Hash_Map_Test *test)
 {
-    Map *map = test->map;
+    Map *map = (Map *)test->map;
     struct test t0;
     int ret = 0;
     int count, expect_count = 1;
@@ -265,7 +265,7 @@ static int __test_add(Hash_Map_Test *test)
 
 static int __test_remove(Hash_Map_Test *test)
 {
-    Map *map = test->map;
+    Map *map = (Map *)test->map;
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;
     int count, expect_count = 5;
@@ -299,7 +299,7 @@ static int __test_remove(Hash_Map_Test *test)
 static int __test_search_string_key(Hash_Map_Test *test)
 {
     Iterator *iter, *next, *prev;
-    Map *map = test->map;
+    Map *map = (Map *)test->map;
     allocator_t *allocator = allocator_get_default_alloc();
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;
@@ -333,7 +333,7 @@ static int __test_search_string_key(Hash_Map_Test *test)
 
 static int __test_search_all_string_key(Hash_Map_Test *test)
 {
-    Map *map = test->map;
+    Map *map = (Map *)test->map;
     List *list;
     allocator_t *allocator = allocator_get_default_alloc();
     struct test *t, t0, t1, t2, t3, t4, t5;
@@ -378,7 +378,7 @@ static int __test_search_all_string_key(Hash_Map_Test *test)
 static int __test_search_int_key(Hash_Map_Test *test)
 {
     Iterator *iter, *next, *prev;
-    Map *map = test->map;
+    Map *map = (Map *)test->map;
     allocator_t *allocator = allocator_get_default_alloc();
     int key0, key1, key2, key3, key4;
     int ret = 0;
@@ -439,7 +439,7 @@ end:
 
 static int __test_search_all_int_key(Hash_Map_Test *test)
 {
-    Map *map = test->map;
+    Map *map = (Map *)test->map;
     List *list;
     allocator_t *allocator = allocator_get_default_alloc();
     int key0, key1, key2, key3, key4, key5, key6, key7;

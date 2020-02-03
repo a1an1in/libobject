@@ -60,7 +60,7 @@ static int __setup(Linked_List_Test *test, char *init_str)
 
 static int __teardown(Linked_List_Test *test)
 {
-    List *list = test->list;
+    List *list = (List *)test->list;
 
     dbg_str(DBG_DETAIL,"Linked_List_Test teardown");
     list->clear(list);
@@ -76,7 +76,7 @@ static int __test_add(Linked_List_Test *test)
 static int __test_count(Linked_List_Test *test)
 {
     allocator_t *allocator = test->parent.obj.allocator;
-    List *list = test->list;
+    List *list = (List *)test->list;
     char *str1 = "hello world1";
     char *str2 = "hello world2";
     char *str3 = "hello world3";
@@ -97,7 +97,7 @@ static int __test_count(Linked_List_Test *test)
 static int __test_remove(Linked_List_Test *test)
 {
     allocator_t *allocator = test->parent.obj.allocator;
-    List *list = test->list;
+    List *list = (List *)test->list;
     char *str1 = "hello world1";
     char *str2 = "hello world2";
     char *str3 = "hello world3";
@@ -119,7 +119,7 @@ static int __test_remove(Linked_List_Test *test)
 static int __test_clear(Linked_List_Test *test)
 {
     allocator_t *allocator = test->parent.obj.allocator;
-    List *list = test->list;
+    List *list = (List *)test->list;
     char *str1 = "hello world1";
     char *str2 = "hello world2";
     char *str3 = "hello world3";
@@ -141,7 +141,7 @@ static int __test_clear(Linked_List_Test *test)
 static int __test_clear_string_value(Linked_List_Test *test)
 {
     allocator_t *allocator = test->parent.obj.allocator;
-    List *list = test->list;
+    List *list = (List *)test->list;
     String *t0, *t1, *t2, *t3, *t4, *t5;
     uint8_t trustee_flag = 1;
     int value_type = VALUE_TYPE_STRING;

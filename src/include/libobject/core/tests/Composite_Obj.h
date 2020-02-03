@@ -11,13 +11,13 @@ typedef struct Composite_Obj_s Composite_Obj;
 struct Composite_Obj_s{
 	Obj parent;
 
-	int (*construct)(Obj *obj,char *init_str);
-	int (*deconstruct)(Obj *obj);
+	int (*construct)(Composite_Obj *obj,char *init_str);
+	int (*deconstruct)(Composite_Obj *obj);
 
 	/*virtual methods reimplement*/
-	int (*set)(Obj *obj, char *attrib, void *value);
-    void *(*get)(void *obj, char *attrib);
-    char *(*to_json)(void *obj); 
+	int (*set)(Composite_Obj *obj, char *attrib, void *value);
+    void *(*get)(Composite_Obj *obj, char *attrib);
+    char *(*to_json)(Composite_Obj *obj); 
 
     int help;
     String *name;

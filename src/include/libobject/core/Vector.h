@@ -18,8 +18,8 @@ struct _vector_s{
 	/*virtual methods reimplement*/
 	int (*reconstruct)(Vector *vector);
 	int (*set)(Vector *vector, char *attrib, void *value);
-    void *(*get)(void *obj, char *attrib);
-    char *(*to_json)(Obj *obj);
+    void *(*get)(Vector *vector, char *attrib);
+    char *(*to_json)(Vector *vector);
     int (*add)(Vector *vector,void *value);
     int (*add_at)(Vector *vector,int index, void *value);
     int (*add_back)(Vector *vector,void *value);

@@ -419,7 +419,7 @@ int test_slist_rotate_n(TEST_ENTRY *entry)
 }
 REGISTER_TEST_CMD(test_slist_rotate_n);
 
-static int mystr_split(char *str, char *delims, char **out) 
+static int mystr_split(char *str, char *delims, char ***out) 
 {
     int index = 0;
     char *ptr = NULL, **addr, *p;
@@ -488,6 +488,8 @@ int test_mystr_split(TEST_ENTRY *entry)
     }
 
     free(array);
+
+    return 1;
 }
 REGISTER_TEST_CMD(test_mystr_split);
 

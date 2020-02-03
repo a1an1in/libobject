@@ -686,7 +686,7 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
             policy = bus_get_policy(obj, method_name);
             n_policy = bus_get_n_policy(obj, method_name);
 
-            dbg_str(BUS_DETAIL, "policy addr:%p, size=%d", policy, ARRAY_SIZE(policy));
+            //dbg_str(BUS_DETAIL, "policy addr:%p, size=%d", policy, ARRAY_SIZE(policy));
             blob_parse_to_attr(policy, n_policy, tb, blob_get_data(args),
                                blob_get_data_len(args));
             ret = method(bus, argc, tb, buffer, &buffer_len);

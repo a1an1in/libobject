@@ -89,7 +89,7 @@ static int __is_testcase_in_white_list(Test_Runner *runner, char *testcase)
     if (count == 0) { return 1; }
 
     for (i = 0; i < count; i++) {
-        white_list->peek_at(white_list, i, &s);
+        white_list->peek_at(white_list, i, (void **)&s);
         if (strcmp(testcase, s->get_cstr(s)) == 0) {
             ret = 1;
             break;

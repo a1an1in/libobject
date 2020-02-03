@@ -180,7 +180,7 @@ static void __test_int_vector_to_json(Vector_Test *test)
     vector->add_at(vector, 4, 4);
     vector->add_at(vector, 5, 5);
 
-    ret = ASSERT_EQUAL(test, vector->to_json((Obj *)vector), result, strlen(result));
+    ret = ASSERT_EQUAL(test, vector->to_json(vector), result, strlen(result));
 }
 
 static void __test_string_vector_to_json(Vector_Test *test)
@@ -222,10 +222,10 @@ static void __test_string_vector_to_json(Vector_Test *test)
     vector->add_at(vector, 4, t4);
     vector->add_at(vector, 5, t5);
 
-    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json((Obj*)vector));
+    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
     dbg_str(DBG_DETAIL, "result: %s", result);
 
-    ret = ASSERT_EQUAL(test, vector->to_json((Obj *)vector), result, strlen(result));
+    ret = ASSERT_EQUAL(test, vector->to_json(vector), result, strlen(result));
 }
 
 static void __test_obj_vector_to_json(Vector_Test *test)
@@ -260,7 +260,7 @@ static void __test_obj_vector_to_json(Vector_Test *test)
     vector->add(vector, obj2);
 
     string = object_new(allocator, "String", NULL);
-    string->assign(string, vector->to_json((Obj *)vector));
+    string->assign(string, vector->to_json(vector));
     string->replace_n(string, "\t", "", -1);
     string->replace_n(string, "\r", "", -1);
     string->replace_n(string, "\n", "", -1);
@@ -281,7 +281,7 @@ static void __test_int_vector_set_init_data(Vector_Test *test)
     vector->set(vector, "/Vector/init_data", init_data);
     vector->reconstruct(vector);
 
-    ret = ASSERT_EQUAL(test, vector->to_json((Obj *)vector), init_data, strlen(init_data));
+    ret = ASSERT_EQUAL(test, vector->to_json(vector), init_data, strlen(init_data));
 }
 
 static void __test_string_vector_set_init_data(Vector_Test *test)
@@ -299,8 +299,8 @@ static void __test_string_vector_set_init_data(Vector_Test *test)
     vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
     vector->reconstruct(vector);
 
-    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json((Obj *)vector));
-    ret = ASSERT_EQUAL(test, vector->to_json((Obj *)vector), init_data, strlen(init_data));
+    dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
+    ret = ASSERT_EQUAL(test, vector->to_json(vector), init_data, strlen(init_data));
 }
 
 static void __test_obj_vector_set_init_data(Vector_Test *test)
@@ -320,7 +320,7 @@ static void __test_obj_vector_set_init_data(Vector_Test *test)
     vector->reconstruct(vector);
 
     string = object_new(allocator, "String", NULL);
-    string->assign(string, vector->to_json((Obj *)vector));
+    string->assign(string, vector->to_json(vector));
     string->replace_n(string, "\t", "", -1);
     string->replace_n(string, "\r", "", -1);
     string->replace_n(string, "\n", "", -1);

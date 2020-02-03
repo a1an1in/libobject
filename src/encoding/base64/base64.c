@@ -5,11 +5,11 @@
 
 int base64_encode(String *src, String *dst)  
 {  
-    unsigned char *s;
-    unsigned char *d;  
+    char *s;
+    char *d;  
     long s_len, len;  
     int i, j;  
-    unsigned char *base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";  
+    char *base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";  
 
     s = src->get_cstr(src);
     s_len = strlen(s);  
@@ -50,7 +50,7 @@ int base64_decode(String *src, String *dst)
 {  
     long len;  
     long str_len;  
-    unsigned char *d;  
+    char *d;  
     int i, j;  
     char *s = src->get_cstr(src);
     int table[] = {

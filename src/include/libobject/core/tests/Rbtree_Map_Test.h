@@ -30,7 +30,7 @@ struct rbtree_map_test_s{
     int (*test_search_int_key)(RBTree_Map_Test *test);
     int (*test_search_all_int_key)(RBTree_Map_Test *test);
 
-    RBTree_Map *map;
+    Map *map;
 };
 
 #endif

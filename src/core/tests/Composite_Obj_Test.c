@@ -111,7 +111,7 @@ static void __test_marshal_composite_obj(Composite_Obj_Test *test)
     vector->add(vector, obj1);
 
     string = object_new(allocator, "String", NULL);
-    string->assign(string, composite->to_json((Obj *)composite));
+    string->assign(string, composite->to_json(composite));
     string->replace_n(string, "\t", "", -1);
     string->replace_n(string, "\r", "", -1);
     string->replace_n(string, "\n", "", -1);
@@ -137,7 +137,7 @@ static void __test_unmarshal_composite_obj(Composite_Obj_Test *test)
     composite = object_new(allocator, "Composite_Obj", init_data);
 
     string = object_new(allocator, "String", NULL);
-    string->assign(string, composite->to_json((Obj *)composite));
+    string->assign(string, composite->to_json(composite));
     string->replace_n(string, "\t", "", -1);
     string->replace_n(string, "\r", "", -1);
     string->replace_n(string, "\n", "", -1);

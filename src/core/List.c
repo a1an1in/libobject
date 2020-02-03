@@ -54,7 +54,7 @@ static int __clear(List *list)
     dbg_str(OBJ_DETAIL, "List clear");
 
     while (list->count(list)) {
-        list->remove_front(list, &element);
+        list->remove_front(list, (void **)&element);
         if (list->trustee_flag != 1) {
             continue;
         }
