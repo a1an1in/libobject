@@ -7,8 +7,6 @@
  */
 #include <libobject/argument/Application.h>
 #include <libobject/argument/Help_Command.h>
-#include <libobject/argument/Test_Sub1_Command.h>
-#include <libobject/argument/Test_Sub2_Command.h>
 
 static int __run_action(Command *command)
 {

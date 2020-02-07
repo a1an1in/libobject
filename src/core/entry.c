@@ -48,23 +48,6 @@ int libobject_exit()
     return 0;
 }
 
-static int print_library_version()
-{
-#if (defined(ANDROID_USER_MODE))
-    __android_log_print(ANDROID_LOG_INFO, "libobject",
-            "libobject version:%d.%d.%d.%d\n", 
-            LIBOBJECT_VERSION_MAJOR, LIBOBJECT_VERSION_MINOR,
-            LIBOBJECT_VERSION_MAINTENANCE, LIBOBJECT_VERSION_BUILD);
-#else
-    printf("libobject version:%d.%d.%d.%d\n", 
-            LIBOBJECT_VERSION_MAJOR, LIBOBJECT_VERSION_MINOR,
-            LIBOBJECT_VERSION_MAINTENANCE, LIBOBJECT_VERSION_BUILD);
-#endif
-
-    return 0;
-}
-REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_VERSION, print_library_version);
-
 int __attribute__((destructor)) destruct_libobject()
 {
     execute_dtor_funcs();

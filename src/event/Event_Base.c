@@ -41,8 +41,6 @@ static int __construct(Event_Base *eb,char *init_str)
 {
     allocator_t *allocator = eb->obj.allocator;
     List **list = &global_event_base_list;
-    configurator_t * c;
-    char buf[2048];
 
     dbg_str(EV_DETAIL,"eb construct, eb addr:%p",eb);
 
@@ -50,10 +48,7 @@ static int __construct(Event_Base *eb,char *init_str)
 
     eb->timer = OBJECT_NEW(allocator, Rbtree_Timer,NULL);
 
-    c = cfg_alloc(allocator); 
-    cfg_config_num(c, "/RBTree_Map", "key_size", sizeof(int)); 
-
-    eb->io_map  = OBJECT_NEW(allocator, RBTree_Map, c->buf);
+    eb->io_map  = OBJECT_NEW(allocator, RBTree_Map, NULL);
 
     dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p,timer:%p",
             eb, eb->io_map, eb->timer);
@@ -63,8 +58,6 @@ static int __construct(Event_Base *eb,char *init_str)
     }
 
     (*list)->add_back(*list, eb);
-
-    cfg_destroy(c);
 
     return 0;
 }

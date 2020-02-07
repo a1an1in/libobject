@@ -53,8 +53,6 @@ __add_subcommand(Command *command, void *command_name)
         command->subcommands = subcommands;
     }
 
-    dbg_str(DBG_DETAIL, "add subcommand");
-
     c = object_new(command->parent.allocator, command_name, NULL);
     if (c != NULL) {
         ret = subcommands->add(subcommands, c);
@@ -112,8 +110,6 @@ __add_option(Command *command,
         options->set(options, "/Vector/trustee_flag", &trustee_flag);
         command->options = options;
     }
-
-    dbg_str(DBG_DETAIL, "add option");
 
     o = object_new(command->parent.allocator, "Option", NULL);
 

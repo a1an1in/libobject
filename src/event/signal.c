@@ -220,7 +220,6 @@ int evsig_init(Event_Base *eb)
     event_t *event = &eb->evsig.fd_rcv_event;
     struct evsig_s *evsig = &eb->evsig;
     allocator_t *allocator = eb->obj.allocator;
-    configurator_t * c;
     char size[4];
 
 #if 0
@@ -255,13 +254,8 @@ int evsig_init(Event_Base *eb)
     event->ev_arg       = event;
     eb->add(eb, event);
 
-    c = cfg_alloc(allocator); 
-    dbg_str(EV_DETAIL, "configurator_t addr:%p", c);
-    cfg_config_num(c, "/RBTree_Map", "key_size", sizeof(int)); 
-
-    evsig->map  = OBJECT_NEW(allocator, RBTree_Map, c->buf);
+    evsig->map  = OBJECT_NEW(allocator, RBTree_Map, NULL);
     evsig->list = OBJECT_NEW(allocator, Linked_List, NULL);
-    cfg_destroy(c);
 
     return 0;
 }
