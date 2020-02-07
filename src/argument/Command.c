@@ -406,20 +406,20 @@ static int __parse_args(Command *command)
                 c->parse_args(c);
                 command->selected_subcommand = c;
                 break;
-            } else {
-                if (command->args != NULL) {
-                    arg_cnt++;
-                    argument = command->get_argment(command, arg_cnt - 1);
-                    if (argument != NULL) {
-                        dbg_str(DBG_SUC, "set arg %s",command->argv[i]);
-                        argument->set(argument, "value", command->argv[i]);
-                        argument->set(argument, "set_flag", &set_flag);
-                    } else {
-                        dbg_str(DBG_WARNNING, "not recognize arg %s",command->argv[i]);
-                    }
+            }
+
+            if (command->args != NULL) {
+                arg_cnt++;
+                argument = command->get_argment(command, arg_cnt - 1);
+                if (argument != NULL) {
+                    dbg_str(DBG_SUC, "set arg %s",command->argv[i]);
+                    argument->set(argument, "value", command->argv[i]);
+                    argument->set(argument, "set_flag", &set_flag);
                 } else {
                     dbg_str(DBG_WARNNING, "not recognize arg %s",command->argv[i]);
                 }
+            } else {
+                dbg_str(DBG_WARNNING, "not recognize arg %s",command->argv[i]);
             }
         }
     }

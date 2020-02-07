@@ -34,6 +34,7 @@ static int __run(Application *app, int argc, char *argv[])
     int i = 0;
     Command *command = (Command *)app;
     Command *selected_subcommand;
+    Command *default_subcommand;
 
 
     for (i = 0; i < app_command_count; i++) {
@@ -43,7 +44,12 @@ static int __run(Application *app, int argc, char *argv[])
     command->set_args(command, argc, (char **)argv);
     command->parse_args(command);
 
+    default_subcommand = app->get_subcommand(app, "help");
+
     selected_subcommand = command->selected_subcommand;
+    if (selected_subcommand == NULL) {
+        selected_subcommand = default_subcommand;
+    }
     selected_subcommand->run_action(selected_subcommand);
 
     /*
@@ -57,9 +63,10 @@ static class_info_entry_t application_class_info[] = {
     Init_Nfunc_Entry(1, Application, construct, __construct),
     Init_Nfunc_Entry(2, Application, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3, Application, add_subcommand, NULL),
-    Init_Vfunc_Entry(4, Application, to_json, NULL),
-    Init_Nfunc_Entry(5, Application, run, __run),
-    Init_End___Entry(6, Application),
+    Init_Vfunc_Entry(4, Application, get_subcommand, NULL),
+    Init_Vfunc_Entry(5, Application, to_json, NULL),
+    Init_Nfunc_Entry(6, Application, run, __run),
+    Init_End___Entry(7, Application),
 };
 REGISTER_CLASS("Application", application_class_info);
 

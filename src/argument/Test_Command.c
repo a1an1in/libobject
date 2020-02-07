@@ -49,8 +49,7 @@ static class_info_entry_t test_command_class_info[] = {
     Init_U32___Entry(5, Test_Command, help, 0),
     Init_End___Entry(6, Test_Command),
 };
-REGISTER_CLASS("Test_Command", test_command_class_info);
-REGISTER_APP_CMD("Test_Command");
+REGISTER_APP_CMD("Test_Command", test_command_class_info);
 
 static int test_marshal_command(TEST_ENTRY *entry)
 {

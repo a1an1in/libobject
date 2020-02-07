@@ -96,8 +96,6 @@ static int __construct(Command *command, char *init_str)
 
     runner = object_new(command->parent.allocator, "Test_Runner", NULL);
 
-    dbg_str(DBG_DETAIL,"new runner:%p", runner);
-
     command->add_option(command, "--run", "-r", "all", "run test cases", __option_run_action_callback, runner);
     command->add_option(command, "--output-type", "-t", "json", "output file type", NULL, runner);
     command->add_option(command, "--output-file", "-o", "test_report.json", "output file path", NULL, runner);
@@ -126,5 +124,4 @@ static class_info_entry_t test_command_class_info[] = {
     Init_Vfunc_Entry(3, Ctest_Command, run_action, __action),
     Init_End___Entry(4, Ctest_Command),
 };
-REGISTER_CLASS("Ctest_Command", test_command_class_info);
-REGISTER_APP_CMD("Ctest_Command");
+REGISTER_APP_CMD("Ctest_Command", test_command_class_info);
