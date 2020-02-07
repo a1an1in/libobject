@@ -74,7 +74,7 @@ int llist_set(llist_t *llist, char *attrib, void *value)
         llist->lock_type = *((int *)value);
         dbg_str(LINKLIST_DETAIL, "lock_type=%d", llist->lock_type);
     } else {
-        dbg_str(LINKLIST_WARNNING, "not support attrib setting, please check");
+        dbg_str(LINKLIST_WARNNING, "not support attrib %s setting, please check", attrib);
         return -1;
     }
 

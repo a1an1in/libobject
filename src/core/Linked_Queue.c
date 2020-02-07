@@ -48,7 +48,6 @@ static int __construct(Linked_Queue *queue, char *init_str)
 
     llist = llist_alloc(allocator);
     llist_set(llist, "lock_type", &lock_type);
-    llist_set(llist, "data_size", &value_size);
     llist_init(llist);
 
     queue->llist = llist;

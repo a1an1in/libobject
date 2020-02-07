@@ -27,7 +27,7 @@ struct Command_s{
                       void *opaque);
     Option *(*get_option)(Command *command, char *option_name);
     int (*add_argument)(Command *command, char *value, char *usage, 
-                        int (*action)(void *, void *), void *opaque);
+                        int (*action)(Argument *, void *), void *opaque);
     Argument *(*get_argment)(Command *command, int index);
     int (*run_action)(Command *);
     int (*run_option_actions)(Command *);

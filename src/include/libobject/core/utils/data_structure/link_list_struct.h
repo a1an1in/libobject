@@ -39,7 +39,6 @@ typedef struct llist_pos_s{
 typedef struct llist_s{
 	sync_lock_t list_lock;
 	uint32_t list_count;
-	uint32_t data_size;
 	list_pos_t begin,end,head;
 	list_t *list;
 	uint8_t lock_type;
