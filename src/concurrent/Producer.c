@@ -65,12 +65,10 @@ static int __add_worker(Producer *producer, void *worker)
     Event_Thread *thread = &producer->parent;
     List *workers_list   = producer->workers;
 
-    dbg_str(CONCURRENT_VIP, "producer add worker, worker:%p", worker);
+    dbg_str(CONCURRENT_VIP, "producer add worker, worker:%p, fd:%d", worker, w->event.ev_fd);
     w->producer = producer;
     thread->add_event(thread, (void *)&w->event);
-    /*
-     *workers_list->add(workers_list, worker);
-     */
+    workers_list->add(workers_list, worker);
 
     return 0;
 }
@@ -81,12 +79,10 @@ static int __del_worker(Producer *producer, void *worker)
     Event_Thread *thread = &producer->parent;
     List *workers_list   = producer->workers;
 
-    dbg_str(CONCURRENT_VIP, "producer del worker, worker:%p", worker);
+    dbg_str(CONCURRENT_VIP, "producer del worker, worker:%p, fd:%d", worker, w->event.ev_fd);
     w->producer = producer;
     thread->del_event(thread, (void *)&w->event);
-    /*
-     *workers_list->remove_element(workers_list, worker);
-     */
+    workers_list->remove_element(workers_list, worker);
 }
 
 static int __add_dispatcher(Producer *producer, void *worker)

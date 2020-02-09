@@ -37,6 +37,7 @@ int event_assign(event_t *ev,
     ev->ev_callback = callback;
     ev->ev_arg      = arg;
     ev->ev_base     = (void *)base->eb;
+    ev->ev_flags    = 0;
 
     dbg_str(DBG_DETAIL,"ev_callback=%p", ev->ev_callback);
 

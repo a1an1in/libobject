@@ -66,6 +66,7 @@ static int  __assign(Worker *worker, int fd, int ev_events,
     event->ev_callback    = ev_callback;
     event->ev_arg         = ev_arg;
     worker->work_callback = work_callback;
+    worker->flags         = 0;
 
     if (ev_tv != NULL)
         event->ev_timeout     = *ev_tv;
@@ -89,10 +90,10 @@ static int __resign(Worker *worker)
         p->del_worker(p, worker);
         worker->flags |= 1;
     } else {
-        return 1; //has resigned
+        return 0; //has resigned
     }
 
-    return 0;
+    return 1;
 }
 
 static class_info_entry_t worker_class_info[] = {

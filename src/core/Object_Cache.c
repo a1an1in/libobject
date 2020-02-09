@@ -110,7 +110,6 @@ __new(Object_Cache *cache, char *class_name)
      */
     ret = map->search(map, class_name, (void **)&list);
     if (ret != 1) {
-        dbg_str(OBJ_WARNNING, "new list");
         list = object_new(allocator, "Linked_List", NULL);
         if (list == NULL) {
             dbg_str(OBJ_ERROR, "get object, new list error");

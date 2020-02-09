@@ -35,33 +35,41 @@
 #include <libobject/net/server/Server.h>
 #include <libobject/core/Linked_List.h>
 
+static void __release_working_worker(void *element)
+{
+    Worker *worker = (Worker *)element;
+
+    worker->resign(worker);
+    object_destroy(worker);
+}
+
+static void __release_leisure_worker(void *element)
+{
+    object_destroy(element);
+}
+
 static int __construct(Server *server, char *init_str)
 {
     allocator_t *allocator = server->obj.allocator;
 
     dbg_str(EV_DETAIL, "server construct, server addr:%p", server);
-    server->workers = OBJECT_NEW(allocator, Linked_List, NULL);
+
+    server->working_workers = OBJECT_NEW(allocator, Linked_List, NULL);
+    server->leisure_workers = OBJECT_NEW(allocator, Linked_List, NULL);
 
     return 0;
 }
 
-static void __release_worker(void *element)
-{
-    Worker *worker = (Worker *)element;
-
-    dbg_str(DBG_DETAIL, "release_worker, element: %p", element);
-    worker->resign(worker);
-    object_destroy(worker);
-}
-
 static int __deconstrcut(Server *server)
 {
-    List *list = server->workers;
-    dbg_str(EV_DETAIL, "server deconstruct, server addr:%p", server);
+    List *working_list = server->working_workers;
+    List *leisure_list = server->leisure_workers;
 
-    /*those socket are created when accepting a new connection*/
-    list->for_each(list, __release_worker);
-    object_destroy(server->workers);
+    working_list->for_each(working_list, __release_working_worker);
+    object_destroy(working_list);
+
+    leisure_list->for_each(leisure_list, __release_leisure_worker);
+    object_destroy(leisure_list);
 
     return 0;
 }
@@ -75,9 +83,10 @@ static int __bind(Server *server, char *host, char *service)
 
 static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
 {
-    Worker *worker = (Worker *)arg;
-    Server *server = (Server *)worker->opaque;
-    List *list     = server->workers;
+    Worker *worker     = (Worker *)arg;
+    Server *server     = (Server *)worker->opaque;
+    List *working_list = server->working_workers;
+    List *leisure_list = server->leisure_workers;
 #define EV_CALLBACK_MAX_BUF_LEN 1024 * 10
     char buf[EV_CALLBACK_MAX_BUF_LEN];
     int  buf_len = EV_CALLBACK_MAX_BUF_LEN, len = 0;
@@ -88,11 +97,15 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
 
     // len = 0, means connect close by peer; len = -1, means received a rst packet
     if (len == 0 || len == -1) {
+        dbg_str(NET_VIP, "tcp server, remove worker, fd=%d", fd);
         ret = worker->resign(worker);
-        if (ret == 0) {
-            dbg_str(DBG_WARNNING, "tcp server, remove worker, fd=%d", fd);
-            list->remove_element(list, worker);
-            object_destroy(worker); 
+        if (ret == 1) {
+            working_list->remove_element(working_list, worker);
+            leisure_list->add(leisure_list, worker);
+            dbg_str(DBG_WARNNING, "add worker %p to leisure_list", worker);
+        } else {
+            dbg_str(DBG_WARNNING, "worker %p has resigned", worker);
+            exit(1);
         }
         return 1;
     } else if (len < 0) {
@@ -115,6 +128,22 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
     return 0;
 }
 
+static Worker *__get_a_worker(Server *server)
+{
+    Worker *ret = NULL;
+    allocator_t *allocator = server->obj.allocator;
+    List *leisure_list = server->leisure_workers;
+
+    leisure_list->remove(leisure_list, (void **)&ret);
+
+    if (ret == NULL) {
+        dbg_str(DBG_WARNNING, "get_a_worker, alloc a new worker");
+        ret = object_new(allocator, "Worker", NULL);
+    }
+
+    return ret;
+}
+
 static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
 {
     Worker *worker         = (Worker *)arg;
@@ -122,18 +151,19 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
     Socket *socket         = server->socket;
     allocator_t *allocator = worker->obj.allocator;
     Producer *producer     = global_get_default_producer();
-    List *list             = server->workers;
+    List *working_list     = server->working_workers;
     Worker *new_worker;
     int new_fd;
 
     new_fd = socket->accept_fd(socket, NULL, NULL);
-    new_worker = OBJECT_NEW(allocator, Worker, NULL);
+
+    new_worker = __get_a_worker(server);
     if (new_worker == NULL) {
         dbg_str(DBG_ERROR, "OBJECT_NEW Worker");
         return -1;
     }
 
-    dbg_str(DBG_WARNNING, "listenfd_ev_callback, new fd = %d", new_fd);
+    dbg_str(DBG_VIP, "listenfd_ev_callback, new fd = %d", new_fd);
 
     new_worker->opaque = server;
     new_worker->assign(new_worker, new_fd, EV_READ | EV_PERSIST, NULL, 
@@ -142,7 +172,7 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
                        (void *)worker->work_callback);
     new_worker->enroll(new_worker, producer);
 
-    list->add(list, new_worker);
+    working_list->add(working_list, new_worker);
 
     return 0;
 }

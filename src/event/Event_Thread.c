@@ -49,7 +49,6 @@ static int __construct(Event_Thread *thread, char *init_str)
     dbg_str(EV_DETAIL,"Event_Thread construct, thread addr:%p",thread);
 
     thread->eb       = (Event_Base *)OBJECT_NEW(allocator, Select_Base, NULL);
-    thread->ev_queue = (Queue *)OBJECT_NEW(allocator, Linked_Queue, NULL);
     thread->flags    = 0;
 
     return 0;
@@ -62,7 +61,6 @@ static int __deconstrcut(Event_Thread *thread)
     dbg_str(EV_DETAIL,"Event thread deconstruct,thread addr:%p",thread);
     object_destroy(thread->s);
     object_destroy(thread->c);
-    object_destroy(thread->ev_queue);
     object_destroy(thread->eb);
 
     return ret;
@@ -116,15 +114,15 @@ static void *__get(Thread *obj, char *attrib)
 static int __add_event(Event_Thread *thread, event_t *event)
 {
     Socket *c = thread->c;
+    Event_Base *eb = thread->eb;
 
-    if (event != NULL) {
-        thread->ev_queue->add(thread->ev_queue, event);
-    } else {
+    if (event == NULL) {
         return -1;
     }
 
+    eb->add(eb, event);
+
     if (c->write(c, "a", 1) != 1) {
-        dbg_str(EV_ERROR,"ctl_write error");
         return -1;
     }
 
@@ -133,16 +131,16 @@ static int __add_event(Event_Thread *thread, event_t *event)
 
 static int __del_event(Event_Thread *thread, event_t *event)
 {
-    Socket *c = thread->c;
+    Socket *c      = thread->c;
+    Event_Base *eb = thread->eb;
 
-    if (event != NULL) {
-        thread->ev_queue->add(thread->ev_queue, event);
-    } else {
+    if (event == NULL) {
         return -1;
     }
 
+    eb->del(eb, event);
+
     if (c->write(c, "d", 1) != 1) {
-        dbg_str(EV_ERROR,"ctl_write error");
         return -1;
     }
 
@@ -152,10 +150,7 @@ static int __del_event(Event_Thread *thread, event_t *event)
 static void event_thread_server_socket_ev_callback(int fd, short events, void *arg)
 {
     Event_Thread *event_thread = (Event_Thread *)arg;
-    Queue *ev_queue            = event_thread->ev_queue;
-    Event_Base *eb             = event_thread->eb;
-    Socket *s                  = event_thread->s;
-    event_t *event;
+    Socket *s = event_thread->s;
     char buf[1];
     int len;
 
@@ -166,25 +161,8 @@ static void event_thread_server_socket_ev_callback(int fd, short events, void *a
 
     switch(buf[0]) {
         case 'a': 
-            {
-                ev_queue->remove(ev_queue, (void **)&event);
-                if (!(event->ev_events & EV_SIGNAL)) {
-                    dbg_str(EV_VIP,"Event_Thread add event, event:%p, fd:%d", event, event->ev_fd);
-                }
-
-                eb->add(eb, event);
-                break;
-            }
         case 'd': 
-            {
-                ev_queue->remove(ev_queue, (void **)&event);
-                if (!(event->ev_events & EV_SIGNAL)) {
-                    dbg_str(EV_VIP,"Event_Thread del event, event:%p, fd:%d", event, event->ev_fd);
-                }
-
-                eb->del(eb, event);
-                break;
-            }
+            break;
         default:
             break;
     }

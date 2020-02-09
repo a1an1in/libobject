@@ -25,7 +25,8 @@ struct server_s{
     Worker *worker;
     Socket *socket;
     void *opaque;
-    List *workers;
+    List *working_workers;
+    List *leisure_workers;
 };
 
 #define SERVER_TYPE_INET_TCP "inet_tcp_server_type"

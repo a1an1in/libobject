@@ -153,7 +153,6 @@ static int __activate_io(Event_Base *eb, int fd, short events)
         event->ev_callback(event->ev_fd, 0, event->ev_arg);
 
         if (event->ev_events & EV_PERSIST) {
-            dbg_str(EV_DETAIL, "persist event, readd io");
             timer->del(timer, event);
             event->ev_timeout = event->ev_tv;
             timer->add(timer, event);
