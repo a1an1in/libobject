@@ -69,7 +69,7 @@ static int test_work_callback(void *task)
     dbg_str(DBG_SUC,"task opaque=%p", t->opaque);
 }
 
-static int test_obj_server(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
 {
     Server *s;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -101,4 +101,4 @@ static int test_obj_server(TEST_ENTRY *entry, void *argc, void *argv)
     entry->ret = ret;
 
 }
-REGISTER_STANDALONE_TEST_FUNC(test_obj_server);
+REGISTER_STANDALONE_TEST_FUNC(test_inet_tcp_server);

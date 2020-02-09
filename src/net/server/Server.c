@@ -92,7 +92,7 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
         if (ret == 0) {
             dbg_str(DBG_WARNNING, "tcp server, remove worker, fd=%d", fd);
             list->remove_element(list, worker);
-            object_destroy(worker); //????there may be prolem, worker event may havn't been reclaimed
+            object_destroy(worker); 
         }
         return 1;
     } else if (len < 0) {

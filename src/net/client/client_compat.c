@@ -98,7 +98,7 @@ static int test_work_callback(void *task)
     dbg_str(DBG_SUC,"%s", t->buf);
 }
 
-static int test_obj_client_recv(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_udp_client_recv(TEST_ENTRY *entry, void *argc, void *argv)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     Client *c = NULL;
@@ -114,15 +114,15 @@ static int test_obj_client_recv(TEST_ENTRY *entry, void *argc, void *argv)
     pause();
     object_destroy(c);
 }
-REGISTER_TEST_CMD(test_obj_client_recv);
+REGISTER_TEST_CMD(test_udp_client_recv);
 
-static int test_obj_client_send(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_udp_client_send(TEST_ENTRY *entry, void *argc, void *argv)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     Client *c = NULL;
     char *str = "hello world";
 
-    dbg_str(DBG_DETAIL,"test_obj_client_send");
+    dbg_str(NET_DETAIL,"test_obj_client_send");
 
     c = client(allocator,
                CLIENT_TYPE_INET_UDP,
@@ -133,12 +133,12 @@ static int test_obj_client_send(TEST_ENTRY *entry, void *argc, void *argv)
     client_connect(c, "127.0.0.1", "1989");
     client_send(c, str, strlen(str), 0);
 
-    pause();
     object_destroy(c);
+    dbg_str(NET_WARNNING,"test_obj_client_send end");
 }
-REGISTER_TEST_CMD(test_obj_client_send);
+REGISTER_TEST_CMD(test_udp_client_send);
 
-static int test_obj_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     Client *c = NULL;
@@ -158,6 +158,6 @@ static int test_obj_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
     pause();
     object_destroy(c);
 }
-REGISTER_TEST_CMD(test_obj_inet_tcp_client);
+REGISTER_TEST_CMD(test_inet_tcp_client);
 
 #endif

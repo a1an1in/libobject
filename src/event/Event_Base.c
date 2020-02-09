@@ -45,9 +45,7 @@ static int __construct(Event_Base *eb,char *init_str)
     dbg_str(EV_DETAIL,"eb construct, eb addr:%p",eb);
 
     eb->break_flag = 0;
-
     eb->timer = OBJECT_NEW(allocator, Rbtree_Timer,NULL);
-
     eb->io_map  = OBJECT_NEW(allocator, RBTree_Map, NULL);
 
     dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p,timer:%p",
@@ -87,8 +85,6 @@ static int __add(Event_Base *eb, event_t *event)
     Timer *timer = eb->timer;
     Map *io_map  = eb->io_map;
     int fd       = event->ev_fd;
-    event_t *new_event;
-
 
     if (event->ev_events & EV_SIGNAL) {
         dbg_str(EV_WARNNING,"event base add EV_SIGNAL, signal:%d, event addr:%p", fd, event);
@@ -231,20 +227,24 @@ static int __process_timeout_events(Event_Base *eb)
     event_t *event;
 
     event = timer->first(timer);
-    if (event != NULL) {
-        timeval_now(&now, NULL);
-        if (timeval_cmp(&now, &event->ev_timeout) >= 0) {
-            dbg_str(EV_DETAIL,"process_timeout, event addr:%p",event);
-            event->ev_callback(event->ev_fd, 0, event->ev_arg);
-            if (event->ev_events & EV_PERSIST) {
-                timer->remove(timer, event);
-                event->ev_timeout = event->ev_tv;
-                timer->add(timer, event);
-            } else {
-                timer->del(timer, event);
-            }
+    if (event == NULL) {
+        return -1;
+    }
+
+    timeval_now(&now, NULL);
+    if (timeval_cmp(&now, &event->ev_timeout) >= 0) {
+        dbg_str(EV_DETAIL,"process_timeout, event addr:%p",event);
+        event->ev_callback(event->ev_fd, 0, event->ev_arg);
+        if (event->ev_events & EV_PERSIST) {
+            timer->remove(timer, event);
+            event->ev_timeout = event->ev_tv;
+            timer->add(timer, event);
+        } else {
+            timer->del(timer, event);
         }
     }
+
+    return 0;
 }
 
 static int __loop(Event_Base *eb)
