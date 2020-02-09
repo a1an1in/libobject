@@ -141,7 +141,7 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
         if (res == 0)
             continue;
 
-        dbg_str(EV_DETAIL, "fd %d has event, res=%d", i, res);
+        dbg_str(EV_DETAIL, "fd %d has event, event_flag=%d", i, res);
         b->activate_io((Event_Base *)b, i, res);
     }
 

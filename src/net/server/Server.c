@@ -86,20 +86,21 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
 
     len = recv(fd, buf, buf_len, 0);
 
-    if (len < 0) {
-        dbg_str(DBG_ERROR, "socket read error");
-        exit(1);
-    }  else if (len == 0) {
+    // len = 0, means connect close by peer; len = -1, means received a rst packet
+    if (len == 0 || len == -1) {
         ret = worker->resign(worker);
         if (ret == 0) {
+            dbg_str(DBG_WARNNING, "tcp server, remove worker, fd=%d", fd);
             list->remove_element(list, worker);
             object_destroy(worker); //????there may be prolem, worker event may havn't been reclaimed
-            dbg_str(DBG_DETAIL, "client exit");
         }
         return 1;
+    } else if (len < 0) {
+        dbg_str(DBG_ERROR, "socket read error, ret = %d", len);
+        perror("new_conn_ev_callback\n");
+        exit(1);
     }
 
-    dbg_str(DBG_SUC, "new_conn_ev_callback");
     if (worker->work_callback && len) {
         net_task_t *task;
         task = net_task_alloc(worker->obj.allocator, len);
@@ -131,6 +132,8 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
         dbg_str(DBG_ERROR, "OBJECT_NEW Worker");
         return -1;
     }
+
+    dbg_str(DBG_WARNNING, "listenfd_ev_callback, new fd = %d", new_fd);
 
     new_worker->opaque = server;
     new_worker->assign(new_worker, new_fd, EV_READ | EV_PERSIST, NULL, 

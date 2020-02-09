@@ -578,7 +578,7 @@ static int __split_n(String *string, char *delims, int num)
 
     ret = regcomp_wrap(&regex, delims, REG_EXTENDED);  
     if (ret) {
-        dbg_str(DBG_ERROR, "regex error");
+        dbg_str(DBG_ERROR, "regex error, ret=%d", ret);
         return -1;
     }
 

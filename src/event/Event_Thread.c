@@ -113,11 +113,9 @@ static void *__get(Thread *obj, char *attrib)
     return NULL;
 }
 
-static int __add_event(Event_Thread *thread, void *event)
+static int __add_event(Event_Thread *thread, event_t *event)
 {
     Socket *c = thread->c;
-
-    dbg_str(EV_DETAIL,"add event, c socket:%p", c);
 
     if (event != NULL) {
         thread->ev_queue->add(thread->ev_queue, event);
@@ -133,11 +131,9 @@ static int __add_event(Event_Thread *thread, void *event)
     return 0;
 }
 
-static int __del_event(Event_Thread *thread, void *event)
+static int __del_event(Event_Thread *thread, event_t *event)
 {
     Socket *c = thread->c;
-
-    dbg_str(EV_DETAIL,"del event");
 
     if (event != NULL) {
         thread->ev_queue->add(thread->ev_queue, event);
@@ -171,15 +167,21 @@ static void event_thread_server_socket_ev_callback(int fd, short events, void *a
     switch(buf[0]) {
         case 'a': 
             {
-                dbg_str(EV_SUC,"rcv add event command, event=%p", event);
                 ev_queue->remove(ev_queue, (void **)&event);
+                if (!(event->ev_events & EV_SIGNAL)) {
+                    dbg_str(EV_VIP,"Event_Thread add event, event:%p, fd:%d", event, event->ev_fd);
+                }
+
                 eb->add(eb, event);
                 break;
             }
         case 'd': 
             {
-                dbg_str(DBG_SUC,"rcv del event command, event=%p", event);
                 ev_queue->remove(ev_queue, (void **)&event);
+                if (!(event->ev_events & EV_SIGNAL)) {
+                    dbg_str(EV_VIP,"Event_Thread del event, event:%p, fd:%d", event, event->ev_fd);
+                }
+
                 eb->del(eb, event);
                 break;
             }

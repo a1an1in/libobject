@@ -70,11 +70,12 @@ static int __add(Rbtree_Timer *timer, event_t *e)
     struct timeval now, null_tv = {0, 0};
     int ret;
 
-    dbg_str(EV_DETAIL, "rbtree timer add, event addr : %p", e);
     ret = timeval_cmp(&e->ev_timeout, &null_tv);
     if (ret <= 0) {
         return ret;
     }
+
+    dbg_str(EV_DETAIL, "rbtree timer add, event addr : %p", e);
 
     timeval_now(&now, NULL);
     timeval_add(&e->ev_timeout, &now, &e->ev_timeout);
