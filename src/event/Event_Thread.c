@@ -48,8 +48,8 @@ static int __construct(Event_Thread *thread, char *init_str)
 
     dbg_str(EV_DETAIL,"Event_Thread construct, thread addr:%p",thread);
 
-    thread->eb       = (Event_Base *)OBJECT_NEW(allocator, Select_Base, NULL);
-    thread->flags    = 0;
+    thread->eb    = (Event_Base *)object_new(allocator, "Select_Base", NULL);
+    thread->flags = 0;
 
     return 0;
 }
@@ -66,51 +66,6 @@ static int __deconstrcut(Event_Thread *thread)
     return ret;
 }
 
-static int __set(Event_Thread *thread, char *attrib, void *value)
-{
-    if (strcmp(attrib, "set") == 0) {
-        thread->set = value;
-    } else if (strcmp(attrib, "get") == 0) {
-        thread->get = value;
-    } else if (strcmp(attrib, "construct") == 0) {
-        thread->construct = value;
-    } else if (strcmp(attrib, "deconstruct") == 0) {
-        thread->deconstruct = value;
-    } else if (strcmp(attrib, "add_event") == 0) {
-        thread->add_event = value;
-    } else if (strcmp(attrib, "del_event") == 0) {
-        thread->del_event = value;
-    } /*inherited methods*/
-    else if (strcmp(attrib, "start") == 0) {
-        thread->start = value;
-    } else if (strcmp(attrib, "set_start_routine") == 0) {
-        thread->set_start_routine = value;
-    } else if (strcmp(attrib, "set_start_arg") == 0) {
-        thread->set_start_arg = value;
-    } /*vitural methods*/
-    else if (strcmp(attrib, "start_routine") == 0) {
-        thread->start_routine = value;
-    } else if (strcmp(attrib, "detach") == 0) {
-        thread->detach = value;
-    }
-    else {
-        dbg_str(EV_DETAIL,"thread set, not support %s setting",attrib);
-    }
-
-    return 0;
-}
-
-static void *__get(Thread *obj, char *attrib)
-{
-    if (strcmp(attrib, "") == 0) {
-    } else {
-        dbg_str(EV_WARNNING,"thread get, \"%s\" getting attrib is not supported",attrib);
-        return NULL;
-    }
-
-    return NULL;
-}
-
 static int __add_event(Event_Thread *thread, event_t *event)
 {
     Socket *c = thread->c;
@@ -122,7 +77,7 @@ static int __add_event(Event_Thread *thread, event_t *event)
 
     eb->add(eb, event);
 
-    if (c->write(c, "a", 1) != 1) {
+    if (c->write(c, "a", 1) != 1) {//to make option task effect
         return -1;
     }
 
@@ -140,14 +95,14 @@ static int __del_event(Event_Thread *thread, event_t *event)
 
     eb->del(eb, event);
 
-    if (c->write(c, "d", 1) != 1) {
+    if (c->write(c, "d", 1) != 1) {//to make option task effect
         return -1;
     }
 
     return 0;
 }
 
-static void event_thread_server_socket_ev_callback(int fd, short events, void *arg)
+static void event_thread_notifier_callback(int fd, short events, void *arg)
 {
     Event_Thread *event_thread = (Event_Thread *)arg;
     Socket *s = event_thread->s;
@@ -188,24 +143,24 @@ static void *__start_routine(void *arg)
     libobject_run_path = libobject_get_run_path();
     sprintf(server_addr, "%s/%s_%d", libobject_run_path, 
             "event_thread_unix_socket_server", count); 
+
     dbg_str(EV_IMPORTANT,"Event_Thread, start_routine:%p, server_addr:%s",
             arg, server_addr);
             
     tt->detach(tt);
-    s = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
+    s = object_new(allocator, "Unix_Udp_Socket", NULL);
     s->bind(s, server_addr, NULL); 
-
-    c = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
-    c->connect(c, server_addr, NULL);
-
     et->s = s;
+
+    c = object_new(allocator, "Unix_Udp_Socket", NULL);
+    c->connect(c, server_addr, NULL);
     et->c = c;
 
     event->ev_fd              = et->s->fd;
     event->ev_events          = EV_READ | EV_PERSIST;
     event->ev_timeout.tv_sec  = 0;
     event->ev_timeout.tv_usec = 0;
-    event->ev_callback        = event_thread_server_socket_ev_callback;
+    event->ev_callback        = event_thread_notifier_callback;
     event->ev_arg             = arg;
     eb->add(eb, event);
 
@@ -231,56 +186,4 @@ static class_info_entry_t event_thread_class_info[] = {
     Init_End___Entry(10, Event_Thread),
 };
 REGISTER_CLASS("Event_Thread",event_thread_class_info);
-
-
-
-static void
-test_timeout_cb(int fd, short event, void *arg)
-{
-    struct timeval newtime, difference;
-    double elapsed;
-    static struct timeval lasttime;
-
-    gettimeofday(&newtime, NULL);
-    timeval_sub(&newtime, &lasttime, &difference);
-
-    elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
-    lasttime = newtime;
-
-    dbg_str(EV_SUC,"timeout_cb called at %d: %.3f seconds elapsed.",
-            (int)newtime.tv_sec, elapsed);
-}
-
-void test_obj_event_thread()
-{
-    Event_Thread *thread;
-    allocator_t *allocator = allocator_get_default_alloc();
-    event_t event;
-    char buf[2048];
-
-    thread = OBJECT_NEW(allocator, Event_Thread, NULL);
-
-    object_dump(thread, "Thread", buf, 2048);
-    dbg_str(EV_DETAIL,"Thread dump: %s",buf);
-    /*
-     *thread->set_start_routine(thread, event_thread_start_routine);
-     *thread->set_start_arg(thread, thread);
-     */
-    thread->start(thread);
-    
-    sleep(1);
-    event.ev_fd              = -1;
-    event.ev_events          = EV_READ | EV_PERSIST;
-    event.ev_timeout.tv_sec  = 2;
-    event.ev_timeout.tv_usec = 0;
-    event.ev_callback        = test_timeout_cb;
-    event.ev_arg             = &event;
-    thread->add_event(thread, (void *)&event);
-
-    sleep(10);
-    pause();
-
-    object_destroy(thread);
-}
-
 

@@ -221,8 +221,8 @@ static int __set_args(Command *command, int argc, char **argv)
 }
 
 static int
-__parse_option_passing_value_with_equal_sign(Command *command,
-                                             char *option)
+__parse_option_value_with_equal_sign(Command *command,
+                                     char *option)
 {
     String *str = NULL;
     Option *o;
@@ -251,8 +251,8 @@ __parse_option_passing_value_with_equal_sign(Command *command,
 }
 
 static int 
-__parse_option_passing_value_with_space(Command *command, 
-                                        char *key, char *value)
+__parse_option_value_with_space(Command *command, 
+                                char *key, char *value)
 {
     Option *o;
     uint8_t set_flag = 1, multi_value_flag = 1, *flag;
@@ -370,7 +370,7 @@ static int __parse_args(Command *command)
             /*first process option with equal sign*/
             ret = __does_option_contains_equal_sign(command->argv[i]);
             if (ret != 0) {
-                __parse_option_passing_value_with_equal_sign(command, command->argv[i]);
+                __parse_option_value_with_equal_sign(command, command->argv[i]);
                 continue;
             }
 
@@ -388,7 +388,7 @@ static int __parse_args(Command *command)
 
             /*last process option need value, but pass with space*/
             if (!__is_arg_subcommand(command, command->argv[i + 1])) {
-                __parse_option_passing_value_with_space(command,
+                __parse_option_value_with_space(command,
                         command->argv[i], command->argv[i + 1]);
                 i++;
                 continue;

@@ -86,12 +86,12 @@ static int __resign(Worker *worker)
 {
     Producer *p = worker->producer;
 
-    if (!(worker->flags & 1)) {
-        p->del_worker(p, worker);
-        worker->flags |= 1;
-    } else {
+    if (worker->flags & 1) {
         return 0; //has resigned
     }
+
+    p->del_worker(p, worker);
+    worker->flags |= 1;
 
     return 1;
 }

@@ -52,8 +52,6 @@ static int __construct(Server *server, char *init_str)
 {
     allocator_t *allocator = server->obj.allocator;
 
-    dbg_str(EV_DETAIL, "server construct, server addr:%p", server);
-
     server->working_workers = OBJECT_NEW(allocator, Linked_List, NULL);
     server->leisure_workers = OBJECT_NEW(allocator, Linked_List, NULL);
 

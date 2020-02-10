@@ -17,6 +17,7 @@ struct Object_Cache_s{
 	int (*set)(Object_Cache *, char *attrib, void *value);
     void *(*get)(Object_Cache *, char *attrib);
     void *(*new)(Object_Cache *cache, char *class_name);
+    void *(*new_string)(Object_Cache *cache, char *class_name, char *init_data);
 
     Map *class_map;
     List *object_list;

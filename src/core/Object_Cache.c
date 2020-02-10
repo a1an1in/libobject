@@ -146,12 +146,28 @@ __new(Object_Cache *cache, char *class_name)
     return o;
 }
 
+static void *__new_string(Object_Cache *cache, char *class_name, char *init_data)
+{
+    String *str;
+
+    str = cache->new(cache, "String");
+    if (str == NULL) {
+        dbg_str(DBG_ERROR, "cache new string error");
+        return NULL;
+    }
+
+    str->assign(str, init_data);
+
+    return str;
+}
+
 static class_info_entry_t object_cache_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Object_Cache, construct, __construct),
     Init_Nfunc_Entry(2 , Object_Cache, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3 , Object_Cache, new, __new),
-    Init_End___Entry(4 , Object_Cache),
+    Init_Vfunc_Entry(4 , Object_Cache, new_string, __new_string),
+    Init_End___Entry(5 , Object_Cache),
 };
 REGISTER_CLASS("Object_Cache", object_cache_info);
 

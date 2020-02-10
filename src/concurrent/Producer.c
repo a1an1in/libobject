@@ -147,8 +147,6 @@ int default_producer_destructor()
 REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_CONCURRENT, 
                    default_producer_destructor);
 
-
-
 void test_obj_producer()
 {
     Producer *producer;

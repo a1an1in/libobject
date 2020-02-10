@@ -41,18 +41,18 @@ static int __construct(Inet_Tcp_Server *server, char *init_str)
     int opt = 1;
 
     dbg_str(EV_DETAIL, "Inet_Tcp_Server construct, server addr:%p", server);
-    server->parent.socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
+    server->parent.socket = object_new(allocator, "Inet_Tcp_Socket", NULL);
     if (server->parent.socket == NULL) {
-        dbg_str(DBG_ERROR, "OBJECT_NEW Inet_Udp_Socket");
+        dbg_str(DBG_ERROR, "new Inet_Udp_Socket error");
         return -1;
     }
     server->parent.socket->setsockopt(server->parent.socket, 
                                       SOL_SOCKET, SO_REUSEADDR, 
                                       (void *)&opt);
 
-    server->parent.worker = OBJECT_NEW(allocator, Worker, NULL);
+    server->parent.worker = object_new(allocator, "Worker", NULL);
     if (server->parent.worker == NULL) {
-        dbg_str(DBG_ERROR, "OBJECT_NEW Worker");
+        dbg_str(DBG_ERROR, "new Worker error");
         return -1;
     }
 
