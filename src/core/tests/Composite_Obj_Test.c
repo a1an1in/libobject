@@ -131,8 +131,9 @@ static void __test_unmarshal_composite_obj(Composite_Obj_Test *test)
     allocator_t *allocator = test->parent.obj.allocator;
     int help = 2;
     String *string;
-    char *init_data = "{\"Composite_Obj\": {\"name\": \"test unmarshal Composite_Obj\",\"help\": 1,\"num\":5,\"vector\": [{\"name\":	\"simplest obj1\",\"help\":	1}, {\"name\":	\"simplest obj2\",\"help\":	2}]}}";
-    char *expect    = "{\"name\":\"test unmarshal Composite_Obj\",\"help\":1,\"num\":5,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]}";
+    int ret;
+    char *init_data = "{\"name\":\"test unmarshal Composite_Obj\",\"help\":1,\"num\":5,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1},{\"name\":\"simplest obj2\",\"help\":2}]}";
+    char *expect    = "{\"name\":\"test unmarshal Composite_Obj\",\"help\":1,\"num\":5,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1},{\"name\":\"simplest obj2\",\"help\":2}]}";
 
     composite = object_new(allocator, "Composite_Obj", init_data);
 
@@ -141,8 +142,13 @@ static void __test_unmarshal_composite_obj(Composite_Obj_Test *test)
     string->replace_n(string, "\t", "", -1);
     string->replace_n(string, "\r", "", -1);
     string->replace_n(string, "\n", "", -1);
+    string->replace_n(string, ", ", ",", -1);
 
-    ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
+    ret = ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
+    if (ret != 1) {
+        dbg_str(DBG_ERROR, "expect:%s", expect);
+        dbg_str(DBG_ERROR, "ret   :%s", string->get_cstr(string));
+    }
 
     object_destroy(string);
     object_destroy(composite);

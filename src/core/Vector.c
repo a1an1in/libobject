@@ -78,11 +78,8 @@ static int __construct(Vector *vector, char *init_str)
                 char *out;
                 Obj *o;
                 char *class_name = vector->class_name->get_cstr(vector->class_name);
-                char init_str[1024];
                 out = cjson_print(c);
-                sprintf(init_str, "{\"%s\":%s}", class_name, out);
-                dbg_str(DBG_DETAIL, "init_str:%s", init_str);
-                o = object_new(allocator, class_name, init_str);
+                o = object_new(allocator, class_name, out);
                 vector->add(vector, o);
 
                 dbg_str(DBG_DETAIL, "o: %s", o->to_json(o));

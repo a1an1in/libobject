@@ -83,17 +83,17 @@ static int __test_memery_leak(Object_Cache_Test *test)
     cache = object_new(allocator, "Object_Cache", NULL);
     test->cache = cache;
 
-    s0 = cache->new(cache, "String");
-    s1 = cache->new(cache, "String");
-    s2 = cache->new(cache, "String");
-    s3 = cache->new(cache, "String");
-    s4 = cache->new(cache, "String");
+    s0 = cache->new(cache, "String", NULL);
+    s1 = cache->new(cache, "String", NULL);
+    s2 = cache->new(cache, "String", NULL);
+    s3 = cache->new(cache, "String", NULL);
+    s4 = cache->new(cache, "String", NULL);
 
-    v0 = cache->new(cache, "Vector");
-    v1 = cache->new(cache, "Vector");
-    v2 = cache->new(cache, "Vector");
-    v3 = cache->new(cache, "Vector");
-    v4 = cache->new(cache, "Vector");
+    v0 = cache->new(cache, "Vector", NULL);
+    v1 = cache->new(cache, "Vector", NULL);
+    v2 = cache->new(cache, "Vector", NULL);
+    v3 = cache->new(cache, "Vector", NULL);
+    v4 = cache->new(cache, "Vector", NULL);
 
     object_destroy(s0);
     object_destroy(s1);
@@ -105,17 +105,17 @@ static int __test_memery_leak(Object_Cache_Test *test)
     object_destroy(v3);
     object_destroy(v4);
 
-    s0 = cache->new(cache, "String");
-    s1 = cache->new(cache, "String");
-    s2 = cache->new(cache, "String");
-    s3 = cache->new(cache, "String");
-    s4 = cache->new(cache, "String");
+    s0 = cache->new(cache, "String", NULL);
+    s1 = cache->new(cache, "String", NULL);
+    s2 = cache->new(cache, "String", NULL);
+    s3 = cache->new(cache, "String", NULL);
+    s4 = cache->new(cache, "String", NULL);
 
-    v0 = cache->new(cache, "Vector");
-    v1 = cache->new(cache, "Vector");
-    v2 = cache->new(cache, "Vector");
-    v3 = cache->new(cache, "Vector");
-    v4 = cache->new(cache, "Vector");
+    v0 = cache->new(cache, "Vector", NULL);
+    v1 = cache->new(cache, "Vector", NULL);
+    v2 = cache->new(cache, "Vector", NULL);
+    v3 = cache->new(cache, "Vector", NULL);
+    v4 = cache->new(cache, "Vector", NULL);
 
     object_destroy(test->cache);
     after_count = allocator->alloc_count;

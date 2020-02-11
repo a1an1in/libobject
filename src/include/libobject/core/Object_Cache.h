@@ -16,8 +16,8 @@ struct Object_Cache_s{
 	/*virtual methods reimplement*/
 	int (*set)(Object_Cache *, char *attrib, void *value);
     void *(*get)(Object_Cache *, char *attrib);
-    void *(*new)(Object_Cache *cache, char *class_name);
-    void *(*new_string)(Object_Cache *cache, char *class_name, char *init_data);
+    void *(*new)(Object_Cache *cache, char *class_name, char *data);
+    void *(*new_string)(Object_Cache *cache, char *class_name, char *data);
 
     Map *class_map;
     List *object_list;

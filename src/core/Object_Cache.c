@@ -47,7 +47,6 @@ static int __construct(Object_Cache *cache,char *init_str)
     List *list;
     int value_type = VALUE_TYPE_OBJ_POINTER;
 
-    dbg_str(OBJ_ERROR, "construct cache, cache addr:%p", cache);
     map = object_new(allocator, "RBTree_Map", NULL);
     if (map == NULL) {
         dbg_str(OBJ_ERROR, "object new object cache error");
@@ -95,7 +94,7 @@ static int __deconstruct(Object_Cache *cache)
 }
 
 static void *
-__new(Object_Cache *cache, char *class_name)
+__new(Object_Cache *cache, char *class_name, char *data)
 { 
     Map *map = cache->class_map;
     allocator_t *allocator = ((Obj *)cache)->allocator;
@@ -116,7 +115,7 @@ __new(Object_Cache *cache, char *class_name)
             return NULL;
         }
 
-        o = object_new(allocator, class_name, NULL);
+        o = object_new(allocator, class_name, data);
         if (o == NULL) {
             dbg_str(OBJ_ERROR, "get object, new class %s error", class_name);
             return NULL;
@@ -128,7 +127,7 @@ __new(Object_Cache *cache, char *class_name)
         object_list->add_back(object_list, list);
     } else {
         if (list->is_empty(list)) {
-            o = object_new(allocator, class_name, NULL);
+            o = object_new(allocator, class_name, data);
             if (o == NULL) {
                 dbg_str(OBJ_ERROR, "get object, new class %s error", class_name);
                 return NULL;
@@ -150,7 +149,7 @@ static void *__new_string(Object_Cache *cache, char *class_name, char *init_data
 {
     String *str;
 
-    str = cache->new(cache, "String");
+    str = cache->new(cache, "String", NULL);
     if (str == NULL) {
         dbg_str(DBG_ERROR, "cache new string error");
         return NULL;
@@ -182,7 +181,7 @@ static int test_object_cache_new()
     cache = object_new(allocator, "Object_Cache", NULL);
 
     /*get object from cache firstly*/
-    str = cache->new(cache, "String");
+    str = cache->new(cache, "String", NULL);
     if (str == NULL) {
         goto end;
     }
@@ -197,7 +196,7 @@ static int test_object_cache_new()
     object_destroy(str);
 
     /*get object from cache secondly*/
-    str = cache->new(cache, "String");
+    str = cache->new(cache, "String", NULL);
     if (str == NULL) {
         goto end;
     }

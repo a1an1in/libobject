@@ -440,9 +440,24 @@ int object_set(void *obj, char *type_name, char *set_str)
 {
     cjson_t *root;
 
-    dbg_str(OBJ_DETAIL, "%s", set_str);
+    if (set_str == NULL) {
+        root = cjson_parse(set_str);
+    } else if (strlen(set_str) > 0) {
+#define MAX_OBJECT_INIT_DATA_LEN 1024 * 5
+        char init_data[MAX_OBJECT_INIT_DATA_LEN];
 
-    root = cjson_parse(set_str);
+        if (strlen(type_name) + strlen(set_str) + 3 >= MAX_OBJECT_INIT_DATA_LEN) {
+            dbg_str(DBG_ERROR, "set string is too long, you may change MAX_OBJECT_INIT_DATA_LEN's default value");
+            return -1;
+        }
+        snprintf(init_data, MAX_OBJECT_INIT_DATA_LEN, "{\"%s\":%s}", type_name, set_str);
+        dbg_str(OBJ_DETAIL, "%s", init_data);
+
+        root = cjson_parse(init_data);
+#undef MAX_OBJECT_INIT_DATA_LEN
+    } else {
+        root = cjson_parse(set_str);
+    }
 
     __object_set(obj, type_name, root, NULL);
     cjson_delete(root);
