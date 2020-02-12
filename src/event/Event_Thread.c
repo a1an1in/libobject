@@ -56,9 +56,14 @@ static int __construct(Event_Thread *thread, char *init_str)
 
 static int __deconstrcut(Event_Thread *thread)
 {
-    int ret = 0;
+    int ret          = 0;
+    Event_Thread *et = (Event_Thread *)thread;
+    Event_Base *eb   = et->eb;
+    event_t *event   = &et->notifier_event;
 
     dbg_str(EV_DETAIL,"Event thread deconstruct,thread addr:%p",thread);
+
+    thread->del_event(thread, event);
     object_destroy(thread->s);
     object_destroy(thread->c);
     object_destroy(thread->eb);
@@ -131,7 +136,7 @@ static void *__start_routine(void *arg)
     Thread * tt            = (Thread *)et;
     allocator_t *allocator = et->parent.obj.allocator;
     Event_Base *eb         = et->eb;
-    event_t *event         = &et->server_socket_event;
+    event_t *event         = &et->notifier_event;
     int fds[2]             = {0};
     Socket *s, *c;
     char *libobject_run_path;
@@ -139,10 +144,9 @@ static void *__start_routine(void *arg)
     char server_addr[100];
     static int count;
 
-    count++;
     libobject_run_path = libobject_get_run_path();
     sprintf(server_addr, "%s/%s_%d", libobject_run_path, 
-            "event_thread_unix_socket_server", count); 
+            "event_thread_notifier", count++); 
 
     dbg_str(EV_IMPORTANT,"Event_Thread, start_routine:%p, server_addr:%s",
             arg, server_addr);

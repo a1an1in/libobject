@@ -2,8 +2,10 @@
 #include <libobject/event/event_compat.h>
 #include <libobject/concurrent/Producer.h>
 
-
-struct event_base *global_event_base;
+/*
+ *global event base use producer event base
+ */
+struct event_base *global_event_base; 
 
 struct event_base * event_base_new(void)
 {

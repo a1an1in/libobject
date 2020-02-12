@@ -715,7 +715,7 @@ static int bus_process_receiving_data_callback(void *task)
     blob_attr_t *blob_attr;
     blob_attr_t *tb[__BUS_MAX];
     bus_cmd_callback cb = NULL;
-    net_task_t *t = (net_task_t *)task;
+    work_task_t *t = (work_task_t *)task;
     bus_t *bus = (bus_t *)t->opaque;
     int len;
 

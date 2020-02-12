@@ -2,7 +2,7 @@
 #define __BUS_H__
 
 #include <libobject/net/client/Client.h>
-#include <libobject/net/net_task.h>
+#include <libobject/concurrent/work_task.h>
 #include <libobject/core/utils/blob/blob.h>
 #include <libobject/core/Map.h>
 

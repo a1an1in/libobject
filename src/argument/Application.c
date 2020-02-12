@@ -52,10 +52,7 @@ static int __run(Application *app, int argc, char *argv[])
     }
     selected_subcommand->run_action(selected_subcommand);
 
-    /*
-     *json = app->to_json(app);
-     *dbg_str(ARG_DETAIL, "app to json: %s", json);
-     */
+    return 0;
 }
 
 static class_info_entry_t application_class_info[] = {

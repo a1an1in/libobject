@@ -9,24 +9,27 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/alloc/allocator.h>
 
-typedef struct net_task_s{
+typedef struct work_task_s{
     void *buf;
     int buf_len;
-    allocator_t *allocator;
     int fd;
     void *opaque;
-} net_task_t;
+    void *request;
+    allocator_t *allocator;
+} work_task_t;
 
-static inline net_task_t *
-net_task_alloc(allocator_t *allocator, int len)
+static inline work_task_t *
+work_task_alloc(allocator_t *allocator, int len)
 {
-    net_task_t *task;
+    work_task_t *task;
 
-    task = (net_task_t *)allocator_mem_alloc(allocator, sizeof(net_task_t));
+    task = (work_task_t *)allocator_mem_alloc(allocator, sizeof(work_task_t));
     if (task == NULL) {
         dbg_str(DBG_ERROR,"net task alloc error");
         return NULL;
     }
+
+    memset(task, 0, sizeof(work_task_t));
 
     task->buf = allocator_mem_alloc(allocator, len);
     if (task->buf == NULL) {
@@ -43,7 +46,7 @@ net_task_alloc(allocator_t *allocator, int len)
     return task;
 }
 
-static inline int net_task_free(net_task_t *task)
+static inline int work_task_free(work_task_t *task)
 {
     allocator_mem_free(task->allocator, task->buf);
     allocator_mem_free(task->allocator, task);

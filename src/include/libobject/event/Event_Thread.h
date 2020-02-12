@@ -38,7 +38,7 @@ struct event_thread_s{
     void *(*start_routine)(void *);
 
     Event_Base *eb;
-    event_t server_socket_event;
+    event_t notifier_event;
     Queue *ev_queue;
     Socket *s, *c;
     int flags;

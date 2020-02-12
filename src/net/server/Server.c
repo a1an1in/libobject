@@ -40,12 +40,16 @@ static void __release_working_worker(void *element)
     Worker *worker = (Worker *)element;
 
     worker->resign(worker);
+    work_task_free(worker->task);
     object_destroy(worker);
 }
 
 static void __release_leisure_worker(void *element)
 {
-    object_destroy(element);
+    Worker *worker = (Worker *)element;
+
+    work_task_free(worker->task);
+    object_destroy(worker);
 }
 
 static int __construct(Server *server, char *init_str)
@@ -85,13 +89,10 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
     Server *server     = (Server *)worker->opaque;
     List *working_list = server->working_workers;
     List *leisure_list = server->leisure_workers;
-#define EV_CALLBACK_MAX_BUF_LEN 1024 * 10
-    char buf[EV_CALLBACK_MAX_BUF_LEN];
-    int  buf_len = EV_CALLBACK_MAX_BUF_LEN, len = 0;
-#undef EV_CALLBACK_MAX_BUF_LEN
-    int ret;
+    work_task_t *task   = (work_task_t *)worker->task;
+    int ret, len, len_bak;
 
-    len = recv(fd, buf, buf_len, 0);
+    len = recv(fd, task->buf, task->buf_len, 0);
 
     // len = 0, means connect close by peer; len = -1, means received a rst packet
     if (len == 0 || len == -1) {
@@ -100,6 +101,7 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
         if (ret == 1) {
             working_list->remove_element(working_list, worker);
             leisure_list->add(leisure_list, worker);
+            task->request = NULL;
             dbg_str(NET_VIP, "add worker %p to leisure_list", worker);
         } else {
             dbg_str(NET_WARNNING, "worker %p has resigned", worker);
@@ -113,32 +115,36 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
     }
 
     if (worker->work_callback && len) {
-        net_task_t *task;
-        task = net_task_alloc(worker->obj.allocator, len);
-        memcpy(task->buf, buf, len);
         task->opaque  = server->opaque;
+        len_bak       = task->buf_len;
         task->buf_len = len;
-        task->fd = fd;
+        task->fd      = fd;
         worker->work_callback(task);
-        net_task_free(task);
+        task->buf_len  = len_bak;
     }
 
     return 0;
 }
 
-static Worker *__get_a_worker(Server *server)
+static Worker *__get_worker(Server *server)
 {
     Worker *ret = NULL;
     allocator_t *allocator = server->obj.allocator;
     List *leisure_list = server->leisure_workers;
+    work_task_t *task;
 
     leisure_list->remove(leisure_list, (void **)&ret);
 
     if (ret == NULL) {
-        dbg_str(NET_VIP, "get_a_worker, alloc a new worker");
+        dbg_str(NET_VIP, "get_worker, alloc a new worker");
         ret = object_new(allocator, "Worker", NULL);
+
+#define TASK_MAX_BUF_LEN 1024 * 10
+        task = work_task_alloc(allocator, TASK_MAX_BUF_LEN);
+        ret->task = (void *)task;
+#undef TASK_MAX_BUF_LEN
     } else {
-        dbg_str(NET_VIP, "get_a_worker, get worker from leisure list");
+        dbg_str(NET_VIP, "get_worker, get worker from leisure list");
     }
 
     return ret;
@@ -157,7 +163,7 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
 
     new_fd = socket->accept_fd(socket, NULL, NULL);
 
-    new_worker = __get_a_worker(server);
+    new_worker = __get_worker(server);
     if (new_worker == NULL) {
         dbg_str(NET_ERROR, "OBJECT_NEW Worker");
         return -1;

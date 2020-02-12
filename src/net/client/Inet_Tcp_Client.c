@@ -81,7 +81,7 @@ REGISTER_CLASS("Inet_Tcp_Client", inet_tcp_client_class_info);
 
 static int test_work_callback(void *task)
 {
-    net_task_t *t = (net_task_t *)task;
+    work_task_t *t = (work_task_t *)task;
     dbg_str(NET_SUC, "%s", t->buf);
 }
 

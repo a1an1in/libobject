@@ -91,13 +91,13 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
         len = socket->recv(socket, buf, buf_len, 0);
 
     if (worker->work_callback && len) {
-        net_task_t *task;
-        task = net_task_alloc(worker->obj.allocator, len + 1);
+        work_task_t *task;
+        task = work_task_alloc(worker->obj.allocator, len + 1);
         memcpy(task->buf, buf, len);
         task->buf_len = len;
         task->opaque  = client->opaque;
         worker->work_callback(task);
-        net_task_free(task);
+        work_task_free(task);
     }
 
     return 0;

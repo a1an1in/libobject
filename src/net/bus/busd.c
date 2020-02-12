@@ -472,7 +472,7 @@ static busd_cmd_callback handlers[__BUS_REQ_LAST] = {
 
 static int busd_process_receiving_data_callback(void *task)
 {
-    net_task_t *t = (net_task_t *)task;
+    work_task_t *t = (work_task_t *)task;
     bus_reqhdr_t *hdr;
     blob_attr_t *blob_attr;
     blob_attr_t *tb[__BUSD_MAX];

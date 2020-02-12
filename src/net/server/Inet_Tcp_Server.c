@@ -82,7 +82,7 @@ REGISTER_CLASS("Inet_Tcp_Server", concurent_class_info);
 
 static void test_work_callback(void *task)
 {
-    net_task_t *t = (net_task_t *)task;
+    work_task_t *t = (work_task_t *)task;
     dbg_str(NET_SUC, "%s", t->buf);
 }
 

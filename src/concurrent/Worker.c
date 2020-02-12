@@ -38,10 +38,6 @@
 
 static int __construct(Worker *worker, char *init_str)
 {
-    allocator_t *allocator = worker->obj.allocator;
-    configurator_t * c;
-    char buf[2048];
-
     dbg_str(EV_DETAIL, "worker construct, worker addr:%p", worker);
     worker->flags = 0;
 

@@ -29,6 +29,7 @@ struct worker_s{
     event_t event;
     void *opaque;
     void (*work_callback)(void *);
+    void *task;
     int flags;
 };
 
