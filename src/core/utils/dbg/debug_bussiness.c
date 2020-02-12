@@ -20,6 +20,7 @@ debug_business_names[MAX_DEBUG_BUSINESS_NUM] = {
     "object",
     "ui-sdl_interface",
     "string",
+    "arg",
     "io",
     "db",
     "crypto",

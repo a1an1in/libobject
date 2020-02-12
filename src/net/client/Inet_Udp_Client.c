@@ -42,13 +42,13 @@ static int __construct(Inet_Udp_Client *client, char *init_str)
     dbg_str(NET_DETAIL, "Inet_Udp_Client construct, client addr:%p", client);
     client->parent.socket = OBJECT_NEW(allocator, Inet_Udp_Socket, NULL);
     if (client->parent.socket == NULL) {
-        dbg_str(DBG_ERROR, "OBJECT_NEW Inet_Udp_Socket");
+        dbg_str(NET_ERROR, "OBJECT_NEW Inet_Udp_Socket");
         return -1;
     }
 
     client->parent.worker = OBJECT_NEW(allocator, Worker, NULL);
     if (client->parent.worker == NULL) {
-        dbg_str(DBG_ERROR, "OBJECT_NEW Worker");
+        dbg_str(NET_ERROR, "OBJECT_NEW Worker");
         return -1;
     }
 
@@ -125,7 +125,7 @@ void test_obj_inet_udp_client_send()
     char buf[2048];
     char *test_str = "hello world";
 
-    dbg_str(DBG_DETAIL, "test_obj_inet_udp_client_send");
+    dbg_str(NET_DETAIL, "test_obj_inet_udp_client_send");
     client = OBJECT_NEW(allocator, Inet_Udp_Client, NULL);
     client->connect(client, "127.0.0.1", "11011");
     client->send(client, test_str, strlen(test_str), 0);
@@ -138,7 +138,7 @@ void test_obj_inet_udp_client_send()
 static int test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
-    dbg_str(DBG_SUC, "%s", t->buf);
+    dbg_str(NET_SUC, "%s", t->buf);
 }
 
 void test_obj_inet_udp_client_recv()
@@ -147,7 +147,7 @@ void test_obj_inet_udp_client_recv()
     allocator_t *allocator = allocator_get_default_alloc();
     char buf[2048];
 
-    dbg_str(DBG_DETAIL, "test_obj_inet_udp_client_recv");
+    dbg_str(NET_DETAIL, "test_obj_inet_udp_client_recv");
     client = OBJECT_NEW(allocator, Inet_Udp_Client, NULL);
     client->bind(client, "127.0.0.1", "11011"); 
     client->trustee(client, NULL, (void *)test_work_callback, NULL);

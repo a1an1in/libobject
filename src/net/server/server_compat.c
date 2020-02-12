@@ -49,7 +49,7 @@ void *server(allocator_t *allocator,
         if (process_task_cb != NULL)
             server->trustee(server, (void *)process_task_cb, opaque);
     } else {
-        dbg_str(DBG_WARNNING,"server type error");
+        dbg_str(NET_WARNNING,"server type error");
         return NULL;
     }
 
@@ -65,8 +65,8 @@ int server_destroy(void *server)
 static int test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
-    dbg_str(DBG_SUC,"%s", t->buf);
-    dbg_str(DBG_SUC,"task opaque=%p", t->opaque);
+    dbg_str(NET_SUC,"%s", t->buf);
+    dbg_str(NET_SUC,"task opaque=%p", t->opaque);
 }
 
 static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
@@ -88,7 +88,7 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
     after_alloc_count = allocator->alloc_count;
     ret = assert_equal(&pre_alloc_count, &after_alloc_count, sizeof(int));
     if (ret == 0) {
-        dbg_str(DBG_WARNNING,
+        dbg_str(NET_WARNNING,
                 "server has memory omit, pre_alloc_count=%d, after_alloc_count=%d",
                 pre_alloc_count, after_alloc_count);
         /*

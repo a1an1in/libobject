@@ -54,7 +54,7 @@ static int __run(Application *app, int argc, char *argv[])
 
     /*
      *json = app->to_json(app);
-     *dbg_str(DBG_DETAIL, "app to json: %s", json);
+     *dbg_str(ARG_DETAIL, "app to json: %s", json);
      */
 }
 
@@ -72,7 +72,7 @@ REGISTER_CLASS("Application", application_class_info);
 
 int app_register_cmd(char *cmd)
 {
-    dbg_str(DBG_SUC, "register app cmd: %s", cmd);
+    dbg_str(ARG_DETAIL, "register app cmd: %s", cmd);
     app_commands[app_command_count++] = cmd;
 }
 
@@ -89,9 +89,9 @@ int app(int argc, char *argv[])
     TRY {
         app->run(app, argc, argv);
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "app run errorno: %d, error_message: %s", ret, ERROR_MESSAGE());
+        dbg_str(ARG_ERROR, "app run errorno: %d, error_message: %s", ret, ERROR_MESSAGE());
     } FINALLY {
-        dbg_str(DBG_SUC, "exit app!");
+        dbg_str(ARG_SUC, "exit app!");
         object_destroy(app);
         libobject_exit();
     }

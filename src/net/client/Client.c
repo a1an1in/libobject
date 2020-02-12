@@ -141,7 +141,7 @@ void test_obj_client()
     allocator_t *allocator = allocator_get_default_alloc();
     char buf[2048];
 
-    dbg_str(DBG_DETAIL, "test_obj_client");
+    dbg_str(NET_DETAIL, "test_obj_client");
     client = OBJECT_NEW(allocator, Client, NULL);
 
     /*

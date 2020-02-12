@@ -195,7 +195,7 @@ static int __read_to_buffer(Ring_Buffer *rb, Buffer *buffer, int len)
     if (rb->last_operation_flag != BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         l = 0;
-        dbg_str(IO_WARNNING, "rb is nil");
+        dbg_str(IO_WARNNING, "ring buffer read to buffer, rb is nil");
         goto end;
     } else if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {

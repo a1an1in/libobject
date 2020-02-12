@@ -141,7 +141,7 @@ void test_inet_tcp_socket_recv()
      */
     socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
 
-    dbg_str(DBG_DETAIL, "sizeof socket=%d", sizeof(Socket));
+    dbg_str(NET_DETAIL, "sizeof socket=%d", sizeof(Socket));
     socket->bind(socket, "127.0.0.1", "11011"); 
     socket->listen(socket, 1024);
     new = socket->accept(socket, NULL, NULL);

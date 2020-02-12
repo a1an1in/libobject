@@ -76,7 +76,7 @@ static int __bind(Unix_Udp_Socket *socket, char *host, char *service)
          /*
           *perror("fail to bind");
           */
-         dbg_str(DBG_ERROR,"fail to bind, error_no=%d", ret);
+         dbg_str(NET_ERROR,"fail to bind, error_no=%d", ret);
          ret = -1;
      }                         
 
@@ -94,7 +94,7 @@ static int __connect(Unix_Udp_Socket *socket, char *host, char *service)
      strcpy(un_addr.sun_path, host);
 
      if ((ret = connect(fd, (struct sockaddr *)&un_addr, sizeof(un_addr))) < 0) {
-         dbg_str(DBG_ERROR,"unix udp, fail to connect, error_no=%d", ret);
+         dbg_str(NET_ERROR,"unix udp, fail to connect, error_no=%d", ret);
          ret = -1;
      }                         
 

@@ -68,7 +68,7 @@ void *client(allocator_t *allocator,
         if (process_task_cb != NULL)
             client->trustee(client, NULL, (void *)process_task_cb, opaque);
     } else {
-        dbg_str(DBG_WARNNING,"client error type");
+        dbg_str(NET_WARNNING,"client error type");
         return NULL;
     }
 
@@ -95,7 +95,7 @@ int client_destroy(void *client)
 static int test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
-    dbg_str(DBG_SUC,"%s", t->buf);
+    dbg_str(NET_SUC,"%s", t->buf);
 }
 
 static int test_udp_client_recv(TEST_ENTRY *entry, void *argc, void *argv)
@@ -103,7 +103,7 @@ static int test_udp_client_recv(TEST_ENTRY *entry, void *argc, void *argv)
     allocator_t *allocator = allocator_get_default_alloc();
     Client *c = NULL;
 
-    dbg_str(DBG_DETAIL,"test_obj_client_recv");
+    dbg_str(NET_DETAIL,"test_obj_client_recv");
 
     c = client(allocator,
                CLIENT_TYPE_INET_UDP,
@@ -144,7 +144,7 @@ static int test_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
     Client *c = NULL;
     char *str = "hello world";
 
-    dbg_str(DBG_DETAIL, "test_obj_client_send");
+    dbg_str(NET_DETAIL, "test_obj_client_send");
 
     c = client(allocator, 
                CLIENT_TYPE_INET_TCP, 

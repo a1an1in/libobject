@@ -40,10 +40,10 @@ static int __construct(Inet_Tcp_Server *server, char *init_str)
     allocator_t *allocator = server->parent.obj.allocator;
     int opt = 1;
 
-    dbg_str(EV_DETAIL, "Inet_Tcp_Server construct, server addr:%p", server);
+    dbg_str(NET_DETAIL, "Inet_Tcp_Server construct, server addr:%p", server);
     server->parent.socket = object_new(allocator, "Inet_Tcp_Socket", NULL);
     if (server->parent.socket == NULL) {
-        dbg_str(DBG_ERROR, "new Inet_Udp_Socket error");
+        dbg_str(NET_ERROR, "new Inet_Udp_Socket error");
         return -1;
     }
     server->parent.socket->setsockopt(server->parent.socket, 
@@ -52,7 +52,7 @@ static int __construct(Inet_Tcp_Server *server, char *init_str)
 
     server->parent.worker = object_new(allocator, "Worker", NULL);
     if (server->parent.worker == NULL) {
-        dbg_str(DBG_ERROR, "new Worker error");
+        dbg_str(NET_ERROR, "new Worker error");
         return -1;
     }
 
@@ -61,7 +61,7 @@ static int __construct(Inet_Tcp_Server *server, char *init_str)
 
 static int __deconstrcut(Inet_Tcp_Server *server)
 {
-    dbg_str(EV_DETAIL, "server deconstruct, server addr:%p", server);
+    dbg_str(NET_DETAIL, "server deconstruct, server addr:%p", server);
     object_destroy(server->parent.socket);
     object_destroy(server->parent.worker);
 
@@ -83,7 +83,7 @@ REGISTER_CLASS("Inet_Tcp_Server", concurent_class_info);
 static void test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
-    dbg_str(DBG_SUC, "%s", t->buf);
+    dbg_str(NET_SUC, "%s", t->buf);
 }
 
 void test_obj_inet_tcp_server()
@@ -94,7 +94,7 @@ void test_obj_inet_tcp_server()
     /*
      *sleep(1);
      */
-    dbg_str(DBG_DETAIL, "Inet_Tcp_Server=%d Inet_Tcp_Socket=%d worker=%d", 
+    dbg_str(NET_DETAIL, "Inet_Tcp_Server=%d Inet_Tcp_Socket=%d worker=%d", 
              sizeof(Inet_Tcp_Server), sizeof(Inet_Tcp_Socket), sizeof(Worker));
     server = OBJECT_NEW(allocator, Inet_Tcp_Server, NULL);
     server->bind(server, "127.0.0.1", "11011"); 

@@ -42,13 +42,13 @@ static int __construct(Inet_Tcp_Client *client, char *init_str)
     dbg_str(NET_DETAIL, "Inet_Tcp_Client construct, client addr:%p", client);
     client->parent.socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
     if (client->parent.socket == NULL) {
-        dbg_str(DBG_ERROR, "OBJECT_NEW Inet_Udp_Socket");
+        dbg_str(NET_ERROR, "OBJECT_NEW Inet_Udp_Socket");
         return -1;
     }
 
     client->parent.worker = OBJECT_NEW(allocator, Worker, NULL);
     if (client->parent.worker == NULL) {
-        dbg_str(DBG_ERROR, "OBJECT_NEW Worker");
+        dbg_str(NET_ERROR, "OBJECT_NEW Worker");
         return -1;
     }
 
@@ -82,7 +82,7 @@ REGISTER_CLASS("Inet_Tcp_Client", inet_tcp_client_class_info);
 static int test_work_callback(void *task)
 {
     net_task_t *t = (net_task_t *)task;
-    dbg_str(DBG_SUC, "%s", t->buf);
+    dbg_str(NET_SUC, "%s", t->buf);
 }
 
 #if 0
@@ -93,7 +93,7 @@ void test_obj_inet_tcp_client()
     char buf[2048];
     char *test_str = "hello world";
 
-    dbg_str(DBG_DETAIL, "test_obj_inet_tcp_client_recv");
+    dbg_str(NET_DETAIL, "test_obj_inet_tcp_client_recv");
     client = OBJECT_NEW(allocator, Inet_Tcp_Client, NULL);
     /*
      *client->bind(client, "127.0.0.1", "11011"); 

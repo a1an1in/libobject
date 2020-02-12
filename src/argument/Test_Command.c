@@ -59,11 +59,11 @@ static int test_marshal_command(TEST_ENTRY *entry)
     Command *subcmd2 = NULL;
     int ret = 0, help = 0;
 
-    dbg_str(DBG_DETAIL, "allocator addr:%p", allocator);
+    dbg_str(ARG_DETAIL, "allocator addr:%p", allocator);
 
     command = object_new(allocator, "Test_Command", NULL);
 
-    dbg_str(DBG_DETAIL, "Test_Command dump: %s", command->to_json(command));
+    dbg_str(ARG_DETAIL, "Test_Command dump: %s", command->to_json(command));
 
     object_destroy(command);
 
@@ -98,11 +98,11 @@ static int test_unmarshal_command(TEST_ENTRY *entry)
             }\
         }";
 
-    dbg_str(DBG_DETAIL, "allocator addr:%p", allocator);
+    dbg_str(ARG_DETAIL, "allocator addr:%p", allocator);
 
     command = object_new(allocator, "Test_Command", init_data);
 
-    dbg_str(DBG_DETAIL, "Test_Command dump: %s", command->to_json(command));
+    dbg_str(ARG_DETAIL, "Test_Command dump: %s", command->to_json(command));
 
     object_destroy(command);
 

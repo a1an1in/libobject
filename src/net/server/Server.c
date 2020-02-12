@@ -100,14 +100,14 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
         if (ret == 1) {
             working_list->remove_element(working_list, worker);
             leisure_list->add(leisure_list, worker);
-            dbg_str(DBG_WARNNING, "add worker %p to leisure_list", worker);
+            dbg_str(NET_VIP, "add worker %p to leisure_list", worker);
         } else {
-            dbg_str(DBG_WARNNING, "worker %p has resigned", worker);
+            dbg_str(NET_WARNNING, "worker %p has resigned", worker);
             exit(1);
         }
         return 1;
     } else if (len < 0) {
-        dbg_str(DBG_ERROR, "socket read error, ret = %d", len);
+        dbg_str(NET_ERROR, "socket read error, ret = %d", len);
         perror("new_conn_ev_callback\n");
         exit(1);
     }
@@ -135,8 +135,10 @@ static Worker *__get_a_worker(Server *server)
     leisure_list->remove(leisure_list, (void **)&ret);
 
     if (ret == NULL) {
-        dbg_str(DBG_WARNNING, "get_a_worker, alloc a new worker");
+        dbg_str(NET_VIP, "get_a_worker, alloc a new worker");
         ret = object_new(allocator, "Worker", NULL);
+    } else {
+        dbg_str(NET_VIP, "get_a_worker, get worker from leisure list");
     }
 
     return ret;
@@ -157,11 +159,11 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
 
     new_worker = __get_a_worker(server);
     if (new_worker == NULL) {
-        dbg_str(DBG_ERROR, "OBJECT_NEW Worker");
+        dbg_str(NET_ERROR, "OBJECT_NEW Worker");
         return -1;
     }
 
-    dbg_str(DBG_VIP, "listenfd_ev_callback, new fd = %d", new_fd);
+    dbg_str(NET_VIP, "listenfd_ev_callback, new fd = %d", new_fd);
 
     new_worker->opaque = server;
     new_worker->assign(new_worker, new_fd, EV_READ | EV_PERSIST, NULL, 

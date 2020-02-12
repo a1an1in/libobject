@@ -182,7 +182,7 @@ __add_argument(command, value, usage, action, opaque)
         command->args = args;
     }
 
-    dbg_str(DBG_DETAIL, "add arg");
+    dbg_str(ARG_DETAIL, "add arg");
 
     arg = object_new(command->parent.allocator, "Argument", NULL);
 
@@ -232,7 +232,7 @@ __parse_option_value_with_equal_sign(Command *command,
     str = object_new(command->parent.allocator, "String", NULL);
     str->assign(str, option);
     cnt = str->split_n(str, "=", 2); 
-    dbg_str(DBG_SUC, "key count :%d", cnt);
+    dbg_str(ARG_SUC, "key count :%d", cnt);
     if (cnt == 2) {
         key   = str->get_splited_cstr(str, 0);
         value = str->get_splited_cstr(str, 1);
@@ -241,7 +241,7 @@ __parse_option_value_with_equal_sign(Command *command,
         if (o != NULL) {
             o->set(o, "value", value);
             o->set(o, "set_flag", &set_flag);
-            dbg_str(DBG_SUC, "set option key:%s, value:%s", key, value);
+            dbg_str(ARG_SUC, "set option key:%s, value:%s", key, value);
         }
     } 
 
@@ -266,11 +266,11 @@ __parse_option_value_with_space(Command *command,
             o->set(o, "multi_value_flag", &multi_value_flag);
             v->append(v, ";");
             v->append(v, value);
-            dbg_str(DBG_SUC, "set option key:%s, value:%s", key, value);
+            dbg_str(ARG_SUC, "set option key:%s, value:%s", key, value);
         } else {
             o->set(o, "value", value);
             o->set(o, "set_flag", &set_flag);
-            dbg_str(DBG_SUC, "set option key:%s, value:%s", key, value);
+            dbg_str(ARG_SUC, "set option key:%s, value:%s", key, value);
         }
     }
 }
@@ -347,20 +347,20 @@ static int __parse_args(Command *command)
     int set_flag = 1;
     Argument *argument;
 
-    dbg_str(DBG_SUC, "parse command %s", command->argv[0]);
+    dbg_str(ARG_SUC, "parse command %s", command->argv[0]);
 
     if (command->argc <= 0) {
         return 0;
     }
 
     for (i = 0; i < command->argc; i++) {
-        dbg_str(DBG_DETAIL, "argv[%d]:%s ", i, command->argv[i]);
+        dbg_str(ARG_DETAIL, "argv[%d]:%s ", i, command->argv[i]);
     }
 
     p = strstr(command->argv[0], 
                command->name->get_cstr(command->name));
     if (p == NULL) {
-        dbg_str(DBG_WARNNING, "args passed to wrong command");
+        dbg_str(ARG_WARNNING, "args passed to wrong command");
         ret = -1;
     }
 
@@ -376,7 +376,7 @@ static int __parse_args(Command *command)
 
             ret = __does_option_need_value(command, command->argv[i]);
             if (ret < 0) {
-                dbg_str(DBG_WARNNING, "not recognized option");
+                dbg_str(ARG_WARNNING, "not recognized option");
                 continue;
             }
 
@@ -396,7 +396,7 @@ static int __parse_args(Command *command)
         } else {
             c = command->get_subcommand(command, command->argv[i]);
             if (c != NULL) {
-                dbg_str(DBG_SUC, "%s found a command %s",
+                dbg_str(ARG_SUC, "%s found a command %s",
                         command->argv[0], command->argv[i]);
                 c->set_args(c, command->argc - i, (char **)&command->argv[i]);
                 c->parse_args(c);
@@ -408,14 +408,14 @@ static int __parse_args(Command *command)
                 arg_cnt++;
                 argument = command->get_argment(command, arg_cnt - 1);
                 if (argument != NULL) {
-                    dbg_str(DBG_SUC, "set arg %s",command->argv[i]);
+                    dbg_str(ARG_SUC, "set arg %s",command->argv[i]);
                     argument->set(argument, "value", command->argv[i]);
                     argument->set(argument, "set_flag", &set_flag);
                 } else {
-                    dbg_str(DBG_WARNNING, "not recognize arg %s",command->argv[i]);
+                    dbg_str(ARG_WARNNING, "not recognize arg %s",command->argv[i]);
                 }
             } else {
-                dbg_str(DBG_WARNNING, "not recognize arg %s",command->argv[i]);
+                dbg_str(ARG_WARNNING, "not recognize arg %s",command->argv[i]);
             }
         }
     }

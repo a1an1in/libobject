@@ -20,9 +20,9 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
@@ -37,18 +37,18 @@
 
 List *global_event_base_list;
 
-static int __construct(Event_Base *eb,char *init_str)
+static int __construct(Event_Base *eb, char *init_str)
 {
     allocator_t *allocator = eb->obj.allocator;
     List **list = &global_event_base_list;
 
-    dbg_str(EV_DETAIL,"eb construct, eb addr:%p",eb);
+    dbg_str(EV_VIP, "Event_Base construct, eb addr:%p", eb);
 
     eb->break_flag = 0;
-    eb->timer = OBJECT_NEW(allocator, Rbtree_Timer,NULL);
+    eb->timer = OBJECT_NEW(allocator, Rbtree_Timer, NULL);
     eb->io_map  = OBJECT_NEW(allocator, RBTree_Map, NULL);
 
-    dbg_str(EV_DETAIL,"base addr:%p, io_map addr :%p,timer:%p",
+    dbg_str(EV_DETAIL, "base addr:%p, io_map addr :%p, timer:%p", 
             eb, eb->io_map, eb->timer);
 
     if (*list == NULL) {
@@ -64,17 +64,17 @@ static int __deconstrcut(Event_Base *eb)
 {
     List *list = global_event_base_list;
 
-    dbg_str(EV_DETAIL,"*****eb deconstruct,eb addr:%p",eb);
+    dbg_str(EV_VIP, "Event_Base deconstruct, eb addr:%p", eb);
 
     object_destroy(eb->timer);
     object_destroy(eb->io_map);
 
     if (list != NULL && list->count(list) == 1) {
-        dbg_str(EV_DETAIL,"destroy global event base list");
+        dbg_str(EV_DETAIL, "destroy global event base list");
         object_destroy(list);
     } else {
         list->remove_element(list, eb);
-        dbg_str(EV_DETAIL,"remove global_event_base_list, count=%d", list->count(list));
+        dbg_str(EV_DETAIL, "remove global_event_base_list, count=%d", list->count(list));
     }
 
     return 0;
@@ -87,15 +87,15 @@ static int __add(Event_Base *eb, event_t *event)
     int fd       = event->ev_fd;
 
     if (event->ev_events & EV_SIGNAL) {
-        dbg_str(EV_WARNNING,"event base add EV_SIGNAL, signal:%d, event addr:%p", fd, event);
+        dbg_str(EV_VIP, "event base add EV_SIGNAL, signal:%d, event addr:%p", fd, event);
         evsig_add(eb, event);
     } else {
-        dbg_str(EV_WARNNING,"event base add io, fd:%d, event addr:%p", fd, event);
+        dbg_str(EV_VIP, "event base add io, fd:%d, event addr:%p", fd, event);
         event->ev_tv = event->ev_timeout;
         dbg_str(EV_DETAIL, "add fd =%d into io map", fd);
         io_map->add(io_map, event->ev_fd, event);
 
-        eb->trustee_io(eb,event);
+        eb->trustee_io(eb, event);
         timer->add(timer, event);
     }
 
@@ -113,15 +113,16 @@ static int __del(Event_Base *eb, event_t *event)
     if (event->ev_events & EV_SIGNAL) {
         evsig_del(eb, event);
     } else {
-        eb->reclaim_io(eb,event);
+        eb->reclaim_io(eb, event);
         timer->del(timer, event);
 
         //del fd in map
         ret = io_map->del(io_map, fd);
         if (ret < 0) {
-            dbg_str(EV_WARNNING,"event base del fd = %d, but not found fd in io_map,ret=%d", fd, ret);
+            dbg_str(EV_WARNNING, "event base del fd = %d, but not found fd in io_map, ret=%d", 
+                    fd, ret);
         } else {
-            dbg_str(EV_WARNNING,"event base del fd = %d in io_map", fd);
+            dbg_str(EV_VIP, "event base del fd = %d in io_map", fd);
         }
     }
 
@@ -139,15 +140,15 @@ static int __activate_io(Event_Base *eb, int fd, short events)
     event_t *event;
     int ret;
 
-    dbg_str(EV_DETAIL,"event base active io event, fd = %d", fd);
+    dbg_str(EV_DETAIL, "event base active io event, fd = %d", fd);
 
     ret = io_map->search(io_map, fd, (void **)&event);
-    dbg_str(EV_DETAIL,"search ret=%d",ret);
+    dbg_str(EV_DETAIL, "search ret=%d", ret);
 
     if (ret < 0) {
-        dbg_str(EV_WARNNING,"not found fd = %d in io_map,ret=%d",fd, ret);
+        dbg_str(EV_WARNNING, "not found fd = %d in io_map, ret=%d", fd, ret);
     } else {
-        dbg_str(EV_DETAIL, "event addr:%p, ev_callback=%p",
+        dbg_str(EV_DETAIL, "event addr:%p, ev_callback=%p", 
                 event, event->ev_callback);
 
         event->ev_callback(event->ev_fd, 0, event->ev_arg);
@@ -157,7 +158,7 @@ static int __activate_io(Event_Base *eb, int fd, short events)
             event->ev_timeout = event->ev_tv;
             timer->add(timer, event);
         } else {
-            dbg_str(EV_DETAIL,"del event");
+            dbg_str(EV_DETAIL, "del event");
             eb->del(eb, event);
         } 
     }
@@ -173,14 +174,14 @@ static int __activate_signal_old(Event_Base *eb, int fd, short events)
     char *p = NULL;
     int ret;
 
-    dbg_str(EV_DETAIL,"event base active signal event, signal = %d, ncount=%d", fd, events);
+    dbg_str(EV_DETAIL, "event base active signal event, signal = %d, ncount=%d", fd, events);
 
     map->search(map, &fd, (void **)&event);
     if (event != NULL) {
-        dbg_str(EV_WARNNING,"activate_signal, find signal=%d", fd);
+        dbg_str(EV_WARNNING, "activate_signal, find signal=%d", fd);
         event->ev_callback(event->ev_fd, 0, event->ev_arg);
     } else {
-        dbg_str(EV_WARNNING,"activate_signal, get event addr error");
+        dbg_str(EV_WARNNING, "activate_signal, get event addr error");
         return -1;
     }
 
@@ -202,17 +203,17 @@ static int __activate_signal(Event_Base *eb, int fd, short events)
     char *p = NULL;
     int ret;
 
-    dbg_str(EV_DETAIL,"event base active signal event, signal = %d, ncount=%d", fd, events);
+    dbg_str(EV_DETAIL, "event base active signal event, signal = %d, ncount=%d", fd, events);
 
     list->clear(list);
 
     map->search_all_same_key(map, fd, list);
     if (list->count(list) != 0) {
-        dbg_str(EV_WARNNING,"activate_signal, list count=%d", list->count(list));
-        dbg_str(EV_WARNNING,"activate_signal, find signal=%d", fd);
+        dbg_str(EV_WARNNING, "activate_signal, list count=%d", list->count(list));
+        dbg_str(EV_WARNNING, "activate_signal, find signal=%d", fd);
         list->for_each(list, __signal_list_for_each_callback);
     } else {
-        dbg_str(EV_WARNNING,"activate_signal, get event addr error");
+        dbg_str(EV_WARNNING, "activate_signal, get event addr error");
         return -1;
     }
 
@@ -232,7 +233,7 @@ static int __process_timeout_events(Event_Base *eb)
 
     timeval_now(&now, NULL);
     if (timeval_cmp(&now, &event->ev_timeout) >= 0) {
-        dbg_str(EV_DETAIL,"process_timeout, event addr:%p",event);
+        dbg_str(EV_DETAIL, "process_timeout, event addr:%p", event);
         event->ev_callback(event->ev_fd, 0, event->ev_arg);
         if (event->ev_events & EV_PERSIST) {
             timer->remove(timer, event);
@@ -264,18 +265,18 @@ static int __loop(Event_Base *eb)
 }
 
 static class_info_entry_t event_base_class_info[] = {
-    Init_Obj___Entry(0 , Obj, obj),
-    Init_Nfunc_Entry(1 , Event_Base, construct, __construct),
-    Init_Nfunc_Entry(2 , Event_Base, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Event_Base, loop, __loop),
-    Init_Vfunc_Entry(4 , Event_Base, activate_io, __activate_io),
-    Init_Vfunc_Entry(5 , Event_Base, activate_signal, __activate_signal),
-    Init_Vfunc_Entry(6 , Event_Base, add, __add),
-    Init_Vfunc_Entry(7 , Event_Base, del, __del),
-    Init_Vfunc_Entry(8 , Event_Base, trustee_io, NULL),
-    Init_Vfunc_Entry(9 , Event_Base, reclaim_io, NULL),
-    Init_Vfunc_Entry(10, Event_Base, dispatch, NULL),
-    Init_End___Entry(11, Event_Base),
+    Init_Obj___Entry(0 , Obj, obj), 
+    Init_Nfunc_Entry(1 , Event_Base, construct, __construct), 
+    Init_Nfunc_Entry(2 , Event_Base, deconstruct, __deconstrcut), 
+    Init_Vfunc_Entry(3 , Event_Base, loop, __loop), 
+    Init_Vfunc_Entry(4 , Event_Base, activate_io, __activate_io), 
+    Init_Vfunc_Entry(5 , Event_Base, activate_signal, __activate_signal), 
+    Init_Vfunc_Entry(6 , Event_Base, add, __add), 
+    Init_Vfunc_Entry(7 , Event_Base, del, __del), 
+    Init_Vfunc_Entry(8 , Event_Base, trustee_io, NULL), 
+    Init_Vfunc_Entry(9 , Event_Base, reclaim_io, NULL), 
+    Init_Vfunc_Entry(10, Event_Base, dispatch, NULL), 
+    Init_End___Entry(11, Event_Base), 
 };
 REGISTER_CLASS("Event_Base", event_base_class_info);
 
@@ -289,13 +290,13 @@ void test_obj_eb()
     char buf[2048];
 
     c = cfg_alloc(allocator); 
-    dbg_str(EV_SUC, "configurator_t addr:%p",c);
+    dbg_str(EV_SUC, "configurator_t addr:%p", c);
     cfg_config_str(c, "/Event_Base", "name", "alan eb") ;  
 
-    eb = OBJECT_NEW(allocator, Event_Base,c->buf);
+    eb = OBJECT_NEW(allocator, Event_Base, c->buf);
 
     object_dump(eb, "Event_Base", buf, 2048);
-    dbg_str(EV_DETAIL,"Event_Base dump: %s",buf);
+    dbg_str(EV_DETAIL, "Event_Base dump: %s", buf);
 
     object_destroy(eb);
     cfg_destroy(c);
