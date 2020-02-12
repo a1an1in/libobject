@@ -226,7 +226,7 @@ int rbtree_map_init(rbtree_map_t *map)
 
     if (map->key_cmp_func == NULL) {
         map->key_cmp_func = default_key_cmp_func;
-        dbg_str(DBG_DETAIL, "set default key cmp func:%p", map->key_cmp_func);
+        dbg_str(RBTMAP_DETAIL, "set default key cmp func:%p", map->key_cmp_func);
     }
 
     tree_root = (struct rb_root_s *)allocator_mem_alloc(map->allocator, 

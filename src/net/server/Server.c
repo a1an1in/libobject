@@ -95,7 +95,7 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
 
     // len = 0, means connect close by peer; len = -1, means received a rst packet
     if (len == 0 || len == -1) {
-        dbg_str(NET_VIP, "tcp server, remove worker, fd=%d", fd);
+        dbg_str(NET_VIP, "tcp server, remove worker, fd=%d, ret=%d", fd, ret);
         ret = worker->resign(worker);
         if (ret == 1) {
             working_list->remove_element(working_list, worker);

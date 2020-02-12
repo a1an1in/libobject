@@ -219,7 +219,7 @@ static String *__append_char(String *string, char c)
 
     ret = __modulate_capacity(string, 1);
     if (ret < 0) {
-        dbg_str(DBG_WARNNING, "string buf_auto_modulate have problem, please check");
+        dbg_str(STRING_WARNNING, "string buf_auto_modulate have problem, please check");
         return string;
     }
 
@@ -255,7 +255,7 @@ static void __append(String *string, char *sub)
     int len, ret;
 
     if (sub == NULL) {
-        dbg_str(DBG_WARNNING, "appending-string is null unvalid sub stringing");
+        dbg_str(STRING_WARNNING, "appending-string is null unvalid sub stringing");
         return ;
     }
     len = strlen(sub);
@@ -275,7 +275,7 @@ static void __append_n(String *string, char *sub, int len)
 {   
     int ret;
     if (sub == NULL) {
-        dbg_str(DBG_WARNNING, "appending-string is null unvalid sub stringing");
+        dbg_str(STRING_WARNNING, "appending-string is null unvalid sub stringing");
         return ;
     }
     ret = __modulate_capacity(string, len + string->value_len);
@@ -302,7 +302,7 @@ static String * __insert(String *self, int offset, char *cstr)
     int ret = 0;
 
     if (cstr == NULL) {
-        dbg_str(DBG_ERROR, "insert ctr, but cstr is NULL");
+        dbg_str(STRING_ERROR, "insert ctr, but cstr is NULL");
         goto end;
     }
 
@@ -356,7 +356,7 @@ __replace_n(String *self, char *pattern, char *newstr, int max)
     do {
         ret = self->find_n(self, pattern, start_offset, 1);
         if (ret <= 0) {
-            dbg_str(DBG_DETAIL, "replace, not found");
+            dbg_str(STRING_DETAIL, "replace, not found");
             goto end;
         } else if (ret > 1) {
             ret = -1;
@@ -374,7 +374,7 @@ __replace_n(String *self, char *pattern, char *newstr, int max)
             old_len = piece->len;
             old_offset = (int)(piece->start_pos - (void *)self->value);
         } else {
-            dbg_str(DBG_WARNNING, "get_splited_cstr: not exist!!");
+            dbg_str(STRING_WARNNING, "get_splited_cstr: not exist!!");
         }
 
         if (str_len <= str_len + new_len - old_len) {
@@ -516,7 +516,7 @@ static int __find_n(String *string, char *pattern, int offset, int num)
 
     ret = regcomp_wrap(&regex, pattern, REG_EXTENDED);  
     if (ret) {
-        dbg_str(DBG_ERROR, "regex error");
+        dbg_str(STRING_ERROR, "regex error");
         return -1;
     }
 
@@ -531,7 +531,7 @@ static int __find_n(String *string, char *pattern, int offset, int num)
             cnt++;
             piece = __new_string_peice(allocator, pos + pmatch[0].rm_so ,
                                        pmatch[0].rm_eo - pmatch[0].rm_so); 
-            dbg_str(DBG_DETAIL, "found count:%d, offset:%d", cnt, 
+            dbg_str(STRING_DETAIL, "found count:%d, offset:%d", cnt, 
                     (int)(pos + pmatch[0].rm_so - string->get_cstr(string)));
             v->add_back(v, piece); 
             pos += pmatch[0].rm_eo; 
@@ -578,7 +578,7 @@ static int __split_n(String *string, char *delims, int num)
 
     ret = regcomp_wrap(&regex, delims, REG_EXTENDED);  
     if (ret) {
-        dbg_str(DBG_ERROR, "regex error, ret=%d", ret);
+        dbg_str(STRING_ERROR, "regex error, ret=%d", ret);
         return -1;
     }
 
@@ -624,7 +624,7 @@ static char *__get_splited_cstr(String *string, int index)
     if (piece != NULL) {
         d = piece->start_pos;
     } else {
-        dbg_str(DBG_WARNNING, "get_splited_cstr: not exist!!");
+        dbg_str(STRING_WARNNING, "get_splited_cstr: not exist!!");
     }
 
     return d;
@@ -644,7 +644,7 @@ static char *__get_found_cstr(String *string, int index)
     if (piece != NULL) {
         d = piece->start_pos;
     } else {
-        dbg_str(DBG_WARNNING, "get_splited_cstr: not exist!!");
+        dbg_str(STRING_WARNNING, "get_splited_cstr: not exist!!");
     }
 
     return d;

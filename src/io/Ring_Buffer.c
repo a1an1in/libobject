@@ -50,7 +50,7 @@ static int __construct(Ring_Buffer *rb,char *init_str)
 
     rb->addr = allocator_mem_alloc(allocator, rb->size);
     if (rb->addr == NULL) {
-        dbg_str(DBG_ERROR, "allocator_mem_alloc");
+        dbg_str(IO_ERROR, "allocator_mem_alloc");
         return -1;
     }
 
@@ -65,7 +65,7 @@ static int __deconstrcut(Ring_Buffer *rb)
 {
     allocator_t *allocator = ((Obj *)rb)->allocator;
 
-    dbg_str(EV_DETAIL,"rb deconstruct,rb addr:%p",rb);
+    dbg_str(IO_DETAIL,"rb deconstruct,rb addr:%p",rb);
     allocator_mem_free(allocator, rb->addr);
 
     return 0;
@@ -93,7 +93,7 @@ static int __set_size(Ring_Buffer *rb, int size)
         rb->size = size;
         rb->addr = allocator_mem_alloc(allocator, size);
         if (rb->addr == NULL) {
-            dbg_str(DBG_ERROR, "allocator_mem_alloc");
+            dbg_str(IO_ERROR, "allocator_mem_alloc");
             return -1;
         }
     }
@@ -108,7 +108,7 @@ static int __read(Ring_Buffer *rb, void *dst, int len)
     if (rb->last_operation_flag != BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         l = 0;
-        dbg_str(DBG_WARNNING, "rb is nil");
+        dbg_str(IO_WARNNING, "rb is nil");
         goto end;
     } else if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
@@ -119,7 +119,7 @@ static int __read(Ring_Buffer *rb, void *dst, int len)
 
     l = l > len ? len : l;
 
-    dbg_str(DBG_DETAIL, "read len=%d, w=%d, r=%d",
+    dbg_str(IO_DETAIL, "read len=%d, w=%d, r=%d",
             l, rb->w_offset, rb->r_offset);
 
     if (rb->w_offset > rb->r_offset) {
@@ -130,14 +130,14 @@ static int __read(Ring_Buffer *rb, void *dst, int len)
         memcpy(dst, rb->addr + rb->r_offset, 
                 rb->size - rb->r_offset);
         /*
-         *dbg_buf(DBG_DETAIL, "read char:", rb->addr + rb->r_offset,
+         *dbg_buf(IO_DETAIL, "read char:", rb->addr + rb->r_offset,
          *        rb->size - rb->r_offset );
          */
         memcpy(dst + rb->size - rb->r_offset,
                rb->addr, 
                l - rb->size + rb->r_offset);
         /*
-         *dbg_buf(DBG_DETAIL, "read char:", rb->addr,
+         *dbg_buf(IO_DETAIL, "read char:", rb->addr,
          *        l - rb->size + rb->r_offset);
          */
     }
@@ -156,7 +156,7 @@ static int __read_to_string(Ring_Buffer *rb, String *str, int len)
     if (rb->last_operation_flag != BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         l = 0;
-        dbg_str(DBG_WARNNING, "rb is nil");
+        dbg_str(IO_WARNNING, "rb is nil");
         goto end;
     } else if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
@@ -167,7 +167,7 @@ static int __read_to_string(Ring_Buffer *rb, String *str, int len)
 
     l = l > len ? len : l;
 
-    dbg_str(DBG_DETAIL, "read len=%d, w=%d, r=%d",
+    dbg_str(IO_DETAIL, "read len=%d, w=%d, r=%d",
             l, rb->w_offset, rb->r_offset);
 
     if (rb->w_offset > rb->r_offset) {
@@ -195,7 +195,7 @@ static int __read_to_buffer(Ring_Buffer *rb, Buffer *buffer, int len)
     if (rb->last_operation_flag != BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         l = 0;
-        dbg_str(DBG_WARNNING, "rb is nil");
+        dbg_str(IO_WARNNING, "rb is nil");
         goto end;
     } else if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
@@ -207,7 +207,7 @@ static int __read_to_buffer(Ring_Buffer *rb, Buffer *buffer, int len)
     l = l > len ? len : l;
 
     /*
-     *dbg_str(DBG_DETAIL, "read len=%d, w=%d, r=%d",
+     *dbg_str(IO_DETAIL, "read len=%d, w=%d, r=%d",
      *        l, rb->w_offset, rb->r_offset);
      */
 
@@ -221,7 +221,7 @@ static int __read_to_buffer(Ring_Buffer *rb, Buffer *buffer, int len)
         buffer->write(buffer, rb->addr,
                       l - rb->size + rb->r_offset);
         /*
-         *dbg_buf(DBG_DETAIL, "read char:", rb->addr,
+         *dbg_buf(IO_DETAIL, "read char:", rb->addr,
          *        l - rb->size + rb->r_offset);
          */
     }
@@ -310,7 +310,7 @@ static int __write(Ring_Buffer *rb, void *src, int len)
     if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         l = 0;
-        dbg_str(DBG_WARNNING, "rb is full");
+        dbg_str(IO_WARNNING, "rb is full");
         goto end;
     } else if (rb->w_offset == rb->r_offset) {
         l =  rb->size;
@@ -345,7 +345,7 @@ static int __printf(Ring_Buffer *rb, const char *fmt, ...)
     if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         ret = l = 0;
-        dbg_str(DBG_WARNNING, "rb is full");
+        dbg_str(IO_WARNNING, "rb is full");
         goto end;
     } else if (rb->w_offset == rb->r_offset) {
         l =  rb->size;
@@ -372,7 +372,7 @@ static int __memcpy(Ring_Buffer *rb, void *addr, int len)
     if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         ret = l = 0;
-        dbg_str(DBG_WARNNING, "rb is full");
+        dbg_str(IO_WARNNING, "rb is full");
         goto end;
     } else if (rb->w_offset == rb->r_offset) {
         l =  rb->size;
@@ -383,7 +383,7 @@ static int __memcpy(Ring_Buffer *rb, void *addr, int len)
     l = l > len ? len : l;
 
     memcpy(rb->addr + rb->w_offset, addr, l);
-    dbg_str(DBG_DETAIL, "memcpy, ret=%d, l=%d", ret, l);
+    dbg_str(IO_DETAIL, "memcpy, ret=%d, l=%d", ret, l);
     rb->w_offset = (rb->w_offset + l) % rb->size;
 
 end:
@@ -427,8 +427,8 @@ int test_ring_rb(TEST_ENTRY *entry)
     rb->write(rb, in + 5, 8);
     rb->read(rb, out + 4, 9);
 
-    dbg_buf(DBG_DETAIL, "in:", (uint8_t *)in, 13);
-    dbg_buf(DBG_DETAIL, "out:", (uint8_t *)out, 13);
+    dbg_buf(IO_DETAIL, "in:", (uint8_t *)in, 13);
+    dbg_buf(IO_DETAIL, "out:", (uint8_t *)out, 13);
 
     if (strncmp(in, out, 13) == 0) {
         ret = 1;
@@ -458,7 +458,7 @@ int test_ring_rb_find(TEST_ENTRY *entry)
     rb->write(rb, test, len);
     addr = rb->find(rb, "\r\n", 2, len);
 
-    dbg_str(DBG_DETAIL, "test addr:%p, find addr:%p", (rb->addr + 15), addr);
+    dbg_str(IO_DETAIL, "test addr:%p, find addr:%p", (rb->addr + 15), addr);
     if (addr == (rb->addr + 15)) {
         ret = 1;
     } else {
@@ -494,7 +494,7 @@ int test_ring_rb_find2(TEST_ENTRY *entry)
 
     addr = rb->find(rb, "\r\n", 2, len);
 
-    dbg_str(DBG_DETAIL, "test addr:%p, find addr:%p", (rb->addr + 15), addr);
+    dbg_str(IO_DETAIL, "test addr:%p, find addr:%p", (rb->addr + 15), addr);
     if (addr == (rb->addr + 15)) {
         ret = 1;
     } else {
@@ -530,7 +530,7 @@ int test_ring_rb_find3(TEST_ENTRY *entry)
 
     addr = rb->find(rb, "dabc", 4, len);
 
-    dbg_str(DBG_DETAIL, "test addr:%p, find addr:%p", (rb->addr + 39), addr);
+    dbg_str(IO_DETAIL, "test addr:%p, find addr:%p", (rb->addr + 39), addr);
     if (addr == (rb->addr + 39)) {
         ret = 1;
     } else {
@@ -558,7 +558,7 @@ int test_ring_rb_get_needle_offset(TEST_ENTRY *entry)
 
     rb = OBJECT_NEW(allocator, Ring_Buffer, NULL);
 
-    dbg_str(DBG_DETAIL, "rb size=%d", len);
+    dbg_str(IO_DETAIL, "rb size=%d", len);
     rb->set_size(rb, len);
     rb->write(rb, test, len);
 
@@ -567,7 +567,7 @@ int test_ring_rb_get_needle_offset(TEST_ENTRY *entry)
 
     len = rb->get_needle_offset(rb, "\r\n", 2, len);
 
-    dbg_str(DBG_DETAIL, "len=%d", len);
+    dbg_str(IO_DETAIL, "len=%d", len);
     if (len == 37) {
         ret = 1;
     } else {

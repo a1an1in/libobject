@@ -41,7 +41,7 @@ static int __construct(File *file,char *init_str)
 
 static int __deconstruct(File *file)
 {
-    dbg_str(EV_DETAIL,"file deconstruct,file addr:%p",file);
+    dbg_str(IO_DETAIL,"file deconstruct,file addr:%p",file);
 
     return 0;
 }

@@ -19,5 +19,10 @@ debug_business_names[MAX_DEBUG_BUSINESS_NUM] = {
     "bus",
     "object",
     "ui-sdl_interface",
+    "string",
+    "io",
+    "db",
+    "crypto",
+    "compress",
 };
 

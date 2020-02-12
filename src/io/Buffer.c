@@ -49,7 +49,7 @@ static int __construct(Buffer *buffer,char *init_str)
 
     buffer->addr = allocator_mem_alloc(allocator, buffer->capacity);
     if (buffer->addr == NULL) {
-        dbg_str(DBG_ERROR, "allocator_mem_alloc");
+        dbg_str(IO_ERROR, "allocator_mem_alloc");
         return -1;
     }
 
@@ -64,7 +64,7 @@ static int __deconstrcut(Buffer *buffer)
 {
     allocator_t *allocator = ((Obj *)buffer)->allocator;
 
-    dbg_str(EV_DETAIL,"buffer deconstruct,buffer addr:%p",buffer);
+    dbg_str(IO_DETAIL,"buffer deconstruct,buffer addr:%p",buffer);
     allocator_mem_free(allocator, buffer->addr);
 
     return 0;
@@ -89,7 +89,7 @@ static int __set_capacity(Buffer *buffer, int capacity)
         buffer->capacity = capacity;
         buffer->addr = allocator_mem_alloc(allocator, capacity);
         if (buffer->addr == NULL) {
-            dbg_str(DBG_ERROR, "allocator_mem_alloc");
+            dbg_str(IO_ERROR, "allocator_mem_alloc");
             return -1;
         }
     }
@@ -103,7 +103,7 @@ static int __read(Buffer *buffer, void *dst, int len)
 
     if (buffer->w_offset == buffer->r_offset) {
         l = 0;
-        dbg_str(DBG_WARNNING, "content is nil");
+        dbg_str(IO_WARNNING, "content is nil");
         goto end;
     } else {
         l = buffer->w_offset - buffer->r_offset;
@@ -125,7 +125,7 @@ static int __write(Buffer *buffer, void *src, int len)
 
     if (buffer->w_offset == buffer->capacity) {
         l = 0;
-        dbg_str(DBG_WARNNING, "buffer is full");
+        dbg_str(IO_WARNNING, "buffer is full");
         goto end;
     } else {
         l = buffer->capacity - buffer->w_offset ;
@@ -173,8 +173,8 @@ int test_buffer(TEST_ENTRY *entry)
     buffer->read(buffer, out, 4);
     buffer->read(buffer, out + 4, 9);
 
-    dbg_buf(DBG_DETAIL, "in:", (uint8_t *)in, 13);
-    dbg_buf(DBG_DETAIL, "out:", (uint8_t *)out, 13);
+    dbg_buf(IO_DETAIL, "in:", (uint8_t *)in, 13);
+    dbg_buf(IO_DETAIL, "out:", (uint8_t *)out, 13);
 
     if (strncmp(in, out, 13) == 0) {
         ret = 1;
