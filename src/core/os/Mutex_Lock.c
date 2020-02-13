@@ -34,7 +34,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
-#include <libobject/core/Mutex_Lock.h>
+#include <libobject/core/os/Mutex_Lock.h>
 
 static int __construct(Mutex_Lock *lock, char *init_str)
 {

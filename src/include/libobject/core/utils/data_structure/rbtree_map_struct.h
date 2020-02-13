@@ -3,7 +3,7 @@
 
 #include <libobject/core/utils/alloc/allocator.h>
 #include <libobject/core/utils/data_structure/rbtree.h>
-#include "libobject/core/os/thread/sync_lock.h"
+#include "libobject/core/utils/sync_lock.h"
 
 #ifndef __KEY_CMP_FPT__
 #define __KEY_CMP_FPT__

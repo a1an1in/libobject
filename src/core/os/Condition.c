@@ -33,10 +33,9 @@
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/core/Condition.h>
+#include <libobject/core/os/Condition.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/Thread.h>
-#include <libobject/core/Mutex_Lock.h>
 #include <libobject/core/Linked_Queue.h>
 
 static int __construct(Condition *condition, char *init_str)

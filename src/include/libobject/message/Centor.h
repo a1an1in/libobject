@@ -8,7 +8,7 @@
 #include <libobject/concurrent/Worker.h>
 #include <libobject/core/Queue.h>
 #include <libobject/core/Map.h>
-#include <libobject/core/Lock.h>
+#include <libobject/core/os/Lock.h>
 
 typedef struct centor_s Centor;
 

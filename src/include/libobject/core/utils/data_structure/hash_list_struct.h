@@ -20,7 +20,7 @@
 
 #include "libobject/core/utils/data_structure/list.h"
 #include "libobject/core/utils/alloc/allocator.h"
-#include "libobject/core/os/thread/sync_lock.h"
+#include "libobject/core/utils/sync_lock.h"
 
 
 typedef uint32_t (*hash_func_fpt)(void *key,uint32_t bucket_size);

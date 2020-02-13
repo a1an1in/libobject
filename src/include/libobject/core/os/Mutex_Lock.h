@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
-#include <libobject/core/Lock.h>
+#include <libobject/core/os/Lock.h>
 #include <pthread.h>
 
 typedef struct mutex_lock_s Mutex_Lock;

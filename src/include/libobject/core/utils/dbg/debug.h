@@ -11,7 +11,7 @@
 #include "debug_log.h"
 #include <libobject/user_mode.h>
 #include <libobject/core/utils/ini/iniparser.h>
-#include <libobject/core/os/thread/sync_lock.h>
+#include <libobject/core/utils/sync_lock.h>
 
 
 #define MAX_DBG_STR_LEN 1024 * 10

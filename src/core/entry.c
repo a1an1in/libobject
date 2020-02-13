@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/core/os/fs_compat.h>
 #include <libobject/libobject.h>
 #include <libobject/concurrent/Producer.h>
 #include <libobject/version.h>
@@ -37,6 +38,7 @@ char *libobject_get_run_path()
 int libobject_init()
 {
     execute_ctor_funcs();
+    fs_init();
 
     return 0;
 }
@@ -44,6 +46,7 @@ int libobject_init()
 int libobject_exit()
 {
     kill(0, SIGQUIT);
+    fs_release();
 
     return 0;
 }

@@ -44,7 +44,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <libobject/core/os/thread/sync_lock.h>
+#include <libobject/core/utils/sync_lock.h>
 
 sync_lock_module_t sync_lock_modules[SYNC_LOCK_TYPE_MAX_NUM];
 
