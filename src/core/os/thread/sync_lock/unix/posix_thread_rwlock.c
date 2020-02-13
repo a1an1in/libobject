@@ -46,7 +46,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libobject/user_mode.h>
-#include <libobject/core/utils/thread/sync_lock.h>
+#include <libobject/core/os/thread/sync_lock.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 

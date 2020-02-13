@@ -19,7 +19,7 @@
 #define __ALLOCATOR_SGI_ALLOC_H__
 
 #include "libobject/basic_types.h"
-#include "libobject/core/utils/thread/sync_lock.h"
+#include "libobject/core/os/thread/sync_lock.h"
 #include "libobject/core/utils/data_structure/list.h"
 
 #define SLAB_ARRAY_MAX_NUM 12 

@@ -19,7 +19,7 @@
 #ifndef __DEBUG_LOG_H__
 #define __DEBUG_LOG_H__
 #include <stdio.h>
-#include <libobject/core/utils/thread/sync_lock.h>
+#include <libobject/core/os/thread/sync_lock.h>
 /*
  *#include <pthread.h>
  */

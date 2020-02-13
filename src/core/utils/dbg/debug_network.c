@@ -54,7 +54,7 @@
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/dbg/debug_string.h>
-#include <libobject/core/utils/thread/sync_lock.h>
+#include <libobject/core/os/thread/sync_lock.h>
 #include <libobject/core/utils/registry/registry.h>
 
 //暂未考虑并发情况，后面改进

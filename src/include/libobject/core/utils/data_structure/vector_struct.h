@@ -2,7 +2,7 @@
 #define __VECTOR_STRUCT_H__
 
 #include <libobject/core/utils/alloc/allocator.h>
-#include <libobject/core/utils/thread/sync_lock.h>
+#include <libobject/core/os/thread/sync_lock.h>
 
 typedef struct vector_pos_s{
 	struct vector_s *vector;

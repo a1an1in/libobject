@@ -20,7 +20,7 @@
 
 #include <sys/socket.h>
 #include<netinet/in.h>
-#include <libobject/core/utils/thread/sync_lock.h>
+#include <libobject/core/os/thread/sync_lock.h>
 
 typedef struct debug_network_prive{
 #define MAX_IP_LEN 20

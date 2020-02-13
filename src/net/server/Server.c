@@ -83,6 +83,9 @@ static int __bind(Server *server, char *host, char *service)
     return socket->bind(socket, host, service);
 }
 
+/*
+ *every worker has its own task, so there has not concurrent problem.
+ */
 static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
 {
     Worker *worker     = (Worker *)arg;
