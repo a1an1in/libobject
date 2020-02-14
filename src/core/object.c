@@ -706,3 +706,4 @@ static int test_object_new()
     return ret;
 }
 REGISTER_TEST_FUNC(test_object_new);
+

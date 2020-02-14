@@ -126,7 +126,7 @@ static int __write(Buffer *buffer, void *src, int len)
     if (buffer->w_offset == buffer->capacity) {
         l = 0;
         dbg_str(IO_WARNNING, "buffer is full");
-        goto end;
+        return -1;
     } else {
         l = buffer->capacity - buffer->w_offset ;
     }
