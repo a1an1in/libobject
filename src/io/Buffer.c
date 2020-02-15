@@ -122,23 +122,36 @@ end:
 static int __write(Buffer *buffer, void *src, int len)
 {
     int l;
+    allocator_t *allocator = ((Obj *)buffer)->allocator;
+    int capacity;
+    void *new_buf;
 
-    if (buffer->w_offset == buffer->capacity) {
-        l = 0;
-        dbg_str(IO_WARNNING, "buffer is full");
-        return -1;
+    l = buffer->capacity - buffer->w_offset ;
+
+    if (l > len) {
+        memcpy(buffer->addr + buffer->w_offset, src, len);
+        buffer->w_offset += len;
     } else {
-        l = buffer->capacity - buffer->w_offset ;
+        capacity = buffer->capacity;
+        capacity = capacity > len ? capacity : len;
+        capacity *= 2;
+        new_buf = allocator_mem_alloc(allocator, capacity);
+        if (new_buf == NULL) {
+            dbg_str(DBG_ERROR, "buffer alloc buf failed!");
+            return -1;
+        } 
+        memset(new_buf, 0, capacity);
+        buffer->capacity = capacity;
+        memmove(new_buf, buffer->addr, buffer->w_offset);
+        memcpy(new_buf + buffer->w_offset, src, len);
+        buffer->w_offset += len;
+
+        allocator_mem_free(allocator, buffer->addr);
+        buffer->addr = new_buf;
     }
 
-    l = l > len ? len : l;
-
-    memcpy(buffer->addr + buffer->w_offset, src, l);
-
-    buffer->w_offset = buffer->w_offset + l;
-
 end:
-    return l;
+    return len;
 }
 
 static class_info_entry_t buffer_class_info[] = {
