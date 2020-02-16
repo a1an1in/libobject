@@ -71,6 +71,7 @@ static int __modulate_capacity(String *string, int write_len)
             dbg_str(OBJ_WARNNING, "string assign alloc error");
             return -1;
         }
+        memset(string->value, 0, string->value_max_len);
     } else if (string->value_max_len > string->value_len + 1 &&
                string->value_max_len < string->value_len + write_len + 1)
     {
@@ -91,6 +92,7 @@ static int __modulate_capacity(String *string, int write_len)
         
         }
 
+        memset(new_buf, 0, string->value_max_len);
         strncpy(new_buf, string->value, string->value_len);
 
         allocator_mem_free(string->obj.allocator, string->value);
@@ -104,9 +106,12 @@ static int __construct(String *string, char *init_str)
 {
     dbg_str(OBJ_DETAIL, "string construct, string addr:%p", string);
 
-    string->value = (char *)allocator_mem_alloc(string->obj.allocator, 256);
     string->value_len = 0;
     string->value_max_len = 256;
+    string->value = (char *)allocator_mem_alloc(string->obj.allocator, 256);
+    memset(string->value, 0, string->value_max_len);
+    string->value[0] = '\0';
+
     return 0;
 }
 
@@ -117,6 +122,7 @@ static int __deconstrcut(String *string)
         allocator_mem_free(string->obj.allocator, string->value);
     if (string->pieces != NULL) {
         object_destroy(string->pieces);
+        string->pieces = 0;
     }
 
     return 0;

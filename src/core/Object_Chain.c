@@ -41,27 +41,24 @@ static void * __new(Object_Chain *chain, char *class_name, char *data)
     allocator_t *allocator = ((Obj *)chain)->allocator;
     List *l = chain->list;
     Obj *o = NULL;
-    int ret = 0, string_flag = 0;
-    char *init_data, *config;
+    int ret = 0, assign_flag = 0;
+    char *init_data;
 
     if (strcmp(class_name, "String") == 0 && data != NULL) {
         init_data = data;
-        config = NULL;
-        string_flag = 1;
+        assign_flag = 1;
     }
 
-    o = object_new(allocator, class_name, config);
+    o = object_new(allocator, class_name, data);
     if (o == NULL) {
         dbg_str(OBJ_ERROR, "get object, new class %s error", class_name);
         return NULL;
     }
-    o->reset(o);
 
     l->add_back(l, o);
 
-    if (string_flag) {
-        String *s = (String *)o;
-        s->assign(s, init_data);
+    if (assign_flag) {
+        o->assign(o, init_data);
     }
 
     return o;
