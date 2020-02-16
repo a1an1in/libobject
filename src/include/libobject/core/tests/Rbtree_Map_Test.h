@@ -21,9 +21,9 @@ struct rbtree_map_test_s{
     void *(*teardown)(Test *);
     int (*test_add)(RBTree_Map_Test *test);
     int (*test_count)(RBTree_Map_Test *test);
-    int (*test_clear)(RBTree_Map_Test *test);
-    int (*test_clear_string_value)(RBTree_Map_Test *test);
-    int (*test_clear_object_value)(RBTree_Map_Test *test);
+    int (*test_reset)(RBTree_Map_Test *test);
+    int (*test_reset_string_value)(RBTree_Map_Test *test);
+    int (*test_reset_object_value)(RBTree_Map_Test *test);
     int (*test_remove)(RBTree_Map_Test *test);
     int (*test_search_string_key)(RBTree_Map_Test *test);
     int (*test_search_all_string_key)(RBTree_Map_Test *test);

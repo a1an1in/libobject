@@ -55,7 +55,7 @@ static int __construct(List *list, char *init_str)
 
 static int __deconstrcut(List *list)
 {
-    list->clear(list);
+    list->reset(list);
     object_destroy(list->b);
     object_destroy(list->e);
     llist_destroy(((Linked_List *)list)->llist);

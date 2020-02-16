@@ -55,6 +55,7 @@ static void * __new(Object_Chain *chain, char *class_name, char *data)
         dbg_str(OBJ_ERROR, "get object, new class %s error", class_name);
         return NULL;
     }
+    o->reset(o);
 
     l->add_back(l, o);
 

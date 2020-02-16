@@ -43,7 +43,7 @@ struct string_s{
     String * (*get_substring)(String  *string,int pos,int len);  
     char *(*get_cstr)(String *);
     size_t (*get_len)(String *);
-    void (*clear)(String *);
+    void (*reset)(String *);
     int (*is_empty)(String *);
     int (*replace)(String *,char *oldstr,char *newstr);
     int (*replace_n)(String *,char *oldstr,char * newstr, int max);

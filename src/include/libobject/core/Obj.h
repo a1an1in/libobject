@@ -13,9 +13,10 @@ struct obj_s{
 	int (*deconstruct)(Obj *obj);
 
 	int (*set)(Obj *obj, char *attrib, void *value);
-    void *(*get)(void *obj, char *attrib);
-    char *(*to_json)(void *obj); 
-    char *(*clear)(void *obj); 
+    void *(*get)(Obj *obj, char *attrib);
+    char *(*to_json)(Obj *obj); 
+    int (*assign)(Obj *obj, char *value); 
+    char *(*reset)(Obj *obj); 
     int (*set_target_name)(Obj *obj, char *);
     int (*override_virtual_funcs)(Obj *obj, char *func_name, void *value);
 

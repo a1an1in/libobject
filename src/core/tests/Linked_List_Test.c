@@ -63,7 +63,7 @@ static int __teardown(Linked_List_Test *test)
     List *list = (List *)test->list;
 
     dbg_str(DBG_DETAIL,"Linked_List_Test teardown");
-    list->clear(list);
+    list->reset(list);
 
     return 0;
 }
@@ -116,7 +116,7 @@ static int __test_remove(Linked_List_Test *test)
     ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
 }
 
-static int __test_clear(Linked_List_Test *test)
+static int __test_reset(Linked_List_Test *test)
 {
     allocator_t *allocator = test->parent.obj.allocator;
     List *list = (List *)test->list;
@@ -133,12 +133,12 @@ static int __test_clear(Linked_List_Test *test)
     list->add_back(list, str4);
     list->add_back(list, str5);
 
-    list->clear(list);
+    list->reset(list);
     count = list->count(list);
     ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
 }
 
-static int __test_clear_string_value(Linked_List_Test *test)
+static int __test_reset_string_value(Linked_List_Test *test)
 {
     allocator_t *allocator = test->parent.obj.allocator;
     List *list = (List *)test->list;
@@ -173,7 +173,7 @@ static int __test_clear_string_value(Linked_List_Test *test)
     list->add_back(list, t4);
     list->add_back(list, t5);
 
-    list->clear(list);
+    list->reset(list);
 
     count = list->count(list);
     ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
@@ -194,8 +194,8 @@ static class_info_entry_t linked_list_test_class_info[] = {
     Init_Vfunc_Entry(7 , Linked_List_Test, test_add, __test_add),
     Init_Vfunc_Entry(8 , Linked_List_Test, test_count, __test_count),
     Init_Vfunc_Entry(9 , Linked_List_Test, test_remove, __test_remove),
-    Init_Vfunc_Entry(10, Linked_List_Test, test_clear, __test_clear),
-    Init_Vfunc_Entry(11, Linked_List_Test, test_clear_string_value, __test_clear_string_value),
+    Init_Vfunc_Entry(10, Linked_List_Test, test_reset, __test_reset),
+    Init_Vfunc_Entry(11, Linked_List_Test, test_reset_string_value, __test_reset_string_value),
     Init_End___Entry(12, Linked_List_Test),
 };
 REGISTER_CLASS("Linked_List_Test", linked_list_test_class_info);

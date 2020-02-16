@@ -168,7 +168,7 @@ static void * producer(void *arg)
      #endif 
 
     dbg_str(DBG_IMPORTANT,"element value:%d ",*(int *)element);
-    queue->clear(queue);
+    queue->reset(queue);
     
     return NULL;
 }

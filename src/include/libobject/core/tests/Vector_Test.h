@@ -22,7 +22,7 @@ struct vector_test_s{
     void (*test_int_vector_add)(Test *test);
     void (*test_int_vector_remove)(Test *test);
     void (*test_int_vector_count)(Test *test);
-    void (*test_int_vector_clear)(Test *test);
+    void (*test_int_vector_reset)(Test *test);
     void (*test_int_vector_to_json)(Test *test);
     void (*test_string_vector_to_json)(Test *test);
     void (*test_obj_vector_to_json)(Test *test);

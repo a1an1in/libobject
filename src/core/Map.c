@@ -104,7 +104,7 @@ static Iterator *__end(Map *map)
     dbg_str(OBJ_DETAIL, "Map end");
 }
 
-static int __clear(Map *map)
+static int __reset(Map *map)
 {
     Iterator *cur, *end;
     void *key, *value;
@@ -138,7 +138,7 @@ static int __clear(Map *map)
         } else if (map->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
                    element != NULL)
         {
-            dbg_str(DBG_WARNNING, "not support clear unkown pointer");
+            dbg_str(DBG_WARNNING, "not support reset unkown pointer");
         } else {
         }
 
@@ -174,7 +174,7 @@ static class_info_entry_t map_class_info[] = {
     Init_Vfunc_Entry(17, Map, end, __end),
     Init_Vfunc_Entry(18, Map, destroy, __destroy),
     Init_Vfunc_Entry(19, Map, count, NULL),
-    Init_Vfunc_Entry(20, Map, clear, __clear),
+    Init_Vfunc_Entry(20, Map, reset, __reset),
     Init_Vfunc_Entry(21, Map, set_cmp_func, NULL),
     Init_U8____Entry(22, Map, trustee_flag, NULL),
     Init_U8____Entry(23, Map, value_type, NULL),

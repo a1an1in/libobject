@@ -44,7 +44,7 @@ struct queue_s{
                           void *arg1,void *arg2,void *arg3,void *arg4,void *arg5);
     size_t (*size)(Queue *);
     size_t (*is_empty)(Queue *);
-    void   (*clear)(Queue *);
+    void   (*reset)(Queue *);
 
     Iterator *(*begin)(Queue *queue);
     Iterator *(*end)(Queue *queue);

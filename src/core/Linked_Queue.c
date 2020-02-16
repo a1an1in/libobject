@@ -64,7 +64,7 @@ static int __deconstrcut(Linked_Queue *queue)
     Queue *q = (Queue *)queue;
 
     dbg_str(OBJ_DETAIL, "queue deconstruct, queue addr:%p", queue);
-    q->clear(q);
+    q->reset(q);
     object_destroy(q->b);
     object_destroy(q->e);
     llist_destroy(queue->llist);
@@ -191,7 +191,7 @@ static class_info_entry_t linked_queue_class_info[] = {
     Init_Vfunc_Entry(10, Linked_Queue, end, __end),
     Init_Vfunc_Entry(11, Linked_Queue, size, __size),
     Init_Vfunc_Entry(12, Linked_Queue, is_empty, __is_empty),
-    Init_Vfunc_Entry(13, Linked_Queue, clear, NULL),
+    Init_Vfunc_Entry(13, Linked_Queue, reset, NULL),
     Init_Vfunc_Entry(14, Linked_Queue, peek_front, __peek_front),
     Init_Vfunc_Entry(15, Linked_Queue, peek_back, __peek_back),
     Init_End___Entry(16, Linked_Queue),
@@ -262,7 +262,7 @@ end:
 }
 REGISTER_TEST_FUNC(test_peek_linked_queue_peek);
 
-static int test_linked_queue_clear()
+static int test_linked_queue_reset()
 {
     int ret,i,j;
     int buf[10];
@@ -276,7 +276,7 @@ static int test_linked_queue_clear()
         buf[i] = i;
     }
 
-    queue->clear(queue);
+    queue->reset(queue);
     
     if (queue->size(queue) == 0) {
         ret = 1;
@@ -289,7 +289,7 @@ static int test_linked_queue_clear()
     return ret;
 
 }
-REGISTER_TEST_FUNC(test_linked_queue_clear);
+REGISTER_TEST_FUNC(test_linked_queue_reset);
 
 static int test_linked_queue_is_empty()
 {

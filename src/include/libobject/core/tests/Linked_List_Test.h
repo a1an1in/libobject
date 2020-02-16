@@ -22,8 +22,8 @@ struct linked_list_test_s{
     int (*test_add)(Linked_List_Test *test);
     int (*test_count)(Linked_List_Test *test);
     int (*test_remove)(Linked_List_Test *test);
-    int (*test_clear)(Linked_List_Test *test);
-    int (*test_clear_string_value)(Linked_List_Test *test);
+    int (*test_reset)(Linked_List_Test *test);
+    int (*test_reset_string_value)(Linked_List_Test *test);
 
     Linked_List *list;
 };

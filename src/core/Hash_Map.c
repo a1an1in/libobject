@@ -58,7 +58,7 @@ static int __deconstruct(Map *map)
 
     object_destroy(map->b);
     object_destroy(map->e);
-    map->clear(map);
+    map->reset(map);
     hash_map_destroy(((Hash_Map *)map)->hmap);
 
     return 0;
@@ -171,7 +171,7 @@ static int __count(Map *map)
 }
 
 /*deprecated*/
-static int __clear(Map *map)
+static int __reset(Map *map)
 {
     void *element;
 	hash_map_pos_t pos, next;
@@ -201,7 +201,7 @@ static int __clear(Map *map)
         } else if (map->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
                    element != NULL)
         {
-            dbg_str(DBG_WARNNING, "not support clear unkown pointer");
+            dbg_str(DBG_WARNNING, "not support reset unkown pointer");
         } else {
         }
         element = NULL;
@@ -231,7 +231,7 @@ static class_info_entry_t hash_map_class_info[] = {
     Init_Vfunc_Entry(8 , Hash_Map, begin, __begin),
     Init_Vfunc_Entry(9 , Hash_Map, end, __end),
     Init_Vfunc_Entry(10, Hash_Map, count, __count),
-    Init_Vfunc_Entry(11, Hash_Map, clear, NULL),
+    Init_Vfunc_Entry(11, Hash_Map, reset, NULL),
     Init_Vfunc_Entry(12, Hash_Map, for_each, NULL),
     Init_Vfunc_Entry(13, Hash_Map, set_cmp_func, __set_cmp_func),
     Init_U16___Entry(14, Hash_Map, bucket_size, NULL),

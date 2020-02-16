@@ -83,7 +83,7 @@ static int __deconstrcut(Map *map)
     dbg_str(RBTMAP_DETAIL, "hash map deconstruct, map addr:%p", map);
     object_destroy(map->b);
     object_destroy(map->e);
-    map->clear(map);
+    map->reset(map);
     rbtree_map_destroy(((RBTree_Map *)map)->rbmap);
 
     return 0;
@@ -217,7 +217,7 @@ static int __count(Map *map)
 }
 
 /*deprecated*/
-static int __clear(Map *map)
+static int __reset(Map *map)
 {
     rbtree_map_t *rbtree_map = ((RBTree_Map *)map)->rbmap;
     rbtree_map_pos_t it, end;
@@ -248,7 +248,7 @@ static int __clear(Map *map)
         } else if (map->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
                    element != NULL)
         {
-            dbg_str(RBTMAP_WARNNING, "not support clear unkown pointer");
+            dbg_str(RBTMAP_WARNNING, "not support reset unkown pointer");
         } else {
         }
         element = NULL;
@@ -274,7 +274,7 @@ static class_info_entry_t rbtree_map_class_info[] = {
     Init_Vfunc_Entry(13, RBTree_Map, set_cmp_func, __set_cmp_func),
     Init_Vfunc_Entry(14, RBTree_Map, for_each, NULL),
     Init_Vfunc_Entry(15, RBTree_Map, count, __count),
-    Init_Vfunc_Entry(16, RBTree_Map, clear, NULL),
+    Init_Vfunc_Entry(16, RBTree_Map, reset, NULL),
     Init_End___Entry(17, RBTree_Map),
 };
 

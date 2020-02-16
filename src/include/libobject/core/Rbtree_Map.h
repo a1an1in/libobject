@@ -33,7 +33,7 @@ struct RBTree_Map_s{
     Iterator *(*end)(Map *map);
     int (*destroy)(Map *map);
     int (*count)(Map *map);
-    int (*clear)(Map *map);
+    int (*reset)(Map *map);
 
     /*attribs*/
     rbtree_map_t *rbmap;

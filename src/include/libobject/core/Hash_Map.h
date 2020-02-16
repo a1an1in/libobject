@@ -30,7 +30,7 @@ struct Hash_Map_s{
     void (*for_each_arg)(Map *map,void (*func)(void *key, void *element, void *arg),void *arg);
     int (*destroy)(Map *map);
     int (*count)(Map *map);
-    int (*clear)(Map *map);
+    int (*reset)(Map *map);
     int (*set_cmp_func)(Map *map, void *func);
     Iterator *(*begin)(Map *map);
     Iterator *(*end)(Map *map);

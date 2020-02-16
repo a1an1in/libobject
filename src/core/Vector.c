@@ -109,7 +109,7 @@ static int __deconstrcut(Vector *vector)
         object_destroy(vector->class_name);
     }
 
-    vector->clear(vector);
+    vector->reset(vector);
 
     vector_destroy(vector->vector);
 
@@ -178,7 +178,7 @@ __for_each(Vector *vector, void (*func)(int index, void *element))
 
 static void __free_vector_elements(Vector *vector)
 {   
-    vector->clear(vector);
+    vector->reset(vector);
 }
 
 static uint32_t __count(Vector * vector)
@@ -197,7 +197,7 @@ static int  __empty(Vector * vector)
     return vector->count(vector) == 0 ? 1 : 0;
 }
 
-static void __clear(Vector *vector)
+static void __reset(Vector *vector)
 {
     vector_pos_t pos, next;
     vector_t *v = vector->vector;
@@ -226,7 +226,7 @@ static void __clear(Vector *vector)
             } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
                        element != NULL)
             {
-                dbg_str(DBG_WARNNING, "not support clear unkown pointer");
+                dbg_str(DBG_WARNNING, "not support reset unkown pointer");
             } else {
             }
             element = NULL;
@@ -252,7 +252,7 @@ static char *__to_json(Obj *obj)
         json = object_new(obj->allocator, "String", NULL);
         obj->json = json;
     } else {
-        json->clear(json);
+        json->reset(json);
     }
 
     root = cjson_create_array();
@@ -355,7 +355,7 @@ static class_info_entry_t vector_class_info[] = {
     Init_Vfunc_Entry(11, Vector, peek_at, __peek_at),
     Init_Vfunc_Entry(12, Vector, for_each, __for_each),
     Init_Vfunc_Entry(13, Vector, free_vector_elements, __free_vector_elements),
-    Init_Vfunc_Entry(14, Vector, clear, __clear),
+    Init_Vfunc_Entry(14, Vector, reset, __reset),
     Init_Vfunc_Entry(15, Vector, count, __count),
     Init_Vfunc_Entry(16, Vector, empty, __empty),
     Init_Vfunc_Entry(17, Vector, to_json, __to_json),

@@ -162,7 +162,7 @@ __for_each_arg5(Queue *queue,
     }
 }
 
-static void __clear(Queue *queue)
+static void __reset(Queue *queue)
 {
     Iterator *cur, *end;
     void *element;
@@ -193,7 +193,7 @@ static void __clear(Queue *queue)
         } else if (queue->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
                    element != NULL)
         {
-            dbg_str(DBG_WARNNING, "not support clear unkown pointer");
+            dbg_str(DBG_WARNNING, "not support reset unkown pointer");
         } else {
         }
 
@@ -217,7 +217,7 @@ static class_info_entry_t queue_class_info[] = {
     Init_Vfunc_Entry(12, Queue, end, NULL),
     Init_Vfunc_Entry(13, Queue, size, NULL),
     Init_Vfunc_Entry(14, Queue, is_empty, NULL),
-    Init_Vfunc_Entry(15, Queue, clear, __clear),
+    Init_Vfunc_Entry(15, Queue, reset, __reset),
     Init_Vfunc_Entry(16, Queue, for_each, __for_each),
     Init_Vfunc_Entry(17, Queue, for_each_arg, __for_each_arg),
     Init_Vfunc_Entry(18, Queue, for_each_arg2, __for_each_arg2),

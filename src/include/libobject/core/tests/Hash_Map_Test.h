@@ -21,9 +21,9 @@ struct hash_map_test_s{
     void *(*teardown)(Test *);
     int (*test_add)(Hash_Map_Test *test);
     int (*test_count)(Hash_Map_Test *test);
-    int (*test_clear)(Hash_Map_Test *test);
-    int (*test_clear_string_value)(Hash_Map_Test *test);
-    int (*test_clear_object_value)(Hash_Map_Test *test);
+    int (*test_reset)(Hash_Map_Test *test);
+    int (*test_reset_string_value)(Hash_Map_Test *test);
+    int (*test_reset_object_value)(Hash_Map_Test *test);
     int (*test_remove)(Hash_Map_Test *test);
     int (*test_search_string_key)(Hash_Map_Test *test);
     int (*test_search_all_string_key)(Hash_Map_Test *test);

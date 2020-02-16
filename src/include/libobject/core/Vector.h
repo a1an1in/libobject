@@ -30,7 +30,7 @@ struct _vector_s{
     void (*free_vector_elements)(Vector *vector);
     uint32_t (*count)(Vector *vector);
     int (*empty)(Vector *vector);
-    void (*clear)(Vector *vector);
+    void (*reset)(Vector *vector);
 
     /*attribs*/
     vector_t *vector;

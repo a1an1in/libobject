@@ -83,7 +83,7 @@ static int __teardown(Hash_Map_Test *test)
 
     Map *map = (Map *)test->map;
 
-    map->clear(map);
+    map->reset(map);
 
     return 0;
 }
@@ -127,7 +127,7 @@ static int __test_count(Hash_Map_Test *test)
     return 0;
 }
 
-static int __test_clear(Hash_Map_Test *test)
+static int __test_reset(Hash_Map_Test *test)
 {
     Map *map = (Map *)test->map;
     struct test *t, t0, t1, t2, t3, t4, t5;
@@ -148,7 +148,7 @@ static int __test_clear(Hash_Map_Test *test)
     map->add(map, "test4", &t4);
     map->add(map, "test5", &t5);
 
-    map->clear(map);
+    map->reset(map);
     count = map->count(map);
 
     ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
@@ -156,7 +156,7 @@ static int __test_clear(Hash_Map_Test *test)
     return 0;
 }
 
-static int __test_clear_string_value(Hash_Map_Test *test)
+static int __test_reset_string_value(Hash_Map_Test *test)
 {
     Map *map = (Map *)test->map;
     allocator_t *allocator = test->parent.obj.allocator;
@@ -194,7 +194,7 @@ static int __test_clear_string_value(Hash_Map_Test *test)
     map->add(map, "test4", t4);
     map->add(map, "test5", t5);
 
-    map->clear(map);
+    map->reset(map);
     count = map->count(map);
     ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
 
@@ -204,7 +204,7 @@ static int __test_clear_string_value(Hash_Map_Test *test)
     return 0;
 }
 
-static int __test_clear_object_value(Hash_Map_Test *test)
+static int __test_reset_object_value(Hash_Map_Test *test)
 {
     Map *map = (Map *)test->map;
     allocator_t *allocator = test->parent.obj.allocator;
@@ -234,7 +234,7 @@ static int __test_clear_object_value(Hash_Map_Test *test)
     map->add(map, "test0", obj1);
     map->add(map, "test1", obj2);
 
-    map->clear(map);
+    map->reset(map);
     count = map->count(map);
     ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
 
@@ -488,9 +488,9 @@ static class_info_entry_t hash_test_class_info[] = {
     Init_Vfunc_Entry(5 , Hash_Map_Test, setup, __setup),
     Init_Vfunc_Entry(6 , Hash_Map_Test, teardown, __teardown),
     Init_Vfunc_Entry(7 , Hash_Map_Test, test_count, __test_count),
-    Init_Vfunc_Entry(8 , Hash_Map_Test, test_clear, __test_clear),
-    Init_Vfunc_Entry(9 , Hash_Map_Test, test_clear_string_value, __test_clear_string_value),
-    Init_Vfunc_Entry(10, Hash_Map_Test, test_clear_object_value, __test_clear_object_value),
+    Init_Vfunc_Entry(8 , Hash_Map_Test, test_reset, __test_reset),
+    Init_Vfunc_Entry(9 , Hash_Map_Test, test_reset_string_value, __test_reset_string_value),
+    Init_Vfunc_Entry(10, Hash_Map_Test, test_reset_object_value, __test_reset_object_value),
     Init_Vfunc_Entry(11, Hash_Map_Test, test_add, __test_add),
     Init_Vfunc_Entry(12, Hash_Map_Test, test_remove, __test_remove),
     Init_Vfunc_Entry(13, Hash_Map_Test, test_search_string_key, __test_search_string_key),

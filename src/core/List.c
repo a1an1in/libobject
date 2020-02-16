@@ -47,11 +47,11 @@ static int __deconstrcut(List *list)
     return 0;
 }
 
-static int __clear(List *list)
+static int __reset(List *list)
 {
     void **element;
 
-    dbg_str(OBJ_DETAIL, "List clear");
+    dbg_str(OBJ_DETAIL, "List reset");
 
     while (list->count(list)) {
         list->remove_front(list, (void **)&element);
@@ -62,13 +62,13 @@ static int __clear(List *list)
         if (    list->value_type == VALUE_TYPE_OBJ_POINTER && 
                 element != NULL) 
         {
-            dbg_str(OBJ_DETAIL, "clear list obj element, class name:%s",
+            dbg_str(OBJ_DETAIL, "reset list obj element, class name:%s",
                     ((Obj *)element)->name);
             object_destroy(element);
         } else if (list->value_type  == VALUE_TYPE_STRING &&
                    element != NULL)
         {
-            dbg_str(OBJ_DETAIL, "clear list string element");
+            dbg_str(OBJ_DETAIL, "reset list string element");
             object_destroy(element);
         } else if (list->value_type  == VALUE_TYPE_ALLOC_POINTER &&
                    element != NULL)
@@ -77,7 +77,7 @@ static int __clear(List *list)
         } else if (list->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
                    element != NULL)
         {
-            dbg_str(OBJ_WARNNING, "not support clear unkown pointer");
+            dbg_str(OBJ_WARNNING, "not support reset unkown pointer");
         } else {
         }
 
@@ -137,7 +137,7 @@ static class_info_entry_t list_class_info[] = {
     Init_Vfunc_Entry(9 , List, remove_front, NULL),
     Init_Vfunc_Entry(10, List, remove_back, NULL),
     Init_Vfunc_Entry(11, List, remove_element, NULL),
-    Init_Vfunc_Entry(12, List, clear, __clear),
+    Init_Vfunc_Entry(12, List, reset, __reset),
     Init_Vfunc_Entry(13, List, count, NULL),
     Init_Vfunc_Entry(14, List, delete, NULL),
     Init_Vfunc_Entry(15, List, detach_front, NULL),

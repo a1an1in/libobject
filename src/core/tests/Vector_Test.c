@@ -74,7 +74,7 @@ static int __setup(Vector_Test *test, char *init_str)
 static int __teardown(Vector_Test *test)
 {
     dbg_str(DBG_DETAIL,"Vector_Test teardown");
-    test->vector->clear(test->vector);
+    test->vector->reset(test->vector);
 
     return 0;
 }
@@ -141,7 +141,7 @@ static void __test_int_vector_count(Vector_Test *test)
     }
 }
 
-static void __test_int_vector_clear(Vector_Test *test)
+static void __test_int_vector_reset(Vector_Test *test)
 {
     Vector *vector = test->vector;
     int value_type = VALUE_TYPE_INT8_T;
@@ -155,7 +155,7 @@ static void __test_int_vector_clear(Vector_Test *test)
     vector->add_at(vector, 2, 2);
     vector->add_at(vector, 3, 3);
     vector->add_at(vector, 4, 4);
-    vector->clear(vector);
+    vector->reset(vector);
     count = vector->count(vector);
 
     ret = ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
@@ -345,7 +345,7 @@ static class_info_entry_t vector_test_class_info[] = {
     Init_Vfunc_Entry(7 , Vector_Test, test_int_vector_add, __test_int_vector_add),
     Init_Vfunc_Entry(8 , Vector_Test, test_int_vector_remove, __test_int_vector_remove),
     Init_Vfunc_Entry(9 , Vector_Test, test_int_vector_count, __test_int_vector_count),
-    Init_Vfunc_Entry(10, Vector_Test, test_int_vector_clear, __test_int_vector_clear),
+    Init_Vfunc_Entry(10, Vector_Test, test_int_vector_reset, __test_int_vector_reset),
     Init_Vfunc_Entry(11, Vector_Test, test_int_vector_to_json, __test_int_vector_to_json),
     Init_Vfunc_Entry(12, Vector_Test, test_string_vector_to_json, __test_string_vector_to_json),
     Init_Vfunc_Entry(13, Vector_Test, test_obj_vector_to_json, __test_obj_vector_to_json),

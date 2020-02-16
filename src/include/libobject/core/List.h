@@ -25,7 +25,7 @@ struct _list_s{
     int (*remove_front)(List *list, void **data);
     int (*remove_back)(List *list, void **data);
     int (*remove_element)(List *list, void *data);
-    int (*clear)(List *list);
+    int (*reset)(List *list);
     int (*count)(List *list);
     int (*is_empty)(List *list);
     int (*detach_front)(List *list,Iterator *iter);

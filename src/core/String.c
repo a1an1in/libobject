@@ -44,8 +44,7 @@ typedef struct string_piece_s {
 } string_piece_t;
 
 string_piece_t *
-__new_string_peice(allocator_t *allocator, 
-                   void *start_pos, int len) 
+__new_string_peice(allocator_t *allocator, void *start_pos, int len) 
 {
     string_piece_t *piece;
 
@@ -153,7 +152,7 @@ static size_t __is_empty(String *string)
     return string->get_len(string) ? 0 : 1;
 }
 
-static void __clear(String *string)
+static void __reset(String *string)
 {   
     Vector *v;
 
@@ -163,7 +162,7 @@ static void __clear(String *string)
 
     if (string->pieces != NULL) {
         v = (Vector *)string->pieces;
-        v->clear(v);
+        v->reset(v);
     }
 }
 
@@ -174,16 +173,16 @@ static char __at(String *string, int index)
 
 static String *__assign(String *string, char *s)
 {
-    int len = strlen(s);
+    int l = strlen(s);
     int ret;
 
-    ret = __modulate_capacity(string, len);
+    ret = __modulate_capacity(string, l);
     if (ret < 0) return string;
 
     memset(string->value, 0, string->value_max_len);
-    strncpy(string->value, s, len);
-    string->value_len  = len;
-    string->value[len] = '\0';
+    strncpy(string->value, s, l);
+    string->value_len  = l;
+    string->value[l] = '\0';
 
     return string;
 }
@@ -511,7 +510,7 @@ static int __find_n(String *string, char *pattern, int offset, int num)
         string->pieces = v;
     } else {
         v = string->pieces;
-        v->clear(v);
+        v->reset(v);
     }
 
     ret = regcomp_wrap(&regex, pattern, REG_EXTENDED);  
@@ -573,7 +572,7 @@ static int __split_n(String *string, char *delims, int num)
         string->pieces = v;
     } else {
         v = string->pieces;
-        v->clear(v);
+        v->reset(v);
     }
 
     ret = regcomp_wrap(&regex, delims, REG_EXTENDED);  
@@ -659,7 +658,7 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(5 , String, at, __at), 
     Init_Vfunc_Entry(6 , String, get_cstr, __get_cstr), 
     Init_Vfunc_Entry(7 , String, get_len, __get_len), 
-    Init_Vfunc_Entry(8 , String, clear, __clear), 
+    Init_Vfunc_Entry(8 , String, reset, __reset), 
     Init_Vfunc_Entry(9 , String, pre_alloc, __pre_alloc), 
     Init_Vfunc_Entry(10, String, modulate_capacity, __modulate_capacity), 
     Init_Vfunc_Entry(11, String, assign, __assign), 

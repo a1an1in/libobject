@@ -73,7 +73,7 @@ static int __setup(String_Test *test, char *init_str)
 static int __teardown(String_Test *test)
 {
     dbg_str(DBG_DETAIL,"String_Test teardown");
-    test->str->clear(test->str);
+    test->str->reset(test->str);
 
     return 0;
 }
@@ -97,7 +97,7 @@ static void __test_sprintf(String_Test *test)
 
     sprintf(test3, "%s, %s", test1, test2);
 
-    string->clear(string);  
+    string->reset(string);  
     string->format(string, 1024, "%s, %s", test1, test2);
 
     ASSERT_EQUAL(test, string->get_cstr(string), test3, strlen(test3));
@@ -405,7 +405,7 @@ static void __test_empty(String_Test *test)
     int ret, expect_ret = 1;
 
     string->assign(string, test1);
-    string->clear(string);
+    string->reset(string);
     ret = string->is_empty(string);
 
     ret = ASSERT_EQUAL(test, &ret, &expect_ret, sizeof(ret));

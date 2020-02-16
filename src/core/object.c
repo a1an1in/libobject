@@ -330,7 +330,8 @@ void * object_new(allocator_t *allocator,
     Obj *o;
     class_info_entry_t *entry;
     class_deamon_t *deamon;
-    int size = 0, ret;
+    char *init_data;
+    int size = 0, ret, assign_flag = 0;
 
     if (type == NULL) return NULL;
     if (allocator == NULL) {
@@ -354,6 +355,12 @@ void * object_new(allocator_t *allocator,
         strcpy(o->name, type);
     }
 
+    if (config != NULL && strcmp(type, "String") == 0) {
+        init_data = config;
+        config = NULL;
+        assign_flag = 1;
+    }
+
     ret = object_set(o, type, config);
     if (ret < 0) {
         dbg_str(OBJ_ERROR, "object set failed");
@@ -364,6 +371,10 @@ void * object_new(allocator_t *allocator,
     if (ret < 0) {
         dbg_str(OBJ_ERROR, "object init failed");
         goto err_object_init;
+    }
+
+    if (assign_flag) {
+        o->assign(o, init_data);
     }
 
     goto end;
@@ -675,7 +686,7 @@ int object_destroy(void *obj)
 
         dbg_str(OBJ_DETAIL, "obj destroy, add obj %s to cache", o->name);
 
-        o->clear(o);
+        o->reset(o);
         list->add(list, o);
     } else {
         __object_destroy(o, o->name);
