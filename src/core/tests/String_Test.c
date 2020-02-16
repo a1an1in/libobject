@@ -200,6 +200,7 @@ static int __test_split_case0(String_Test *test)
     int i, cnt, expect_count = 19;
     char *p;
 
+    dbg_str(DBG_DETAIL, "test_split_case0");
     str->assign(str, "https://www.baidu.com/s?ie = utf-8&f = 3&rsv_bp = 1&rsv_idx = 1&tn = baidu&wd = "
             "ffmpeg%20hls%20%20%E6%A8%A1%E5%9D%97&oq = ffmpeg%2520hls%2520%25E5%2588%2587%25E7%2589%2587&rsv_pq = f57123dc00006105&"
             "rsv_t = 4a67K//PcOq6Y0swQnyeFtlQezzWiuwU1bS8vKp48Nn9joWPQd1BHAqFkqu9Y&rqlang = cn&rsv_enter = 1&inputT = 4580&"
@@ -222,11 +223,12 @@ static int __test_split_case1(String_Test *test)
 {
     //test find and split function
     String *str = test->str;
-    int i, cnt, expect_count = 2;
+    int i, cnt, expect_count = 2, ret = 0;
     char *p;
     char *expect0 = "https";
     char *expect1 = "www.baidu.com/s?ie=utf-8";
 
+    dbg_str(DBG_DETAIL, "test_split_case1");
     str->assign(str, "https://www.baidu.com/s?ie=utf-8");  
 
     cnt = str->split(str, "://", 1);
@@ -239,20 +241,30 @@ static int __test_split_case1(String_Test *test)
         }
     }
 
-    ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
-    ASSERT_EQUAL(test, str->get_splited_cstr(str, 0), expect0, strlen(expect0));
-    ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, strlen(expect1));
+    ret = ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
+    if (ret != 1) {
+        return ret;
+    }
+    ret = ASSERT_EQUAL(test, str->get_splited_cstr(str, 0), expect0, strlen(expect0));
+    if (ret != 1) {
+        return ret;
+    }
+    ret = ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, strlen(expect1));
+    if (ret != 1) {
+        return ret;
+    }
 }
 
 static int __test_split_case2(String_Test *test)
 {
     //test find and split function
     String *str = test->str;
-    int i, cnt, expect_count = 2;
+    int i, cnt, expect_count = 2, ret;
     char *p;
     char *expect0 = "http";
     char *expect1 = "mirrors.163.com/debian-archive/debian/tools/src/md5sum-w32_1.1.tar.gz";
 
+    dbg_str(DBG_DETAIL, "test_split_case2");
     str->assign(str, "http/mirrors.163.com/debian-archive/debian/tools/src/md5sum-w32_1.1.tar.gz");  
 
     cnt = str->split(str, "/", 1);
@@ -278,6 +290,7 @@ static int __test_split_using_reg_case1(String_Test *test)
     char *expect1 = ".com/s?ie=utf-8";
     int ret;
 
+    dbg_str(DBG_DETAIL, "__test_split_using_reg_case1");
     str->assign(str, "https://www.baidu.com/s?ie=utf-8");  
 
     cnt = str->split(str, "b(.*)du", -1);
@@ -289,20 +302,9 @@ static int __test_split_using_reg_case1(String_Test *test)
         }
     }
 
-    ret = ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
-    if (ret != 1) {
-        dbg_str(DBG_ERROR, "expect_count = %d, count=%d", expect_count, cnt);
-    }
-    ret = ASSERT_EQUAL(test, str->get_splited_cstr(str, 0), expect0, strlen(expect0));
-    if (ret != 1) {
-        dbg_str(DBG_ERROR, "expect0 = %s, real=%s",
-                expect0, str->get_splited_cstr(str, 0));
-    }
-    ret = ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, strlen(expect1));
-    if (ret != 1) {
-        dbg_str(DBG_ERROR, "expect1 = %s, real=%s",
-                expect1, str->get_splited_cstr(str, 1));
-    }
+    ASSERT_EQUAL(test, &cnt, &expect_count, sizeof(expect_count));
+    ASSERT_EQUAL(test, str->get_splited_cstr(str, 0), expect0, strlen(expect0));
+    ASSERT_EQUAL(test, str->get_splited_cstr(str, 1), expect1, strlen(expect1));
 }
 static int __test_split_using_reg_case2(String_Test *test)
 {
@@ -311,6 +313,7 @@ static int __test_split_using_reg_case2(String_Test *test)
     char *p;
     int ret;
 
+    dbg_str(DBG_DETAIL, "__test_split_using_reg_case2");
     str->assign(str, "cat dog,desk push last, this is what. must be");  
 
     cnt = str->split(str, "[, .]", -1);
@@ -342,7 +345,7 @@ static int __test_split(String_Test *test)
     if (ret != 1) return ret;
     ret = __test_split_using_reg_case1(test);
     if (ret != 1) return ret;
-    __test_split_using_reg_case2(test);
+    ret =__test_split_using_reg_case2(test);
 
     return ret;
 }

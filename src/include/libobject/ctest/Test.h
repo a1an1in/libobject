@@ -13,10 +13,10 @@ typedef struct _test_s Test;
     int __ret;\
     ((Test *)test)->line = __LINE__;\
     ((Test *)test)->file = __FILE__;\
-    __ret = memcmp(peer1, peer2, len) == 0;\
+    __ret = (memcmp(peer1, peer2, len) == 0);\
     ((Test *)test)->ret = __ret;\
-    if (__ret == 0) {\
-        return !__ret;\
+    if (__ret != 1) {\
+        return __ret;\
     }\
     !!__ret;\
 })

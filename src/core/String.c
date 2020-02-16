@@ -178,21 +178,6 @@ static String *__assign(String *string, char *s)
     return string;
 }
 
-static String * __assign_n(String *string, char *s, int len)
-{
-    int ret;
-
-    ret = __modulate_capacity(string, len);
-    if (ret < 0) return string;
-
-    memset(string->value, 0, string->value_max_len);
-    strncpy(string->value, s, len);
-    string->value_len  = len;
-    string->value[len] = '\0';
-
-    return string;
-}
-
 static int __equal(String *string, char *s)
 {
     return strcmp(string->value, s) == 0;
