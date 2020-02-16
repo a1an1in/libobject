@@ -30,6 +30,7 @@
  * 
  */
 #include <stdio.h>
+#include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
@@ -42,7 +43,8 @@ static int __construct(Unix_Udp_Socket *sk, char *init_str)
     int skfd;
 
     if ((skfd = socket(PF_UNIX, SOCK_DGRAM, 0)) < 0) {
-        perror("udp socket");
+         dbg_str(NET_ERROR,"create socket error, error_no=%d, err:%s",
+                 errno, strerror(errno));
         return -1;
     }
 
@@ -73,10 +75,7 @@ static int __bind(Unix_Udp_Socket *socket, char *host, char *service)
      unlink(host);
 
      if ((ret = bind(fd, (struct sockaddr *)&un_addr, sizeof(un_addr))) < 0) {
-         /*
-          *perror("fail to bind");
-          */
-         dbg_str(NET_ERROR,"fail to bind, error_no=%d", ret);
+         dbg_str(NET_ERROR,"fail to bind, error_no=%d, err:%s", ret, strerror (errno));
          ret = -1;
      }                         
 

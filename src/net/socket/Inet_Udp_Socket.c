@@ -30,6 +30,7 @@
  * 
  */
 #include <stdio.h>
+#include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
@@ -42,7 +43,8 @@ static int __construct(Inet_Udp_Socket *sk, char *init_str)
 
 
     if ((skfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("udp socket");
+         dbg_str(NET_ERROR, "create socket error, error_no=%d, err:%s",
+                 errno, strerror(errno));
         return -1;
     }
 
