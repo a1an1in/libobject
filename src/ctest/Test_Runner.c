@@ -54,7 +54,7 @@ static int __set_white_list(Test_Runner *runner, char *list)
 
     str = object_new(allocator, "String", NULL);
     str->assign(str, list);
-    count = str->split(str, ",");
+    count = str->split(str, ",", -1);
     if (count <= 0) {
         ret = -1;
         goto end;

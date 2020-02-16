@@ -59,21 +59,8 @@ __new_string_peice(allocator_t *allocator, void *start_pos, int len)
 
 static int __modulate_capacity(String *string, int write_len)
 {
-    if (string->value_max_len == 0) {
-        string->value_max_len = 100;
-        if (write_len > string->value_max_len) {
-            string->value_max_len = write_len;
-        }
-
-        string->value = (char *)allocator_mem_alloc(string->obj.allocator, 
-                                                    string->value_max_len);
-        if (string->value == NULL) {
-            dbg_str(OBJ_WARNNING, "string assign alloc error");
-            return -1;
-        }
-        memset(string->value, 0, string->value_max_len);
-    } else if (string->value_max_len > string->value_len + 1 &&
-               string->value_max_len < string->value_len + write_len + 1)
+    if (    string->value_max_len > string->value_len + 1 &&
+            string->value_max_len < string->value_len + write_len + 1)
     {
         char *new_buf;
         int old = string->value_max_len;
@@ -85,8 +72,7 @@ static int __modulate_capacity(String *string, int write_len)
             dbg_str(OBJ_WARNNING, "string assign alloc error");
             return -1;
         } else {
-            dbg_str(OBJ_WARNNING, 
-                    "auto modulate string object max value len, "
+            dbg_str(OBJ_WARNNING, "auto modulate string object max value len, "
                     "write_len =%d, value_max_len from %d to %d",
                     write_len, old, string->value_max_len);
         
@@ -108,9 +94,8 @@ static int __construct(String *string, char *init_str)
 
     string->value_len = 0;
     string->value_max_len = 256;
-    string->value = (char *)allocator_mem_alloc(string->obj.allocator, 256);
+    string->value = (char *)allocator_mem_alloc(string->obj.allocator, string->value_max_len);
     memset(string->value, 0, string->value_max_len);
-    string->value[0] = '\0';
 
     return 0;
 }
@@ -248,41 +233,25 @@ static int __format(String *string, int max_len, char *fmt, ...)
     ret = vsnprintf(buf_addr, max_len, fmt, ap);
     va_end(ap);
 
-    string->append(string, buf_addr);
+    string->append(string, buf_addr, -1);
 
     allocator_mem_free(allocator, buf_addr);
 
     return ret;
 }
 
-static void __append(String *string, char *sub) 
-{   
-    int len, ret;
-
-    if (sub == NULL) {
-        dbg_str(STRING_WARNNING, "appending-string is null unvalid sub stringing");
-        return ;
-    }
-    len = strlen(sub);
-    ret = __modulate_capacity(string, len);
-
-    if (ret < 0 ) {
-        return ;
-    }
-
-    strncpy(string->value + string->value_len, sub, len);
-    string->value_len += len;
-    string->value[string->value_len] = '\0';
-
-}
-
-static void __append_n(String *string, char *sub, int len) 
+static void __append(String *string, char *sub, int len) 
 {   
     int ret;
     if (sub == NULL) {
         dbg_str(STRING_WARNNING, "appending-string is null unvalid sub stringing");
         return ;
     }
+
+    if (len <= 0) {
+        len = strlen(sub);
+    }
+
     ret = __modulate_capacity(string, len + string->value_len);
 
     if (ret < 0 ) {
@@ -297,7 +266,7 @@ static void __append_n(String *string, char *sub, int len)
 static void __append_string(String *string, String *sub)
 {
     char *value = sub->get_cstr(sub);
-    string->append(string, value);
+    string->append(string, value, -1);
 }
 
 static String * __insert(String *self, int offset, char *cstr)
@@ -339,13 +308,8 @@ static String * __replace_char(String *string, int index, char c)
     return string;
 }
 
-static int __replace(String *self, char *old, char *newstr)
-{
-    return self->replace_n(self, old, newstr, -1);
-}
-
 static int 
-__replace_n(String *self, char *pattern, char *newstr, int max)
+__replace(String *self, char *pattern, char *newstr, int max)
 {
     int start_offset = 0, old_offset;
     int old_len, new_len, str_len;
@@ -359,7 +323,7 @@ __replace_n(String *self, char *pattern, char *newstr, int max)
     str_len = self->get_len(self);
 
     do {
-        ret = self->find_n(self, pattern, start_offset, 1);
+        ret = self->find(self, pattern, start_offset, 1);
         if (ret <= 0) {
             dbg_str(STRING_DETAIL, "replace, not found");
             goto end;
@@ -398,7 +362,7 @@ __replace_n(String *self, char *pattern, char *newstr, int max)
         self->value[self->value_len] = '\0';
         count++;
         start_offset = old_offset + new_len;
-    } while (count < max || max == -1);
+    } while (count < max || max <= 0);
 
 end:
 
@@ -443,8 +407,7 @@ static void __ltrim(String *string)
     }
     if (cnt) {
         string->value_len -= cnt;
-        memmove(string->value, string->value + cnt, 
-                string->value_len);
+        memmove(string->value, string->value + cnt, string->value_len);
         string->value[string->value_len] = '\0';
     }
 }
@@ -489,12 +452,7 @@ static String *__get_substring(String  *string, int pos, int len)
     return str;
 }
 
-static int __find(String *string, char *pattern, int offset)
-{   
-    return string->find_n(string, pattern, offset, -1);
-}
-
-static int __find_n(String *string, char *pattern, int offset, int num)
+static int __find(String *string, char *pattern, int offset, int num)
 {
     int cnt = 0;
     char *pos;
@@ -544,19 +502,14 @@ static int __find_n(String *string, char *pattern, int offset, int num)
             break;
         }
 
-    } while ((cnt < num || num < 0));
+    } while ((cnt < num || num <= 0));
 
     regfree_wrap(&regex);  
 
     return cnt;
 }
 
-static int __split(String *string, char *delims)
-{
-    return string->split_n(string, delims, -1);
-}
-
-static int __split_n(String *string, char *delims, int num)
+static int __split(String *string, char *delims, int num)
 {
     int piece_count = 0, count = 0;
     char *pos;
@@ -590,7 +543,7 @@ static int __split_n(String *string, char *delims, int num)
     pos = string->get_cstr(string);
     if (strlen(pos) == 0) return 0;
 
-    while ((count++ < num || num < 0)) {
+    while ((count++ < num || num <= 0)) {
         ret = regexec_wrap(&regex, pos, nmatch, pmatch, 0);  
         if(ret != REG_NOMATCH) { 
             if (pmatch[0].rm_so != 0) {
@@ -668,32 +621,27 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(9 , String, pre_alloc, __pre_alloc), 
     Init_Vfunc_Entry(10, String, modulate_capacity, __modulate_capacity), 
     Init_Vfunc_Entry(11, String, assign, __assign), 
-    Init_Vfunc_Entry(12, String, assign_n, __assign_n), 
-    Init_Vfunc_Entry(13, String, equal, __equal), 
-    Init_Vfunc_Entry(14, String, replace_char, __replace_char), 
-    Init_Vfunc_Entry(15, String, replace, __replace), 
-    Init_Vfunc_Entry(16, String, replace_n, __replace_n), 
-    Init_Vfunc_Entry(17, String, append_char, __append_char), 
-    Init_Vfunc_Entry(18, String, format, __format), 
-    Init_Vfunc_Entry(19, String, append, __append), 
-    Init_Vfunc_Entry(20, String, append_n, __append_n), 
-    Init_Vfunc_Entry(21, String, append_string, __append_string), 
-    Init_Vfunc_Entry(22, String, insert, __insert), 
-    Init_Vfunc_Entry(23, String, insert_string, __insert_string), 
-    Init_Vfunc_Entry(24, String, toupper, __to_upper), 
-    Init_Vfunc_Entry(25, String, tolower, __to_lower), 
-    Init_Vfunc_Entry(26, String, ltrim, __ltrim), 
-    Init_Vfunc_Entry(27, String, rtrim, __rtrim), 
-    Init_Vfunc_Entry(28, String, trim, __trim), 
-    Init_Vfunc_Entry(29, String, get_substring, __get_substring), 
-    Init_Vfunc_Entry(30, String, find, __find), 
-    Init_Vfunc_Entry(31, String, find_n, __find_n), 
-    Init_Vfunc_Entry(32, String, is_empty, __is_empty), 
-    Init_Vfunc_Entry(33, String, split, __split), 
-    Init_Vfunc_Entry(34, String, split_n, __split_n), 
-    Init_Vfunc_Entry(35, String, get_splited_cstr, __get_splited_cstr), 
-    Init_Vfunc_Entry(36, String, get_found_cstr, __get_found_cstr), 
-    Init_Point_Entry(37, String, value, NULL), 
-    Init_End___Entry(38, String), 
+    Init_Vfunc_Entry(12, String, equal, __equal), 
+    Init_Vfunc_Entry(13, String, replace_char, __replace_char), 
+    Init_Vfunc_Entry(14, String, replace, __replace), 
+    Init_Vfunc_Entry(15, String, append_char, __append_char), 
+    Init_Vfunc_Entry(16, String, format, __format), 
+    Init_Vfunc_Entry(17, String, append, __append), 
+    Init_Vfunc_Entry(18, String, append_string, __append_string), 
+    Init_Vfunc_Entry(19, String, insert, __insert), 
+    Init_Vfunc_Entry(20, String, insert_string, __insert_string), 
+    Init_Vfunc_Entry(21, String, toupper, __to_upper), 
+    Init_Vfunc_Entry(22, String, tolower, __to_lower), 
+    Init_Vfunc_Entry(23, String, ltrim, __ltrim), 
+    Init_Vfunc_Entry(24, String, rtrim, __rtrim), 
+    Init_Vfunc_Entry(25, String, trim, __trim), 
+    Init_Vfunc_Entry(26, String, get_substring, __get_substring), 
+    Init_Vfunc_Entry(27, String, find, __find), 
+    Init_Vfunc_Entry(28, String, is_empty, __is_empty), 
+    Init_Vfunc_Entry(29, String, split, __split), 
+    Init_Vfunc_Entry(30, String, get_splited_cstr, __get_splited_cstr), 
+    Init_Vfunc_Entry(31, String, get_found_cstr, __get_found_cstr), 
+    Init_Point_Entry(32, String, value, NULL), 
+    Init_End___Entry(33, String), 
 };
 REGISTER_CLASS("String", string_class_info);

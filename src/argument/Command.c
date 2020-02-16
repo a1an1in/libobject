@@ -231,7 +231,7 @@ __parse_option_value_with_equal_sign(Command *command,
 
     str = object_new(command->parent.allocator, "String", NULL);
     str->assign(str, option);
-    cnt = str->split_n(str, "=", 2); 
+    cnt = str->split(str, "=", 2); 
     dbg_str(ARG_SUC, "key count :%d", cnt);
     if (cnt == 2) {
         key   = str->get_splited_cstr(str, 0);
@@ -264,8 +264,8 @@ __parse_option_value_with_space(Command *command,
         if (*flag == 1) {
             v = o->value;
             o->set(o, "multi_value_flag", &multi_value_flag);
-            v->append(v, ";");
-            v->append(v, value);
+            v->append(v, ";", -1);
+            v->append(v, value, -1);
             dbg_str(ARG_SUC, "set option key:%s, value:%s", key, value);
         } else {
             o->set(o, "value", value);

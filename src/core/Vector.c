@@ -39,6 +39,7 @@
 static int __construct(Vector *vector, char *init_str)
 {
     allocator_t *allocator = vector->obj.allocator;
+    cjson_t *c;
 
     dbg_str(OBJ_DETAIL, "vector construct, vector addr:%p", vector);
 
@@ -51,48 +52,48 @@ static int __construct(Vector *vector, char *init_str)
     }
     vector_init(vector->vector, vector->value_size, vector->capacity);
 
-    if (vector->init_data != NULL) {
-        cjson_t *c;
-
-        dbg_str(DBG_DETAIL, "vector init data:%s", 
-                vector->init_data->get_cstr(vector->init_data));
-
-        c = cjson_parse(vector->init_data->get_cstr(vector->init_data));
-        if (c->type & OBJECT_ARRAY) {
-            c = c->child;
-            dbg_str(DBG_DETAIL, "array name:%s", c->string);
-        }
-
-        while (c) {
-            if (c->type & CJSON_NUMBER) {
-                vector->add(vector, c->valueint);
-            } else if (c->type & OBJECT_STRING) {
-                String *s;
-                dbg_str(DBG_DETAIL, "vector element:%s", c->valuestring);
-                s = object_new(allocator, "String", NULL);
-                s->assign(s, c->valuestring);
-                vector->add(vector, s);
-            } else if (c->type & OBJECT_ARRAY) {
-                dbg_str(DBG_DETAIL, "vector element, not supported now!");
-            } else if (c->type & CJSON_OBJECT) {
-                char *out;
-                Obj *o;
-                char *class_name = vector->class_name->get_cstr(vector->class_name);
-                out = cjson_print(c);
-                o = object_new(allocator, class_name, out);
-                vector->add(vector, o);
-
-                dbg_str(DBG_DETAIL, "o: %s", o->to_json(o));
-                free(out);
-            } else {
-                dbg_str(DBG_DETAIL, "vector element, not supported now!");
-            }
-
-            c = c->next;
-        }
-
-        cjson_delete(c);
+    if (vector->init_data == NULL) {
+        return 0;
     }
+
+    dbg_str(DBG_DETAIL, "vector init data:%s", 
+            vector->init_data->get_cstr(vector->init_data));
+
+    c = cjson_parse(vector->init_data->get_cstr(vector->init_data));
+    if (c->type & OBJECT_ARRAY) {
+        c = c->child;
+        dbg_str(DBG_DETAIL, "array name:%s", c->string);
+    }
+
+    while (c) {
+        if (c->type & CJSON_NUMBER) {
+            vector->add(vector, c->valueint);
+        } else if (c->type & OBJECT_STRING) {
+            String *s;
+            dbg_str(DBG_DETAIL, "vector element:%s", c->valuestring);
+            s = object_new(allocator, "String", NULL);
+            s->assign(s, c->valuestring);
+            vector->add(vector, s);
+        } else if (c->type & OBJECT_ARRAY) {
+            dbg_str(DBG_DETAIL, "vector element, not supported now!");
+        } else if (c->type & CJSON_OBJECT) {
+            char *out;
+            Obj *o;
+            char *class_name = vector->class_name->get_cstr(vector->class_name);
+            out = cjson_print(c);
+            o = object_new(allocator, class_name, out);
+            vector->add(vector, o);
+
+            dbg_str(DBG_DETAIL, "o: %s", o->to_json(o));
+            free(out);
+        } else {
+            dbg_str(DBG_DETAIL, "vector element, not supported now!");
+        }
+
+        c = c->next;
+    }
+
+    cjson_delete(c);
 
     return 0;
 }

@@ -171,13 +171,13 @@ static int __read_to_string(Ring_Buffer *rb, String *str, int len)
             l, rb->w_offset, rb->r_offset);
 
     if (rb->w_offset > rb->r_offset) {
-        str->append_n(str, rb->addr + rb->r_offset, l);
+        str->append(str, rb->addr + rb->r_offset, l);
     } else if (l < rb->size - rb->r_offset) {
-        str->append_n(str, rb->addr + rb->r_offset, l);
+        str->append(str, rb->addr + rb->r_offset, l);
     } else {
-        str->append_n(str, rb->addr + rb->r_offset,
+        str->append(str, rb->addr + rb->r_offset,
                       rb->size - rb->r_offset);
-        str->append_n(str, rb->addr,
+        str->append(str, rb->addr,
                       l - rb->size + rb->r_offset);
     }
 
