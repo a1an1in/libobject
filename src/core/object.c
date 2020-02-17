@@ -355,7 +355,9 @@ void * object_new(allocator_t *allocator,
         strcpy(o->name, type);
     }
 
-    if (config != NULL && (strcmp(type, "String") == 0 || strcmp(type, "Vector") == 0)) {
+    if (config != NULL && (strcmp(type, "String") == 0 ||
+                           strcmp(type, "Vector") == 0)) 
+    {
         init_data = config;
         config = NULL;
         assign_flag = 1;

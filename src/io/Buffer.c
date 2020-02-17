@@ -154,6 +154,54 @@ end:
     return len;
 }
 
+static int __printf(Buffer *buffer, int len, const char *fmt, ...)
+{
+    allocator_t *allocator = ((Obj *)buffer)->allocator;
+    int capacity, l, ret;
+    void *new_buf;
+    va_list va;
+
+    l = buffer->capacity - buffer->w_offset ;
+
+    if (l < len) {
+        capacity = buffer->capacity;
+        capacity = capacity > len ? capacity : len;
+        capacity *= 2;
+        new_buf = allocator_mem_alloc(allocator, capacity);
+        if (new_buf == NULL) {
+            dbg_str(DBG_ERROR, "buffer alloc buf failed!");
+            return -1;
+        } 
+        memset(new_buf, 0, capacity);
+        buffer->capacity = capacity;
+        memmove(new_buf, buffer->addr, buffer->w_offset);
+        allocator_mem_free(allocator, buffer->addr);
+        buffer->addr = new_buf;
+    }
+
+    va_start(va, fmt);
+    ret = vsnprintf(buffer->addr + buffer->w_offset,
+                    len, fmt, va);
+    va_end(va);
+    if (ret < 0 || ret >= len) {
+        dbg_str(DBG_ERROR, "string is longer than the desigated len, please set a longer len!!");
+        return -1;
+    }
+
+    buffer->w_offset += ret;
+
+    return ret;
+}
+
+static char *__reset(Buffer *buffer) 
+{
+    buffer->r_offset = 0;
+    buffer->w_offset = 0;
+    buffer->len = 0;
+
+    return 0;
+}
+
 static class_info_entry_t buffer_class_info[] = {
     Init_Obj___Entry(0 , Stream, parent),
     Init_Nfunc_Entry(1 , Buffer, construct, __construct),
@@ -162,10 +210,12 @@ static class_info_entry_t buffer_class_info[] = {
     Init_Vfunc_Entry(4 , Buffer, get, NULL),
     Init_Vfunc_Entry(5 , Buffer, read, __read),
     Init_Vfunc_Entry(6 , Buffer, write, __write),
-    Init_Vfunc_Entry(7 , Buffer, get_len, __get_len),
-    Init_Vfunc_Entry(8 , Buffer, set_capacity, __set_capacity),
-    Init_Vfunc_Entry(9 , Buffer, get_free_capacity, __get_free_capacity),
-    Init_End___Entry(10, Buffer),
+    Init_Vfunc_Entry(7 , Buffer, printf, __printf),
+    Init_Vfunc_Entry(8 , Buffer, reset, __reset),
+    Init_Vfunc_Entry(9 , Buffer, get_len, __get_len),
+    Init_Vfunc_Entry(10, Buffer, set_capacity, __set_capacity),
+    Init_Vfunc_Entry(11, Buffer, get_free_capacity, __get_free_capacity),
+    Init_End___Entry(12, Buffer),
 };
 REGISTER_CLASS("Buffer", buffer_class_info);
 

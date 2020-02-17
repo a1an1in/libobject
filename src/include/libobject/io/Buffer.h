@@ -20,6 +20,8 @@ struct buffer_s{
 	/*virtual methods reimplement*/
     int (*read)(Buffer *, void *dst, int len);
     int (*write)(Buffer *, void *src, int len);
+    int (*printf)(Buffer *buffer, int len, const char *fmt, ...);
+    int (*reset)(Buffer *buffer);
     int (*get_len)(Buffer *);
     int (*set_capacity)(Buffer *, int size);
     int (*get_free_capacity)(Buffer *buffer);

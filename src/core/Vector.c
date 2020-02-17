@@ -205,33 +205,35 @@ static void __reset(Vector *vector)
     void *element;
     int index = 0;
 
-    if (vector->trustee_flag == 1) {
-        for(	vector_begin(v, &pos), vector_pos_next(&pos, &next);
-                !vector_pos_equal(&pos, &v->end);
-                pos = next, vector_pos_next(&pos, &next))
-        {
-            vector->peek_at(vector, index++, (void **)&element);
-
-            if (    vector->value_type == VALUE_TYPE_OBJ_POINTER && 
-                    element != NULL) 
-            {
-                object_destroy(element);
-            } else if (vector->value_type  == VALUE_TYPE_STRING &&
-                       element != NULL)
-            {
-                object_destroy(element);
-            } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER &&
-                       element != NULL)
-            {
-                allocator_mem_free(vector->obj.allocator, element);
-            } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
-                       element != NULL)
-            {
-                dbg_str(DBG_WARNNING, "not support reset unkown pointer");
-            } else {
-            }
-            element = NULL;
+    for(	vector_begin(v, &pos), vector_pos_next(&pos, &next);
+            !vector_pos_equal(&pos, &v->end);
+            pos = next, vector_pos_next(&pos, &next)) 
+    {
+        if (vector->trustee_flag != 1) {
+            break;
         }
+
+        vector->peek_at(vector, index++, (void **)&element);
+
+        if (    vector->value_type == VALUE_TYPE_OBJ_POINTER && 
+                element != NULL) 
+        {
+            object_destroy(element);
+        } else if (vector->value_type  == VALUE_TYPE_STRING &&
+                element != NULL)
+        {
+            object_destroy(element);
+        } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER &&
+                element != NULL)
+        {
+            allocator_mem_free(vector->obj.allocator, element);
+        } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
+                element != NULL)
+        {
+            dbg_str(DBG_WARNNING, "not support reset unkown pointer");
+        } else {
+        }
+        element = NULL;
     }
 
     vector->vector->count = 0;
