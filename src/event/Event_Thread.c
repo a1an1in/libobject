@@ -37,7 +37,6 @@
 #include <libobject/event/Event_Base.h>
 #include <libobject/event/Select_Base.h>
 #include <libobject/core/Linked_Queue.h>
-#include <libobject/net/socket/Unix_Udp_Socket.h>
 #include <libobject/event/Event_Thread.h>
 #include <libobject/libobject.h>
 

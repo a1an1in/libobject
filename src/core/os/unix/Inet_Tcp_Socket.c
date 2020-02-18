@@ -34,8 +34,8 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
-#include <libobject/net/socket/Inet_Tcp_Socket.h>
 #include <libobject/core/Thread.h>
+#include "Inet_Tcp_Socket.h"
 
 static int __construct(Inet_Tcp_Socket *sk, char *init_str)
 {

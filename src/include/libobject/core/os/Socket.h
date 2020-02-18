@@ -1,5 +1,5 @@
-#ifndef __SOCKET_H__
-#define __SOCKET_H__
+#ifndef __MY_SOCKET_H__
+#define __MY_SOCKET_H__
 
 #include <stdio.h>
 #include <netdb.h>

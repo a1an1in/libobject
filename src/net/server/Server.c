@@ -41,6 +41,7 @@ static void __release_working_worker(void *element)
 
     worker->resign(worker);
     work_task_free(worker->task);
+    object_destroy(worker->socket);
     object_destroy(worker);
 }
 
@@ -49,6 +50,7 @@ static void __release_leisure_worker(void *element)
     Worker *worker = (Worker *)element;
 
     work_task_free(worker->task);
+    object_destroy(worker->socket);
     object_destroy(worker);
 }
 
@@ -92,10 +94,11 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
     Server *server     = (Server *)worker->opaque;
     List *working_list = server->working_workers;
     List *leisure_list = server->leisure_workers;
-    work_task_t *task   = (work_task_t *)worker->task;
+    work_task_t *task  = (work_task_t *)worker->task;
+    Socket *socket     = (Socket *)worker->socket;
     int ret, len, len_bak;
 
-    len = recv(fd, task->buf, task->buf_len, 0);
+    len = socket->recv(socket, task->buf, task->buf_len, 0);
 
     // len = 0, means connect close by peer; len = -1, means received a rst packet
     if (len == 0 || len == -1) {
@@ -122,8 +125,9 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
         len_bak       = task->buf_len;
         task->buf_len = len;
         task->fd      = fd;
+        task->socket  = socket;
         worker->work_callback(task);
-        task->buf_len  = len_bak;
+        task->buf_len = len_bak;
     }
 
     return 0;
@@ -162,20 +166,21 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
     Producer *producer     = global_get_default_producer();
     List *working_list     = server->working_workers;
     Worker *new_worker;
-    int new_fd;
+    Socket *new_socket;
 
-    new_fd = socket->accept_fd(socket, NULL, NULL);
-
+    new_socket = socket->accept(socket, NULL, NULL);
     new_worker = __get_worker(server);
     if (new_worker == NULL) {
         dbg_str(NET_ERROR, "OBJECT_NEW Worker");
         return -1;
     }
 
-    dbg_str(NET_VIP, "listenfd_ev_callback, new fd = %d", new_fd);
+    dbg_str(NET_VIP, "listenfd_ev_callback, new fd = %d, sizeof(worker)=%d, sizeof(socket)=%d",
+            new_socket->fd, sizeof(Worker), sizeof(Socket));
 
     new_worker->opaque = server;
-    new_worker->assign(new_worker, new_fd, EV_READ | EV_PERSIST, NULL, 
+    new_worker->socket = new_socket;
+    new_worker->assign(new_worker, new_socket->fd, EV_READ | EV_PERSIST, NULL, 
                        (void *)__new_conn_ev_callback, 
                        new_worker, 
                        (void *)worker->work_callback);

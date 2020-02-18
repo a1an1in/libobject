@@ -38,7 +38,6 @@
 #include <libobject/message/message.h> 
 #include <libobject/message/Subscriber.h>
 #include <libobject/message/Publisher.h>
-#include <libobject/net/socket/Unix_Udp_Socket.h>
 #include <libobject/core/Linked_Queue.h>
 #include <libobject/core/Rbtree_Map.h>
 #include <libobject/libobject.h>
@@ -129,10 +128,10 @@ static int __construct(Centor *centor, char *init_str)
     sprintf(server_addr, "%s/%s_%d", libobject_run_path, 
             "message_unix_socket_server", count); 
 
-    s = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
+    s = object_new(allocator, "Unix_Udp_Socket", NULL);
     s->bind(s, server_addr, NULL); 
 
-    c = OBJECT_NEW(allocator, Unix_Udp_Socket, NULL);
+    c = object_new(allocator, "Unix_Udp_Socket", NULL);
     c->connect(c, server_addr, NULL);
 
     centor->s = s;

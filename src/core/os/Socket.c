@@ -35,7 +35,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
-#include <libobject/net/socket/Socket.h>
+#include <libobject/core/os/Socket.h>
 
 static int __get_sockoptval_size(int optname)
 {

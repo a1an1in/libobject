@@ -1,5 +1,5 @@
-#ifndef __NET_TASK_H__
-#define __NET_TASK_H__
+#ifndef __WORK_TASK_H__
+#define __WORK_TASK_H__
 
 #include <stdio.h>
 #include <netdb.h>
@@ -8,11 +8,13 @@
 #include <sys/socket.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/alloc/allocator.h>
+#include <libobject/core/os/Socket.h>
 
 typedef struct work_task_s{
     void *buf;
     int buf_len;
     int fd;
+    void *socket;
     void *opaque;
     void *request;
     allocator_t *allocator;

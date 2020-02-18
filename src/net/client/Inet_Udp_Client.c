@@ -40,13 +40,13 @@ static int __construct(Inet_Udp_Client *client, char *init_str)
     allocator_t *allocator = client->parent.obj.allocator;
 
     dbg_str(NET_DETAIL, "Inet_Udp_Client construct, client addr:%p", client);
-    client->parent.socket = OBJECT_NEW(allocator, Inet_Udp_Socket, NULL);
+    client->parent.socket = object_new(allocator, "Inet_Udp_Socket", NULL);
     if (client->parent.socket == NULL) {
         dbg_str(NET_ERROR, "OBJECT_NEW Inet_Udp_Socket");
         return -1;
     }
 
-    client->parent.worker = OBJECT_NEW(allocator, Worker, NULL);
+    client->parent.worker = object_new(allocator, "Worker", NULL);
     if (client->parent.worker == NULL) {
         dbg_str(NET_ERROR, "OBJECT_NEW Worker");
         return -1;
