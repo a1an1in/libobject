@@ -124,7 +124,6 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
         task->opaque  = server->opaque;
         len_bak       = task->buf_len;
         task->buf_len = len;
-        task->fd      = fd;
         task->socket  = socket;
         worker->work_callback(task);
         task->buf_len = len_bak;
@@ -162,9 +161,9 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
     Worker *worker         = (Worker *)arg;
     Server *server         = (Server *)worker->opaque;
     Socket *socket         = server->socket;
-    allocator_t *allocator = worker->obj.allocator;
     Producer *producer     = global_get_default_producer();
     List *working_list     = server->working_workers;
+    allocator_t *allocator = worker->obj.allocator;
     Worker *new_worker;
     Socket *new_socket;
 

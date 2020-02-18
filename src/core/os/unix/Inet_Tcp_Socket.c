@@ -76,7 +76,7 @@ static Socket * __accept(Inet_Tcp_Socket *socket,
     connfd = accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
 
     if (connfd > 0) {
-        ret = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
+        ret = object_new(allocator, "Inet_Tcp_Socket", NULL);
         ret->fd = connfd;
     } 
 
@@ -156,4 +156,11 @@ void test_inet_tcp_socket_recv()
     object_destroy(new);
     object_destroy(socket);
 }
+
+static int test_obj_size()
+{
+    dbg_str(NET_VIP, "sizeof(Inet_Tcp_Socket)=%d", sizeof(Inet_Tcp_Socket));
+    return 1;
+}
+REGISTER_TEST_CMD(test_obj_size);
 
