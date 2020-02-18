@@ -150,6 +150,7 @@ static Worker *__get_worker(Server *server)
         ret->task = (void *)task;
 #undef TASK_MAX_BUF_LEN
     } else {
+        object_destroy(ret->socket);
         dbg_str(NET_VIP, "get_worker, get worker from leisure list");
     }
 

@@ -63,9 +63,6 @@ __rbtree_map_search(rbtree_map_t *map, struct rb_root_s *root, void *key)
         if (map->key_type == 1) {
             dbg_str(RBTMAP_DETAIL, "key1:%s", key);
             dbg_str(RBTMAP_DETAIL, "key2:%s", mnode->key);
-        } else {
-            dbg_buf(RBTMAP_DETAIL, "key1:", key, 8);
-            dbg_buf(RBTMAP_DETAIL, "key2:", mnode->key, 8);
         }
         result = key_cmp_func(key, mnode->key);
         if (result < 0)

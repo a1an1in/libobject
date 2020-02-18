@@ -45,14 +45,14 @@ static int __construct(Event_Base *eb, char *init_str)
     dbg_str(EV_VIP, "Event_Base construct, eb addr:%p", eb);
 
     eb->break_flag = 0;
-    eb->timer = OBJECT_NEW(allocator, Rbtree_Timer, NULL);
-    eb->io_map  = OBJECT_NEW(allocator, RBTree_Map, NULL);
+    eb->timer  = object_new(allocator, "Rbtree_Timer", NULL);
+    eb->io_map = object_new(allocator, "RBTree_Map", NULL);
 
     dbg_str(EV_DETAIL, "base addr:%p, io_map addr :%p, timer:%p", 
             eb, eb->io_map, eb->timer);
 
     if (*list == NULL) {
-        *list = OBJECT_NEW(allocator, Linked_List, NULL);
+        *list = object_new(allocator, "Linked_List", NULL);
     }
 
     (*list)->add_back(*list, eb);
