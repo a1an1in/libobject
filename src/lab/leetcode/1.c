@@ -46,6 +46,11 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
+
+typedef struct trie_node_s {
+    struct trie_node_s *next[26];
+} trie_node_t;
+
 static int test_leetcode1(TEST_ENTRY *entry, void *argc, void *argv)
 {
     dbg_str(DBG_DETAIL,"test_leetcode1");

@@ -137,5 +137,3 @@ int test_hex_to_int()
     }
 }
 REGISTER_TEST_CMD(test_hex_to_int);
-
-

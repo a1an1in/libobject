@@ -77,11 +77,7 @@ static Socket * __accept(Inet_Tcp_Socket *socket,
     connfd = accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
 
     if (connfd > 0) {
-        ret = object_new(allocator, "Inet_Tcp_Sub_Socket", NULL);
-        
-        /*
-         *close(ret->fd); //expedient measure....
-         */
+        ret = object_new(allocator, "Inet_Tcp_Sub_Socket", NULL);//in order to close fd
         ret->fd = connfd;
     } 
 
