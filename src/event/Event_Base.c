@@ -87,7 +87,7 @@ static int __add(Event_Base *eb, event_t *event)
     int fd       = event->ev_fd;
 
     if (event->ev_events & EV_SIGNAL) {
-        dbg_str(EV_VIP, "event base add EV_SIGNAL, signal:%d, event addr:%p", fd, event);
+        dbg_str(EV_VIP, "event base add signal, signal:%d, event addr:%p", fd, event);
         evsig_add(eb, event);
     } else {
         dbg_str(EV_VIP, "event base add io, fd:%d, event addr:%p", fd, event);
@@ -122,7 +122,7 @@ static int __del(Event_Base *eb, event_t *event)
             dbg_str(EV_WARNNING, "event base del fd = %d, but not found fd in io_map, ret=%d", 
                     fd, ret);
         } else {
-            dbg_str(EV_VIP, "event base del fd = %d in io_map", fd);
+            dbg_str(EV_VIP, "event base del io, fd = %d, evnt addr:%p", fd, event);
         }
     }
 

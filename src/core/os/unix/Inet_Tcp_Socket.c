@@ -58,7 +58,8 @@ static int __deconstrcut(Inet_Tcp_Socket *socket)
 {
     dbg_str(NET_DETAIL, "socket deconstruct, socket addr:%p", socket);
 
-    close(socket->parent.fd);
+    if (socket->parent.fd)
+        close(socket->parent.fd);
 
     return 0;
 }
@@ -76,7 +77,11 @@ static Socket * __accept(Inet_Tcp_Socket *socket,
     connfd = accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
 
     if (connfd > 0) {
-        ret = object_new(allocator, "Inet_Tcp_Socket", NULL);
+        ret = object_new(allocator, "Inet_Tcp_Sub_Socket", NULL);
+        
+        /*
+         *close(ret->fd); //expedient measure....
+         */
         ret->fd = connfd;
     } 
 

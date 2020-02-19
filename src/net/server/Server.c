@@ -102,13 +102,13 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
 
     // len = 0, means connect close by peer; len = -1, means received a rst packet
     if (len == 0 || len == -1) {
-        dbg_str(NET_VIP, "tcp server, remove worker, fd=%d, ret=%d", fd, ret);
+        dbg_str(NET_DETAIL, "tcp server, remove worker, fd=%d, ret=%d", fd, ret);
         ret = worker->resign(worker);
         if (ret == 1) {
             working_list->remove_element(working_list, worker);
             leisure_list->add(leisure_list, worker);
             task->request = NULL;
-            dbg_str(NET_VIP, "add worker %p to leisure_list", worker);
+            dbg_str(NET_DETAIL, "add worker %p to leisure_list", worker);
         } else {
             dbg_str(NET_WARNNING, "worker %p has resigned", worker);
             exit(1);
@@ -142,7 +142,7 @@ static Worker *__get_worker(Server *server)
     leisure_list->remove(leisure_list, (void **)&ret);
 
     if (ret == NULL) {
-        dbg_str(NET_VIP, "get_worker, alloc a new worker");
+        dbg_str(NET_DETAIL, "get_worker, alloc a new worker");
         ret = object_new(allocator, "Worker", NULL);
 
 #define TASK_MAX_BUF_LEN 1024 * 10
@@ -151,7 +151,7 @@ static Worker *__get_worker(Server *server)
 #undef TASK_MAX_BUF_LEN
     } else {
         object_destroy(ret->socket);
-        dbg_str(NET_VIP, "get_worker, get worker from leisure list");
+        dbg_str(NET_DETAIL, "get_worker, get worker from leisure list");
     }
 
     return ret;
