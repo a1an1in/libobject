@@ -25,9 +25,11 @@ struct Trie_s{
     int (*search)(Trie *trie, char *word);
     int (*search_prefix)(Trie *trie, char *word);
     int (*delete)(Trie *trie, char *word);
+    int (*set_char_set)(Trie *trie, char *word);
 
     struct trie_node_s *root;
     int node_count;
+    char *char_set;
 };
 
 #endif

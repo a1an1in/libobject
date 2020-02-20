@@ -165,8 +165,7 @@ static class_info_entry_t object_cache_info[] = {
     Init_Nfunc_Entry(1 , Object_Cache, construct, __construct),
     Init_Nfunc_Entry(2 , Object_Cache, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3 , Object_Cache, new, __new),
-    Init_Vfunc_Entry(4 , Object_Cache, new_string, __new_string),
-    Init_End___Entry(5 , Object_Cache),
+    Init_End___Entry(4 , Object_Cache),
 };
 REGISTER_CLASS("Object_Cache", object_cache_info);
 
