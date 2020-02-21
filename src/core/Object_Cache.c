@@ -101,12 +101,15 @@ __new(Object_Cache *cache, char *class_name, char *data)
     List *list = NULL; //all same objects in one list;
     List *object_list = cache->object_list;
     Obj *o = NULL;
-    int ret = 0;
+    int ret = 0, assign_flag = 0;
+    char *init_data;
 
-    /*
-     *dbg_str(OBJ_DETAIL, "get a object cache");
-     *dbg_str(OBJ_DETAIL, "map addr:%p", cache->class_map);
-     */
+    if (strcmp(class_name, "String") == 0 && data != NULL) {
+        init_data = data;
+        assign_flag = 1;
+        data = NULL;
+    }
+
     ret = map->search(map, class_name, (void **)&list);
     if (ret != 1) {
         list = object_new(allocator, "Linked_List", NULL);
@@ -142,22 +145,11 @@ __new(Object_Cache *cache, char *class_name, char *data)
 
     o->cache = cache;
 
-    return o;
-}
-
-static void *__new_string(Object_Cache *cache, char *class_name, char *init_data)
-{
-    String *str;
-
-    str = cache->new(cache, "String", NULL);
-    if (str == NULL) {
-        dbg_str(DBG_ERROR, "cache new string error");
-        return NULL;
+    if (assign_flag) {
+        o->assign(o, init_data);
     }
 
-    str->assign(str, init_data);
-
-    return str;
+    return o;
 }
 
 static class_info_entry_t object_cache_info[] = {

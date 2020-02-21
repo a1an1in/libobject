@@ -47,6 +47,7 @@ static void * __new(Object_Chain *chain, char *class_name, char *data)
     if (strcmp(class_name, "String") == 0 && data != NULL) {
         init_data = data;
         assign_flag = 1;
+        data = NULL;
     }
 
     o = object_new(allocator, class_name, data);

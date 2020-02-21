@@ -256,8 +256,7 @@ static void* __find(Ring_Buffer *rb, void* needle, int needle_len, int len)
             if (!memcmp(haystack, needle, needle_len)) {
                 return haystack;
             }
-        } else if (rb->r_offset + cnt >= rb->size) 
-        {
+        } else if (rb->r_offset + cnt >= rb->size) {
             haystack = rb->addr + ((cnt + rb->r_offset) % rb->size);
             if (!memcmp(haystack, needle, needle_len)) {
                 return haystack;
