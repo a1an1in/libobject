@@ -30,7 +30,7 @@ static int test_try_catch3(TEST_ENTRY *enTRY, void *argc, void *argv)
         ENDTRY;
         printf("throw -2\n");
         THROW(-2, NULL);
-    } CATCH_EQ (-1) {
+    } CATCH_ERR (-1) {
         printf("CATCH -1 at level1\n");
     } CATCH (ret) {
         if (ret == -2) ret = 1;
@@ -51,14 +51,14 @@ void *thread(void *args) {
 
     TRY {
         THROW (-1, "throw -1");
-    } CATCH_EQ (-1) {
+    } CATCH_ERR (-1) {
         printf("CATCH -1 : %ld\n", (long)selfid);
     }
     ENDTRY;
 
     TRY {
         THROW(-2, "throw -2");
-    } CATCH_EQ (-2){
+    } CATCH_ERR (-2){
         printf("CATCH -2 : %ld\n", (long)selfid);
     }
     ENDTRY;
@@ -66,14 +66,14 @@ void *thread(void *args) {
 
     TRY {
         THROW(-3, "throw -3");
-    } CATCH_EQ (-3){
+    } CATCH_ERR (-3){
         printf("CATCH -3 : %ld\n", (long)selfid);
     }
     ENDTRY;
 
     TRY {
         THROW(-4, "throw -4");
-    } CATCH_EQ (-4){
+    } CATCH_ERR (-4){
         printf("CATCH -4 : %ld\n", (long)selfid);
     }
     ENDTRY;
@@ -83,13 +83,13 @@ void *thread(void *args) {
         THROW(-2, "-2 Again");
         THROW(-3, "-3 Again");
         THROW(-4, "-4 Again");
-    } CATCH_EQ (-1){
+    } CATCH_ERR (-1){
         printf("CATCH -1 again : %ld\n", (long)selfid);
-    } CATCH_EQ (-2){
+    } CATCH_ERR (-2){
         printf("CATCH -2 again : %ld\n", (long)selfid);
-    } CATCH_EQ (-3){
+    } CATCH_ERR (-3){
         printf("CATCH -3 again : %ld\n", (long)selfid);
-    } CATCH_EQ (-4){
+    } CATCH_ERR (-4){
         printf("CATCH -4 again : %ld\n", (long)selfid);
     } FINALLY {
         printf("finaly: %ld\n", (long)selfid);
@@ -146,3 +146,16 @@ static int test_try_catch5(TEST_ENTRY *enTRY, void *argc, void *argv)
     return ret;
 }
 REGISTER_TEST_FUNC(test_try_catch5);
+
+static int try_catch_test_fuc2()
+{
+    return -1;
+}
+
+static int test_try_catch6(TEST_ENTRY *enTRY, void *argc, void *argv)
+{
+    EXEC(try_catch_test_fuc2());
+
+    return 1;
+}
+REGISTER_TEST_FUNC(test_try_catch6);

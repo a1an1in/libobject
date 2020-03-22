@@ -76,9 +76,9 @@ message_centor_ev_callback(int fd, short event, void *arg)
 static void map_for_each_arg_callback(void *key, void *element, void *arg)
 {
     Subscriber *subscriber = (Subscriber *)key;
-    Publisher *publisher    =(Publisher *)element;
+    Publisher *publisher =(Publisher *)element;
 
-    message_t *message     = (message_t *)arg;
+    message_t *message = (message_t *)arg;
      
     if (publisher == message->publisher) {
         dbg_str(DBG_DETAIL, "publisher %p publish a message which has a subscriber: %p", 
