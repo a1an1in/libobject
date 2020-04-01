@@ -86,7 +86,8 @@ int app(int argc, char *argv[])
     TRY {
         app->run(app, argc, argv);
     } CATCH (ret) {
-        dbg_str(ARG_ERROR, "app run errorno: %d, error_message: %s", ret, ERROR_MESSAGE());
+        dbg_str(ARG_ERROR, "app run errorno: %d, error_func:%s, error_file: %s, error_line:%d",
+                ret, ERROR_FUNC(), ERROR_FILE(), ERROR_LINE());
     } FINALLY {
         dbg_str(ARG_SUC, "exit app!");
         object_destroy(app);

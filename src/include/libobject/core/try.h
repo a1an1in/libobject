@@ -2,6 +2,7 @@
 #define __TRY_H__
 
 #include <pthread.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <setjmp.h>
 
 typedef struct exception_frame_s {
@@ -48,6 +49,9 @@ extern pthread_key_t try_key;
 
 
 #define ERROR_MESSAGE() frame.message
+#define ERROR_LINE() frame.line
+#define ERROR_FILE() extract_filename_in_macro(frame.file)
+#define ERROR_FUNC() frame.func
 
 #define TRY                                                                                      \
     do {                                                                                         \

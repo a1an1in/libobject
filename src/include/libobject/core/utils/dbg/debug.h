@@ -112,21 +112,21 @@ void debugger_destroy(debugger_t *debugger);
 debugger_t *debugger_get_global_debugger();
 void debugger_set_all_businesses_level(debugger_t *debugger,int sw, int level);
 
-static inline char *
-extract_filename_in_macro(char *macro)
+static inline const char *
+extract_filename_in_macro(const char *macro)
 {
-    char * index;
+    const char *index;
 
     index = strrchr(macro, '/');
     if (index != NULL) {
         return index + 1;
-    } else if ((index = strrchr(macro, '\\')) != NULL) {
-        return index + 1;
-    } else {
-        return macro;
     }
 
-    return NULL;
+    if ((index = strrchr(macro, '\\')) != NULL) {
+        return index + 1;
+    } 
+
+    return macro;
 }
 
 /*color*/

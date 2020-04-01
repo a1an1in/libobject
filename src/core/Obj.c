@@ -427,8 +427,7 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
                 } else {
                     dbg_str(DBG_WARNNING, "Vector to json, but content is null, offset:%p", value);
                 }
-            } else if (entry[i].type == ENTRY_TYPE_OBJ_POINTER) 
-            {
+            } else if (entry[i].type == ENTRY_TYPE_OBJ_POINTER) {
                 Obj *o = *(Obj **)value;
                 if (o != NULL) {
                     item = cjson_parse(o->to_json(o));
