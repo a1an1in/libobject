@@ -10,14 +10,14 @@
 typedef struct Hash_Map_s Hash_Map;
 
 struct Hash_Map_s{
-	Map map;
+    Map map;
 
-	int (*construct)(Map *map,char *init_str);
-	int (*deconstruct)(Map *map);
+    int (*construct)(Map *map,char *init_str);
+    int (*deconstruct)(Map *map);
 
-	/*virtual methods reimplement*/
-	int (*reconstruct)(Map *map);
-	int (*set)(Map *map, char *attrib, void *value);
+    /*virtual methods reimplement*/
+    int (*reconstruct)(Map *map);
+    int (*set)(Map *map, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     int (*add)(Map *map,void *key,void *value);
     int (*search)(Map *map,void *key,void **element);

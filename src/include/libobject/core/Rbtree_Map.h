@@ -10,14 +10,14 @@
 typedef struct RBTree_Map_s RBTree_Map;
 
 struct RBTree_Map_s{
-	Map map;
+    Map map;
 
-	int (*construct)(Map *map,char *init_str);
-	int (*deconstruct)(Map *map);
-	int (*set)(Map *map, char *attrib, void *value);
+    int (*construct)(Map *map,char *init_str);
+    int (*deconstruct)(Map *map);
+    int (*set)(Map *map, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*set_cmp_func)(Map *map, void *func);
     int (*add)(Map *map,void *key,void *value);
     int (*contain_key)(Map *map,void *key);

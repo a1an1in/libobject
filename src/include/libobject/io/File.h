@@ -10,14 +10,14 @@
 typedef struct file_s File;
 
 struct file_s{
-	Stream parent;
+    Stream parent;
 
-	int (*construct)(File *,char *init_str);
-	int (*deconstruct)(File *);
-	int (*set)(File *, char *attrib, void *value);
+    int (*construct)(File *,char *init_str);
+    int (*deconstruct)(File *);
+    int (*set)(File *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*open)(File *file, char *path, char *mode);
     int (*rename)(File *file, char *path);
     int (*read)(File *, void *dst, int len);

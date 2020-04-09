@@ -9,13 +9,13 @@
 typedef struct _list_s List;
 
 struct _list_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(List *list,char *init_str);
-	int (*deconstruct)(List *list);
+    int (*construct)(List *list,char *init_str);
+    int (*deconstruct)(List *list);
 
-	/*virtual methods reimplement*/
-	int (*set)(List *list, char *attrib, void *value);
+    /*virtual methods reimplement*/
+    int (*set)(List *list, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     int (*add)(List *list, void *value);
     int (*add_front)(List *list,void *value);

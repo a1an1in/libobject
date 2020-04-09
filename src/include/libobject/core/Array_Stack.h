@@ -11,14 +11,14 @@
 typedef struct o_array_stack_s Array_Stack;
 
 struct o_array_stack_s{
-	Stack parent;
+    Stack parent;
 
-	int (*construct)(Stack *,char *init_str);
-	int (*deconstruct)(Stack *);
-	int (*set)(Stack *, char *attrib, void *value);
+    int (*construct)(Stack *,char *init_str);
+    int (*deconstruct)(Stack *);
+    int (*set)(Stack *, char *attrib, void *value);
     void *(*get)(void *, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*push)(Stack *stack, void *element);
     int (*pop)(Stack *stack, void **element);
     int (*count)(Stack *stack);

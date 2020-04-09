@@ -8,14 +8,14 @@
 typedef struct stream_s Stream;
 
 struct stream_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Stream *,char *init_str);
-	int (*deconstruct)(Stream *);
-	int (*set)(Stream *, char *attrib, void *value);
+    int (*construct)(Stream *,char *init_str);
+    int (*deconstruct)(Stream *);
+    int (*set)(Stream *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*read)(Stream *, void *dst, int len);
     int (*write)(Stream *, void *src, int len);
 };

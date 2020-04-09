@@ -9,15 +9,15 @@
 typedef struct vector_test_s Vector_Test;
 
 struct vector_test_s{
-	Test parent;
+    Test parent;
 
-	int (*construct)(Test *,char *init_str);
-	int (*deconstruct)(Test *);
-	int (*set)(Test *, char *attrib, void *value);
+    int (*construct)(Test *,char *init_str);
+    int (*deconstruct)(Test *);
+    int (*set)(Test *, char *attrib, void *value);
     void *(*get)(void *, char *attrib);
 
-	/*virtual methods reimplement*/
-	int (*setup)(Test *);
+    /*virtual methods reimplement*/
+    int (*setup)(Test *);
     void *(*teardown)(Test *);
     void (*test_int_vector_add)(Test *test);
     void (*test_int_vector_remove)(Test *test);

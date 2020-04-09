@@ -16,11 +16,11 @@ extern List *global_event_base_list;
 typedef struct event_base_s Event_Base;
 
 struct event_base_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Event_Base *,char *init_str);
-	int (*deconstruct)(Event_Base *);
-	int (*set)(Event_Base *, char *attrib, void *value);
+    int (*construct)(Event_Base *,char *init_str);
+    int (*deconstruct)(Event_Base *);
+    int (*set)(Event_Base *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     int (*loop)(Event_Base *);
     int (*activate_io)(Event_Base *, int fd, short events); 
@@ -28,7 +28,7 @@ struct event_base_s{
     int (*add)(Event_Base *, event_t *e);
     int (*del)(Event_Base *, event_t *e); 
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*trustee_io)(Event_Base *, event_t *e);
     int (*reclaim_io)(Event_Base *, event_t *e); 
     /*

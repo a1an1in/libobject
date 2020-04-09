@@ -9,11 +9,11 @@
 typedef struct thread_s Thread;
 
 struct thread_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Thread *,char *init_str);
-	int (*deconstruct)(Thread *);
-	int (*set)(Thread *, char *attrib, void *value);
+    int (*construct)(Thread *,char *init_str);
+    int (*deconstruct)(Thread *);
+    int (*set)(Thread *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     int (*start)(Thread *);
     int (*set_start_routine)(Thread *, void *);
@@ -26,7 +26,7 @@ struct thread_s{
     void (*detach)(Thread *);
 
     int (*set_run_routine)(Thread *,void *);
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     void *(*start_routine)(void *);
     void *(*execute)(void *);
     void *(*run)(Thread *);

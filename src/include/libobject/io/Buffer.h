@@ -10,14 +10,14 @@
 typedef struct buffer_s Buffer;
 
 struct buffer_s{
-	Stream parent;
+    Stream parent;
 
-	int (*construct)(Buffer *,char *init_str);
-	int (*deconstruct)(Buffer *);
-	int (*set)(Buffer *, char *attrib, void *value);
+    int (*construct)(Buffer *,char *init_str);
+    int (*deconstruct)(Buffer *);
+    int (*set)(Buffer *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*read)(Buffer *, void *dst, int len);
     int (*write)(Buffer *, void *src, int len);
     int (*printf)(Buffer *buffer, int len, const char *fmt, ...);

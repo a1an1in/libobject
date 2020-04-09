@@ -9,14 +9,14 @@
 typedef struct lock_s Lock;
 
 struct lock_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Lock *,char *init_str);
-	int (*deconstruct)(Lock *);
-	int (*set)(Lock *, char *attrib, void *value);
+    int (*construct)(Lock *,char *init_str);
+    int (*deconstruct)(Lock *);
+    int (*set)(Lock *, char *attrib, void *value);
     void *(*get)(void *, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*lock)(Lock *lock);
     int (*trylock)(Lock *lock);
     int (*unlock)(Lock *lock);

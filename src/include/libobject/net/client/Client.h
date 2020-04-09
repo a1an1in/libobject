@@ -10,11 +10,11 @@
 typedef struct client_s Client;
 
 struct client_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Client *,char *init_str);
-	int (*deconstruct)(Client *);
-	int (*set)(Client *, char *attrib, void *value);
+    int (*construct)(Client *,char *init_str);
+    int (*deconstruct)(Client *);
+    int (*set)(Client *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
     /*virtual methods*/
@@ -22,8 +22,8 @@ struct client_s{
     int (*connect)(Client *client, char *host, char *service);
     ssize_t (*send)(Client *client, const void *buf, size_t len, int flags);
     ssize_t (*recv)(Client *client, void *buf, size_t len, int flags);
-	int (*trustee)(Client *client, struct timeval *tv,
-                   void *work_callback, void *opaque);
+    int (*trustee)(Client *client, struct timeval *tv,
+            void *work_callback, void *opaque);
 
     Worker *worker;
     Socket *socket;
@@ -36,11 +36,11 @@ struct client_s{
 #define CLIENT_TYPE_UNIX_UDP "unix_udp_client_type"
 
 void *client(allocator_t *allocator,
-             char *type,
-             char *host,
-             char *service,
-             int (*process_task_cb)(void *arg),
-             void *opaque);
+        char *type,
+        char *host,
+        char *service,
+        int (*process_task_cb)(void *arg),
+        void *opaque);
 int client_connect(void *client, char *host, char *service);
 int client_send(void *client, void *buf, int len, int flags);
 int client_destroy(void *client);

@@ -7,15 +7,15 @@
 typedef struct Simplest_Obj_s Simplest_Obj;
 
 struct Simplest_Obj_s{
-	Obj parent;
+    Obj parent;
 
-	int (*construct)(Obj *obj,char *init_str);
-	int (*deconstruct)(Obj *obj);
-	int (*set)(Obj *obj, char *attrib, void *value);
+    int (*construct)(Obj *obj,char *init_str);
+    int (*deconstruct)(Obj *obj);
+    int (*set)(Obj *obj, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     char *(*to_json)(void *obj); 
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
 
     int help;
     String *name;

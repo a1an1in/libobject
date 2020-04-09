@@ -8,14 +8,14 @@
 typedef struct Test_Sub2_Command_s Test_Sub2_Command;
 
 struct Test_Sub2_Command_s{
-	Command parent;
+    Command parent;
 
-	int (*construct)(Command *command,char *init_str);
-	int (*deconstruct)(Command *command);
-	int (*set)(Command *command, char *attrib, void *value);
+    int (*construct)(Command *command,char *init_str);
+    int (*deconstruct)(Command *command);
+    int (*set)(Command *command, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     void * (*get_value)(Command *command,char *command_name, char *flag_name);
 
     int help;

@@ -10,24 +10,24 @@
 typedef struct Command_s Command;
 
 struct Command_s{
-	Obj parent;
+    Obj parent;
 
-	int (*construct)(Command *command,char *init_str);
-	int (*deconstruct)(Command *command);
+    int (*construct)(Command *command,char *init_str);
+    int (*deconstruct)(Command *command);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     void *(*get_value)(Command *command,char *command_name, char *flag_name);
-	int (*set)(Command *command, char *attrib, void *value);
+    int (*set)(Command *command, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     char *(*to_json)(void *obj); 
     int (*add_subcommand)(Command *command, char *);
     Command *(*get_subcommand)(Command *command, char *command_name);
     int (*add_option)(Command *command, char *name, char *alias, char *value, 
-                      char *usage, int (*action)(Option *, void *),
-                      void *opaque);
+            char *usage, int (*action)(Option *, void *),
+            void *opaque);
     Option *(*get_option)(Command *command, char *option_name);
     int (*add_argument)(Command *command, char *value, char *usage, 
-                        int (*action)(Argument *, void *), void *opaque);
+            int (*action)(Argument *, void *), void *opaque);
     Argument *(*get_argment)(Command *command, int index);
     int (*run_action)(Command *);
     int (*run_option_actions)(Command *);

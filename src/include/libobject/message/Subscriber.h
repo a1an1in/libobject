@@ -15,18 +15,18 @@ typedef struct message_method_s {
 }message_method_t;
 
 struct subscriber_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Subscriber *,char *init_str);
-	int (*deconstruct)(Subscriber *);
-	int (*set)(Subscriber *, char *attrib, void *value);
+    int (*construct)(Subscriber *,char *init_str);
+    int (*deconstruct)(Subscriber *);
+    int (*set)(Subscriber *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*connect_centor)(Subscriber *subscriber, void *centor);
     int (*subscribe)(Subscriber *subscriber, void *publisher);
     int (*add_method)(Subscriber *subscriber,char *method_name,
-                      void (*func)(message_t *, void *), void *arg);
+            void (*func)(message_t *, void *), void *arg);
 
     /*
      *Subscriber *next;

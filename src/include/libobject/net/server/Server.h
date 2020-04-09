@@ -11,16 +11,16 @@
 typedef struct server_s Server;
 
 struct server_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Server *,char *init_str);
-	int (*deconstruct)(Server *);
-	int (*set)(Server *, char *attrib, void *value);
+    int (*construct)(Server *,char *init_str);
+    int (*deconstruct)(Server *);
+    int (*set)(Server *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*bind)(Server *server, char *host, char *service);
-	int (*trustee)(Server *server, void *work_callback, void *opaque);
+    int (*trustee)(Server *server, void *work_callback, void *opaque);
 
     Worker *worker;
     Socket *socket;

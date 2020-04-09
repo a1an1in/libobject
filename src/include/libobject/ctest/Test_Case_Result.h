@@ -9,13 +9,13 @@
 typedef struct _test_case_result_s Test_Case_Result;
 
 struct _test_case_result_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Test_Case_Result *test,char *init_str);
-	int (*deconstruct)(Test_Case_Result *test);
+    int (*construct)(Test_Case_Result *test,char *init_str);
+    int (*deconstruct)(Test_Case_Result *test);
 
-	/*virtual methods reimplement*/
-	int (*set)(Test_Case_Result *test, char *attrib, void *value);
+    /*virtual methods reimplement*/
+    int (*set)(Test_Case_Result *test, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
     /*attribs*/

@@ -16,14 +16,14 @@ enum ring_buffer_operation_flag_s{
 };
 
 struct ring_buffer_s{
-	Stream parent;
+    Stream parent;
 
-	int (*construct)(Ring_Buffer *,char *init_str);
-	int (*deconstruct)(Ring_Buffer *);
-	int (*set)(Ring_Buffer *, char *attrib, void *value);
+    int (*construct)(Ring_Buffer *,char *init_str);
+    int (*deconstruct)(Ring_Buffer *);
+    int (*set)(Ring_Buffer *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*read)(Ring_Buffer *, void *dst, int len);
     int (*read_to_string)(Ring_Buffer *, String *str, int len);
     int (*read_to_buffer)(Ring_Buffer *rb, Buffer *buffer, int len);

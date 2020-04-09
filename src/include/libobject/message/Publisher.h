@@ -10,14 +10,14 @@
 typedef struct msg_publisher_s Publisher;
 
 struct msg_publisher_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Publisher *,char *init_str);
-	int (*deconstruct)(Publisher *);
-	int (*set)(Publisher *, char *attrib, void *value);
+    int (*construct)(Publisher *,char *init_str);
+    int (*deconstruct)(Publisher *);
+    int (*set)(Publisher *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
 
     int (*connect_centor)(Publisher *, Centor *);
     int (*publish)(Publisher *, message_t *);

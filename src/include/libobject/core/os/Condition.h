@@ -10,14 +10,14 @@
 typedef struct condition_s Condition;
 
 struct condition_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Condition *,char *init_str);
-	int (*deconstruct)(Condition *);
-	int (*set)(Condition *, char *attrib, void *value);
+    int (*construct)(Condition *,char *init_str);
+    int (*deconstruct)(Condition *);
+    int (*set)(Condition *, char *attrib, void *value);
     void *(*get)(void *, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*setlock)(Condition *condition, Mutex_Lock *lock);
     int (*wait)(Condition *condition);
     int (*signal)(Condition *condition);

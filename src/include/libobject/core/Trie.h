@@ -13,13 +13,13 @@ typedef struct trie_node_s {
 } trie_node_t;
 
 struct Trie_s{
-	Obj parent;
+    Obj parent;
 
-	int (*construct)(Trie *,char *);
-	int (*deconstruct)(Trie *);
+    int (*construct)(Trie *,char *);
+    int (*deconstruct)(Trie *);
 
-	/*virtual methods reimplement*/
-	int (*set)(Trie *trie, char *attrib, void *value);
+    /*virtual methods reimplement*/
+    int (*set)(Trie *trie, char *attrib, void *value);
     void *(*get)(Trie *, char *attrib);
     int (*insert)(Trie *trie, char *word);
     int (*search)(Trie *trie, char *word);

@@ -7,12 +7,12 @@
 typedef struct file_system_s File_System;
 
 struct file_system_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(File_System *,char *init_str);
-	int (*deconstruct)(File_System *);
+    int (*construct)(File_System *,char *init_str);
+    int (*deconstruct)(File_System *);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*list)(File_System *fs, char *name, char **list, int count, int max_name_len);
     int (*is_directory)(File_System *fs, char *name);
     int (*count_list)(File_System *fs, char *name);

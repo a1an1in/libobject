@@ -8,15 +8,15 @@
 typedef struct Help_Command_s Help_Command;
 
 struct Help_Command_s{
-	Command parent;
+    Command parent;
 
-	int (*construct)(Command *command,char *init_str);
-	int (*deconstruct)(Command *command);
-	int (*set)(Command *command, char *attrib, void *value);
+    int (*construct)(Command *command,char *init_str);
+    int (*deconstruct)(Command *command);
+    int (*set)(Command *command, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     char *(*to_json)(void *obj); 
 
-	int (*run_action)(Command *command);
+    int (*run_action)(Command *command);
 };
 
 #endif

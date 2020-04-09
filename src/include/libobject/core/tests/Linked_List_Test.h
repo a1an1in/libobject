@@ -9,15 +9,15 @@
 typedef struct linked_list_test_s Linked_List_Test;
 
 struct linked_list_test_s{
-	Test parent;
+    Test parent;
 
-	int (*construct)(Test *,char *init_str);
-	int (*deconstruct)(Test *);
-	int (*set)(Test *, char *attrib, void *value);
+    int (*construct)(Test *,char *init_str);
+    int (*deconstruct)(Test *);
+    int (*set)(Test *, char *attrib, void *value);
     void *(*get)(void *, char *attrib);
 
-	/*virtual methods reimplement*/
-	int (*setup)(Test *);
+    /*virtual methods reimplement*/
+    int (*setup)(Test *);
     void *(*teardown)(Test *);
     int (*test_add)(Linked_List_Test *test);
     int (*test_count)(Linked_List_Test *test);

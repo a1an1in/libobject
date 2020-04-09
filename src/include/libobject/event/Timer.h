@@ -9,14 +9,14 @@
 typedef struct timer_s Timer;
 
 struct timer_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Timer *,char *init_str);
-	int (*deconstruct)(Timer *);
-	int (*set)(Timer *, char *attrib, void *value);
+    int (*construct)(Timer *,char *init_str);
+    int (*deconstruct)(Timer *);
+    int (*set)(Timer *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*add)(Timer *, event_t *e);
     int (*del)(Timer *, event_t *e); 
     int (*remove)(Timer *, event_t *e); 

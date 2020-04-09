@@ -14,11 +14,11 @@
 typedef struct string_s String;
 
 struct string_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(String *string,char *init_str);
-	int (*deconstruct)(String *string);
-	int (*set)(String *string, char *attrib, void *value);
+    int (*construct)(String *string,char *init_str);
+    int (*deconstruct)(String *string);
+    int (*set)(String *string, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     int (*modulate_capacity)(String *string, int write_len);
     String *(*pre_alloc)(String *string,uint32_t size);
@@ -28,7 +28,7 @@ struct string_s{
     void (*append)(String *string, char *sub, int len);
     String *(*append_char)(String *string,char c);
     void (*append_string)(String *,String *);
-	String *(*replace_char)(String *string,int index, char c);
+    String *(*replace_char)(String *string,int index, char c);
     char (*at)(String *string,int index);
     void (*toupper)(String*);
     void (*tolower)(String *);
@@ -47,7 +47,7 @@ struct string_s{
     int (*split)(String *string, char *delims, int num);
     char *(*get_splited_cstr)(String *, int);
     char *(*get_found_cstr)(String *, int);
-    
+
     char *value;
     int value_max_len;
     int value_len;

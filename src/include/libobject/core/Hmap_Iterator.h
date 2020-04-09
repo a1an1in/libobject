@@ -9,11 +9,11 @@
 typedef struct hmap_iterator_s Hmap_Iterator;
 
 struct hmap_iterator_s{
-	Iterator iter;
+    Iterator iter;
 
-	int (*construct)(Iterator *iter,char *init_str);
-	int (*deconstruct)(Iterator *iter);
-	int (*set)(Iterator *iter, char *attrib, void *value);
+    int (*construct)(Iterator *iter,char *init_str);
+    int (*deconstruct)(Iterator *iter);
+    int (*set)(Iterator *iter, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
     /*virtual funcs*/
@@ -24,7 +24,7 @@ struct hmap_iterator_s{
     void *(*get_kpointer)(Iterator *it);
     int (*is_null)(Iterator *it);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
 #define MAX_NAME_LEN 50
     char name[MAX_NAME_LEN];
 #undef MAX_NAME_LEN

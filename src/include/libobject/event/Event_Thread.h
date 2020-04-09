@@ -19,11 +19,11 @@ enum event_thread_state_e{
     EVTHREAD_STATE_DESTROYED,
 };
 struct event_thread_s{
-	Thread parent;
+    Thread parent;
 
-	int (*construct)(Event_Thread *,char *init_str);
-	int (*deconstruct)(Event_Thread *);
-	int (*set)(Event_Thread *, char *attrib, void *value);
+    int (*construct)(Event_Thread *,char *init_str);
+    int (*deconstruct)(Event_Thread *);
+    int (*set)(Event_Thread *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     int (*add_event)(Event_Thread *, void *event);
     int (*del_event)(Event_Thread *, void *event);
@@ -34,7 +34,7 @@ struct event_thread_s{
     int (*set_start_routine)(Event_Thread *, void *);
     int (*set_start_arg)(Event_Thread *, void *);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     void *(*start_routine)(void *);
 
     Event_Base *eb;

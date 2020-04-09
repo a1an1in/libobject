@@ -13,12 +13,12 @@ typedef struct mutex_lock_s Mutex_Lock;
 struct mutex_lock_s{
     Lock parent;
 
-	int (*construct)(Mutex_Lock *,char *init_str);
-	int (*deconstruct)(Mutex_Lock *);
-	int (*set)(Mutex_Lock *, char *attrib, void *value);
+    int (*construct)(Mutex_Lock *,char *init_str);
+    int (*deconstruct)(Mutex_Lock *);
+    int (*set)(Mutex_Lock *, char *attrib, void *value);
     void *(*get)(void *, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*lock)(Mutex_Lock *lock);
     int (*trylock)(Mutex_Lock *lock);
     int (*unlock)(Mutex_Lock *lock);

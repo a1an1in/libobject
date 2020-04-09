@@ -10,14 +10,14 @@
 typedef struct Linked_List_s Linked_List;
 
 struct Linked_List_s{
-	List list;
+    List list;
 
-	int (*construct)(List *list,char *init_str);
-	int (*deconstruct)(List *list);
-	int (*set)(List *list, char *attrib, void *value);
+    int (*construct)(List *list,char *init_str);
+    int (*deconstruct)(List *list);
+    int (*set)(List *list, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*add)(List *list, void *value);
     int (*add_front)(List *list,void *value);
     int (*add_back)(List *list,void *value);

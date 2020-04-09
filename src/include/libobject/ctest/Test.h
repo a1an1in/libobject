@@ -48,15 +48,15 @@ typedef struct _test_s Test;
 })
 
 struct _test_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Test *test,char *init_str);
-	int (*deconstruct)(Test *test);
+    int (*construct)(Test *test,char *init_str);
+    int (*deconstruct)(Test *test);
 
-	/*virtual methods reimplement*/
-	int (*set)(Test *test, char *attrib, void *value);
+    /*virtual methods reimplement*/
+    int (*set)(Test *test, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
-	int (*setup)(Test *test);
+    int (*setup)(Test *test);
     void *(*teardown)(Test *test);
 
     /*attribs*/

@@ -13,14 +13,14 @@
 typedef struct centor_s Centor;
 
 struct centor_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Centor *,char *init_str);
-	int (*deconstruct)(Centor *);
-	int (*set)(Centor *, char *attrib, void *value);
+    int (*construct)(Centor *,char *init_str);
+    int (*deconstruct)(Centor *);
+    int (*set)(Centor *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
 
     Socket *s, *c;
     Worker *worker;

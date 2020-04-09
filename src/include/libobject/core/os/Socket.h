@@ -22,14 +22,14 @@ typedef union sockoptval_u{
 }sockoptval;
 
 struct socket_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Socket *,char *init_str);
-	int (*deconstruct)(Socket *);
-	int (*set)(Socket *, char *attrib, void *value);
+    int (*construct)(Socket *,char *init_str);
+    int (*deconstruct)(Socket *);
+    int (*set)(Socket *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*listen)(Socket *socket, int backlog);
     Socket * (*accept)(Socket *socket, char *remote_host, char *remote_service);
     int (*accept_fd)(Socket *socket, char *remote_host, char *remote_service);
@@ -38,14 +38,14 @@ struct socket_s{
     ssize_t (*write)(Socket *socket, const void *buf, size_t len);
     ssize_t (*send)(Socket *socket, const void *buf, size_t len, int flags);
     ssize_t (*sendto)(Socket *socket, const void *buf, size_t len, int flags,
-                      const struct sockaddr *dest_addr,
-                      socklen_t addrlen);
+            const struct sockaddr *dest_addr,
+            socklen_t addrlen);
     ssize_t (*sendmsg)(Socket *socket, const struct msghdr *msg, int flags);
     ssize_t (*read)(Socket *socket, void *buf, size_t len);
     ssize_t (*recv)(Socket *socket, void *buf, size_t len, int flags);
     ssize_t (*recvfrom)(Socket *socket, void *buf, size_t len, int flags,
-                        struct sockaddr *src_addr, 
-                        socklen_t *addrlen);
+            struct sockaddr *src_addr, 
+            socklen_t *addrlen);
     ssize_t (*recvmsg)(Socket *socket, struct msghdr *msg, int flags);
     int (*getsockopt)(Socket *socket, int level, int optname, sockoptval *val);
     int (*setsockopt)(Socket *socket, int level, int optname, sockoptval *val);

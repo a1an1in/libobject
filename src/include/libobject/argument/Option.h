@@ -7,13 +7,13 @@
 typedef struct Option_s Option;
 
 struct Option_s{
-	Obj parent;
+    Obj parent;
 
-	int (*construct)(Option *option,char *init_str);
-	int (*deconstruct)(Option *option);
+    int (*construct)(Option *option,char *init_str);
+    int (*deconstruct)(Option *option);
 
-	/*virtual methods reimplement*/
-	int (*set)(Option *option, char *attrib, void *value);
+    /*virtual methods reimplement*/
+    int (*set)(Option *option, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     char *(*to_json)(void *obj); 
 

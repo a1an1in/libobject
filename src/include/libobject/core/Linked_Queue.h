@@ -12,14 +12,14 @@
 typedef struct linked_queue_s Linked_Queue;
 
 struct linked_queue_s{
-	Queue parent;
+    Queue parent;
 
-	int (*construct)(Linked_Queue *,char *init_str);
-	int (*deconstruct)(Linked_Queue *);
-	int (*set)(Linked_Queue *, char *attrib, void *value);
+    int (*construct)(Linked_Queue *,char *init_str);
+    int (*deconstruct)(Linked_Queue *);
+    int (*set)(Linked_Queue *, char *attrib, void *value);
     void *(*get)(void *, char *attrib);
 
-	/*virtual methods reimplement*/
+    /*virtual methods reimplement*/
     int (*add)(Linked_Queue *queue, void *element);
     int (*add_back)(Linked_Queue *queue, void *element);
     int (*add_front)(Linked_Queue *queue, void *element);
@@ -35,7 +35,7 @@ struct linked_queue_s{
 
     Iterator *(*begin)(Queue *queue);
     Iterator *(*end)(Queue *queue);
-    
+
     llist_t *llist;
 };
 

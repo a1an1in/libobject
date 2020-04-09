@@ -16,14 +16,14 @@ typedef struct _map_s Map;
  * we support string_key_cmp_func().
  */
 struct _map_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Map *map,char *init_str);
-	int (*deconstruct)(Map *map);
+    int (*construct)(Map *map,char *init_str);
+    int (*deconstruct)(Map *map);
 
-	/*virtual methods reimplement*/
-	int (*reconstruct)(Map *map);
-	int (*set)(Map *map, char *attrib, void *value);
+    /*virtual methods reimplement*/
+    int (*reconstruct)(Map *map);
+    int (*set)(Map *map, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     int (*set_cmp_func)(Map *map, void *func);
     int (*add)(Map *map,void *key,void *value);
@@ -47,7 +47,7 @@ struct _map_s{
 
     Iterator *b, *e;
     uint8_t trustee_flag;
-	uint8_t key_type, value_type;
+    uint8_t key_type, value_type;
 };
 
 #endif

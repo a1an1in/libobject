@@ -20,31 +20,31 @@ enum number_type_e {
 };
 
 struct Number_s{
-	Obj parent;
+    Obj parent;
 
-	int (*construct)(Number *,char *);
-	int (*deconstruct)(Number *);
+    int (*construct)(Number *,char *);
+    int (*deconstruct)(Number *);
 
-	/*virtual methods reimplement*/
-	int (*set)(Number *number, char *attrib, void *value);
+    /*virtual methods reimplement*/
+    int (*set)(Number *number, char *attrib, void *value);
     void *(*get)(Number *, char *attrib);
     char *(*to_json)(Number *); 
-	int (*set_type)(Number *number,enum number_type_e type);
-	enum number_type_e (*get_type)(Number *number);
-	int (*get_size)(Number *number);
-	int (*set_value)(Number *number, void *value);
-	int (*set_format_value)(Number *number, const char *fmt, ...);
-	short (*get_signed_short_value)(Number *number);
-	unsigned short (*get_unsigned_short_value)(Number *number);
-	int (*get_signed_int_value)(Number *number);
-	unsigned int (*get_unsigned_int_value)(Number *number);
-	long (*get_signed_long_value)(Number *number);
-	unsigned long (*get_unsigned_long_value)(Number *number);
-	long long (*get_signed_long_long_value)(Number *number);
-	unsigned long long (*get_unsigned_long_long_value)(Number *number);
-	float (*get_float_value)(Number *number);
-	double (*get_double_value)(Number *number);
-	int (*clear)(Number *number);
+    int (*set_type)(Number *number,enum number_type_e type);
+    enum number_type_e (*get_type)(Number *number);
+    int (*get_size)(Number *number);
+    int (*set_value)(Number *number, void *value);
+    int (*set_format_value)(Number *number, const char *fmt, ...);
+    short (*get_signed_short_value)(Number *number);
+    unsigned short (*get_unsigned_short_value)(Number *number);
+    int (*get_signed_int_value)(Number *number);
+    unsigned int (*get_unsigned_int_value)(Number *number);
+    long (*get_signed_long_value)(Number *number);
+    unsigned long (*get_unsigned_long_value)(Number *number);
+    long long (*get_signed_long_long_value)(Number *number);
+    unsigned long long (*get_unsigned_long_long_value)(Number *number);
+    float (*get_float_value)(Number *number);
+    double (*get_double_value)(Number *number);
+    int (*clear)(Number *number);
 
     /*attribs*/
     union {

@@ -7,12 +7,12 @@
 
 typedef struct obj_s Obj;
 struct obj_s{
-	allocator_t *allocator;
+    allocator_t *allocator;
 
-	int (*construct)(Obj *obj,char *init_str);
-	int (*deconstruct)(Obj *obj);
+    int (*construct)(Obj *obj,char *init_str);
+    int (*deconstruct)(Obj *obj);
 
-	int (*set)(Obj *obj, char *attrib, void *value);
+    int (*set)(Obj *obj, char *attrib, void *value);
     void *(*get)(Obj *obj, char *attrib);
     char *(*to_json)(Obj *obj); 
     int (*assign)(Obj *obj, char *value); 

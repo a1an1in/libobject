@@ -9,15 +9,15 @@
 typedef struct hash_map_test_s Hash_Map_Test;
 
 struct hash_map_test_s{
-	Test parent;
+    Test parent;
 
-	int (*construct)(Test *,char *init_str);
-	int (*deconstruct)(Test *);
-	int (*set)(Test *, char *attrib, void *value);
+    int (*construct)(Test *,char *init_str);
+    int (*deconstruct)(Test *);
+    int (*set)(Test *, char *attrib, void *value);
     void *(*get)(void *, char *attrib);
 
-	/*virtual methods reimplement*/
-	int (*setup)(Test *);
+    /*virtual methods reimplement*/
+    int (*setup)(Test *);
     void *(*teardown)(Test *);
     int (*test_add)(Hash_Map_Test *test);
     int (*test_count)(Hash_Map_Test *test);

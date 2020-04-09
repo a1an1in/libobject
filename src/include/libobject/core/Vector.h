@@ -10,14 +10,14 @@
 typedef struct _vector_s Vector;
 
 struct _vector_s{
-	Obj obj;
+    Obj obj;
 
-	int (*construct)(Vector *vector,char *init_str);
-	int (*deconstruct)(Vector *vector);
+    int (*construct)(Vector *vector,char *init_str);
+    int (*deconstruct)(Vector *vector);
 
-	/*virtual methods reimplement*/
-	int (*reconstruct)(Vector *vector);
-	int (*set)(Vector *vector, char *attrib, void *value);
+    /*virtual methods reimplement*/
+    int (*reconstruct)(Vector *vector);
+    int (*set)(Vector *vector, char *attrib, void *value);
     void *(*get)(Vector *vector, char *attrib);
     char *(*to_json)(Vector *vector);
     int (*add)(Vector *vector,void *value);
@@ -34,8 +34,8 @@ struct _vector_s{
 
     /*attribs*/
     vector_t *vector;
-	uint32_t value_size;
-	uint8_t value_type;
+    uint32_t value_size;
+    uint8_t value_type;
     uint32_t capacity;
     String *init_data;
     String *class_name;

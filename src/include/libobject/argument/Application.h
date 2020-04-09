@@ -8,13 +8,13 @@
 typedef struct Application_s Application;
 
 struct Application_s{
-	Command parent;
+    Command parent;
 
-	int (*construct)(Application *app,char *init_str);
-	int (*deconstruct)(Application *app);
+    int (*construct)(Application *app,char *init_str);
+    int (*deconstruct)(Application *app);
 
-	/*virtual methods reimplement*/
-	int (*set)(Application *app, char *attrib, void *value);
+    /*virtual methods reimplement*/
+    int (*set)(Application *app, char *attrib, void *value);
     void *(*get)(Application *, char *attrib);
     char *(*to_json)(Application *); 
     int (*add_subcommand)(Application *, char *);
