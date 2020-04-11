@@ -7,13 +7,13 @@
 typedef struct Module_s Module;
 
 struct Module_s{
-	Obj parent;
+    Obj parent;
 
-	int (*construct)(Module *,char *);
-	int (*deconstruct)(Module *);
+    int (*construct)(Module *,char *);
+    int (*deconstruct)(Module *);
 
-	/*virtual methods reimplement*/
-	int (*set)(Module *module, char *attrib, void *value);
+    /*virtual methods reimplement*/
+    int (*set)(Module *module, char *attrib, void *value);
     void *(*get)(Module *, char *attrib);
     char *(*to_json)(Module *); 
 };

@@ -45,7 +45,6 @@ static int __construct(Map *map, char *init_str)
 
     hash_map_init(h->hmap);
 
-
     map->b = OBJECT_NEW(allocator, Hmap_Iterator, NULL);
     map->e = OBJECT_NEW(allocator, Hmap_Iterator, NULL);
 
@@ -134,9 +133,11 @@ static int __del(Map *map, void *key)
     dbg_str(HMAP_DETAIL, "Hash Map del");
 
     ret = hash_map_search(((Hash_Map *)map)->hmap, key, &pos);
-    if (ret == 1) {
-        ret = hash_map_delete(((Hash_Map *)map)->hmap, &pos);
+    if (ret != 1) {
+        return ret;
     }
+
+    ret = hash_map_delete(((Hash_Map *)map)->hmap, &pos);
 
     return ret;
 }
@@ -168,46 +169,6 @@ static int __count(Map *map)
     Hash_Map *hmap = (Hash_Map *)map;
 
     return hash_map_get_count(((Hash_Map *)map)->hmap);
-}
-
-/*deprecated*/
-static int __reset(Map *map)
-{
-    void *element;
-	hash_map_pos_t pos, next;
-    hash_map_t *hmap = ((Hash_Map *)map)->hmap;
-
-	for(	hash_map_begin(hmap, &pos), hash_map_pos_next(&pos, &next); 
-			!hash_map_pos_equal(&pos, &hmap->end);
-			pos = next, hash_map_pos_next(&pos, &next))
-    {
-        hash_map_remove(hmap, &pos, &element);
-        if (map->trustee_flag != 1) {
-            continue;
-        }
-
-        if (    map->value_type == VALUE_TYPE_OBJ_POINTER && 
-                element != NULL) 
-        {
-            object_destroy(element);
-        } else if (map->value_type  == VALUE_TYPE_STRING &&
-                   element != NULL)
-        {
-            object_destroy(element);
-        } else if (map->value_type  == VALUE_TYPE_ALLOC_POINTER &&
-                   element != NULL)
-        {
-            allocator_mem_free(map->obj.allocator, element);
-        } else if (map->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
-                   element != NULL)
-        {
-            dbg_str(DBG_WARNNING, "not support reset unkown pointer");
-        } else {
-        }
-        element = NULL;
-	}
-
-    return 0;
 }
 
 static int __set_cmp_func(Map *map, void *func)

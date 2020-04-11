@@ -216,47 +216,6 @@ static int __count(Map *map)
     return rbtree_map_count(rbtree_map);
 }
 
-/*deprecated*/
-static int __reset(Map *map)
-{
-    rbtree_map_t *rbtree_map = ((RBTree_Map *)map)->rbmap;
-    rbtree_map_pos_t it, end;
-    void *element;
-
-    for(    rbtree_map_begin(rbtree_map, &it); 
-            !rbtree_map_pos_equal(&it, rbtree_map_end(rbtree_map, &end));
-            rbtree_map_begin(rbtree_map, &it)) 
-    {
-        rbtree_map_remove(rbtree_map, &it, &element);
-        if (map->trustee_flag != 1) {
-            continue;
-        }
-
-        if (    map->value_type == VALUE_TYPE_OBJ_POINTER && 
-                element != NULL) 
-        {
-            object_destroy(element);
-        } else if (map->value_type  == VALUE_TYPE_STRING &&
-                   element != NULL)
-        {
-            dbg_str(RBTMAP_WARNNING, "free string:%p", element);
-            object_destroy(element);
-        } else if (map->value_type  == VALUE_TYPE_ALLOC_POINTER &&
-                   element != NULL)
-        {
-            allocator_mem_free(map->obj.allocator, element);
-        } else if (map->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
-                   element != NULL)
-        {
-            dbg_str(RBTMAP_WARNNING, "not support reset unkown pointer");
-        } else {
-        }
-        element = NULL;
-    }
-
-    return 0;
-}
-
 static class_info_entry_t rbtree_map_class_info[] = {
     Init_Obj___Entry(0 , Map, map),
     Init_Nfunc_Entry(1 , RBTree_Map, construct, __construct),

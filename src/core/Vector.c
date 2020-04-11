@@ -142,7 +142,7 @@ static int __add_back(Vector *vector, void *value)
 
 static int __add_at(Vector *vector, int index, void *value)
 {
-   return vector_add_at(vector->vector, index, value);
+    return vector_add_at(vector->vector, index, value);
 }
 
 static int __remove(Vector *vector, int index, void **value)
@@ -160,21 +160,20 @@ static int __peek_at(Vector *vector, int index, void **value)
     return vector_peek_at(vector->vector, index, value);
 }
 
-static void 
+    static void 
 __for_each(Vector *vector, void (*func)(int index, void *element))
 {
-	vector_pos_t pos, next;
+    vector_pos_t pos, next;
     vector_t *v = vector->vector;
     void *element;
     int index = 0;
 
-	for(	vector_begin(v, &pos), vector_pos_next(&pos, &next);
-			!vector_pos_equal(&pos, &v->end);
-			pos = next, vector_pos_next(&pos, &next))
-	{
+    for (vector_begin(v, &pos), vector_pos_next(&pos, &next);
+         !vector_pos_equal(&pos, &v->end);
+         pos = next, vector_pos_next(&pos, &next)) {
         vector->peek_at(vector, index, (void **)&element);
-		func(index++, element);
-	}
+        func(index++, element);
+    }
 }
 
 static void __free_vector_elements(Vector *vector)
@@ -205,31 +204,23 @@ static void __reset(Vector *vector)
     void *element;
     int index = 0;
 
-    for(	vector_begin(v, &pos), vector_pos_next(&pos, &next);
-            !vector_pos_equal(&pos, &v->end);
-            pos = next, vector_pos_next(&pos, &next)) 
-    {
+    for (vector_begin(v, &pos), vector_pos_next(&pos, &next);
+         !vector_pos_equal(&pos, &v->end);
+         pos = next, vector_pos_next(&pos, &next)) {
         if (vector->trustee_flag != 1) {
             break;
         }
 
         vector->peek_at(vector, index++, (void **)&element);
 
-        if (    vector->value_type == VALUE_TYPE_OBJ_POINTER && 
-                element != NULL) 
-        {
+        if (vector->value_type == VALUE_TYPE_OBJ_POINTER && element != NULL) {
             object_destroy(element);
-        } else if (vector->value_type  == VALUE_TYPE_STRING &&
-                element != NULL)
-        {
+        } else if (vector->value_type  == VALUE_TYPE_STRING && element != NULL) {
             object_destroy(element);
         } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER &&
-                element != NULL)
-        {
+                element != NULL) {
             allocator_mem_free(vector->obj.allocator, element);
-        } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
-                element != NULL)
-        {
+        } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER && element != NULL) {
             dbg_str(DBG_WARNNING, "not support reset unkown pointer");
         } else {
         }
@@ -243,7 +234,7 @@ static void __reset(Vector *vector)
 static char *__to_json(Obj *obj)
 {
     Vector *vector = (Vector *)obj;
-	vector_pos_t pos, next;
+    vector_pos_t pos, next;
     vector_t *v = vector->vector;
     cjson_t *root, *item = NULL;
     String *json = (String *)obj->json;
@@ -260,72 +251,72 @@ static char *__to_json(Obj *obj)
 
     root = cjson_create_array();
 
-	for(	vector_begin(v, &pos), vector_pos_next(&pos, &next);
-			!vector_pos_equal(&pos, &v->end);
-			pos = next, vector_pos_next(&pos, &next))
-	{
+    for (vector_begin(v, &pos), vector_pos_next(&pos, &next);
+         !vector_pos_equal(&pos, &v->end);
+         pos = next, vector_pos_next(&pos, &next)) {
         vector->peek_at(vector, index++, (void **)&element);
 
-        switch(vector->value_type) {
+        switch (vector->value_type) {
             case VALUE_TYPE_INT8_T: {
-                    int8_t num = (int8_t)element;
-                    item = cjson_create_number(num);
-                    break;
-                }
+                int8_t num = (int8_t)element;
+                item = cjson_create_number(num);
+                break;
+            }
             case VALUE_TYPE_UINT8_T: {
-                    uint8_t num = (uint8_t)element;
-                    item = cjson_create_number(num);
-                    break;
-                }
+                uint8_t num = (uint8_t)element;
+                item = cjson_create_number(num);
+                break;
+            }
             case VALUE_TYPE_INT16_T: {
-                    int16_t num = (int16_t)element;
-                    item = cjson_create_number(num);
-                    break;
-                }
+                int16_t num = (int16_t)element;
+                item = cjson_create_number(num);
+                break;
+            }
             case VALUE_TYPE_UINT16_T: {
-                    uint16_t num = (uint16_t)element;
-                    item = cjson_create_number(num);
-                    break;
-                }
+                uint16_t num = (uint16_t)element;
+                item = cjson_create_number(num);
+                break;
+            }
             case VALUE_TYPE_INT32_T: {
-                    int32_t num = (int32_t)element;
-                    item = cjson_create_number(num);
-                    break;
-                }
+                int32_t num = (int32_t)element;
+                item = cjson_create_number(num);
+                break;
+            }
             case VALUE_TYPE_UINT32_T: {
-                    uint32_t num = (uint32_t)element;
-                    item = cjson_create_number(num);
-                    break;
-                }
+                uint32_t num = (uint32_t)element;
+                item = cjson_create_number(num);
+                break;
+            }
             case VALUE_TYPE_INT64_T: {
-                    int64_t num = (int64_t)element;
-                    item = cjson_create_number(num);
-                    break;
-                }
+                int64_t num = (int64_t)element;
+                item = cjson_create_number(num);
+                break;
+            }
             case VALUE_TYPE_UINT64_T: {
-                    uint64_t num = (uint64_t)element;
-                    item = cjson_create_number(num);
-                    break;
-                }
+                uint64_t num = (uint64_t)element;
+                item = cjson_create_number(num);
+                break;
+            }
             case VALUE_TYPE_FLOAT_T: {
-                    float *num = (float *)element;
-                    item = cjson_create_number(*num);
-                    break;
-                }
+                float *num = (float *)element;
+                item = cjson_create_number(*num);
+                break;
+            }
             case VALUE_TYPE_STRING: {
-                    String *s = (String *)element;
-                    item = cjson_create_string(s->get_cstr(s));
-                    break;
-                }
+                String *s = (String *)element;
+                item = cjson_create_string(s->get_cstr(s));
+                break;
+            }
             case VALUE_TYPE_OBJ_POINTER: {
-                    Obj *o = (Obj *)element;
-                    item = cjson_parse(o->to_json(o));
-                    break;
-                }
-            case VALUE_TYPE_NORMAL_POINTER:
+                Obj *o = (Obj *)element;
+                item = cjson_parse(o->to_json(o));
+                break;
+            }
+            case VALUE_TYPE_NORMAL_POINTER: {
                 dbg_str(DBG_DETAIL, "value type:%d not supported now!!",
                         vector->value_type);
                 break;
+            }
             default:
                 break;
         }
@@ -333,7 +324,7 @@ static char *__to_json(Obj *obj)
         if (item != NULL)
             cjson_add_item_to_array(root, item);
         item = NULL;
-	}
+    }
 
     out = cjson_print(root);
     json->assign(json, out);

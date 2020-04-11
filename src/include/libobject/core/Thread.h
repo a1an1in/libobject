@@ -31,8 +31,6 @@ struct thread_s{
     void *(*execute)(void *);
     void *(*run)(Thread *);
 
-
-
     void *arg;
     pthread_t tid;
     void *opaque;
