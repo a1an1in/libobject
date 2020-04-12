@@ -6,7 +6,7 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/Iterator.h>
 #include <libobject/core/List.h>
-#include <libobject/core/string.h>
+#include <libobject/core/String.h>
 
 typedef struct _map_s Map;
 
