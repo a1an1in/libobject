@@ -1,24 +1,33 @@
 macro (set_cmake_evironment_variable)
     if (IOS_PLATFORM STREQUAL "OS")
+        if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local")
+            set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/ios)
+        endif ()
         LINK_DIRECTORIES(
             /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/lib
             ${PROJECT_SOURCE_DIR}/lib/ios)
         INCLUDE_DIRECTORIES(
             /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include
             ${PROJECT_SOURCE_DIR}/src/include)
-        set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/ios/bin/${IOS_PLATFORM})
-        set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/ios/lib/${IOS_PLATFORM})
-        set (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr)
+        set (EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)
+        set (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+        #set (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr)
     elseif (IOS_PLATFORM STREQUAL "SIMULATOR64")
+        if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local")
+            set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/SIMULATOR64)
+        endif ()
         LINK_DIRECTORIES(
             /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/lib
-            ${PROJECT_SOURCE_DIR}/lib/ios/SIMULATOR64)
+            ${CMAKE_INSTALL_PREFIX}/lib)
         INCLUDE_DIRECTORIES(
             /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/include
+            ${CMAKE_INSTALL_PREFIX}/include
             ${PROJECT_SOURCE_DIR}/src/include)
-        set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/ios/bin/${IOS_PLATFORM})
-        set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/ios/lib/${IOS_PLATFORM})
-        set (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr)
+        set (EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)
+        set (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+
+        message("aaaaaa CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
+        #set (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr)
         #SET(ExternalLibs ${ExternalLibs} avformat avfilter swscale swresample avcodec avutil x264 vorbis vorbisenc
             #vorbisfile mp3lame vpx xvidcore opus fdk-aac theora xvidcore z iconv bz2 SDL2 SDL2_ttf yuv -force_load /usr/local/lib/libobject.a)
         #SET(ExternalLibs ${ExternalLibs} avformat avfilter swscale swresample avcodec avutil SDL2 SDL2_ttf)
@@ -109,19 +118,19 @@ macro (set_cmake_evironment_variable)
         message("CoreMotion_Path: ${CoreMotion_Path}")
     endif()
 
-    find_library(OpenGLES_Path OpenGLES)
-    if (NOT OpenGLES_Path)
-        message(FATAL_ERROR "OpenGLES_Path not found")
-    else ()
-        message("OpenGLES_Path: ${OpenGLES_Path}")
-    endif()
+    #find_library(OpenGLES_Path OpenGLES)
+    #if (NOT OpenGLES_Path)
+        #message(FATAL_ERROR "OpenGLES_Path not found")
+    #else ()
+        #message("OpenGLES_Path: ${OpenGLES_Path}")
+    #endif()
 
-    find_library(UIKIT_Path UIKIT)
-    if (NOT UIKIT_Path)
-        message(FATAL_ERROR "UIKIT_Path not found")
-    else ()
-        message("UIKIT_Path: ${UIKIT_Path}")
-    endif()
+    #find_library(UIKIT_Path UIKIT)
+    #if (NOT UIKIT_Path)
+        #message(FATAL_ERROR "UIKIT_Path not found")
+    #else ()
+        #message("UIKIT_Path: ${UIKIT_Path}")
+    #endif()
 
     find_library(GameController_Path GameController)
     if (NOT GameController_Path)
@@ -144,10 +153,15 @@ macro (set_cmake_evironment_variable)
         message("CoreBluetooth_Path: ${CoreBluetooth_Path}")
     endif()
 
+    #SET(ExternalLibs ${ExternalLibs} ${CoreMedia_Path} ${VideoToolBox_Path} ${Security_Path}
+        #${Foundation_Path} ${AudioToolbox_Path} ${CoreGraphics_Path} ${QuartzCore_Path} ${OpenAL_Path} 
+        #${AVFoundation_Path} ${CoreVideo_Path} ${CoreMotion_Path} ${mediaToolbox_Path} 
+        #${OpenGLES_Path} ${UIKIT_Path} ${GameController_Path} ${CoreAudio_Path}
+        #${CoreBluetooth_Path})
     SET(ExternalLibs ${ExternalLibs} ${CoreMedia_Path} ${VideoToolBox_Path} ${Security_Path}
         ${Foundation_Path} ${AudioToolbox_Path} ${CoreGraphics_Path} ${QuartzCore_Path} ${OpenAL_Path} 
         ${AVFoundation_Path} ${CoreVideo_Path} ${CoreMotion_Path} ${mediaToolbox_Path} 
-        ${OpenGLES_Path} ${UIKIT_Path} ${GameController_Path} ${CoreAudio_Path}
+        ${GameController_Path} ${CoreAudio_Path}
         ${CoreBluetooth_Path})
 
 endmacro()

@@ -1,7 +1,8 @@
 cmake_minimum_required (VERSION 2.8)
+project (libobject)
+
 include (mk/util.cmake)
 init_platform()
-project (libobject)
 config_platform()
 
 #if (APPLE)
@@ -98,21 +99,13 @@ if ("${PLATFORM}" STREQUAL "android")
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/include/libobject DESTINATION include)
 
 elseif ("${PLATFORM}" STREQUAL "ios")
-    ADD_LIBRARY (object_static STATIC ${Source_Files})
-    target_link_libraries(object_static ${ExternalLibs})
-
-    SET_TARGET_PROPERTIES (object_static PROPERTIES VERSION ${VERSION_NAME} SOVERSION ${LIBOBJECT_VERSION_MAJOR})
-    SET_TARGET_PROPERTIES (object_static PROPERTIES OUTPUT_NAME "object")
-
-    install (TARGETS object_static DESTINATION lib)
-    install (TARGETS object_static DESTINATION /Users/alanlin/workspace/LIBOBJECT/libobject-wrapper/projects/ios/demo/demo/libs/SIMULATOR64)
+    ADD_LIBRARY (object STATIC ${Source_Files})
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/include/libobject DESTINATION include)
 else ()
-    ADD_LIBRARY (object SHARED ${Source_Files})
-    target_link_libraries(object ${ExternalLibs})
+    #ADD_LIBRARY (object SHARED ${Source_Files})
+    #target_link_libraries(object ${ExternalLibs})
 
-    #ADD_LIBRARY (object_static STATIC ${Source_Files})
-    #target_link_libraries(object_static ${ExternalLibs})
+    ADD_LIBRARY (object STATIC ${Source_Files})
 
     add_executable(cean ${Main_File})
     target_link_libraries(cean object)
@@ -122,8 +115,8 @@ else ()
     #set_target_properties(object_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
     SET_TARGET_PROPERTIES (object PROPERTIES VERSION ${VERSION_NAME} SOVERSION ${LIBOBJECT_VERSION_MAJOR})
     #SET_TARGET_PROPERTIES (object_static PROPERTIES OUTPUT_NAME "object")
-    install (TARGETS cean DESTINATION bin)
-    install (TARGETS object DESTINATION lib)
+    #install (TARGETS cean DESTINATION bin)
+    #install (TARGETS object DESTINATION lib)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/include/libobject DESTINATION include)
 endif()
 
