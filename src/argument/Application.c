@@ -19,7 +19,7 @@ static int app_command_count;
 static int __construct(Application *app, char *init_str)
 {
     Command *command = (Command *)app;
-    command->set(command, "/Command/name", "cean");
+    command->set(command, "/Command/name", "main");
     return 0;
 }
 
@@ -50,7 +50,16 @@ static int __run(Application *app, int argc, char *argv[])
     if (selected_subcommand == NULL) {
         selected_subcommand = default_subcommand;
     }
-    selected_subcommand->run_action(selected_subcommand);
+
+    if (selected_subcommand->run_option_actions != NULL) {
+        selected_subcommand->run_option_actions(selected_subcommand);
+    }
+    if (selected_subcommand->run_argument_actions != NULL) {
+        selected_subcommand->run_argument_actions(selected_subcommand);
+    }
+    if (selected_subcommand->run_action != NULL) {
+        selected_subcommand->run_action(selected_subcommand);
+    }
 
     return 0;
 }

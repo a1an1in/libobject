@@ -429,13 +429,15 @@ static int __run_option_actions(Command *command)
     Vector *options = command->options;
     uint8_t i, option_count;
 
-    option_count = command->options->count(command->options);
+    if (options == NULL) return 0;
 
+    option_count = options->count(options);
     for (i = 0; i < option_count; i++) {
         options->peek_at(options, i, (void **)&o);
         if (o != NULL && o->set_flag == 1 && o->action != NULL) {
             int (*option_action)(void *, void *) = o->action;
             option_action(o, o->opaque);
+            printf("run option action:%s\n", o->name->get_cstr(o->name));
         }
     }
     return 0;
@@ -447,8 +449,9 @@ static int __run_argument_actions(Command *command)
     Vector *arguments = command->args;
     uint8_t i, argument_count;
 
-    argument_count = arguments->count(arguments);
+    if (arguments == NULL) return 0;
 
+    argument_count = arguments->count(arguments);
     for (i = 0; i < argument_count; i++) {
         arguments->peek_at(arguments, i, (void **)&a);
         if (a != NULL && a->set_flag == 1 && a->action != NULL) {

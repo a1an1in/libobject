@@ -41,6 +41,7 @@ static trie_node_t *__new_node(Trie *trie)
         dbg_str(DBG_ERROR, "trie new node error");
         return NULL;
     }
+    node->end = 0;
 
     node->table = allocator_mem_alloc(allocator,
                                       sizeof(void *) * trie->node_count);
