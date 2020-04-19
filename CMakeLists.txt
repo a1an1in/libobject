@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 2.8)
-project (libobject)
 
 include (mk/util.cmake)
 init_platform()
+project (libobject)
 config_platform()
 
 #if (APPLE)
@@ -80,8 +80,7 @@ if ("${PLATFORM}" STREQUAL "android")
     SET_TARGET_PROPERTIES (object PROPERTIES VERSION ${VERSION_NAME} SOVERSION ${LIBOBJECT_VERSION_MAJOR})
 
     if ("${ANDROID_ABI}" STREQUAL "x86")
-        install (TARGETS object DESTINATION ${CMAKE_ANDROID_NDK}/platforms/android-21/${ARCH_NAME}/usr/lib)
-        install (TARGETS object DESTINATION ~/workspace/LIBOBJECT/libobject-wrapper/projects/android/demo/app/src/main/jni/lib/${ANDROID_ABI})
+        install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/include/libobject DESTINATION include)
     elseif ("${ANDROID_ABI}" STREQUAL "x86_64")
         #install (TARGETS object DESTINATION lib/x86_64-linux-android)
         install (TARGETS object DESTINATION ${CMAKE_ANDROID_NDK}/platforms/android-21/${ARCH_NAME}/usr/lib64)

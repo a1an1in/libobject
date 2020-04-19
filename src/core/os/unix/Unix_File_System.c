@@ -55,7 +55,7 @@ static int __list(Unix_File_System *fs, char *path, char **list, int count, int 
 
     while ((ptr = readdir(dir)) != NULL && i < count) {
         if (strlen(ptr->d_name) >= max_name_len) {
-            dbg_str(DBG_ERROR, "file name is longer than the given buffer, file name:%s, max_name_len:%d, file_name_len:%d, file_name:%s!", ptr->d_name, max_name_len, strlen(ptr->d_name));
+            dbg_str(DBG_ERROR, "file name is longer than the given buffer, file name:%s, max_name_len:%d, file_name_len:%d", ptr->d_name, max_name_len, strlen(ptr->d_name));
             return -1;
         }
         if (i >= count) {
@@ -124,7 +124,9 @@ static int __get_mtime(Unix_File_System *fs, char *path, char *time, int time_ma
         return -1;
     }
 
-    strftime(time, time_max_len, "%Y-%m-%d %H:%M:%S", localtime_r(&st.st_mtimespec.tv_sec, &t));
+    /*
+     *strftime(time, time_max_len, "%Y-%m-%d %H:%M:%S", localtime_r(&st.st_mtimespec.tv_sec, &t));
+     */
 
     return 0;
 }

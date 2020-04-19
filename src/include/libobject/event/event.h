@@ -2,6 +2,7 @@
 #define __EVENT_H__
 
 #include <stdio.h>
+#include <sys/time.h>
 #include <libobject/core/utils/dbg/debug.h>
 
 /** Indicates that a timeout has occurred.  It's not necessary to pass

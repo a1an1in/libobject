@@ -10,7 +10,6 @@ macro (set_android_environment_variable)
     if ("${ANDROID_ABI}" STREQUAL "")
         set(ANDROID_ABI armeabi-v7a)
     endif()
-    set(CMAKE_ANDROID_NDK /Users/alanlin/Library/Android/sdk/ndk-bundle)
     set(CMAKE_ANDROID_STL_TYPE gnustl_static)
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_ANDROID_NDK}/build/cmake/android.toolchain.cmake)
 
@@ -18,7 +17,11 @@ macro (set_android_environment_variable)
 endmacro()
 
 macro (set_cmake_evironment_variable)
-
+    if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local")
+        set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/android)
+    endif ()
+    set (EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin/${ANDROID_ABI})
+    set (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib/${ANDROID_ABI})
     if ("${ANDROID_ABI}" STREQUAL "x86")
         set (ARCH_NAME arch-x86)
     elseif ("${ANDROID_ABI}" STREQUAL "x86_64")
@@ -29,22 +32,14 @@ macro (set_cmake_evironment_variable)
         set (ARCH_NAME arch-arm)
     endif ()
 
-    #message("link dir: ${CMAKE_ANDROID_NDK}/platforms/android-21/${ARCH_NAME}/usr/lib ")
-    set (LIBRARY_INSTALL_PATH ${CMAKE_ANDROID_NDK}/platforms/android-21/${ARCH_NAME}/usr/lib)
-    message("-- LIBRARY_INSTALL_PATH: ${LIBRARY_INSTALL_PATH}")
-
     LINK_DIRECTORIES(
         ${CMAKE_ANDROID_NDK}/platforms/android-21/${ARCH_NAME}/usr/lib
-        ${CMAKE_ANDROID_NDK}/sysroot/usr/lib
-        ${PROJECT_SOURCE_DIR}/lib/android/${ANDROID_ABI})
+        ${LIBRARY_OUTPUT_PATH})
 
     INCLUDE_DIRECTORIES(
         ${CMAKE_ANDROID_NDK}/sysroot/usr/include
+        ${CMAKE_INSTALL_PREFIX}/include
         ${PROJECT_SOURCE_DIR}/src/include)
-
-    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/android/bin/${ANDROID_ABI})
-    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/android/lib/${ANDROID_ABI})
-    set (CMAKE_INSTALL_PREFIX ${CMAKE_ANDROID_NDK}/sysroot/usr)
 
 endmacro()
 
