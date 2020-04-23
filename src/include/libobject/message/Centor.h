@@ -4,11 +4,11 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
-#include <libobject/core/os/Socket.h>
 #include <libobject/concurrent/Worker.h>
 #include <libobject/core/Queue.h>
 #include <libobject/core/Map.h>
-#include <libobject/core/os/Lock.h>
+#include <libobject/core/Lock.h>
+#include <libobject/io/Socket.h>
 
 typedef struct centor_s Centor;
 

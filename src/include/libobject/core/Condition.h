@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
-#include <libobject/core/os/Mutex_Lock.h>
+#include <libobject/core/Lock.h>
 
 typedef struct condition_s Condition;
 
@@ -18,12 +18,12 @@ struct condition_s{
     void *(*get)(void *, char *attrib);
 
     /*virtual methods reimplement*/
-    int (*setlock)(Condition *condition, Mutex_Lock *lock);
+    int (*setlock)(Condition *condition, Lock *lock);
     int (*wait)(Condition *condition);
     int (*signal)(Condition *condition);
     int (*broadcast)(Condition *condition);
 
-    Mutex_Lock *       lock;
+    Lock *       lock;
     pthread_condattr_t attr;
     pthread_cond_t     cond;
 };

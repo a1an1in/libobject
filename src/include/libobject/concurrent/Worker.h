@@ -7,7 +7,7 @@
 #include <libobject/core/Hash_Map.h>
 #include <libobject/concurrent/Producer.h>
 #include <libobject/event/event.h>
-#include <libobject/core/os/Socket.h>
+#include <libobject/io/Socket.h>
 
 typedef struct worker_s Worker;
 

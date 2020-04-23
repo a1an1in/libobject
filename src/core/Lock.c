@@ -1,5 +1,5 @@
 /**
- * @file File_System.c
+ * @file Lock.c
  * @synopsis 
  * @author a1an1in@sina.com
  * @version 
@@ -32,15 +32,35 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/os/File_System.h>
+#include <libobject/core/utils/timeval/timeval.h>
+#include <libobject/event/Event_Base.h>
+#include <libobject/core/Lock.h>
 
-static class_info_entry_t file_system_class_info[] = {
+static int __construct(Lock *lock, char *init_str)
+{
+    allocator_t *allocator = lock->obj.allocator;
+
+    dbg_str(DBG_DETAIL, "lock construct, lock addr:%p", lock);
+
+    return 0;
+}
+
+static int __deconstrcut(Lock *lock)
+{
+    dbg_str(DBG_DETAIL, "lock deconstruct, lock addr:%p", lock);
+    int ret;
+    void *tret;
+
+    return 0;
+}
+
+static class_info_entry_t lock_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
-    Init_Vfunc_Entry(1 , File_System, list, NULL),
-    Init_Vfunc_Entry(2 , File_System, count_list, NULL),
-    Init_Vfunc_Entry(3 , File_System, is_directory, NULL),
-    Init_Vfunc_Entry(4 , File_System, get_size, NULL),
-    Init_Vfunc_Entry(5 , File_System, get_mtime, NULL),
-    Init_End___Entry(6 , File_System),
+    Init_Nfunc_Entry(1 , Lock, construct, __construct),
+    Init_Nfunc_Entry(2 , Lock, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Lock, lock, NULL),
+    Init_Vfunc_Entry(4 , Lock, trylock, NULL),
+    Init_Vfunc_Entry(5 , Lock, unlock, NULL),
+    Init_End___Entry(6 , Lock),
 };
-REGISTER_CLASS("File_System", file_system_class_info);
+REGISTER_CLASS("Lock", lock_class_info);

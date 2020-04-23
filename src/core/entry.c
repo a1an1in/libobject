@@ -4,7 +4,7 @@
 #include <signal.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
-#include <libobject/core/os/fs_compat.h>
+#include <libobject/core/fs_compat.h>
 #include <libobject/libobject.h>
 #include <libobject/concurrent/Producer.h>
 #include <libobject/version.h>

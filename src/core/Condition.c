@@ -1,5 +1,5 @@
 /**
- * @file Lock_Mutex.c
+ * @file Condition.c
  * @synopsis 
  * @author a1an1in@sina.com
  * @version 
@@ -33,67 +33,18 @@
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
+#include <libobject/core/Condition.h>
+#include <libobject/core/Thread.h>
+#include <libobject/core/Linked_Queue.h>
 #include <libobject/event/Event_Base.h>
-#include "Mutex_Lock.h"
 
-static int __construct(Mutex_Lock *lock, char *init_str)
-{
-    dbg_str(OBJ_DETAIL, "muxtex lock construct, lock addr:%p", lock);
-
-    return pthread_mutex_init(&lock->mutex, NULL);
-}
-
-static int __deconstrcut(Mutex_Lock *lock)
-{
-    dbg_str(OBJ_DETAIL, "mutex lock deconstruct, lock addr:%p", lock);
-
-    return pthread_mutex_destroy(&lock->mutex);
-}
-
-static int __lock(Mutex_Lock *lock)
-{
-    dbg_str(OBJ_DETAIL, "mutex lock");
-    return pthread_mutex_lock(&lock->mutex);
-}
-
-static int __trylock(Mutex_Lock *lock)
-{
-    dbg_str(OBJ_DETAIL, "mutex trylock");
-    return pthread_mutex_trylock(&lock->mutex);
-}
-
-static int __unlock(Mutex_Lock *lock)
-{
-    dbg_str(OBJ_DETAIL, "mutex unlock");
-    return pthread_mutex_unlock(&lock->mutex);
-}
-
-static class_info_entry_t lock_class_info[] = {
-    Init_Obj___Entry(0 , Lock, parent),
-    Init_Nfunc_Entry(1 , Mutex_Lock, construct, __construct),
-    Init_Nfunc_Entry(2 , Mutex_Lock, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Mutex_Lock, lock, __lock),
-    Init_Vfunc_Entry(4 , Mutex_Lock, trylock, __trylock),
-    Init_Vfunc_Entry(5 , Mutex_Lock, unlock, __unlock),
-    Init_End___Entry(6 , Mutex_Lock),
+static class_info_entry_t condition_class_info[] = {
+    Init_Obj___Entry(0, Obj, obj),
+    Init_Nfunc_Entry(1, Condition, construct, NULL),
+    Init_Nfunc_Entry(2, Condition, deconstruct, NULL),
+    Init_Vfunc_Entry(3, Condition, wait, NULL),
+    Init_Vfunc_Entry(4, Condition, signal, NULL),
+    Init_Vfunc_Entry(5, Condition, broadcast, NULL),
+    Init_End___Entry(6, Condition),
 };
-REGISTER_CLASS("Mutex_Lock", lock_class_info);
-
-int test_mutex_lock()
-{
-    Lock *lock;
-    allocator_t *allocator = allocator_get_default_alloc();
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-
-    lock = OBJECT_NEW(allocator, Mutex_Lock, NULL);
-
-    lock->lock(lock);
-    lock->unlock(lock);
-
-    object_destroy(lock);
-
-    return 1;
-}
-REGISTER_STANDALONE_TEST_FUNC(test_mutex_lock);
+REGISTER_CLASS("Condition", condition_class_info);

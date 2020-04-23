@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
-#include <libobject/core/os/Socket.h>
 #include <libobject/concurrent/Worker.h>
 #include <libobject/core/List.h>
+#include <libobject/io/Socket.h>
 
 typedef struct server_s Server;
 

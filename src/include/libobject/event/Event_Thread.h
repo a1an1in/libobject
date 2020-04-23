@@ -8,7 +8,7 @@
 #include <libobject/core/Thread.h>
 #include <libobject/core/Queue.h>
 #include <libobject/event/Event_Base.h>
-#include <libobject/core/os/Socket.h>
+#include <libobject/io/Socket.h>
 
 typedef struct event_thread_s Event_Thread;
 
