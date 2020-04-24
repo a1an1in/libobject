@@ -16,12 +16,14 @@
 #define REGISTRY_CTOR_PRIORITY_REGISTER_APP_CMD             11
 #define REGISTRY_CTOR_PRIORITY_CONCURRENT                   12
 #define REGISTRY_CTOR_PRIORITY_EVBASE                       13 //evbase use producer event base
+#define REGISTRY_CTOR_PRIORITY_FS                           14 //evbase use producer event base
 
-#define REGISTRY_DTOR_PRIORITY_EVBASE                       1
-#define REGISTRY_DTOR_PRIORITY_CONCURRENT                   2
-#define REGISTRY_DTOR_PRIORITY_OBJ_DEAMON                   3
-#define REGISTRY_DTOR_PRIORITY_DEFAULT_ALLOCATOR            4
-#define REGISTRY_DTOR_PRIORITY_DEBUGGER                     5
+#define REGISTRY_DTOR_PRIORITY_FS                           1 //evbase use producer event base
+#define REGISTRY_DTOR_PRIORITY_EVBASE                       2
+#define REGISTRY_DTOR_PRIORITY_CONCURRENT                   3
+#define REGISTRY_DTOR_PRIORITY_OBJ_DEAMON                   4
+#define REGISTRY_DTOR_PRIORITY_DEFAULT_ALLOCATOR            5
+#define REGISTRY_DTOR_PRIORITY_DEBUGGER                     6
 
 int __register_ctor_func(int level, int (*func)()); 
 int __register_ctor_func1(int level, int (*func)(void *arg), void *arg);

@@ -1,6 +1,6 @@
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/fs_compat.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/io/fs_compat.h>
 
 File_System *globle_file_system;
 
@@ -20,11 +20,13 @@ int fs_init()
 
     return 0;
 }
+REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_FS, fs_init);
 
 int fs_release()
 {
     return object_destroy(globle_file_system);
 }
+REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_FS, fs_release);
 
 int fs_is_directory(char *name)
 {

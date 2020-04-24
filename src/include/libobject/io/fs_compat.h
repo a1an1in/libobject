@@ -1,7 +1,7 @@
 #ifndef __FILESYSTEM_COMPAT_H__
 #define __FILESYSTEM_COMPAT_H__
 
-#include <libobject/core/File_System.h>
+#include <libobject/io/File_System.h>
 
 extern int fs_init();
 extern int fs_release();
