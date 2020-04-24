@@ -156,8 +156,8 @@ static int __free_detached(List *list, Iterator *iter)
 
 static Iterator *__begin(List *list)
 {
-    Linked_List *l         = (Linked_List *)list;
-    LList_Iterator *iter   = (LList_Iterator *)list->b;
+    Linked_List *l       = (Linked_List *)list;
+    LList_Iterator *iter = (LList_Iterator *)list->b;
 
     llist_begin(l->llist, &(iter->list_pos));
 

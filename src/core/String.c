@@ -59,8 +59,8 @@ __new_string_peice(allocator_t *allocator, void *start_pos, int len)
 
 static int __modulate_capacity(String *string, int write_len)
 {
-    if (    string->value_max_len > string->value_len + 1 &&
-            string->value_max_len < string->value_len + write_len + 1)
+    if (string->value_max_len > string->value_len + 1 &&
+        string->value_max_len < string->value_len + write_len + 1)
     {
         char *new_buf;
         int old = string->value_max_len;

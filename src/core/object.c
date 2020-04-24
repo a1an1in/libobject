@@ -78,9 +78,8 @@ __object_get_normal_func_of_class(void *class_info_addr,
     }
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (    strcmp((char *)entry[i].value_name, func_pointer_name) == 0 
-                && entry[i].type == ENTRY_TYPE_FUNC_POINTER)
-        {
+        if (strcmp((char *)entry[i].value_name, func_pointer_name) == 0 && 
+            entry[i].type == ENTRY_TYPE_FUNC_POINTER) {
             return entry[i].value;
         }
     }   
@@ -103,9 +102,8 @@ __object_get_func_of_class_recursively(void *class_info_addr,
     }
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (    strcmp((char *)entry[i].value_name, func_name) == 0 && 
-                entry[i].value != NULL) 
-        {
+        if (strcmp((char *)entry[i].value_name, func_name) == 0 && 
+            entry[i].value != NULL) {
             return entry[i].value;
         }
     }   
@@ -210,9 +208,9 @@ __object_find_reimplement_func(char *method_name,
         super_class_name = entry[0].type_name;
     }
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (    (entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
-                    entry[i].type == ENTRY_TYPE_VFUNC_POINTER) && 
-                strcmp(entry[i].value_name, method_name) == 0)
+        if ((entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
+                entry[i].type == ENTRY_TYPE_VFUNC_POINTER) && 
+            strcmp(entry[i].value_name, method_name) == 0)
         {
             if (entry[i].value == NULL) {
                 break;
@@ -241,8 +239,8 @@ int __object_init_funcs(void *obj, void *class_info_addr)
     }
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (    entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
-                entry[i].type == ENTRY_TYPE_VFUNC_POINTER)
+        if (entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
+            entry[i].type == ENTRY_TYPE_VFUNC_POINTER)
         {
             dbg_str(OBJ_DETAIL, "value_name %s, value %p", 
                     entry[i].value_name, 
@@ -273,13 +271,13 @@ __object_inherit_funcs(void *obj, void *class_info)
     }
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (    entry[i].value == NULL && 
-                (entry[i].type == ENTRY_TYPE_IFUNC_POINTER || 
-                 entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
-                 entry[i].type == ENTRY_TYPE_VFUNC_POINTER)) 
+        if (entry[i].value == NULL && 
+            (entry[i].type == ENTRY_TYPE_IFUNC_POINTER || 
+             entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
+             entry[i].type == ENTRY_TYPE_VFUNC_POINTER)) 
         {
             method = __object_get_func_of_class_recursively(class_info,
-                                                   entry[i].value_name);
+                                                  entry[i].value_name);
             if (method != NULL)
                 set(obj, (char *)entry[i].value_name, method);
         }
@@ -583,8 +581,8 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
              *if (value == NULL) continue;
              */
             name = entry[i].value_name;
-            if (    entry[i].type == ENTRY_TYPE_INT8_T || 
-                    entry[i].type == ENTRY_TYPE_UINT8_T)
+            if (entry[i].type == ENTRY_TYPE_INT8_T || 
+                entry[i].type == ENTRY_TYPE_UINT8_T)
             {
                 cjson_add_number_to_object(object, name, *((char *)value));
             } else if (entry[i].type == ENTRY_TYPE_INT16_T || 

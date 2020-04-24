@@ -123,21 +123,17 @@ static int __reset(Map *map)
             continue;
         }
 
-        if (    map->value_type == VALUE_TYPE_OBJ_POINTER && 
-                element != NULL) 
-        {
+        if (map->value_type == VALUE_TYPE_OBJ_POINTER && 
+            element != NULL) {
             object_destroy(element);
         } else if (map->value_type  == VALUE_TYPE_STRING &&
-                   element != NULL)
-        {
+                   element != NULL) {
             object_destroy(element);
         } else if (map->value_type  == VALUE_TYPE_ALLOC_POINTER &&
-                   element != NULL)
-        {
+                   element != NULL) {
             allocator_mem_free(map->obj.allocator, element);
         } else if (map->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
-                   element != NULL)
-        {
+                   element != NULL) {
             dbg_str(DBG_WARNNING, "not support reset unkown pointer");
         } else {
         }
