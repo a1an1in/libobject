@@ -34,10 +34,9 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Array_Stack.h>
-#include <libobject/core/tests/Linked_List_Test.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/utils/registry/registry.h>
-#include <libobject/core/tests/Linked_List_Test.h>
+#include "Linked_List_Test.h"
 
 static int __construct(Linked_List_Test *test, char *init_str)
 {

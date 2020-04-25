@@ -34,10 +34,9 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Vector.h>
-#include <libobject/core/tests/Object_Cache_Test.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/utils/registry/registry.h>
-#include <libobject/core/tests/Object_Cache_Test.h>
+#include "Object_Cache_Test.h"
 
 static int __construct(Object_Cache_Test *test, char *init_str)
 {

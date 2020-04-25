@@ -34,10 +34,10 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Array_Stack.h>
-#include <libobject/core/tests/Vector_Test.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/utils/registry/registry.h>
-#include <libobject/core/tests/Simplest_Obj.h>
+#include "Simplest_Obj.h"
+#include "Vector_Test.h"
 
 static int __construct(Test *test, char *init_str)
 {

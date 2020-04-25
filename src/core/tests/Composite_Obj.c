@@ -6,7 +6,7 @@
  * @date 2019-05-19
  */
 #include <libobject/argument/Application.h>
-#include <libobject/core/tests/Composite_Obj.h>
+#include "Composite_Obj.h"
 
 static int __construct(Composite_Obj *obj, char *init_str)
 {

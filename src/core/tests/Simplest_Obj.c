@@ -6,7 +6,7 @@
  * @date 2019-05-19
  */
 #include <libobject/argument/Application.h>
-#include <libobject/core/tests/Simplest_Obj.h>
+#include "Simplest_Obj.h"
 
 static int __construct(Obj *obj, char *init_str)
 {

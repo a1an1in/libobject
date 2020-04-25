@@ -34,9 +34,9 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Array_Stack.h>
-#include <libobject/core/tests/String_Test.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/utils/registry/registry.h>
+#include "String_Test.h"
 
 static int __construct(Test *test, char *init_str)
 {
