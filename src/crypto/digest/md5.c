@@ -4,9 +4,9 @@
  * http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5
  */
 
-#include <libobject/crypto/digest/md5.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
+#include "md5.h"
 
 /*
  * The basic MD5 functions.

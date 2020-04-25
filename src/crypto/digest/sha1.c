@@ -1,6 +1,6 @@
-#include <libobject/crypto/digest/sha1.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
+#include "sha1.h"
 
 #define ROTATE(bits, word) (((word) << (bits)) | ((word) >> (32 - (bits))))
 #define F1(b, c, d) (((b) & (c)) | ((~(b)) & (d)))
