@@ -166,8 +166,8 @@ static Iterator *__begin(List *list)
 
 static Iterator *__end(List *list)
 {
-    Linked_List *l         = (Linked_List *)list;
-    LList_Iterator *iter   = (LList_Iterator *)list->e;
+    Linked_List *l       = (Linked_List *)list;
+    LList_Iterator *iter = (LList_Iterator *)list->e;
 
     llist_end(l->llist, &(iter->list_pos));
 

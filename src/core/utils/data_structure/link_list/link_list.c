@@ -293,10 +293,9 @@ int llist_remove_element(llist_t *llist, void *data)
     void *element;
     int ret = 0;
 
-	for(	llist_begin(llist, &pos), llist_pos_next(&pos, &next);
-			!llist_pos_equal(&pos, &llist->head);
-			pos = next, llist_pos_next(&pos, &next))
-	{
+	for (llist_begin(llist, &pos), llist_pos_next(&pos, &next);
+		 !llist_pos_equal(&pos, &llist->head);
+		 pos = next, llist_pos_next(&pos, &next)) {
         element = llist_pos_get_pointer(&pos);
         if (element == data) {
             ret = 1;

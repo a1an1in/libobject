@@ -303,7 +303,7 @@ int __object_override_virtual_funcs(void *obj,
     entry  = (class_info_entry_t *)
              class_deamon_search_class(deamon, (char *)cur_type_name);
 
-    set    = __object_get_func_of_class_recursively(entry, "set");
+    set = __object_get_func_of_class_recursively(entry, "set");
     if (set == NULL) {
         dbg_str(OBJ_WARNNING, "obj_init_func_pointer, set func is NULL");
         return -1;
@@ -340,7 +340,7 @@ void * object_new(allocator_t *allocator,
     entry  = (class_info_entry_t *)
              class_deamon_search_class(deamon, type);
 
-    size   = __object_get_class_size(entry);
+    size = __object_get_class_size(entry);
     if (size == 0) return NULL;
 
     o = (Obj *)allocator_mem_alloc(allocator, size);

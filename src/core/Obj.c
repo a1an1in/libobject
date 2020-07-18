@@ -35,6 +35,7 @@
 #include <libobject/core/String.h>
 #include <libobject/core/Vector.h>
 #include <libobject/core/Number.h>
+#include <libobject/core/try.h>
 
 static int __construct(Obj *obj, char *init_str)
 {
@@ -55,6 +56,177 @@ static int __deconstrcut(Obj *obj)
     return 0;
 }
 
+int __set_int8_policy(Obj *obj, class_info_entry_t *entry, void *value)
+{
+    uint8_t *base = (uint8_t *)obj;
+    int8_t t = (int8_t)(*((int *)value));
+    int8_t *addr = (int8_t *)(base + entry->offset);
+    *addr = t;
+
+    return 0;
+}
+
+int __set_uint8_policy(Obj *obj, class_info_entry_t *entry, void *value)
+{
+    uint8_t *base = (uint8_t *)obj;
+    uint8_t t = (uint8_t)(*((int *)value));
+    uint8_t *addr = (uint8_t *)(base + entry->offset);
+    *addr = t;
+
+    return 0;
+}
+
+int __set_int16_policy(Obj *obj, class_info_entry_t *entry, void *value)
+{
+    uint8_t *base = (uint8_t *)obj;
+    int16_t t = (int16_t)(*((int *)value));
+    int16_t *addr = (int16_t *)(base + entry->offset);
+    *addr = t;
+
+    return 0;
+}
+
+int __set_uint16_policy(Obj *obj, class_info_entry_t *entry, void *value)
+{
+    uint8_t *base = (uint8_t *)obj;
+    uint16_t t = (uint16_t)(*((int *)value));
+    uint16_t *addr = (uint16_t *)(base + entry->offset);
+    *addr = t;
+
+    return 0;
+}
+
+int __set_int32_policy(Obj *obj, class_info_entry_t *entry, void *value)
+{
+    uint8_t *base = (uint8_t *)obj;
+    int32_t t = (int32_t)(*((int *)value));
+    int32_t *addr = (int32_t *)(base + entry->offset);
+    *addr = t;
+
+    return 0;
+}
+
+int __set_uint32_policy(Obj *obj, class_info_entry_t *entry, void *value)
+{
+    uint8_t *base = (uint8_t *)obj;
+    uint32_t t = (uint32_t)(*((int *)value));
+    uint32_t *addr = (uint32_t *)(base + entry->offset);
+    *addr = t;
+
+    return 0;
+}
+
+int __set_float_policy(Obj *obj, class_info_entry_t *entry, void *value)
+{
+    uint8_t *base = (uint8_t *)obj;
+    double t1 = *((double *)value);
+    float t2 = (double)t1;
+    float *addr = (float *)(base + entry->offset);
+    *addr = t2;
+
+    return 0;
+}
+
+int __set_double_policy(Obj *obj, class_info_entry_t *entry, void *value)
+{
+    uint8_t *base = (uint8_t *)obj;
+    float *addr = (float *)(base + entry->offset);
+    *addr = *((double *)value);
+
+    return 0;
+}
+
+int __set_sn32_policy(Obj *obj, class_info_entry_t *entry, void *value)
+{
+    uint8_t *base = (uint8_t *)obj;
+    allocator_t *allocator = obj->allocator;
+    Number **addr = (Number **)(base + entry->offset);
+
+    if (*addr == NULL) {
+        *addr = object_new(allocator, "Number", NULL);
+        (*addr)->set_type((*addr), NUMBER_TYPE_SIGNED_INT);
+    }
+
+    (*addr)->set_value((*addr), value);
+
+    return 0;
+}
+
+int __set_string_policy(Obj *obj, class_info_entry_t *entry, void *value)
+{
+    uint8_t *base = (uint8_t *)obj;
+    allocator_t *allocator = obj->allocator;
+    String **addr = (String **)(base + entry->offset);
+
+    if (*addr != NULL)
+        (*addr)->assign((*addr), (char *)value);
+    else {
+        *addr = object_new(allocator, "String", NULL);
+        (*addr)->assign((*addr), (char *)value);
+    }
+
+    return 0;
+}
+
+int __set_vector_policy(Obj *obj, class_info_entry_t *entry, void *value)
+{
+    uint8_t *base = (uint8_t *)obj;
+    allocator_t *allocator = obj->allocator;
+    Vector **addr = (Vector **)(base + entry->offset);
+    Vector *v;
+    int value_type = VALUE_TYPE_OBJ_POINTER;
+    uint8_t trustee_flag = 1;
+    char *p = (char *)value;
+
+    if (*addr != NULL) {
+        v = *addr;
+    } else {
+        v = object_new(allocator, "Vector", NULL);
+    }
+    if (p[0] == '[') {
+        v->set(v, "/Vector/value_type", &value_type);
+        v->set(v, "/Vector/init_data", value);
+        v->set(v, "/Vector/class_name", entry->type_name);
+        v->set(v, "/Vector/trustee_flag", &trustee_flag);
+        v->reconstruct(v);
+        *addr = v;
+        Vector **addr = (Vector **)(base + entry->offset);
+    } else {
+    }
+
+    return 0;
+}
+
+int __set_pointer_policy(Obj *obj, class_info_entry_t *entry, void *value)
+{
+    uint8_t *base = (uint8_t *)obj;
+    void **addr = (void **)(base + entry->offset);
+    *addr = value;
+
+    return 0;
+}
+
+static struct obj_set_policy_s {
+    int (*policy)(Obj *obj, class_info_entry_t *entry, void *value);
+} g_obj_set_policy[ENTRY_TYPE_MAX_TYPE] = {
+    [ENTRY_TYPE_INT8_T]         = {.policy = __set_int8_policy},
+    [ENTRY_TYPE_UINT8_T]        = {.policy = __set_uint8_policy},
+    [ENTRY_TYPE_INT16_T]        = {.policy = __set_int16_policy},
+    [ENTRY_TYPE_UINT16_T]       = {.policy = __set_uint16_policy},
+    [ENTRY_TYPE_INT32_T]        = {.policy = __set_int32_policy},
+    [ENTRY_TYPE_UINT32_T]       = {.policy = __set_uint32_policy},
+    [ENTRY_TYPE_FLOAT_T]        = {.policy = __set_float_policy},
+    [ENTRY_TYPE_DOUBLE_T]       = {.policy = __set_double_policy},
+    [ENTRY_TYPE_SN32]           = {.policy = __set_sn32_policy},
+    [ENTRY_TYPE_STRING]         = {.policy = __set_string_policy},
+    [ENTRY_TYPE_VECTOR]         = {.policy = __set_vector_policy},
+    [ENTRY_TYPE_NORMAL_POINTER] = {.policy = __set_pointer_policy},
+    [ENTRY_TYPE_FUNC_POINTER]   = {.policy = __set_pointer_policy},
+    [ENTRY_TYPE_VFUNC_POINTER]  = {.policy = __set_pointer_policy},
+    [ENTRY_TYPE_IFUNC_POINTER]  = {.policy = __set_pointer_policy},
+    [ENTRY_TYPE_OBJ_POINTER]    = {.policy = __set_pointer_policy},
+};
+
 /**
  * @Synopsis  
  *
@@ -71,8 +243,6 @@ static int __set(Obj *obj, char *attrib, void *value)
     class_deamon_t *deamon;
     allocator_t *allocator = obj->allocator;
     uint8_t *base = (uint8_t *)obj;
-    int value_len;
-    int ret = 0;
     char *buf = NULL;  
     char **out = NULL;  
     int cnt;
@@ -81,21 +251,11 @@ static int __set(Obj *obj, char *attrib, void *value)
     cnt = compute_slash_count(attrib);
     if (cnt > 0 ) {
         out = allocator_mem_alloc(allocator, sizeof(char *) * cnt);
-        if (out == NULL) {
-            dbg_str(OBJ_WARNNING, "Obj set alloc err");
-            return -1;
-        }
+        THROW_IF(out == NULL);
         buf = allocator_mem_alloc(allocator, strlen(attrib));
-        if (buf == NULL) {
-            dbg_str(OBJ_WARNNING, "oss set alloc err");
-            return -1;
-        }
+        THROW_IF(buf == NULL);
         strcpy(buf, attrib);
         str_split(buf, "/", out, &cnt);
-
-        /*
-         *dbg_str(DBG_WARNNING, "set class name:%s", out[cnt - 2]);
-         */
         target_name = out[cnt - 2];
         attrib = out[cnt - 1];
     } else {
@@ -103,154 +263,20 @@ static int __set(Obj *obj, char *attrib, void *value)
     }
 
     deamon = class_deamon_get_global_class_deamon();
-    info   = (class_info_entry_t *)
-              class_deamon_search_class(deamon,
-                                        target_name);
-
-    entry  = __object_get_entry_of_class(info, attrib);
-    if (entry == NULL) {
-        dbg_str(DBG_WARNNING, "not found entry, target_name:%s, attrib:%s",
-                target_name, attrib);
-        return -1;
-    }
-
-    switch(entry->type) {
-        case ENTRY_TYPE_INT8_T:
-            {
-                int8_t t = (int8_t)(*((int *)value));
-                value_len = entry->value_len;
-                int8_t *addr = (int8_t *)(base + entry->offset);
-                *addr = t;
-                break;
-            }
-        case ENTRY_TYPE_UINT8_T:
-            {
-                uint8_t t = (uint8_t)(*((int *)value));
-                value_len = entry->value_len;
-                uint8_t *addr = (uint8_t *)(base + entry->offset);
-                *addr = t;
-                break;
-            }
-        case ENTRY_TYPE_INT16_T:
-            {
-                int16_t t = (int16_t)(*((int *)value));
-                value_len = entry->value_len;
-                int16_t *addr = (int16_t *)(base + entry->offset);
-                *addr = t;
-                break;
-            }
-        case ENTRY_TYPE_UINT16_T:
-            {
-                uint16_t t = (uint16_t)(*((int *)value));
-                value_len = entry->value_len;
-                uint16_t *addr = (uint16_t *)(base + entry->offset);
-                *addr = t;
-                break;
-            }
-        case ENTRY_TYPE_INT32_T:
-            {
-                int32_t t = (int32_t)(*((int *)value));
-                value_len = entry->value_len;
-                int32_t *addr = (int32_t *)(base + entry->offset);
-                *addr = t;
-                break;
-            }
-        case ENTRY_TYPE_UINT32_T:
-            {
-                uint32_t t = (uint32_t)(*((int *)value));
-                value_len = entry->value_len;
-                uint32_t *addr = (uint32_t *)(base + entry->offset);
-                *addr = t;
-                break;
-            }
-        case ENTRY_TYPE_FLOAT_T:
-            {
-                double t1 = *((double *)value);
-                float t2 = (double)t1;
-                value_len = entry->value_len;
-                float *addr = (float *)(base + entry->offset);
-                *addr = t2;
-                break;
-            }
-        case ENTRY_TYPE_DOUBLE_T:
-            {
-                value_len = entry->value_len;
-                float *addr = (float *)(base + entry->offset);
-                *addr = *((double *)value);
-                break;
-            }
-        case ENTRY_TYPE_SN32:
-            {
-                Number **addr = (Number **)(base + entry->offset);
-
-                if (*addr == NULL) {
-                    *addr = object_new(allocator, "Number", NULL);
-                    (*addr)->set_type((*addr), NUMBER_TYPE_SIGNED_INT);
-                }
-
-                (*addr)->set_value((*addr), value);
-                break;
-            }
-        case ENTRY_TYPE_STRING:
-            {
-                String **addr = (String **)(base + entry->offset);
-                if (*addr != NULL)
-                    (*addr)->assign((*addr), (char *)value);
-                else {
-                    *addr = object_new(allocator, "String", NULL);
-                    (*addr)->assign((*addr), (char *)value);
-                }
-                break;
-            }
-        case ENTRY_TYPE_VECTOR:
-            {
-                Vector **addr = (Vector **)(base + entry->offset);
-                Vector *v;
-                int value_type = VALUE_TYPE_OBJ_POINTER;
-                uint8_t trustee_flag = 1;
-                char *p = (char *)value;
-
-                if (*addr != NULL) {
-                    v = *addr;
-                } else {
-                    v = object_new(allocator, "Vector", NULL);
-                }
-                if (p[0] == '[') {
-                    v->set(v, "/Vector/value_type", &value_type);
-                    v->set(v, "/Vector/init_data", value);
-                    v->set(v, "/Vector/class_name", entry->type_name);
-                    v->set(v, "/Vector/trustee_flag", &trustee_flag);
-                    v->reconstruct(v);
-                    *addr = v;
-                    Vector **addr = (Vector **)(base + entry->offset);
-                } else {
-                }
-                break;
-            }
-        case ENTRY_TYPE_NORMAL_POINTER:
-        case ENTRY_TYPE_FUNC_POINTER:
-        case ENTRY_TYPE_VFUNC_POINTER:
-        case ENTRY_TYPE_IFUNC_POINTER:
-        case ENTRY_TYPE_OBJ_POINTER:
-            {
-                void **addr = (void **)(base + entry->offset);
-                *addr = value;
-                break;
-            }
-        default:
-            dbg_str(DBG_DETAIL, "set %s, not support %s item",
-                    obj->target_name,
-                    attrib);
-            ret = -1;
-            break;
-    }
-
+    info = (class_info_entry_t *)
+           class_deamon_search_class(deamon, target_name);
     if (out != NULL)
         allocator_mem_free(allocator, out);
     if (buf != NULL)
         allocator_mem_free(allocator, buf);
 
-    return ret;
+    entry = __object_get_entry_of_class(info, attrib);
+    THROW_IF(entry == NULL);
+    THROW_IF(entry->type >= ENTRY_TYPE_MAX_TYPE ||
+             g_obj_set_policy[entry->type].policy == NULL); 
+    EXEC(g_obj_set_policy[entry->type].policy(obj, entry, value));
+
+    return 0;
 }
 
 /**
@@ -324,11 +350,10 @@ static void *__get(Obj *obj, char *attrib)
         case ENTRY_TYPE_FUNC_POINTER:
         case ENTRY_TYPE_VFUNC_POINTER:
         case ENTRY_TYPE_IFUNC_POINTER:
-        case ENTRY_TYPE_OBJ_POINTER:
-            {
-                addr = (base + entry->offset);
-                break;
-            }
+        case ENTRY_TYPE_OBJ_POINTER: {
+            addr = (base + entry->offset);
+            break;
+        }
         default:
             dbg_str(DBG_DETAIL, "get %s, not support %s item",
                     obj->target_name,
