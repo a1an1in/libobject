@@ -160,7 +160,7 @@ static int __peek_at(Vector *vector, int index, void **value)
     return vector_peek_at(vector->vector, index, value);
 }
 
-    static void 
+static void 
 __for_each(Vector *vector, void (*func)(int index, void *element))
 {
     vector_pos_t pos, next;
@@ -367,7 +367,7 @@ static char *__to_json(Obj *obj)
     Vector *vector = (Vector *)obj;
     vector_pos_t pos, next;
     vector_t *v = vector->vector;
-    cjson_t *root, *item = NULL;
+    cjson_t *root;
     String *json = (String *)obj->json;
     void *element = NULL;
     char *out;

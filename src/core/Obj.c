@@ -262,8 +262,7 @@ static int __set(Obj *obj, char *attrib, void *value)
     }
 
     deamon = class_deamon_get_global_class_deamon();
-    info = (class_info_entry_t *)
-           class_deamon_search_class(deamon, target_name);
+    info = (class_info_entry_t *) class_deamon_search_class(deamon, target_name);
     if (out != NULL)
         allocator_mem_free(allocator, out);
     if (buf != NULL)

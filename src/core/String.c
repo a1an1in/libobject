@@ -239,7 +239,7 @@ static void __append(String *string, char *sub, int len)
 
     ret = __modulate_capacity(string, len + string->value_len);
 
-    if (ret < 0 ) {
+    if (ret < 0) {
         return ;
     }
 
@@ -302,7 +302,7 @@ __replace(String *self, char *pattern, char *newstr, int max)
     string_piece_t *piece = NULL;
     int count = 0, ret = 0;
 
-    if ( pattern == NULL || newstr == NULL ) { return -1; }
+    if (pattern == NULL || newstr == NULL) { return -1; }
 
     new_len = strlen(newstr);
     str_len = self->get_len(self);
@@ -475,7 +475,7 @@ static int __find(String *string, char *pattern, int offset, int num)
 
     do {
         ret = regexec_wrap(&regex, pos, nmatch, pmatch, 0);  
-        if(ret != REG_NOMATCH) { 
+        if (ret != REG_NOMATCH) { 
             cnt++;
             piece = __new_string_peice(allocator, pos + pmatch[0].rm_so ,
                                        pmatch[0].rm_eo - pmatch[0].rm_so); 
@@ -483,7 +483,7 @@ static int __find(String *string, char *pattern, int offset, int num)
                     (int)(pos + pmatch[0].rm_so - string->get_cstr(string)));
             v->add_back(v, piece); 
             pos += pmatch[0].rm_eo; 
-        }  else {
+        } else {
             break;
         }
 
@@ -530,7 +530,7 @@ static int __split(String *string, char *delims, int num)
 
     while ((count++ < num || num <= 0)) {
         ret = regexec_wrap(&regex, pos, nmatch, pmatch, 0);  
-        if(ret != REG_NOMATCH) { 
+        if (ret != REG_NOMATCH) { 
             if (pmatch[0].rm_so != 0) {
                 piece_count++;
                 piece = __new_string_peice(allocator, pos, pmatch[0].rm_so); 
@@ -539,7 +539,7 @@ static int __split(String *string, char *delims, int num)
             pos[pmatch[0].rm_eo - 1] = '\0';
             pos[pmatch[0].rm_so] = '\0';
             pos += pmatch[0].rm_eo; 
-        }  else {
+        } else {
             break;
         }
     }

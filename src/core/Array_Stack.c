@@ -45,10 +45,6 @@ static int __construct(Stack *stack, char *init_str)
     as->core = array_stack_alloc(allocator);
     array_stack_init(as->core);
 
-    /*
-     *dbg_str(DBG_DETAIL, "stack construct, stack addr:%p", stack);
-     */
-
     return 0;
 }
 
@@ -57,9 +53,6 @@ static int __deconstrcut(Stack *stack)
     Array_Stack *as = (Array_Stack *)stack;
     int ret;
 
-    /*
-     *dbg_str(DBG_DETAIL, "stack deconstruct, stack addr:%p", stack);
-     */
     array_stack_destroy(as->core);
 
     return 0;
