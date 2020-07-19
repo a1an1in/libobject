@@ -51,5 +51,8 @@ exception_throw(int error_code, const char *func,
 
         longjmp(frame->env, EXCEPTION_THROWN);
 
+    } else {
+        dbg_str(DBG_ERROR, "must catch error, before throw!");
+        exit(1);
     }
 }

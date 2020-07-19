@@ -4,6 +4,7 @@
 #include <libobject/core/class_deamon.h>
 #include <libobject/core/object.h>
 #include <libobject/core/value_type.h>
+#include <libobject/core/try.h>
 
 typedef struct obj_s Obj;
 struct obj_s{

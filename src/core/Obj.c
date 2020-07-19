@@ -35,7 +35,6 @@
 #include <libobject/core/String.h>
 #include <libobject/core/Vector.h>
 #include <libobject/core/Number.h>
-#include <libobject/core/try.h>
 
 static int __construct(Obj *obj, char *init_str)
 {
@@ -369,16 +368,132 @@ static void *__get(Obj *obj, char *attrib)
     return addr;
 }
 
+static int __to_json_int8_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((int8_t *)value));
+
+    return 0;
+}
+
+static int __to_json_uint8_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((uint8_t *)value));
+
+    return 0;
+}
+
+static int __to_json_int16_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((int16_t *)value));
+
+    return 0;
+}
+
+static int __to_json_uint16_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((uint16_t *)value));
+
+    return 0;
+}
+
+static int __to_json_int32_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((int32_t *)value));
+
+    return 0;
+}
+
+static int __to_json_uint32_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((uint32_t *)value));
+
+    return 0;
+}
+
+static int __to_json_float_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((float *)value));
+
+    return 0;
+}
+
+static int __to_json_string_policy(cjson_t *json, char *name, void *value)
+{
+    String *s = *(String **)value;
+    if (s != NULL)
+        cjson_add_string_to_object(json, name, s->value);
+
+    return 0;
+}
+
+static int __to_json_sn32_policy(cjson_t *json, char *name, void *value)
+{
+    double d;
+    Number *number = *(Number **)value;
+
+    if (number == NULL) {
+        dbg_str(DBG_WARNNING, "Number to json, but point is null, offset:%p", value);
+        return -1;
+    }
+    d = number->get_signed_int_value(number);
+    cjson_add_number_to_object(json, name, d);
+
+    return 0;
+}
+
+static int __to_json_vector_policy(cjson_t *json, char *name, void *value)
+{
+    Vector *v = *((Vector **)value);
+    cjson_t *item;
+
+    if (v != NULL) {
+        dbg_str(DBG_DETAIL, "Vector json: %s", v->to_json(v));
+        item = cjson_parse(v->to_json(v));
+        cjson_add_item_to_object(json, name, item);
+    } else {
+        dbg_str(DBG_WARNNING, "Vector to json, but content is null, offset:%p", value);
+    }
+
+    return 0;
+}
+
+static int __to_json_object_pointer_policy(cjson_t *json, char *name, void *value)
+{
+    Obj *o = *(Obj **)value;
+    cjson_t *item;
+
+    if (o != NULL) {
+        item = cjson_parse(o->to_json(o));
+        cjson_add_item_to_object(json, o->name, item);
+    }
+
+    return 0;
+}
+
+static struct obj_to_json_policy_s {
+    int (*policy)(cjson_t *json, char *name, void *value);
+} g_obj_to_json_policy[ENTRY_TYPE_MAX_TYPE] = {
+    [ENTRY_TYPE_INT8_T]      = {.policy = __to_json_int8_policy},
+    [ENTRY_TYPE_UINT8_T]     = {.policy = __to_json_uint8_policy},
+    [ENTRY_TYPE_INT16_T]     = {.policy = __to_json_int16_policy},
+    [ENTRY_TYPE_UINT16_T]    = {.policy = __to_json_uint16_policy},
+    [ENTRY_TYPE_INT32_T]     = {.policy = __to_json_int32_policy},
+    [ENTRY_TYPE_UINT32_T]    = {.policy = __to_json_uint32_policy},
+    [ENTRY_TYPE_FLOAT_T]     = {.policy = __to_json_float_policy},
+    [ENTRY_TYPE_STRING]      = {.policy = __to_json_string_policy},
+    [ENTRY_TYPE_SN32]        = {.policy = __to_json_sn32_policy},
+    [ENTRY_TYPE_VECTOR]      = {.policy = __to_json_vector_policy},
+    [ENTRY_TYPE_OBJ_POINTER] = {.policy = __to_json_object_pointer_policy},
+};
+
 static int __to_json__(void *obj, char *type_name, cjson_t *object) 
 {
     class_deamon_t *deamon;
     class_info_entry_t *entry;
     void *(*get)(void *obj, char *attrib) = NULL;
-    int len, i;
+    int i;
     cjson_t *item;
     void *value;
-    char *name;
-    double d;
     Obj *o = (Obj *)obj;
 
     deamon = class_deamon_get_global_class_deamon();
@@ -387,81 +502,23 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
                                        (char *)type_name);
 
     get = __object_get_func_of_class_recursively(entry, (char *)"get");
-
-    if (get == NULL) {
-        dbg_str(OBJ_WARNNING, "get func pointer is NULL");
-        return -1;
-    }
+    THROW_IF(get == NULL);
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
+        THROW_IF(entry[i].type > ENTRY_TYPE_MAX_TYPE);
         if (entry[i].type == ENTRY_TYPE_OBJ){
-            if (strcmp(entry[i].type_name, "Obj") == 0) {
-                continue;
-            }
+            CONTINUE_IF(strcmp(entry[i].type_name, "Obj") == 0);
             item = cjson_create_object();
             cjson_add_item_to_object(object, entry[i].type_name, item);
             dbg_str(DBG_DETAIL, "%s to json", entry[i].type_name);
             __to_json__(obj, entry[i].type_name, item);
-        } else if (entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
-                   entry[i].type == ENTRY_TYPE_VFUNC_POINTER || 
-                   entry[i].type == ENTRY_TYPE_IFUNC_POINTER) 
-        {
         } else {
+            CONTINUE_IF(g_obj_to_json_policy[entry[i].type].policy == NULL);
             strcpy(o->target_name, type_name);
 
             value = get(obj, entry[i].value_name);
-            /*
-             *if (value == NULL) continue;
-             */
-            name = entry[i].value_name;
-            if (    entry[i].type == ENTRY_TYPE_INT8_T || 
-                    entry[i].type == ENTRY_TYPE_UINT8_T)
-            {
-                cjson_add_number_to_object(object, name, *((char *)value));
-            } else if (entry[i].type == ENTRY_TYPE_INT16_T || 
-                       entry[i].type == ENTRY_TYPE_UINT16_T)
-            {
-                cjson_add_number_to_object(object, name, *((short *)value));
-            } else if (entry[i].type == ENTRY_TYPE_INT32_T ||
-                       entry[i].type == ENTRY_TYPE_UINT32_T) 
-            {
-                cjson_add_number_to_object(object, name, *((int *)value));
-            } else if (entry[i].type == ENTRY_TYPE_INT64_T || 
-                       entry[i].type == ENTRY_TYPE_UINT64_T)
-            {
-            } else if (entry[i].type == ENTRY_TYPE_FLOAT_T) {
-                cjson_add_number_to_object(object, name, *((float *)value));
-            } else if (entry[i].type == ENTRY_TYPE_STRING) {
-                String *s = *(String **)value;
-                if (s != NULL)
-                    cjson_add_string_to_object(object, name, s->value);
-            } else if (entry[i].type == ENTRY_TYPE_SN32) {
-                Number *number = *(Number **)value;
-                if (number == NULL) {
-                    dbg_str(DBG_WARNNING, "Number to json, but point is null, offset:%p", value);
-                    continue;
-                }
-                d = number->get_signed_int_value(number);
-                cjson_add_number_to_object(object, name, d);
-            } else if (entry[i].type == ENTRY_TYPE_VECTOR) {
-                Vector *v = *((Vector **)value);
-                if (v != NULL) {
-                    dbg_str(DBG_DETAIL, "Vector json: %s", v->to_json(v));
-                    item = cjson_parse(v->to_json(v));
-                    cjson_add_item_to_object(object, entry[i].value_name, item);
-                } else {
-                    dbg_str(DBG_WARNNING, "Vector to json, but content is null, offset:%p", value);
-                }
-            } else if (entry[i].type == ENTRY_TYPE_OBJ_POINTER) {
-                Obj *o = *(Obj **)value;
-                if (o != NULL) {
-                    item = cjson_parse(o->to_json(o));
-                    cjson_add_item_to_object(object, o->name, item);
-                }
-            } else {
-                dbg_str(OBJ_WARNNING, "type error, please check, type name :%s, entry name :%s, type =%d", 
-                        type_name, entry[i].type_name, entry[i].type);
-            }
+            CONTINUE_IF(value == NULL);
+            EXEC(g_obj_to_json_policy[entry[i].type].policy(object, entry[i].value_name, value));
         }
     }   
 
