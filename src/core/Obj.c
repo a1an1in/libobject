@@ -246,13 +246,18 @@ static int __set(Obj *obj, char *attrib, void *value)
     char **out = NULL;  
     int cnt;
     char *target_name;
+    int ret;
 
     cnt = compute_slash_count(attrib);
     if (cnt > 0 ) {
         out = allocator_mem_alloc(allocator, sizeof(char *) * cnt);
-        THROW_IF(out == NULL);
+        if (out == NULL) {
+            return -1;
+        }
         buf = allocator_mem_alloc(allocator, strlen(attrib));
-        THROW_IF(buf == NULL);
+        if (buf == NULL) {
+            return -1;
+        }
         strcpy(buf, attrib);
         str_split(buf, "/", out, &cnt);
         target_name = out[cnt - 2];
@@ -269,12 +274,17 @@ static int __set(Obj *obj, char *attrib, void *value)
         allocator_mem_free(allocator, buf);
 
     entry = __object_get_entry_of_class(info, attrib);
-    THROW_IF(entry == NULL);
-    THROW_IF(entry->type >= ENTRY_TYPE_MAX_TYPE ||
-             g_obj_set_policy[entry->type].policy == NULL); 
-    EXEC(g_obj_set_policy[entry->type].policy(obj, entry, value));
+    if (entry == NULL) {
+        return -1;
+    }
+    if (entry->type >= ENTRY_TYPE_MAX_TYPE ||
+        g_obj_set_policy[entry->type].policy == NULL) {
+        return -1;
+    } 
 
-    return 0;
+    ret = g_obj_set_policy[entry->type].policy(obj, entry, value);
+
+    return ret;
 }
 
 /**
@@ -494,6 +504,7 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
     cjson_t *item;
     void *value;
     Obj *o = (Obj *)obj;
+    int ret;
 
     deamon = class_deamon_get_global_class_deamon();
     entry  = (class_info_entry_t *)
@@ -501,23 +512,36 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
                                        (char *)type_name);
 
     get = __object_get_func_of_class_recursively(entry, (char *)"get");
-    THROW_IF(get == NULL);
+    if (get == NULL) {
+        return -1;
+    }
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        THROW_IF(entry[i].type > ENTRY_TYPE_MAX_TYPE);
+        if (entry[i].type > ENTRY_TYPE_MAX_TYPE) {
+            return -1;
+        }
         if (entry[i].type == ENTRY_TYPE_OBJ){
-            CONTINUE_IF(strcmp(entry[i].type_name, "Obj") == 0);
+            if (strcmp(entry[i].type_name, "Obj") == 0) {
+                continue;
+            }
             item = cjson_create_object();
             cjson_add_item_to_object(object, entry[i].type_name, item);
             dbg_str(DBG_DETAIL, "%s to json", entry[i].type_name);
             __to_json__(obj, entry[i].type_name, item);
         } else {
-            CONTINUE_IF(g_obj_to_json_policy[entry[i].type].policy == NULL);
+            if (g_obj_to_json_policy[entry[i].type].policy == NULL) {
+                continue;
+            }
             strcpy(o->target_name, type_name);
 
             value = get(obj, entry[i].value_name);
-            CONTINUE_IF(value == NULL);
-            EXEC(g_obj_to_json_policy[entry[i].type].policy(object, entry[i].value_name, value));
+            if (value == NULL) {
+                continue;
+            }
+            ret = g_obj_to_json_policy[entry[i].type].policy(object, entry[i].value_name, value);
+            if (ret < 0) {
+                return ret;
+            }
         }
     }   
 

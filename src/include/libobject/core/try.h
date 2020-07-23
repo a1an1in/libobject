@@ -27,6 +27,11 @@ enum {
 extern void exception_throw(int error_code, const char *func, const char *file, int line, const char *cause, ...);
 extern pthread_key_t try_key;
 
+#define ERROR_MESSAGE() frame.message
+#define ERROR_LINE() frame.line
+#define ERROR_FILE() extract_filename_in_macro(frame.file)
+#define ERROR_FUNC() frame.func
+
 #define THROW(e, cause, ...)  exception_throw(e, __func__, __FILE__, __LINE__, cause, ##__VA_ARGS__, NULL)
 
 #define EXEC(expression)                                                                         \
@@ -48,12 +53,6 @@ extern pthread_key_t try_key;
     if ((expression) == 1) {                                                                     \
         continue;                                                                                \
     }
-
-
-#define ERROR_MESSAGE() frame.message
-#define ERROR_LINE() frame.line
-#define ERROR_FILE() extract_filename_in_macro(frame.file)
-#define ERROR_FUNC() frame.func
 
 #define TRY                                                                                      \
     do {                                                                                         \
