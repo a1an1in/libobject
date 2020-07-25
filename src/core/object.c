@@ -684,7 +684,7 @@ int object_destroy(void *obj)
             goto end;
         }
 
-        dbg_str(OBJ_DETAIL, "obj destroy, add obj %s to cache", o->name);
+        dbg_str(OBJ_SUC, "obj destroy, add obj %s to cache", o->name);
 
         o->reset(o);
         list->add(list, o);

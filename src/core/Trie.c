@@ -43,8 +43,8 @@ static trie_node_t *__new_node(Trie *trie)
     }
     node->end = 0;
 
-    node->table = allocator_mem_alloc(allocator,
-                                      sizeof(void *) * trie->node_count);
+    node->table = allocator_mem_zalloc(allocator,
+                                       sizeof(void *) * trie->node_count);
     if (node->table == NULL) {
         dbg_str(DBG_ERROR, "trie new node table error");
         return NULL;
@@ -219,6 +219,7 @@ static int __delete(Trie *trie, char *word)
         if (ret > 1) {
             dbg_str(DBG_ERROR, "delete word, but delete %d node", ret);
         }
+        node->table[index] = NULL;
     }
 
     return --node->end;

@@ -41,28 +41,32 @@ static void * __new(Object_Chain *chain, char *class_name, char *data)
     allocator_t *allocator = ((Obj *)chain)->allocator;
     List *l = chain->list;
     Obj *o = NULL;
-    int ret = 0, assign_flag = 0;
+    int ret = 0;
+    int assign_flag = 0;
     char *init_data;
 
-    if (strcmp(class_name, "String") == 0 && data != NULL) {
-        init_data = data;
-        assign_flag = 1;
-        data = NULL;
+    TRY {
+        if (strcmp(class_name, "String") == 0 && data != NULL) {
+            init_data = data;
+            assign_flag = 1;
+            data = NULL;
+        }
+
+        THROW_IF((o = object_new(allocator, class_name, data)) == NULL, -1);
+
+        EXEC(l->add_back(l, o));
+
+        if (assign_flag) {
+            o->assign(o, init_data);
+        }
+
+        return o;
+    } CATCH (ret) {
+        EXEC_IF(o != NULL, object_destroy(o));
     }
+    ENDTRY;
 
-    o = object_new(allocator, class_name, data);
-    if (o == NULL) {
-        dbg_str(OBJ_ERROR, "get object, new class %s error", class_name);
-        return NULL;
-    }
-
-    l->add_back(l, o);
-
-    if (assign_flag) {
-        o->assign(o, init_data);
-    }
-
-    return o;
+    return NULL;
 }
 
 static class_info_entry_t object_chain_class_info[] = {

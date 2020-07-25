@@ -79,9 +79,6 @@ void __clear_cache_flag_in_object_list(void *object)
     Obj *o = (Obj *)object;
 
     o->cache = NULL;
-    /*
-     *object_destroy(object);
-     */
 }
 
 static int __deconstruct(Object_Cache *cache)
@@ -93,8 +90,7 @@ static int __deconstruct(Object_Cache *cache)
     object_destroy(object_list);
 }
 
-static void *
-__new(Object_Cache *cache, char *class_name, char *data)
+static void * __new(Object_Cache *cache, char *class_name, char *data)
 { 
     Map *map = cache->class_map;
     allocator_t *allocator = ((Obj *)cache)->allocator;
@@ -104,52 +100,53 @@ __new(Object_Cache *cache, char *class_name, char *data)
     int ret = 0, assign_flag = 0;
     char *init_data;
 
-    if (strcmp(class_name, "String") == 0 && data != NULL) {
-        init_data = data;
-        assign_flag = 1;
-        data = NULL;
-    }
-
-    ret = map->search(map, class_name, (void **)&list);
-    if (ret != 1) {
-        list = object_new(allocator, "Linked_List", NULL);
-        if (list == NULL) {
-            dbg_str(OBJ_ERROR, "get object, new list error");
-            return NULL;
+    TRY {
+        if (strcmp(class_name, "String") == 0 && data != NULL) {
+            init_data = data;
+            assign_flag = 1;
+            data = NULL;
         }
 
-        o = object_new(allocator, class_name, data);
-        if (o == NULL) {
-            dbg_str(OBJ_ERROR, "get object, new class %s error", class_name);
-            return NULL;
-        }
+        /* 
+         * for the class_name in parameter is temporay, which may be freed,
+         * so can't be map's key.
+         */
+        THROW_IF((class_name = class_deamon_search_class_name_addr(NULL, class_name)) == NULL, -1);
 
-        dbg_str(OBJ_DETAIL, "get object from cache, but cache hasn't %s class", class_name);
-        map->add(map, class_name, list);
-        object_list->add_back(object_list, o);
-        object_list->add_back(object_list, list);
-    } else {
-        if (list->is_empty(list)) {
-            o = object_new(allocator, class_name, data);
-            if (o == NULL) {
-                dbg_str(OBJ_ERROR, "get object, new class %s error", class_name);
-                return NULL;
-            }
-            dbg_str(OBJ_DETAIL, "get object from cache, but cache is null");
-            object_list->add_back(object_list, o);
+        ret = map->search(map, class_name, (void **)&list);
+        if (ret != 1) {
+            THROW_IF((list = object_new(allocator, "Linked_List", NULL)) == NULL, -1);
+            THROW_IF((o = object_new(allocator, class_name, data)) == NULL, -1);
+
+            EXEC(map->add(map, class_name, list));
+            EXEC(object_list->add_back(object_list, o));
+            EXEC(object_list->add_back(object_list, list));
+            dbg_str(OBJ_SUC, "get object from cache:%p, but cache hasn't %s class", cache, class_name);
         } else {
-            dbg_str(OBJ_SUC, "get object from cache");
-            list->remove(list, (void **)&o);
+            if (list->is_empty(list)) {
+                THROW_IF((o = object_new(allocator, class_name, data)) == NULL, -1);
+                object_list->add_back(object_list, o);
+                dbg_str(OBJ_DETAIL, "get object from cache, but cache is null");
+            } else {
+                list->remove(list, (void **)&o);
+                dbg_str(OBJ_SUC, "get object %s from cache:%p", class_name, cache);
+            }
         }
+
+        o->cache = cache;
+
+        if (assign_flag) {
+            o->assign(o, init_data);
+        }
+
+        return o;
+    } CATCH (ret) {
+        EXEC_IF(list != NULL, object_destroy(list));
+        EXEC_IF(o != NULL, object_destroy(o));
     }
+    ENDTRY;
 
-    o->cache = cache;
-
-    if (assign_flag) {
-        o->assign(o, init_data);
-    }
-
-    return o;
+    return NULL;
 }
 
 static class_info_entry_t object_cache_info[] = {

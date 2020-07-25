@@ -3,6 +3,7 @@
 
 #include <libobject/core/utils/sync_lock.h>
 #include <libobject/core/utils/alloc/allocator_ctr_alloc.h>
+#include <libobject/core/utils/backtrace.h>
 
 enum allocator_type{
     ALLOCATOR_TYPE_SYS_MALLOC = 0,
@@ -85,8 +86,20 @@ __allocator_mem_alloc(allocator_t * alloc,uint32_t size)
     ret =  __allocator_mem_alloc(alloc, size);\
     if (ret != NULL) {\
         char tmp[1024];\
+        get_backtrace(tmp, 1024);\
+        allocator_mem_tag(alloc,ret, tmp);\
+    }\
+    ret;\
+})
+
+#define allocator_mem_zalloc(alloc, size) ({\
+    void *ret = NULL;\
+    ret =  __allocator_mem_alloc(alloc, size);\
+    if (ret != NULL) {\
+        char tmp[1024];\
         sprintf(tmp, "%d:%s", __LINE__, extract_filename_in_macro(__FILE__));\
         allocator_mem_tag(alloc,ret, tmp);\
+        memset(ret, 0, size);\
     }\
     ret;\
 })

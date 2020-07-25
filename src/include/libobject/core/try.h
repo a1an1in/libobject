@@ -42,10 +42,17 @@ extern pthread_key_t try_key;
         }                                                                                        \
     } while (0);
 
-#define THROW_IF(condition)                                                                      \
+#define EXEC_IF(condition, expression)                                                           \
     do {                                                                                         \
         if (((condition)) == 1) {                                                                \
-            exception_throw(-1, __func__, __FILE__, __LINE__, #condition);                       \
+            (expression);                                                                        \
+        }                                                                                        \
+    } while (0);
+
+#define THROW_IF(condition, error_code)                                                          \
+    do {                                                                                         \
+        if (((condition)) == 1) {                                                                \
+            exception_throw(error_code, __func__, __FILE__, __LINE__, #condition);               \
         }                                                                                        \
     } while (0);
 
@@ -71,7 +78,9 @@ extern pthread_key_t try_key;
             }                                                                                    \
         } else if (frame.error_code < 0) {                                                       \
             exception_flag = EXCEPTION_HANDLED;                                                  \
-            e = frame.error_code;
+            e = frame.error_code;                                                                \
+            dbg_str(DBG_ERROR, "error_func:%s, error_file: %s, error_line:%d, error_code:%d",    \
+                    ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), e);
 
 #define FINALLY                                                                                  \
             if (exception_flag == EXCEPTION_ENTERED) {                                           \
