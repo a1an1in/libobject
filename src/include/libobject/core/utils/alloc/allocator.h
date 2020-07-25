@@ -49,6 +49,7 @@ void allocator_ctr_init(allocator_t * alloc,
                         uint32_t mempool_capacity);
 static inline void allocator_mem_tag(allocator_t * alloc,void *addr, void *tag);
 allocator_t * allocator_get_default_alloc();
+int allocator_save_upper_nlayer_name(allocator_t *allocator, int n, void *dst);
 
 #if 0
 
@@ -86,7 +87,7 @@ __allocator_mem_alloc(allocator_t * alloc,uint32_t size)
     ret =  __allocator_mem_alloc(alloc, size);\
     if (ret != NULL) {\
         char tmp[1024];\
-        get_backtrace(tmp, 1024);\
+        sprintf(tmp, "%d:%s", __LINE__, extract_filename_in_macro(__FILE__));\
         allocator_mem_tag(alloc,ret, tmp);\
     }\
     ret;\

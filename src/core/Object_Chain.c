@@ -59,14 +59,13 @@ static void * __new(Object_Chain *chain, char *class_name, char *data)
         if (assign_flag) {
             o->assign(o, init_data);
         }
-
-        return o;
-    } CATCH (ret) {
+    } CATCH {
         EXEC_IF(o != NULL, object_destroy(o));
+        o = NULL;
     }
     ENDTRY;
 
-    return NULL;
+    return o;
 }
 
 static class_info_entry_t object_chain_class_info[] = {

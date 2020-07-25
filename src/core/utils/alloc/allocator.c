@@ -26,10 +26,12 @@
  * 
  */
 #include <stdio.h>
+#include <execinfo.h>
 #include <libobject/attrib_priority.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/alloc/allocator.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/core/try.h>
 
 allocator_module_t allocator_modules[ALLOCATOR_TYPE_LAST];
 allocator_t *global_allocator_default;
@@ -74,6 +76,37 @@ void allocator_destroy(allocator_t * alloc)
         allocator_modules[allocator_type].alloc_ops.destroy(alloc);
     }
     free(alloc);
+}
+
+int allocator_save_upper_nlayer_name(allocator_t *allocator, int n, void *dst)
+{
+#define MAX_BACKTRACE_SIZE 10
+    int j, nptrs;
+    void *buffer[MAX_BACKTRACE_SIZE];
+    char **symbols;
+    char *pos;
+
+    nptrs = backtrace(buffer, MAX_BACKTRACE_SIZE);
+    symbols = backtrace_symbols(buffer, nptrs);
+    if (symbols == NULL) {
+        perror("backtrace_symbols");
+        return -1;
+    }
+
+    for (j = 0; j < nptrs; j++) {
+        CONTINUE_IF(j != n);
+        pos = strstr(symbols[n], "0x");
+        RETURN_IF(pos == NULL, -1);
+        pos = strstr(pos, " ");
+        RETURN_IF(pos == NULL, -1);
+        allocator_mem_tag(allocator, dst, pos);
+        break;
+    }
+
+    free(symbols);
+
+    return 0;
+#undef MAX_BACKTRACE_SIZE
 }
 
 allocator_t * allocator_get_default_alloc()

@@ -95,6 +95,7 @@ static void * __new(Object_Cache *cache, char *class_name, char *data)
     Map *map = cache->class_map;
     allocator_t *allocator = ((Obj *)cache)->allocator;
     List *list = NULL; //all same objects in one list;
+    List *new_list = NULL;
     List *object_list = cache->object_list;
     Obj *o = NULL;
     int ret = 0, assign_flag = 0;
@@ -115,20 +116,20 @@ static void * __new(Object_Cache *cache, char *class_name, char *data)
 
         ret = map->search(map, class_name, (void **)&list);
         if (ret != 1) {
-            THROW_IF((list = object_new(allocator, "Linked_List", NULL)) == NULL, -1);
+            THROW_IF((new_list = object_new(allocator, "Linked_List", NULL)) == NULL, -1);
             THROW_IF((o = object_new(allocator, class_name, data)) == NULL, -1);
 
-            EXEC(map->add(map, class_name, list));
+            EXEC(map->add(map, class_name, new_list));
             EXEC(object_list->add_back(object_list, o));
-            EXEC(object_list->add_back(object_list, list));
+            EXEC(object_list->add_back(object_list, new_list));
             dbg_str(OBJ_SUC, "get object from cache:%p, but cache hasn't %s class", cache, class_name);
         } else {
             if (list->is_empty(list)) {
                 THROW_IF((o = object_new(allocator, class_name, data)) == NULL, -1);
-                object_list->add_back(object_list, o);
+                EXEC(object_list->add_back(object_list, o));
                 dbg_str(OBJ_DETAIL, "get object from cache, but cache is null");
             } else {
-                list->remove(list, (void **)&o);
+                EXEC(list->remove(list, (void **)&o));
                 dbg_str(OBJ_SUC, "get object %s from cache:%p", class_name, cache);
             }
         }
@@ -138,15 +139,14 @@ static void * __new(Object_Cache *cache, char *class_name, char *data)
         if (assign_flag) {
             o->assign(o, init_data);
         }
-
-        return o;
-    } CATCH (ret) {
-        EXEC_IF(list != NULL, object_destroy(list));
+    } CATCH {
+        EXEC_IF(new_list != NULL, object_destroy(new_list));
         EXEC_IF(o != NULL, object_destroy(o));
+        o = NULL;
     }
     ENDTRY;
 
-    return NULL;
+    return o;
 }
 
 static class_info_entry_t object_cache_info[] = {

@@ -184,7 +184,7 @@ static void __test_insert_string(String_Test *test)
 
     string->assign(string, "@@@@@@@");
 
-    sub_str = OBJECT_NEW(allocator, String, NULL);
+    sub_str = object_new(allocator, "String", NULL);
     sub_str->assign(sub_str, "vvvvvvv");
 
     string->insert_string(string, 3, sub_str);
@@ -449,6 +449,7 @@ static void __test_rtrim(String_Test *test)
     string->rtrim(string);
 
     ret = ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
+
 }
 
 static class_info_entry_t string_test_class_info[] = {

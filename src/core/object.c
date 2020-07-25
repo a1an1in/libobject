@@ -348,6 +348,9 @@ void * object_new(allocator_t *allocator,
         dbg_str(OBJ_ERROR, "alloc mem failed");
         return NULL;
     } else {
+        /*
+         *allocator_save_upper_nlayer_name(allocator, 2, o);
+         */
         memset(o, 0, size);
         o->allocator = allocator;
         strcpy(o->name, type);
