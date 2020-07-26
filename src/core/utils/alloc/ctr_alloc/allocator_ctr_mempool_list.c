@@ -188,12 +188,15 @@ void *mempool_release_list(ctr_mempool_t *mempool)
 void mempool_destroy_lists(struct list_head *hl_head)
 {
     struct list_head *pos, *n;
+    ctr_mempool_head_list_t *head_list;
 
     dbg_str(ALLOC_DETAIL, "mempool_destroy_lists");
     list_for_each_safe(pos, n, hl_head) {
         dbg_str(ALLOC_DETAIL, "run at here");
         mempool_destroy_list(pos, hl_head);
     }
+    head_list = container_of(hl_head, ctr_mempool_head_list_t, list_head);
+    free(head_list);
 }
 
 #if 0
