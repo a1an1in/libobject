@@ -72,8 +72,8 @@ static int __construct(Map *map, char *init_str)
     rbm->rbmap = rbtree_map_alloc(allocator);
     rbtree_map_init(rbm->rbmap); 
 
-    map->b = OBJECT_NEW(allocator, RBTree_Iterator, NULL);
-    map->e = OBJECT_NEW(allocator, RBTree_Iterator, NULL);
+    map->b = object_new(allocator, "RBTree_Iterator", NULL);
+    map->e = object_new(allocator, "RBTree_Iterator", NULL);
 
     return 0;
 }

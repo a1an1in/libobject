@@ -46,11 +46,12 @@ static int __construct(Obj *obj, char *init_str)
 static int __deconstrcut(Obj *obj)
 {
     dbg_str(OBJ_DETAIL, "obj deconstruct, obj addr:%p", obj);
-    allocator_mem_free(obj->allocator, obj);
 
     if (obj->json != NULL) {
         object_destroy(obj->json);
     }
+
+    allocator_mem_free(obj->allocator, obj);
 
     return 0;
 }

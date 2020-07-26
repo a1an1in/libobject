@@ -45,8 +45,8 @@ static int __construct(Map *map, char *init_str)
 
     hash_map_init(h->hmap);
 
-    map->b = OBJECT_NEW(allocator, Hmap_Iterator, NULL);
-    map->e = OBJECT_NEW(allocator, Hmap_Iterator, NULL);
+    map->b = object_new(allocator, "Hmap_Iterator", NULL);
+    map->e = object_new(allocator, "Hmap_Iterator", NULL);
 
     return 0;
 }
