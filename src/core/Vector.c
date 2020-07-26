@@ -39,7 +39,7 @@
 static int __construct(Vector *vector, char *init_str)
 {
     allocator_t *allocator = vector->obj.allocator;
-    cjson_t *c;
+    cjson_t *c, *bak;
 
     dbg_str(OBJ_DETAIL, "vector construct, vector addr:%p", vector);
 
@@ -60,6 +60,7 @@ static int __construct(Vector *vector, char *init_str)
             vector->init_data->get_cstr(vector->init_data));
 
     c = cjson_parse(vector->init_data->get_cstr(vector->init_data));
+    bak = c;
     if (c->type & OBJECT_ARRAY) {
         c = c->child;
         dbg_str(DBG_DETAIL, "array name:%s", c->string);
@@ -93,7 +94,7 @@ static int __construct(Vector *vector, char *init_str)
         c = c->next;
     }
 
-    cjson_delete(c);
+    cjson_delete(bak);
 
     return 0;
 }

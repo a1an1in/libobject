@@ -121,7 +121,7 @@ int default_allocator_constructor()
     ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, construct default allocator\n",
                  REGISTRY_CTOR_PRIORITY_DEFAULT_ALLOCATOR);
 
-#if 1
+#if 0
     if((allocator = allocator_create(ALLOCATOR_TYPE_SYS_MALLOC, 0) ) == NULL){
         dbg_str(DBG_ERROR,"proxy_create allocator_creator err");
         exit(1);

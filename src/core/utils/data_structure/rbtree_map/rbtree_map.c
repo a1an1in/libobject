@@ -171,7 +171,7 @@ void *rbtree_map_pos_get_kpointer(rbtree_map_pos_t *it)
 {
     struct rbtree_map_node *mnode;
 
-    if (it->rb_node_p == NULL) return NULL;
+    if (it == NULL || it->rb_node_p == NULL) return NULL;
 
     mnode = rb_entry(it->rb_node_p, struct rbtree_map_node, node);
 
