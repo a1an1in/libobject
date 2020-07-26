@@ -322,7 +322,7 @@ static void *__get(Obj *obj, char *attrib)
             dbg_str(OBJ_WARNNING, "Obj set alloc err");
             return -1;
         }
-        buf = allocator_mem_alloc(allocator, strlen(attrib));
+        buf = allocator_mem_alloc(allocator, strlen(attrib) + 1);
         if (buf == NULL) {
             dbg_str(OBJ_WARNNING, "oss set alloc err");
             return -1;
@@ -380,6 +380,7 @@ static void *__get(Obj *obj, char *attrib)
         allocator_mem_free(allocator, out);
     if (buf != NULL)
         allocator_mem_free(allocator, buf);
+
     return addr;
 }
 

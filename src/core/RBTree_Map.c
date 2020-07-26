@@ -81,9 +81,9 @@ static int __construct(Map *map, char *init_str)
 static int __deconstrcut(Map *map)
 {
     dbg_str(RBTMAP_DETAIL, "hash map deconstruct, map addr:%p", map);
+    map->reset(map);
     object_destroy(map->b);
     object_destroy(map->e);
-    map->reset(map);
     rbtree_map_destroy(((RBTree_Map *)map)->rbmap);
 
     return 0;

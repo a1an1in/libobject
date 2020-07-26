@@ -55,9 +55,9 @@ static int __deconstruct(Map *map)
 {
     dbg_str(HMAP_DETAIL, "hash map deconstruct, map addr:%p", map);
 
+    map->reset(map);
     object_destroy(map->b);
     object_destroy(map->e);
-    map->reset(map);
     hash_map_destroy(((Hash_Map *)map)->hmap);
 
     return 0;
