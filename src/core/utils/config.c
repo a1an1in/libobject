@@ -14,6 +14,7 @@ int str_split(char *str, char *delim, char **out, int *cnt)
     while((p = strtok_r(str, delim, &ptr)) != NULL) {  
         *(out + index++) = p;
         str = NULL;  
+        if (ptr == NULL) break;
     }  
 
     return *cnt = index;

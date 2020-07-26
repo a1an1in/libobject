@@ -327,7 +327,6 @@ break_signal_cb(int fd, short event_res, void *arg)
     Event_Base* eb = (Event_Base*)event->ev_base;
 
     dbg_str(EV_IMPORTANT, "signal_cb, signal no:%d", event->ev_fd);
-    printf("xxxxxxxxxx signal_cb, signal no:%d", event->ev_fd);
     eb->break_flag = 1;
 }
 

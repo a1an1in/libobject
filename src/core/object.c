@@ -152,11 +152,12 @@ __object_get_entry_of_class(void *class_info, char *entry_name)
     class_info_entry_t *entry = (class_info_entry_t *)class_info;
     int i;
 
-    if (class_info == 0) {
+    if (class_info == NULL || entry_name == NULL) {
         return NULL;
     }
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
+        if (entry[i].value_name == NULL) continue;
         if (strcmp(entry[i].value_name, entry_name) == 0) {
             return &entry[i];
         }
@@ -357,8 +358,7 @@ void * object_new(allocator_t *allocator,
     }
 
     if (config != NULL && (strcmp(type, "String") == 0 ||
-                           strcmp(type, "Vector") == 0)) 
-    {
+        strcmp(type, "Vector") == 0)) {
         init_data = config;
         config = NULL;
         assign_flag = 1;

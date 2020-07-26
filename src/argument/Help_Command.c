@@ -13,16 +13,16 @@ static int __run_action(Command *command)
     int argc, i;
     char **argv;
 
-    dbg_str(ARG_DETAIL, "help command");
+    dbg_str(DBG_DETAIL, "help command");
 
     argc = command->argc;
     argv = command->argv;
 
     for (i = 0; i < argc; i++) {
-        dbg_str(ARG_DETAIL, "argv[%d]: %s", i, argv[i]);
+        dbg_str(DBG_DETAIL, "argv[%d]: %s", i, argv[i]);
     }
 
-    dbg_str(ARG_DETAIL, "help command end");
+    dbg_str(DBG_DETAIL, "help command end");
 
     return 1;
 }

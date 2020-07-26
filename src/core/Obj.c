@@ -254,7 +254,7 @@ static int __set(Obj *obj, char *attrib, void *value)
         if (out == NULL) {
             return -1;
         }
-        buf = allocator_mem_alloc(allocator, strlen(attrib));
+        buf = allocator_mem_alloc(allocator, strlen(attrib) + 1);
         if (buf == NULL) {
             return -1;
         }
