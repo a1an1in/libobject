@@ -192,6 +192,10 @@ static void __signal_list_for_each_callback(void *element)
 {
     event_t *event = (event_t *)element;
     event->ev_callback(event->ev_fd, 0, event->ev_arg);
+
+    if (!(event->ev_events & EV_PERSIST)) {
+        evsig_del(event->ev_base, event);
+    };
 }
 
 static int __activate_signal(Event_Base *eb, int fd, short events)
@@ -253,6 +257,9 @@ static int __loop(Event_Base *eb)
     struct timeval tv, *tv_p;
 
     set_break_signal(eb);
+    /*
+     *set_segment_signal(eb);
+     */
 
     while (eb->break_flag == 0) {
         tv_p = &tv;

@@ -347,8 +347,6 @@ rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it)
     struct rbtree_map_node *mnode;
     struct rb_root_s *tree_root = map->tree_root;
 
-    dbg_str(RBTMAP_DETAIL, "rbtree_map_search");
-
     sync_lock(&map->map_lock, NULL);
     mnode = __rbtree_map_search(map, tree_root, key);
     sync_unlock(&map->map_lock);

@@ -91,6 +91,7 @@ static int __is_testcase_in_white_list(Test_Runner *runner, char *testcase)
     for (i = 0; i < count; i++) {
         white_list->peek_at(white_list, i, (void **)&s);
         if (strcmp(testcase, s->get_cstr(s)) == 0) {
+            dbg_str(DBG_SUC,"testcase:%s, white_list:%s\n", testcase, s->get_cstr(s));
             ret = 1;
             break;
         } 
@@ -118,10 +119,9 @@ static int __start(Test_Runner *runner)
     map = deamon->map;
     map_end(map, &end);
 
-    for(	map_begin(map, &it), map_next(&it, &next); 
-            !map_equal(&it, &end);
-            it = next, map_next(&it, &next))
-    {
+    for (map_begin(map, &it), map_next(&it, &next); 
+         !map_equal(&it, &end);
+         it = next, map_next(&it, &next)) {
         key = map_get_key(&it);
 
         test_class = strstr(key, "_Test");
@@ -132,6 +132,9 @@ static int __start(Test_Runner *runner)
             runner->run_test(runner, key);
         }
     }
+    /*
+     *class_deamon_info(deamon);
+     */
 
     return 1;
 }
@@ -166,9 +169,8 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
     test = object_new(allocator, test_class_name, NULL);
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (    entry[i].type != ENTRY_TYPE_FUNC_POINTER && 
-                entry[i].type != ENTRY_TYPE_VFUNC_POINTER)
-        {
+        if (entry[i].type != ENTRY_TYPE_FUNC_POINTER && 
+            entry[i].type != ENTRY_TYPE_VFUNC_POINTER) {
             continue;
         }
 

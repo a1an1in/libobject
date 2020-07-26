@@ -49,5 +49,6 @@ int evsig_init(Event_Base *eb);
 int set_break_signal(Event_Base* eb);
 int evsig_release(Event_Base *eb);
 int evsig_socketpair(int fd[2]);
+int evsig_del(Event_Base *eb, event_t *event);
 
 #endif

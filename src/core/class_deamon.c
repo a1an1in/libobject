@@ -121,6 +121,7 @@ void * class_deamon_search_class(class_deamon_t *class_deamon, char *class_name)
     ret = map_search(class_deamon->map, class_name, &it);
     if (ret < 0) {
         dbg_str(OBJ_WARNNING, "class_deamon_search_method, not found %s", class_name);
+        print_backtrace();
         return NULL;
     }
 
@@ -148,6 +149,21 @@ void *class_deamon_search_class_name_addr(class_deamon_t *class_deamon, char *cl
     addr = (uint8_t *)map_get_key(&it);
 
     return addr;
+}
+
+int class_deamon_print_element(map_iterator_t *it)
+{
+    char *key;
+
+    key = (uint8_t *)map_get_key(it);
+    printf("%s\n", key);
+
+    return 1;
+}
+
+int class_deamon_info(class_deamon_t *class_deamon)
+{
+    return map_for_each(class_deamon->map, class_deamon_print_element);
 }
 
 class_deamon_t *class_deamon_get_global_class_deamon()

@@ -234,7 +234,7 @@ static int __test_split_case1(String_Test *test)
     cnt = str->split(str, "://", 1);
 
     dbg_str(DBG_ERROR, "split count=%d", cnt);
-    for (i = 0; i <= cnt; i++) {
+    for (i = 0; i < cnt; i++) {
         p = str->get_splited_cstr(str, i);
         if (p != NULL) {
             dbg_str(DBG_SUC, "%d:%s", i, p);
@@ -269,7 +269,7 @@ static int __test_split_case2(String_Test *test)
 
     cnt = str->split(str, "/", 1);
 
-    for (i = 0; i <= cnt; i++) {
+    for (i = 0; i < cnt; i++) {
         p = str->get_splited_cstr(str, i);
         if (p != NULL) {
             dbg_str(DBG_SUC, "%d:%s", i, p);

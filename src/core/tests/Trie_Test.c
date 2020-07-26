@@ -126,4 +126,6 @@ static class_info_entry_t trie_test_class_info[] = {
     Init_Vfunc_Entry(10, Trie_Test, test_delete, __test_delete),
     Init_End___Entry(11, Trie_Test),
 };
-REGISTER_CLASS("Trie_Test", trie_test_class_info);
+/*
+ *REGISTER_CLASS("Trie_Test", trie_test_class_info);
+ */

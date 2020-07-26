@@ -119,7 +119,7 @@ static inline void * map_get_key(map_iterator_t *it)
     return it->map->it_ops->map_get_key(it);
 }
 
-static inline void 
+static inline int 
 map_for_each(map_t *map,void (*func)(map_iterator_t *it))
 {
 	map_iterator_t it,next,end;
@@ -130,6 +130,8 @@ map_for_each(map_t *map,void (*func)(map_iterator_t *it))
 			it = next,map_next(&it,&next)){
 		func(&it);
 	}
+
+    return 1;
 }
 
 #endif

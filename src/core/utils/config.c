@@ -9,11 +9,11 @@
 int str_split(char *str, char *delim, char **out, int *cnt) 
 {
     int index = 0;
-    char *ptr = NULL;
+    char *p, *ptr = NULL;
 
-    while((*(out + index) = strtok_r(str, delim, &ptr)) != NULL) {  
+    while((p = strtok_r(str, delim, &ptr)) != NULL) {  
+        *(out + index++) = p;
         str = NULL;  
-        index++;
     }  
 
     return *cnt = index;
@@ -240,3 +240,25 @@ int test_cfg_config_num(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_CMD(test_cfg_config_num);
+
+int test_str_split(TEST_ENTRY *entry)
+{
+    int ret = 0;
+    char str[14] = "/Command/name";
+    int cnt;
+    char **out;
+
+    cnt = compute_slash_count(str);
+    out = malloc(sizeof(char *) * (cnt + 1));
+    str_split(str, "/", out, &cnt);
+    for (int i = 0; i < cnt; i++) {
+        printf("out[%d]:%s\n", i, out[i]);
+    }
+
+    if (cnt == 2) {
+        ret = 1;
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_str_split);

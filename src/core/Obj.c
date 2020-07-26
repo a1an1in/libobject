@@ -250,7 +250,7 @@ static int __set(Obj *obj, char *attrib, void *value)
 
     cnt = compute_slash_count(attrib);
     if (cnt > 0 ) {
-        out = allocator_mem_alloc(allocator, sizeof(char *) * cnt);
+        out = allocator_mem_alloc(allocator, sizeof(char *) * (cnt));
         if (out == NULL) {
             return -1;
         }

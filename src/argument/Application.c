@@ -20,6 +20,7 @@ static int __construct(Application *app, char *init_str)
 {
     Command *command = (Command *)app;
     command->set(command, "/Command/name", "main");
+
     return 0;
 }
 
@@ -35,33 +36,38 @@ static int __run(Application *app, int argc, char *argv[])
     Command *command = (Command *)app;
     Command *selected_subcommand;
     Command *default_subcommand;
+    int ret = 0;
 
+    TRY {
+        for (i = 0; i < app_command_count; i++) {
+            app->add_subcommand(app, app_commands[i]);
+        }
 
-    for (i = 0; i < app_command_count; i++) {
-        app->add_subcommand(app, app_commands[i]);
+        command->set_args(command, argc, (char **)argv);
+        command->parse_args(command);
+
+        default_subcommand = app->get_subcommand(app, "help");
+
+        selected_subcommand = command->selected_subcommand;
+        if (selected_subcommand == NULL) {
+            selected_subcommand = default_subcommand;
+        }
+
+        if (selected_subcommand->run_option_actions != NULL) {
+            selected_subcommand->run_option_actions(selected_subcommand);
+        }
+        if (selected_subcommand->run_argument_actions != NULL) {
+            selected_subcommand->run_argument_actions(selected_subcommand);
+        }
+        if (selected_subcommand->run_action != NULL) {
+            selected_subcommand->run_action(selected_subcommand);
+        }
+    } CATCH {
+        ret = -1;
     }
+    ENDTRY;
 
-    command->set_args(command, argc, (char **)argv);
-    command->parse_args(command);
-
-    default_subcommand = app->get_subcommand(app, "help");
-
-    selected_subcommand = command->selected_subcommand;
-    if (selected_subcommand == NULL) {
-        selected_subcommand = default_subcommand;
-    }
-
-    if (selected_subcommand->run_option_actions != NULL) {
-        selected_subcommand->run_option_actions(selected_subcommand);
-    }
-    if (selected_subcommand->run_argument_actions != NULL) {
-        selected_subcommand->run_argument_actions(selected_subcommand);
-    }
-    if (selected_subcommand->run_action != NULL) {
-        selected_subcommand->run_action(selected_subcommand);
-    }
-
-    return 0;
+    return ret;
 }
 
 static class_info_entry_t application_class_info[] = {
@@ -90,13 +96,17 @@ int app(int argc, char *argv[])
     libobject_init();
     exception_init();
 
-    app = object_new(NULL, "Application", NULL);
-
     TRY {
+        app = object_new(NULL, "Application", NULL);
         app->run(app, argc, argv);
+
+        /*
+         *class_deamon_t *deamon;
+         *deamon = class_deamon_get_global_class_deamon();
+         *class_deamon_info(deamon);
+         */
+
     } CATCH {
-        dbg_str(ARG_ERROR, "app run errorno: %d, error_func:%s, error_file: %s, error_line:%d",
-                ret, ERROR_FUNC(), ERROR_FILE(), ERROR_LINE());
         ret = -1;
     } FINALLY {
         dbg_str(ARG_SUC, "exit app!");

@@ -25,13 +25,12 @@ static int test_try_catch1(TEST_ENTRY *enTRY, void *argc, void *argv)
         TRY {
             THROW(-1, "recall B");
         } CATCH {
-            printf("CATCH %d at level2\n", ret);
         }
         ENDTRY;
         printf("throw -2\n");
         THROW(-2, NULL);
     } CATCH {
-        if (ret == -2) ret = 1;
+        if (ERROR_CODE() == -2) ret = 1;
         else ret = 0;
         printf("CATCH %d at level1\n", ret);
     }

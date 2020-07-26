@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libobject/core/utils/registry/reg_heap.h>
+#include <libobject/core/try.h>
 
 reg_heap_t *global_ctors_reg_heap = NULL;
 
@@ -159,27 +160,22 @@ int execute_ctor_funcs()
     reg_heap_t * reg_heap = get_global_ctors_reg_heap();
 
     size = reg_heap_size(reg_heap);
-    for(i=0; i< size; i++){
+    for(i = 0; i< size; i++){
         reg_heap_remove(reg_heap, (void **)&element);
-
-        /*
-         *printf("%d ", element->level);
-         */
 
         if (element->args_count == 0) {
             element->func();
-            free(element);
         } else if (element->args_count == 1) {
             element->func1(element->arg1);
-            free(element);
         } else if (element->args_count == 2) {
             element->func2(element->arg1, element->arg2);
-            free(element);
         }else if (element->args_count == 3) {
             element->func3(element->arg1, element->arg2, element->arg3);
-            free(element);
         } else {
+            continue;
         }
+        free(element);
+        element = NULL;
     }
 
     reg_heap_destroy(reg_heap);

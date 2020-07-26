@@ -327,6 +327,7 @@ break_signal_cb(int fd, short event_res, void *arg)
     Event_Base* eb = (Event_Base*)event->ev_base;
 
     dbg_str(EV_IMPORTANT, "signal_cb, signal no:%d", event->ev_fd);
+    printf("xxxxxxxxxx signal_cb, signal no:%d", event->ev_fd);
     eb->break_flag = 1;
 }
 
@@ -339,6 +340,31 @@ int set_break_signal(Event_Base* eb)
     ev->ev_timeout.tv_sec  = 0;
     ev->ev_timeout.tv_usec = 0;
     ev->ev_callback        = break_signal_cb;
+    ev->ev_base            = eb;
+    ev->ev_arg             = ev;
+
+    dbg_str(EV_IMPORTANT,"set_break_signal, fd=%d, ev_callback=%p, break_flag=%d",
+            ev->ev_fd, ev->ev_callback,  eb->break_flag);
+
+    eb->add(eb, ev);
+
+    return (0);
+}
+
+static void
+segment_signal_cb(int fd, short event_res, void *arg)
+{
+    print_backtrace();
+}
+int set_segment_signal(Event_Base* eb)
+{
+    struct event *ev = &eb->break_event;
+
+    ev->ev_fd              = SIGSEGV;
+    ev->ev_events          = EV_SIGNAL;
+    ev->ev_timeout.tv_sec  = 0;
+    ev->ev_timeout.tv_usec = 0;
+    ev->ev_callback        = segment_signal_cb;
     ev->ev_base            = eb;
     ev->ev_arg             = ev;
 

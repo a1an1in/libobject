@@ -23,7 +23,7 @@ typedef struct allocator{
     uint32_t alloc_count;
     sync_lock_t head_lock;    
 #	undef COTAINOR_NAME_MAX_LEN
-}allocator_t;
+} allocator_t;
 
 struct allocator_operations{
     int (*init)(allocator_t *alloc);
@@ -37,7 +37,7 @@ struct allocator_operations{
 typedef struct allocator_module{
     uint8_t allocator_type;
     struct allocator_operations alloc_ops;
-}allocator_module_t;
+} allocator_module_t;
 
 extern allocator_module_t allocator_modules[ALLOCATOR_TYPE_LAST];
 

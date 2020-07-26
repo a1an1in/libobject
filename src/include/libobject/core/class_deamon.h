@@ -34,4 +34,5 @@ int class_deamon_register_class(class_deamon_t *class_deamon,
 void *class_deamon_search_class(class_deamon_t *class_deamon, char *class_name);
 void *class_deamon_search_class_name_addr(class_deamon_t *class_deamon, char *class_name);
 class_deamon_t *class_deamon_get_global_class_deamon();
+int class_deamon_info(class_deamon_t *class_deamon);
 #endif
