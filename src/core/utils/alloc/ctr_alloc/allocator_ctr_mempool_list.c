@@ -95,23 +95,6 @@ void mempool_detach_list(struct list_head *del_head, struct list_head *hl_head)
     dbg_str(ALLOC_DETAIL, "del_mempool list, list count =%d", head_list->count);
 }
 
-void mempool_destroy_list(struct list_head *del_head, struct list_head *hl_head)
-{
-    ctr_mempool_head_list_t *head_list;
-    ctr_mempool_t *mempool_list;
-
-    dbg_str(ALLOC_DETAIL, "mempool_detach_list");
-    head_list = container_of(hl_head, ctr_mempool_head_list_t, list_head);
-    sync_lock(&head_list->head_lock, NULL);
-    list_del(del_head);
-    head_list->count--;
-    mempool_list = container_of(del_head, ctr_mempool_t, list_head);
-    mempool_release_list(mempool_list); 
-    sync_unlock(&head_list->head_lock);
-
-    dbg_str(ALLOC_DETAIL, "del_mempool list, list count =%d", head_list->count);
-}
-
 void mempool_print_head_list(struct list_head *hl_head)
 {
     ctr_mempool_head_list_t *head_list;
@@ -184,6 +167,23 @@ void *mempool_release_list(ctr_mempool_t *mempool)
     free(mempool);
 }
 
+void mempool_destroy_list(struct list_head *del_head, struct list_head *hl_head)
+{
+    ctr_mempool_head_list_t *head_list;
+    ctr_mempool_t *mempool_list;
+
+    dbg_str(ALLOC_DETAIL, "mempool_detach_list");
+    head_list = container_of(hl_head, ctr_mempool_head_list_t, list_head);
+    sync_lock(&head_list->head_lock, NULL);
+    list_del(del_head);
+    head_list->count--;
+    mempool_list = container_of(del_head, ctr_mempool_t, list_head);
+    mempool_release_list(mempool_list); 
+    sync_unlock(&head_list->head_lock);
+
+    dbg_str(ALLOC_DETAIL, "del_mempool list, list count =%d", head_list->count);
+}
+
 //not release lock
 void mempool_destroy_lists(struct list_head *hl_head)
 {
@@ -192,7 +192,6 @@ void mempool_destroy_lists(struct list_head *hl_head)
 
     dbg_str(ALLOC_DETAIL, "mempool_destroy_lists");
     list_for_each_safe(pos, n, hl_head) {
-        dbg_str(ALLOC_DETAIL, "run at here");
         mempool_destroy_list(pos, hl_head);
     }
     head_list = container_of(hl_head, ctr_mempool_head_list_t, list_head);
@@ -201,7 +200,7 @@ void mempool_destroy_lists(struct list_head *hl_head)
 
 #if 0
 
-uint32_t get_real_alloc_mem_size(allocator_t *allocator, uint32_t size)
+uint32_t mempool_get_real_alloc_mem_size(allocator_t *allocator, uint32_t size)
 {
     int data_min_size = allocator->priv.ctr_alloc.data_min_size;
 
@@ -210,7 +209,7 @@ uint32_t get_real_alloc_mem_size(allocator_t *allocator, uint32_t size)
 
 #else
 
-uint32_t get_real_alloc_mem_size(allocator_t *allocator, uint32_t size)
+uint32_t mempool_get_real_alloc_mem_size(allocator_t *allocator, uint32_t size)
 {
     int data_min_size = allocator->priv.ctr_alloc.data_min_size;
     int index;
@@ -237,7 +236,7 @@ mempool_find_appropriate_pool(allocator_t *allocator, uint32_t size)
     list_for_each_safe(pos, n, hl_head) {
         mempool_list = container_of(pos, ctr_mempool_t, list_head);
         if (mempool_list->depth >= 
-                get_real_alloc_mem_size(allocator, size) + sizeof(ctr_slab_t))
+                mempool_get_real_alloc_mem_size(allocator, size) + sizeof(ctr_slab_t))
         {
             dbg_str(ALLOC_DETAIL, "find an appropriate_pool, mempool_list->depth=%d",
                     mempool_list->depth);
@@ -277,7 +276,7 @@ mempool_alloc_slab_list(allocator_t *allocator, uint32_t size)
     }
 
     slab_list            = mempool_list->start + mempool_list->size - mempool_list->depth;
-    slab_list->size      = get_real_alloc_mem_size(allocator, size);
+    slab_list->size      = mempool_get_real_alloc_mem_size(allocator, size);
     slab_list->data_size = size;
     slab_list->mem_addr  = &slab_list->data[0];
     slab_list->stat_flag = 1;
