@@ -253,11 +253,13 @@ static int __set(Obj *obj, char *attrib, void *value)
     if (cnt > 0 ) {
         out = allocator_mem_alloc(allocator, sizeof(char *) * (cnt));
         if (out == NULL) {
-            return -1;
+            ret = -1;
+            goto end;
         }
         buf = allocator_mem_alloc(allocator, strlen(attrib) + 1);
         if (buf == NULL) {
-            return -1;
+            ret = -1;
+            goto end;
         }
         strcpy(buf, attrib);
         str_split(buf, "/", out, &cnt);
@@ -269,21 +271,24 @@ static int __set(Obj *obj, char *attrib, void *value)
 
     deamon = class_deamon_get_global_class_deamon();
     info = (class_info_entry_t *) class_deamon_search_class(deamon, target_name);
+    entry = __object_get_entry_of_class(info, attrib);
+    if (entry == NULL) {
+        ret = -1;
+        goto end;
+    }
+    if (entry->type >= ENTRY_TYPE_MAX_TYPE ||
+        g_obj_set_policy[entry->type].policy == NULL) {
+        ret = -1;
+        goto end;
+    } 
+
+    ret = g_obj_set_policy[entry->type].policy(obj, entry, value);
+
+end:
     if (out != NULL)
         allocator_mem_free(allocator, out);
     if (buf != NULL)
         allocator_mem_free(allocator, buf);
-
-    entry = __object_get_entry_of_class(info, attrib);
-    if (entry == NULL) {
-        return -1;
-    }
-    if (entry->type >= ENTRY_TYPE_MAX_TYPE ||
-        g_obj_set_policy[entry->type].policy == NULL) {
-        return -1;
-    } 
-
-    ret = g_obj_set_policy[entry->type].policy(obj, entry, value);
 
     return ret;
 }
