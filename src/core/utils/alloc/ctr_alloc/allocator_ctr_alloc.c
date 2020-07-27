@@ -82,7 +82,7 @@ static int __init(allocator_t *allocator)
         dbg_str(ALLOC_ERROR, "__init");
         return -1;
     } else {
-        ctr_alloc->used_slabs = free_slabs;
+        ctr_alloc->free_slabs = free_slabs;
     }
 
     used_slabs = (struct list_head **)malloc(slab_array_max_num * sizeof(int *));
@@ -90,7 +90,7 @@ static int __init(allocator_t *allocator)
         dbg_str(ALLOC_ERROR, "__init");
         return -1;
     } else {
-        ctr_alloc->free_slabs = used_slabs;
+        ctr_alloc->used_slabs = used_slabs;
     }
 
     dbg_str(ALLOC_DETAIL, "lock_type=%d", lock_type);
