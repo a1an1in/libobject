@@ -70,7 +70,7 @@ vector_copy_backward(vector_t *vector, vector_pos_t *to,
                vector_head + from_pos * step, num_per * step);
     }
 
-    return 0;
+    return 1;
 }
 
 int 
@@ -98,7 +98,7 @@ vector_copy_forward(vector_t *vector, vector_pos_t *to,
         count    -= num_per;
     }
 
-    return 0;
+    return 1;
 }
 
 int vector_copy(vector_t *vector, vector_pos_t *to, vector_pos_t *from, uint32_t count)
@@ -113,7 +113,7 @@ int vector_copy(vector_t *vector, vector_pos_t *to, vector_pos_t *from, uint32_t
         vector_copy_backward(vector, to, from, count);
     }
 
-    return 0;
+    return 1;
 }
 
 vector_t *vector_create(allocator_t *allocator, uint8_t lock_type)
@@ -151,7 +151,7 @@ int vector_init(vector_t *vector, uint32_t data_size, uint32_t capacity)
     vector_pos_init(&vector->end, 0, vector);
     sync_lock_init(&vector->vector_lock, vector->lock_type);
 
-    return 0;
+    return 1;
 }
 
 int vector_add(vector_t *vector, vector_pos_t *it, void *data)
@@ -173,10 +173,10 @@ int vector_add(vector_t *vector, vector_pos_t *it, void *data)
     vector_copy(vector, &to, it, count);
     vector_head[insert_pos] = data;
     vector_pos_init(&vector->end, end_pos + 1, vector);
-    vector->count+=1;
+    vector->count += 1;
     sync_unlock(&vector->vector_lock);
 
-    return 0;
+    return 1;
 }
 
 int vector_add_at(vector_t *vector, int index, void *data)
@@ -195,7 +195,7 @@ int vector_add_at(vector_t *vector, int index, void *data)
     if (set_pos + 1 > end_pos) {
         vector_pos_init(&vector->end, set_pos + 1, vector);
     }
-    vector->count+=1;
+    vector->count += 1;
     sync_unlock(&vector->vector_lock);
 
     return ret;
@@ -204,7 +204,7 @@ int vector_add_at(vector_t *vector, int index, void *data)
 int vector_add_front(vector_t *vector, void *data)
 {
     dbg_str(VECTOR_WARNNING, "not support vector_add_front");
-    return 0;
+    return 1;
 }
 
 int vector_add_back(vector_t *vector, void *data)
@@ -242,7 +242,7 @@ int vector_add_back(vector_t *vector, void *data)
     dbg_str(VECTOR_DETAIL, "vector_add_back, push_pos=%d, capacity=%d, count=%d", 
             push_pos - 1, vector->capacity, vector->count);
 
-    return 0;
+    return 1;
 }
 
 int vector_delete(vector_t *vector, vector_pos_t *it)
@@ -267,10 +267,10 @@ int vector_delete(vector_t *vector, vector_pos_t *it)
         vector_copy(vector, it, &from, count);
         vector_pos_init(&vector->end, end_pos - 1, vector);
     }
-    vector->count-=1;
+    vector->count -= 1;
     sync_unlock(&vector->vector_lock);
 
-    return 0;
+    return 1;
 }
 
 int vector_delete_front(vector_t *vector)
@@ -291,10 +291,10 @@ int vector_delete_back(vector_t *vector)
     } else {
         dbg_str(VECTOR_WARNNING, "vector is NULL");
     }
-    vector->count-=1;
+    vector->count -= 1;
     sync_unlock(&vector->vector_lock);
 
-    return 0;
+    return 1;
 }
 
 int vector_remove(vector_t *vector, int index, void **element)
@@ -314,8 +314,7 @@ int vector_remove(vector_t *vector, int index, void **element)
     if (vector_pos_equal(&it, &vector->end)) {
         dbg_str(VECTOR_WARNNING, "can't del end pos");
     } else if (vector_pos_equal(&it, &vector->begin)&&
-               vector_pos_equal(&from, &vector->end))
-    {
+               vector_pos_equal(&from, &vector->end)) {
         *element = vector_head[remove_pos];
     } else if (element != NULL) {
         *element = vector_head[remove_pos];
@@ -325,10 +324,10 @@ int vector_remove(vector_t *vector, int index, void **element)
         vector_copy(vector, &it, &from, count);
         vector_pos_init(&vector->end, end_pos - 1, vector);
     }
-    vector->count-=1;
+    vector->count -= 1;
     sync_unlock(&vector->vector_lock);
 
-    return 0;
+    return 1;
 }
 
 int vector_remove_back(vector_t *vector, void **element)
@@ -355,10 +354,10 @@ int vector_remove_back(vector_t *vector, void **element)
         vector_copy(vector, &it, &from, count);
         vector_pos_init(&vector->end, end_pos - 1, vector);
     }
-    vector->count-=1;;
+    vector->count -= 1;
     sync_unlock(&vector->vector_lock);
 
-    return 0;
+    return 1;
 }
 
 int vector_peek_at(vector_t *vector, int index, void **element)
@@ -371,7 +370,7 @@ int vector_peek_at(vector_t *vector, int index, void **element)
     sync_unlock(&vector->vector_lock);
     dbg_str(VECTOR_DETAIL, "peek at index=%d, element =%p", index, *element);
 
-    return 0;
+    return 1;
 }
 
 int vector_destroy(vector_t *vector)
@@ -381,6 +380,8 @@ int vector_destroy(vector_t *vector)
     sync_lock_destroy(&vector->vector_lock);
     allocator_mem_free(vector->allocator, vector->vector_head);
     allocator_mem_free(vector->allocator, vector);
+
+    return 1;
 }
 
 struct test{

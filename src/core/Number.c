@@ -10,12 +10,12 @@
 
 static int __construct(Number *number, char *init_str)
 {
-    return 0;
+    return 1;
 }
 
 static int __deconstruct(Number *number)
 {
-    return 0;
+    return 1;
 }
 
 static int 

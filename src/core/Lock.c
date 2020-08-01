@@ -42,7 +42,7 @@ static int __construct(Lock *lock, char *init_str)
 
     dbg_str(DBG_DETAIL, "lock construct, lock addr:%p", lock);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(Lock *lock)
@@ -51,7 +51,7 @@ static int __deconstrcut(Lock *lock)
     int ret;
     void *tret;
 
-    return 0;
+    return 1;
 }
 
 static class_info_entry_t lock_class_info[] = {

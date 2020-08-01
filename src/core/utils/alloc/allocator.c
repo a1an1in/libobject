@@ -105,7 +105,7 @@ int allocator_save_upper_nlayer_name(allocator_t *allocator, int n, void *dst)
 
     free(symbols);
 
-    return 0;
+    return 1;
 #undef MAX_BACKTRACE_SIZE
 }
 
@@ -121,18 +121,18 @@ int default_allocator_constructor()
     ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, construct default allocator\n",
                  REGISTRY_CTOR_PRIORITY_DEFAULT_ALLOCATOR);
 
-#if 0
+#if 1
     if((allocator = allocator_create(ALLOCATOR_TYPE_SYS_MALLOC, 0) ) == NULL){
         dbg_str(DBG_ERROR,"proxy_create allocator_creator err");
         exit(1);
     }
 #else 
-    allocator = allocator_create(ALLOCATOR_TYPE_CTR_MALLOC,1);
+    allocator = allocator_create(ALLOCATOR_TYPE_CTR_MALLOC, 1);
     allocator_ctr_init(allocator, 0, 8, 0);
 #endif
     global_allocator_default = allocator;
 
-    return 0;
+    return 1;
 }
 REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_DEFAULT_ALLOCATOR, 
                    default_allocator_constructor);
@@ -156,7 +156,7 @@ int default_allocator_destructor()
 
     allocator_destroy(allocator);
 
-    return 0;
+    return 1;
 }
 REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_DEFAULT_ALLOCATOR,
                    default_allocator_destructor);

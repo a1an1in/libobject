@@ -86,7 +86,7 @@ static int __deconstrcut(Map *map)
     object_destroy(map->e);
     rbtree_map_destroy(((RBTree_Map *)map)->rbmap);
 
-    return 0;
+    return 1;
 }
 
 static int __set_cmp_func(Map *map, void *func)
@@ -94,7 +94,7 @@ static int __set_cmp_func(Map *map, void *func)
     RBTree_Map *rbmap = (RBTree_Map *)map;
 
     rbtree_map_set(rbmap->rbmap, "key_cmp_func", func);
-    return 0;
+    return 1;
 }
 
 static int __add(Map *map, void *key, void *value)
@@ -164,11 +164,12 @@ static int __remove(Map *map, void *key, void **element)
     dbg_str(RBTMAP_IMPORTANT, "Rbtree Map remove");
 
     ret = rbtree_map_search(((RBTree_Map *)map)->rbmap, key, &pos);
-    if (ret == 1) {
-        ret = rbtree_map_remove(((RBTree_Map *)map)->rbmap, &pos, element);
-    } else {
+    if (ret != 1) {
         dbg_str(RBTMAP_WARNNING, "map remove, not found key :%s", key);
+        return ret;
     }
+
+    ret = rbtree_map_remove(((RBTree_Map *)map)->rbmap, &pos, element);
 
     return ret;
 }
@@ -180,9 +181,11 @@ static int __del(Map *map, void *key)
     dbg_str(RBTMAP_DETAIL, "Rbtree Map del");
 
     ret = rbtree_map_search(((RBTree_Map *)map)->rbmap, key, &pos);
-    if (ret == 1) {
-        ret = rbtree_map_delete(((RBTree_Map *)map)->rbmap, &pos);
+    if (ret != 1) {
+        return ret;
     }
+
+    ret = rbtree_map_delete(((RBTree_Map *)map)->rbmap, &pos);
 
     return ret;
 }

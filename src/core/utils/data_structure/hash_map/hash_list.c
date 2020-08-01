@@ -136,7 +136,7 @@ int hash_map_init(hash_map_t *hmap)
 
     sync_lock_init(&map->map_lock, map->lock_type);
     
-    return 0;
+    return 1;
 }
 
 int hash_map_insert(hash_map_t *hmap, void *key, void *value)
@@ -252,7 +252,7 @@ int hash_map_delete(hash_map_t *hmap, hash_map_pos_t *pos)
         mnode = NULL;
     }
 
-    return 0;
+    return 1;
 }
 
 int hash_map_remove(hash_map_t *hmap, hash_map_pos_t *pos, void **data)
@@ -287,32 +287,31 @@ int hash_map_remove(hash_map_t *hmap, hash_map_pos_t *pos, void **data)
         mnode = NULL;
     }
 
-    return 0;
+    return 1;
 }
 
 int hash_map_destroy(hash_map_t *hmap)
 {
-     hash_map_pos_t it;
+    hash_map_pos_t it;
 
-     dbg_str(HMAP_DETAIL, "hash_map_destroy");
+    dbg_str(HMAP_DETAIL, "hash_map_destroy");
 
-     for(    hash_map_begin(hmap, &it);
-             !hash_map_pos_equal(&it, &hmap->end);
-             hash_map_begin(hmap, &it))
-     {
-         dbg_str(HMAP_DETAIL, "destroy node:%p", it.hlist_node_p);
-         hash_map_delete(hmap, &it);
-     }
+    for(hash_map_begin(hmap, &it);
+        !hash_map_pos_equal(&it, &hmap->end);
+        hash_map_begin(hmap, &it)) {
+        dbg_str(HMAP_DETAIL, "destroy node:%p", it.hlist_node_p);
+        hash_map_delete(hmap, &it);
+    }
 
-     if (hash_map_pos_equal(&hmap->end, &it)) {
-         dbg_str(HMAP_IMPORTANT, "hash_map_destroy, hash_map is NULL");
-         sync_lock_destroy(&hmap->map_lock);
-         allocator_mem_free(hmap->allocator, hmap->hlist);
-     }
+    if (hash_map_pos_equal(&hmap->end, &it)) {
+        dbg_str(HMAP_IMPORTANT, "hash_map_destroy, hash_map is NULL");
+        sync_lock_destroy(&hmap->map_lock);
+        allocator_mem_free(hmap->allocator, hmap->hlist);
+    }
 
-     allocator_mem_free(hmap->allocator, hmap);
+    allocator_mem_free(hmap->allocator, hmap);
 
-     return 0;
+    return 1;
 }
 
 int hash_map_pos_next(hash_map_pos_t *pos, hash_map_pos_t *next)

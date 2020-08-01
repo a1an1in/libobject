@@ -37,14 +37,14 @@ static int __construct(Iterator *iter, char *init_str)
 {
     dbg_str(OBJ_DETAIL, "iter construct, iter addr:%p", iter);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(Iterator *iter)
 {
     dbg_str(OBJ_DETAIL, "iter deconstruct, iter addr:%p", iter);
 
-    return 0;
+    return 1;
 }
 
 static Iterator *__next(Iterator *it)

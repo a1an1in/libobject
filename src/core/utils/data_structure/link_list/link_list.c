@@ -78,7 +78,7 @@ int llist_set(llist_t *llist, char *attrib, void *value)
         return -1;
     }
 
-    return 0;
+    return 1;
 }
 
 int llist_init(llist_t *llist)
@@ -99,7 +99,7 @@ int llist_init(llist_t *llist)
 
     sync_lock_init(&llist->list_lock, llist->lock_type);
 
-    return 0;
+    return 1;
 }
 
 int llist_add(llist_t *llist, list_pos_t *pos, void *data)
@@ -121,7 +121,7 @@ int llist_add(llist_t *llist, list_pos_t *pos, void *data)
 
     sync_unlock(&llist->list_lock);
 
-    return 0;
+    return 1;
 }
 
 int llist_add_back(llist_t *llist, void *data)
@@ -143,7 +143,7 @@ int llist_add_back(llist_t *llist, void *data)
 
     sync_unlock(&llist->list_lock);
 
-    return 0;
+    return 1;
 }
 
 int llist_delete(llist_t *llist, list_pos_t *pos)
@@ -170,7 +170,7 @@ int llist_delete(llist_t *llist, list_pos_t *pos)
 
     allocator_mem_free(llist->allocator, p);
 
-    return 0;
+    return 1;
 }
 
 int llist_delete_back(llist_t *llist)
@@ -198,7 +198,7 @@ int llist_delete_back(llist_t *llist)
 
     allocator_mem_free(llist->allocator,p);
 
-    return 0;
+    return 1;
 }
 
 int llist_remove(llist_t *llist, list_pos_t *pos, void **data)
@@ -226,7 +226,7 @@ int llist_remove(llist_t *llist, list_pos_t *pos, void **data)
     *data = p->data;
     allocator_mem_free(llist->allocator, p);
 
-    return 0;
+    return 1;
 }
 
 int llist_remove_front(llist_t *llist, void **data)
@@ -255,7 +255,7 @@ int llist_remove_front(llist_t *llist, void **data)
     }
     allocator_mem_free(llist->allocator, p);
 
-    return 0;
+    return 1;
 }
 
 int llist_remove_back(llist_t *llist, void **data)
@@ -284,7 +284,7 @@ int llist_remove_back(llist_t *llist, void **data)
     *data = p->data;
     allocator_mem_free(llist->allocator, p);
 
-    return 0;
+    return 1;
 }
 
 int llist_remove_element(llist_t *llist, void *data)
@@ -379,7 +379,7 @@ int llist_destroy(llist_t *llist)
 
     allocator_mem_free(llist->allocator, llist);
 
-    return 0;
+    return 1;
 }
 
 struct test{

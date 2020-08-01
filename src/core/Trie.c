@@ -86,7 +86,7 @@ static int __construct(Trie *trie, char *init_str)
 
     trie->root = __new_node(trie);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstruct(Trie *trie)
@@ -97,7 +97,7 @@ static int __deconstruct(Trie *trie)
     allocator_mem_free(allocator, trie->root);
     allocator_mem_free(allocator, trie->char_set);
 
-    return 0;
+    return 1;
 }
 
 static int __set_char_set(Trie *trie, char *word)
@@ -115,7 +115,7 @@ static int __set_char_set(Trie *trie, char *word)
 
     strcpy(trie->char_set, word);
 
-    return 0;
+    return 1;
 }
 
 static int __insert(Trie *trie, char *word)

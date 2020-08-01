@@ -38,19 +38,19 @@ int libobject_init()
 {
     execute_ctor_funcs();
 
-    return 0;
+    return 1;
 }
 
 int libobject_exit()
 {
     kill(0, SIGQUIT);
 
-    return 0;
+    return 1;
 }
 
 int __attribute__((destructor)) destruct_libobject()
 {
     execute_dtor_funcs();
 
-    return 0;
+    return 1;
 }

@@ -151,7 +151,7 @@ int heap_remove(heap_t *heap, void **element)
     heap->queue[heap->size - 1] = 0;
     heap->size--;
 
-    return 0;
+    return 1;
 }
 
 int heap_destroy(heap_t *heap)
@@ -159,7 +159,7 @@ int heap_destroy(heap_t *heap)
     allocator_mem_free(heap->allocator, heap->queue);
     allocator_mem_free(heap->allocator, heap);
 
-    return 0;
+    return 1;
 }
 
 int heap_size(heap_t *heap)
@@ -172,7 +172,7 @@ int __heap_set_at(heap_t *heap, int index, void *element)
 
     heap->queue[index] = element;
 
-    return 0;
+    return 1;
 }
 
 int heap_sort(heap_t *heap) 

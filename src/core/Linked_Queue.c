@@ -55,7 +55,7 @@ static int __construct(Linked_Queue *queue, char *init_str)
     q->b = OBJECT_NEW(allocator, LList_Iterator, NULL);
     q->e = OBJECT_NEW(allocator, LList_Iterator, NULL);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(Linked_Queue *queue)
@@ -69,7 +69,7 @@ static int __deconstrcut(Linked_Queue *queue)
     object_destroy(q->e);
     llist_destroy(queue->llist);
 
-    return 0;
+    return 1;
 }
 
 static int __add(Linked_Queue *queue, void *element)

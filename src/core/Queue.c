@@ -40,7 +40,7 @@ static int __construct(Queue *queue, char *init_str)
 {
     dbg_str(OBJ_DETAIL, "queue construct, queue addr:%p", queue);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(Queue *queue)
@@ -49,7 +49,7 @@ static int __deconstrcut(Queue *queue)
     int ret;
     void *tret;
 
-    return 0;
+    return 1;
 }
 
 static void __for_each(Queue *queue, void (*func)(void *element))

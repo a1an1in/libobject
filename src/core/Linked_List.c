@@ -50,7 +50,7 @@ static int __construct(List *list, char *init_str)
     list->b = OBJECT_NEW(allocator, LList_Iterator, NULL);
     list->e = OBJECT_NEW(allocator, LList_Iterator, NULL);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(List *list)
@@ -60,7 +60,7 @@ static int __deconstrcut(List *list)
     object_destroy(list->e);
     llist_destroy(((Linked_List *)list)->llist);
 
-    return 0;
+    return 1;
 }
 
 static int __add(List *list, void *value)

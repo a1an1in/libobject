@@ -62,7 +62,7 @@ int class_deamon_set(class_deamon_t *class_deamon, char *attrib, char *value)
         dbg_str(OBJ_DETAIL, "class_deamon set, not support %s setting", attrib);
     }
 
-    return 0;
+    return 1;
 }
 
 int class_deamon_init(class_deamon_t *class_deamon)
@@ -89,7 +89,7 @@ int class_deamon_init(class_deamon_t *class_deamon)
     map_set(class_deamon->map, "key_cmp_func", (void *)string_key_cmp_func);
     map_init(class_deamon->map);
 
-    return 0;
+    return 1;
 }
 
 int class_deamon_register_class(class_deamon_t *class_deamon, 
@@ -155,7 +155,7 @@ int class_deamon_print_element(map_iterator_t *it)
 {
     char *key;
 
-    key = (uint8_t *)map_get_key(it);
+    key = (char *)map_get_key(it);
     printf("%s\n", key);
 
     return 1;
@@ -179,7 +179,7 @@ int class_deamon_destroy(class_deamon_t *class_deamon)
 
     allocator_mem_free(allocator, class_deamon);
 
-    return 0;
+    return 1;
 }
 
 int class_deamon_constructor()
@@ -195,7 +195,7 @@ int class_deamon_constructor()
 
     global_class_deamon = class_deamon;
 
-    return 0;
+    return 1;
 }
 REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_OBJ_DEAMON, class_deamon_constructor);
 
@@ -208,7 +208,7 @@ static int class_deamon_destructor()
     ATTRIB_PRINT("REGISTRY_DTOR_PRIORITY =%d, destruct class deamon alloc count =%d\n", 
                  REGISTRY_DTOR_PRIORITY_OBJ_DEAMON, class_deamon->allocator->alloc_count);
 
-    return 0;
+    return 1;
 }
 REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_OBJ_DEAMON, class_deamon_destructor);
 

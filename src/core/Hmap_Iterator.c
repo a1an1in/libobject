@@ -38,7 +38,7 @@ static int __construct(Iterator *iter, char *init_str)
     Hmap_Iterator *hiter;
     dbg_str(OBJ_DETAIL, "Hmap_Iterator construct, iter addr:%p", iter);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(Iterator *iter)
@@ -46,7 +46,7 @@ static int __deconstrcut(Iterator *iter)
     Hmap_Iterator *hiter;
     dbg_str(OBJ_DETAIL, "Hmap_Iterator deconstruct, iter addr:%p", iter);
 
-    return 0;
+    return 1;
 }
 
 static Iterator *__next(Iterator *it)

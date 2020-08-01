@@ -37,14 +37,14 @@ static int __construct(List *list, char *init_str)
 {
     dbg_str(OBJ_DETAIL, "list construct, list addr:%p", list);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(List *list)
 {
     dbg_str(OBJ_DETAIL, "list deconstruct, list addr:%p", list);
 
-    return 0;
+    return 1;
 }
 
 static int __reset(List *list)

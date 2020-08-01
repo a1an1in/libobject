@@ -140,8 +140,16 @@ static void * __new(Object_Cache *cache, char *class_name, char *data)
             o->assign(o, init_data);
         }
     } CATCH {
-        EXEC_IF(new_list != NULL, object_destroy(new_list));
-        EXEC_IF(o != NULL, object_destroy(o));
+        if (new_list != NULL) {
+            EXEC(map->del(map, class_name));
+            EXEC(object_list->remove_element(object_list, new_list));
+            object_destroy(new_list);
+        }
+
+        if (o != NULL) {
+            EXEC(object_list->remove_element(object_list, o));
+            object_destroy(o);
+        }
         o = NULL;
     }
     ENDTRY;

@@ -111,7 +111,7 @@ static int __init(allocator_t *allocator)
 
     mempool_init_head_list(&ctr_alloc->empty_pool, lock_type);
 
-    return 0;
+    return 1;
 }
 
 static void *alloc_huge_slab(allocator_t *allocator, uint32_t size)
@@ -216,7 +216,7 @@ static int free_normal_slab(allocator_t *allocator, ctr_slab_t *slab_list)
 
     allocator->alloc_count--;
 
-    return 0;
+    return 1;
 }
 
 static void __free(allocator_t *allocator, void *addr)

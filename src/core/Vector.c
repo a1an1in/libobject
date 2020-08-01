@@ -96,7 +96,7 @@ static int __construct(Vector *vector, char *init_str)
 
     cjson_delete(bak);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(Vector *vector)
@@ -115,7 +115,7 @@ static int __deconstrcut(Vector *vector)
 
     vector_destroy(vector->vector);
 
-    return 0;
+    return 1;
 }
 
 static int __reconstruct(Vector *vector)
@@ -128,7 +128,7 @@ static int __reconstruct(Vector *vector)
 
     vector->construct(vector, NULL);
 
-    return 0;
+    return 1;
 }
 
 static int __add(Vector *vector, void *value)
@@ -242,7 +242,7 @@ static int __to_json_int8_policy(cjson_t *root, void *element)
         cjson_add_item_to_array(root, item);
     }
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_uint8_policy(cjson_t *root, void *element)
@@ -255,7 +255,7 @@ static int __to_json_uint8_policy(cjson_t *root, void *element)
         cjson_add_item_to_array(root, item);
     }
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_int16_policy(cjson_t *root, void *element)
@@ -268,7 +268,7 @@ static int __to_json_int16_policy(cjson_t *root, void *element)
         cjson_add_item_to_array(root, item);
     }
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_uint16_policy(cjson_t *root, void *element)
@@ -281,7 +281,7 @@ static int __to_json_uint16_policy(cjson_t *root, void *element)
         cjson_add_item_to_array(root, item);
     }
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_int32_policy(cjson_t *root, void *element)
@@ -294,7 +294,7 @@ static int __to_json_int32_policy(cjson_t *root, void *element)
         cjson_add_item_to_array(root, item);
     }
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_uint32_policy(cjson_t *root, void *element)
@@ -307,7 +307,7 @@ static int __to_json_uint32_policy(cjson_t *root, void *element)
         cjson_add_item_to_array(root, item);
     }
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_float_policy(cjson_t *root, void *element)
@@ -320,7 +320,7 @@ static int __to_json_float_policy(cjson_t *root, void *element)
         cjson_add_item_to_array(root, item);
     }
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_string_policy(cjson_t *root, void *element)
@@ -333,7 +333,7 @@ static int __to_json_string_policy(cjson_t *root, void *element)
         cjson_add_item_to_array(root, item);
     }
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_object_pointer_policy(cjson_t *root, void *element)
@@ -346,7 +346,7 @@ static int __to_json_object_pointer_policy(cjson_t *root, void *element)
         cjson_add_item_to_array(root, item);
     }
 
-    return 0;
+    return 1;
 }
 
 static struct vector_to_json_policy_s {

@@ -38,14 +38,14 @@ static int __construct(Map *map, char *init_str)
 {
     dbg_str(OBJ_DETAIL, "map construct, map addr:%p", map);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(Map *map)
 {
     dbg_str(OBJ_DETAIL, "map deconstruct, map addr:%p", map);
 
-    return 0;
+    return 1;
 }
 
 static int __contain_key(Map *map, void *key)
@@ -141,7 +141,7 @@ static int __reset(Map *map)
         element = NULL;
     }
 
-    return 0;
+    return 1;
 }
 
 static int __destroy(Map *map)

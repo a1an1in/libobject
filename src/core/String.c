@@ -85,7 +85,7 @@ static int __modulate_capacity(String *string, int write_len)
         string->value = new_buf;
     }
 
-    return 0;
+    return 1;
 }
 
 static int __construct(String *string, char *init_str)
@@ -97,7 +97,7 @@ static int __construct(String *string, char *init_str)
     string->value = (char *)allocator_mem_alloc(string->obj.allocator, string->value_max_len);
     memset(string->value, 0, string->value_max_len);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(String *string)
@@ -110,7 +110,7 @@ static int __deconstrcut(String *string)
         string->pieces = 0;
     }
 
-    return 0;
+    return 1;
 }
 
 static String *__pre_alloc(String *string, uint32_t size)

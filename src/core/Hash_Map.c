@@ -48,7 +48,7 @@ static int __construct(Map *map, char *init_str)
     map->b = object_new(allocator, "Hmap_Iterator", NULL);
     map->e = object_new(allocator, "Hmap_Iterator", NULL);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstruct(Map *map)
@@ -60,7 +60,7 @@ static int __deconstruct(Map *map)
     object_destroy(map->e);
     hash_map_destroy(((Hash_Map *)map)->hmap);
 
-    return 0;
+    return 1;
 }
 
 static int __reconstruct(Map *map)
@@ -76,7 +76,7 @@ static int __reconstruct(Map *map)
 
     hash_map_init(h->hmap);
 
-    return 0;
+    return 1;
 }
 
 static int __add(Map *map, void *key, void *value)
@@ -177,7 +177,7 @@ static int __set_cmp_func(Map *map, void *func)
 
     hmap->hmap->key_cmp_func = func;
 
-    return 0;
+    return 1;
 }
 
 static class_info_entry_t hash_map_class_info[] = {

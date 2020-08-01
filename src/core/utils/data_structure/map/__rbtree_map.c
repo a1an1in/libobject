@@ -20,7 +20,7 @@ static int __map_init(map_t *map)
 {
     rbtree_map_init(map->priv.rbtree_map);
 
-    return 0;
+    return 1;
 }
 
 static int __map_insert(map_t *map, char *key, void *value)
@@ -52,14 +52,14 @@ static int __map_begin(map_t *map, map_iterator_t *it)
 {
     rbtree_map_begin(map->priv.rbtree_map, &it->pos.rbtree_map_pos);
 
-    return 0;
+    return 1;
 }
 
 static int  __map_end(map_t *map, map_iterator_t *it)
 {
     rbtree_map_end(map->priv.rbtree_map, &it->pos.rbtree_map_pos);
 
-    return 0;
+    return 1;
 
 }
 
@@ -67,7 +67,7 @@ static int __map_next(map_iterator_t *it, map_iterator_t *next)
 {
     rbtree_map_pos_next(&it->pos.rbtree_map_pos, &next->pos.rbtree_map_pos);
 
-    return 0;
+    return 1;
 }
 static int __map_prev(map_iterator_t *it, map_iterator_t *prev)
 {

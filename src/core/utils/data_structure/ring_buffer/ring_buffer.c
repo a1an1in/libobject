@@ -66,12 +66,10 @@ static inline int
 rbuf_is_full(ring_buffer_t *rbuf, uint32_t len)
 {
     if(((rbuf->read_index - rbuf->write_index + rbuf->buffer_len) % 
-                (rbuf->buffer_len + 1))  < len)
-    {
+                (rbuf->buffer_len + 1))  < len) {
         return 1;
     } else if (rbuf->read_index == rbuf->write_index && 
-            rbuf->rw_flag == RW_FLAG_WRITE)
-    {
+               rbuf->rw_flag == RW_FLAG_WRITE) {
         return 1;
     }else{
         return 0;

@@ -26,14 +26,14 @@ static int __construct(Object_Chain *chain, char *init_str)
 
     chain->list = l;
 
-    return 0;
+    return 1;
 }
 
 static int __deconstruct(Object_Chain *chain)
 {
     object_destroy(chain->list);
 
-    return 0;
+    return 1;
 }
 
 static void * __new(Object_Chain *chain, char *class_name, char *data)

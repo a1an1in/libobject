@@ -40,7 +40,7 @@ static int __construct(Obj *obj, char *init_str)
 {
     dbg_str(OBJ_DETAIL, "obj construct, obj addr:%p", obj);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(Obj *obj)
@@ -53,7 +53,7 @@ static int __deconstrcut(Obj *obj)
 
     allocator_mem_free(obj->allocator, obj);
 
-    return 0;
+    return 1;
 }
 
 int __set_int8_policy(Obj *obj, class_info_entry_t *entry, void *value)
@@ -63,7 +63,7 @@ int __set_int8_policy(Obj *obj, class_info_entry_t *entry, void *value)
     int8_t *addr = (int8_t *)(base + entry->offset);
     *addr = t;
 
-    return 0;
+    return 1;
 }
 
 int __set_uint8_policy(Obj *obj, class_info_entry_t *entry, void *value)
@@ -73,7 +73,7 @@ int __set_uint8_policy(Obj *obj, class_info_entry_t *entry, void *value)
     uint8_t *addr = (uint8_t *)(base + entry->offset);
     *addr = t;
 
-    return 0;
+    return 1;
 }
 
 int __set_int16_policy(Obj *obj, class_info_entry_t *entry, void *value)
@@ -83,7 +83,7 @@ int __set_int16_policy(Obj *obj, class_info_entry_t *entry, void *value)
     int16_t *addr = (int16_t *)(base + entry->offset);
     *addr = t;
 
-    return 0;
+    return 1;
 }
 
 int __set_uint16_policy(Obj *obj, class_info_entry_t *entry, void *value)
@@ -93,7 +93,7 @@ int __set_uint16_policy(Obj *obj, class_info_entry_t *entry, void *value)
     uint16_t *addr = (uint16_t *)(base + entry->offset);
     *addr = t;
 
-    return 0;
+    return 1;
 }
 
 int __set_int32_policy(Obj *obj, class_info_entry_t *entry, void *value)
@@ -103,7 +103,7 @@ int __set_int32_policy(Obj *obj, class_info_entry_t *entry, void *value)
     int32_t *addr = (int32_t *)(base + entry->offset);
     *addr = t;
 
-    return 0;
+    return 1;
 }
 
 int __set_uint32_policy(Obj *obj, class_info_entry_t *entry, void *value)
@@ -113,7 +113,7 @@ int __set_uint32_policy(Obj *obj, class_info_entry_t *entry, void *value)
     uint32_t *addr = (uint32_t *)(base + entry->offset);
     *addr = t;
 
-    return 0;
+    return 1;
 }
 
 int __set_float_policy(Obj *obj, class_info_entry_t *entry, void *value)
@@ -124,7 +124,7 @@ int __set_float_policy(Obj *obj, class_info_entry_t *entry, void *value)
     float *addr = (float *)(base + entry->offset);
     *addr = t2;
 
-    return 0;
+    return 1;
 }
 
 int __set_double_policy(Obj *obj, class_info_entry_t *entry, void *value)
@@ -133,7 +133,7 @@ int __set_double_policy(Obj *obj, class_info_entry_t *entry, void *value)
     float *addr = (float *)(base + entry->offset);
     *addr = *((double *)value);
 
-    return 0;
+    return 1;
 }
 
 int __set_sn32_policy(Obj *obj, class_info_entry_t *entry, void *value)
@@ -149,7 +149,7 @@ int __set_sn32_policy(Obj *obj, class_info_entry_t *entry, void *value)
 
     (*addr)->set_value((*addr), value);
 
-    return 0;
+    return 1;
 }
 
 int __set_string_policy(Obj *obj, class_info_entry_t *entry, void *value)
@@ -165,7 +165,7 @@ int __set_string_policy(Obj *obj, class_info_entry_t *entry, void *value)
         (*addr)->assign((*addr), (char *)value);
     }
 
-    return 0;
+    return 1;
 }
 
 int __set_vector_policy(Obj *obj, class_info_entry_t *entry, void *value)
@@ -194,7 +194,7 @@ int __set_vector_policy(Obj *obj, class_info_entry_t *entry, void *value)
     } else {
     }
 
-    return 0;
+    return 1;
 }
 
 int __set_pointer_policy(Obj *obj, class_info_entry_t *entry, void *value)
@@ -203,7 +203,7 @@ int __set_pointer_policy(Obj *obj, class_info_entry_t *entry, void *value)
     void **addr = (void **)(base + entry->offset);
     *addr = value;
 
-    return 0;
+    return 1;
 }
 
 static struct obj_set_policy_s {
@@ -388,49 +388,49 @@ static int __to_json_int8_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((int8_t *)value));
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_uint8_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((uint8_t *)value));
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_int16_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((int16_t *)value));
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_uint16_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((uint16_t *)value));
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_int32_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((int32_t *)value));
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_uint32_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((uint32_t *)value));
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_float_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((float *)value));
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_string_policy(cjson_t *json, char *name, void *value)
@@ -439,7 +439,7 @@ static int __to_json_string_policy(cjson_t *json, char *name, void *value)
     if (s != NULL)
         cjson_add_string_to_object(json, name, s->value);
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_sn32_policy(cjson_t *json, char *name, void *value)
@@ -454,7 +454,7 @@ static int __to_json_sn32_policy(cjson_t *json, char *name, void *value)
     d = number->get_signed_int_value(number);
     cjson_add_number_to_object(json, name, d);
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_vector_policy(cjson_t *json, char *name, void *value)
@@ -470,7 +470,7 @@ static int __to_json_vector_policy(cjson_t *json, char *name, void *value)
         dbg_str(DBG_WARNNING, "Vector to json, but content is null, offset:%p", value);
     }
 
-    return 0;
+    return 1;
 }
 
 static int __to_json_object_pointer_policy(cjson_t *json, char *name, void *value)
@@ -483,7 +483,7 @@ static int __to_json_object_pointer_policy(cjson_t *json, char *name, void *valu
         cjson_add_item_to_object(json, o->name, item);
     }
 
-    return 0;
+    return 1;
 }
 
 static struct obj_to_json_policy_s {
@@ -552,7 +552,7 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
         }
     }   
 
-    return 0;
+    return 1;
 }
 
 static char *__to_json(Obj *obj) 
@@ -585,12 +585,12 @@ static char *__to_json(Obj *obj)
 
 static char *__reset(Obj *obj) 
 {
-    return 0;
+    return 1;
 }
 
 static int __assign(Obj *obj, char *value)
 {
-    return 0;
+    return 1;
 }
 
 static int 
@@ -627,7 +627,7 @@ __override_virtual_funcs__(Obj *obj,
     strcpy(o->target_name, cur_class_name);
     set(obj, func_name, value); 
 
-    return 0;
+    return 1;
 }
 
 static int __override_virtual_funcs(Obj *obj, char *func_name, void *value)

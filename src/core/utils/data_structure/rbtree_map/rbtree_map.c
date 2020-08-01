@@ -284,7 +284,7 @@ int rbtree_map_insert(rbtree_map_t *map, void *key, void *value)
     map->count++;
     sync_unlock(&map->map_lock);
 
-    return 0;
+    return 1;
 }
 
 int rbtree_map_delete(rbtree_map_t *map, rbtree_map_pos_t *it)
@@ -309,7 +309,7 @@ int rbtree_map_delete(rbtree_map_t *map, rbtree_map_pos_t *it)
         allocator_mem_free(map->allocator, mnode);
         mnode = NULL;
     }
-    return 0;
+    return 1;
 }
 
 int rbtree_map_remove(rbtree_map_t *map, rbtree_map_pos_t *it, void **element)
@@ -338,7 +338,7 @@ int rbtree_map_remove(rbtree_map_t *map, rbtree_map_pos_t *it, void **element)
         allocator_mem_free(map->allocator, mnode);
         mnode = NULL;
     }
-    return 0;
+    return 1;
 }
 
 int
@@ -380,10 +380,9 @@ int rbtree_map_destroy(rbtree_map_t *map)
 
     dbg_str(RBTMAP_DETAIL, "rbtree_map_destroy");
 
-    for(    rbtree_map_begin(map, &it); 
-            !rbtree_map_pos_equal(&it, rbtree_map_end(map, &end));
-            rbtree_map_begin(map, &it)) 
-    {
+    for(rbtree_map_begin(map, &it); 
+        !rbtree_map_pos_equal(&it, rbtree_map_end(map, &end));
+        rbtree_map_begin(map, &it)) {
         rbtree_map_delete(map, &it);
     }
     if (rbtree_map_pos_equal(&map->end, &map->begin)) {
@@ -393,6 +392,8 @@ int rbtree_map_destroy(rbtree_map_t *map)
 
     allocator_mem_free(map->allocator, map);
     dbg_str(RBTMAP_DETAIL, "rbtree_map_destroy end");
+
+    return 1;
 }
 
 

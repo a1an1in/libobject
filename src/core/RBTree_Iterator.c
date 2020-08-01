@@ -38,7 +38,7 @@ static int __construct(Iterator *iter, char *init_str)
     RBTree_Iterator *hiter;
     dbg_str(OBJ_DETAIL, "RBTree_Iterator construct, iter addr:%p", iter);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(Iterator *iter)
@@ -46,7 +46,7 @@ static int __deconstrcut(Iterator *iter)
     RBTree_Iterator *hiter;
     dbg_str(OBJ_DETAIL, "RBTree_Iterator deconstruct, iter addr:%p", iter);
 
-    return 0;
+    return 1;
 }
 
 static Iterator *__next(Iterator *it)

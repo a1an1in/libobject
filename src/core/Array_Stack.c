@@ -45,7 +45,7 @@ static int __construct(Stack *stack, char *init_str)
     as->core = array_stack_alloc(allocator);
     array_stack_init(as->core);
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(Stack *stack)
@@ -55,7 +55,7 @@ static int __deconstrcut(Stack *stack)
 
     array_stack_destroy(as->core);
 
-    return 0;
+    return 1;
 }
 
 static int __push(Stack *stack, void *element)
