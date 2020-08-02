@@ -173,9 +173,9 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
         test_method = (int (*)(Test *test))entry[i].value;
 
         TRY {
-            test->setup(test);
-            test_method(test);
-            test->teardown(test);
+            ret = test->setup(test);
+            ret = test_method(test);
+            ret = test->teardown(test);
         } CATCH {
             dbg_str(DBG_ERROR, "test runner catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
                     ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());

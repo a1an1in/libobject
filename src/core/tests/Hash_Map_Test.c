@@ -73,7 +73,7 @@ static int __setup(Hash_Map_Test *test, char *init_str)
 
     dbg_str(DBG_DETAIL,"Hash_Map_Test set up");
 
-    return 0;
+    return 1;
 }
 
 static int __teardown(Hash_Map_Test *test)
@@ -84,7 +84,7 @@ static int __teardown(Hash_Map_Test *test)
 
     map->reset(map);
 
-    return 0;
+    return 1;
 }
 
 static int __test_count(Hash_Map_Test *test)
@@ -93,6 +93,7 @@ static int __test_count(Hash_Map_Test *test)
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;
     int count, expect_count = 5;
+    int value_type = VALUE_TYPE_OBJ_POINTER;
 
     __init_test_instance(&t0, 0, 2);
     __init_test_instance(&t1, 1, 2);
@@ -132,6 +133,7 @@ static int __test_reset(Hash_Map_Test *test)
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;
     int count, expect_count = 0;
+    int value_type = VALUE_TYPE_OBJ_POINTER;
 
     __init_test_instance(&t0, 0, 2);
     __init_test_instance(&t1, 1, 2);
@@ -268,7 +270,6 @@ static int __test_remove(Hash_Map_Test *test)
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;
     int count, expect_count = 5;
-    int trustee_flag = 0;
 
     __init_test_instance(&t0, 0, 2);
     __init_test_instance(&t1, 1, 2);
@@ -277,8 +278,6 @@ static int __test_remove(Hash_Map_Test *test)
     __init_test_instance(&t4, 4, 2);
     __init_test_instance(&t5, 5, 2);
 
-    map->set(map, "/Map/trustee_flag", &trustee_flag);
-    map->set_cmp_func(map, string_key_cmp_func);
     map->add(map, "test0", &t0);
     map->add(map, "test1", &t1);
     map->add(map, "test2", &t2);

@@ -73,7 +73,7 @@ static int __setup(RBTree_Map_Test *test, char *init_str)
 
     dbg_str(DBG_DETAIL,"RBTree_Map_Test set up");
 
-    return 0;
+    return 1;
 }
 
 static int __teardown(RBTree_Map_Test *test)
@@ -84,7 +84,7 @@ static int __teardown(RBTree_Map_Test *test)
 
     map->reset(map);
 
-    return 0;
+    return 1;
 }
 
 static int __test_count(RBTree_Map_Test *test)
@@ -123,7 +123,7 @@ static int __test_count(RBTree_Map_Test *test)
         dbg_str(DBG_ERROR, "count=%d, expect_count=%d", count, expect_count);
     }
 
-    return 0;
+    return 1;
 }
 
 static int __test_reset(RBTree_Map_Test *test)
@@ -152,7 +152,7 @@ static int __test_reset(RBTree_Map_Test *test)
 
     ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
 
-    return 0;
+    return 1;
 }
 
 static int __test_reset_string_value(RBTree_Map_Test *test)
@@ -199,7 +199,7 @@ static int __test_reset_string_value(RBTree_Map_Test *test)
     count = allocator->alloc_count;
     ASSERT_EQUAL(test, &count, &expect_alloc_count, sizeof(count));
 
-    return 0;
+    return 1;
 }
 
 static int __test_reset_object_value(RBTree_Map_Test *test)
@@ -291,7 +291,8 @@ static int __test_remove(RBTree_Map_Test *test)
 
     ASSERT_EQUAL(test, t, &t2, sizeof(t2));
     ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
-    return 0;
+
+    return 1;
 }
 
 static int __test_search_string_key(RBTree_Map_Test *test)
@@ -368,6 +369,7 @@ static int __test_search_all_string_key(RBTree_Map_Test *test)
         ret = 0;
     }
 
+    printf("ret=%d, p=%d\n", ret, list->count(list));
     object_destroy(list);
 
     return ret;

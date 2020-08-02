@@ -54,7 +54,7 @@ static int __setup(Linked_List_Test *test, char *init_str)
 {
     dbg_str(DBG_DETAIL,"Linked_List_Test set up");
 
-    return 0;
+    return 1;
 }
 
 static int __teardown(Linked_List_Test *test)
@@ -64,7 +64,7 @@ static int __teardown(Linked_List_Test *test)
     dbg_str(DBG_DETAIL,"Linked_List_Test teardown");
     list->reset(list);
 
-    return 0;
+    return 1;
 }
 
 static int __test_add(Linked_List_Test *test)

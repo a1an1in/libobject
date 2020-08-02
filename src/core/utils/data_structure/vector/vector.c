@@ -194,7 +194,7 @@ int vector_add_at(vector_t *vector, int index, void *data)
 
     sync_lock(&vector->vector_lock, NULL);
 
-    if (offset > capacity) {
+    if (offset >= capacity) {
         dbg_str(VECTOR_WARNNING, "realloc mem");
         vector->vector_head = allocator_mem_zalloc(vector->allocator, 
                                                    2 * capacity * (vector->step));
@@ -244,7 +244,7 @@ int vector_add_back(vector_t *vector, void *data)
 
     sync_lock(&vector->vector_lock, NULL);
 
-    if (offset > capacity) {
+    if (offset >= capacity) {
         dbg_str(VECTOR_WARNNING, "realloc mem");
         vector->vector_head = allocator_mem_zalloc(vector->allocator, 
                                                    2 * capacity * (vector->step));
