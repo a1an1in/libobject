@@ -12,6 +12,7 @@
 #include <libobject/ctest/Test.h>
 #include <libobject/ctest/Test_Case_Result.h>
 #include <libobject/core/utils/data_structure/map.h>
+#include <libobject/core/try.h>
 
 static int __construct(Test_Runner *runner, char *init_str)
 {
@@ -157,51 +158,50 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
     success_cases = runner->result->success_cases;
 
     deamon = class_deamon_get_global_class_deamon();
-    if (deamon == NULL) {
-        return -1;
-    }
-
+    THROW_IF(deamon == NULL, -1);
     entry = class_deamon_search_class(deamon, (char *)test_class_name);
-    if (entry == NULL) {
-        return -1;
-    }
-
+    THROW_IF(entry == NULL, -1);
     test = object_new(allocator, test_class_name, NULL);
+    THROW_IF(test == NULL, -1);
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (entry[i].type != ENTRY_TYPE_FUNC_POINTER && 
-            entry[i].type != ENTRY_TYPE_VFUNC_POINTER) {
-            continue;
-        }
-
+        CONTINUE_IF(entry[i].type != ENTRY_TYPE_FUNC_POINTER && 
+                    entry[i].type != ENTRY_TYPE_VFUNC_POINTER);
         is_test_method = strstr(entry[i].value_name, "test_");
-        if (is_test_method != NULL) {
-            dbg_str(DBG_DETAIL,"test %s.%s begin", test_class_name, entry[i].value_name);
-            test_method = (int (*)(Test *test))entry[i].value;
+        CONTINUE_IF(is_test_method == NULL);
+        dbg_str(DBG_DETAIL,"test %s.%s begin", test_class_name, entry[i].value_name);
+        test_method = (int (*)(Test *test))entry[i].value;
+
+        TRY {
             test->setup(test);
-            ret = test_method(test);
+            test_method(test);
             test->teardown(test);
-
-            case_result = object_new(allocator, "Test_Case_Result", NULL);
-            case_result->set(case_result, "result", &test->ret);
-            if (test->file != NULL)
-                case_result->set(case_result, "file", test->file);
-            case_result->set(case_result, "line", &test->line);
-
-            if (test->ret == 1 || ret == 1) {
-                success_cases->add(success_cases, case_result);
-                dbg_str(DBG_SUC,"test %s.%s success", test_class_name, entry[i].value_name);
-            } else {
-                failed_cases->add(failed_cases, case_result);
-                dbg_str(DBG_ERROR,"test %s.%s failed",test_class_name,  entry[i].value_name);
-            }
-            test->ret = 0;
-            test->file = "";
-            test->line = 0;
+        } CATCH {
+            dbg_str(DBG_ERROR, "test runner catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
+                    ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());
         }
-        is_test_method = NULL;
+        ENDTRY;
+
+        case_result = object_new(allocator, "Test_Case_Result", NULL);
+        case_result->set(case_result, "result", &test->ret);
+        if (test->file != NULL)
+            case_result->set(case_result, "file", test->file);
+        case_result->set(case_result, "line", &test->line);
+
+        if (test->ret == 1 || ret == 1) {
+            success_cases->add(success_cases, case_result);
+            dbg_str(DBG_SUC,"test %s.%s success", test_class_name, entry[i].value_name);
+        } else {
+            failed_cases->add(failed_cases, case_result);
+            dbg_str(DBG_ERROR,"test %s.%s failed",test_class_name,  entry[i].value_name);
+        }
+        test->ret = 0;
+        test->file = "";
+        test->line = 0;
     }   
     object_destroy(test);
+
+    return 1;
 }
 
 static class_info_entry_t test_runner_class_info[] = {

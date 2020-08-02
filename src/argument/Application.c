@@ -64,6 +64,8 @@ static int __run(Application *app, int argc, char *argv[])
         }
     } CATCH {
         ret = -1;
+        dbg_str(DBG_ERROR, "Application catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
+                ERROR_FUNC(), __func__, ERROR_LINE(), ERROR_CODE());
     }
     ENDTRY;
 
@@ -108,6 +110,8 @@ int app(int argc, char *argv[])
 
     } CATCH {
         ret = -1;
+        dbg_str(DBG_ERROR, "main catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
+                ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());
     } FINALLY {
         dbg_str(ARG_SUC, "exit app!");
         object_destroy(app);

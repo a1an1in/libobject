@@ -38,7 +38,7 @@ extern pthread_key_t try_key;
 #define EXEC(expression)                                                                         \
     do {                                                                                         \
         int ret = 0;                                                                             \
-        if ((ret = (expression)) < 0) {                                                          \
+        if ((ret = (int)(expression)) <= 0) {                                                    \
             exception_throw(ret, __func__, __FILE__, __LINE__, "");                              \
         }                                                                                        \
     } while (0);
@@ -61,12 +61,12 @@ extern pthread_key_t try_key;
     } while (0);
 
 #define CONTINUE_IF(expression)                                                                  \
-    if ((expression) == 1) {                                                                     \
+    if ((int)(expression) == 1) {                                                                \
         continue;                                                                                \
     }
 
-#define RETURN_IF(expression, return_value)                                                      \
-    if ((expression) == 1) {                                                                     \
+#define RETURN_IF(condition, return_value)                                                       \
+    if ((condition) == 1) {                                                                      \
         return return_value;                                                                     \
     }
 
@@ -81,10 +81,8 @@ extern pthread_key_t try_key;
         if (exception_flag == EXCEPTION_ENTERED) {
 
 #define CATCH                                                                                    \
-        } else if (frame.error_code < 0) {                                                       \
+        } else if (frame.error_code <= 0) {                                                       \
             exception_flag = EXCEPTION_HANDLED;                                                  \
-            dbg_str(DBG_ERROR, "error_func:%s, error_file: %s, error_line:%d, error_code:%d",    \
-                    ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());
 
 #define FINALLY                                                                                  \
         }                                                                                        \
@@ -98,7 +96,7 @@ extern pthread_key_t try_key;
             exception_flag = EXCEPTION_HANDLED;                                                  \
         }                                                                                        \
         if (exception_flag == EXCEPTION_THROWN)  {                                               \
-            exception_throw(frame.error_code, frame.func, frame.file, frame.line, frame.message);\
+            exception_throw(frame.error_code, __func__, frame.file, frame.line, frame.message);\
         }                                                                                        \
     } while (0)
 

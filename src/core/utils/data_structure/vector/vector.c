@@ -154,30 +154,32 @@ int vector_init(vector_t *vector, uint32_t data_size, uint32_t capacity)
     return 1;
 }
 
-int vector_add(vector_t *vector, vector_pos_t *it, void *data)
-{
-    uint32_t insert_pos = it->vector_pos;
-    uint32_t end_pos    = vector->end.vector_pos;
-    uint32_t count      = end_pos - insert_pos;
-    void **vector_head  = vector->vector_head;
-    vector_pos_t to;
-    
-    vector_pos_init(&to, insert_pos + 1, vector);
-
-    dbg_str(VECTOR_DETAIL, "insert_pos=%d, to_pos=%d", 
-            insert_pos, 
-            to.vector_pos);
-
-    sync_lock(&vector->vector_lock, NULL);
-
-    vector_copy(vector, &to, it, count);
-    vector_head[insert_pos] = data;
-    vector_pos_init(&vector->end, end_pos + 1, vector);
-    vector->count += 1;
-    sync_unlock(&vector->vector_lock);
-
-    return 1;
-}
+/*
+ *int vector_add(vector_t *vector, vector_pos_t *it, void *data)
+ *{
+ *    uint32_t insert_pos = it->vector_pos;
+ *    uint32_t end_pos    = vector->end.vector_pos;
+ *    uint32_t count      = end_pos - insert_pos;
+ *    void **vector_head  = vector->vector_head;
+ *    vector_pos_t to;
+ *    
+ *    vector_pos_init(&to, insert_pos + 1, vector);
+ *
+ *    dbg_str(VECTOR_DETAIL, "insert_pos=%d, to_pos=%d", 
+ *            insert_pos, 
+ *            to.vector_pos);
+ *
+ *    sync_lock(&vector->vector_lock, NULL);
+ *
+ *    vector_copy(vector, &to, it, count);
+ *    vector_head[insert_pos] = data;
+ *    vector_pos_init(&vector->end, end_pos + 1, vector);
+ *    vector->count += 1;
+ *    sync_unlock(&vector->vector_lock);
+ *
+ *    return 1;
+ *}
+ */
 
 int vector_add_at(vector_t *vector, int index, void *data)
 {
@@ -208,7 +210,7 @@ int vector_add_at(vector_t *vector, int index, void *data)
         vector_head = vector->vector_head;
     }
 
-    if (vector_head[offset] != NULL) {
+    if (vector_head[offset] == NULL) {
         vector->count += 1;
     }
 
@@ -218,7 +220,7 @@ int vector_add_at(vector_t *vector, int index, void *data)
     }
     sync_unlock(&vector->vector_lock);
 
-    return ret;
+    return 1;
 
 end:
     sync_unlock(&vector->vector_lock);
@@ -310,6 +312,7 @@ int vector_remove_back(vector_t *vector, void **element)
     if (*element != NULL) {
         vector->count -= 1;
     }
+    vector_head[offset] = NULL;
     sync_unlock(&vector->vector_lock);
 
     return 1;

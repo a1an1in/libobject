@@ -68,7 +68,7 @@ static int __setup(Vector_Test *test, char *init_str)
 
     dbg_str(DBG_DETAIL,"Vector_Test set up");
 
-    return 0;
+    return 1;
 }
 
 static int __teardown(Vector_Test *test)
@@ -76,10 +76,10 @@ static int __teardown(Vector_Test *test)
     dbg_str(DBG_DETAIL,"Vector_Test teardown");
     test->vector->reset(test->vector);
 
-    return 0;
+    return 1;
 }
 
-static void __test_int_vector_add(Vector_Test *test)
+static int __test_int_vector_add(Vector_Test *test)
 {
     Vector *vector = test->vector;
     int capacity = 19, value_type = VALUE_TYPE_INT8_T;
@@ -96,12 +96,12 @@ static void __test_int_vector_add(Vector_Test *test)
     ASSERT_EQUAL(test, &t, &expect_ret, sizeof(expect_ret));
 }
 
-static void __test_int_vector_remove(Vector_Test *test)
+static int __test_int_vector_remove(Vector_Test *test)
 {
     Vector *vector = test->vector;
     int value_type = VALUE_TYPE_INT8_T;
     int *t = 0;
-    int ret = 3;
+    int ret = 2;
 
     vector->set(vector, "/Vector/value_type", &value_type);
 
@@ -111,15 +111,11 @@ static void __test_int_vector_remove(Vector_Test *test)
     vector->add_at(vector, 3, 3);
     vector->add_at(vector, 4, 4);
     vector->remove(vector, 2, (void **)&t);
-    vector->peek_at(vector, 2, (void **)&t);
 
-    ret = ASSERT_EQUAL(test, &t, &ret, sizeof(ret));
-    if (ret != 1) {
-        dbg_str(DBG_ERROR,"r=%d, expect=%d", (int)t, ret);
-    }
+    ASSERT_EQUAL(test, &t, &ret, sizeof(ret));
 }
 
-static void __test_int_vector_count(Vector_Test *test)
+static int __test_int_vector_count(Vector_Test *test)
 {
     Vector *vector = test->vector;
     int value_type = VALUE_TYPE_INT8_T;
@@ -134,14 +130,12 @@ static void __test_int_vector_count(Vector_Test *test)
     vector->add_at(vector, 3, 3);
     vector->add_at(vector, 4, 4);
     count = vector->count(vector);
+    printf("count=%d\n", count);
 
-    ret = ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
-    if (ret != 1) {
-        dbg_str(DBG_ERROR,"r=%d, expect=%d", (int)t, ret);
-    }
+    ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
 }
 
-static void __test_int_vector_reset(Vector_Test *test)
+static int __test_int_vector_reset(Vector_Test *test)
 {
     Vector *vector = test->vector;
     int value_type = VALUE_TYPE_INT8_T;
@@ -158,13 +152,10 @@ static void __test_int_vector_reset(Vector_Test *test)
     vector->reset(vector);
     count = vector->count(vector);
 
-    ret = ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
-    if (ret != 1) {
-        dbg_str(DBG_ERROR,"r=%d, expect_count=%d", ret, expect_count);
-    }
+    ASSERT_EQUAL(test, &count, &expect_count, sizeof(count));
 }
 
-static void __test_int_vector_to_json(Vector_Test *test)
+static int __test_int_vector_to_json(Vector_Test *test)
 {
     Vector *vector = test->vector;
     int value_type = VALUE_TYPE_INT8_T;
@@ -180,10 +171,10 @@ static void __test_int_vector_to_json(Vector_Test *test)
     vector->add_at(vector, 4, 4);
     vector->add_at(vector, 5, 5);
 
-    ret = ASSERT_EQUAL(test, vector->to_json(vector), result, strlen(result));
+    ASSERT_EQUAL(test, vector->to_json(vector), result, strlen(result));
 }
 
-static void __test_string_vector_to_json(Vector_Test *test)
+static int __test_string_vector_to_json(Vector_Test *test)
 {
     Vector *vector = test->vector;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -225,10 +216,10 @@ static void __test_string_vector_to_json(Vector_Test *test)
     dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
     dbg_str(DBG_DETAIL, "result: %s", result);
 
-    ret = ASSERT_EQUAL(test, vector->to_json(vector), result, strlen(result));
+    ASSERT_EQUAL(test, vector->to_json(vector), result, strlen(result));
 }
 
-static void __test_obj_vector_to_json(Vector_Test *test)
+static int __test_obj_vector_to_json(Vector_Test *test)
 {
     int ret = 0, help = 0;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -264,11 +255,11 @@ static void __test_obj_vector_to_json(Vector_Test *test)
     string->replace(string, "\t", "", -1);
     string->replace(string, "\r", "", -1);
     string->replace(string, "\n", "", -1);
-    ret = ASSERT_EQUAL(test, string->get_cstr(string), init_data, strlen(init_data));
+    ASSERT_EQUAL(test, string->get_cstr(string), init_data, strlen(init_data));
 
     object_destroy(string);
 }
-static void __test_int_vector_set_init_data(Vector_Test *test)
+static int __test_int_vector_set_init_data(Vector_Test *test)
 {
     Vector *vector = test->vector;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -281,10 +272,10 @@ static void __test_int_vector_set_init_data(Vector_Test *test)
     vector->set(vector, "/Vector/init_data", init_data);
     vector->reconstruct(vector);
 
-    ret = ASSERT_EQUAL(test, vector->to_json(vector), init_data, strlen(init_data));
+    ASSERT_EQUAL(test, vector->to_json(vector), init_data, strlen(init_data));
 }
 
-static void __test_string_vector_set_init_data(Vector_Test *test)
+static int __test_string_vector_set_init_data(Vector_Test *test)
 {
     Vector *vector = test->vector;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -300,10 +291,10 @@ static void __test_string_vector_set_init_data(Vector_Test *test)
     vector->reconstruct(vector);
 
     dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
-    ret = ASSERT_EQUAL(test, vector->to_json(vector), init_data, strlen(init_data));
+    ASSERT_EQUAL(test, vector->to_json(vector), init_data, strlen(init_data));
 }
 
-static void __test_obj_vector_set_init_data(Vector_Test *test)
+static int __test_obj_vector_set_init_data(Vector_Test *test)
 {
     int ret;
     Vector *vector = test->vector;
@@ -325,11 +316,7 @@ static void __test_obj_vector_set_init_data(Vector_Test *test)
     string->replace(string, "\r", "", -1);
     string->replace(string, "\n", "", -1);
 
-    ret = ASSERT_EQUAL(test, string->get_cstr(string), init_data, strlen(init_data));
-    if (ret != 1) {
-        dbg_str(DBG_ERROR, "Vector json: %s", string->get_cstr(string));
-        dbg_str(DBG_ERROR, "expect: %s", init_data);
-    }
+    ASSERT_EQUAL(test, string->get_cstr(string), init_data, strlen(init_data));
 
     object_destroy(string);
 }

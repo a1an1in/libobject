@@ -212,7 +212,7 @@ static void __reset(Vector *vector)
             break;
         }
 
-        vector->peek_at(vector, index, (void **)&element);
+        vector->peek_at(vector, index++, (void **)&element);
         if (element == NULL) {
             continue;
         }
@@ -227,11 +227,11 @@ static void __reset(Vector *vector)
             dbg_str(DBG_WARNNING, "not support reset unkown pointer");
         } else {
         }
-        vector->add_at(vector, index++, NULL);
         element = NULL;
     }
 
-    vector->vector->count = 0;
+    memset((void *)v->vector_head, 0, v->capacity * (v->step));
+    v->count = 0;
     vector_pos_init(&v->end, 0, v);
 }
 

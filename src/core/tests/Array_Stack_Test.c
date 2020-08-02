@@ -59,7 +59,7 @@ static int __setup(Array_Stack_Test *test, char *init_str)
     stack = object_new(allocator, "Array_Stack", NULL);
     test->stack = (Array_Stack *)stack;
 
-    return 0;
+    return 1;
 }
 
 static int __teardown(Array_Stack_Test *test)
@@ -67,7 +67,7 @@ static int __teardown(Array_Stack_Test *test)
     dbg_str(DBG_DETAIL,"Array_Stack_Test teardown");
     object_destroy(test->stack);
 
-    return 0;
+    return 1;
 }
 
 static void __test_push(Array_Stack_Test *test)

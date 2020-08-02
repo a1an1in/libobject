@@ -59,14 +59,14 @@ static int __setup(Composite_Obj_Test *test, char *init_str)
 
     dbg_str(DBG_DETAIL,"Composite_Obj_Test set up");
 
-    return 0;
+    return 1;
 }
 
 static int __teardown(Composite_Obj_Test *test)
 {
     dbg_str(DBG_DETAIL,"Composite_Obj_Test teardown");
 
-    return 0;
+    return 1;
 }
 
 static void __test_marshal_composite_obj(Composite_Obj_Test *test)

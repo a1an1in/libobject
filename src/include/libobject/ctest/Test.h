@@ -5,6 +5,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
 #include <libobject/ctest/Test_Case_Result.h>
+#include <libobject/core/try.h>
 
 typedef struct _test_s Test;
 
@@ -15,9 +16,7 @@ typedef struct _test_s Test;
     ((Test *)test)->file = __FILE__;\
     __ret = (memcmp(peer1, peer2, len) == 0);\
     ((Test *)test)->ret = __ret;\
-    if (__ret != 1) {\
-        return __ret;\
-    }\
+    THROW_IF(__ret != 1, -1);\
     !!__ret;\
 })
 
@@ -28,9 +27,7 @@ typedef struct _test_s Test;
     ((Test *)test)->file = __FILE__;\
     __ret = peer1 > peer2 ? 1 : 0;\
     ((Test *)test)->ret = __ret;\
-    if (__ret != 1) {\
-        return __ret;\
-    }\
+    THROW_IF(__ret != 1, -1);\
     __ret;\
 })
 
@@ -41,9 +38,7 @@ typedef struct _test_s Test;
     ((Test *)test)->file = __FILE__;\
     __ret = memcmp(peer1, peer2, len) != 0;\
     ((Test *)test)->ret = __ret;\
-    if (__ret != 1) {\
-        return __ret;\
-    }\
+    THROW_IF(__ret != 1, -1);\
     __ret;\
 })
 

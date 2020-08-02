@@ -52,7 +52,9 @@ exception_throw(int error_code, const char *func,
         longjmp(frame->env, EXCEPTION_THROWN);
 
     } else {
-        dbg_str(DBG_ERROR, "must catch error, before throw!");
+        dbg_str(DBG_ERROR, "must throw error, before try! "
+                "throw func:%s, error_file: %s, error_line:%d, error_code:%d",
+                func, file, line, error_code);
         exit(1);
     }
 }
