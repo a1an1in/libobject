@@ -81,9 +81,6 @@ int vector_add_front(vector_t *vector,void *data);
 int vector_add_back(vector_t *vector,void *data);
 int vector_remove(vector_t *vector, int index, void **element);
 int vector_remove_back(vector_t *vector, void **element);
-int vector_delete(vector_t *vector, vector_pos_t *it);
-int vector_delete_back(vector_t *vector);
-int vector_delete_front(vector_t *vector);
 int vector_peek_at(vector_t *vector,int index, void **element);
 int vector_destroy(vector_t *vt);
 
