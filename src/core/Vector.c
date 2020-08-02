@@ -212,19 +212,22 @@ static void __reset(Vector *vector)
             break;
         }
 
-        vector->peek_at(vector, index++, (void **)&element);
+        vector->peek_at(vector, index, (void **)&element);
+        if (element == NULL) {
+            continue;
+        }
 
-        if (vector->value_type == VALUE_TYPE_OBJ_POINTER && element != NULL) {
+        if (vector->value_type == VALUE_TYPE_OBJ_POINTER) {
             object_destroy(element);
-        } else if (vector->value_type  == VALUE_TYPE_STRING && element != NULL) {
+        } else if (vector->value_type  == VALUE_TYPE_STRING) {
             object_destroy(element);
-        } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER &&
-                element != NULL) {
+        } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER) {
             allocator_mem_free(vector->obj.allocator, element);
-        } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER && element != NULL) {
+        } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER) {
             dbg_str(DBG_WARNNING, "not support reset unkown pointer");
         } else {
         }
+        vector->add_at(vector, index++, NULL);
         element = NULL;
     }
 
