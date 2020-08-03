@@ -15,7 +15,7 @@
 #include <libobject/core/utils/data_structure/vector.h>
 #include <libobject/core/try.h>
 
-static int test_try_catch1(TEST_ENTRY *enTRY, void *argc, void *argv)
+static int test_try_catch1(TEST_ENTRY *entry, void *argc, void *argv)
 {
     exception_init();
     int ret;
@@ -23,12 +23,12 @@ static int test_try_catch1(TEST_ENTRY *enTRY, void *argc, void *argv)
 #if 1
     TRY {
         TRY {
-            THROW(-1, "recall B");
+            THROW(-1);
         } CATCH {
         }
         ENDTRY;
         printf("throw -2\n");
-        THROW(-2, NULL);
+        THROW(-2);
     } CATCH {
         if (ERROR_CODE() == -2) ret = 1;
         else ret = 0;
@@ -44,11 +44,11 @@ REGISTER_TEST_FUNC(test_try_catch1);
 static void try_catch_test_fuc()
 {
     TRY {
-        THROW(-5, "recall B");
+        THROW(-5);
     }
     ENDTRY;
 }
-static int test_try_catch2(TEST_ENTRY *enTRY, void *argc, void *argv)
+static int test_try_catch2(TEST_ENTRY *entry, void *argc, void *argv)
 {
     int ret = -5;
 

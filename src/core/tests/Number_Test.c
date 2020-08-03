@@ -56,12 +56,12 @@ static int __deconstrcut(Number_Test *test)
 
 static int __setup(Number_Test *test, char *init_str)
 {
-    return 0;
+    return 1;
 }
 
 static int __teardown(Number_Test *test)
 {
-    return 0;
+    return 1;
 }
 
 static int __test_int_number(Number_Test *test)
@@ -83,6 +83,8 @@ static int __test_int_number(Number_Test *test)
         dbg_str(DBG_SUC, "test int number, d = %d, expect_d=%d", 
                 d, expect_d);
     }
+
+    return ret;
 }
 
 static class_info_entry_t number_test_class_info[] = {

@@ -52,12 +52,12 @@ static int __deconstrcut(Object_Cache_Test *test)
 
 static int __setup(Object_Cache_Test *test, char *init_str)
 {
-    return 0;
+    return 1;
 }
 
 static int __teardown(Object_Cache_Test *test)
 {
-    return 0;
+    return 1;
 }
 
 static int __test_memery_leak(Object_Cache_Test *test)
@@ -127,6 +127,7 @@ static int __test_memery_leak(Object_Cache_Test *test)
         dbg_str(DBG_ERROR, "pre_count=%d after_count=%d", pre_count, after_count);
     }
     
+    return ret;
 }
 
 static class_info_entry_t object_cache_test_class_info[] = {

@@ -101,13 +101,6 @@ int app(int argc, char *argv[])
     TRY {
         app = object_new(NULL, "Application", NULL);
         app->run(app, argc, argv);
-
-        /*
-         *class_deamon_t *deamon;
-         *deamon = class_deamon_get_global_class_deamon();
-         *class_deamon_info(deamon);
-         */
-
     } CATCH {
         ret = -1;
         dbg_str(DBG_ERROR, "main catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",

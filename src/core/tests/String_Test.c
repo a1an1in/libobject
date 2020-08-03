@@ -67,7 +67,7 @@ static int __setup(String_Test *test, char *init_str)
 
     dbg_str(DBG_DETAIL,"String_Test set up");
 
-    return 0;
+    return 1;
 }
 
 static int __teardown(String_Test *test)
@@ -75,10 +75,10 @@ static int __teardown(String_Test *test)
     dbg_str(DBG_DETAIL,"String_Test teardown");
     test->str->reset(test->str);
 
-    return 0;
+    return 1;
 }
 
-static void __test_get_cstr(String_Test *test)
+static int __test_get_cstr(String_Test *test)
 {
     String *string = test->str;
     char *demo = "abcdefg";
@@ -88,7 +88,7 @@ static void __test_get_cstr(String_Test *test)
     ASSERT_EQUAL(test, string->get_cstr(string), demo, strlen(demo));
 }
 
-static void __test_sprintf(String_Test *test)
+static int __test_sprintf(String_Test *test)
 {
     String *string = test->str;
     char *test1 = "abcdefg";
@@ -103,7 +103,7 @@ static void __test_sprintf(String_Test *test)
     ASSERT_EQUAL(test, string->get_cstr(string), test3, strlen(test3));
 }
 
-static void __test_append(String_Test *test)
+static int __test_append(String_Test *test)
 {
     String *parent = test->str;
     char *test1 = "abcdefg";
@@ -118,7 +118,7 @@ static void __test_append(String_Test *test)
     ASSERT_EQUAL(test, parent->get_cstr(parent), test3, strlen(test3));
 }
 
-static void __test_append_string(String_Test *test)
+static int __test_append_string(String_Test *test)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     String *substring;
@@ -140,7 +140,7 @@ static void __test_append_string(String_Test *test)
     object_destroy(substring);
 }
 
-static void __test_len(String_Test *test)
+static int __test_len(String_Test *test)
 {
     String *parent = test->str;
     char *test1 = "abcdefg";
@@ -150,7 +150,7 @@ static void __test_len(String_Test *test)
     ASSERT_EQUAL(test, parent->get_cstr(parent), test1, strlen(test1));
 }
 
-static void __test_get_substring(String_Test *test)
+static int __test_get_substring(String_Test *test)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     String *string = test->str, *sub_str;
@@ -165,7 +165,7 @@ static void __test_get_substring(String_Test *test)
     object_destroy(sub_str);
 }
 
-static void __test_insert(String_Test *test)
+static int __test_insert(String_Test *test)
 {
     String *string = test->str;
     char *test1 = "@@@vvvvvvv@@@@";
@@ -176,7 +176,7 @@ static void __test_insert(String_Test *test)
     ASSERT_EQUAL(test, string->get_cstr(string), test1, strlen(test1));
 }
 
-static void __test_insert_string(String_Test *test)
+static int __test_insert_string(String_Test *test)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     String *string = test->str, *sub_str;
@@ -351,7 +351,7 @@ static int __test_split(String_Test *test)
 }
 
 
-static void __test_find(String_Test *test)
+static int __test_find(String_Test *test)
 {
     String *string = test->str;
     int expect_count = 3, count;
@@ -401,7 +401,7 @@ static int __test_replace_case1(String_Test *test)
     return ret;
 }
 
-static void __test_replace(String_Test *test)
+static int __test_replace(String_Test *test)
 {
     int ret;
 
@@ -412,7 +412,7 @@ static void __test_replace(String_Test *test)
     return ret;
 }
 
-static void __test_empty(String_Test *test)
+static int __test_empty(String_Test *test)
 {
     allocator_t *allocator = allocator_get_default_alloc();
     String *string = test->str;
@@ -426,7 +426,7 @@ static void __test_empty(String_Test *test)
     ret = ASSERT_EQUAL(test, &ret, &expect_ret, sizeof(ret));
 }
 
-static void __test_ltrim(String_Test *test)
+static int __test_ltrim(String_Test *test)
 {
     String *string = test->str;
     char *t = "  hello";
@@ -438,7 +438,7 @@ static void __test_ltrim(String_Test *test)
     ret = ASSERT_EQUAL(test, string->get_cstr(string), t + 2, strlen(t + 2));
 }
 
-static void __test_rtrim(String_Test *test)
+static int __test_rtrim(String_Test *test)
 {
     String *string = test->str;
     char *t = "hello  ";

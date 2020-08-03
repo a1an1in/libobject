@@ -46,6 +46,7 @@
 #include <string.h>
 #include <libobject/core/utils/data_structure/vector.h>
 #include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/try.h>
 
 int 
 vector_copy_backward(vector_t *vector, vector_pos_t *to, 
@@ -126,6 +127,7 @@ vector_t *vector_create(allocator_t *allocator, uint8_t lock_type)
     }
     ret->allocator = allocator;
     ret->lock_type = lock_type;
+
     return ret;
 }
 
@@ -187,45 +189,44 @@ int vector_add_at(vector_t *vector, int index, void *data)
     uint32_t end_pos   = vector->end.vector_pos;
     uint32_t capacity  = vector->capacity;
     void **vector_head = vector->vector_head;
-    int ret  = 0;
+    int ret = 0;
     
-    dbg_str(VECTOR_DETAIL, "offset=%d, index=%d, element=%p",
-            offset, index, data);
+    __TRY {
+        __THROW_IF(vector == NULL, -1);
 
-    sync_lock(&vector->vector_lock, NULL);
+        sync_lock(&vector->vector_lock, NULL);
+        if (offset >= capacity) {
+            dbg_str(VECTOR_WARNNING, "realloc mem at %s", __func__);
+            vector->vector_head = allocator_mem_zalloc(vector->allocator, 
+                                                       2 * capacity * (vector->step));
+            if(vector->vector_head == NULL){
+                vector->vector_head = vector_head;
+                __THROW(-1);
+            }
 
-    if (offset >= capacity) {
-        dbg_str(VECTOR_WARNNING, "realloc mem");
-        vector->vector_head = allocator_mem_zalloc(vector->allocator, 
-                                                   2 * capacity * (vector->step));
-        if(vector->vector_head == NULL){
-            dbg_str(VECTOR_ERROR, "vector_add_back, realloc mem");
-            vector->vector_head = vector_head;
-            goto end;
+            vector->capacity = 2 * capacity;
+            memcpy(vector->vector_head, vector_head, capacity * vector->step);
+            allocator_mem_free(vector->allocator, vector_head);
+            vector_head = vector->vector_head;
         }
 
-        vector->capacity = 2 * capacity;
-        memcpy(vector->vector_head, vector_head, capacity * vector->step);
-        allocator_mem_free(vector->allocator, vector_head);
-        vector_head = vector->vector_head;
+        if (vector_head[offset] == NULL) {
+            vector->count += 1;
+        }
+
+        vector_head[offset] = data;
+        if (offset + 1 > end_pos) {
+            vector_pos_init(&vector->end, offset + 1, vector);
+        }
+        sync_unlock(&vector->vector_lock);
+
+        return 1;
+    } __CATCH {
+        dbg_str(VECTOR_ERROR, "vector_add_at error, file:%s, line:%d, func:%s, error_code:%d", 
+                __ERROR_FILE(), __ERROR_LINE(), __ERROR_FUNC(), __ERROR_CODE());
+        sync_unlock(&vector->vector_lock);
+        return -1;
     }
-
-    if (vector_head[offset] == NULL) {
-        vector->count += 1;
-    }
-
-    vector_head[offset] = data;
-    if (offset + 1 > end_pos) {
-        vector_pos_init(&vector->end, offset + 1, vector);
-    }
-    sync_unlock(&vector->vector_lock);
-
-    return 1;
-
-end:
-    sync_unlock(&vector->vector_lock);
-
-    return -1;
 }
 
 int vector_add_front(vector_t *vector, void *data)
@@ -242,38 +243,39 @@ int vector_add_back(vector_t *vector, void *data)
     uint32_t capacity  = vector->capacity;
     uint32_t offset  = vector->end.vector_pos;
 
-    sync_lock(&vector->vector_lock, NULL);
+    __TRY {
+        sync_lock(&vector->vector_lock, NULL);
+        if (offset >= capacity) {
+            dbg_str(VECTOR_WARNNING, "realloc mem");
+            vector->vector_head = allocator_mem_zalloc(vector->allocator, 
+                                                       2 * capacity * (vector->step));
+            if(vector->vector_head == NULL){
+                dbg_str(VECTOR_ERROR, "vector_add_back, realloc mem");
+                vector->vector_head = vector_head;
+                __THROW(-1);
+            }
 
-    if (offset >= capacity) {
-        dbg_str(VECTOR_WARNNING, "realloc mem");
-        vector->vector_head = allocator_mem_zalloc(vector->allocator, 
-                                                   2 * capacity * (vector->step));
-        if(vector->vector_head == NULL){
-            dbg_str(VECTOR_ERROR, "vector_add_back, realloc mem");
-            vector->vector_head = vector_head;
-            goto end;
+            vector->capacity = 2 * capacity;
+            memcpy(vector->vector_head, vector_head, capacity * step);
+            allocator_mem_free(vector->allocator, vector_head);
+            vector_head = vector->vector_head;
         }
 
-        vector->capacity = 2 * capacity;
-        memcpy(vector->vector_head, vector_head, capacity * step);
-        allocator_mem_free(vector->allocator, vector_head);
-        vector_head = vector->vector_head;
+        vector_head[offset++] = data;
+        vector_pos_init(&vector->end, offset, vector);
+        vector->count += 1;
+        sync_unlock(&vector->vector_lock);
+
+        dbg_str(VECTOR_DETAIL, "vector_add_back, offset=%d, capacity=%d, count=%d", 
+                offset - 1, vector->capacity, vector->count);
+
+        return 1;
+    } __CATCH {
+        dbg_str(VECTOR_ERROR, "%s error, file:%s, line:%d, func:%s, error_code:%d", 
+                __ERROR_FUNC(), __ERROR_FILE(), __ERROR_LINE(), __ERROR_CODE());
+        sync_unlock(&vector->vector_lock);
+        return -1;
     }
-
-    vector_head[offset++] = data;
-    vector_pos_init(&vector->end, offset, vector);
-    vector->count += 1;
-    sync_unlock(&vector->vector_lock);
-
-    dbg_str(VECTOR_DETAIL, "vector_add_back, offset=%d, capacity=%d, count=%d", 
-            offset - 1, vector->capacity, vector->count);
-
-    return 1;
-
-end:
-    sync_unlock(&vector->vector_lock);
-
-    return -1;
 }
 
 int vector_remove(vector_t *vector, int index, void **element)

@@ -33,13 +33,13 @@ extern pthread_key_t try_key;
 #define ERROR_FUNC() frame.func
 #define ERROR_CODE() frame.error_code
 
-#define THROW(e, cause, ...)  exception_throw(e, __func__, __FILE__, __LINE__, cause, ##__VA_ARGS__, NULL)
+#define THROW(e)  exception_throw(e, __func__, __FILE__, __LINE__, NULL)
 
 #define EXEC(expression)                                                                         \
     do {                                                                                         \
-        int ret = 0;                                                                             \
-        if ((ret = (int)(expression)) <= 0) {                                                    \
-            exception_throw(ret, __func__, __FILE__, __LINE__, "");                              \
+        int __ret__ = 0;                                                                         \
+        if ((__ret__ = (int)(expression)) <= 0) {                                                \
+            exception_throw(__ret__, __func__, __FILE__, __LINE__, "");                          \
         }                                                                                        \
     } while (0);
 
@@ -81,7 +81,7 @@ extern pthread_key_t try_key;
         if (exception_flag == EXCEPTION_ENTERED) {
 
 #define CATCH                                                                                    \
-        } else if (frame.error_code <= 0) {                                                       \
+        } else if (frame.error_code <= 0) {                                                      \
             exception_flag = EXCEPTION_HANDLED;                                                  \
 
 #define FINALLY                                                                                  \
@@ -96,8 +96,48 @@ extern pthread_key_t try_key;
             exception_flag = EXCEPTION_HANDLED;                                                  \
         }                                                                                        \
         if (exception_flag == EXCEPTION_THROWN)  {                                               \
-            exception_throw(frame.error_code, __func__, frame.file, frame.line, frame.message);\
+            exception_throw(frame.error_code, __func__, frame.file, frame.line, frame.message);  \
         }                                                                                        \
     } while (0)
+
+
+#define __ERROR_LINE() __error_line
+#define __ERROR_FUNC() __error_func
+#define __ERROR_CODE() __error_code
+#define __ERROR_FILE() __error_file
+
+#define __THROW(error_code)                                                                      \
+    do {                                                                                         \
+        __error_line = __LINE__;                                                                 \
+        __error_func = (char *)__func__;                                                         \
+        __error_file = (char *)extract_filename_in_macro(__FILE__);                              \
+        __error_code = error_code;                                                               \
+        goto __error_tab;                                                                        \
+    } while (0);
+
+#define __EXEC(expression)                                                                       \
+    do {                                                                                         \
+        int __ret__ = 0;                                                                         \
+        if ((__ret__ = (int)(expression)) <= 0) {                                                \
+            __THROW(-1)                                                                          \
+        }                                                                                        \
+    } while (0);
+
+#define __THROW_IF(condition, error_code)                                                        \
+    do {                                                                                         \
+        if (((int)(condition)) == 1) {                                                           \
+            __THROW(error_code)                                                                  \
+        }                                                                                        \
+    } while (0);
+
+
+#define __TRY                                                                                    \
+    int __error_line;                                                                            \
+    int __error_code;                                                                            \
+    char *__error_func;                                                                          \
+    char *__error_file;                                                                          \
+
+#define __CATCH                                                                                  \
+    __error_tab:                                                                                 \
 
 #endif
