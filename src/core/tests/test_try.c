@@ -26,7 +26,6 @@ static int test_try_catch1(TEST_ENTRY *entry, void *argc, void *argv)
             THROW(-1);
         } CATCH {
         }
-        ENDTRY;
         printf("throw -2\n");
         THROW(-2);
     } CATCH {
@@ -34,7 +33,6 @@ static int test_try_catch1(TEST_ENTRY *entry, void *argc, void *argv)
         else ret = 0;
         printf("CATCH %d at level1\n", ret);
     }
-    ENDTRY;
 #endif
 
     return ret;
@@ -43,10 +41,7 @@ REGISTER_TEST_FUNC(test_try_catch1);
 
 static void try_catch_test_fuc()
 {
-    TRY {
-        THROW(-5);
-    }
-    ENDTRY;
+    THROW(-5);
 }
 static int test_try_catch2(TEST_ENTRY *entry, void *argc, void *argv)
 {
@@ -61,7 +56,6 @@ static int test_try_catch2(TEST_ENTRY *entry, void *argc, void *argv)
     } FINALLY {
         printf("run at finally\n");
     };
-    ENDTRY;
 
     return ret;
 }

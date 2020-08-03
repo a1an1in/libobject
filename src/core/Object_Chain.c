@@ -63,7 +63,6 @@ static void * __new(Object_Chain *chain, char *class_name, char *data)
         EXEC_IF(o != NULL, object_destroy(o));
         o = NULL;
     }
-    ENDTRY;
 
     return o;
 }

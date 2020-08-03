@@ -67,7 +67,6 @@ static int __run(Application *app, int argc, char *argv[])
         dbg_str(DBG_ERROR, "Application catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
                 ERROR_FUNC(), __func__, ERROR_LINE(), ERROR_CODE());
     }
-    ENDTRY;
 
     return ret;
 }
@@ -110,7 +109,6 @@ int app(int argc, char *argv[])
         object_destroy(app);
         libobject_exit();
     }
-    ENDTRY;
 
     return ret;
 }

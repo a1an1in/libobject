@@ -182,7 +182,6 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
             dbg_str(DBG_ERROR, "test runner catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
                     ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());
         }
-        ENDTRY;
 
         case_result = object_new(allocator, "Test_Case_Result", NULL);
         case_result->set(case_result, "result", &test->ret);

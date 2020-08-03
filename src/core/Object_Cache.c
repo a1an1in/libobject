@@ -152,7 +152,6 @@ static void * __new(Object_Cache *cache, char *class_name, char *data)
         }
         o = NULL;
     }
-    ENDTRY;
 
     return o;
 }

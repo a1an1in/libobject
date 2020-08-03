@@ -27,11 +27,11 @@ enum {
 extern void exception_throw(int error_code, const char *func, const char *file, int line, const char *cause, ...);
 extern pthread_key_t try_key;
 
-#define ERROR_MESSAGE() frame.message
-#define ERROR_LINE() frame.line
-#define ERROR_FILE() extract_filename_in_macro(frame.file)
-#define ERROR_FUNC() frame.func
-#define ERROR_CODE() frame.error_code
+#define ERROR_MESSAGE() __exception_frame.message
+#define ERROR_LINE() __exception_frame.line
+#define ERROR_FILE() extract_filename_in_macro(__exception_frame.file)
+#define ERROR_FUNC() __exception_frame.func
+#define ERROR_CODE() __exception_frame.error_code
 
 #define THROW(e)  exception_throw(e, __func__, __FILE__, __LINE__, NULL)
 
@@ -71,34 +71,22 @@ extern pthread_key_t try_key;
     }
 
 #define TRY                                                                                      \
-    do {                                                                                         \
-        volatile int exception_flag;                                                             \
-        exception_frame_t frame;                                                                 \
-        frame.message[0] = 0;                                                                    \
-        frame.prev = (exception_frame_t*)pthread_getspecific(try_key);                           \
-        pthread_setspecific(try_key, &frame);                                                    \
-        exception_flag = setjmp(frame.env);                                                      \
-        if (exception_flag == EXCEPTION_ENTERED) {
+    volatile int __exception_flag;                                                               \
+    exception_frame_t __exception_frame;                                                         \
+    __exception_frame.message[0] = 0;                                                            \
+    __exception_frame.prev = (exception_frame_t*)pthread_getspecific(try_key);                   \
+    pthread_setspecific(try_key, &__exception_frame);                                            \
+    __exception_flag = setjmp(__exception_frame.env);                                            \
+    if (__exception_flag == EXCEPTION_ENTERED) {
 
 #define CATCH                                                                                    \
-        } else if (frame.error_code <= 0) {                                                      \
-            exception_flag = EXCEPTION_HANDLED;                                                  \
+        pthread_setspecific(try_key,                                                             \
+                            ((exception_frame_t*)pthread_getspecific(try_key))->prev);           \
+        __exception_flag = EXCEPTION_HANDLED;                                                    \
+    }                                                                                            \
+    if (__exception_flag == EXCEPTION_THROWN)                                                    \
 
 #define FINALLY                                                                                  \
-        }                                                                                        \
-        {                                                                                        \
-
-#define ENDTRY                                                                                   \
-        }                                                                                        \
-        if (exception_flag == EXCEPTION_ENTERED) {                                               \
-            pthread_setspecific(try_key,                                                         \
-                    ((exception_frame_t*)pthread_getspecific(try_key))->prev);                   \
-            exception_flag = EXCEPTION_HANDLED;                                                  \
-        }                                                                                        \
-        if (exception_flag == EXCEPTION_THROWN)  {                                               \
-            exception_throw(frame.error_code, __func__, frame.file, frame.line, frame.message);  \
-        }                                                                                        \
-    } while (0)
 
 
 #define __ERROR_LINE() __error_line
@@ -139,5 +127,8 @@ extern pthread_key_t try_key;
 
 #define __CATCH                                                                                  \
     __error_tab:                                                                                 \
+    if (__error_code <= 0) 
+
+#define __FINALLY                                                                                \
 
 #endif
