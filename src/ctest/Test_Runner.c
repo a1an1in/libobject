@@ -133,9 +133,6 @@ static int __start(Test_Runner *runner)
             runner->run_test(runner, key);
         }
     }
-    /*
-     *class_deamon_info(deamon);
-     */
 
     return 1;
 }
@@ -158,11 +155,11 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
     success_cases = runner->result->success_cases;
 
     deamon = class_deamon_get_global_class_deamon();
-    THROW_IF(deamon == NULL, -1);
+    RETURN_IF(deamon == NULL, -1);
     entry = class_deamon_search_class(deamon, (char *)test_class_name);
-    THROW_IF(entry == NULL, -1);
+    RETURN_IF(entry == NULL, -1);
     test = object_new(allocator, test_class_name, NULL);
-    THROW_IF(test == NULL, -1);
+    RETURN_IF(test == NULL, -1);
 
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
         CONTINUE_IF(entry[i].type != ENTRY_TYPE_FUNC_POINTER && 
@@ -172,16 +169,9 @@ static int __run_test(Test_Runner *runner, char *test_class_name)
         dbg_str(DBG_DETAIL,"test %s.%s begin", test_class_name, entry[i].value_name);
         test_method = (int (*)(Test *test))entry[i].value;
 
-        TRY {
-            EXEC(test->setup(test));
-            EXEC(test_method(test));
-            EXEC(test->teardown(test));
-            ret = 1;
-        } CATCH {
-            ret = 0;
-            dbg_str(DBG_ERROR, "test runner catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
-                    ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());
-        }
+        test->setup(test);
+        ret = test_method(test);
+        test->teardown(test);
 
         case_result = object_new(allocator, "Test_Case_Result", NULL);
         case_result->set(case_result, "result", &test->ret);

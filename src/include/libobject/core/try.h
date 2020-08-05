@@ -5,6 +5,16 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <setjmp.h>
 
+#define CONTINUE_IF(expression)                                                                  \
+    if ((int)(expression) == 1) {                                                                \
+        continue;                                                                                \
+    }
+
+#define RETURN_IF(condition, return_value)                                                       \
+    if ((condition) == 1) {                                                                      \
+        return return_value;                                                                     \
+    }
+
 typedef struct exception_frame_s {
     jmp_buf env;
     int line;
@@ -27,6 +37,7 @@ enum {
 extern void exception_throw(int error_code, const char *func, const char *file, int line, const char *cause, ...);
 extern pthread_key_t try_key;
 
+#if 0
 #define ERROR_MESSAGE() __exception_frame.message
 #define ERROR_LINE() __exception_frame.line
 #define ERROR_FILE() extract_filename_in_macro(__exception_frame.file)
@@ -60,15 +71,6 @@ extern pthread_key_t try_key;
         }                                                                                        \
     } while (0);
 
-#define CONTINUE_IF(expression)                                                                  \
-    if ((int)(expression) == 1) {                                                                \
-        continue;                                                                                \
-    }
-
-#define RETURN_IF(condition, return_value)                                                       \
-    if ((condition) == 1) {                                                                      \
-        return return_value;                                                                     \
-    }
 
 #define TRY                                                                                      \
     volatile int __exception_flag;                                                               \
@@ -88,13 +90,14 @@ extern pthread_key_t try_key;
 
 #define FINALLY                                                                                  \
 
+#else
 
-#define __ERROR_LINE() __error_line
-#define __ERROR_FUNC() __error_func
-#define __ERROR_CODE() __error_code
-#define __ERROR_FILE() __error_file
+#define ERROR_LINE() __error_line
+#define ERROR_FUNC() __error_func
+#define ERROR_CODE() __error_code
+#define ERROR_FILE() __error_file
 
-#define __THROW(error_code)                                                                      \
+#define THROW(error_code)                                                                        \
     do {                                                                                         \
         __error_line = __LINE__;                                                                 \
         __error_func = (char *)__func__;                                                         \
@@ -103,32 +106,44 @@ extern pthread_key_t try_key;
         goto __error_tab;                                                                        \
     } while (0);
 
-#define __EXEC(expression)                                                                       \
+#define EXEC(expression)                                                                         \
     do {                                                                                         \
         int __ret__ = 0;                                                                         \
         if ((__ret__ = (int)(expression)) <= 0) {                                                \
-            __THROW(-1)                                                                          \
+            THROW(-1);                                                                           \
         }                                                                                        \
     } while (0);
 
-#define __THROW_IF(condition, error_code)                                                        \
+#define EXEC_IF(condition, expression)                                                           \
     do {                                                                                         \
-        if (((int)(condition)) == 1) {                                                           \
-            __THROW(error_code)                                                                  \
+        if (((condition)) == 1) {                                                                \
+            int __ret = 0;                                                                       \
+            if ((__ret = (expression)) <= 0) {                                                   \
+                THROW(__ret);                                                                    \
+            }                                                                                    \
+        }                                                                                        \
+    } while (0);
+
+#define THROW_IF(condition, error_code)                                                          \
+    do {                                                                                         \
+        if (((int)((condition))) == 1) {                                                         \
+            THROW(error_code)                                                                    \
         }                                                                                        \
     } while (0);
 
 
-#define __TRY                                                                                    \
+#define TRY                                                                                      \
     int __error_line;                                                                            \
-    int __error_code;                                                                            \
+    int __error_code = 1;                                                                        \
     char *__error_func;                                                                          \
     char *__error_file;                                                                          \
 
-#define __CATCH                                                                                  \
+#define CATCH                                                                                    \
     __error_tab:                                                                                 \
     if (__error_code <= 0) 
 
-#define __FINALLY                                                                                \
+#define FINALLY                                                                                  \
+
+#endif
 
 #endif

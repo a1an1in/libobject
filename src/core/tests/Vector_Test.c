@@ -101,7 +101,7 @@ static int __test_int_vector_remove(Vector_Test *test)
     Vector *vector = test->vector;
     int value_type = VALUE_TYPE_INT8_T;
     int *t = 0;
-    int ret = 2;
+    int ret = 3;
 
     vector->set(vector, "/Vector/value_type", &value_type);
 
@@ -124,6 +124,8 @@ static int __test_int_vector_count(Vector_Test *test)
 
     vector->set(vector, "/Vector/value_type", &value_type);
 
+    count = vector->count(vector);
+    printf("count=%d\n", count);
     vector->add_at(vector, 0, 0);
     vector->add_at(vector, 1, 1);
     vector->add_at(vector, 2, 2);

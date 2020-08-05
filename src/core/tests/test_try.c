@@ -15,12 +15,12 @@
 #include <libobject/core/utils/data_structure/vector.h>
 #include <libobject/core/try.h>
 
+#if 0
 static int test_try_catch1(TEST_ENTRY *entry, void *argc, void *argv)
 {
     exception_init();
     int ret;
 
-#if 1
     TRY {
         TRY {
             THROW(-1);
@@ -33,7 +33,6 @@ static int test_try_catch1(TEST_ENTRY *entry, void *argc, void *argv)
         else ret = 0;
         printf("CATCH %d at level1\n", ret);
     }
-#endif
 
     return ret;
 }
@@ -60,4 +59,5 @@ static int test_try_catch2(TEST_ENTRY *entry, void *argc, void *argv)
     return ret;
 }
 REGISTER_TEST_FUNC(test_try_catch2);
+#endif
 

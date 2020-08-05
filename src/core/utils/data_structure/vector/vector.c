@@ -189,10 +189,10 @@ int vector_add_at(vector_t *vector, int index, void *data)
     uint32_t end_pos   = vector->end.vector_pos;
     uint32_t capacity  = vector->capacity;
     void **vector_head = vector->vector_head;
-    int ret = 0;
+    int ret = 1;
     
-    __TRY {
-        __THROW_IF(vector == NULL, -1);
+    TRY {
+        THROW_IF(vector == NULL, -1);
 
         sync_lock(&vector->vector_lock, NULL);
         if (offset >= capacity) {
@@ -201,7 +201,7 @@ int vector_add_at(vector_t *vector, int index, void *data)
                                                        2 * capacity * (vector->step));
             if(vector->vector_head == NULL){
                 vector->vector_head = vector_head;
-                __THROW(-1);
+                THROW(-1);
             }
 
             vector->capacity = 2 * capacity;
@@ -219,14 +219,14 @@ int vector_add_at(vector_t *vector, int index, void *data)
             vector_pos_init(&vector->end, offset + 1, vector);
         }
         sync_unlock(&vector->vector_lock);
-
-        return 1;
-    } __CATCH {
+    } CATCH {
         dbg_str(VECTOR_ERROR, "vector_add_at error, file:%s, line:%d, func:%s, error_code:%d", 
-                __ERROR_FILE(), __ERROR_LINE(), __ERROR_FUNC(), __ERROR_CODE());
+                ERROR_FILE(), ERROR_LINE(), ERROR_FUNC(), ERROR_CODE());
         sync_unlock(&vector->vector_lock);
-        return -1;
+        ret = -1;
     }
+
+    return ret;
 }
 
 int vector_add_front(vector_t *vector, void *data)
@@ -242,8 +242,9 @@ int vector_add_back(vector_t *vector, void *data)
     uint32_t step      = vector->step;
     uint32_t capacity  = vector->capacity;
     uint32_t offset  = vector->end.vector_pos;
+    int ret = 1;
 
-    __TRY {
+    TRY {
         sync_lock(&vector->vector_lock, NULL);
         if (offset >= capacity) {
             dbg_str(VECTOR_WARNNING, "realloc mem");
@@ -252,7 +253,7 @@ int vector_add_back(vector_t *vector, void *data)
             if(vector->vector_head == NULL){
                 dbg_str(VECTOR_ERROR, "vector_add_back, realloc mem");
                 vector->vector_head = vector_head;
-                __THROW(-1);
+                THROW(-1);
             }
 
             vector->capacity = 2 * capacity;
@@ -268,14 +269,14 @@ int vector_add_back(vector_t *vector, void *data)
 
         dbg_str(VECTOR_DETAIL, "vector_add_back, offset=%d, capacity=%d, count=%d", 
                 offset - 1, vector->capacity, vector->count);
-
-        return 1;
-    } __CATCH {
+    } CATCH {
         dbg_str(VECTOR_ERROR, "%s error, file:%s, line:%d, func:%s, error_code:%d", 
-                __ERROR_FUNC(), __ERROR_FILE(), __ERROR_LINE(), __ERROR_CODE());
+                ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());
         sync_unlock(&vector->vector_lock);
-        return -1;
+        ret = -1;
     }
+
+    return ret;
 }
 
 int vector_remove(vector_t *vector, int index, void **element)
