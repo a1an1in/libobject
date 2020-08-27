@@ -15,7 +15,7 @@
 #include <libobject/core/utils/data_structure/vector.h>
 #include <libobject/core/try.h>
 
-#if 0
+#ifdef USE_JMP_TRY_CATCH
 static int test_try_catch1(TEST_ENTRY *entry, void *argc, void *argv)
 {
     exception_init();

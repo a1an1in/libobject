@@ -141,13 +141,13 @@ static void * __new(Object_Cache *cache, char *class_name, char *data)
         }
     } CATCH {
         if (new_list != NULL) {
-            EXEC(map->del(map, class_name));
-            EXEC(object_list->remove_element(object_list, new_list));
+            map->del(map, class_name);
+            object_list->remove_element(object_list, new_list);
             object_destroy(new_list);
         }
 
         if (o != NULL) {
-            EXEC(object_list->remove_element(object_list, o));
+            object_list->remove_element(object_list, o);
             object_destroy(o);
         }
         o = NULL;

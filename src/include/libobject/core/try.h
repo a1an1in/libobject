@@ -37,7 +37,11 @@ enum {
 extern void exception_throw(int error_code, const char *func, const char *file, int line, const char *cause, ...);
 extern pthread_key_t try_key;
 
-#if 0
+/*
+ *#define USE_JMP_TRY_CATCH
+ */
+#ifdef USE_JMP_TRY_CATCH
+
 #define ERROR_MESSAGE() __exception_frame.message
 #define ERROR_LINE() __exception_frame.line
 #define ERROR_FILE() extract_filename_in_macro(__exception_frame.file)
@@ -144,6 +148,6 @@ extern pthread_key_t try_key;
 
 #define FINALLY                                                                                  \
 
-#endif
+#endif //end of USE_JMP_TRY_CATCH
 
 #endif

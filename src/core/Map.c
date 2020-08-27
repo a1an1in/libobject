@@ -114,8 +114,7 @@ static int __reset(Map *map)
     end = map->end(map);
 
     for (; !end->equal(end, cur);
-           cur = map->begin(map), end = map->end(map)) 
-    {
+         cur = map->begin(map), end = map->end(map)) {
         key = cur->get_kpointer(cur);
         map->remove(map, key, &element);
 

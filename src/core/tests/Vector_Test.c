@@ -101,7 +101,7 @@ static int __test_int_vector_remove(Vector_Test *test)
     Vector *vector = test->vector;
     int value_type = VALUE_TYPE_INT8_T;
     int *t = 0;
-    int ret = 3;
+    int ret = 2;
 
     vector->set(vector, "/Vector/value_type", &value_type);
 

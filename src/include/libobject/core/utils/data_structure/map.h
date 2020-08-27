@@ -56,12 +56,12 @@ static inline int map_insert(map_t *map, char *key, void *value)
 
 static inline int map_search(map_t *map, void *key,map_iterator_t *it)
 {
-    return map->map_ops->map_search(map,key,it);
+    return map->map_ops->map_search(map, key, it);
 }
 
 static inline int map_del(map_t *map, map_iterator_t *it)
 {
-    return map->map_ops->map_del(map,it);
+    return map->map_ops->map_del(map, it);
 }
 
 static inline int map_destroy(map_t *map)
@@ -90,7 +90,7 @@ static inline int map_end(map_t *map, map_iterator_t *it)
 
 static inline int  map_next(map_iterator_t *it, map_iterator_t *next)
 {
-    it->map->it_ops->map_next(it,next);
+    it->map->it_ops->map_next(it, next);
     next->map = it->map;
 
     return 0;
@@ -98,7 +98,7 @@ static inline int  map_next(map_iterator_t *it, map_iterator_t *next)
 
 static inline int map_prev(map_iterator_t *it, map_iterator_t *prev)
 {
-    it->map->it_ops->map_prev(it,prev);
+    it->map->it_ops->map_prev(it, prev);
     prev->map = it->map;
 
     return 0;
@@ -106,7 +106,7 @@ static inline int map_prev(map_iterator_t *it, map_iterator_t *prev)
 
 static inline int map_equal(map_iterator_t *it1,map_iterator_t *it2)
 {
-    return it1->map->it_ops->map_equal(it1,it2);
+    return it1->map->it_ops->map_equal(it1, it2);
 }
 
 static inline void * map_get_pointer(map_iterator_t *it)
@@ -125,9 +125,9 @@ map_for_each(map_t *map,void (*func)(map_iterator_t *it))
 	map_iterator_t it,next,end;
 
     map_end(map, &end);
-	for(	map_begin(map,&it),map_next(&it,&next); 
-			!map_equal(&it,&end);
-			it = next,map_next(&it,&next)){
+	for (map_begin(map, &it), map_next(&it, &next); 
+         !map_equal(&it, &end);
+		 it = next, map_next(&it, &next)) {
 		func(&it);
 	}
 

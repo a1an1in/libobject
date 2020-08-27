@@ -135,10 +135,10 @@ int vector_init(vector_t *vector, uint32_t data_size, uint32_t capacity)
 {
     dbg_str(VECTOR_DETAIL, "vector init, capacity=%d, step=%d", capacity, vector->step);
 
-    vector->step        = sizeof(void *);
-    vector->data_size   = data_size;
-    vector->capacity    = capacity;
-    vector->count        = 0;
+    vector->step      = sizeof(void *);
+    vector->data_size = data_size;
+    vector->capacity  = capacity;
+    vector->count     = 0;
     vector->vector_head = allocator_mem_alloc(vector->allocator, 
                                               capacity * (vector->step));
     if (vector->vector_head == NULL) {
@@ -199,7 +199,7 @@ int vector_add_at(vector_t *vector, int index, void *data)
             dbg_str(VECTOR_WARNNING, "realloc mem at %s", __func__);
             vector->vector_head = allocator_mem_zalloc(vector->allocator, 
                                                        2 * capacity * (vector->step));
-            if(vector->vector_head == NULL){
+            if (vector->vector_head == NULL) {
                 vector->vector_head = vector_head;
                 THROW(-1);
             }
@@ -250,7 +250,7 @@ int vector_add_back(vector_t *vector, void *data)
             dbg_str(VECTOR_WARNNING, "realloc mem");
             vector->vector_head = allocator_mem_zalloc(vector->allocator, 
                                                        2 * capacity * (vector->step));
-            if(vector->vector_head == NULL){
+            if (vector->vector_head == NULL) {
                 dbg_str(VECTOR_ERROR, "vector_add_back, realloc mem");
                 vector->vector_head = vector_head;
                 THROW(-1);
