@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
@@ -26,10 +27,16 @@ void install_stub(void* src_func, void* dst_func)
 void install_stub2(void* src_func, void* dst_func)
 {
     int pagesize = sysconf(_SC_PAGESIZE);                                          // 系统页大小
-    printf("pagesize=%x\n", pagesize);
     unsigned long srcpage = (unsigned long)((unsigned long)src_func & ~(pagesize - 1)); // 计算原函数地址所在的页 的首地址
-    printf("pagesize=%x page:%p\n", pagesize, srcpage);
-    mprotect((void*)srcpage, pagesize, PROT_READ | PROT_WRITE | PROT_EXEC);        // 使用mprotect函数使该页的内存可读可写可执行
+    int ret;
+
+    printf("src addr:%p pagesize=%x page:%p\n",src_func, pagesize, srcpage);
+    ret = mprotect((void*)srcpage, pagesize, PROT_READ | PROT_WRITE | PROT_EXEC);        // 使用mprotect函数使该页的内存可读可写可执行
+    if (ret < 0) {
+        perror("mprotect\n");
+        printf("errno:%d\n", errno);
+        return ;
+    }
     unsigned char jmpcmd[14] = {0};                                                // JMP远跳只支持32位程序 64位程序地址占8个字节 寻址有问题
     jmpcmd[0] = 0xFF;                                                              // 当JMP指令为 FF 25 00 00 00 00时，会取下面的8个字节作为跳转地址
     jmpcmd[1] = 0x25;                                                              // 因此可以使用14个字节作为指令 (FF 25 00 00 00 00) + dstaddr
@@ -38,6 +45,7 @@ void install_stub2(void* src_func, void* dst_func)
     jmpcmd[4] = 0x00;
     jmpcmd[5] = 0x00;
     unsigned long dstaddr = (unsigned long)dst_func;
+    printf("dst addr:size=%d\n", sizeof(dstaddr));
     memcpy(&jmpcmd[6], &dstaddr, sizeof(dstaddr));                                 
     memcpy(src_func, jmpcmd, sizeof(jmpcmd));   
 }

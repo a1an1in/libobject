@@ -44,6 +44,7 @@ void stub_set(struct func_stub *pstub, void *fn, void *fn_stub)
 
     if (-1 == mprotect(pageof(fn), pagesize * 2, PROT_READ | PROT_EXEC))
     {
+        printf("errno:%d\n", errno);
         perror("mprotect to r+x failed");
         exit(errno);
     }
