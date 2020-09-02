@@ -6,7 +6,7 @@
  * @date 2019-06-19
  */
 
-#include "Strategy.h"
+#include "libobject/core/Strategy.h"
 
 static int __construct(Strategy *strategy, char *init_str)
 {
