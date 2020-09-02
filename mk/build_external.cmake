@@ -1,0 +1,6 @@
+file(GLOB_RECURSE LIBOBJECT ${CMAKE_INSTALL_PREFIX}/lib/libobject.*)
+if ("${LIBOBJECT}" STREQUAL "")
+    include(${PROJECT_SOURCE_DIR}/mk/external/build_libobject.cmake)
+else ()
+    MESSAGE("-- libobject path is ${LIBOBJECT}")
+endif()

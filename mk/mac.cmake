@@ -2,16 +2,25 @@ macro (set_cmake_evironment_variable)
     if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local")
         set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/mac)
     endif ()
+    message("-- CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
     LINK_DIRECTORIES(/usr/local/lib 
         /usr/lib
-        ${PROJECT_SOURCE_DIR}/lib/mac)
+        ${CMAKE_INSTALL_PREFIX}/lib
+        /usr/local/Cellar/mysql/8.0.16/lib
+    )
 
     INCLUDE_DIRECTORIES(/usr/local/include
         /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include
-        ${PROJECT_SOURCE_DIR}/src/include)
+        /usr/local/Cellar/mysql/8.0.16/include/mysql
+        ${PROJECT_SOURCE_DIR}/src/include
+        ${CMAKE_INSTALL_PREFIX}/include
+        ${PROJECT_SOURCE_DIR}/sysroot/mac/include)
 
     set (EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)
     set (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+    set (EXTERNAL_LIB_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/mac)
+    set (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
+    SET(ExternalLibs ${ExternalLibs}  -force_load ${LIBRARY_OUTPUT_PATH}/libobject.a)
 endmacro()
 
 macro (display_mac_platform_configs)

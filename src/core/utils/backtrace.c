@@ -1,9 +1,11 @@
-#include <execinfo.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <libobject/core/utils/alloc/allocator.h>
+
+#if (!defined(ANDROID_USER_MODE))
+#include <execinfo.h>
 
 #define MAX_BACKTRACE_SIZE 100
 int print_backtrace(void)
@@ -47,4 +49,5 @@ int get_backtrace(char *bt, int max_len)
 
     return 0;
 }
+#endif
 

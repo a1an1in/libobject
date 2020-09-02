@@ -13,7 +13,7 @@ macro (set_android_environment_variable)
     set(CMAKE_ANDROID_STL_TYPE gnustl_static)
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_ANDROID_NDK}/build/cmake/android.toolchain.cmake)
 
-    SET(ExternalLibs ${ExternalLibs} log)
+    SET(ExternalLibs ${ExternalLibs} log -Wl,--whole-archive object -Wl,--no-whole-archive )
 endmacro()
 
 macro (set_cmake_evironment_variable)
@@ -34,12 +34,15 @@ macro (set_cmake_evironment_variable)
 
     LINK_DIRECTORIES(
         ${CMAKE_ANDROID_NDK}/platforms/android-21/${ARCH_NAME}/usr/lib
+        ${CMAKE_ANDROID_NDK}/sysroot/usr/lib
         ${LIBRARY_OUTPUT_PATH})
 
     INCLUDE_DIRECTORIES(
         ${CMAKE_ANDROID_NDK}/sysroot/usr/include
         ${CMAKE_INSTALL_PREFIX}/include
         ${PROJECT_SOURCE_DIR}/src/include)
+
+    set (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DANDROID_ABI=armeabi-v7a -DCMAKE_ANDROID_NDK=${CMAKE_ANDROID_NDK})
 
 endmacro()
 

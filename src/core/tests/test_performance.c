@@ -10,7 +10,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/regisTRY/regisTRY.h>
+#include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/utils/data_structure/array_stack.h>
 #include <libobject/core/utils/data_structure/vector.h>
 #include <libobject/core/try.h>
