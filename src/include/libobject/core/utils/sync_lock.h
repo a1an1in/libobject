@@ -20,7 +20,7 @@
 
 #include <libobject/user_mode.h>
 #include <libobject/basic_types.h>
-#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(ANDROID_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
+#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(ANDROID_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE)) || defined(WINDOWS_USER_MODE)
 #include <pthread.h>
 #endif
 
@@ -37,9 +37,10 @@ typedef struct sync_lock_s{
 #if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(ANDROID_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
 		pthread_mutex_t mutex;
 		pthread_rwlock_t rwlock;
-#elif defined(WINDOWS_USER_MODE)
-        CRITIACAL_SECTION cs;
 #endif
+//#if defined(WINDOWS_USER_MODE)
+//        CRITIACAL_SECTION cs;
+//#endif
 		int b;
 	}lock;
 }sync_lock_t;
@@ -90,11 +91,6 @@ static inline int sync_lock_destroy(struct sync_lock_s *slock)
 	}
 	return slock->lock_ops->sync_lock_destroy(slock);
 }
-
-/*
- *void sync_lock_register_modules();
- */
-
 
 #endif
 

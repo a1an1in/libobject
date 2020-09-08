@@ -30,7 +30,7 @@
  * 
  */
 
-#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
+#if (defined(WINDOWS_USER_MODE))
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,9 +42,9 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
-#include "Unix_File_System.h"
+#include "Windows_File_System.h"
 
-static int __list(Unix_File_System *fs, char *path, char **list, int count, int max_name_len)
+static int __list(Windows_File_System *fs, char *path, char **list, int count, int max_name_len)
 {
     DIR *dir;
     struct dirent *ptr;
@@ -74,7 +74,7 @@ static int __list(Unix_File_System *fs, char *path, char **list, int count, int 
     return ret;
 }
 
-static int __count_list(Unix_File_System *fs, char *path)
+static int __count_list(Windows_File_System *fs, char *path)
 {
     DIR *dir;
     struct dirent *ptr;
@@ -94,7 +94,7 @@ static int __count_list(Unix_File_System *fs, char *path)
     return ret;
 }
 
-static int __is_directory(Unix_File_System *fs, char *path)
+static int __is_directory(Windows_File_System *fs, char *path)
 {
     struct stat st;
 
@@ -107,7 +107,7 @@ static int __is_directory(Unix_File_System *fs, char *path)
     } else return 0;
 }
 
-static int __get_size(Unix_File_System *fs, char *path)
+static int __get_size(Windows_File_System *fs, char *path)
 {
     struct stat st;
 
@@ -118,7 +118,7 @@ static int __get_size(Unix_File_System *fs, char *path)
     return st.st_size;
 }
 
-static int __get_mtime(Unix_File_System *fs, char *path, char *time, int time_max_len)
+static int __get_mtime(Windows_File_System *fs, char *path, char *time, int time_max_len)
 {
     struct stat st;
     struct tm t;
@@ -136,12 +136,12 @@ static int __get_mtime(Unix_File_System *fs, char *path, char *time, int time_ma
 
 static class_info_entry_t file_system_class_info[] = {
     Init_Obj___Entry(0 , File_System, parent),
-    Init_Vfunc_Entry(1 , Unix_File_System, list, __list),
-    Init_Vfunc_Entry(2 , Unix_File_System, count_list, __count_list),
-    Init_Vfunc_Entry(3 , Unix_File_System, is_directory, __is_directory),
-    Init_Vfunc_Entry(4 , Unix_File_System, get_size, __get_size),
-    Init_Vfunc_Entry(5 , Unix_File_System, get_mtime, __get_mtime),
-    Init_End___Entry(6 , Unix_File_System),
+    Init_Vfunc_Entry(1 , Windows_File_System, list, __list),
+    Init_Vfunc_Entry(2 , Windows_File_System, count_list, __count_list),
+    Init_Vfunc_Entry(3 , Windows_File_System, is_directory, __is_directory),
+    Init_Vfunc_Entry(4 , Windows_File_System, get_size, __get_size),
+    Init_Vfunc_Entry(5 , Windows_File_System, get_mtime, __get_mtime),
+    Init_End___Entry(6 , Windows_File_System),
 };
-REGISTER_CLASS("Unix_File_System", file_system_class_info);
+REGISTER_CLASS("Windows_File_System", file_system_class_info);
 #endif

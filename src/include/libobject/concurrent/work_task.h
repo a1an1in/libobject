@@ -2,10 +2,6 @@
 #define __WORK_TASK_H__
 
 #include <stdio.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <sys/types.h>          /* See NOTES */
-#include <sys/socket.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/alloc/allocator.h>
 #include <libobject/io/Socket.h>

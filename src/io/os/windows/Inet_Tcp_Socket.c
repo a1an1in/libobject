@@ -30,7 +30,7 @@
  * 
  */
 
-#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
+#if (defined(WINDOWS_USER_MODE))
 
 #include <stdio.h>
 #include <errno.h>
@@ -39,7 +39,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/Thread.h>
-#include "Inet_Udp_Socket.h"
+#include "Inet_Tcp_Socket.h"
 #include <libobject/core/utils/registry/registry.h>
 
 static int __get_sockoptval_size(int optname)
@@ -59,12 +59,13 @@ static int __get_sockoptval_size(int optname)
     return size;
 }
 
-static int __construct(Inet_Udp_Socket *sk, char *init_str)
+static int __construct(Inet_Tcp_Socket *sk, char *init_str)
 {
     int skfd;
 
+    dbg_str(NET_DETAIL, "socket construct, socket addr:%p", sk);
 
-    if ((skfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ((skfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
          dbg_str(NET_ERROR, "create socket error, error_no=%d, err:%s",
                  errno, strerror(errno));
         return -1;
@@ -72,21 +73,20 @@ static int __construct(Inet_Udp_Socket *sk, char *init_str)
 
     sk->parent.fd = skfd;
 
-    dbg_str(NET_DETAIL, "socket construct, socket addr:%p, skfd=%d", sk, skfd);
-
     return 0;
 }
 
-static int __deconstrcut(Inet_Udp_Socket *socket)
+static int __deconstrcut(Inet_Tcp_Socket *socket)
 {
     dbg_str(NET_DETAIL, "socket deconstruct, socket addr:%p", socket);
 
-    close(socket->parent.fd);
+    if (socket->parent.fd)
+        close(socket->parent.fd);
 
     return 0;
 }
 
-static int __bind(Inet_Udp_Socket *socket, char *host, char *service)
+static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
 {
     struct addrinfo  *addr, *addrsave, hint;
     int skfd, ret;
@@ -131,7 +131,21 @@ static int __bind(Inet_Udp_Socket *socket, char *host, char *service)
     return ret;
 }
 
-static int __connect(Inet_Udp_Socket *socket, char *host, char *service)
+static int __listen(Inet_Tcp_Socket *socket, int backlog)
+{
+    int opt = 1;
+
+    setsockopt(socket->parent.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    if (listen(socket->parent.fd, backlog) == -1) {
+        perror("listen error");
+        return -1;
+    }
+
+    return 0;
+}
+
+static int __connect(Inet_Tcp_Socket *socket, char *host, char *service)
 {
     struct addrinfo  *addr, *addrsave, hint;
     int skfd, ret;
@@ -176,14 +190,44 @@ static int __connect(Inet_Udp_Socket *socket, char *host, char *service)
     return ret;
 }
 
-static ssize_t __write(Inet_Udp_Socket *socket, const void *buf, size_t len)
+static Socket * __accept(Inet_Tcp_Socket *socket, 
+                         char *remote_host, char *remote_service)
+{
+    struct sockaddr_storage cliaddr;
+    socklen_t len;
+    allocator_t *allocator = socket->parent.obj.allocator;
+    int connfd;
+    Socket *ret = NULL;
+
+
+    connfd = accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
+
+    if (connfd > 0) {
+        ret = object_new(allocator, "Inet_Tcp_Socket", NULL);//in order to close fd
+        ret->fd = connfd;
+    } 
+
+    return ret;
+}
+
+static int __accept_fd(Inet_Tcp_Socket *socket, 
+                       char *remote_host, char *remote_service)
+{
+    struct sockaddr_storage cliaddr;
+    socklen_t len;
+    allocator_t *allocator = socket->parent.obj.allocator;
+
+    return accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
+}
+
+static ssize_t __write(Inet_Tcp_Socket *socket, const void *buf, size_t len)
 {
     dbg_str(NET_DETAIL, "socket write");
 
     return write(socket->parent.fd, buf, len);
 }
 
-static ssize_t __send(Inet_Udp_Socket *socket, const void *buf, size_t len, int flags)
+static ssize_t __send(Inet_Tcp_Socket *socket, const void *buf, size_t len, int flags)
 {
     int ret;
 
@@ -197,7 +241,7 @@ static ssize_t __send(Inet_Udp_Socket *socket, const void *buf, size_t len, int 
 }
 
 static ssize_t 
-__sendto(Inet_Udp_Socket *socket, const void *buf, size_t len,
+__sendto(Inet_Tcp_Socket *socket, const void *buf, size_t len,
          int flags, const struct sockaddr *dest_addr, 
          socklen_t addrlen)
 {
@@ -208,7 +252,7 @@ __sendto(Inet_Udp_Socket *socket, const void *buf, size_t len,
      */
 }
 
-static ssize_t __sendmsg(Inet_Udp_Socket *socket, const struct msghdr *msg, int flags)
+static ssize_t __sendmsg(Inet_Tcp_Socket *socket, const struct msghdr *msg, int flags)
 {
     dbg_str(NET_DETAIL, "not supported now");
     /*
@@ -216,19 +260,19 @@ static ssize_t __sendmsg(Inet_Udp_Socket *socket, const struct msghdr *msg, int 
      */
 }
 
-static ssize_t __read(Inet_Udp_Socket *socket, void *buf, size_t len)
+static ssize_t __read(Inet_Tcp_Socket *socket, void *buf, size_t len)
 {
     dbg_str(NET_DETAIL, "socket read, fd=%d", socket->parent.fd);
 
     return read(socket->parent.fd, buf, len);
 }
 
-static ssize_t __recv(Inet_Udp_Socket *socket, void *buf, size_t len, int flags)
+static ssize_t __recv(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags)
 {
     return recv(socket->parent.fd, buf, len, flags);
 }
 
-static ssize_t __recvfrom(Inet_Udp_Socket *socket, void *buf, size_t len, int flags, 
+static ssize_t __recvfrom(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags, 
                           struct sockaddr *src_addr, 
                           socklen_t *addrlen)
 {
@@ -238,7 +282,7 @@ static ssize_t __recvfrom(Inet_Udp_Socket *socket, void *buf, size_t len, int fl
      */
 }
 
-static ssize_t __recvmsg(Inet_Udp_Socket *socket, struct msghdr *msg, int flags)
+static ssize_t __recvmsg(Inet_Tcp_Socket *socket, struct msghdr *msg, int flags)
 {
     dbg_str(NET_DETAIL, "not supported now");
     /*
@@ -246,12 +290,12 @@ static ssize_t __recvmsg(Inet_Udp_Socket *socket, struct msghdr *msg, int flags)
      */
 }
 
-static int __getsockopt(Inet_Udp_Socket *socket, int level, int optname, sockoptval *val)
+static int __getsockopt(Inet_Tcp_Socket *socket, int level, int optname, sockoptval *val)
 {
     dbg_str(NET_DETAIL, "not supported now");
 }
 
-static int __setsockopt(Inet_Udp_Socket *socket, int level, int optname, sockoptval *val)
+static int __setsockopt(Inet_Tcp_Socket *socket, int level, int optname, sockoptval *val)
 {
     int size;
 
@@ -267,7 +311,7 @@ static int __setsockopt(Inet_Udp_Socket *socket, int level, int optname, sockopt
     return setsockopt(socket->parent.fd, level, optname, val, size);
 }
 
-static int __setnonblocking(Inet_Udp_Socket *socket)
+static int __setnonblocking(Inet_Tcp_Socket *socket)
 {
     if (fcntl(socket->parent.fd, F_SETFL, (fcntl(socket->parent.fd, F_GETFD, 0) | O_NONBLOCK)) == -1) {
         return -1;
@@ -276,36 +320,40 @@ static int __setnonblocking(Inet_Udp_Socket *socket)
     return 0;
 }
 
-static class_info_entry_t inet_udp_socket_class_info[] = {
+static class_info_entry_t inet_tcp_socket_class_info[] = {
     Init_Obj___Entry(0 , Socket, parent),
-    Init_Nfunc_Entry(1 , Inet_Udp_Socket, construct, __construct),
-    Init_Nfunc_Entry(2 , Inet_Udp_Socket, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Inet_Udp_Socket, set, NULL),
-    Init_Vfunc_Entry(4 , Inet_Udp_Socket, get, NULL),
-    Init_Vfunc_Entry(5 , Inet_Udp_Socket, bind, __bind),
-    Init_Vfunc_Entry(6 , Inet_Udp_Socket, connect, __connect),
-    Init_Vfunc_Entry(7 , Inet_Udp_Socket, write, __write),
-    Init_Vfunc_Entry(8 , Inet_Udp_Socket, sendto, __sendto),
-    Init_Vfunc_Entry(9 , Inet_Udp_Socket, sendmsg, __sendmsg),
-    Init_Vfunc_Entry(10, Inet_Udp_Socket, read, __read),
-    Init_Vfunc_Entry(11, Inet_Udp_Socket, recv, __recv),
-    Init_Vfunc_Entry(12, Inet_Udp_Socket, recvfrom, __recvfrom),
-    Init_Vfunc_Entry(13, Inet_Udp_Socket, recvmsg, __recvmsg),
-    Init_Vfunc_Entry(14, Inet_Udp_Socket, getsockopt, __getsockopt),
-    Init_Vfunc_Entry(15, Inet_Udp_Socket, setsockopt, __setsockopt),
-    Init_Vfunc_Entry(16, Inet_Udp_Socket, setnonblocking, __setnonblocking),
-    Init_End___Entry(17, Inet_Udp_Socket),
+    Init_Nfunc_Entry(1 , Inet_Tcp_Socket, construct, __construct),
+    Init_Nfunc_Entry(2 , Inet_Tcp_Socket, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Inet_Tcp_Socket, set, NULL),
+    Init_Vfunc_Entry(4 , Inet_Tcp_Socket, get, NULL),
+    Init_Vfunc_Entry(5 , Inet_Tcp_Socket, bind, __bind),
+    Init_Vfunc_Entry(6 , Inet_Tcp_Socket, listen, __listen),
+    Init_Vfunc_Entry(7 , Inet_Tcp_Socket, accept, __accept),
+    Init_Vfunc_Entry(8 , Inet_Tcp_Socket, accept_fd, __accept_fd),
+    Init_Vfunc_Entry(9 , Inet_Tcp_Socket, connect, __connect),
+    Init_Vfunc_Entry(10, Inet_Tcp_Socket, write, __write),
+    Init_Vfunc_Entry(11, Inet_Tcp_Socket, sendto, __sendto),
+    Init_Vfunc_Entry(12, Inet_Tcp_Socket, sendmsg, __sendmsg),
+    Init_Vfunc_Entry(13, Inet_Tcp_Socket, read, __read),
+    Init_Vfunc_Entry(14, Inet_Tcp_Socket, recv, __recv),
+    Init_Vfunc_Entry(15, Inet_Tcp_Socket, recvfrom, __recvfrom),
+    Init_Vfunc_Entry(16, Inet_Tcp_Socket, recvmsg, __recvmsg),
+    Init_Vfunc_Entry(17, Inet_Tcp_Socket, getsockopt, __getsockopt),
+    Init_Vfunc_Entry(18, Inet_Tcp_Socket, setsockopt, __setsockopt),
+    Init_Vfunc_Entry(19, Inet_Tcp_Socket, setnonblocking, __setnonblocking),
+    Init_End___Entry(20, Inet_Tcp_Socket),
 };
-REGISTER_CLASS("Inet_Udp_Socket", inet_udp_socket_class_info);
+REGISTER_CLASS("Inet_Tcp_Socket", inet_tcp_socket_class_info);
 
-void test_inet_udp_socket_send()
+void test_inet_tcp_socket_send()
 {
     Socket *socket;
     allocator_t *allocator = allocator_get_default_alloc();
 
     char *test_str = "hello world";
 
-    socket = OBJECT_NEW(allocator, Inet_Udp_Socket, NULL);
+    dbg_str(DBG_DETAIL, "run at here");
+    socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
 
     socket->connect(socket, "127.0.0.1", "11011");
     socket->write(socket, test_str, strlen(test_str));
@@ -314,28 +362,31 @@ void test_inet_udp_socket_send()
 
     object_destroy(socket);
 }
-REGISTER_TEST_FUNC(test_inet_udp_socket_send);
+REGISTER_TEST_FUNC(test_inet_tcp_socket_send);
 
-void test_inet_udp_socket_recv()
+int test_inet_tcp_socket_recv()
 {
-    Socket *socket;
+    Socket *socket, *new;
     char buf[1024] = {0};
     allocator_t *allocator = allocator_get_default_alloc();
 
-    /*
-     *dbg_str(NET_DETAIL, "run at here");
-     */
-    socket = OBJECT_NEW(allocator, Inet_Udp_Socket, NULL);
+    dbg_str(DBG_DETAIL, "run at here");
+    socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
 
+    dbg_str(NET_DETAIL, "sizeof socket=%d", sizeof(Socket));
     socket->bind(socket, "127.0.0.1", "11011"); 
-    socket->setsockopt(socket, 0, 0, NULL);
+    socket->listen(socket, 1024);
+    new = socket->accept(socket, NULL, NULL);
 
-    while(1) {
-        socket->read(socket, buf, 1024);
-        dbg_str(NET_SUC, "recv : %s", buf);
-    }
+    new->read(new, buf, 1024);
+    dbg_str(NET_SUC, "recv : %s", buf);
 
+    sleep(10);
+
+    object_destroy(new);
     object_destroy(socket);
+
+    return 0;
 }
-REGISTER_TEST_FUNC(test_inet_udp_socket_recv);
+REGISTER_TEST_FUNC(test_inet_tcp_socket_recv);
 #endif

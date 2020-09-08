@@ -42,6 +42,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+#if (!defined(WINDOWS_USER_MODE))
 #include <stdio.h>  
 #include <sys/ioctl.h>  
 #include <sys/socket.h>  
@@ -180,3 +181,4 @@ int network_print_regester()
 }
 REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_LIBDBG_REGISTER_MODULES, 
                    network_print_regester);
+#endif

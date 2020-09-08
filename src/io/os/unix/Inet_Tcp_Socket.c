@@ -29,13 +29,35 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
+
 #include <stdio.h>
 #include <errno.h>
+#include <fcntl.h> 
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/Thread.h>
 #include "Inet_Tcp_Socket.h"
+#include <libobject/core/utils/registry/registry.h>
+
+static int __get_sockoptval_size(int optname)
+{
+    int size = 0;
+
+    switch(optname) {
+        case SO_REUSEPORT:
+        case SO_KEEPALIVE:
+        case SO_REUSEADDR:
+            size = sizeof(int);
+            break;
+        default:
+            size = -1;
+    }
+
+    return size;
+}
 
 static int __construct(Inet_Tcp_Socket *sk, char *init_str)
 {
@@ -64,6 +86,110 @@ static int __deconstrcut(Inet_Tcp_Socket *socket)
     return 0;
 }
 
+static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
+{
+    struct addrinfo  *addr, *addrsave, hint;
+    int skfd, ret;
+    char *h, *s;
+
+    bzero(&hint, sizeof(hint));
+    hint.ai_family   = AF_INET;
+    hint.ai_socktype = SOCK_DGRAM;
+
+    if (host == NULL && service == NULL) {
+        h = socket->parent.local_host;
+        s = socket->parent.local_service;
+    } else {
+        h = host;
+        s = service;
+    }
+
+    if ((ret = getaddrinfo(h, s, &hint, &addr)) != 0){
+        dbg_str(DBG_ERROR, "getaddrinfo error: %s", gai_strerror(ret));
+        return -1;
+    }
+    addrsave = addr;
+
+    if (addr != NULL) {
+        dbg_str(NET_DETAIL, "ai_family=%d type=%d", addr->ai_family, addr->ai_socktype);
+    } else {
+        dbg_str(DBG_ERROR, "getaddrinfo err");
+        return -1;
+    }                      
+
+    do {
+        if ((ret = bind(socket->parent.fd, addr->ai_addr, addr->ai_addrlen)) == 0)
+            break;
+    } while ((addr = addr->ai_next) != NULL);
+
+    if (addr == NULL) {
+        dbg_str(NET_WARNNING, "bind error for %s %s", host, service);
+    }
+
+    freeaddrinfo(addrsave);
+
+    return ret;
+}
+
+static int __listen(Inet_Tcp_Socket *socket, int backlog)
+{
+    int opt = 1;
+
+    setsockopt(socket->parent.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    if (listen(socket->parent.fd, backlog) == -1) {
+        perror("listen error");
+        return -1;
+    }
+
+    return 0;
+}
+
+static int __connect(Inet_Tcp_Socket *socket, char *host, char *service)
+{
+    struct addrinfo  *addr, *addrsave, hint;
+    int skfd, ret;
+    char *h, *s;
+
+    bzero(&hint, sizeof(hint));
+    hint.ai_family   = AF_INET;
+    hint.ai_socktype = SOCK_DGRAM;
+
+    if (host == NULL && service == NULL) {
+        h = socket->parent.remote_host;
+        s = socket->parent.remote_service;
+    } else {
+        h = host;
+        s = service;
+    }
+
+    if ((ret = getaddrinfo(h, s, &hint, &addr)) != 0){
+        dbg_str(DBG_ERROR, "getaddrinfo error: %s", gai_strerror(ret));
+        return -1;
+    }
+    addrsave = addr;
+
+    if (addr != NULL) {
+        dbg_str(NET_DETAIL, "ai_family=%d type=%d", addr->ai_family, addr->ai_socktype);
+    } else {
+        dbg_str(DBG_ERROR, "getaddrinfo err");
+        return -1;
+    }                      
+
+    do {
+        if ((ret = connect(socket->parent.fd, addr->ai_addr, addr->ai_addrlen)) == 0)
+            break;
+    } while ((addr = addr->ai_next) != NULL);
+
+    if (addr == NULL) {
+        dbg_str(NET_ERROR, "connect error for %s %s", host, service);
+    }
+
+    freeaddrinfo(addrsave);
+
+    return ret;
+}
+
 static Socket * __accept(Inet_Tcp_Socket *socket, 
                          char *remote_host, char *remote_service)
 {
@@ -77,7 +203,7 @@ static Socket * __accept(Inet_Tcp_Socket *socket,
     connfd = accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
 
     if (connfd > 0) {
-        ret = object_new(allocator, "Inet_Tcp_Sub_Socket", NULL);//in order to close fd
+        ret = object_new(allocator, "Inet_Tcp_Socket", NULL);//in order to close fd
         ret->fd = connfd;
     } 
 
@@ -94,25 +220,130 @@ static int __accept_fd(Inet_Tcp_Socket *socket,
     return accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
 }
 
+static ssize_t __write(Inet_Tcp_Socket *socket, const void *buf, size_t len)
+{
+    dbg_str(NET_DETAIL, "socket write");
+
+    return write(socket->parent.fd, buf, len);
+}
+
+static ssize_t __send(Inet_Tcp_Socket *socket, const void *buf, size_t len, int flags)
+{
+    int ret;
+
+    ret = send(socket->parent.fd, buf, len, flags);
+
+    if (ret <= 0) {
+        dbg_str(NET_ERROR, "send error: %s", strerror(errno));
+    }
+
+    return ret;
+}
+
+static ssize_t 
+__sendto(Inet_Tcp_Socket *socket, const void *buf, size_t len,
+         int flags, const struct sockaddr *dest_addr, 
+         socklen_t addrlen)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+    return -1;
+    /*
+     *return sendto(socket->parent.fd, buf, len, flags, dest_addr, addrlen);
+     */
+}
+
+static ssize_t __sendmsg(Inet_Tcp_Socket *socket, const struct msghdr *msg, int flags)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+    /*
+     *return sendmsg(socket->parent.fd, msg, flags);
+     */
+}
+
+static ssize_t __read(Inet_Tcp_Socket *socket, void *buf, size_t len)
+{
+    dbg_str(NET_DETAIL, "socket read, fd=%d", socket->parent.fd);
+
+    return read(socket->parent.fd, buf, len);
+}
+
+static ssize_t __recv(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags)
+{
+    return recv(socket->parent.fd, buf, len, flags);
+}
+
+static ssize_t __recvfrom(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags, 
+                          struct sockaddr *src_addr, 
+                          socklen_t *addrlen)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+    /*
+     *return recvfrom(socket->parent.fd, buf, len , flags, src_addr, addrlen);
+     */
+}
+
+static ssize_t __recvmsg(Inet_Tcp_Socket *socket, struct msghdr *msg, int flags)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+    /*
+     *return recvmsg(socket->parent.fd, msg, flags);
+     */
+}
+
+static int __getsockopt(Inet_Tcp_Socket *socket, int level, int optname, sockoptval *val)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+}
+
+static int __setsockopt(Inet_Tcp_Socket *socket, int level, int optname, sockoptval *val)
+{
+    int size;
+
+    dbg_str(NET_DETAIL, "setsockopt level=%d, optname=%d", level, optname);
+
+    size = __get_sockoptval_size(optname);
+    if (size <= 0) {
+        dbg_str(NET_WARNNING, "setsockopt level=%d, optname=%d, not supported now", 
+                level, optname);
+        return -1;
+    }
+
+    return setsockopt(socket->parent.fd, level, optname, val, size);
+}
+
+static int __setnonblocking(Inet_Tcp_Socket *socket)
+{
+    int fd = socket->parent.fd;
+
+    if (fcntl(fd, F_SETFL, (fcntl(fd, F_GETFD, 0) | O_NONBLOCK)) == -1) {
+        return -1;
+    }                     
+
+    return 0;
+}
+
 static class_info_entry_t inet_tcp_socket_class_info[] = {
     Init_Obj___Entry(0 , Socket, parent),
     Init_Nfunc_Entry(1 , Inet_Tcp_Socket, construct, __construct),
     Init_Nfunc_Entry(2 , Inet_Tcp_Socket, deconstruct, __deconstrcut),
     Init_Vfunc_Entry(3 , Inet_Tcp_Socket, set, NULL),
     Init_Vfunc_Entry(4 , Inet_Tcp_Socket, get, NULL),
-    Init_Vfunc_Entry(5 , Inet_Tcp_Socket, bind, NULL),
-    Init_Vfunc_Entry(6 , Inet_Tcp_Socket, listen, NULL),
+    Init_Vfunc_Entry(5 , Inet_Tcp_Socket, bind, __bind),
+    Init_Vfunc_Entry(6 , Inet_Tcp_Socket, listen, __listen),
     Init_Vfunc_Entry(7 , Inet_Tcp_Socket, accept, __accept),
     Init_Vfunc_Entry(8 , Inet_Tcp_Socket, accept_fd, __accept_fd),
-    Init_Vfunc_Entry(9 , Inet_Tcp_Socket, connect, NULL),
-    Init_Vfunc_Entry(10, Inet_Tcp_Socket, write, NULL),
-    Init_Vfunc_Entry(11, Inet_Tcp_Socket, sendto, NULL),
-    Init_Vfunc_Entry(12, Inet_Tcp_Socket, sendmsg, NULL),
-    Init_Vfunc_Entry(13, Inet_Tcp_Socket, read, NULL),
-    Init_Vfunc_Entry(14, Inet_Tcp_Socket, recv, NULL),
-    Init_Vfunc_Entry(15, Inet_Tcp_Socket, recvfrom, NULL),
-    Init_Vfunc_Entry(16, Inet_Tcp_Socket, recvmsg, NULL),
-    Init_End___Entry(17, Inet_Tcp_Socket),
+    Init_Vfunc_Entry(9 , Inet_Tcp_Socket, connect, __connect),
+    Init_Vfunc_Entry(10, Inet_Tcp_Socket, write, __write),
+    Init_Vfunc_Entry(11, Inet_Tcp_Socket, sendto, __sendto),
+    Init_Vfunc_Entry(12, Inet_Tcp_Socket, sendmsg, __sendmsg),
+    Init_Vfunc_Entry(13, Inet_Tcp_Socket, read, __read),
+    Init_Vfunc_Entry(14, Inet_Tcp_Socket, recv, __recv),
+    Init_Vfunc_Entry(15, Inet_Tcp_Socket, recvfrom, __recvfrom),
+    Init_Vfunc_Entry(16, Inet_Tcp_Socket, recvmsg, __recvmsg),
+    Init_Vfunc_Entry(17, Inet_Tcp_Socket, getsockopt, __getsockopt),
+    Init_Vfunc_Entry(18, Inet_Tcp_Socket, setsockopt, __setsockopt),
+    Init_Vfunc_Entry(19, Inet_Tcp_Socket, setnonblocking, __setnonblocking),
+    Init_End___Entry(20, Inet_Tcp_Socket),
 };
 REGISTER_CLASS("Inet_Tcp_Socket", inet_tcp_socket_class_info);
 
@@ -123,6 +354,7 @@ void test_inet_tcp_socket_send()
 
     char *test_str = "hello world";
 
+    dbg_str(DBG_DETAIL, "run at here");
     socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
 
     socket->connect(socket, "127.0.0.1", "11011");
@@ -132,16 +364,15 @@ void test_inet_tcp_socket_send()
 
     object_destroy(socket);
 }
+REGISTER_TEST_FUNC(test_inet_tcp_socket_send);
 
-void test_inet_tcp_socket_recv()
+int test_inet_tcp_socket_recv()
 {
     Socket *socket, *new;
     char buf[1024] = {0};
     allocator_t *allocator = allocator_get_default_alloc();
 
-    /*
-     *dbg_str(NET_DETAIL, "run at here");
-     */
+    dbg_str(DBG_DETAIL, "run at here");
     socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
 
     dbg_str(NET_DETAIL, "sizeof socket=%d", sizeof(Socket));
@@ -156,12 +387,8 @@ void test_inet_tcp_socket_recv()
 
     object_destroy(new);
     object_destroy(socket);
-}
 
-static int test_obj_size()
-{
-    dbg_str(NET_VIP, "sizeof(Inet_Tcp_Socket)=%d", sizeof(Inet_Tcp_Socket));
-    return 1;
+    return 0;
 }
-REGISTER_TEST_CMD(test_obj_size);
-
+REGISTER_TEST_FUNC(test_inet_tcp_socket_recv);
+#endif

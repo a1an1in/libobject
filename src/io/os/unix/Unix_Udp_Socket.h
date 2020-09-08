@@ -31,6 +31,9 @@ struct unix_udp_socket_s{
                         struct sockaddr *src_addr, 
                         socklen_t *addrlen);
     ssize_t (*recvmsg)(Unix_Udp_Socket *socket, struct msghdr *msg, int flags);
+    int (*getsockopt)(Unix_Udp_Socket *socket, int level, int optname, sockoptval *val);
+    int (*setsockopt)(Unix_Udp_Socket *socket, int level, int optname, sockoptval *val);
+    int (*setnonblocking)(Unix_Udp_Socket *socket);
 };
 
 #endif

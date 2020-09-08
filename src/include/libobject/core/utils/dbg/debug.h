@@ -78,7 +78,9 @@ struct debugger{
 	struct debugger_opperations *dbg_ops;
 	uint8_t lock_type;
 	union debugger_priv{
+#if (!defined(WINDOWS_USER_MODE))
         debug_network_prive_t net;
+#endif
 		debug_log_prive_t log;
 	}priv;
 	sync_lock_t lock;

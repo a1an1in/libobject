@@ -18,6 +18,7 @@
 #ifndef __DEBUG_NETWORK_H__
 #define __DEBUG_NETWORK_H__
 
+#if (!defined(WINDOWS_USER_MODE))
 #include <sys/socket.h>
 #include<netinet/in.h>
 #include <libobject/core/utils/sync_lock.h>
@@ -33,5 +34,6 @@ typedef struct debug_network_prive{
 #undef MAX_IP_LEN
 }debug_network_prive_t;
 int network_print_regester();
+#endif //end WINDOWS_USER_MODE
 
 #endif

@@ -114,7 +114,7 @@ static void *__start_routine(void *arg)
     dbg_str(OBJ_DETAIL, "start_routine");
     Thread * thread = (Thread *)arg;
     if ( thread == NULL ){
-        return;
+        return NULL;
     }
     thread->is_run = 1; 
 

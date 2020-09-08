@@ -115,6 +115,7 @@ static void * __new(Object_Cache *cache, char *class_name, char *data)
         THROW_IF((class_name = class_deamon_search_class_name_addr(NULL, class_name)) == NULL, -1);
 
         ret = map->search(map, class_name, (void **)&list);
+
         if (ret != 1) {
             THROW_IF((new_list = object_new(allocator, "Linked_List", NULL)) == NULL, -1);
             THROW_IF((o = object_new(allocator, class_name, data)) == NULL, -1);

@@ -2,10 +2,10 @@
 #define __MY_SOCKET_H__
 
 #include <stdio.h>
-#include <netdb.h>
 #include <unistd.h>
-#include <sys/types.h>          /* See NOTES */
+#include <sys/types.h>
 #include <sys/socket.h>
+#include <netdb.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
 #include <libobject/concurrent/work_task.h>
@@ -17,9 +17,9 @@ typedef struct socket_s Socket;
 typedef union sockoptval_u{
     int int_val;
     long long_val;
-    struct linger linger_val;
-    struct timeval timeval_val;
-}sockoptval;
+    //struct linger linger_val;
+    //struct timeval timeval_val;
+} sockoptval;
 
 struct socket_s{
     Obj obj;

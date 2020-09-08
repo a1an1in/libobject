@@ -29,14 +29,35 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
+
 #include <stdio.h>
 #include <errno.h>
+#include <fcntl.h> 
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/Thread.h>
 #include <sys/un.h>
 #include "Unix_Udp_Socket.h"
+
+static int __get_sockoptval_size(int optname)
+{
+    int size = 0;
+
+    switch(optname) {
+        case SO_REUSEPORT:
+        case SO_KEEPALIVE:
+        case SO_REUSEADDR:
+            size = sizeof(int);
+            break;
+        default:
+            size = -1;
+    }
+
+    return size;
+}
 
 static int __construct(Unix_Udp_Socket *sk, char *init_str)
 {
@@ -100,6 +121,106 @@ static int __connect(Unix_Udp_Socket *socket, char *host, char *service)
      return ret;
 }
 
+static ssize_t __write(Unix_Udp_Socket *socket, const void *buf, size_t len)
+{
+    dbg_str(NET_DETAIL, "socket write");
+
+    return write(socket->parent.fd, buf, len);
+}
+
+static ssize_t __send(Unix_Udp_Socket *socket, const void *buf, size_t len, int flags)
+{
+    int ret;
+
+    ret = send(socket->parent.fd, buf, len, flags);
+
+    if (ret <= 0) {
+        dbg_str(NET_ERROR, "send error: %s", strerror(errno));
+    }
+
+    return ret;
+}
+
+static ssize_t 
+__sendto(Unix_Udp_Socket *socket, const void *buf, size_t len,
+         int flags, const struct sockaddr *dest_addr, 
+         socklen_t addrlen)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+    return -1;
+    /*
+     *return sendto(socket->parent.fd, buf, len, flags, dest_addr, addrlen);
+     */
+}
+
+static ssize_t __sendmsg(Unix_Udp_Socket *socket, const struct msghdr *msg, int flags)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+    /*
+     *return sendmsg(socket->fd, msg, flags);
+     */
+}
+
+static ssize_t __read(Unix_Udp_Socket *socket, void *buf, size_t len)
+{
+    dbg_str(NET_DETAIL, "socket read, fd=%d", socket->parent.fd);
+
+    return read(socket->parent.fd, buf, len);
+}
+
+static ssize_t __recv(Unix_Udp_Socket *socket, void *buf, size_t len, int flags)
+{
+    return recv(socket->parent.fd, buf, len, flags);
+}
+
+static ssize_t __recvfrom(Unix_Udp_Socket *socket, void *buf, size_t len, int flags, 
+                          struct sockaddr *src_addr, 
+                          socklen_t *addrlen)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+    /*
+     *return recvfrom(socket->parent.fd, buf, len , flags, src_addr, addrlen);
+     */
+}
+
+static ssize_t __recvmsg(Unix_Udp_Socket *socket, struct msghdr *msg, int flags)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+    /*
+     *return recvmsg(socket->fd, msg, flags);
+     */
+}
+
+static int __getsockopt(Unix_Udp_Socket *socket, int level, int optname, sockoptval *val)
+{
+    dbg_str(NET_DETAIL, "not supported now");
+}
+
+static int __setsockopt(Unix_Udp_Socket *socket, int level, int optname, sockoptval *val)
+{
+    int size;
+
+    dbg_str(NET_DETAIL, "setsockopt level=%d, optname=%d", level, optname);
+
+    size = __get_sockoptval_size(optname);
+    if (size <= 0) {
+        dbg_str(NET_WARNNING, "setsockopt level=%d, optname=%d, not supported now", 
+                level, optname);
+        return -1;
+    }
+
+    return setsockopt(socket->parent.fd, level, optname, val, size);
+}
+
+static int __setnonblocking(Unix_Udp_Socket *socket)
+{
+    if (fcntl(socket->parent.fd, F_SETFL, (fcntl(socket->parent.fd, F_GETFD, 0) | O_NONBLOCK)) == -1) {
+        return -1;
+    }                     
+
+    return 0;
+}
+
 static class_info_entry_t inet_udp_socket_class_info[] = {
     Init_Obj___Entry(0 , Socket, parent),
     Init_Nfunc_Entry(1 , Unix_Udp_Socket, construct, __construct),
@@ -108,14 +229,17 @@ static class_info_entry_t inet_udp_socket_class_info[] = {
     Init_Vfunc_Entry(4 , Unix_Udp_Socket, get, NULL),
     Init_Vfunc_Entry(5 , Unix_Udp_Socket, bind, __bind),
     Init_Vfunc_Entry(6 , Unix_Udp_Socket, connect, __connect),
-    Init_Vfunc_Entry(7 , Unix_Udp_Socket, write, NULL),
-    Init_Vfunc_Entry(8 , Unix_Udp_Socket, sendto, NULL),
-    Init_Vfunc_Entry(9 , Unix_Udp_Socket, sendmsg, NULL),
-    Init_Vfunc_Entry(10, Unix_Udp_Socket, read, NULL),
-    Init_Vfunc_Entry(11, Unix_Udp_Socket, recv, NULL),
+    Init_Vfunc_Entry(7 , Unix_Udp_Socket, write, __write),
+    Init_Vfunc_Entry(8 , Unix_Udp_Socket, sendto, __sendto),
+    Init_Vfunc_Entry(9 , Unix_Udp_Socket, sendmsg, __sendmsg),
+    Init_Vfunc_Entry(10, Unix_Udp_Socket, read, __read),
+    Init_Vfunc_Entry(11, Unix_Udp_Socket, recv, __recv),
     Init_Vfunc_Entry(12, Unix_Udp_Socket, recvfrom, NULL),
-    Init_Vfunc_Entry(13, Unix_Udp_Socket, recvmsg, NULL),
-    Init_End___Entry(14, Unix_Udp_Socket),
+    Init_Vfunc_Entry(13, Unix_Udp_Socket, recvmsg, __recvmsg),
+    Init_Vfunc_Entry(14, Unix_Udp_Socket, getsockopt, __getsockopt),
+    Init_Vfunc_Entry(15, Unix_Udp_Socket, setsockopt, __setsockopt),
+    Init_Vfunc_Entry(16, Unix_Udp_Socket, setnonblocking, __setnonblocking),
+    Init_End___Entry(17, Unix_Udp_Socket),
 };
 REGISTER_CLASS("Unix_Udp_Socket", inet_udp_socket_class_info);
 
@@ -138,6 +262,7 @@ void test_unix_udp_socket_send()
 
     object_destroy(socket);
 }
+REGISTER_TEST_FUNC(test_unix_udp_socket_send);
 
 void test_unix_udp_socket_recv()
 {
@@ -159,4 +284,5 @@ void test_unix_udp_socket_recv()
 
     object_destroy(socket);
 }
-
+REGISTER_TEST_FUNC(test_unix_udp_socket_recv);
+#endif
