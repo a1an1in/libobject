@@ -6,7 +6,7 @@ macro (set_cmake_evironment_variable)
     INCLUDE_DIRECTORIES(/usr/local/include
         ${PROJECT_SOURCE_DIR}/src/include)
 
-    SET(ExternalLibs ${ExternalLibs} pthread m -Wl,--whole-archive object -Wl,--no-whole-archive)
+    SET(ExternalLibs ${ExternalLibs} -Wl,--whole-archive object -Wl,--no-whole-archive pthread m )
 
     set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/linux/bin)
     set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/linux/lib)
