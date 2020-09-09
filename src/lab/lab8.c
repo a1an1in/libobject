@@ -1,9 +1,11 @@
+#if (!defined(WINDOWS_USER_MODE))
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
 #include <errno.h>
+#include <sys/mman.h>
+#include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
@@ -67,4 +69,4 @@ int test_stub2()
     return 0;
 }
 REGISTER_TEST_CMD(test_stub2);
-
+#endif

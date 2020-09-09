@@ -64,7 +64,7 @@ static inline int string_key_cmp_func(void *key1, void *key2)
 static inline uint32_t 
 default_hash_func(void *key, uint32_t bucket_size)
 {
-    u_int32_t k = (uint32_t)key;
+    uint32_t k = (uint32_t)key;
     return k % bucket_size;
 }
 

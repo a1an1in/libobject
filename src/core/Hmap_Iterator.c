@@ -100,18 +100,4 @@ static class_info_entry_t hmap_iter_class_info[] = {
 };
 REGISTER_CLASS("Hmap_Iterator", hmap_iter_class_info);
 
-void test_obj_hiter()
-{
-    Iterator *iter, *next, *prev;
-    allocator_t *allocator = allocator_get_default_alloc();
-    char *set_str = NULL;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-
-    iter = OBJECT_NEW(allocator, Hmap_Iterator, set_str);
-    next = OBJECT_NEW(allocator, Hmap_Iterator, set_str);
-
-    iter->next(iter);
-}
-
 

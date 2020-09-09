@@ -79,7 +79,7 @@ __publish_message(Publisher *publisher, char *what, void *opaque)
     message_set(message, "publisher", publisher);
 
     centor->message_queue->add(centor->message_queue, message);
-    centor->c->write(centor->c, "p", 1);
+    centor->c->send(centor->c, "p", 1, 0);
 }
 
 static class_info_entry_t concurent_class_info[] = {

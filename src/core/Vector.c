@@ -30,6 +30,7 @@
  * 
  */
 #include <stdio.h>
+#include <libobject/basic_types.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Vector.h>

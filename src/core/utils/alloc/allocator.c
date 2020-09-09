@@ -32,7 +32,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/try.h>
 
-#if (!defined(ANDROID_USER_MODE))
+#if (!defined(WINDOWS_USER_MODE) && !defined(ANDROID_USER_MODE))
 #include <execinfo.h>
 #endif
 
@@ -81,7 +81,7 @@ void allocator_destroy(allocator_t * alloc)
     free(alloc);
 }
 
-#if (!defined(ANDROID_USER_MODE))
+#if (!defined(WINDOWS_USER_MODE) && !defined(ANDROID_USER_MODE))
 int allocator_save_upper_nlayer_name(allocator_t *allocator, int n, void *dst)
 {
 #define MAX_BACKTRACE_SIZE 10

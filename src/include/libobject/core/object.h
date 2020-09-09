@@ -1,6 +1,7 @@
 #ifndef __OBJECT_H__
 #define __OBJECT_H__
 
+#include <libobject/basic_types.h>
 #include <libobject/core/class_info.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/utils/json/cjson.h>

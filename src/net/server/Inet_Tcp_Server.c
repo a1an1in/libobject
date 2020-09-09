@@ -46,9 +46,6 @@ static int __construct(Inet_Tcp_Server *server, char *init_str)
         dbg_str(NET_ERROR, "new Inet_Udp_Socket error");
         return -1;
     }
-    server->parent.socket->setsockopt(server->parent.socket, 
-                                      SOL_SOCKET, SO_REUSEADDR, 
-                                      (void *)&opt);
 
     server->parent.worker = object_new(allocator, "Worker", NULL);
     if (server->parent.worker == NULL) {

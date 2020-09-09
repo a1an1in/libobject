@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <regex.h>
 #include <libobject/core/utils/registry/registry.h>
@@ -12,14 +14,16 @@ static int test_reg(TEST_ENTRY *entry, void *argc, void *argv)
     char matched[1024];
     regex_t reg;  
     const char * pattern = "([0-9A-Za-z\\-_\\.]+)@([0-9a-z]+\\.[a-z]{2,3})";  
-    char * buf = "chenjiayi@126.com";  
+    char * buf = "chenjiayi@126.com";
+    int x;
+
     regcomp(&reg,pattern,cflags);//编译正则模式  
     status = regexec(&reg,buf,nmatch, pmatch, 0);//执行正则表达式和缓存的比较  
     if(status == REG_NOMATCH) { 
         printf("No match\n");  
     }  
 
-    for (int x = 0; x < 5 && pmatch[x].rm_so != -1; ++x) {
+    for (x = 0; x < 5 && pmatch[x].rm_so != -1; ++x) {
         int len = pmatch[x].rm_eo - pmatch[x].rm_so;
         memcpy(matched, buf + pmatch[x].rm_so, len);
         matched[len] = '\0';
@@ -37,6 +41,7 @@ static int test_reg3(TEST_ENTRY *entry, void *argc, void *argv)
     char matched[1024];
     char src[1024]="This order was placed for QT3000, OK?";
     char pattern[1024] = ",";
+    int x;
 
     int err = regcomp(&re, pattern, REG_EXTENDED);
     if (err) {
@@ -47,7 +52,7 @@ static int test_reg3(TEST_ENTRY *entry, void *argc, void *argv)
     const char *ptr = src;
     // 匹配模式字串以及子正则
     err = regexec(&re, ptr, 4, subs, 0);
-    for (int x = 0; x < 4 && subs[x].rm_so != -1; ++x) {
+    for (x = 0; x < 4 && subs[x].rm_so != -1; ++x) {
         int len = subs[x].rm_eo - subs[x].rm_so;
         memcpy(matched, ptr + subs[x].rm_so, len);
         matched[len] = '\0';
@@ -69,6 +74,7 @@ static int test_reg4(TEST_ENTRY *entry, void *argc, void *argv)
     regex_t reg;
     int err,nm = 10;
     regmatch_t pmatch[nm];
+    int i;
 
     if(regcomp(&reg,pattern,REG_EXTENDED) < 0){
         regerror(err,&reg,errbuf,sizeof(errbuf));
@@ -87,7 +93,7 @@ static int test_reg4(TEST_ENTRY *entry, void *argc, void *argv)
         exit(-1);
     }
 
-    for(int i=0;i<10 && pmatch[i].rm_so!=-1;i++){
+    for(i=0;i<10 && pmatch[i].rm_so!=-1;i++){
         int len = pmatch[i].rm_eo-pmatch[i].rm_so;
         if(len){
             memset(match,'\0',sizeof(match));

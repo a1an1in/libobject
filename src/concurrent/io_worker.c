@@ -67,6 +67,7 @@ int io_worker_destroy(Worker *worker)
     return object_destroy(worker);
 }
 
+#if (!defined(WINDOWS_USER_MODE))
 static void
 test_pipe_ev_callback(int fd, short event, void *arg)
 {
@@ -140,4 +141,5 @@ void test_obj_io_worker()
     pause();
     io_worker_destroy(worker);
 }
+#endif
 

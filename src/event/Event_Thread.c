@@ -81,7 +81,7 @@ static int __add_event(Event_Thread *thread, event_t *event)
 
     eb->add(eb, event);
 
-    if (c->write(c, "a", 1) != 1) {//to make option task effect
+    if (c->send(c, "a", 1, 0) != 1) {//to make option task effect
         return -1;
     }
 
@@ -99,7 +99,7 @@ static int __del_event(Event_Thread *thread, event_t *event)
 
     eb->del(eb, event);
 
-    if (c->write(c, "d", 1) != 1) {//to make option task effect
+    if (c->send(c, "d", 1, 0) != 1) {//to make option task effect
         return -1;
     }
 
@@ -113,7 +113,7 @@ static void event_thread_notifier_callback(int fd, short events, void *arg)
     char buf[1];
     int len;
 
-    if (s->read(s, buf, 1) != 1) {
+    if (s->recv(s, buf, 1, 0) != 1) {
         dbg_str(EV_WARNNING,"ctl_read error");
         return ;
     }

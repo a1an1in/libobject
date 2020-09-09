@@ -248,11 +248,12 @@ int test_str_split(TEST_ENTRY *entry)
     char str[14] = "/Command/name";
     int cnt;
     char **out;
+    int i;
 
     cnt = compute_slash_count(str);
     out = malloc(sizeof(char *) * (cnt + 1));
     str_split(str, "/", out, &cnt);
-    for (int i = 0; i < cnt; i++) {
+    for (i = 0; i < cnt; i++) {
         printf("out[%d]:%s\n", i, out[i]);
     }
 

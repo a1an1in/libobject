@@ -1,6 +1,6 @@
 macro (set_cmake_evironment_variable)
     if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "C:/Program Files (x86)/libobject")
-        set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/mac)
+        set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/windows)
     endif ()
     message("-- CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
     LINK_DIRECTORIES(
@@ -15,9 +15,9 @@ macro (set_cmake_evironment_variable)
 
     set (EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)
     set (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
-    set (EXTERNAL_LIB_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/mac)
+    set (EXTERNAL_LIB_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/windows)
     set (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
-    SET(ExternalLibs ${ExternalLibs}  object)
+    SET(ExternalLibs ${ExternalLibs}  object pthread m)
 endmacro()
 
 macro (display_windows_platform_configs)

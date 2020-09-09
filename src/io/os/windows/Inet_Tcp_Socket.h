@@ -25,17 +25,11 @@ struct inet_tcp_socket_s{
     int (*connect)(Inet_Tcp_Socket *socket, char *host, char *service);
     int (*bind)(Inet_Tcp_Socket *socket, char *host, char *service);
     ssize_t (*send)(Inet_Tcp_Socket *socket, const void *buf, size_t len, int flags);
-    ssize_t (*write)(Inet_Tcp_Socket *socket, const void *buf, size_t len);
-    ssize_t (*sendto)(Inet_Tcp_Socket *socket, const void *buf, size_t len, int flags,
-                      const struct sockaddr *dest_addr,
-                      socklen_t addrlen);
-    ssize_t (*sendmsg)(Inet_Tcp_Socket *socket, const struct msghdr *msg, int flags);
-    ssize_t (*read)(Inet_Tcp_Socket *socket, void *buf, size_t len);
     ssize_t (*recv)(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags);
+    ssize_t (*sendto)(Inet_Tcp_Socket *socket, const void *buf, size_t len, int flags,
+                      char *host, char *service);
     ssize_t (*recvfrom)(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags,
-                        struct sockaddr *src_addr, 
-                        socklen_t *addrlen);
-    ssize_t (*recvmsg)(Inet_Tcp_Socket *socket, struct msghdr *msg, int flags);
+                        char *host, char *service);
     int (*getsockopt)(Inet_Tcp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setsockopt)(Inet_Tcp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setnonblocking)(Inet_Tcp_Socket *socket);

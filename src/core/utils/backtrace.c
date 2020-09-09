@@ -4,7 +4,7 @@
 #include <string.h>
 #include <libobject/core/utils/alloc/allocator.h>
 
-#if (!defined(ANDROID_USER_MODE))
+#if (!defined(WINDOWS_USER_MODE) && !defined(ANDROID_USER_MODE))
 #include <execinfo.h>
 
 #define MAX_BACKTRACE_SIZE 100

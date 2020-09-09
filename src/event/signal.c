@@ -1,3 +1,4 @@
+#if (!defined(WINDOWS_USER_MODE))
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -6,18 +7,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <limits.h>
-#include <stdio.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <time.h>
 #include <sys/stat.h>
 #include <libobject/event/Select_Base.h>
@@ -374,3 +363,4 @@ int set_segment_signal(Event_Base* eb)
 
     return (0);
 }
+#endif

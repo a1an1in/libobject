@@ -22,6 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+#if (!defined(WINDOWS_USER_MODE))
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -387,4 +388,5 @@ int test_miscellany_net()
 
     return 0;
 }
+#endif
 

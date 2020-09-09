@@ -1,3 +1,4 @@
+#if (!defined(WINDOWS_USER_MODE))
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -162,3 +163,4 @@ int test_io()
      *test_multi_ios();
      */
 }
+#endif

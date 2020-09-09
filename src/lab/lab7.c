@@ -1,10 +1,11 @@
-#include <unistd.h>
+
+#if (!defined(WINDOWS_USER_MODE))
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
 #include <errno.h>
-#include <limits.h>
 #include <sys/mman.h>
+#include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
@@ -146,3 +147,4 @@ int test_stub()
     return 0;
 }
 REGISTER_TEST_CMD(test_stub);
+#endif

@@ -4,7 +4,7 @@
 #include <libobject/basic_types.h>
 
 typedef struct {
-    uint64_t bytes;
+    unsigned long long bytes;
     uint32_t a, b, c, d, e, f;
     uint8_t buffer[64];
 } digest_sha1_t;

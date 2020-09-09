@@ -14,7 +14,7 @@ struct event_base * event_base_new(void)
     allocator_t *allocator = allocator_get_default_alloc();
     struct event_base *event_base;
 
-    eb = OBJECT_NEW(allocator, Select_Base, NULL);
+    eb = object_new(allocator, "Select_Base", NULL);
     object_dump(eb, "Select_Base", buf, 2048);
     dbg_str(DBG_DETAIL,"Select_Base dump: %s",buf);
 

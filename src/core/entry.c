@@ -43,8 +43,9 @@ int libobject_init()
 
 int libobject_exit()
 {
+#if (!defined(WINDOWS_USER_MODE))
     kill(0, SIGQUIT);
-
+#endif
     return 1;
 }
 

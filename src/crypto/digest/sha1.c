@@ -276,12 +276,13 @@ test_sha1(TEST_ENTRY *entry, void *argc, void *argv)
     char *test = "123456789";
     unsigned char result[20] = {0};
     char result_hex[100] = {0};
+    int i;
 
     digest_sha1_init(&ctx);
     digest_sha1_update(&ctx, test, strlen(test));
     digest_sha1_final(&ctx, result);
 
-    for (int i= 0; i < 20; i++) {
+    for (i= 0; i < 20; i++) {
         sprintf(result_hex + strlen(result_hex), "%02x", result[i]);
     }
 

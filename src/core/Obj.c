@@ -30,11 +30,11 @@
  * 
  */
 #include <stdio.h>
-#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/object.h>
 #include <libobject/core/String.h>
 #include <libobject/core/Vector.h>
 #include <libobject/core/Number.h>
+#include <libobject/core/utils/dbg/debug.h>
 
 static int __construct(Obj *obj, char *init_str)
 {

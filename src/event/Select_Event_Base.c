@@ -29,6 +29,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+#if (!defined(WINDOWS_USER_MODE))
 #include <stdio.h>
 #include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
@@ -194,5 +196,5 @@ void test_obj_select_base()
     pause();
     object_destroy(eb);
 }
-
+#endif
 

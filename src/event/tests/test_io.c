@@ -1,3 +1,4 @@
+#if (!defined(WINDOWS_USER_MODE))
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -94,3 +95,4 @@ int test_event_io()
      *pause();
      */
 }
+#endif

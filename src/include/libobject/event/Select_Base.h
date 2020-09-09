@@ -1,6 +1,8 @@
 #ifndef __SELECT_BASE_H__
 #define __SELECT_BASE_H__
 
+#if (!defined(WINDOWS_USER_MODE))
+
 #include <stdio.h>
 #include <sys/select.h>
 #include <sys/time.h>
@@ -37,5 +39,6 @@ struct select_base_s{
     fd_set event_readset_out;
     fd_set event_writeset_out;
 };
+#endif
 
 #endif

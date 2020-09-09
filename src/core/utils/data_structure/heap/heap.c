@@ -30,19 +30,7 @@
  * 
  */
 #include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
 #include <string.h>
-#include <sys/types.h>     /* basic system data types */
-#include <sys/socket.h>    /* basic socket definitions */
-#include <netinet/in.h>    /* sock_addr_in{} and other Internet defns */
-#include <arpa/inet.h>     /* inet(3) functions */
-#include <fcntl.h>         /* nonblocking */
-#include <sys/resource.h>  /*setrlimit */
-#include <signal.h>
-#include <sys/un.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/data_structure/heap.h>
 

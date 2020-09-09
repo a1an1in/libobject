@@ -1,3 +1,4 @@
+#if (!defined(WINDOWS_USER_MODE))
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -121,3 +122,4 @@ static int test_del_signal(TEST_ENTRY *entry, void *argc, void *argv)
     return (1);
 }
 REGISTER_STANDALONE_TEST_FUNC(test_del_signal);
+#endif

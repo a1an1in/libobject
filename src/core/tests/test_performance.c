@@ -1,3 +1,4 @@
+#if (!defined(WINDOWS_USER_MODE))
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -143,3 +144,4 @@ static int test_printf_performance(TEST_ENTRY *enTRY, void *argc, void *argv)
     return 1;
 }
 REGISTER_TEST_FUNC(test_printf_performance);
+#endif

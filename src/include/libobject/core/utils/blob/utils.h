@@ -65,7 +65,7 @@ extern int __BUILD_BUG_ON_CONDITION_FAILED;
 #define bswap_32(x) bswap32(x)
 #define bswap_64(x) bswap64(x)
 #else
-#include <machine/endian.h>
+//#include <machine/endian.h>
 #define bswap_32(x) swap32(x)
 #define bswap_64(x) swap64(x)
 #endif

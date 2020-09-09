@@ -4,9 +4,9 @@
 #include <libobject/basic_types.h>
 
 typedef struct {
-    uint64_t  bytes;
-    uint32_t  a, b, c, d;
-    uint8_t    buffer[64];
+    unsigned long long bytes;
+    uint32_t a, b, c, d;
+    uint8_t buffer[64];
 } digest_md5_t;
 
 void digest_md5_init(digest_md5_t *ctx);

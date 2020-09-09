@@ -182,7 +182,7 @@ int test_obj_message_centor()
 
     centor = OBJECT_NEW(allocator, Centor, NULL);
 
-    centor->c->write(centor->c, test_str, 1);
+    centor->c->send(centor->c, test_str, 1, 0);
     pause();
     object_destroy(centor);
 

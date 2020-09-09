@@ -35,14 +35,6 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/types.h>     /* basic system data types */
-#include <sys/socket.h>    /* basic socket definitions */
-#include <netinet/in.h>    /* sockaddr_in{} and other Internet defns */
-#include <arpa/inet.h>     /* inet(3) functions */
-#include <fcntl.h>         /* nonblocking */
-#include <sys/resource.h>  /*setrlimit */
-#include <signal.h>
-#include <sys/un.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
@@ -91,8 +83,9 @@ REGISTER_TEST_CMD(test_attribute_deprecated);
 int ex(int a, int b)
 {
     int d = 1;
+    int i;
 
-    for (int i = 0; i < b ; i++) {
+    for (i = 0; i < b ; i++) {
         d = d * a;
     }
 

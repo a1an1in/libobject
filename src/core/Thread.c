@@ -39,11 +39,11 @@
 static int __construct(Thread *thread, char *init_str)
 {
     allocator_t *allocator = thread->obj.allocator;
-    thread->is_run = 0;
-    thread->arg = NULL;
-    thread->joinable = 1;
-    thread->tid      = -1;
+
     dbg_str(DBG_IMPORTANT, "Thread construct, thread addr:%p", thread);
+    thread->is_run   = 0;
+    thread->arg      = NULL;
+    thread->joinable = 1;
 
     return 0;
 }
@@ -55,14 +55,11 @@ static int __deconstrcut(Thread *thread)
 
     dbg_str(DBG_IMPORTANT, "thread deconstruct, thread addr:%p", thread);
 
-    dbg_str(DBG_IMPORTANT, "thread deconstruct, out");
-    if (thread->tid !=0) {
-        /*
-         *ret = pthread_join(thread->tid, &tret);
-         *if (ret != 0) {
-         *    dbg_str(OBJ_WARNNING, "can't join with thread tid=%d", thread->tid);
-         *}
-         */
+    if (thread->joinable) {
+        ret = pthread_join(thread->tid, &tret);
+        if (ret != 0) {
+            dbg_str(OBJ_WARNNING, "can't join with thread tid=%d", thread->tid);
+        }
     }
 
     dbg_str(DBG_IMPORTANT, "thread deconstruct, out");
@@ -111,28 +108,13 @@ static int __set_opaque(Thread *thread, void *arg)
 
 static void *__start_routine(void *arg)
 {
-    dbg_str(OBJ_DETAIL, "start_routine");
-    Thread * thread = (Thread *)arg;
-    if ( thread == NULL ){
-        return NULL;
-    }
-    thread->is_run = 1; 
-
-    while (1) {
-        usleep(100000);
-
-        while ( thread->is_run ) {
-            thread->execute(arg);
-        }
-        dbg_str(DBG_WARNNING,"current thread finished");
-    }
+    dbg_str(OBJ_WARNNING, "start_routine, you may need implent it!!");
     return NULL;
 }
 
-
 static void __stop(Thread * thread)
 {
-    if ( thread->is_run ) {
+    if (thread->is_run) {
         thread->is_run = 0;
     }
 }
@@ -142,25 +124,16 @@ static int __get_status(Thread *thread)
     return thread->is_run;
 }
 
-static int __set_run_routine(Thread *thread,void *func )
-{
-    if ( thread == NULL || func == NULL ) {
-        return -1;
-    }
-    thread->execute = func;
-    return 0;
-}
-
 static void __run(Thread *thread)
 {
-    if ( thread->is_run == 0 ) {
+    if (thread->is_run == 0) {
         thread->is_run = 1;
     }
 }
 
 static void __join(Thread * thread,Thread * th)
 {
-    if ( th->joinable ) {
+    if (th->joinable) {
         th->joinable = 0;
         pthread_join(th->get_tid(th),NULL);
     }
@@ -173,7 +146,7 @@ static void __detach(Thread *thread)
     }
 }
 
-static int __get_tid(Thread *thread)
+static pthread_t __get_tid(Thread *thread)
 {
     return thread->tid;
 }
@@ -189,12 +162,11 @@ static class_info_entry_t thread_class_info[] = {
     Init_Vfunc_Entry(7 , Thread, start_routine, __start_routine),
     Init_Vfunc_Entry(8 , Thread, stop, __stop),
     Init_Vfunc_Entry(9 , Thread, run, __run),
-    Init_Vfunc_Entry(10, Thread, set_run_routine, __set_run_routine),
-    Init_Vfunc_Entry(11, Thread, get_status, __get_status),
-    Init_Vfunc_Entry(12, Thread, join, __join),
-    Init_Vfunc_Entry(13, Thread, detach, __detach),
-    Init_Vfunc_Entry(14, Thread, get_tid, __get_tid),
-    Init_End___Entry(15, Thread),
+    Init_Vfunc_Entry(10, Thread, get_status, __get_status),
+    Init_Vfunc_Entry(11, Thread, join, __join),
+    Init_Vfunc_Entry(12, Thread, detach, __detach),
+    Init_Vfunc_Entry(13, Thread, get_tid, __get_tid),
+    Init_End___Entry(14, Thread),
 };
 REGISTER_CLASS("Thread", thread_class_info);
 
