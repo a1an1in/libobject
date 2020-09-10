@@ -111,7 +111,11 @@ static int test_udp_client_recv(TEST_ENTRY *entry, void *argc, void *argv)
                (char *)"1989",//char *client_port,
                test_work_callback,
                NULL);
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
     pause();
+#endif
     object_destroy(c);
 }
 REGISTER_TEST_CMD(test_udp_client_recv);
