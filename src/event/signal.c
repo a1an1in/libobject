@@ -1,4 +1,61 @@
-#if (!defined(WINDOWS_USER_MODE))
+#if (defined(WINDOWS_USER_MODE))
+#include <sys/types.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <libobject/event/Event_Base.h>
+#include <libobject/event/event_compat.h>
+#include <libobject/core/Rbtree_Map.h>
+#include <libobject/core/Linked_List.h>
+#include <libobject/core/utils/config.h>
+int
+evsig_socketpair(int fd[2])
+{
+    return -1;
+}
+
+int
+evsig_make_socket_closeonexec(int fd)
+{
+    return 0;
+}
+
+int
+evsig_make_socket_nonblocking(int fd)
+{
+    return 0;
+}
+
+int evsig_init(Event_Base *eb)
+{
+    return 0;
+}
+
+int evsig_release(Event_Base *eb)
+{
+}
+
+int evsig_add(Event_Base *eb, event_t *event)
+{
+    return 0;
+}
+
+int evsig_del(Event_Base *eb, event_t *event)
+{
+    return 0;
+}
+
+
+int set_break_signal(Event_Base* eb)
+{
+    return (0);
+}
+
+int set_segment_signal(Event_Base* eb)
+{
+    return (0);
+}
+#else
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/time.h>
