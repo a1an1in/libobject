@@ -143,7 +143,11 @@ static int test_message_publisher()
     publisher->connect_centor(publisher, centor);
     publisher->publish_message(publisher, test_str, strlen(test_str));
 
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
     pause();
+#endif
     object_destroy(centor);
     object_destroy(subscriber);
     object_destroy(publisher);
