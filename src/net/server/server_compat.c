@@ -82,7 +82,11 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
     s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
                          "127.0.0.1", "11011", test_work_callback, 0x1234);
 
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
     pause();
+#endif
     server_destroy(s);
 
     after_alloc_count = allocator->alloc_count;
