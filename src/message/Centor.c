@@ -183,7 +183,11 @@ int test_obj_message_centor()
     centor = OBJECT_NEW(allocator, Centor, NULL);
 
     centor->c->send(centor->c, test_str, 1, 0);
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
     pause();
+#endif
     object_destroy(centor);
 
     return 1;
