@@ -102,7 +102,11 @@ void test_obj_inet_tcp_client()
     client->trustee(client, NULL, test_work_callback, client);
     client->send(client, test_str, strlen(test_str), 0);
 
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
     pause();
+#endif
 
     object_destroy(client);
 }
