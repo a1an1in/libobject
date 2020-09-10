@@ -101,7 +101,12 @@ int test_file()
     file->open(file, "./test.txt", "w+");
     file->write(file, content, strlen(content));
     file->close(file);
+    
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
     pause();
+#endif
     object_destroy(file);
 
     return 1;
