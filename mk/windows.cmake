@@ -17,7 +17,7 @@ macro (set_cmake_evironment_variable)
     set (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
     set (EXTERNAL_LIB_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/windows)
     set (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
-    SET(ExternalLibs ${ExternalLibs}  object pthread m)
+    SET(ExternalLibs ${ExternalLibs} -Wl,--whole-archive object -Wl,--no-whole-archive regex pthread m)
 endmacro()
 
 macro (display_windows_platform_configs)
