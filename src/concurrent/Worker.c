@@ -147,7 +147,11 @@ void test_obj_worker()
                    &ev_tv, test_timeout_cb, worker, test_work_callback);
     worker->enroll(worker, producer);
 
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
     pause();
+#endif
     object_destroy(worker);
     object_destroy(producer);
 }
