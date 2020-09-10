@@ -148,7 +148,11 @@ void test_obj_client()
      *object_dump(client, "Client", buf, 2048);
      *dbg_str(NET_DETAIL, "Client dump: %s", buf);
      */
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
     pause();
+#endif
 
     object_destroy(client);
 }
