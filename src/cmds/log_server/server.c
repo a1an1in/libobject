@@ -24,6 +24,11 @@ void log_server()
                (char *)"8080",//char *client_port,
                test_work_callback,
                NULL);
+    
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
     pause();
+#endif
     object_destroy(c);
 }
