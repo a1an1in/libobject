@@ -130,7 +130,11 @@ void test_obj_inet_udp_client_send()
     client->connect(client, "127.0.0.1", "11011");
     client->send(client, test_str, strlen(test_str), 0);
 
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
     pause();
+#endif
 
     object_destroy(client);
 }
@@ -152,7 +156,11 @@ void test_obj_inet_udp_client_recv()
     client->bind(client, "127.0.0.1", "11011"); 
     client->trustee(client, NULL, (void *)test_work_callback, NULL);
 
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
     pause();
+#endif
 
     object_destroy(client);
 }
