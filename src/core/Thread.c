@@ -200,7 +200,11 @@ int test_obj_thread()
     thread->set_opaque(thread, allocator);
     thread->start(thread);
 
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
     pause();
+#endif
 
     object_destroy(thread);
 }
