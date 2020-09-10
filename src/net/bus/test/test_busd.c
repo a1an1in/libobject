@@ -29,6 +29,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+#if (!defined(WINDOWS_USER_MODE))
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
@@ -58,9 +59,13 @@ void test_bus_daemon()
     /*
 	 *while(1) sleep(1);
      */
+#if (defined(WINDOWS_USER_MODE))
+    system("pause");
+#else
     pause();
+#endif
     dbg_str(DBG_DETAIL,"run at here");
     busd_destroy(busd);
     dbg_str(DBG_DETAIL,"run at here");
 }
-
+#endif

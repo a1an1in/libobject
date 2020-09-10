@@ -1,3 +1,4 @@
+#if (!defined(WINDOWS_USER_MODE))
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/net/bus/bus.h>
 
@@ -70,4 +71,5 @@ void test_bus_client()
     bus_destroy(bus);
 	
 }
+#endif
 #endif

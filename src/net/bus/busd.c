@@ -29,6 +29,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+#if (!defined(WINDOWS_USER_MODE))
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/net/bus/busd.h>
@@ -538,3 +539,4 @@ int busd_destroy(busd_t *busd)
 
     return 0;
 }
+#endif

@@ -250,9 +250,8 @@ extract_filename_in_macro(const char *macro)
 #else
 #endif
 
-/*
- *#define OPEN_ATTRIB_PRINT
- */
+#define OPEN_ATTRIB_PRINT
+
 #ifdef OPEN_ATTRIB_PRINT
     #define ATTRIB_PRINT(fmt,args...) printf(fmt,##args)
 #else

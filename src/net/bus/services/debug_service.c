@@ -1,3 +1,4 @@
+#if (!defined(WINDOWS_USER_MODE))
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/net/bus/bus.h>
@@ -62,3 +63,4 @@ void bus_debug_service()
 	bus_add_object(bus, &debug_object);
 
 }
+#endif

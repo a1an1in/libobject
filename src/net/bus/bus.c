@@ -29,6 +29,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+#if (!defined(WINDOWS_USER_MODE))
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/blob/blob.h>
@@ -777,3 +778,4 @@ int bus_destroy(bus_t *bus)
     client_destroy(bus->client);
     allocator_mem_free(allocator, bus);
 }
+#endif

@@ -95,7 +95,11 @@ void test_obj_inet_tcp_server()
     server->bind(server, "127.0.0.1", "11011"); 
     server->trustee(server, test_work_callback, NULL);
 
+#if (defined(WINDOWS_USER_MODE))
+    system("pause");
+#else
     pause();
+#endif
 
     object_destroy(server);
 }

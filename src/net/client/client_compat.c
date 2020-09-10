@@ -159,7 +159,11 @@ static int test_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
     client_connect(c, "127.0.0.1", "11011");
     client_send(c, str, strlen(str), 0);
 
+#if (defined(WINDOWS_USER_MODE))
+    system("pause");
+#else
     pause();
+#endif
     object_destroy(c);
 }
 REGISTER_TEST_CMD(test_inet_tcp_client);

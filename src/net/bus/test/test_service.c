@@ -1,3 +1,4 @@
+#if (!defined(WINDOWS_USER_MODE))
 #include <unistd.h>
 #include <libobject/net/bus/bus.h>
 
@@ -83,6 +84,11 @@ void test_bus_server()
     /*
 	 *while(1) sleep(1);
      */
+#if (defined(WINDOWS_USER_MODE))
+    system("pause");
+#else
     pause();
+#endif
     bus_destroy(bus);
 }
+#endif

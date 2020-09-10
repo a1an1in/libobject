@@ -47,6 +47,7 @@
 #include <unistd.h>
 #include <libobject/core/utils/alloc/allocator.h>
 #include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/utils/timeval/timeval.h>
 #include "libobject/user_mode.h"
 
 #if 0

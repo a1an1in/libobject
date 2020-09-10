@@ -1,3 +1,4 @@
+#if (!defined(WINDOWS_USER_MODE))
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/net/bus/bus.h>
 
@@ -38,3 +39,4 @@ void bus_debug_client(char *bussiness, char *sw, char *level)
     bus_invoke_sync(bus, "debug", "set_debug", 3, args, out, &out_len);
     dbg_buf(DBG_DETAIL, "return buffer:", (uint8_t *)out, out_len);
 }
+#endif
