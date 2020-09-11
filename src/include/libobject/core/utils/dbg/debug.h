@@ -211,17 +211,6 @@ extract_filename_in_macro(const char *macro)
     	#define dbg_str(debug_switch,fmt,args...) do{}while(0) 
     	#define dbg_buf(debug_switch,const_str,buf,buf_len) do{}while(0)  
     #endif
-#elif (defined(WINDOWS_USER_MODE))
-    #ifdef OPEN_DEBUG
-    	#define dbg_str(debug_switch,fmt,args...)\
-    		printf("[" fmt "]--[%s:%d]\n", ##args, __FILE__, __LINE__);
-
-    	#define dbg_buf(debug_switch, const_str, buf, buf_len)\
-    		do {} while(0)
-    #else
-    	#define dbg_str(debug_switch, fmt, args...) do {} while(0) 
-    	#define dbg_buf(debug_switch, const_str, buf, buf_len) do {} while(0)  
-    #endif
 #else
     #ifdef OPEN_DEBUG
     	#define dbg_str(debug_switch,fmt,args...)\
