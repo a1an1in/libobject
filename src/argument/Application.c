@@ -94,7 +94,6 @@ int app(int argc, char *argv[])
     Application *app;
     int ret = 0;
 
-    printf("run at here\n");
     libobject_init();
     exception_init();
 

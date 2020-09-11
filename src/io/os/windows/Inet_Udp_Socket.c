@@ -33,22 +33,38 @@
 #if (defined(WINDOWS_USER_MODE))
 
 #include <stdio.h>
-#include <fcntl.h> 
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <stdio.h>
+#include <windows.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/event/Event_Base.h>
-#include "Inet_Udp_Socket.h"
 #include <libobject/core/utils/registry/registry.h>
+#include "Inet_Udp_Socket.h"
 
-static int __construct(Inet_Udp_Socket *sk, char *init_str)
+static int __construct(Inet_Udp_Socket *udp_socket, char *init_str)
 {
-    dbg_str(NET_WARNNING, "not supported now");
-    return -1;
+    WSADATA wsa_data;
+    SOCKET sk;
+
+    if (WSAStartup(MAKEWORD(2, 1), &wsa_data)) {
+        dbg_str(NET_ERROR, "WSAStartup error");
+        WSACleanup();
+        return -1;
+    }
+
+    sk = socket(AF_INET, SOCK_DGRAM, 0);
+
+    udp_socket->parent.fd = sk;
+
+    return 1;
 }
 
 static int __deconstrcut(Inet_Udp_Socket *socket)
 {
-    dbg_str(NET_WARNNING, "not supported now");
-    return -1;
+    closesocket(socket->parent.fd);
+    WSACleanup();
+
+    return 1;
 }
 
 static int __bind(Inet_Udp_Socket *socket, char *host, char *service)

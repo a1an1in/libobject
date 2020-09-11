@@ -2,6 +2,7 @@
 #define __INET_UDP_SOCKET_H__
 
 #include <stdio.h>
+#include <Winsock2.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
 #include <libobject/io/Socket.h>
@@ -34,6 +35,8 @@ struct inet_udp_socket_s{
     int (*getsockopt)(Inet_Udp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setsockopt)(Inet_Udp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setnonblocking)(Inet_Udp_Socket *socket);
+
+    WSADATA wsa_data;
 };
 
 #endif

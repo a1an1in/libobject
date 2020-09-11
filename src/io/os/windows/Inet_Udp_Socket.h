@@ -2,6 +2,7 @@
 #define __INET_UDP_SOCKET_H__
 
 #include <stdio.h>
+#include <windows.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
 #include <libobject/io/Socket.h>
