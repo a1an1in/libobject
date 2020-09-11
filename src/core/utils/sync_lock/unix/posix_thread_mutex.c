@@ -50,8 +50,6 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
-#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(ANDROID_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
-
 #include <pthread.h>
 
 int posix_thread_mutex_init(struct sync_lock_s *slock)
@@ -95,4 +93,3 @@ REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_SYNC_LOCK_REGISTER_MODULES,
                    linux_user_mode_pthread_mutex_register);
 
 
-#endif
