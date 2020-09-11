@@ -113,8 +113,10 @@ int default_event_base_constructor()
 
     return 0;
 }
+#if !defined(WINDOWS_USER_MODE)
 REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_EVBASE, 
                    default_event_base_constructor);
+#endif
 
 int default_event_base_destructor()
 {
@@ -125,5 +127,7 @@ int default_event_base_destructor()
      
     return 0;
 }
+#if !defined(WINDOWS_USER_MODE)
 REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_EVBASE, 
                    default_event_base_destructor);
+#endif
