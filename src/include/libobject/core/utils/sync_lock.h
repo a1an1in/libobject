@@ -20,9 +20,7 @@
 
 #include <libobject/user_mode.h>
 #include <libobject/basic_types.h>
-#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(ANDROID_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE)) || defined(WINDOWS_USER_MODE)
 #include <pthread.h>
-#endif
 
 enum sync_lock_type{
 	PTHREAD_MUTEX_LOCK = 1,
@@ -34,10 +32,8 @@ typedef struct sync_lock_s{
 	uint8_t lock_type;
 	struct sync_lock_operations *lock_ops;
 	union lock{
-#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(ANDROID_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
 		pthread_mutex_t mutex;
 		pthread_rwlock_t rwlock;
-#endif
 //#if defined(WINDOWS_USER_MODE)
 //        CRITIACAL_SECTION cs;
 //#endif
