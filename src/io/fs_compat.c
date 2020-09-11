@@ -2,6 +2,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/io/fs_compat.h>
 
+#if (!defined(WINDOWS_USER_MODE))
 File_System *globle_file_system;
 
 int fs_init()
@@ -110,3 +111,4 @@ static int test_fs_get_size(TEST_ENTRY *entry)
     return 1;
 }
 REGISTER_TEST_FUNC(test_fs_get_size);
+#endif
