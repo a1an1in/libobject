@@ -140,8 +140,10 @@ int default_producer_constructor()
 
     return 0;
 }
+#if (!defined(WINDOWOS_USER_MODE))
 REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_CONCURRENT, 
                    default_producer_constructor);
+#endif
 
 int default_producer_destructor()
 {
@@ -153,8 +155,10 @@ int default_producer_destructor()
 
     object_destroy(producer);
 }
+#if (!defined(WINDOWOS_USER_MODE))
 REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_CONCURRENT, 
                    default_producer_destructor);
+#endif
 
 void test_obj_producer()
 {
