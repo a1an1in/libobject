@@ -47,6 +47,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <libobject/basic_types.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/dbg/debug_string.h>
 #include <libobject/attrib_priority.h>
