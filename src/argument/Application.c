@@ -31,7 +31,6 @@ static int __deconstruct(Application *app)
 
 static int __run(Application *app, int argc, char *argv[])
 {
-    char *json;
     int i = 0;
     Command *command = (Command *)app;
     Command *selected_subcommand;

@@ -25,7 +25,8 @@ struct inet_udp_socket_s{
     ssize_t (*sendto)(Inet_Udp_Socket *socket, const void *buf, size_t len, int flags,
                       char *host, char *service);
     ssize_t (*recvfrom)(Inet_Udp_Socket *socket, void *buf, size_t len, int flags,
-                        char *host, char *service);
+                        char *remote_host, int host_len,
+                        char *remote_service, int service_len);
     int (*getsockopt)(Inet_Udp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setsockopt)(Inet_Udp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setnonblocking)(Inet_Udp_Socket *socket);

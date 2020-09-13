@@ -132,9 +132,10 @@ __sendto(Unix_Udp_Socket *socket, const void *buf, size_t len,
 }
 
 
-static ssize_t __recvfrom(Unix_Udp_Socket *socket, void *buf, size_t len, int flags, 
-                          struct sockaddr *src_addr, 
-                          socklen_t *addrlen)
+static ssize_t 
+__recvfrom(Unix_Udp_Socket *socket, void *buf, size_t len, int flags, 
+           char *remote_host, int host_len,
+           char *remote_service, int service_len)
 {
     dbg_str(NET_DETAIL, "not supported now");
     return -1;

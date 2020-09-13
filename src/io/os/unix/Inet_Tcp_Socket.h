@@ -32,8 +32,8 @@ struct inet_tcp_socket_s{
                       const struct sockaddr *dest_addr,
                       socklen_t addrlen);
     ssize_t (*recvfrom)(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags,
-                        struct sockaddr *src_addr, 
-                        socklen_t *addrlen);
+                        char *remote_host, int host_len,
+                        char *remote_service, int service_len);
     ssize_t (*sendmsg)(Inet_Tcp_Socket *socket, const struct msghdr *msg, int flags);
     ssize_t (*recvmsg)(Inet_Tcp_Socket *socket, struct msghdr *msg, int flags);
     int (*getsockopt)(Inet_Tcp_Socket *socket, int level, int optname, sockoptval *val);

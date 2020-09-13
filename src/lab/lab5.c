@@ -5,6 +5,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
+#if (defined(WINDOWS_USER_MODE))
 static char *
 strtok_r (char *s, const char *delim, char **save_ptr)
 {
@@ -33,6 +34,7 @@ strtok_r (char *s, const char *delim, char **save_ptr)
     }
     return token;
 }
+#endif
 
 int test_str_cmp(TEST_ENTRY *entry)
 {

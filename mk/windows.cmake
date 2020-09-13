@@ -1,7 +1,5 @@
 macro (set_cmake_evironment_variable)
-    if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "C:/Program Files (x86)/libobject")
-        set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/windows)
-    endif ()
+    set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/windows)
     message("-- CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
     LINK_DIRECTORIES(
             $ENV{MinGW_PATH}/lib

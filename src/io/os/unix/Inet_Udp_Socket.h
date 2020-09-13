@@ -2,7 +2,6 @@
 #define __INET_UDP_SOCKET_H__
 
 #include <stdio.h>
-#include <Winsock2.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
 #include <libobject/io/Socket.h>
@@ -21,22 +20,16 @@ struct inet_udp_socket_s{
     int (*connect)(Inet_Udp_Socket *socket, char *host, char *service);
     int (*bind)(Inet_Udp_Socket *socket, char *host, char *service);
     ssize_t (*send)(Inet_Udp_Socket *socket, const void *buf, size_t len, int flags);
-    ssize_t (*write)(Inet_Udp_Socket *socket, const void *buf, size_t len);
+    ssize_t (*recv)(Inet_Udp_Socket *socket, void *buf, size_t len, int flags);
     ssize_t (*sendto)(Inet_Udp_Socket *socket, const void *buf, size_t len, int flags,
                       const struct sockaddr *dest_addr,
                       socklen_t addrlen);
-    ssize_t (*sendmsg)(Inet_Udp_Socket *socket, const struct msghdr *msg, int flags);
-    ssize_t (*read)(Inet_Udp_Socket *socket, void *buf, size_t len);
-    ssize_t (*recv)(Inet_Udp_Socket *socket, void *buf, size_t len, int flags);
     ssize_t (*recvfrom)(Inet_Udp_Socket *socket, void *buf, size_t len, int flags,
-                        struct sockaddr *src_addr, 
-                        socklen_t *addrlen);
-    ssize_t (*recvmsg)(Inet_Udp_Socket *socket, struct msghdr *msg, int flags);
+                        char *remote_host, int host_len,
+                        char *remote_service, int service_len);
     int (*getsockopt)(Inet_Udp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setsockopt)(Inet_Udp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setnonblocking)(Inet_Udp_Socket *socket);
-
-    WSADATA wsa_data;
 };
 
 #endif

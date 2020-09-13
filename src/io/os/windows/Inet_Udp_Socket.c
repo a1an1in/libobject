@@ -34,26 +34,15 @@
 
 #include <stdio.h>
 #include <winsock2.h>
-#include <ws2tcpip.h>
-#include <stdio.h>
-#include <windows.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 #include "Inet_Udp_Socket.h"
 
 static int __construct(Inet_Udp_Socket *udp_socket, char *init_str)
 {
-    WSADATA wsa_data;
     SOCKET sk;
 
-    if (WSAStartup(MAKEWORD(2, 1), &wsa_data)) {
-        dbg_str(NET_ERROR, "WSAStartup error");
-        WSACleanup();
-        return -1;
-    }
-
     sk = socket(AF_INET, SOCK_DGRAM, 0);
-
     udp_socket->parent.fd = sk;
 
     return 1;
@@ -62,49 +51,100 @@ static int __construct(Inet_Udp_Socket *udp_socket, char *init_str)
 static int __deconstrcut(Inet_Udp_Socket *socket)
 {
     closesocket(socket->parent.fd);
-    WSACleanup();
 
     return 1;
 }
 
 static int __bind(Inet_Udp_Socket *socket, char *host, char *service)
 {
-    dbg_str(NET_WARNNING, "not supported now");
-    return -1;
+    SOCKADDR_IN socket_addr;
+    int port;
+    int ret;
+
+    port = atoi(service);
+    socket_addr.sin_addr.S_un.S_addr = inet_addr(host);
+    socket_addr.sin_family = AF_INET;
+    socket_addr.sin_port = htons(port);
+    ret = bind(socket->parent.fd, (SOCKADDR*)&socket_addr, sizeof(SOCKADDR));
+
+    return ret;
 }
 
 static int __connect(Inet_Udp_Socket *socket, char *host, char *service)
 {
-    dbg_str(NET_WARNNING, "not supported now");
-    return -1;
+    SOCKADDR_IN socket_addr;
+    int port;
+    int ret;
+
+    port = atoi(service);
+    socket_addr.sin_addr.S_un.S_addr = inet_addr(host);
+    socket_addr.sin_family = AF_INET;
+    socket_addr.sin_port = htons(port);
+    ret = connect(socket->parent.fd, (SOCKADDR*)&socket_addr, sizeof(SOCKADDR));
+
+    return ret;
 }
 
 static ssize_t __send(Inet_Udp_Socket *socket, const void *buf, size_t len, int flags)
 {
-    dbg_str(NET_WARNNING, "not supported now");
-    return -1;
+    return send(socket->parent.fd, buf, len, flags);
 }
 
 static ssize_t __recv(Inet_Udp_Socket *socket, void *buf, size_t len, int flags)
 {
-    dbg_str(NET_WARNNING, "not supported now");
-    return -1;
+    return recv(socket->parent.fd, buf, len, flags);;
 }
 
 static ssize_t 
 __sendto(Inet_Udp_Socket *socket, const void *buf, size_t len, int flags, 
          char *host, char *service)
 {
-    dbg_str(NET_WARNNING, "not supported now");
-    return -1;
+    SOCKADDR_IN socket_addr;
+    int socket_addr_len;
+    int port;
+    int ret;
+
+    // 设置服务器地址
+    port = atoi(service);
+    socket_addr.sin_family = AF_INET;
+    socket_addr.sin_addr.S_un.S_addr = inet_addr(host);
+    socket_addr.sin_port = htons(port);
+
+    // 向服务器发送数据
+    socket_addr_len = sizeof(socket_addr);
+    ret = sendto(socket->parent.fd, buf, len, 0, (SOCKADDR *)&socket_addr, socket_addr_len);
+    if(ret == SOCKET_ERROR) {
+        dbg_str(NET_ERROR, "sendto error");
+        return -1;
+    }
+
+    return 1;
 }
 
 static ssize_t 
-__recvfrom(Inet_Udp_Socket *socket, void *buf, size_t len, int flags, 
-           char *host, char *service)
+__recvfrom(Inet_Udp_Socket *socket, void *buf, size_t len, int flags,
+           char *remote_host, int host_len,
+           char *remote_service, int service_len)
 {
-    dbg_str(NET_WARNNING, "not supported now");
-    return -1;
+    int ret;
+    SOCKADDR_IN socket_addr;
+    int socket_addr_len;
+
+    socket_addr_len = sizeof(SOCKADDR);
+    ret = recvfrom(socket->parent.fd, buf, len, 0, (SOCKADDR*)&socket_addr, &socket_addr_len);
+    if(SOCKET_ERROR == ret) {
+        dbg_str(NET_ERROR, "recvfrom error");
+        return ret;
+    }
+
+    if (remote_host != NULL) {
+        strncpy(remote_host, inet_ntoa(socket_addr.sin_addr), host_len);
+    }
+    if (remote_service != NULL) {
+        itoa(socket_addr.sin_port, remote_service, 10);
+    }
+
+    return 1;
 }
 
 static int __getsockopt(Inet_Udp_Socket *socket, sockoptval *val)
@@ -168,14 +208,10 @@ void test_inet_udp_socket_recv()
     char buf[1024] = {0};
     allocator_t *allocator = allocator_get_default_alloc();
 
-    /*
-     *dbg_str(NET_DETAIL, "run at here");
-     */
+    dbg_str(NET_DETAIL, "test_inet_udp_socket_recv in");
     socket = OBJECT_NEW(allocator, Inet_Udp_Socket, NULL);
 
-    socket->bind(socket, "127.0.0.1", "11011"); 
-    //socket->setsockopt(socket, 0, 0, NULL);
-
+    socket->bind(socket, "127.0.0.1", "11011");
     while(1) {
         socket->recv(socket, buf, 1024, 0);
         dbg_str(NET_SUC, "recv : %s", buf);
@@ -184,4 +220,5 @@ void test_inet_udp_socket_recv()
     object_destroy(socket);
 }
 REGISTER_TEST_FUNC(test_inet_udp_socket_recv);
-#endif
+
+#endif //end of WINDOWS_USER_MODE
