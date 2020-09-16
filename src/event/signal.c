@@ -70,13 +70,13 @@ static int numeric_key_cmp_func(void *key1,void *key2,uint32_t size)
 static void
 evsig_cb(int fd, short what, void *arg)
 {
-    static char signals[1024];
-    int n;
-    int i;
-    int ncaught[NSIG] = {0};
+    char signals[1024];
     event_t *event = (event_t *)arg;
     Event_Base *eb = (Event_Base *)event->ev_base;
     Socket *receiver = event->ev_socket;
+    int ncaught[NSIG] = {0};
+    int n;
+    int i;
 
     dbg_str(EV_DETAIL,"evsig_cb in, eb:%p", eb);
     memset(&ncaught, 0, sizeof(ncaught));
@@ -155,14 +155,10 @@ int evsig_init(Event_Base *eb)
     event->ev_base      = eb;
     event->ev_callback  = evsig_cb;
     event->ev_arg       = event;
-    /*
-     *event->ev_flags     = EV_SIGNAL_FD; //signal receiver fd
-     */
     event->ev_socket    = eb->evsig.receiver;
     eb->add(eb, event);
 
     evsig->map  = OBJECT_NEW(allocator, RBTree_Map, NULL);
-    evsig->map->set_cmp_func(evsig->map, default_key_cmp_func);
     evsig->list = OBJECT_NEW(allocator, Linked_List, NULL);
 
     return 0;
@@ -262,6 +258,7 @@ segment_signal_cb(int fd, short event_res, void *arg)
 {
     print_backtrace();
 }
+
 int set_segment_signal(Event_Base* eb)
 {
     struct event *ev = &eb->break_event;
