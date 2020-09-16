@@ -54,6 +54,7 @@ __find_same_key_node(rbtree_map_t *map,
             node = node->rb_right;
         } else {
             value  = mnode->value;
+            printf("find one same key\n");
             list->add(list, value);
             __find_same_key_node(map, node->rb_left, func , key, list);
             __find_same_key_node(map, node->rb_right, func,  key, list);

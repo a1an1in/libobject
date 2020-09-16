@@ -42,7 +42,6 @@ static int test_signal(TEST_ENTRY *entry, void *argc, void *argv)
     struct event_base* base;
 
     /* Initalize the event library */
-
     dbg_str(DBG_DETAIL, "test_signal, SIGUSR1: %d", SIGUSR1);
     base = event_base_new();
 
@@ -50,6 +49,7 @@ static int test_signal(TEST_ENTRY *entry, void *argc, void *argv)
     event_assign(&signal_int, base, SIGUSR1, EV_SIGNAL|EV_PERSIST,
                  signal_cb, &signal_int);
 
+    dbg_str(DBG_DETAIL, "add signal SIGUSR1: %d", SIGUSR1);
     event_add(&signal_int, NULL);
 
     event_base_dispatch(base);
@@ -58,7 +58,7 @@ static int test_signal(TEST_ENTRY *entry, void *argc, void *argv)
 
     return (1);
 }
-REGISTER_STANDALONE_TEST_FUNC(test_signal);
+REGISTER_TEST_FUNC(test_signal);
 
 static int test_two_same_signal(TEST_ENTRY *entry, void *argc, void *argv)
 {
@@ -89,7 +89,7 @@ static int test_two_same_signal(TEST_ENTRY *entry, void *argc, void *argv)
 
     return (1);
 }
-REGISTER_STANDALONE_TEST_FUNC(test_two_same_signal);
+REGISTER_TEST_FUNC(test_two_same_signal);
 
 static int test_del_signal(TEST_ENTRY *entry, void *argc, void *argv)
 {
@@ -121,5 +121,5 @@ static int test_del_signal(TEST_ENTRY *entry, void *argc, void *argv)
 
     return (1);
 }
-REGISTER_STANDALONE_TEST_FUNC(test_del_signal);
+REGISTER_TEST_FUNC(test_del_signal);
 #endif

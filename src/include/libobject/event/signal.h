@@ -5,10 +5,13 @@
 #include <libobject/event/event.h>
 #include <libobject/core/utils/miscellany/buffer.h>
 #include <libobject/core/Map.h>
+#include <libobject/io/Socket.h>
 
 struct evsig_s{
-    int fd_snd, fd_rcv;
-    event_t fd_rcv_event;
+    Socket *sender;
+    Socket *receiver;
+
+    event_t signal_event;
 
     Map *map;
     List *list;

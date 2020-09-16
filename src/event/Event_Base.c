@@ -87,7 +87,8 @@ static int __add(Event_Base *eb, event_t *event)
     int fd       = event->ev_fd;
 
     if (event->ev_events & EV_SIGNAL) {
-        dbg_str(EV_VIP, "event base add signal, signal:%d, event addr:%p", fd, event);
+        dbg_str(EV_VIP, "event base add signal, event base:%p signal:%d, event addr:%p", 
+                eb, fd, event);
         evsig_add(eb, event);
     } else {
         dbg_str(EV_VIP, "event base add io, fd:%d, event addr:%p", fd, event);
@@ -166,28 +167,6 @@ static int __activate_io(Event_Base *eb, int fd, short events)
     return 0;
 }
 
-static int __activate_signal_old(Event_Base *eb, int fd, short events)
-{
-    Map *map = eb->evsig.map;
-    event_t *event = NULL;
-    char buf[16];
-    char *p = NULL;
-    int ret;
-
-    dbg_str(EV_DETAIL, "event base active signal event, signal = %d, ncount=%d", fd, events);
-
-    map->search(map, &fd, (void **)&event);
-    if (event != NULL) {
-        dbg_str(EV_WARNNING, "activate_signal, find signal=%d", fd);
-        event->ev_callback(event->ev_fd, 0, event->ev_arg);
-    } else {
-        dbg_str(EV_WARNNING, "activate_signal, get event addr error");
-        return -1;
-    }
-
-    return 0;
-}
-
 static void __signal_list_for_each_callback(void *element)
 {
     event_t *event = (event_t *)element;
@@ -207,14 +186,14 @@ static int __activate_signal(Event_Base *eb, int fd, short events)
     char *p = NULL;
     int ret;
 
-    dbg_str(EV_DETAIL, "event base active signal event, signal = %d, ncount=%d", fd, events);
+    dbg_str(EV_DETAIL, "event base active signal event, event base:%p, signal = %d, ncount=%d",
+            eb, fd, events);
 
     list->reset(list);
 
     map->search_all_same_key(map, fd, list);
     if (list->count(list) != 0) {
-        dbg_str(EV_WARNNING, "activate_signal, list count=%d", list->count(list));
-        dbg_str(EV_WARNNING, "activate_signal, find signal=%d", fd);
+        dbg_str(EV_WARNNING, "activate_signal, list count=%d, signal=%d", list->count(list), fd);
         list->for_each(list, __signal_list_for_each_callback);
     } else {
         dbg_str(EV_WARNNING, "activate_signal, get event addr error");

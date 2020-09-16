@@ -26,13 +26,11 @@
 
 typedef struct event event_t;
 
-struct event{
+struct event {
     uint32_t ev_fd;
-    void *fdinfo;
+    void *ev_socket;
     void *ev_base;
     short ev_events;
-    short ev_oldevents;
-    short ev_res;       /* result passed to event callback */
     short ev_flags;
     uint8_t ev_pri;     /* smaller numbers are higher priority */
     uint8_t ev_closure;

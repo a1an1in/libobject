@@ -8,23 +8,6 @@
 #include <libobject/core/Rbtree_Map.h>
 #include <libobject/core/Linked_List.h>
 #include <libobject/core/utils/config.h>
-int
-evsig_socketpair(int fd[2])
-{
-    return -1;
-}
-
-int
-evsig_make_socket_closeonexec(int fd)
-{
-    return 0;
-}
-
-int
-evsig_make_socket_nonblocking(int fd)
-{
-    return 0;
-}
 
 int evsig_init(Event_Base *eb)
 {
@@ -72,9 +55,6 @@ int set_segment_signal(Event_Base* eb)
 #include <libobject/core/Linked_List.h>
 #include <libobject/core/utils/config.h>
 
-static int gloable_evsig_send_fd;
-static int gloable_evsig_rcv_fd;
-
 static int numeric_key_cmp_func(void *key1,void *key2,uint32_t size)
 {
     int k1, k2;
@@ -96,11 +76,12 @@ evsig_cb(int fd, short what, void *arg)
     int ncaught[NSIG] = {0};
     event_t *event = (event_t *)arg;
     Event_Base *eb = (Event_Base *)event->ev_base;
+    Socket *receiver = event->ev_socket;
 
-    dbg_str(EV_DETAIL,"evsig_cb in");
+    dbg_str(EV_DETAIL,"evsig_cb in, eb:%p", eb);
     memset(&ncaught, 0, sizeof(ncaught));
 
-    n = recv(fd, signals, sizeof(signals), 0);
+    n = receiver->recv(receiver, signals, sizeof(signals), 0);
     if (n == -1) {
         dbg_str(EV_ERROR,"evsig_cb recv");
         return ;
@@ -125,10 +106,12 @@ evsig_cb(int fd, short what, void *arg)
 static void __evsig_send(void *element, void *c)
 {
     Event_Base *eb = (Event_Base *)element;
-    int fd         = eb->evsig.fd_snd;
+    Socket *sender = eb->evsig.sender;
 
-    dbg_str(EV_IMPORTANT,"evsig_send, send fd=%d, signal=%d", fd, *(char *)c);
-    send(fd, (char *)c, 1, 0);
+    dbg_str(EV_IMPORTANT,"evsig_send signal=%d, event base:%p", *(char *)c, eb);
+    sender->send(sender, (char *)c, 1, 0);
+
+    return ;
 }
 
 static void signal_handler(int sig)
@@ -143,164 +126,43 @@ static void signal_handler(int sig)
     list->for_each_arg(list, __evsig_send, (void *)&msg);
 }
 
-int
-evsig_socketpair(int fd[2])
-{
-    struct sockaddr_in listen_addr;
-    struct sockaddr_in connect_addr;
-    int listener    = -1;
-    int connector   = -1;
-    int acceptor    = -1;
-    int saved_errno = -1;
-    int protocol    = 0;
-    int type        = SOCK_STREAM;
-    uint32_t size;
-
-    if (!fd) {
-        return -1;
-    }
-
-    listener = socket(AF_INET, type, 0);
-    if (listener < 0)
-        return -1;
-
-    memset(&listen_addr, 0, sizeof(listen_addr));
-    listen_addr.sin_family      = AF_INET;
-    listen_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    listen_addr.sin_port        = 0;   /* kernel chooses port.  */
-
-    if (bind(listener, (struct sockaddr *) &listen_addr, sizeof (listen_addr)) == -1)
-        goto error;
-
-    if (listen(listener, 1) == -1)
-        goto error;
-
-    if ((connector = socket(AF_INET, type, 0)) < 0)
-        goto error;
-
-    /* We want to find out the port number to connect to.  */
-    size = sizeof(connect_addr);
-    if (getsockname(listener, (struct sockaddr *) &connect_addr, &size) == -1)
-        goto error;
-    if (size != sizeof (connect_addr))
-        goto error;
-
-    if (connect(connector, (struct sockaddr *) &connect_addr,
-                sizeof(connect_addr)) == -1)
-        goto error;
-
-    size = sizeof(listen_addr);
-    acceptor = accept(listener, (struct sockaddr *) &listen_addr, &size);
-    if (acceptor < 0)
-        goto error;
-    if (size != sizeof(listen_addr))
-        goto error;
-
-    /* Now check we are talking to ourself by matching port and host on the
-       two sockets.  */
-    if (getsockname(connector, (struct sockaddr *) &connect_addr, &size) == -1)
-        goto error;
-    if (    size != sizeof (connect_addr) || 
-            listen_addr.sin_family != connect_addr.sin_family || 
-            listen_addr.sin_addr.s_addr != connect_addr.sin_addr.s_addr || 
-            listen_addr.sin_port != connect_addr.sin_port) 
-    {
-        goto error;
-    }
-
-    fd[0] = connector;
-    fd[1] = acceptor;
-
-    close(listener);
-
-    return 0;
-
-error:
-    if (listener != -1)
-        close(listener);
-    if (connector != -1)
-        close(connector);
-    if (acceptor != -1)
-        close(acceptor);
-
-    return -1;
-}
-
-int
-evsig_make_socket_closeonexec(int fd)
-{
-    int flags;
-
-    if ((flags = fcntl(fd, F_GETFD, NULL)) < 0) {
-        dbg_str(EV_WARNNING,"fcntl(%d, F_GETFD)", fd);
-        return -1;
-    }
-    if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) == -1) {
-        dbg_str(EV_WARNNING,"fcntl(%d, F_SETFD)", fd);
-        return -1;
-    }
-
-    return 0;
-}
-
-int
-evsig_make_socket_nonblocking(int fd)
-{
-    int flags;
-
-    if ((flags = fcntl(fd, F_GETFL, NULL)) < 0) {
-        dbg_str(EV_WARNNING,"fcntl(%d, F_GETFL)", fd);
-        return -1;
-    }
-    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-        dbg_str(EV_WARNNING,"fcntl(%d, F_SETFD)", fd);
-        return -1;
-    }
-
-    return 0;
-}
-
 int evsig_init(Event_Base *eb)
 {
-    int fds[2];
-    event_t *event = &eb->evsig.fd_rcv_event;
+    event_t *event = &eb->evsig.signal_event;
     struct evsig_s *evsig = &eb->evsig;
     allocator_t *allocator = eb->obj.allocator;
-    char size[4];
+    List *list = global_event_base_list;
+    Socket *s;
+    char service[10];
 
-#if 0
-    if (pipe(fds)) {
-        dbg_str(SM_ERROR,"cannot create pipe");
-        return -1;
-    }
+    sprintf(service, "%d", 11011 + list->count(list));
+    s = (Socket *)object_new(allocator, "Inet_Udp_Socket", NULL);
+    s->bind(s, "127.0.0.1", service);
+    s->setnonblocking(s);
+    //?? set closeonexec
+    eb->evsig.receiver = s;
 
-#else
-    evsig_socketpair(fds);
-#endif
+    s = (Socket *)object_new(allocator, "Inet_Udp_Socket", NULL);
+    s->connect(s, "127.0.0.1", service);
+    s->setnonblocking(s);
+    //?? set closeonexec
+    eb->evsig.sender = s;
 
-    eb->evsig.fd_rcv = fds[1];
-    eb->evsig.fd_snd = fds[0];
-
-    dbg_str(EV_DETAIL,"evsig_init, gloable_evsig_send_fd=%d, fd_rcv =%d",
-            eb->evsig.fd_snd, eb->evsig.fd_rcv);
-
-    gloable_evsig_send_fd = eb->evsig.fd_snd;
-    gloable_evsig_rcv_fd = eb->evsig.fd_rcv;
-    evsig_make_socket_closeonexec(eb->evsig.fd_snd);
-    evsig_make_socket_closeonexec(eb->evsig.fd_rcv);
-    evsig_make_socket_nonblocking(eb->evsig.fd_snd);
-    evsig_make_socket_nonblocking(eb->evsig.fd_rcv);
-
-    event->ev_fd        = eb->evsig.fd_rcv;
+    event->ev_fd        = eb->evsig.receiver->fd;
     event->ev_events    = EV_READ | EV_PERSIST;
     event->ev_tv.tv_sec = 0;
     event->ev_tv.tv_sec = 0;
     event->ev_base      = eb;
     event->ev_callback  = evsig_cb;
     event->ev_arg       = event;
+    /*
+     *event->ev_flags     = EV_SIGNAL_FD; //signal receiver fd
+     */
+    event->ev_socket    = eb->evsig.receiver;
     eb->add(eb, event);
 
     evsig->map  = OBJECT_NEW(allocator, RBTree_Map, NULL);
+    evsig->map->set_cmp_func(evsig->map, default_key_cmp_func);
     evsig->list = OBJECT_NEW(allocator, Linked_List, NULL);
 
     return 0;
@@ -312,9 +174,8 @@ int evsig_release(Event_Base *eb)
 
     object_destroy(evsig->map);
     object_destroy(evsig->list);
-
-    close(evsig->fd_rcv);
-    close(evsig->fd_snd);
+    object_destroy(evsig->receiver);
+    object_destroy(evsig->sender);
 }
 
 int evsig_add(Event_Base *eb, event_t *event)
@@ -336,7 +197,7 @@ int evsig_add(Event_Base *eb, event_t *event)
     }
 #else 
     dbg_str(EV_DETAIL,"add sig:%d", evsignal);
-    signal(evsignal,signal_handler);
+    signal(evsignal, signal_handler);
 #endif
 
     map->add(map, event->ev_fd, event);
@@ -352,7 +213,7 @@ int evsig_del(Event_Base *eb, event_t *event)
 
     dbg_str(DBG_DETAIL,"del sig:%d", evsignal);
 
-    map->del(map, evsignal);
+    map->del(map, evsignal); //?? need del disignated event
 
     return 0;
 }
