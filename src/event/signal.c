@@ -176,7 +176,7 @@ int evsig_release(Event_Base *eb)
 
 int evsig_add(Event_Base *eb, event_t *event)
 {
-    struct sigaction sa; 
+    struct sigaction sa;
     int evsignal = event->ev_fd;
     Map *map = eb->evsig.map;
 
@@ -203,7 +203,6 @@ int evsig_add(Event_Base *eb, event_t *event)
 
 int evsig_del(Event_Base *eb, event_t *event)
 {
-    struct sigaction sa; 
     int evsignal = event->ev_fd;
     Map *map = eb->evsig.map;
 

@@ -30,11 +30,12 @@
  * 
  */
 
-#if (!defined(WINDOWS_USER_MODE))
 #include <stdio.h>
 #include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/event/Select_Base.h>
+#include <libobject/core/utils/timeval/timeval.h>
+#include <libobject/core/utils/registry/registry.h>
 
 static int __construct(Select_Base *eb, char *init_str)
 {
@@ -109,10 +110,20 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
     b->event_readset_out  = b->event_readset_in;
     b->event_writeset_out = b->event_writeset_in;
 
-    dbg_str(EV_DETAIL, "dispatch select in,  nfds=%d", nfds);
+    dbg_str(DBG_DETAIL, "dispatch select in,  nfds=%d", nfds);
+    timeval_print(tv);
+
+    if (nfds == 1) {
+        usleep(tv->tv_sec * 1000 + tv->tv_usec);
+        return 1;
+    }
+
     res = select(nfds, &b->event_readset_out, 
                  &b->event_writeset_out, NULL, tv);
     if (res == -1) {
+        /*
+         *dbg_str(DBG_DETAIL, "res=%d", WSAGetLastError());
+         */
         if (errno == EINTR) {
         } else {
             ((Event_Base *)b)->break_flag = 1;
@@ -128,8 +139,11 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
         return 0;
     }
 
-
+#if (defined(WINDOWS_USER_MODE))
+    i = rand() % nfds;
+#else
     i = random() % nfds;
+#endif
     for (j = 0; j < nfds; ++j) {
         if (++i >= nfds)
             i = 0;
@@ -169,7 +183,7 @@ static void test_ev_callback(int fd, short events, void *arg)
     dbg_str(EV_DETAIL, "hello world, event");
 }
 
-void test_obj_select_base()
+int test_select_base()
 {
     Event_Base *eb;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -185,7 +199,7 @@ void test_obj_select_base()
     object_dump(eb, "Select_Base", buf, 2048);
     dbg_str(EV_DETAIL, "Select_Base dump: %s", buf);
 
-    event.ev_timeout.tv_sec  = 2;
+    event.ev_timeout.tv_sec  = 10;
     event.ev_timeout.tv_usec = 0;
     event.ev_fd = -1;
     event.ev_callback = test_ev_callback;
@@ -193,8 +207,9 @@ void test_obj_select_base()
     eb->add(eb, &event);
     eb->loop(eb);
 
-    pause();
     object_destroy(eb);
+
+    return 1;
 }
-#endif
+REGISTER_TEST_FUNC(test_select_base);
 

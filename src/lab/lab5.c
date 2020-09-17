@@ -50,7 +50,7 @@ int test_str_cmp(TEST_ENTRY *entry)
     ret = strcmp(dest, "--file-path=~/x.xml");
     dbg_str(DBG_DETAIL, "cmp --file-path=~/x.xml, ret=%d", ret);
 }
-REGISTER_TEST_CMD(test_str_cmp);
+REGISTER_TEST_FUNC(test_str_cmp);
 
 static int bubble_sort(int *array, int len)
 {

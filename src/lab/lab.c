@@ -60,3 +60,14 @@ static int test_check_endian(TEST_ENTRY *entry, void *argc, void *argv)
     return 1;
 }
 REGISTER_TEST_CMD(test_check_endian);
+
+static int test_rand(TEST_ENTRY *entry)
+{
+    int ret;
+
+    ret = rand();
+    printf("rand:%d\n", ret);
+
+    return 1;
+}
+REGISTER_TEST_CMD(test_rand);

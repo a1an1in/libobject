@@ -1,14 +1,16 @@
 #ifndef __SELECT_BASE_H__
 #define __SELECT_BASE_H__
 
-#if (!defined(WINDOWS_USER_MODE))
-
 #include <stdio.h>
+
+#if (defined(WINDOWS_USER_MODE))
+#include <winsock2.h>
+#else
 #include <sys/select.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#endif
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
 #include <libobject/event/Event_Base.h>
@@ -39,6 +41,5 @@ struct select_base_s{
     fd_set event_readset_out;
     fd_set event_writeset_out;
 };
-#endif
 
 #endif

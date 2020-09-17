@@ -154,7 +154,7 @@ static int __timeout_next(Rbtree_Timer *timer, struct timeval **tv)
         ret = timeval_cmp(key, &now);
         if (ret > 0) {
             timeval_sub(key, &now, *tv);
-            dbg_str(EV_DETAIL, "next timeout time in %d seconds, %d usecs", 
+            dbg_str(EV_DETAIL, "next timeout time in %d seconds, %d usecs",
                     (int)(*tv)->tv_sec, (int)(*tv)->tv_usec);
         } else {
             timeval_clear(*tv);
