@@ -120,8 +120,8 @@ static void signal_handler(int sig)
     pthread_t   tid = pthread_self();
 
     List *list = global_event_base_list;
-    dbg_str(EV_IMPORTANT,"thread %lu receive signal=%d", tid, sig);
-    dbg_str(EV_IMPORTANT,"list count=%d", list->count(list));
+    dbg_str(EV_VIP, "signal_handler receive signal=%d, event base count=%d, thread id:%d", 
+            sig, list->count(list), tid);
 
     list->for_each_arg(list, __evsig_send, (void *)&msg);
 }
@@ -176,25 +176,11 @@ int evsig_release(Event_Base *eb)
 
 int evsig_add(Event_Base *eb, event_t *event)
 {
-    struct sigaction sa;
     int evsignal = event->ev_fd;
     Map *map = eb->evsig.map;
-
-#if 0
-    sa.sa_handler = signal_handler;                    
-    /*
-     *sa.sa_flags |= SA_RESTART;                             
-     */
-    sa.sa_flags |= SA_INTERRUPT;                             
-    sigfillset(&sa.sa_mask);                      
-
-    if (sigaction(evsignal, &sa, NULL) == -1) {
-        return (-1);
-    }
-#else 
+ 
     dbg_str(EV_DETAIL,"add sig:%d", evsignal);
     signal(evsignal, signal_handler);
-#endif
 
     map->add(map, event->ev_fd, event);
 
@@ -236,7 +222,11 @@ int set_break_signal(Event_Base* eb)
 {
     struct event *ev = &eb->break_event;
 
+#if (!defined(WINDOWS_USER_MODE))
     ev->ev_fd              = SIGQUIT;
+#else
+    ev->ev_fd              = SIGINT;
+#endif
     ev->ev_events          = EV_SIGNAL|EV_PERSIST;
     ev->ev_timeout.tv_sec  = 0;
     ev->ev_timeout.tv_usec = 0;
