@@ -15,9 +15,7 @@ struct event_base * event_base_new(void)
     struct event_base *event_base;
 
     eb = object_new(allocator, "Select_Base", NULL);
-    object_dump(eb, "Select_Base", buf, 2048);
-    dbg_str(DBG_DETAIL,"Select_Base dump: %s",buf);
-
+    
     event_base = (struct event_base *) allocator_mem_alloc(allocator, sizeof(struct event_base));
     if (event_base == NULL) {
         return NULL;

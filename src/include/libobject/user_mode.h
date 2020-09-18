@@ -18,9 +18,8 @@
 #ifndef __LIBCRE_H__
 #define __LIBCRE_H__
 
-/*
- *#define WINDOWS_USER_MODE
- */
+#define WINDOWS_USER_MODE
+
 /*
  *#define ANDROID_USER_MODE
  */

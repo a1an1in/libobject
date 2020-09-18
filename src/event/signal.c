@@ -1,44 +1,3 @@
-#if (defined(WINDOWS_USER_MODE))
-#include <sys/types.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <libobject/event/Event_Base.h>
-#include <libobject/event/event_compat.h>
-#include <libobject/core/Rbtree_Map.h>
-#include <libobject/core/Linked_List.h>
-#include <libobject/core/utils/config.h>
-
-int evsig_init(Event_Base *eb)
-{
-    return 0;
-}
-
-int evsig_release(Event_Base *eb)
-{
-}
-
-int evsig_add(Event_Base *eb, event_t *event)
-{
-    return 0;
-}
-
-int evsig_del(Event_Base *eb, event_t *event)
-{
-    return 0;
-}
-
-
-int set_break_signal(Event_Base* eb)
-{
-    return (0);
-}
-
-int set_segment_signal(Event_Base* eb)
-{
-    return (0);
-}
-#else
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -54,18 +13,6 @@ int set_segment_signal(Event_Base* eb)
 #include <libobject/core/Rbtree_Map.h>
 #include <libobject/core/Linked_List.h>
 #include <libobject/core/utils/config.h>
-
-static int numeric_key_cmp_func(void *key1,void *key2,uint32_t size)
-{
-    int k1, k2;
-
-    k1 = *((int *)key1);
-    k2 = *((int *)key2);
-
-    if (k1 > k2 ) return 1;
-    else if (k1 < k2) return -1;
-    else return 0;
-}
 
 static void
 evsig_cb(int fd, short what, void *arg)
@@ -199,26 +146,17 @@ int evsig_del(Event_Base *eb, event_t *event)
     return 0;
 }
 
-/* --------------------------------------------------------------------------*/
-/**
- * @Synopsis  break event base loop singal callback
- *
- * @Param fd
- * @Param event_res
- * @Param arg
- */
-/* ----------------------------------------------------------------------------*/
 static void
-break_signal_cb(int fd, short event_res, void *arg)
+quit_signal_cb(int fd, short event_res, void *arg)
 {
     struct event *event = (struct event *)arg;
     Event_Base* eb = (Event_Base*)event->ev_base;
 
-    dbg_str(EV_IMPORTANT, "signal_cb, signal no:%d", event->ev_fd);
+    dbg_str(EV_VIP, "quit_signal_cb, signal no:%d", event->ev_fd);
     eb->break_flag = 1;
 }
 
-int set_break_signal(Event_Base* eb)
+int set_quit_signal(Event_Base* eb)
 {
     struct event *ev = &eb->break_event;
 
@@ -230,7 +168,7 @@ int set_break_signal(Event_Base* eb)
     ev->ev_events          = EV_SIGNAL|EV_PERSIST;
     ev->ev_timeout.tv_sec  = 0;
     ev->ev_timeout.tv_usec = 0;
-    ev->ev_callback        = break_signal_cb;
+    ev->ev_callback        = quit_signal_cb;
     ev->ev_base            = eb;
     ev->ev_arg             = ev;
 
@@ -245,7 +183,7 @@ int set_break_signal(Event_Base* eb)
 static void
 segment_signal_cb(int fd, short event_res, void *arg)
 {
-    print_backtrace();
+    //print_backtrace();
 }
 
 int set_segment_signal(Event_Base* eb)
@@ -267,4 +205,3 @@ int set_segment_signal(Event_Base* eb)
 
     return (0);
 }
-#endif

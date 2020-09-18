@@ -235,7 +235,7 @@ static int __loop(Event_Base *eb)
     Timer *timer = eb->timer;
     struct timeval tv, *tv_p;
 
-    set_break_signal(eb);
+    set_quit_signal(eb);
     /*
      *set_segment_signal(eb);
      */
