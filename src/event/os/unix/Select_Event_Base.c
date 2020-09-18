@@ -113,19 +113,10 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
     b->event_writeset_out = b->event_writeset_in;
 
     dbg_str(DBG_DETAIL, "dispatch select in,  nfds=%d", nfds);
-    timeval_print(tv);
-
-    if (nfds == 1) {
-        usleep(tv->tv_sec * 1000 + tv->tv_usec);
-        return 1;
-    }
 
     res = select(nfds, &b->event_readset_out, 
                  &b->event_writeset_out, NULL, tv);
     if (res == -1) {
-        /*
-         *dbg_str(DBG_DETAIL, "res=%d", WSAGetLastError());
-         */
         if (errno == EINTR) {
         } else {
             ((Event_Base *)b)->break_flag = 1;
