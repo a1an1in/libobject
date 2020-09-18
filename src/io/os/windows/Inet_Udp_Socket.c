@@ -161,8 +161,9 @@ static int __setsockopt(Inet_Udp_Socket *socket, sockoptval *val)
 
 static int __setnonblocking(Inet_Udp_Socket *socket)
 {
-    dbg_str(NET_WARNNING, "not supported now");
-    return -1;
+    unsigned long mode = 1;
+
+    return ioctlsocket(socket->parent.fd, FIONBIO, (unsigned long *)&mode); 
 }
 
 static class_info_entry_t inet_udp_socket_class_info[] = {
