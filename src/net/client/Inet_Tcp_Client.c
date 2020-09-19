@@ -79,36 +79,3 @@ static class_info_entry_t inet_tcp_client_class_info[] = {
 };
 REGISTER_CLASS("Inet_Tcp_Client", inet_tcp_client_class_info);
 
-static int test_work_callback(void *task)
-{
-    work_task_t *t = (work_task_t *)task;
-    dbg_str(NET_SUC, "%s", t->buf);
-}
-
-#if 0
-void test_obj_inet_tcp_client()
-{
-    Inet_Tcp_Client *client;
-    allocator_t *allocator = allocator_get_default_alloc();
-    char buf[2048];
-    char *test_str = "hello world";
-
-    dbg_str(NET_DETAIL, "test_obj_inet_tcp_client_recv");
-    client = OBJECT_NEW(allocator, Inet_Tcp_Client, NULL);
-    /*
-     *client->bind(client, "127.0.0.1", "11011"); 
-     */
-    client->connect(client, "127.0.0.1", "11011");
-    client->trustee(client, NULL, test_work_callback, client);
-    client->send(client, test_str, strlen(test_str), 0);
-
-#if (defined(WINDOWS_USER_MODE))
-    system("pause"); 
-#else
-    pause();
-#endif
-
-    object_destroy(client);
-}
-#else
-#endif

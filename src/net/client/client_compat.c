@@ -36,7 +36,6 @@
 #include <libobject/net/client/Inet_Udp_Client.h>
 #include <libobject/net/client/Inet_Tcp_Client.h>
 
-#if 1
 #define CLIENT_TYPE_INET_TCP "inet_tcp_client_type"
 #define CLIENT_TYPE_INET_UDP "inet_udp_client_type"
 #define CLIENT_TYPE_UNIX_TCP "unix_tcp_client_type"
@@ -159,13 +158,7 @@ static int test_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
     client_connect(c, "127.0.0.1", "11011");
     client_send(c, str, strlen(str), 0);
 
-#if (defined(WINDOWS_USER_MODE))
-    system("pause");
-#else
-    pause();
-#endif
     object_destroy(c);
 }
 REGISTER_TEST_CMD(test_inet_tcp_client);
 
-#endif

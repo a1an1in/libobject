@@ -140,10 +140,8 @@ int default_producer_constructor()
 
     return 0;
 }
-#if (!defined(WINDOWS_USER_MODE))
 REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_CONCURRENT, 
                    default_producer_constructor);
-#endif
 
 int default_producer_destructor()
 {
@@ -151,14 +149,12 @@ int default_producer_destructor()
 
     ATTRIB_PRINT("REGISTRY_DTOR_PRIORITY=%d, destruct default producer\n", 
             REGISTRY_DTOR_PRIORITY_CONCURRENT);
-    while (producer->parent.flags != EVTHREAD_STATE_DESTROYED) sleep(1);
+    while (producer->parent.flags != EVTHREAD_STATE_DESTROYED) usleep(1000000);
 
     object_destroy(producer);
 }
-#if (!defined(WINDOWS_USER_MODE))
 REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_CONCURRENT, 
                    default_producer_destructor);
-#endif
 
 void test_obj_producer()
 {

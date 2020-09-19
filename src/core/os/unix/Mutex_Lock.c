@@ -96,4 +96,4 @@ int test_mutex_lock()
 
     return 1;
 }
-REGISTER_STANDALONE_TEST_FUNC(test_mutex_lock);
+REGISTER_TEST_CMD(test_mutex_lock);

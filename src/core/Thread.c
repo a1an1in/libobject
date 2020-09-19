@@ -325,8 +325,8 @@ static int  test_thread_detach2()
 
 
 
-REGISTER_STANDALONE_TEST_FUNC(test_obj_thread);
-REGISTER_STANDALONE_TEST_FUNC(test_safe_thread);
-REGISTER_STANDALONE_TEST_FUNC(test_thread_join);
-REGISTER_STANDALONE_TEST_FUNC(test_thread_detach1);
-REGISTER_STANDALONE_TEST_FUNC(test_thread_detach2);
+REGISTER_TEST_CMD(test_obj_thread);
+REGISTER_TEST_CMD(test_safe_thread);
+REGISTER_TEST_CMD(test_thread_join);
+REGISTER_TEST_CMD(test_thread_detach1);
+REGISTER_TEST_CMD(test_thread_detach2);

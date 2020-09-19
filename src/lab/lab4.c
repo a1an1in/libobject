@@ -45,7 +45,7 @@ static int test_macro(TEST_ENTRY *entry, void *argc, void *argv)
     printf("file name: %s\n", extract_filename_in_macro(__FILE__));
     return 0;
 }
-REGISTER_STANDALONE_TEST_FUNC(test_macro);
+REGISTER_TEST_CMD(test_macro);
 
 static int test_memmove(TEST_ENTRY *entry, void *argc, void *argv)
 {

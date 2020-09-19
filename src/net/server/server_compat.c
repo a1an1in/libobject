@@ -34,10 +34,8 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/net/server/Inet_Tcp_Server.h>
 
-void *server(allocator_t *allocator, 
-             char *type,
-             char *host,
-             char *service,
+void *server(allocator_t *allocator, char *type,
+             char *host, char *service,
              int (*process_task_cb)(void *arg),
              void *opaque)
 {
@@ -58,7 +56,6 @@ void *server(allocator_t *allocator,
 
 int server_destroy(void *server)
 {
-    Server *s = (Server *)server;
     return object_destroy(server);
 }
 
@@ -76,14 +73,13 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
     int pre_alloc_count, after_alloc_count;
     int ret;
 
-    sleep(1);
-
     pre_alloc_count = allocator->alloc_count;
     s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
-                         "127.0.0.1", "11011", test_work_callback, 0x1234);
+                         "127.0.0.1", "11011",
+                         test_work_callback, 0x1234);
 
 #if (defined(WINDOWS_USER_MODE))
-    system("pause"); 
+    system("pause");
 #else
     pause();
 #endif
@@ -95,14 +91,12 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
         dbg_str(NET_WARNNING,
                 "server has memory omit, pre_alloc_count=%d, after_alloc_count=%d",
                 pre_alloc_count, after_alloc_count);
-        /*
-         *allocator_mem_info(allocator);
-         */
         entry->ret = ret;
         return ret;
     }
 
     entry->ret = ret;
 
+    return 1;
 }
-REGISTER_STANDALONE_TEST_FUNC(test_inet_tcp_server);
+REGISTER_TEST_CMD(test_inet_tcp_server);

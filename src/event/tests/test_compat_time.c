@@ -57,4 +57,4 @@ int test_timer(TEST_ENTRY *entry)
     dbg_str(DBG_DETAIL,"test time end");
     return (1);
 }
-REGISTER_STANDALONE_TEST_FUNC(test_timer);
+REGISTER_TEST_CMD(test_timer);

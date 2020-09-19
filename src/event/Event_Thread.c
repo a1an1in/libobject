@@ -136,27 +136,23 @@ static void *__start_routine(void *arg)
     allocator_t *allocator = et->parent.obj.allocator;
     Event_Base *eb         = et->eb;
     event_t *event         = &et->notifier_event;
-    int fds[2]             = {0};
     Socket *s, *c;
-    char *libobject_run_path;
-    char buf[2048];
-    char server_addr[100];
-    static int count;
+    char service[10] = {0};
 
-    libobject_run_path = libobject_get_run_path();
-    sprintf(server_addr, "%s/%s_%d", libobject_run_path, 
-            "event_thread_notifier", count++); 
+    sprintf(service, "%d", 11111);
 
-    dbg_str(EV_IMPORTANT,"Event_Thread, start_routine:%p, server_addr:%s",
-            arg, server_addr);
+    dbg_str(EV_IMPORTANT,"Event_Thread, start_routine:%p, service:%s",
+            arg, service);
             
     tt->detach(tt);
-    s = object_new(allocator, "Unix_Udp_Socket", NULL);
-    s->bind(s, server_addr, NULL); 
+    s = object_new(allocator, "Inet_Udp_Socket", NULL);
+    s->bind(s, "127.0.0.1", service);
+    s->setnonblocking(s);
     et->s = s;
 
-    c = object_new(allocator, "Unix_Udp_Socket", NULL);
-    c->connect(c, server_addr, NULL);
+    c = object_new(allocator, "Inet_Udp_Socket", NULL);
+    c->connect(c, "127.0.0.1", service);
+    c->setnonblocking(c);
     et->c = c;
 
     event->ev_fd              = et->s->fd;

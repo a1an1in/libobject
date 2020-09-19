@@ -130,7 +130,7 @@ int test_timer_worker(TEST_ENTRY *entry)
 
     return 1;
 }
-REGISTER_STANDALONE_TEST_FUNC(test_timer_worker);
+REGISTER_TEST_CMD(test_timer_worker);
 
 #else
 

@@ -42,8 +42,6 @@
 #include <libobject/core/Rbtree_Map.h>
 #include <libobject/libobject.h>
 
-#define DEFAULT_CENTOR_UNIX_SERVER_PATH "/tmp/default_centor_unix_socket_path"
-
 static void
 message_centor_ev_callback(int fd, short event, void *arg)
 {
@@ -117,31 +115,29 @@ static int __construct(Centor *centor, char *init_str)
 {
     allocator_t *allocator = centor->obj.allocator;
     Socket *s, *c;
-    char server_addr[100];
-    char *libobject_run_path;
-    static int count;
+    char service[10] = {0};
 
     dbg_str(DBG_SUC, "centor construct, centor addr:%p", centor);
+    sprintf(service, "%d", 11112);
 
-    count++;
-    libobject_run_path = libobject_get_run_path();
-    sprintf(server_addr, "%s/%s_%d", libobject_run_path, 
-            "message_unix_socket_server", count); 
+    s = object_new(allocator, "Inet_Udp_Socket", NULL);
+    s->bind(s, "127.0.0.1", service);
+    s->setnonblocking(s);
+    centor->s = s;
 
-    s = object_new(allocator, "Unix_Udp_Socket", NULL);
-    s->bind(s, server_addr, NULL); 
-
-    c = object_new(allocator, "Unix_Udp_Socket", NULL);
-    c->connect(c, server_addr, NULL);
+    c = object_new(allocator, "Inet_Udp_Socket", NULL);
+    c->connect(c, "127.0.0.1", service);
+    c->setnonblocking(c);
+    centor->c = c;
 
     centor->s = s;
     centor->c = c;
 
     dbg_str(DBG_SUC, "centor add io_worker fd=%d", centor->s->fd);
     centor->worker = io_worker(allocator,
-                               centor->s->fd, 
+                               centor->s->fd,
                                NULL,
-                               message_centor_ev_callback, 
+                               message_centor_ev_callback,
                                message_centor_work_callback,
                                NULL,
                                centor);
@@ -192,4 +188,4 @@ int test_obj_message_centor()
 
     return 1;
 }
-REGISTER_STANDALONE_TEST_FUNC(test_obj_message_centor);
+REGISTER_TEST_CMD(test_obj_message_centor);

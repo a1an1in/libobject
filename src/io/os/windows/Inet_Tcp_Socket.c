@@ -29,11 +29,13 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-
 #if (defined(WINDOWS_USER_MODE))
+#define _WIN32_WINNT 0x0501
 
 #include <stdio.h>
-#include <fcntl.h> 
+#include <fcntl.h>
+#include <winsock2.h>
+#include <WS2tcpip.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/utils/registry/registry.h>
@@ -41,181 +43,178 @@
 
 static int __construct(Inet_Tcp_Socket *sk, char *init_str)
 {
-//    int skfd;
-//
-//    dbg_str(NET_DETAIL, "socket construct, socket addr:%p", sk);
-//
-//    if ((skfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-//         dbg_str(NET_ERROR, "create socket error, error_no=%d, err:%s",
-//                 errno, strerror(errno));
-//        return -1;
-//    }
-//
-//    sk->parent.fd = skfd;
+    SOCKET fd;
 
-    return 0;
+    dbg_str(NET_DETAIL, "socket construct, socket addr:%p", sk);
+
+    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
+         dbg_str(NET_ERROR, "create socket error, err:%d",
+                 WSAGetLastError());
+        return -1;
+    }
+
+    sk->parent.fd = fd;
+
+    return 1;
 }
 
 static int __deconstrcut(Inet_Tcp_Socket *socket)
 {
     dbg_str(NET_DETAIL, "socket deconstruct, socket addr:%p", socket);
-//
-//    if (socket->parent.fd)
-//        close(socket->parent.fd);
 
-    return 0;
+    if (socket->parent.fd)
+        closesocket(socket->parent.fd);
+
+    return 1;
 }
 
 static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
 {
-//    struct addrinfo  *addr, *addrsave, hint;
-//    int skfd, ret;
-//    char *h, *s;
-//
-//    bzero(&hint, sizeof(hint));
-//    hint.ai_family   = AF_INET;
-//    hint.ai_socktype = SOCK_DGRAM;
-//
-//    if (host == NULL && service == NULL) {
-//        h = socket->parent.local_host;
-//        s = socket->parent.local_service;
-//    } else {
-//        h = host;
-//        s = service;
-//    }
-//
-//    if ((ret = getaddrinfo(h, s, &hint, &addr)) != 0){
-//        dbg_str(DBG_ERROR, "getaddrinfo error: %s", gai_strerror(ret));
-//        return -1;
-//    }
-//    addrsave = addr;
-//
-//    if (addr != NULL) {
-//        dbg_str(NET_DETAIL, "ai_family=%d type=%d", addr->ai_family, addr->ai_socktype);
-//    } else {
-//        dbg_str(DBG_ERROR, "getaddrinfo err");
-//        return -1;
-//    }
-//
-//    do {
-//        if ((ret = bind(socket->parent.fd, addr->ai_addr, addr->ai_addrlen)) == 0)
-//            break;
-//    } while ((addr = addr->ai_next) != NULL);
-//
-//    if (addr == NULL) {
-//        dbg_str(NET_WARNNING, "bind error for %s %s", host, service);
-//    }
-//
-//    freeaddrinfo(addrsave);
-//
-//    return ret;
+    struct addrinfo  *addr, *addrsave, hint;
+    int ret;
+    char *h, *s;
+
+    memset(&hint, 0, sizeof(struct addrinfo));
+    hint.ai_family   = AF_INET;
+    hint.ai_socktype = SOCK_DGRAM;
+
+    if (host == NULL && service == NULL) {
+        h = socket->parent.local_host;
+        s = socket->parent.local_service;
+    } else {
+        h = host;
+        s = service;
+    }
+
+    if ((ret = getaddrinfo(h, s, &hint, &addr)) != 0){
+        dbg_str(DBG_ERROR, "getaddrinfo error: %s", gai_strerror(ret));
+        return -1;
+    }
+    addrsave = addr;
+
+    if (addr != NULL) {
+        dbg_str(NET_DETAIL, "ai_family=%d type=%d", addr->ai_family, addr->ai_socktype);
+    } else {
+        dbg_str(DBG_ERROR, "getaddrinfo err");
+        return -1;
+    }
+
+    do {
+        if ((ret = bind(socket->parent.fd, addr->ai_addr, addr->ai_addrlen)) == 0)
+            break;
+    } while ((addr = addr->ai_next) != NULL);
+
+    if (addr == NULL) {
+        dbg_str(NET_WARNNING, "bind error for %s %s", host, service);
+    }
+
+    freeaddrinfo(addrsave);
+
+    return ret;
 }
 
 static int __listen(Inet_Tcp_Socket *socket, int backlog)
 {
-//    int opt = 1;
-//
-//    setsockopt(socket->parent.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-//
-//    if (listen(socket->parent.fd, backlog) == -1) {
-//        perror("listen error");
-//        return -1;
-//    }
+    int opt = 1;
 
-    return 0;
+    //setsockopt(socket->parent.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    if (listen(socket->parent.fd, backlog) == -1) {
+        perror("listen error");
+        return -1;
+    }
+
+    return 1;
 }
 
 static int __connect(Inet_Tcp_Socket *socket, char *host, char *service)
 {
-//    struct addrinfo  *addr, *addrsave, hint;
-//    int skfd, ret;
-//    char *h, *s;
-//
-//    bzero(&hint, sizeof(hint));
-//    hint.ai_family   = AF_INET;
-//    hint.ai_socktype = SOCK_DGRAM;
-//
-//    if (host == NULL && service == NULL) {
-//        h = socket->parent.remote_host;
-//        s = socket->parent.remote_service;
-//    } else {
-//        h = host;
-//        s = service;
-//    }
-//
-//    if ((ret = getaddrinfo(h, s, &hint, &addr)) != 0){
-//        dbg_str(DBG_ERROR, "getaddrinfo error: %s", gai_strerror(ret));
-//        return -1;
-//    }
-//    addrsave = addr;
-//
-//    if (addr != NULL) {
-//        dbg_str(NET_DETAIL, "ai_family=%d type=%d", addr->ai_family, addr->ai_socktype);
-//    } else {
-//        dbg_str(DBG_ERROR, "getaddrinfo err");
-//        return -1;
-//    }
-//
-//    do {
-//        if ((ret = connect(socket->parent.fd, addr->ai_addr, addr->ai_addrlen)) == 0)
-//            break;
-//    } while ((addr = addr->ai_next) != NULL);
-//
-//    if (addr == NULL) {
-//        dbg_str(NET_ERROR, "connect error for %s %s", host, service);
-//    }
-//
-//    freeaddrinfo(addrsave);
-//
-//    return ret;
+    struct addrinfo  *addr, *addrsave, hint;
+    int ret;
+    char *h, *s;
+
+    memset(&hint, 0, sizeof(struct addrinfo));
+    hint.ai_family   = AF_INET;
+    hint.ai_socktype = SOCK_DGRAM;
+
+    if (host == NULL && service == NULL) {
+        h = socket->parent.remote_host;
+        s = socket->parent.remote_service;
+    } else {
+        h = host;
+        s = service;
+    }
+
+    if ((ret = getaddrinfo(h, s, &hint, &addr)) != 0){
+        dbg_str(DBG_ERROR, "getaddrinfo error: %s", gai_strerror(ret));
+        return -1;
+    }
+    addrsave = addr;
+
+    if (addr != NULL) {
+        dbg_str(NET_DETAIL, "ai_family=%d type=%d", addr->ai_family, addr->ai_socktype);
+    } else {
+        dbg_str(DBG_ERROR, "getaddrinfo err");
+        return -1;
+    }
+
+    do {
+        if ((ret = connect(socket->parent.fd, addr->ai_addr, addr->ai_addrlen)) == 0)
+            break;
+    } while ((addr = addr->ai_next) != NULL);
+
+    if (addr == NULL) {
+        dbg_str(NET_ERROR, "connect error for %s %s", host, service);
+    }
+
+    freeaddrinfo(addrsave);
+
+    return ret;
 }
 
 static Socket * __accept(Inet_Tcp_Socket *socket, 
                          char *remote_host, char *remote_service)
 {
-//    struct sockaddr_storage cliaddr;
-//    socklen_t len;
-//    allocator_t *allocator = socket->parent.obj.allocator;
-//    int connfd;
-//    Socket *ret = NULL;
-//
-//
-//    connfd = accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
-//
-//    if (connfd > 0) {
-//        ret = object_new(allocator, "Inet_Tcp_Socket", NULL);//in order to close fd
-//        ret->fd = connfd;
-//    }
-//
-//    return ret;
+    struct sockaddr_storage cliaddr;
+    socklen_t len;
+    allocator_t *allocator = socket->parent.obj.allocator;
+    SOCKET connfd;
+    Socket *ret = NULL;
+
+    connfd = accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
+    if (connfd > 0) {
+        ret = object_new(allocator, "Inet_Tcp_Socket", NULL);//in order to close fd
+        ret->fd = connfd;
+    }
+
+    return ret;
 }
 
 static int __accept_fd(Inet_Tcp_Socket *socket, 
                        char *remote_host, char *remote_service)
 {
-//    struct sockaddr_storage cliaddr;
-//    socklen_t len;
-//    allocator_t *allocator = socket->parent.obj.allocator;
-//
-//    return accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
+    struct sockaddr_storage cliaddr;
+    socklen_t len;
+    allocator_t *allocator = socket->parent.obj.allocator;
+
+    return accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
 }
 
 static ssize_t __send(Inet_Tcp_Socket *socket, const void *buf, size_t len, int flags)
 {
-//    int ret;
-//
-//    ret = send(socket->parent.fd, buf, len, flags);
-//
-//    if (ret <= 0) {
-//        dbg_str(NET_ERROR, "send error: %s", strerror(errno));
-//    }
-//
-//    return ret;
+    int ret;
+
+    ret = send(socket->parent.fd, buf, len, flags);
+    if (ret <= 0) {
+        dbg_str(NET_ERROR, "send error: %s", strerror(errno));
+    }
+
+    return ret;
 }
 
 static ssize_t __recv(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags)
 {
-//    return recv(socket->parent.fd, buf, len, flags);
+    return recv(socket->parent.fd, buf, len, flags);
 }
 
 static ssize_t 
@@ -250,11 +249,9 @@ static int __setsockopt(Inet_Tcp_Socket *socket, sockoptval *val)
 
 static int __setnonblocking(Inet_Tcp_Socket *socket)
 {
-//    if (fcntl(socket->parent.fd, F_SETFL, (fcntl(socket->parent.fd, F_GETFD, 0) | O_NONBLOCK)) == -1) {
-//        return -1;
-//    }
-//
-//    return 0;
+    unsigned long mode = 1;
+
+    return ioctlsocket(socket->parent.fd, FIONBIO, (unsigned long *)&mode);
 }
 
 static class_info_entry_t inet_tcp_socket_class_info[] = {
@@ -279,7 +276,7 @@ static class_info_entry_t inet_tcp_socket_class_info[] = {
 };
 REGISTER_CLASS("Inet_Tcp_Socket", inet_tcp_socket_class_info);
 
-void test_inet_tcp_socket_send()
+void test_inet_tcp_send()
 {
     Socket *socket;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -292,13 +289,11 @@ void test_inet_tcp_socket_send()
     socket->connect(socket, "127.0.0.1", "11011");
     socket->send(socket, test_str, strlen(test_str), 0);
 
-//    while(1) sleep(1);
-
     object_destroy(socket);
 }
-REGISTER_TEST_FUNC(test_inet_tcp_socket_send);
+REGISTER_TEST_CMD(test_inet_tcp_send);
 
-int test_inet_tcp_socket_recv()
+int test_inet_tcp_recv()
 {
     Socket *socket, *new;
     char buf[1024] = {0};
@@ -315,12 +310,10 @@ int test_inet_tcp_socket_recv()
     new->recv(new, buf, 1024, 0);
     dbg_str(NET_SUC, "recv : %s", buf);
 
-//    sleep(10);
-
     object_destroy(new);
     object_destroy(socket);
 
     return 0;
 }
-REGISTER_TEST_FUNC(test_inet_tcp_socket_recv);
+REGISTER_TEST_CMD(test_inet_tcp_recv);
 #endif

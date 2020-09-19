@@ -22,7 +22,7 @@ struct inet_tcp_client_s{
     ssize_t (*send)(Inet_Tcp_Client *socket, const void *buf, size_t len, int flags);
     ssize_t (*recv)(Inet_Tcp_Client *socket, void *buf, size_t len, int flags);
     int (*trustee)(Inet_Tcp_Client *client, struct timeval *tv,
-            void *work_callback, void *opaque);
+                   void *work_callback, void *opaque);
 
 };
 
