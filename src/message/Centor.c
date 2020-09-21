@@ -41,15 +41,18 @@
 #include <libobject/core/Linked_Queue.h>
 #include <libobject/core/Rbtree_Map.h>
 #include <libobject/libobject.h>
+#include <libobject/config.h>
 
 static void
 message_centor_ev_callback(int fd, short event, void *arg)
 {
     Worker *worker = (Worker *)arg;
+    Centor *centor = (Centor *)worker->opaque;
+    Socket *s = centor->s;
     char buf[1];
 
-    if (read(fd, buf, 1) != 1) {
-        dbg_str(DBG_WARNNING, "message centor read ev error");
+    if (s->recv(s, buf, 1, 0) != 1) {
+        dbg_str(DBG_WARNNING, "message centor read ev error, centor:%p", centor);
         return ;
     }
 
@@ -118,7 +121,7 @@ static int __construct(Centor *centor, char *init_str)
     char service[10] = {0};
 
     dbg_str(DBG_SUC, "centor construct, centor addr:%p", centor);
-    sprintf(service, "%d", 11112);
+    sprintf(service, "%d", MESSAGE_SERVICE);
 
     s = object_new(allocator, "Inet_Udp_Socket", NULL);
     s->bind(s, "127.0.0.1", service);
