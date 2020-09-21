@@ -39,6 +39,7 @@
 #include <libobject/core/Linked_Queue.h>
 #include <libobject/event/Event_Thread.h>
 #include <libobject/libobject.h>
+#include <libobject/config.h>
 
 static int __construct(Event_Thread *thread, char *init_str)
 {
@@ -66,7 +67,11 @@ static int __deconstrcut(Event_Thread *thread)
     object_destroy(thread->s);
     object_destroy(thread->c);
     object_destroy(thread->eb);
-
+#if (defined(WINDOWS_USER_MODE))
+    printf("windows WSACleanup\n"); 
+    WSACleanup();
+#endif
+    
     return ret;
 }
 
@@ -139,7 +144,7 @@ static void *__start_routine(void *arg)
     Socket *s, *c;
     char service[10] = {0};
 
-    sprintf(service, "%d", 11111);
+    sprintf(service, "%d", EVENT_THREAD_SERVICE);
 
     dbg_str(EV_IMPORTANT,"Event_Thread, start_routine:%p, service:%s",
             arg, service);
