@@ -13,6 +13,7 @@
 #include <libobject/core/Rbtree_Map.h>
 #include <libobject/core/Linked_List.h>
 #include <libobject/core/utils/config.h>
+#include <libobject/config.h>
 
 static void
 evsig_cb(int fd, short what, void *arg)
@@ -82,7 +83,7 @@ int evsig_init(Event_Base *eb)
     Socket *s;
     char service[10];
 
-    sprintf(service, "%d", 11011 + list->count(list));
+    sprintf(service, "%d", SIGNAL_SERVICE + list->count(list));
     s = (Socket *)object_new(allocator, "Inet_Udp_Socket", NULL);
     s->bind(s, "127.0.0.1", service);
     s->setnonblocking(s);
