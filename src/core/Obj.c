@@ -36,26 +36,6 @@
 #include <libobject/core/Number.h>
 #include <libobject/core/utils/dbg/debug.h>
 
-static int __construct(Obj *obj, char *init_str)
-{
-    dbg_str(OBJ_DETAIL, "obj construct, obj addr:%p", obj);
-
-    return 1;
-}
-
-static int __deconstrcut(Obj *obj)
-{
-    dbg_str(OBJ_DETAIL, "obj deconstruct, obj addr:%p", obj);
-
-    if (obj->json != NULL) {
-        object_destroy(obj->json);
-    }
-
-    allocator_mem_free(obj->allocator, obj);
-
-    return 1;
-}
-
 int __set_int8_policy(Obj *obj, class_info_entry_t *entry, void *value)
 {
     uint8_t *base = (uint8_t *)obj;
@@ -227,6 +207,144 @@ static struct obj_set_policy_s {
     [ENTRY_TYPE_OBJ_POINTER]    = {.policy = __set_pointer_policy},
 };
 
+static int __to_json_int8_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((int8_t *)value));
+
+    return 1;
+}
+
+static int __to_json_uint8_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((uint8_t *)value));
+
+    return 1;
+}
+
+static int __to_json_int16_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((int16_t *)value));
+
+    return 1;
+}
+
+static int __to_json_uint16_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((uint16_t *)value));
+
+    return 1;
+}
+
+static int __to_json_int32_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((int32_t *)value));
+
+    return 1;
+}
+
+static int __to_json_uint32_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((uint32_t *)value));
+
+    return 1;
+}
+
+static int __to_json_float_policy(cjson_t *json, char *name, void *value)
+{
+    cjson_add_number_to_object(json, name, *((float *)value));
+
+    return 1;
+}
+
+static int __to_json_string_policy(cjson_t *json, char *name, void *value)
+{
+    String *s = *(String **)value;
+    if (s != NULL)
+        cjson_add_string_to_object(json, name, s->value);
+
+    return 1;
+}
+
+static int __to_json_sn32_policy(cjson_t *json, char *name, void *value)
+{
+    double d;
+    Number *number = *(Number **)value;
+
+    if (number == NULL) {
+        dbg_str(DBG_WARNNING, "Number to json, but point is null, offset:%p", value);
+        return -1;
+    }
+    d = number->get_signed_int_value(number);
+    cjson_add_number_to_object(json, name, d);
+
+    return 1;
+}
+
+static int __to_json_vector_policy(cjson_t *json, char *name, void *value)
+{
+    Vector *v = *((Vector **)value);
+    cjson_t *item;
+
+    if (v != NULL) {
+        dbg_str(DBG_DETAIL, "Vector json: %s", v->to_json(v));
+        item = cjson_parse(v->to_json(v));
+        cjson_add_item_to_object(json, name, item);
+    } else {
+        dbg_str(DBG_WARNNING, "Vector to json, but content is null, offset:%p", value);
+    }
+
+    return 1;
+}
+
+static int __to_json_object_pointer_policy(cjson_t *json, char *name, void *value)
+{
+    Obj *o = *(Obj **)value;
+    cjson_t *item;
+
+    if (o != NULL) {
+        item = cjson_parse(o->to_json(o));
+        cjson_add_item_to_object(json, o->name, item);
+    }
+
+    return 1;
+}
+
+static struct obj_to_json_policy_s {
+    int (*policy)(cjson_t *json, char *name, void *value);
+} g_obj_to_json_policy[ENTRY_TYPE_MAX_TYPE] = {
+    [ENTRY_TYPE_INT8_T]      = {.policy = __to_json_int8_policy},
+    [ENTRY_TYPE_UINT8_T]     = {.policy = __to_json_uint8_policy},
+    [ENTRY_TYPE_INT16_T]     = {.policy = __to_json_int16_policy},
+    [ENTRY_TYPE_UINT16_T]    = {.policy = __to_json_uint16_policy},
+    [ENTRY_TYPE_INT32_T]     = {.policy = __to_json_int32_policy},
+    [ENTRY_TYPE_UINT32_T]    = {.policy = __to_json_uint32_policy},
+    [ENTRY_TYPE_FLOAT_T]     = {.policy = __to_json_float_policy},
+    [ENTRY_TYPE_STRING]      = {.policy = __to_json_string_policy},
+    [ENTRY_TYPE_SN32]        = {.policy = __to_json_sn32_policy},
+    [ENTRY_TYPE_VECTOR]      = {.policy = __to_json_vector_policy},
+    [ENTRY_TYPE_OBJ_POINTER] = {.policy = __to_json_object_pointer_policy},
+};
+
+static int __construct(Obj *obj, char *init_str)
+{
+    dbg_str(OBJ_DETAIL, "obj construct, obj addr:%p", obj);
+
+    return 1;
+}
+
+static int __deconstrcut(Obj *obj)
+{
+    dbg_str(OBJ_DETAIL, "obj deconstruct, obj addr:%p", obj);
+
+    if (obj->json != NULL) {
+        object_destroy(obj->json);
+    }
+
+    allocator_mem_free(obj->allocator, obj);
+
+    return 1;
+}
+
 /**
  * @Synopsis  
  *
@@ -384,124 +502,6 @@ static void *__get(Obj *obj, char *attrib)
     return addr;
 }
 
-static int __to_json_int8_policy(cjson_t *json, char *name, void *value)
-{
-    cjson_add_number_to_object(json, name, *((int8_t *)value));
-
-    return 1;
-}
-
-static int __to_json_uint8_policy(cjson_t *json, char *name, void *value)
-{
-    cjson_add_number_to_object(json, name, *((uint8_t *)value));
-
-    return 1;
-}
-
-static int __to_json_int16_policy(cjson_t *json, char *name, void *value)
-{
-    cjson_add_number_to_object(json, name, *((int16_t *)value));
-
-    return 1;
-}
-
-static int __to_json_uint16_policy(cjson_t *json, char *name, void *value)
-{
-    cjson_add_number_to_object(json, name, *((uint16_t *)value));
-
-    return 1;
-}
-
-static int __to_json_int32_policy(cjson_t *json, char *name, void *value)
-{
-    cjson_add_number_to_object(json, name, *((int32_t *)value));
-
-    return 1;
-}
-
-static int __to_json_uint32_policy(cjson_t *json, char *name, void *value)
-{
-    cjson_add_number_to_object(json, name, *((uint32_t *)value));
-
-    return 1;
-}
-
-static int __to_json_float_policy(cjson_t *json, char *name, void *value)
-{
-    cjson_add_number_to_object(json, name, *((float *)value));
-
-    return 1;
-}
-
-static int __to_json_string_policy(cjson_t *json, char *name, void *value)
-{
-    String *s = *(String **)value;
-    if (s != NULL)
-        cjson_add_string_to_object(json, name, s->value);
-
-    return 1;
-}
-
-static int __to_json_sn32_policy(cjson_t *json, char *name, void *value)
-{
-    double d;
-    Number *number = *(Number **)value;
-
-    if (number == NULL) {
-        dbg_str(DBG_WARNNING, "Number to json, but point is null, offset:%p", value);
-        return -1;
-    }
-    d = number->get_signed_int_value(number);
-    cjson_add_number_to_object(json, name, d);
-
-    return 1;
-}
-
-static int __to_json_vector_policy(cjson_t *json, char *name, void *value)
-{
-    Vector *v = *((Vector **)value);
-    cjson_t *item;
-
-    if (v != NULL) {
-        dbg_str(DBG_DETAIL, "Vector json: %s", v->to_json(v));
-        item = cjson_parse(v->to_json(v));
-        cjson_add_item_to_object(json, name, item);
-    } else {
-        dbg_str(DBG_WARNNING, "Vector to json, but content is null, offset:%p", value);
-    }
-
-    return 1;
-}
-
-static int __to_json_object_pointer_policy(cjson_t *json, char *name, void *value)
-{
-    Obj *o = *(Obj **)value;
-    cjson_t *item;
-
-    if (o != NULL) {
-        item = cjson_parse(o->to_json(o));
-        cjson_add_item_to_object(json, o->name, item);
-    }
-
-    return 1;
-}
-
-static struct obj_to_json_policy_s {
-    int (*policy)(cjson_t *json, char *name, void *value);
-} g_obj_to_json_policy[ENTRY_TYPE_MAX_TYPE] = {
-    [ENTRY_TYPE_INT8_T]      = {.policy = __to_json_int8_policy},
-    [ENTRY_TYPE_UINT8_T]     = {.policy = __to_json_uint8_policy},
-    [ENTRY_TYPE_INT16_T]     = {.policy = __to_json_int16_policy},
-    [ENTRY_TYPE_UINT16_T]    = {.policy = __to_json_uint16_policy},
-    [ENTRY_TYPE_INT32_T]     = {.policy = __to_json_int32_policy},
-    [ENTRY_TYPE_UINT32_T]    = {.policy = __to_json_uint32_policy},
-    [ENTRY_TYPE_FLOAT_T]     = {.policy = __to_json_float_policy},
-    [ENTRY_TYPE_STRING]      = {.policy = __to_json_string_policy},
-    [ENTRY_TYPE_SN32]        = {.policy = __to_json_sn32_policy},
-    [ENTRY_TYPE_VECTOR]      = {.policy = __to_json_vector_policy},
-    [ENTRY_TYPE_OBJ_POINTER] = {.policy = __to_json_object_pointer_policy},
-};
-
 static int __to_json__(void *obj, char *type_name, cjson_t *object) 
 {
     class_deamon_t *deamon;
@@ -527,7 +527,7 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
         if (entry[i].type > ENTRY_TYPE_MAX_TYPE) {
             return -1;
         }
-        if (entry[i].type == ENTRY_TYPE_OBJ){
+        if (entry[i].type == ENTRY_TYPE_OBJ) {
             if (strcmp(entry[i].type_name, "Obj") == 0) {
                 continue;
             }

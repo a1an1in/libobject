@@ -70,6 +70,7 @@ static int __deconstrcut(Thread *thread)
 static int __start(Thread *thread)
 {
     void *arg;
+
     if (thread->is_run) {
         return -1;
     }
@@ -184,10 +185,6 @@ int test_obj_thread()
     cjson_t *root, *e, *s;
     char buf[2048];
 
-    /*
-     *cfg_config(c, "/Thread", CJSON_STRING, "name", "alan thread") ;  
-     */
-
     thread = OBJECT_NEW(allocator, Thread, NULL);
 
     dbg_str(DBG_DETAIL, "thread addr:%p", thread);
@@ -267,11 +264,11 @@ static void *func_detach2(void *arg)
     return 1;
 }
 
-
 static int test_safe_thread()
 {
     Thread *thread;
     Thread *thread_join;
+
     allocator_t *allocator = allocator_get_default_alloc();
     thread = OBJECT_NEW(allocator, Thread, NULL);
     thread_join = OBJECT_NEW(allocator, Thread, NULL);
@@ -281,6 +278,7 @@ static int test_safe_thread()
     thread_join->start(thread);
     thread_join->join(thread_join,thread);
    // pthread_join(thread->get_tid(thread),NULL);
+
     return 1;
 }
 
@@ -288,12 +286,14 @@ static int test_thread_join()
 {
     Thread *thread;
     allocator_t *allocator = allocator_get_default_alloc();
+
     thread = OBJECT_NEW(allocator, Thread, NULL);
     thread->set_run_routine(thread,func);
     thread->start(thread);
 
     //thread->join(thread);
     dbg_str(DBG_ERROR," main thread wait sub thread!!!!!!!!!!");
+
     return 1;
 }
 
@@ -305,8 +305,8 @@ static int  test_thread_detach1()
     thread->set_run_routine(thread,func_detach);
     thread->start(thread);
 
-
     sleep(5);
+
     return 1;
 }
 
@@ -317,14 +317,10 @@ static int  test_thread_detach2()
     thread = OBJECT_NEW(allocator, Thread, NULL);
     thread->set_run_routine(thread,func_detach2);
     thread->start(thread);
-    //thread->detach(thread);  
- 
     sleep(5);
+
     return 1;
 }
-
-
-
 REGISTER_TEST_CMD(test_obj_thread);
 REGISTER_TEST_CMD(test_safe_thread);
 REGISTER_TEST_CMD(test_thread_join);

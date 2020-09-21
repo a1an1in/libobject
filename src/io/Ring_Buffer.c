@@ -244,9 +244,9 @@ static void* __find(Ring_Buffer *rb, void* needle, int needle_len, int len)
 
     haystack_len = rb->get_len(rb);
 
-    if (    haystack_len < len || 
-            haystack_len < needle_len ||
-            needle_len > len) {
+    if (haystack_len < len        || 
+        haystack_len < needle_len ||
+        needle_len > len) {
         return NULL;
     }
 

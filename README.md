@@ -27,7 +27,9 @@ This lib is designed for object-oriented programming using c language. It contai
 
 * Windows
 
-​	Sorry, I hav't test using Cmake on this platform.
+```
+./build_windows.bat
+```
 
 ## User Guide
 

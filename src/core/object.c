@@ -210,9 +210,8 @@ __object_find_reimplement_func(char *method_name,
     }
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
         if ((entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
-                entry[i].type == ENTRY_TYPE_VFUNC_POINTER) && 
-            strcmp(entry[i].value_name, method_name) == 0)
-        {
+             entry[i].type == ENTRY_TYPE_VFUNC_POINTER) && 
+            strcmp(entry[i].value_name, method_name) == 0) {
             if (entry[i].value == NULL) {
                 break;
             } else {
@@ -274,7 +273,7 @@ __object_inherit_funcs(void *obj, void *class_info)
     for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
         if (entry[i].value == NULL && 
             (entry[i].type == ENTRY_TYPE_IFUNC_POINTER || 
-             entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
+             entry[i].type == ENTRY_TYPE_FUNC_POINTER  || 
              entry[i].type == ENTRY_TYPE_VFUNC_POINTER)) 
         {
             method = __object_get_func_of_class_recursively(class_info,
@@ -571,34 +570,25 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
             item = cjson_create_object();
             cjson_add_item_to_object(object, entry[i].type_name, item);
             __object_dump(obj, entry[i].type_name, item);
-        } else if (entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
+        } else if (entry[i].type == ENTRY_TYPE_FUNC_POINTER  || 
                    entry[i].type == ENTRY_TYPE_VFUNC_POINTER || 
-                   entry[i].type == ENTRY_TYPE_IFUNC_POINTER) 
-        {
+                   entry[i].type == ENTRY_TYPE_IFUNC_POINTER) {
         } else {
             strcpy(o->target_name, type_name);
-
             dbg_str(OBJ_WARNNING, "get:%p, __get:%p", get, o->get);
             value = get(obj, entry[i].value_name);
-            /*
-             *if (value == NULL) continue;
-             */
             name = entry[i].value_name;
             if (entry[i].type == ENTRY_TYPE_INT8_T || 
-                entry[i].type == ENTRY_TYPE_UINT8_T)
-            {
+                entry[i].type == ENTRY_TYPE_UINT8_T) {
                 cjson_add_number_to_object(object, name, *((char *)value));
             } else if (entry[i].type == ENTRY_TYPE_INT16_T || 
-                       entry[i].type == ENTRY_TYPE_UINT16_T)
-            {
+                       entry[i].type == ENTRY_TYPE_UINT16_T) {
                 cjson_add_number_to_object(object, name, *((short *)value));
             } else if (entry[i].type == ENTRY_TYPE_INT32_T ||
-                       entry[i].type == ENTRY_TYPE_UINT32_T) 
-            {
+                       entry[i].type == ENTRY_TYPE_UINT32_T) {
                 cjson_add_number_to_object(object, name, *((int *)value));
             } else if (entry[i].type == ENTRY_TYPE_INT64_T || 
-                       entry[i].type == ENTRY_TYPE_UINT64_T)
-            {
+                       entry[i].type == ENTRY_TYPE_UINT64_T) {
             } else if (entry[i].type == ENTRY_TYPE_FLOAT_T) {
                 cjson_add_number_to_object(object, name, *((float *)value));
             } else if (entry[i].type == ENTRY_TYPE_STRING) {
@@ -607,8 +597,7 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
                     cjson_add_string_to_object(object, name, s->value);
             /*
              *} else if (entry[i].type == ENTRY_TYPE_NORMAL_POINTER ||
-             *           entry[i].type == ENTRY_TYPE_OBJ_POINTER) 
-             *{
+             *           entry[i].type == ENTRY_TYPE_OBJ_POINTER) {
              *    unsigned long long d = (unsigned long long) value;
              *    cjson_add_number_to_object(object, name, d);
              */

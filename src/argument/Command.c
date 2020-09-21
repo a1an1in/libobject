@@ -146,9 +146,8 @@ static Option *__get_option(Command *command, char *option_name)
 
     for (i = 0; i < count; i++) {
         options->peek_at(options, i, (void **)&o);
-        if (    o->name->equal(o->name, option_name) || 
-                o->alias->equal(o->alias, option_name))
-        {
+        if (o->name->equal(o->name, option_name) || 
+            o->alias->equal(o->alias, option_name)) {
             return o;
         }
     }
