@@ -30,9 +30,9 @@ int libobject_init()
 
 int libobject_exit()
 {
-#if (defined(WINDOWS_USER_MODE))
-    WSACleanup();
-#endif
+//#if (defined(WINDOWS_USER_MODE))
+//    WSACleanup();
+//#endif
 #if (!defined(WINDOWS_USER_MODE))
     kill(0, SIGQUIT);
 #endif
