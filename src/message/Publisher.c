@@ -130,24 +130,14 @@ static int test_message_publisher()
     subscriber->add_method(subscriber, "test_xxxx", test_xxxx, allocator);   
     subscriber->subscribe(subscriber, publisher);
 
- 
-    /*
-     *subscriber->subscribe(subscriber, publisher);
-     */
- 
-    //subscriber->subscribe(subscriber, publisher);
-
     dbg_str(DBG_SUC, "%p subscribe a publisher, publisher addr:%p", subscriber, publisher);
     dbg_str(DBG_SUC, "message handler arg:%p", allocator);
 
     publisher->connect_centor(publisher, centor);
     publisher->publish_message(publisher, test_str, strlen(test_str));
 
-#if (defined(WINDOWS_USER_MODE))
-    system("pause"); 
-#else
-    pause();
-#endif
+    usleep(5 * 1000 * 1000);
+    
     object_destroy(centor);
     object_destroy(subscriber);
     object_destroy(publisher);
