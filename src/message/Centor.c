@@ -133,9 +133,6 @@ static int __construct(Centor *centor, char *init_str)
     c->setnonblocking(c);
     centor->c = c;
 
-    centor->s = s;
-    centor->c = c;
-
     dbg_str(DBG_SUC, "centor add io_worker fd=%d", centor->s->fd);
     centor->worker = io_worker(allocator,
                                centor->s->fd,
@@ -145,8 +142,8 @@ static int __construct(Centor *centor, char *init_str)
                                NULL,
                                centor);
 
-    centor->message_queue  = OBJECT_NEW(allocator, Linked_Queue, NULL);
-    centor->subscriber_map = OBJECT_NEW(allocator, RBTree_Map, NULL);
+    centor->message_queue  = object_new(allocator, "Linked_Queue", NULL);
+    centor->subscriber_map = object_new(allocator, "RBTree_Map", NULL);
 
     return 0;
 }

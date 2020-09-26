@@ -137,12 +137,12 @@ static size_t __size(Linked_Queue *queue)
     count = queue->llist->list_count;
     sync_unlock(&(queue->llist->list_lock));
 
-    return  count;
+    return count;
 }
 
 static size_t __is_empty(Linked_Queue *queue)
-{    
-    return  queue->size(queue) == 0 ? 1 : 0;
+{
+    return queue->size(queue) == 0 ? 1 : 0;
 }
 
 static int __peek_front(Linked_Queue *queue, void **element)
