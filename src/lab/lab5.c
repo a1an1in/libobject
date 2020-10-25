@@ -4,37 +4,7 @@
 #include <string.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
-
-#if (defined(WINDOWS_USER_MODE))
-static char *
-strtok_r (char *s, const char *delim, char **save_ptr)
-{
-    char *token;
-
-    if (s == NULL)
-        s = *save_ptr;
-
-    /* Scan leading delimiters. */
-    s += strspn (s, delim);
-    if (*s == '\0') {
-        *save_ptr = s;
-        return NULL;
-    }
-
-    /* Find the end of the token. */
-    token = s;
-    s = strpbrk (token, delim);
-    if (s == NULL)
-        /* This token finishes the string. */
-        *save_ptr = strchr (token, '\0');
-    else {
-        /* Terminate the token and make *SAVE_PTR point past it. */
-        *s = '\0';
-        *save_ptr = s + 1;
-    }
-    return token;
-}
-#endif
+#include <libobject/core/try.h>
 
 int test_str_cmp(TEST_ENTRY *entry)
 {
@@ -52,7 +22,7 @@ int test_str_cmp(TEST_ENTRY *entry)
 }
 REGISTER_TEST_FUNC(test_str_cmp);
 
-static int bubble_sort(int *array, int len)
+int bubble_sort(int *array, int len)
 {
     int i, j, t;
 
@@ -425,80 +395,6 @@ int test_slist_rotate_n(TEST_ENTRY *entry)
 }
 REGISTER_TEST_CMD(test_slist_rotate_n);
 
-static int mystr_split(char *str, char *delims, char ***out) 
-{
-    int index = 0;
-    char *ptr = NULL, **addr, *p;
-    int i, j, count = 0, delim_len = strlen(delims);
-    int str_len;
-
-    str_len = strlen(str);
-
-    for (i = 0; i < delim_len; i++) {
-        for (j = 0; j < str_len; j++) {
-            if (str[j] == delims[i]) {
-                count++;
-            }
-        }
-    }
-
-    if (count == 0) return 0;
-
-    addr = malloc(sizeof(void *) * count);
-    p = malloc(str_len);
-    strcpy(p, str);
-
-    for (   p = strtok_r(p, delims, &ptr);
-            p;
-            p = strtok_r(NULL, delims, &ptr)) 
-    {
-        *(addr + index) = p;
-        index++;
-    }
-
-    if (index > 0) {
-        *out = addr;
-    }
-
-    free(p);
-
-    return index;
-}
-
-int test_mystr_split(TEST_ENTRY *entry)
-{
-    char *str = "ASCE 789 123 456";
-    char **out;
-    int count, i;
-    int *array;
-
-    dbg_str(DBG_SUC, "test str split");
-    count = mystr_split(str, " ", &out);
-
-    array = malloc(sizeof(int) * (count - 1));
-
-    for (i = 1; i < count; i++) {
-        printf("%d %s\n", i, out[i]);
-        array[i - 1] = atoi(out[i]);
-        printf("array %d %d\n", i, array[i - 1]);
-    }
-
-    for (i = 0; i < count - 1; i++) {
-        printf("%d %d\n", i, array[i]);
-    }
-
-    bubble_sort(array, count - 1);
-
-    for (i = 0; i < count - 1; i++) {
-        printf("%d %d\n", i, array[i]);
-    }
-
-    free(array);
-
-    return 1;
-}
-REGISTER_TEST_CMD(test_mystr_split);
-
 char* strchr_n(char *s, char c, int n)
 {
     int count = 0;
@@ -602,21 +498,6 @@ int test_mydlist(TEST_ENTRY *entry)
 
 }
 REGISTER_TEST_CMD(test_mydlist);
-
-int test_strtok_r(TEST_ENTRY *entry)
-{
-    char str[] = "alan is very best";
-    char *temp;
-    char *p;
-
-    p = str;
-    while( (p = strtok_r(p, " ", &temp)) != NULL) {
-        printf("%s\n", p);
-        p = NULL;
-    }
-}
-REGISTER_TEST_CMD(test_strtok_r);
-
 
 int test_print_cn(TEST_ENTRY *entry)
 {

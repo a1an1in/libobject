@@ -21,10 +21,11 @@ static int test_try_catch_performance(TEST_ENTRY *enTRY, void *argc, void *argv)
 {
     struct timeval start, end, tv;
     int a;
+    int ret = 0;
 
     timeval_now(&start, NULL);
     TRY {
-    } CATCH {
+    } CATCH(ret) {
     }
     timeval_now(&end, NULL);
     timeval_sub(&end, &start, &tv);

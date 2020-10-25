@@ -56,3 +56,5 @@ static int test_memmove(TEST_ENTRY *entry, void *argc, void *argv)
     return 1;
 }
 REGISTER_TEST_FUNC(test_memmove);
+
+

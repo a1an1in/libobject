@@ -47,7 +47,7 @@ message_t *message_alloc(allocator_t *allocator)
         dbg_str(DBG_ERROR, "allock err");
     }
 
-    memset(ret,  0,  sizeof(message_t));
+    memset(ret, 0, sizeof(message_t));
 
     ret->allocator = allocator;
     dbg_str(DBG_DETAIL, "message_create end, ret =%p", ret);

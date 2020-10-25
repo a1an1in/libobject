@@ -219,11 +219,10 @@ int vector_add_at(vector_t *vector, int index, void *data)
             vector_pos_init(&vector->end, offset + 1, vector);
         }
         sync_unlock(&vector->vector_lock);
-    } CATCH {
+    } CATCH(ret) {
         dbg_str(VECTOR_ERROR, "vector_add_at error, file:%s, line:%d, func:%s, error_code:%d", 
                 ERROR_FILE(), ERROR_LINE(), ERROR_FUNC(), ERROR_CODE());
         sync_unlock(&vector->vector_lock);
-        ret = -1;
     }
 
     return ret;
@@ -269,11 +268,10 @@ int vector_add_back(vector_t *vector, void *data)
 
         dbg_str(VECTOR_DETAIL, "vector_add_back, offset=%d, capacity=%d, count=%d", 
                 offset - 1, vector->capacity, vector->count);
-    } CATCH {
+    } CATCH(ret) {
         dbg_str(VECTOR_ERROR, "%s error, file:%s, line:%d, func:%s, error_code:%d", 
                 ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());
         sync_unlock(&vector->vector_lock);
-        ret = -1;
     }
 
     return ret;

@@ -24,11 +24,11 @@ static int test_try_catch1(TEST_ENTRY *entry, void *argc, void *argv)
     TRY {
         TRY {
             THROW(-1);
-        } CATCH {
+        } CATCH(ret) {
         }
         printf("throw -2\n");
         THROW(-2);
-    } CATCH {
+    } CATCH(ret) {
         if (ERROR_CODE() == -2) ret = 1;
         else ret = 0;
         printf("CATCH %d at level1\n", ret);
@@ -48,7 +48,7 @@ static int test_try_catch2(TEST_ENTRY *entry, void *argc, void *argv)
 
     TRY {
         try_catch_test_fuc();
-    } CATCH {
+    } CATCH(ret) {
         printf("CATCH error code, ret =%d\n", ret);
         if (ret == -5) ret = 1;
         else ret = 0;

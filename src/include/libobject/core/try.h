@@ -53,7 +53,7 @@ extern pthread_key_t try_key;
 #define EXEC(expression)                                                                         \
     do {                                                                                         \
         int __ret__ = 0;                                                                         \
-        if ((__ret__ = (int)(expression)) <= 0) {                                                \
+        if ((__ret__ = (int)(expression)) < 0) {                                                \
             exception_throw(__ret__, __func__, __FILE__, __LINE__, "");                          \
         }                                                                                        \
     } while (0);
@@ -85,10 +85,11 @@ extern pthread_key_t try_key;
     __exception_flag = setjmp(__exception_frame.env);                                            \
     if (__exception_flag == EXCEPTION_ENTERED) {
 
-#define CATCH                                                                                    \
+#define CATCH(ret)                                                                               \
         pthread_setspecific(try_key,                                                             \
                             ((exception_frame_t*)pthread_getspecific(try_key))->prev);           \
         __exception_flag = EXCEPTION_HANDLED;                                                    \
+        ret = __exception_frame.error_code;                                                      \
     }                                                                                            \
     if (__exception_flag == EXCEPTION_THROWN)                                                    \
 
@@ -113,7 +114,7 @@ extern pthread_key_t try_key;
 #define EXEC(expression)                                                                         \
     do {                                                                                         \
         int __ret__ = 0;                                                                         \
-        if ((__ret__ = (int)(expression)) <= 0) {                                                \
+        if ((__ret__ = (int)(expression)) < 0) {                                                \
             THROW(-1);                                                                           \
         }                                                                                        \
     } while (0);
@@ -122,7 +123,7 @@ extern pthread_key_t try_key;
     do {                                                                                         \
         if (((condition)) == 1) {                                                                \
             int __ret = 0;                                                                       \
-            if ((__ret = (expression)) <= 0) {                                                   \
+            if ((__ret = (expression)) < 0) {                                                   \
                 THROW(__ret);                                                                    \
             }                                                                                    \
         }                                                                                        \
@@ -142,8 +143,9 @@ extern pthread_key_t try_key;
     char *__error_func;                                                                          \
     char *__error_file;                                                                          \
 
-#define CATCH                                                                                    \
+#define CATCH(ret)                                                                               \
     __error_tab:                                                                                 \
+    ret = __error_code;                                                                          \
     if (__error_code <= 0) 
 
 #define FINALLY                                                                                  \
