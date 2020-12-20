@@ -38,48 +38,6 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
-
-#ifdef __GNUC__
-#    define GCC_VERSION_AT_LEAST(x,y) (__GNUC__ > (x) || __GNUC__ == (x) && __GNUC_MINOR__ >= (y))
-#else
-#    define GCC_VERSION_AT_LEAST(x,y) 0
-#endif
-
-#if GCC_VERSION_AT_LEAST(3,1)
-#    define attribute_deprecated __attribute__((deprecated))
-#elif defined(_MSC_VER)
-#    define attribute_deprecated __declspec(deprecated)
-#else
-#    define attribute_deprecated
-#endif
-
-
-#if 0
-/* Variable Attribute */
-attribute_deprecated int  variable_old = 0;
-
-/* Function Attribute */
-attribute_deprecated void function_old(void);
-
-void function_old(void)
-{
-    printf("old function.\n");
-    return;
-}
-
-
-static int 
-test_attribute_deprecated(TEST_ENTRY *entry, void *argc, void *argv)
-{
-    variable_old++;
-
-    function_old();
-
-    return 1;
-}
-REGISTER_TEST_CMD(test_attribute_deprecated);
-#endif
-
 int ex(int a, int b)
 {
     int d = 1;
@@ -130,3 +88,40 @@ int test_hex_to_int()
     }
 }
 REGISTER_TEST_CMD(test_hex_to_int);
+
+char* strchr_n(char *s, char c, int n)
+{
+    int count = 0;
+
+    while(*s != '\0') {
+        if (*s == c) {
+            count++;
+        }
+
+        if (count == n) break;
+
+        ++s;
+    }
+
+    if (count == n) {
+        return s;
+    } else return NULL;
+}
+
+int test_strchr(TEST_ENTRY *entry)
+{
+    char *str = "lbrnsepcfjzcpfgzqdiujo";
+    char *p;
+    int len, i;
+
+    len = strlen(str);
+    for (i = 0; i < len; i++) {
+        p = strchr_n(str, str[i], 2);
+        if (p == NULL) {
+            printf("found %c", str[i]);
+            break;
+        }
+    }
+
+}
+REGISTER_TEST_CMD(test_strchr);

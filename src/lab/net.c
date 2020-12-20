@@ -56,6 +56,7 @@ static int mystr_split(char *str, char *delims, char ***out)
 
     if (count == 0) return 0;
 
+    //..... mem leak
     addr = malloc(sizeof(void *) * (count + 1));
     memset(addr, 0, sizeof(void *) * (count + 1));
     p = malloc(str_len + 1);
@@ -115,11 +116,9 @@ int inet_check_ipv4(char *ip)
 {
     char **out = NULL;
     int count = 0;
-    int i;
-    int len;
-    int j;
+    int i, j;
+    int len, num;
     int ret = 1;
-    int num;
 
     TRY {
         count = mystr_split(ip, ".", &out);
@@ -150,11 +149,9 @@ int inet_check_ipv6(char *ip)
 {
     char **out = NULL;
     int count = 0;
-    int i;
-    int j;
-    int len;
+    int i, j;
+    int len, num;
     int ret = 1;
-    int num;
 
     TRY {
         count = mystr_split(ip, ":", &out);
@@ -190,7 +187,7 @@ int inet_check_ip(char *ip)
     int ret = 1;
 
     TRY {
-        if (strchr(ip, '.')){
+        if (strchr(ip, '.')) {
             EXEC(ret = inet_check_ipv4(ip));
         } else if (strchr(ip, ':')) {
             EXEC(ret = inet_check_ipv6(ip));
