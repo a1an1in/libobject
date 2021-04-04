@@ -114,7 +114,7 @@ extern pthread_key_t try_key;
 #define EXEC(expression)                                                                         \
     do {                                                                                         \
         int __ret__ = 0;                                                                         \
-        if ((__ret__ = (int)(expression)) < 0) {                                                \
+        if ((__ret__ = (int)(expression)) < 0) {                                                 \
             THROW(-1);                                                                           \
         }                                                                                        \
     } while (0);
@@ -123,7 +123,7 @@ extern pthread_key_t try_key;
     do {                                                                                         \
         if (((condition)) == 1) {                                                                \
             int __ret = 0;                                                                       \
-            if ((__ret = (expression)) < 0) {                                                   \
+            if ((__ret = (expression)) < 0) {                                                    \
                 THROW(__ret);                                                                    \
             }                                                                                    \
         }                                                                                        \

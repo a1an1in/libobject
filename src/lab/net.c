@@ -135,7 +135,7 @@ int inet_check_ipv4(char *ip)
             THROW_IF(num < 0 || num > 255, 0);
         }
         dbg_str(DBG_DETAIL,"%s is IPv4", ip);
-    } CATCH(ret) {
+    } CATCH (ret) {
         if (ret < 0) {
             dbg_str(DBG_ERROR, "[%s] error_line:%d, error_code:%d",
                     ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -172,7 +172,7 @@ int inet_check_ipv6(char *ip)
         }
 
         dbg_str(DBG_DETAIL,"%s is IPv4", ip);
-    } CATCH(ret) {
+    } CATCH (ret) {
         if (ret < 0) {
             dbg_str(DBG_ERROR, "[%s] error_line:%d, error_code:%d",
                     ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -196,7 +196,7 @@ int inet_check_ip(char *ip)
         if (ret == 0) {
             dbg_str(DBG_DETAIL,"%s is not IP address", ip);
         }
-    } CATCH(ret) {
+    } CATCH (ret) {
         dbg_str(DBG_ERROR, "[%s] error_line:%d, error_code:%d",
                 ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
     }

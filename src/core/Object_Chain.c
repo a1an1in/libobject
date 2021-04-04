@@ -59,7 +59,7 @@ static void * __new(Object_Chain *chain, char *class_name, char *data)
         if (assign_flag) {
             o->assign(o, init_data);
         }
-    } CATCH(ret) {
+    } CATCH (ret) {
         EXEC_IF(o != NULL, object_destroy(o));
         o = NULL;
     }

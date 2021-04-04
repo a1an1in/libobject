@@ -25,7 +25,7 @@ static int test_try_catch_performance(TEST_ENTRY *enTRY, void *argc, void *argv)
 
     timeval_now(&start, NULL);
     TRY {
-    } CATCH(ret) {
+    } CATCH (ret) {
     }
     timeval_now(&end, NULL);
     timeval_sub(&end, &start, &tv);

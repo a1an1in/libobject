@@ -61,7 +61,7 @@ static int __run(Application *app, int argc, char *argv[])
         if (selected_subcommand->run_action != NULL) {
             EXEC(selected_subcommand->run_action(selected_subcommand));
         }
-    } CATCH(ret) {
+    } CATCH (ret) {
         dbg_str(DBG_ERROR, "Application catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
                 ERROR_FUNC(), __func__, ERROR_LINE(), ERROR_CODE());
     }
@@ -98,7 +98,7 @@ int app(int argc, char *argv[])
     TRY {
         app = object_new(NULL, "Application", NULL);
         EXEC(app->run(app, argc, argv));
-    } CATCH(ret) {
+    } CATCH (ret) {
         dbg_str(DBG_ERROR, "main catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
                 ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());
     } FINALLY {

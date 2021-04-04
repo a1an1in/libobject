@@ -140,7 +140,7 @@ static void * __new(Object_Cache *cache, char *class_name, char *data)
         if (assign_flag) {
             o->assign(o, init_data);
         }
-    } CATCH(ret) {
+    } CATCH (ret) {
         if (new_list != NULL) {
             map->del(map, class_name);
             object_list->remove_element(object_list, new_list);
