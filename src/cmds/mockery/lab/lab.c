@@ -71,3 +71,14 @@ static int test_rand(TEST_ENTRY *entry)
     return 1;
 }
 REGISTER_TEST_CMD(test_rand);
+
+//#define cgs_lambda( return_type, function_body) \
+//    ({return_type cgs_lambda_func function_body cgs_lambda_func;})
+//
+//static int test_lambda(TEST_ENTRY *entry)
+//{
+//    printf( "Sum = %d\n", cgs_lambda(int, (int x, int y){return x + y;})(3, 4));
+//
+//    return 0;
+//}
+//REGISTER_TEST_CMD(test_lambda);
