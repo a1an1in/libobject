@@ -288,8 +288,8 @@ __object_inherit_funcs(void *obj, void *class_info)
 
 
 int __object_override_virtual_funcs(void *obj, 
-                                   char *cur_type_name, 
-                                   char *type_name)
+                                    char *cur_type_name,
+                                    char *type_name)
 {
     class_info_entry_t *entry;
     class_deamon_t *deamon;
