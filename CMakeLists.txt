@@ -4,13 +4,11 @@ include (mk/util.cmake)
 init_platform()
 project (cean)
 config_platform()
+config_build_options()
 
 set (CMAKE_MACOSX_RPATH 1)
 set (CMAKE_BUILD_TYPE "Debug")
 display_configs("${PLATFORM}")
-
-# add compile paramater 
-config_build_options()
 
 add_subdirectory(src)
 
