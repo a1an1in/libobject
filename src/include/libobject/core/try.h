@@ -150,6 +150,13 @@ extern pthread_key_t try_key;
 
 #define FINALLY                                                                                  \
 
+#define CONTINUE_IF2(func, outpar_condition) {                                                   \
+    (func);                                                                                      \
+    if (outpar_condition) {                                                                      \
+        continue;                                                                                \
+    }                                                                                            \
+}
+
 #endif //end of USE_JMP_TRY_CATCH
 
 #endif
