@@ -29,6 +29,7 @@ struct vector_test_s{
     int (*test_int_vector_set_init_data)(Test *test);
     int (*test_string_vector_set_init_data)(Test *test);
     int (*test_obj_vector_set_init_data)(Test *test);
+    int (*test_obj_vector_new_with_init_data)(Test *test);
 
     Vector *vector;
 };

@@ -322,8 +322,7 @@ int __object_override_virtual_funcs(void *obj,
     return 0;
 }
 
-void * object_new(allocator_t *allocator,
-                  char *type, char *config)
+void * object_new(allocator_t *allocator, char *type, char *config)
 {
     Obj *o;
     class_info_entry_t *entry;
@@ -348,16 +347,13 @@ void * object_new(allocator_t *allocator,
         dbg_str(OBJ_ERROR, "alloc mem failed");
         return NULL;
     } else {
-        /*
-         *allocator_save_upper_nlayer_name(allocator, 2, o);
-         */
+        allocator_save_upper_nlayer_name(allocator, 2, o);
         memset(o, 0, size);
         o->allocator = allocator;
         strcpy(o->name, type);
     }
 
-    if (config != NULL && (strcmp(type, "String") == 0 ||
-        strcmp(type, "Vector") == 0)) {
+    if (config != NULL && (strcmp(type, "String") == 0 || strcmp(type, "Vector") == 0)) {
         init_data = config;
         config = NULL;
         assign_flag = 1;

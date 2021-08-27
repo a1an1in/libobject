@@ -323,6 +323,31 @@ static int __test_obj_vector_set_init_data(Vector_Test *test)
     object_destroy(string);
 }
 
+static int __test_obj_vector_new_with_init_data(Vector_Test *test)
+{
+    int ret;
+    Vector *vector;
+    allocator_t *allocator = allocator_get_default_alloc();
+    char *init_data = "[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]";
+    String *string;
+
+    string = object_new(allocator, "String", NULL);
+    string->assign(string, "(Simplest_Obj):");
+    string->append(string, init_data, -1);
+    vector = object_new(allocator, "Vector", STR2A(string));
+
+    string->assign(string, vector->to_json(vector));
+    string->replace(string, "\t", "", -1);
+    string->replace(string, "\r", "", -1);
+    string->replace(string, "\n", "", -1);
+    dbg_str(DBG_DETAIL, "expect:%s, result:%s", string->get_cstr(string), init_data);
+
+    object_destroy(vector);
+    object_destroy(string);
+    ASSERT_EQUAL(test, string->get_cstr(string), init_data, strlen(init_data));
+
+}
+
 static class_info_entry_t vector_test_class_info[] = {
     Init_Obj___Entry(0 , Test, parent),
     Init_Nfunc_Entry(1 , Vector_Test, construct, __construct),
@@ -341,6 +366,7 @@ static class_info_entry_t vector_test_class_info[] = {
     Init_Vfunc_Entry(14, Vector_Test, test_int_vector_set_init_data, __test_int_vector_set_init_data),
     Init_Vfunc_Entry(15, Vector_Test, test_string_vector_set_init_data, __test_string_vector_set_init_data),
     Init_Vfunc_Entry(16, Vector_Test, test_obj_vector_set_init_data, __test_obj_vector_set_init_data),
-    Init_End___Entry(17, Vector_Test),
+    Init_Vfunc_Entry(17, Vector_Test, test_obj_vector_new_with_init_data, __test_obj_vector_new_with_init_data),
+    Init_End___Entry(18, Vector_Test),
 };
 REGISTER_CLASS("Vector_Test", vector_test_class_info);

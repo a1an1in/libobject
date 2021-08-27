@@ -35,6 +35,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Vector.h>
 #include <libobject/core/String.h>
+#include <libobject/core/try.h>
 #include <libobject/argument/Command.h>
 
 static int __construct(Vector *vector, char *init_str)
@@ -199,7 +200,7 @@ static int  __empty(Vector * vector)
     return vector->count(vector) == 0 ? 1 : 0;
 }
 
-static void __reset(Vector *vector)
+static int __reset(Vector *vector)
 {
     vector_pos_t pos, next;
     vector_t *v = vector->vector;
@@ -413,6 +414,77 @@ static char *__to_json(Obj *obj)
     return json->get_cstr(json);
 }
 
+static int __assign(Vector * vector, char *value)
+{
+    allocator_t *allocator = vector->obj.allocator;
+    cjson_t *c, *bak = NULL;
+    Obj *o;
+    char *out;
+    String *s;
+    char object_name[20] = {0};
+    char *json;
+    int ret = 1;
+    uint8_t trustee_flag = 1;
+    int value_type = VALUE_TYPE_OBJ_POINTER;
+
+    TRY {
+        if (value[0] != '[' && value[0] == '(') {
+            out  = strchr(value, ')');
+            THROW_IF(out == NULL, -1);
+            strncpy(object_name, value + 1, out - value - 1);
+            json = strchr(value, ':');
+            THROW_IF(out == NULL, -1);
+            json += 1;
+            value_type = VALUE_TYPE_OBJ_POINTER;
+        } else if (value[0] == '[') {
+            json = value;
+            value_type = VALUE_TYPE_STRING;
+        } else {
+            THROW(-1);
+        }
+
+        bak = c = cjson_parse(json);
+        if (c->type & OBJECT_ARRAY) {
+            c = c->child;
+            dbg_str(DBG_DETAIL, "array name:%s", c->string);
+        }
+
+        while (c) {
+            if (c->type & CJSON_NUMBER) {
+                vector->add(vector, c->valueint);
+            } else if (c->type & OBJECT_STRING) {
+                dbg_str(DBG_DETAIL, "vector element:%s", c->valuestring);
+                s = object_new(allocator, "String", NULL);
+                s->assign(s, c->valuestring);
+                vector->add(vector, s);
+            } else if (c->type & OBJECT_ARRAY) {
+                dbg_str(DBG_DETAIL, "vector element, not supported now!");
+            } else if (c->type & CJSON_OBJECT) {
+                out = cjson_print(c);
+                dbg_str(DBG_DETAIL, "object :%s value:%s", object_name, out);
+                o = object_new(allocator, object_name, out);
+                vector->add(vector, o);
+
+                dbg_str(DBG_DETAIL, "o: %s", o->to_json(o));
+                free(out);
+            } else {
+                dbg_str(DBG_DETAIL, "vector assign, not supported %d now!", c->type);
+            }
+
+            c = c->next;
+        }
+
+        vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
+        vector->set(vector, "/Vector/value_type", &value_type);
+
+        cjson_delete(bak);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "vector assign error, assign value:%s", value);
+    }
+
+    return ret;
+}
+
 static class_info_entry_t vector_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Vector, construct, __construct),
@@ -432,12 +504,13 @@ static class_info_entry_t vector_class_info[] = {
     Init_Vfunc_Entry(15, Vector, count, __count),
     Init_Vfunc_Entry(16, Vector, empty, __empty),
     Init_Vfunc_Entry(17, Vector, to_json, __to_json),
-    Init_U32___Entry(18, Vector, value_size, NULL),
-    Init_U8____Entry(19, Vector, value_type, NULL),
-    Init_U32___Entry(20, Vector, capacity, NULL),
-    Init_Str___Entry(21, Vector, init_data, NULL),
-    Init_Str___Entry(22, Vector, class_name, NULL),
-    Init_U8____Entry(23, Vector, trustee_flag, 0),
-    Init_End___Entry(24, Vector),
+    Init_Vfunc_Entry(18, Vector, assign, __assign),
+    Init_U32___Entry(19, Vector, value_size, NULL),
+    Init_U8____Entry(20, Vector, value_type, NULL),
+    Init_U32___Entry(21, Vector, capacity, NULL),
+    Init_Str___Entry(22, Vector, init_data, NULL),
+    Init_Str___Entry(23, Vector, class_name, NULL),
+    Init_U8____Entry(24, Vector, trustee_flag, 0),
+    Init_End___Entry(25, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);
