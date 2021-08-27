@@ -57,7 +57,7 @@ static class_info_entry_t test_case_result_class_info[] = {
     Init_Vfunc_Entry(4 , Test_Case_Result, set, NULL),
     Init_Str___Entry(5 , Test_Case_Result, file, NULL),
     Init_U32___Entry(6 , Test_Case_Result, line, 0),
-    Init_U32___Entry(7 , Test_Case_Result, result, 0),
+    Init_S32___Entry(7 , Test_Case_Result, result, 0),
     Init_End___Entry(8 , Test_Case_Result),
 };
 REGISTER_CLASS("Test_Case_Result", test_case_result_class_info);

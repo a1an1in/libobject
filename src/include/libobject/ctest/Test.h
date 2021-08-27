@@ -42,6 +42,14 @@ typedef struct _test_s Test;
     __ret;\
 })
 
+#define TEST_SET_RESULT(test, error_func, error_line, error_code) \
+({\
+    ((Test *)test)->file = __FILE__;\
+    ((Test *)test)->func = (error_func);\
+    ((Test *)test)->line = (error_line);\
+    ((Test *)test)->ret = (error_code);\
+})
+
 struct _test_s{
     Obj obj;
 
@@ -56,6 +64,7 @@ struct _test_s{
 
     /*attribs*/
     char *file;
+    char *func;
     int line;
     int ret;
 };
