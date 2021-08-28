@@ -185,6 +185,7 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
                        new_worker, 
                        (void *)worker->work_callback);
     new_worker->enroll(new_worker, producer);
+    new_socket->opaque = new_worker;
 
     working_list->add(working_list, new_worker);
 
@@ -208,6 +209,27 @@ static int __trustee(Server *server, void *work_callback, void *opaque)
     return worker->enroll(worker, producer);
 }
 
+static int __close_subsocket(Server *server, Socket *socket)
+{
+    Worker *worker = socket->opaque;
+    List *working_list = server->working_workers;
+    List *leisure_list = server->leisure_workers;
+    int ret;
+
+    ret = worker->resign(worker);
+    if (ret == 1) {
+        working_list->remove_element(working_list, worker);
+        leisure_list->add(leisure_list, worker);
+        object_destroy(socket);
+        dbg_str(NET_DETAIL, "add worker %p to leisure_list", worker);
+    } else {
+        dbg_str(NET_WARNNING, "worker %p has resigned", worker);
+        exit(1);
+    }
+
+    return 1;
+}
+
 static class_info_entry_t concurent_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Server, construct, __construct),
@@ -216,6 +238,7 @@ static class_info_entry_t concurent_class_info[] = {
     Init_Vfunc_Entry(4 , Server, get, NULL),
     Init_Vfunc_Entry(5 , Server, bind, __bind),
     Init_Vfunc_Entry(6 , Server, trustee, __trustee),
-    Init_End___Entry(7 , Server),
+    Init_Vfunc_Entry(7 , Server, close_subsocket, __close_subsocket),
+    Init_End___Entry(8 , Server),
 };
 REGISTER_CLASS("Server", concurent_class_info);

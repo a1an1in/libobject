@@ -89,18 +89,22 @@ static int __reclaim_io(Select_Base *b, event_t *e)
 {
     int fd = e->ev_fd;
     unsigned short events = e->ev_events;
+    int maxfd;
 
     dbg_str(EV_DETAIL, "select base add event");
-
-    //.. maxfdp
-
-    if (fd < 0) return 0;
 
     if (events & EV_READ)
         FD_CLR(fd, &b->event_readset_in);
 
     if (events & EV_WRITE)
         FD_CLR(fd, &b->event_writeset_in);
+
+    do {
+        if (FD_ISSET(maxfd, &b->event_readset_in) || FD_ISSET(maxfd, &b->event_writeset_in))
+            break;
+    } while (maxfd--);
+
+    b->maxfdp = maxfd + 1;
 
     return 0;
 }

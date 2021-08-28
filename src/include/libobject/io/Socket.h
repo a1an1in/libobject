@@ -46,6 +46,7 @@ struct socket_s{
     char *local_service;
     char *remote_host;
     char *remote_service;
+    void *opaque;
 };
 
 #endif

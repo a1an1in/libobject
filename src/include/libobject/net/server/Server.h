@@ -21,6 +21,7 @@ struct server_s{
     /*virtual methods reimplement*/
     int (*bind)(Server *server, char *host, char *service);
     int (*trustee)(Server *server, void *work_callback, void *opaque);
+    int (*close_subsocket)(Server *server, Socket *socket);
 
     Worker *worker;
     Socket *socket;
