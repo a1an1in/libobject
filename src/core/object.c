@@ -657,17 +657,20 @@ int __object_destroy(void *obj, char *type_name)
 int object_destroy(void *obj) 
 {
     Obj *o = (Obj *)obj;
-    Object_Cache *cache = o->cache;
+    Object_Cache *cache;
     List *list = NULL;
     int ret = 0;
     
-    if (o->cache) {
+    if (obj == NULL) return 0;
+
+    cache = (Object_Cache *)o->cache;
+    if (cache) {
         Map *map = cache->class_map;
 
         ret = map->search(map, o->name, (void **)&list);
         if (ret != 1) {
             dbg_str(OBJ_ERROR, "release object %s to cache, but not found class in the cache, cache addr:%p, class count=%d",
-                    o->name, o->cache, map->count(map));
+                    o->name, cache, map->count(map));
             ret = -1;
             goto end;
         }

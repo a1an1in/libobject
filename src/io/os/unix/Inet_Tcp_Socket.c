@@ -208,6 +208,7 @@ static Socket * __accept(Inet_Tcp_Socket *socket,
 
     if (connfd > 0) {
         ret = object_new(allocator, "Inet_Tcp_Socket", NULL);//in order to close fd
+        dbg_str(DBG_DETAIL, "server accept new fd:%d", connfd);
         ret->fd = connfd;
     } 
 

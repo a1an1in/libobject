@@ -146,10 +146,10 @@ extern pthread_key_t try_key;
 #define CATCH(ret)                                                                               \
     __error_tab:                                                                                 \
     ret = __error_code;                                                                          \
-    if (__error_code <= 0)                                                                       \
-        dbg_str(DBG_ERROR, "ERROR_FUNC:%s, ERROR_LINE:%d, ERROR_CODE:%d",                         \
+    if (__error_code < 0)                                                                        \
+        dbg_str(DBG_ERROR, "ERROR_FUNC:%s, ERROR_LINE:%d, ERROR_CODE:%d",                        \
                 ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());                                       \
-    if (__error_code <= 0)                                                                       \
+    if (__error_code < 0)                                                                        \
 
 #define FINALLY                                                                                  \
 

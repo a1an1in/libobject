@@ -103,16 +103,8 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
     // len = 0, means connect close by peer; len = -1, means received a rst packet
     if (len == 0 || len == -1) {
         dbg_str(NET_DETAIL, "tcp server, remove worker, fd=%d, ret=%d", fd, ret);
-        ret = worker->resign(worker);
-        if (ret == 1) {
-            working_list->remove_element(working_list, worker);
-            leisure_list->add(leisure_list, worker);
-            task->request = NULL;
-            dbg_str(NET_DETAIL, "add worker %p to leisure_list", worker);
-        } else {
-            dbg_str(NET_WARNNING, "worker %p has resigned", worker);
-            exit(1);
-        }
+        server->close_subsocket(server, worker->socket);
+        //task->req   //???????
         return 1;
     } else if (len < 0) {
         dbg_str(NET_ERROR, "socket read error, ret = %d", len);
@@ -150,7 +142,6 @@ static Worker *__get_worker(Server *server)
         ret->task = (void *)task;
 #undef TASK_MAX_BUF_LEN
     } else {
-        object_destroy(ret->socket);
         dbg_str(NET_DETAIL, "get_worker, get worker from leisure list");
     }
 
@@ -211,20 +202,24 @@ static int __trustee(Server *server, void *work_callback, void *opaque)
 
 static int __close_subsocket(Server *server, Socket *socket)
 {
-    Worker *worker = socket->opaque;
+    Worker *worker;
     List *working_list = server->working_workers;
     List *leisure_list = server->leisure_workers;
     int ret;
+
+    if (socket == NULL) return 0;
+    worker = (Worker *)socket->opaque;
 
     ret = worker->resign(worker);
     if (ret == 1) {
         working_list->remove_element(working_list, worker);
         leisure_list->add(leisure_list, worker);
         object_destroy(socket);
+        worker->socket = NULL;
         dbg_str(NET_DETAIL, "add worker %p to leisure_list", worker);
     } else {
         dbg_str(NET_WARNNING, "worker %p has resigned", worker);
-        exit(1);
+        exit(-1);
     }
 
     return 1;

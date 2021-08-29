@@ -26,7 +26,7 @@ evsig_cb(int fd, short what, void *arg)
     int n;
     int i;
 
-    dbg_str(EV_DETAIL,"evsig_cb in, eb:%p", eb);
+    dbg_str(EV_VIP,"evsig_cb in, eb:%p", eb);
     memset(&ncaught, 0, sizeof(ncaught));
 
     n = receiver->recv(receiver, signals, sizeof(signals), 0);
@@ -56,7 +56,7 @@ static void __evsig_send(void *element, void *c)
     Event_Base *eb = (Event_Base *)element;
     Socket *sender = eb->evsig.sender;
 
-    dbg_str(EV_IMPORTANT,"evsig_send signal=%d, event base:%p", *(char *)c, eb);
+    dbg_str(EV_VIP,"evsig_send signal=%d, event base:%p", *(char *)c, eb);
     sender->send(sender, (char *)c, 1, 0);
 
     return ;
@@ -153,7 +153,7 @@ quit_signal_cb(int fd, short event_res, void *arg)
     struct event *event = (struct event *)arg;
     Event_Base* eb = (Event_Base*)event->ev_base;
 
-    dbg_str(EV_VIP, "quit_signal_cb, signal no:%d", event->ev_fd);
+    dbg_str(DBG_VIP, "quit_signal_cb, signal no:%d", event->ev_fd);
     eb->break_flag = 1;
 }
 
