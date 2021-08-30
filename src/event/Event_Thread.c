@@ -102,6 +102,7 @@ static int __del_event(Event_Thread *thread, event_t *event)
         return -1;
     }
 
+    dbg_str(DBG_VIP, "event_thread, del_event fd=%d", event->ev_fd);
     eb->del(eb, event);
 
     if (c->send(c, "d", 1, 0) != 1) {//to make option task effect

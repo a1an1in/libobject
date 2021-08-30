@@ -84,8 +84,10 @@ static int __deconstrcut(Inet_Tcp_Socket *socket)
 {
     dbg_str(NET_DETAIL, "socket deconstruct, socket addr:%p", socket);
 
-    if (socket->parent.fd)
+    if (socket->parent.fd) {
+        dbg_str(NET_SUC, "socket deconstruct, close socket fd:%d", socket->parent.fd);
         close(socket->parent.fd);
+    }
 
     return 0;
 }
@@ -200,7 +202,7 @@ static Socket * __accept(Inet_Tcp_Socket *socket,
     struct sockaddr_storage cliaddr;
     socklen_t len;
     allocator_t *allocator = socket->parent.obj.allocator;
-    int connfd;
+    int connfd, opt = 1;
     Socket *ret = NULL;
 
 

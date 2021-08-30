@@ -26,7 +26,6 @@ evsig_cb(int fd, short what, void *arg)
     int n;
     int i;
 
-    dbg_str(EV_VIP,"evsig_cb in, eb:%p", eb);
     memset(&ncaught, 0, sizeof(ncaught));
 
     n = receiver->recv(receiver, signals, sizeof(signals), 0);
@@ -35,6 +34,7 @@ evsig_cb(int fd, short what, void *arg)
         return ;
     } else if (n == 0) {
     }
+    dbg_str(EV_VIP,"evsig_cb in, eb:%p, recve signal count:%d, signal:%d", eb, n, signals[0]);
 
     for (i = 0; i < n; ++i) {
         uint8_t sig = signals[i];

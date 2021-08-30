@@ -47,7 +47,7 @@ static int __construct(Buffer *buffer,char *init_str)
         buffer->capacity  = DEFAULT_BUFFER_SIZE;
     }
 
-    buffer->addr = allocator_mem_alloc(allocator, buffer->capacity);
+    buffer->addr = allocator_mem_zalloc(allocator, buffer->capacity);
     if (buffer->addr == NULL) {
         dbg_str(IO_ERROR, "allocator_mem_alloc");
         return -1;
