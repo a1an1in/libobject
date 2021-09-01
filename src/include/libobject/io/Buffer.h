@@ -23,6 +23,8 @@ struct buffer_s{
     int (*printf)(Buffer *buffer, int len, const char *fmt, ...);
     int (*reset)(Buffer *buffer);
     int (*get_len)(Buffer *);
+    int (*get_needle_offset)(Buffer *buffer, void *needle, int needle_len);
+    int (*read_to_string)(Buffer *buffer, String *str, int len);
     int (*set_capacity)(Buffer *, int size);
     int (*get_free_capacity)(Buffer *buffer);
 

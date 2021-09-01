@@ -34,6 +34,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/io/Buffer.h>
+#include <libobject/core/try.h>
 
 #define DEFAULT_BUFFER_SIZE 1024
 
@@ -55,7 +56,6 @@ static int __construct(Buffer *buffer,char *init_str)
 
     buffer->r_offset = 0;
     buffer->w_offset = 0;
-    buffer->len = 0;
 
     return 0;
 }
@@ -72,7 +72,7 @@ static int __deconstrcut(Buffer *buffer)
 
 static int __get_len(Buffer *buffer)
 {
-    return buffer->w_offset;
+    return buffer->w_offset - buffer->r_offset;
 }
 
 static int __get_free_capacity(Buffer *buffer)
@@ -193,11 +193,57 @@ static int __printf(Buffer *buffer, int len, const char *fmt, ...)
     return ret;
 }
 
+static int __get_needle_offset(Buffer *buffer, void *needle, int needle_len)
+{
+    void *haystack, *target = NULL;
+    int needle_offset, buf_len, cnt = 0;
+    int ret = 1;
+
+    TRY {
+        buf_len = buffer->get_len(buffer);
+        THROW_IF(buf_len < needle_len, -1);
+
+        while (cnt <= buf_len - needle_len) {
+            haystack = buffer->addr + buffer->r_offset + cnt;
+            if (!memcmp(haystack, needle, needle_len)) {
+                target = haystack;
+                break;
+            }
+
+            cnt++;
+        }
+        THROW_IF(target == NULL, -1);
+        THROW((int)(target - buffer->addr - buffer->r_offset));
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "needle:%s, needle_len:%d, target:%p", needle, needle_len, target);
+    }
+
+    return ret;
+}
+
+static int __read_to_string(Buffer *buffer, String *str, int len)
+{
+    int l, ret = 1;
+
+    TRY {
+        l = buffer->get_len(buffer);
+        THROW_IF(len > l, -1);
+
+        str->append(str, buffer->addr + buffer->r_offset, len);
+        buffer->r_offset += len;
+
+        THROW(len);
+    } CATCH (ret) {
+        dbg_str(IO_ERROR, "Buffer::read_to_string() error, read len=%d, buffer len=%d", len, l);
+    }
+
+    return ret;
+}
+
 static char *__reset(Buffer *buffer) 
 {
     buffer->r_offset = 0;
     buffer->w_offset = 0;
-    buffer->len = 0;
 
     return 0;
 }
@@ -213,9 +259,11 @@ static class_info_entry_t buffer_class_info[] = {
     Init_Vfunc_Entry(7 , Buffer, printf, __printf),
     Init_Vfunc_Entry(8 , Buffer, reset, __reset),
     Init_Vfunc_Entry(9 , Buffer, get_len, __get_len),
-    Init_Vfunc_Entry(10, Buffer, set_capacity, __set_capacity),
-    Init_Vfunc_Entry(11, Buffer, get_free_capacity, __get_free_capacity),
-    Init_End___Entry(12, Buffer),
+    Init_Vfunc_Entry(10, Buffer, get_needle_offset, __get_needle_offset),
+    Init_Vfunc_Entry(11, Buffer, read_to_string, __read_to_string),
+    Init_Vfunc_Entry(12, Buffer, set_capacity, __set_capacity),
+    Init_Vfunc_Entry(13, Buffer, get_free_capacity, __get_free_capacity),
+    Init_End___Entry(14, Buffer),
 };
 REGISTER_CLASS("Buffer", buffer_class_info);
 
@@ -250,3 +298,56 @@ int test_buffer(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_FUNC(test_buffer);
+
+int test_buffer_get_needle_offset(TEST_ENTRY *entry)
+{
+    Buffer *buffer;
+    allocator_t *allocator = allocator_get_default_alloc();
+    char in[14] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'};
+    char out[14] = {'\0'};
+    int offset, ret = -1;
+
+    TRY {
+        buffer = OBJECT_NEW(allocator, Buffer, NULL);
+        buffer->set_capacity(buffer, 14);
+        buffer->write(buffer, in, 14);
+        offset = buffer->get_needle_offset(buffer, "gh", 2);
+
+        THROW_IF(offset != 6, -1);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "offset=%d", offset);
+    } FINALLY {
+        object_destroy(buffer);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_buffer_get_needle_offset);
+
+int test_buffer_read_to_string(TEST_ENTRY *entry)
+{
+    Buffer *buffer;
+    String *str;
+    allocator_t *allocator = allocator_get_default_alloc();
+    char in[14] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'};
+    char out[14] = {'\0'};
+    int offset, ret = -1;
+
+    TRY {
+        buffer = OBJECT_NEW(allocator, Buffer, NULL);
+        str = OBJECT_NEW(allocator, String, NULL);
+
+        buffer->set_capacity(buffer, 14);
+        buffer->write(buffer, in, 14);
+        EXEC(buffer->read_to_string(buffer, str, 8));
+        THROW_IF(!str->equal(str, "abcdefgh"), -1);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "read str:%s", STR2A(str));
+    } FINALLY {
+        object_destroy(buffer);
+        object_destroy(str);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_buffer_read_to_string);

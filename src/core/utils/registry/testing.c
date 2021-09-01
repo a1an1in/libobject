@@ -86,7 +86,7 @@ __register_test_func(int (*func)(void *),
     element->func_name = func_name;
     element->file = file;
     element->line = line;
-
+    
     reg_heap_add(reg_heap, (void *)element);
 
     return 0;
@@ -173,15 +173,10 @@ int execute_test_designated_func(char *func_name, void *arg1, void *arg2)
     int flag = 0;
 
     size = reg_heap_size(reg_heap);
-    for(i=0; i< size; i++){
+    for (i = 0; i< size; i++){
         reg_heap_remove(reg_heap, (void **)&element);
 
         if (strcmp(element->func_name, func_name) != 0) {
-            free(element);
-            continue;
-        }
-
-        if (element->type != FUNC_ENTRY_TYPE_STANDALONE) {
             free(element);
             continue;
         }
