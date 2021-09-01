@@ -27,7 +27,6 @@ struct string_s{
     void (*format)(String *, int max_len, char *fmt, ...);
     void (*append)(String *string, char *sub, int len);
     String *(*append_char)(String *string,char c);
-    void (*append_string)(String *,String *);
     String *(*replace_char)(String *string,int index, char c);
     char (*at)(String *string,int index);
     void (*toupper)(String*);
@@ -43,7 +42,6 @@ struct string_s{
     int (*is_empty)(String *);
     int (*replace)(String *,char *oldstr,char * newstr, int max);
     String *(*insert)(String * dest,size_t index,char * src);
-    String *(*insert_string)(String * dest,size_t index,String * src);
     int (*split)(String *string, char *delims, int num);
     char *(*get_splited_cstr)(String *, int);
     char *(*get_found_cstr)(String *, int);
