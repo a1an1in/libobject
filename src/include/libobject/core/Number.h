@@ -61,4 +61,7 @@ struct Number_s{
     enum number_type_e type;
 };
 
+#define NUM2S32(number) number->get_signed_int_value(number)  
+#define NUM2U32(number) number->get_unsigned_int_value(number)  
+
 #endif

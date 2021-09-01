@@ -55,6 +55,5 @@ struct string_s{
 };
 
 #define STR2A(string) string->get_cstr(string)  
-#define STR2I(string) string->get_signed_int_value(string)  
 
 #endif

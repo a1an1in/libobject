@@ -101,18 +101,14 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
     len = socket->recv(socket, task->buf, task->buf_len, 0);
 
     // len = 0, means connect close by peer; len = -1, means received a rst packet
-    if (len == 0) {
+    if (len <= 0) {
         dbg_str(NET_SUC, "tcp subsocket ev callback, fd:%d recv len=%d, which means connect is closed by peer", fd, len);
+        len_bak       = task->buf_len;
         task->buf_len = len;
         worker->work_callback(task); //end request
+        task->buf_len = len_bak;
         server->close_subsocket(server, worker->socket);
         return 1;
-    } else if (len == -1) {
-        dbg_str(NET_SUC, "tcp subsocket ev callback, fd:%d recv len=%d, which means received a reset packet", fd, len);
-    } else if (len < -1) {
-        dbg_str(NET_ERROR, "socket read error, ret = %d", len);
-        perror("new_conn_ev_callback\n");
-        exit(1);
     }
 
     if (worker->work_callback && len) {

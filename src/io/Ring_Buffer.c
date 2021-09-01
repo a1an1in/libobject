@@ -293,9 +293,9 @@ static int __get_needle_offset(Ring_Buffer *rb, void *needle, int needle_len, in
         needle_offset = addr - rb->addr;
         len = needle_offset - rb->r_offset;
         if (len > 0) {
-            return len + needle_len;
+            return len;
         } else {
-            return (len + rb->size + needle_len) % rb->size;
+            return (len + rb->size) % rb->size;
         }
     }
 
@@ -565,6 +565,7 @@ int test_ring_rb_get_needle_offset(TEST_ENTRY *entry)
     rb->last_operation_flag = BUFFER_WRITE_OPERATION;
 
     len = rb->get_needle_offset(rb, "\r\n", 2, len);
+    len += 2;
 
     dbg_str(IO_DETAIL, "len=%d", len);
     if (len == 37) {
