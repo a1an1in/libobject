@@ -154,7 +154,6 @@ int __set_vector_policy(Obj *obj, class_info_entry_t *entry, void *value)
     allocator_t *allocator = obj->allocator;
     Vector **addr = (Vector **)(base + entry->offset);
     Vector *v;
-    int value_type = VALUE_TYPE_OBJ_POINTER;
     uint8_t trustee_flag = 1;
     char *p = (char *)value;
 
@@ -164,7 +163,6 @@ int __set_vector_policy(Obj *obj, class_info_entry_t *entry, void *value)
         v = object_new(allocator, "Vector", NULL);
     }
     if (p[0] == '[') {
-        v->set(v, "/Vector/value_type", &value_type);
         v->set(v, "/Vector/init_data", value);
         v->set(v, "/Vector/class_name", entry->type_name);
         v->set(v, "/Vector/trustee_flag", &trustee_flag);

@@ -42,6 +42,10 @@ static int __construct(Vector *vector, char *init_str)
 {
     allocator_t *allocator = vector->obj.allocator;
     cjson_t *c, *bak;
+    int value_type = -1;
+    String *s;
+    char *out;
+    Obj *o;
 
     dbg_str(OBJ_DETAIL, "vector construct, vector addr:%p", vector);
 
@@ -58,9 +62,7 @@ static int __construct(Vector *vector, char *init_str)
         return 0;
     }
 
-    dbg_str(DBG_DETAIL, "vector init data:%s", 
-            vector->init_data->get_cstr(vector->init_data));
-
+    dbg_str(DBG_DETAIL, "vector init data:%s", STR2A(vector->init_data));
     c = cjson_parse(vector->init_data->get_cstr(vector->init_data));
     bak = c;
     if (c->type & OBJECT_ARRAY) {
@@ -70,9 +72,10 @@ static int __construct(Vector *vector, char *init_str)
 
     while (c) {
         if (c->type & CJSON_NUMBER) {
+            value_type = ENTRY_TYPE_INT32_T;
             vector->add(vector, c->valueint);
         } else if (c->type & OBJECT_STRING) {
-            String *s;
+            value_type = VALUE_TYPE_STRING;
             dbg_str(DBG_DETAIL, "vector element:%s", c->valuestring);
             s = object_new(allocator, "String", NULL);
             s->assign(s, c->valuestring);
@@ -80,9 +83,8 @@ static int __construct(Vector *vector, char *init_str)
         } else if (c->type & OBJECT_ARRAY) {
             dbg_str(DBG_DETAIL, "vector element, not supported now!");
         } else if (c->type & CJSON_OBJECT) {
-            char *out;
-            Obj *o;
-            char *class_name = vector->class_name->get_cstr(vector->class_name);
+            value_type = VALUE_TYPE_OBJ_POINTER;
+            char *class_name = STR2A(vector->class_name);
             out = cjson_print(c);
             o = object_new(allocator, class_name, out);
             vector->add(vector, o);
@@ -95,6 +97,9 @@ static int __construct(Vector *vector, char *init_str)
 
         c = c->next;
     }
+
+    if (value_type != -1)
+        vector->set(vector, "/Vector/value_type", &value_type);
 
     cjson_delete(bak);
 
@@ -435,10 +440,8 @@ static int __assign(Vector * vector, char *value)
             json = strchr(value, ':');
             THROW_IF(out == NULL, -1);
             json += 1;
-            value_type = VALUE_TYPE_OBJ_POINTER;
         } else if (value[0] == '[') {
             json = value;
-            value_type = VALUE_TYPE_STRING;
         } else {
             THROW(-1);
         }
@@ -451,15 +454,18 @@ static int __assign(Vector * vector, char *value)
 
         while (c) {
             if (c->type & CJSON_NUMBER) {
+                value_type = ENTRY_TYPE_INT32_T;
                 vector->add(vector, c->valueint);
             } else if (c->type & OBJECT_STRING) {
                 dbg_str(DBG_DETAIL, "vector element:%s", c->valuestring);
+                value_type = VALUE_TYPE_STRING;
                 s = object_new(allocator, "String", NULL);
                 s->assign(s, c->valuestring);
                 vector->add(vector, s);
             } else if (c->type & OBJECT_ARRAY) {
                 dbg_str(DBG_DETAIL, "vector element, not supported now!");
             } else if (c->type & CJSON_OBJECT) {
+                value_type = VALUE_TYPE_OBJ_POINTER;
                 out = cjson_print(c);
                 dbg_str(DBG_DETAIL, "object :%s value:%s", object_name, out);
                 o = object_new(allocator, object_name, out);
