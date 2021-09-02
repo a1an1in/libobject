@@ -35,7 +35,7 @@ struct string_s{
     void (*rtrim)(String *);
     void (*trim)(String *);
     int  (*find)(String *string, char *, int pos, int max);
-    String * (*get_substring)(String  *string,int pos,int len);  
+    int (*get_substring)(String *string, char *pattern, int offset, int *start, int *len);
     char *(*get_cstr)(String *);
     size_t (*get_len)(String *);
     void (*reset)(String *);

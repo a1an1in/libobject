@@ -183,11 +183,6 @@ static int __equal(String *string, char *s)
     return strcmp(string->value, s) == 0;
 }
 
-static int __equal_string(String *s1, String *s2)
-{
-    return strcmp(s1->value, s2->value) == 0;
-}
-
 static String *__append_char(String *string, char c)
 {
     int ret;
@@ -408,22 +403,40 @@ static void __trim(String *string)
     }
 }
 
-static String *__get_substring(String  *string, int pos, int len)
+static int __get_substring(String *string, char *pattern, int offset, int *start, int *len)
 {
-    int size = string->value_len;
-    int i;
-    String *str;
+    char *pos;
+    Vector *v;
+    string_piece_t *piece;
+    allocator_t *allocator = string->obj.allocator;
+    regex_t regex;  
+    regmatch_t pmatch[2] = {{-1,-1},{-1,-1}}; 
+    int nmatch = 2, ret = -1;
 
-    str = OBJECT_NEW(string->obj.allocator, String, NULL);
+    TRY {
+        ret = regcomp_wrap(&regex, pattern, REG_EXTENDED|REG_ICASE);  
+        if (ret) return -1;
 
-    assert(pos <= size);
+        pos = string->get_cstr(string);
+        if (strlen(pos) == 0) return 0;
+        pos += offset;
 
-    for (i = pos;i < size && len; i++) {
-        str->append_char(str, string->value[i]);
-        len--;
+        ret = regexec_wrap(&regex, pos, nmatch, pmatch, 0);  
+        THROW_IF(ret == REG_NOMATCH, -1);
+        THROW_IF(pmatch[1].rm_so == -1, -1);
+        *start = (pmatch[1].rm_so + offset);
+        *len = pmatch[1].rm_eo - pmatch[1].rm_so;
+        ret = pmatch[0].rm_eo + offset; 
+
+        dbg_str(DBG_DETAIL, "get subsring, pattern:%s, start:%d, len:%d, substr:%.*s", 
+                pattern, *start, *len, *len, &string->value[pmatch[1].rm_so]);
+        THROW(ret);
+    } CATCH (ret) {
+    } FINALLY {
+        regfree_wrap(&regex);  
     }
 
-    return str;
+    return ret;
 }
 
 static int __find(String *string, char *pattern, int offset, int num)

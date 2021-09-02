@@ -130,17 +130,20 @@ static int __test_len(String_Test *test)
 
 static int __test_get_substring(String_Test *test)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
-    String *string = test->str, *sub_str;
-    char *test1 = "v//_sug1 =";
-    char *t = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
+    String *string = test->str;
+    char *t = "Content-Disposition: filename=\"u=1573948710,2851629614&fm=26&fmt=auto&gp=0.webp\"";
+    char *regex = "filename=\"([a-z0-9A-Z\.,&=]+)\"";
+    int ret, start = 0, len;
 
-    string->assign(string, t);
-    sub_str = string->get_substring(string, 3, 10);
-    
-    ASSERT_EQUAL(test, sub_str->get_cstr(sub_str), test1, strlen(test1));
+    TRY {
+        string->assign(string, t);
+        string->get_substring(string, regex, 0, &start, &len);
+        THROW_IF(start != 31, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+    }
 
-    object_destroy(sub_str);
+    return ret;
 }
 
 static int __test_insert(String_Test *test)
@@ -194,7 +197,7 @@ static int __test_split_case1(String_Test *test)
 
     cnt = str->split(str, "://", 1);
 
-    dbg_str(DBG_ERROR, "split count=%d", cnt);
+    dbg_str(DBG_DETAIL, "split count=%d", cnt);
     for (i = 0; i < cnt; i++) {
         p = str->get_splited_cstr(str, i);
         if (p != NULL) {
