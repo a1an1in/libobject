@@ -2,6 +2,7 @@
 #define __FILE_H__
 
 #include <stdio.h>
+#include <sys/stat.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/String.h>
@@ -23,6 +24,8 @@ struct file_s{
     int (*read)(File *, void *dst, int len);
     int (*write)(File *, void *src, int len);
     int (*close)(File *file);
+    int (*is_exist)(File *file, char *path);
+    int (*mkdir)(File *file, char *path, mode_t mode);
 
     /*attribs*/
     String *name;

@@ -33,6 +33,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/io/File.h>
+#include <errno.h>
 
 static int __construct(File *file,char *init_str)
 {
@@ -41,19 +42,30 @@ static int __construct(File *file,char *init_str)
 
 static int __deconstruct(File *file)
 {
-    dbg_str(IO_DETAIL,"file deconstruct,file addr:%p",file);
+    if (file->name) {
+        object_destroy(file->name);
+    }
 
     return 0;
 }
 
 static int __open(File *file, char *path, char *mode)
 {
-    file->f = fopen(path, mode);
+    allocator_t *allocator = file->parent.obj.allocator;
+    int ret = 1;
 
-    if (file->f == NULL) {
-        perror("fopen");
-        return -1;
+    TRY {
+        file->f = fopen(path, mode);
+        THROW_IF(file->f == NULL, -1);
+
+        file->name = (String *)object_new(allocator, (char *)"String", NULL);
+        THROW_IF(file->name == NULL, -1);
+        file->name->assign(file->name, path);
+    } CATCH (ret) {
+        dbg_str(IO_ERROR,"file open error, path:%s, error str:%s", path, strerror(errno));
     }
+
+    return ret;
 }
 
 int __read(File *file, void *dst, int len)
@@ -68,6 +80,25 @@ int __write(File *file, void *src, int len)
 
 static int __rename(File *file, char *path)
 {
+}
+
+/* not user access as interface, for access mode paramater is not general */
+static int __is_exist(File *file, char *path)
+{
+    if (access(path, F_OK) < 0) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+static int __mkdir(File *file, char *path, mode_t mode)
+{
+    if(mkdir(path, mode) < 0) {
+        return -1;
+    } else {
+        return 1;
+    }
 }
 
 static int __close(File *file)
@@ -85,8 +116,10 @@ static class_info_entry_t file_class_info[] = {
     Init_Vfunc_Entry(6 , File, read, __read),
     Init_Vfunc_Entry(7 , File, write, __write),
     Init_Vfunc_Entry(8 , File, rename, __rename),
-    Init_Vfunc_Entry(9 , File, close, __close),
-    Init_End___Entry(10, File),
+    Init_Vfunc_Entry(9 , File, is_exist, __is_exist),
+    Init_Vfunc_Entry(10, File, mkdir, __mkdir),
+    Init_Vfunc_Entry(11, File, close, __close),
+    Init_End___Entry(12, File),
 };
 REGISTER_CLASS("File", file_class_info);
 
