@@ -169,7 +169,7 @@ digest_sha1_body(digest_sha1_t *ctx, const uint8_t *data, unsigned int size)
     return p;
 }
 
-void
+int
 digest_sha1_init(digest_sha1_t *ctx)
 {
     ctx->a = 0x67452301;
@@ -179,9 +179,11 @@ digest_sha1_init(digest_sha1_t *ctx)
     ctx->e = 0xc3d2e1f0;
 
     ctx->bytes = 0;
+
+    return 1;
 }
 
-void
+int
 digest_sha1_update(digest_sha1_t *ctx, const void *data, unsigned int size)
 {
     unsigned int used, free;
@@ -209,9 +211,11 @@ digest_sha1_update(digest_sha1_t *ctx, const void *data, unsigned int size)
     }
 
     memcpy(ctx->buffer, data, size);
+
+    return 1;
 }
 
-void
+int
 digest_sha1_final(digest_sha1_t *ctx, uint8_t result[20])
 {
     unsigned int used, free;
@@ -265,6 +269,8 @@ digest_sha1_final(digest_sha1_t *ctx, uint8_t result[20])
     result[19] = (uint8_t) ctx->e;
 
     memset(ctx, 0, sizeof(*ctx));
+
+    return 1;
 }
 
 static int

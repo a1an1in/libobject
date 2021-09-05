@@ -48,4 +48,9 @@
 int main(int argc, char *argv[])
 {
     return app(argc, argv);
+    /*
+     *int arg_count = 3;
+     *char *arg_value[3] = {"./sysroot/mac/bin/main", "mockery", "test_obj_sha1"};
+     *return app(arg_count, arg_value);
+     */
 }

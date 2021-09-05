@@ -9,8 +9,8 @@ typedef struct {
     uint8_t buffer[64];
 } digest_sha1_t;
 
-void digest_sha1_init(digest_sha1_t *ctx);
-void digest_sha1_update(digest_sha1_t *ctx, const void *data, unsigned int size);
-void digest_sha1_final(digest_sha1_t *ctx, uint8_t result[20]);
+int digest_sha1_init(digest_sha1_t *ctx);
+int digest_sha1_update(digest_sha1_t *ctx, const void *data, unsigned int size);
+int digest_sha1_final(digest_sha1_t *ctx, uint8_t result[20]);
 
 #endif
