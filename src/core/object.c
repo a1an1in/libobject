@@ -166,6 +166,26 @@ __object_get_entry_of_class(void *class_info, char *entry_name)
     return NULL;
 }
 
+class_info_entry_t *
+__object_get_entry_of_class_by_class_name(char *class_name, char *entry_name)
+{
+    class_info_entry_t * info, *entry = NULL;
+    class_deamon_t *deamon;
+    int ret = 1;
+
+    TRY {
+        deamon = class_deamon_get_global_class_deamon();
+        info = (class_info_entry_t *) class_deamon_search_class(deamon, class_name);
+        THROW_IF(info == NULL, -1);
+        entry = __object_get_entry_of_class(info, entry_name);
+        THROW_IF(entry == NULL, -1);
+    } CATCH (ret) {
+        entry = NULL;
+    }
+
+    return entry;
+}
+
 int 
 __object_get_class_size(void *class_info_addr)
 {

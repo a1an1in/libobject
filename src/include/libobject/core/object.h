@@ -22,6 +22,7 @@ int object_dump(void *obj, char *type_name, char *buf, int max_len);
 void * object_new(allocator_t *allocator, char *type, char *config);
 int object_destroy(void *obj);
 class_info_entry_t * __object_get_entry_of_class(void *class_info, char *entry_name);
+class_info_entry_t * __object_get_entry_of_class_by_class_name(char *class_name, char *entry_name);
 class_info_entry_t * __object_get_entry_of_parent_class(void *class_info_addr);
 void * __object_get_func_of_class_recursively(void *class_info_addr, char *func_name);
 void * __object_get_func_of_class(char *class_name, char *func_name);
