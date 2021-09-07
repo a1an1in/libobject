@@ -14,6 +14,7 @@ typedef struct work_task_s{
     void *opaque;
     void *request;
     allocator_t *allocator;
+    short event;
 } work_task_t;
 
 static inline work_task_t *

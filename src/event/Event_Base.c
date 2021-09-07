@@ -152,7 +152,7 @@ static int __activate_io(Event_Base *eb, int fd, short events)
         dbg_str(EV_DETAIL, "event addr:%p, ev_callback=%p", 
                 event, event->ev_callback);
 
-        event->ev_callback(event->ev_fd, 0, event->ev_arg);
+        event->ev_callback(event->ev_fd, events, event->ev_arg);
 
         if (event->ev_events & EV_PERSIST) {
             timer->del(timer, event);

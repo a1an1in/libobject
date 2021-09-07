@@ -131,14 +131,19 @@ static int __test_len(String_Test *test)
 static int __test_get_substring(String_Test *test)
 {
     String *string = test->str;
-    char *t = "Content-Disposition: filename=\"u=1573948710,2851629614&fm=26&fmt=auto&gp=0.webp\"";
-    char *regex = "filename=\"([a-z0-9A-Z\.,&=]+)\"";
-    int ret, start = 0, len;
+    /*
+     *char *t = "Content-Disposition: filename=\"u=1573948710,2851629614&fm=26&fmt=auto&gp=0.webp\"";
+     */
+    char *t = "str:content-disposition: form-data; name=\"file\"; filename=\"snipaste_20210907_14-25-03.png\"";
+    char *regex = "filename=\"([a-z0-9A-Z\._,&=-]+)\"";
+    int ret, start = -1, len;
 
     TRY {
         string->assign(string, t);
-        string->get_substring(string, regex, 0, &start, &len);
-        THROW_IF(start != 31, -1);
+        EXEC(string->get_substring(string, regex, 0, &start, &len));
+        dbg_str(DBG_DETAIL, "start:%d", start);
+        dbg_str(DBG_DETAIL, "sub:%s", &string->value[start]);
+        THROW_IF(start == -1, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
     }

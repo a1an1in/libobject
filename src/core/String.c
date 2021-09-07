@@ -432,6 +432,7 @@ static int __get_substring(String *string, char *pattern, int offset, int *start
                 pattern, *start, *len, *len, &string->value[pmatch[1].rm_so]);
         THROW(ret);
     } CATCH (ret) {
+        *start = -1;
     } FINALLY {
         regfree_wrap(&regex);  
     }
