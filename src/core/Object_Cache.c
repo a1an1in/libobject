@@ -123,7 +123,7 @@ static void * __new(Object_Cache *cache, char *class_name, char *data)
             EXEC(map->add(map, class_name, new_list));
             EXEC(object_list->add_back(object_list, o));
             EXEC(object_list->add_back(object_list, new_list));
-            dbg_str(OBJ_SUC, "get object from cache:%p, but cache hasn't %s class", cache, class_name);
+            dbg_str(OBJ_DETAIL, "get object from cache:%p, but cache hasn't %s class", cache, class_name);
         } else {
             if (list->is_empty(list)) {
                 THROW_IF((o = object_new(allocator, class_name, data)) == NULL, -1);
@@ -131,7 +131,7 @@ static void * __new(Object_Cache *cache, char *class_name, char *data)
                 dbg_str(OBJ_DETAIL, "get object from cache, but cache is null");
             } else {
                 EXEC(list->remove(list, (void **)&o));
-                dbg_str(OBJ_SUC, "get object %s from cache:%p", class_name, cache);
+                dbg_str(OBJ_DETAIL, "get object %s from cache:%p", class_name, cache);
             }
         }
 

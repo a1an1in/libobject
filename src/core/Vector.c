@@ -169,7 +169,7 @@ static int __peek_at(Vector *vector, int index, void **value)
 }
 
 static int 
-__for_each(Vector *vector, void (*func)(int index, void *element))
+__for_each(Vector *vector, int (*func)(int index, void *element))
 {
     vector_pos_t pos, next;
     vector_t *v = vector->vector;
