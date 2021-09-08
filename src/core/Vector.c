@@ -419,13 +419,13 @@ static char *__to_json(Obj *obj)
     return json->get_cstr(json);
 }
 
-static int __assign(Vector * vector, char *value)
+static int __assign(Vector *vector, char *value)
 {
     allocator_t *allocator = vector->obj.allocator;
     cjson_t *c, *bak = NULL;
     Obj *o;
     char *out;
-    String *s;
+    String *s, **sp2;
     char object_name[20] = {0};
     char *json;
     int ret = 1;
@@ -437,6 +437,7 @@ static int __assign(Vector * vector, char *value)
             out  = strchr(value, ')');
             THROW_IF(out == NULL, -1);
             strncpy(object_name, value + 1, out - value - 1);
+            vector->set(vector, "/Vector/class_name", object_name);
             json = strchr(value, ':');
             THROW_IF(out == NULL, -1);
             json += 1;
@@ -467,8 +468,11 @@ static int __assign(Vector * vector, char *value)
             } else if (c->type & CJSON_OBJECT) {
                 value_type = VALUE_TYPE_OBJ_POINTER;
                 out = cjson_print(c);
-                dbg_str(DBG_DETAIL, "object :%s value:%s", object_name, out);
-                o = object_new(allocator, object_name, out);
+
+                sp2 = vector->get(vector, "/Vector/class_name");
+                THROW_IF(sp2 == NULL || *sp2 == NULL, -1);
+                dbg_str(DBG_DETAIL, "object :%s value:%s", STR2A(*sp2), out);
+                o = object_new(allocator, STR2A(*sp2), out);
                 vector->add(vector, o);
 
                 dbg_str(DBG_DETAIL, "o: %s", o->to_json(o));
