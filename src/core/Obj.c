@@ -355,8 +355,7 @@ static int __deconstrcut(Obj *obj)
  */
 static int __set(Obj *obj, char *attrib, void *value)
 {
-    class_info_entry_t * info, *entry;
-    class_deamon_t *deamon;
+    class_info_entry_t *entry;
     allocator_t *allocator = obj->allocator;
     uint8_t *base = (uint8_t *)obj;
     char *buf = NULL;  
@@ -385,9 +384,7 @@ static int __set(Obj *obj, char *attrib, void *value)
         target_name = obj->target_name;
     }
 
-    deamon = class_deamon_get_global_class_deamon();
-    info = (class_info_entry_t *) class_deamon_search_class(deamon, target_name);
-    entry = __object_get_entry_of_class(info, attrib);
+    entry = object_get_entry_of_class(target_name, attrib);
     if (entry == NULL) {
         ret = -1;
         goto end;
@@ -421,8 +418,7 @@ end:
  */
 static void *__get(Obj *obj, char *attrib)
 {
-    class_info_entry_t * info, *entry;
-    class_deamon_t *deamon;
+    class_info_entry_t *entry;
     uint8_t *base = (uint8_t *)obj;
     allocator_t *allocator = obj->allocator;
     void *addr;
@@ -453,12 +449,7 @@ static void *__get(Obj *obj, char *attrib)
         target_name = obj->target_name;
     }
 
-    deamon = class_deamon_get_global_class_deamon();
-    info   = (class_info_entry_t *)
-              class_deamon_search_class(deamon,
-                                        target_name);
-
-    entry  = __object_get_entry_of_class(info, attrib);
+    entry  = object_get_entry_of_class(target_name, attrib);
     if (entry == NULL) {
         return NULL;
     }

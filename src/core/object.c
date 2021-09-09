@@ -166,26 +166,6 @@ __object_get_entry_of_class(void *class_info, char *entry_name)
     return NULL;
 }
 
-class_info_entry_t *
-__object_get_entry_of_class_by_class_name(char *class_name, char *entry_name)
-{
-    class_info_entry_t * info, *entry = NULL;
-    class_deamon_t *deamon;
-    int ret = 1;
-
-    TRY {
-        deamon = class_deamon_get_global_class_deamon();
-        info = (class_info_entry_t *) class_deamon_search_class(deamon, class_name);
-        THROW_IF(info == NULL, -1);
-        entry = __object_get_entry_of_class(info, entry_name);
-        THROW_IF(entry == NULL, -1);
-    } CATCH (ret) {
-        entry = NULL;
-    }
-
-    return entry;
-}
-
 int 
 __object_get_class_size(void *class_info_addr)
 {
@@ -342,69 +322,6 @@ int __object_override_virtual_funcs(void *obj,
     return 0;
 }
 
-void * object_new(allocator_t *allocator, char *type, char *config)
-{
-    Obj *o;
-    class_info_entry_t *entry;
-    class_deamon_t *deamon;
-    char *init_data;
-    int size = 0, ret, assign_flag = 0;
-
-    if (type == NULL) return NULL;
-    if (allocator == NULL) {
-        allocator = allocator_get_default_alloc();
-    }
-
-    deamon = class_deamon_get_global_class_deamon();
-    entry  = (class_info_entry_t *)
-             class_deamon_search_class(deamon, type);
-
-    size = __object_get_class_size(entry);
-    if (size == 0) return NULL;
-
-    o = (Obj *)allocator_mem_alloc(allocator, size);
-    if (o == NULL) {
-        dbg_str(OBJ_ERROR, "alloc mem failed");
-        return NULL;
-    } else {
-        allocator_save_upper_nlayer_name(allocator, 2, o);
-        memset(o, 0, size);
-        o->allocator = allocator;
-        strcpy(o->name, type);
-    }
-
-    if (config != NULL && (strcmp(type, "String") == 0 || strcmp(type, "Vector") == 0)) {
-        init_data = config;
-        config = NULL;
-        assign_flag = 1;
-    }
-
-    ret = object_set(o, type, config);
-    if (ret < 0) {
-        dbg_str(OBJ_ERROR, "object set failed");
-        goto err_object_set;
-    }
-
-    ret = object_init(o, type);
-    if (ret < 0) {
-        dbg_str(OBJ_ERROR, "object init failed");
-        goto err_object_init;
-    }
-
-    if (assign_flag) {
-        o->assign(o, init_data);
-    }
-
-    goto end;
-
-err_object_init:
-err_object_set:
-    allocator_mem_free(allocator, o);
-end:
-
-    return o;
-}
-
 static int 
 __object_set(void *obj, char *type_name,
              cjson_t *c, int (*set)(void *obj, char *attrib, void *value)) 
@@ -461,35 +378,6 @@ __object_set(void *obj, char *type_name,
 
         c = c->next;
     }
-
-    return 0;
-
-}
-int object_set(void *obj, char *type_name, char *set_str) 
-{
-    cjson_t *root;
-
-    if (set_str == NULL) {
-        root = cjson_parse(set_str);
-    } else if (strlen(set_str) > 0) {
-#define MAX_OBJECT_INIT_DATA_LEN 1024 * 5
-        char init_data[MAX_OBJECT_INIT_DATA_LEN];
-
-        if (strlen(type_name) + strlen(set_str) + 3 >= MAX_OBJECT_INIT_DATA_LEN) {
-            dbg_str(DBG_ERROR, "set string is too long, you may change MAX_OBJECT_INIT_DATA_LEN's default value");
-            return -1;
-        }
-        snprintf(init_data, MAX_OBJECT_INIT_DATA_LEN, "{\"%s\":%s}", type_name, set_str);
-        dbg_str(OBJ_DETAIL, "%s", init_data);
-
-        root = cjson_parse(init_data);
-#undef MAX_OBJECT_INIT_DATA_LEN
-    } else {
-        root = cjson_parse(set_str);
-    }
-
-    __object_set(obj, type_name, root, NULL);
-    cjson_delete(root);
 
     return 0;
 }
@@ -551,11 +439,6 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
     }
 
     return 0;
-}
-
-int object_init(void *obj, char *type_name) 
-{
-    return __object_init(obj, type_name, type_name);
 }
 
 int __object_dump(void *obj, char *type_name, cjson_t *object) 
@@ -627,29 +510,6 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
     return 0;
 }
 
-int object_dump(void *obj, char *type_name, char *buf, int max_len) 
-{
-    cjson_t *root;
-    cjson_t *item;
-    char *out;
-    int len;
-
-    root = cjson_create_object();
-    item = cjson_create_object();
-    cjson_add_item_to_object(root, type_name, item);
-
-    __object_dump(obj, type_name, item);
-
-    out = cjson_print(root);
-    len = strlen(out);
-    len = len > max_len ? max_len: len; 
-    strncpy(buf, out, len);
-
-    strncpy(buf, out, max_len);
-    cjson_delete(root);
-    free(out);
-}
-
 int __object_destroy(void *obj, char *type_name) 
 {
     class_deamon_t *deamon;
@@ -672,6 +532,146 @@ int __object_destroy(void *obj, char *type_name)
     }
 
     return 0;
+}
+
+
+class_info_entry_t *object_get_entry_of_class(char *class_name, char *entry_name)
+{
+    class_info_entry_t * info, *entry = NULL;
+    class_deamon_t *deamon;
+    int ret = 1;
+
+    TRY {
+        deamon = class_deamon_get_global_class_deamon();
+        info = (class_info_entry_t *) class_deamon_search_class(deamon, class_name);
+        THROW_IF(info == NULL, -1);
+        entry = __object_get_entry_of_class(info, entry_name);
+        THROW_IF(entry == NULL, -1);
+    } CATCH (ret) {
+        entry = NULL;
+    }
+
+    return entry;
+}
+
+void * object_new(allocator_t *allocator, char *type, char *config)
+{
+    Obj *o;
+    class_info_entry_t *entry;
+    class_deamon_t *deamon;
+    char *init_data;
+    int size = 0, ret, assign_flag = 0;
+
+    if (type == NULL) return NULL;
+    if (allocator == NULL) {
+        allocator = allocator_get_default_alloc();
+    }
+
+    deamon = class_deamon_get_global_class_deamon();
+    entry  = (class_info_entry_t *)
+             class_deamon_search_class(deamon, type);
+
+    size = __object_get_class_size(entry);
+    if (size == 0) return NULL;
+
+    o = (Obj *)allocator_mem_alloc(allocator, size);
+    if (o == NULL) {
+        dbg_str(OBJ_ERROR, "alloc mem failed");
+        return NULL;
+    } else {
+        allocator_save_upper_nlayer_name(allocator, 2, o);
+        memset(o, 0, size);
+        o->allocator = allocator;
+        strcpy(o->name, type);
+    }
+
+    if (config != NULL && (strcmp(type, "String") == 0 || strcmp(type, "Vector") == 0)) {
+        init_data = config;
+        config = NULL;
+        assign_flag = 1;
+    }
+
+    ret = object_set(o, type, config);
+    if (ret < 0) {
+        dbg_str(OBJ_ERROR, "object set failed");
+        goto err_object_set;
+    }
+
+    ret = object_init(o, type);
+    if (ret < 0) {
+        dbg_str(OBJ_ERROR, "object init failed");
+        goto err_object_init;
+    }
+
+    if (assign_flag) {
+        o->assign(o, init_data);
+    }
+
+    goto end;
+
+err_object_init:
+err_object_set:
+    allocator_mem_free(allocator, o);
+end:
+
+    return o;
+}
+
+int object_set(void *obj, char *type_name, char *set_str) 
+{
+    cjson_t *root;
+
+    if (set_str == NULL) {
+        root = cjson_parse(set_str);
+    } else if (strlen(set_str) > 0) {
+#define MAX_OBJECT_INIT_DATA_LEN 1024 * 5
+        char init_data[MAX_OBJECT_INIT_DATA_LEN];
+
+        if (strlen(type_name) + strlen(set_str) + 3 >= MAX_OBJECT_INIT_DATA_LEN) {
+            dbg_str(DBG_ERROR, "set string is too long, you may change MAX_OBJECT_INIT_DATA_LEN's default value");
+            return -1;
+        }
+        snprintf(init_data, MAX_OBJECT_INIT_DATA_LEN, "{\"%s\":%s}", type_name, set_str);
+        dbg_str(OBJ_DETAIL, "%s", init_data);
+
+        root = cjson_parse(init_data);
+#undef MAX_OBJECT_INIT_DATA_LEN
+    } else {
+        root = cjson_parse(set_str);
+    }
+
+    __object_set(obj, type_name, root, NULL);
+    cjson_delete(root);
+
+    return 0;
+}
+
+int object_init(void *obj, char *type_name) 
+{
+    return __object_init(obj, type_name, type_name);
+}
+
+int object_dump(void *obj, char *type_name, char *buf, int max_len) 
+{
+    cjson_t *root;
+    cjson_t *item;
+    char *out;
+    int len;
+
+    root = cjson_create_object();
+    item = cjson_create_object();
+    cjson_add_item_to_object(root, type_name, item);
+
+    __object_dump(obj, type_name, item);
+
+    out = cjson_print(root);
+    len = strlen(out);
+    len = len > max_len ? max_len: len; 
+    strncpy(buf, out, len);
+
+    strncpy(buf, out, max_len);
+    cjson_delete(root);
+    free(out);
 }
 
 int object_destroy(void *obj) 
