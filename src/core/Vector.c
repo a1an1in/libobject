@@ -471,7 +471,6 @@ static int __assign(Vector *vector, char *value)
 
                 sp2 = vector->get(vector, "/Vector/class_name");
                 THROW_IF(sp2 == NULL || *sp2 == NULL, -1);
-                dbg_str(DBG_DETAIL, "object :%s value:%s", STR2A(*sp2), out);
                 o = object_new(allocator, STR2A(*sp2), out);
                 vector->add(vector, o);
 

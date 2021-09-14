@@ -106,6 +106,22 @@ static int __close(File *file)
     return fclose(file->f);
 }
 
+static int __get_size(File *file)
+{
+    int ret = -1;
+
+    TRY {
+        THROW_IF(file->f == NULL, -1);
+        fseek(file->f, 0L, SEEK_END);
+        ret = ftell(file->f);
+        fseek(file->f, 0L, SEEK_SET);
+        THROW(ret);
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
 static class_info_entry_t file_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , File, construct, __construct),
@@ -119,7 +135,8 @@ static class_info_entry_t file_class_info[] = {
     Init_Vfunc_Entry(9 , File, is_exist, __is_exist),
     Init_Vfunc_Entry(10, File, mkdir, __mkdir),
     Init_Vfunc_Entry(11, File, close, __close),
-    Init_End___Entry(12, File),
+    Init_Vfunc_Entry(12, File, get_size, __get_size),
+    Init_End___Entry(13, File),
 };
 REGISTER_CLASS("File", file_class_info);
 

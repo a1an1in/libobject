@@ -113,9 +113,9 @@ static int __deconstrcut(String *string)
     return 1;
 }
 
-static String *__pre_alloc(String *string, uint32_t size)
+static String *__alloc(String *string, uint32_t size)
 {
-    dbg_str(OBJ_DETAIL, "pre_alloc, size = %d", size);
+    dbg_str(OBJ_DETAIL, "alloc, size = %d", size);
 
     if (size < string->value_max_len) return string;
     else {
@@ -606,7 +606,7 @@ static class_info_entry_t string_class_info[] = {
     Init_Vfunc_Entry(6 , String, get_cstr, __get_cstr), 
     Init_Vfunc_Entry(7 , String, get_len, __get_len), 
     Init_Vfunc_Entry(8 , String, reset, __reset), 
-    Init_Vfunc_Entry(9 , String, pre_alloc, __pre_alloc), 
+    Init_Vfunc_Entry(9 , String, alloc, __alloc), 
     Init_Vfunc_Entry(10, String, modulate_capacity, __modulate_capacity), 
     Init_Vfunc_Entry(11, String, assign, __assign), 
     Init_Vfunc_Entry(12, String, equal, __equal), 

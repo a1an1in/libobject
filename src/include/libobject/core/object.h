@@ -13,6 +13,8 @@
 #define OBJECT_STRING  CJSON_STRING 
 #define OBJECT_ARRAY   CJSON_ARRAY  
 
+#define MAX_OBJECT_INIT_DATA_LEN 1024 * 10 * 2
+
 void * object_get_set_func_pointer(void *class_info_addr);
 int object_init_func_pointer(void *obj,void *class_info_addr);
 class_info_entry_t * object_get_subclass_info(void *class_info_addr);
