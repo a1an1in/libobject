@@ -84,7 +84,7 @@ void allocator_destroy(allocator_t * alloc)
 #if (!defined(WINDOWS_USER_MODE) && !defined(ANDROID_USER_MODE))
 int allocator_save_upper_nlayer_name(allocator_t *allocator, int n, void *dst)
 {
-#define MAX_BACKTRACE_SIZE 10
+#define MAX_BACKTRACE_SIZE 15
     int j, nptrs;
     void *buffer[MAX_BACKTRACE_SIZE];
     char **symbols;

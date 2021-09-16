@@ -88,7 +88,7 @@ __allocator_mem_alloc(allocator_t * alloc,uint32_t size)
     if (ret != NULL) {\
         char tmp[1024];\
         sprintf(tmp, "%d:%s", __LINE__, extract_filename_in_macro(__FILE__));\
-        allocator_mem_tag(alloc,ret, tmp);\
+        allocator_save_upper_nlayer_name(alloc, 2, ret);\
     }\
     ret;\
 })
@@ -107,9 +107,10 @@ __allocator_mem_alloc(allocator_t * alloc,uint32_t size)
 
 #endif
 
-static inline void 
+static inline int 
 allocator_mem_free(allocator_t * alloc,void *addr)
 {
+    if (addr == NULL) return 0;
     sync_lock(&alloc->head_lock,NULL);
     allocator_modules[alloc->allocator_type].alloc_ops.free(alloc,addr);
     sync_unlock(&alloc->head_lock);
