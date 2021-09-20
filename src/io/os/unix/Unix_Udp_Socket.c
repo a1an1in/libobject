@@ -199,7 +199,7 @@ void test_unix_udp_socket_send()
 
     object_destroy(socket);
 }
-REGISTER_TEST_FUNC(test_unix_udp_socket_send);
+REGISTER_TEST_CMD(test_unix_udp_socket_send);
 
 void test_unix_udp_socket_recv()
 {
@@ -221,5 +221,5 @@ void test_unix_udp_socket_recv()
 
     object_destroy(socket);
 }
-REGISTER_TEST_FUNC(test_unix_udp_socket_recv);
+REGISTER_TEST_CMD(test_unix_udp_socket_recv);
 #endif

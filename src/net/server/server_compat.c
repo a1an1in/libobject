@@ -73,6 +73,7 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
     int pre_alloc_count, after_alloc_count;
     int ret;
 
+    dbg_str(DBG_SUC, "test_inet_tcp_server");
     pre_alloc_count = allocator->alloc_count;
     s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
                          "127.0.0.1", "11011",
@@ -83,6 +84,7 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
 #else
     pause();
 #endif
+    dbg_str(DBG_SUC, "run at here");
     server_destroy(s);
 
     after_alloc_count = allocator->alloc_count;

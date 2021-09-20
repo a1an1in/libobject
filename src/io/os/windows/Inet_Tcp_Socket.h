@@ -17,10 +17,7 @@ struct inet_tcp_socket_s{
     void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
-    Socket * (*accept)(Inet_Tcp_Socket *socket, char *remote_host, char *remote_service);
-    int (*accept_fd)(Inet_Tcp_Socket *socket, char *remote_host, char *remote_service);
-
-    /*inherit metheods from parent*/
+    int (*accept)(Inet_Tcp_Socket *socket, char *remote_host, char *remote_service);
     int (*listen)(Inet_Tcp_Socket *socket, int backlog);
     int (*connect)(Inet_Tcp_Socket *socket, char *host, char *service);
     int (*bind)(Inet_Tcp_Socket *socket, char *host, char *service);
@@ -34,6 +31,8 @@ struct inet_tcp_socket_s{
     int (*getsockopt)(Inet_Tcp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setsockopt)(Inet_Tcp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setnonblocking)(Inet_Tcp_Socket *socket);
+
+    int sub_socket_flag;
 };
 
 #endif

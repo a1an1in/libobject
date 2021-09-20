@@ -69,6 +69,11 @@ static int __construct(Inet_Tcp_Socket *sk, char *init_str)
 
     dbg_str(NET_DETAIL, "socket construct, socket addr:%p", sk);
 
+    if (sk->sub_socket_flag == 1) {
+        dbg_str(DBG_DETAIL, "socket construct, new sub socket");
+        return 1;
+    }
+
     if ((skfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
          dbg_str(NET_ERROR, "create socket error, error_no=%d, err:%s",
                  errno, strerror(errno));
@@ -77,16 +82,17 @@ static int __construct(Inet_Tcp_Socket *sk, char *init_str)
 
     sk->parent.fd = skfd;
 
-    return 0;
+    return 1;
 }
 
 static int __deconstrcut(Inet_Tcp_Socket *socket)
 {
     dbg_str(NET_DETAIL, "socket deconstruct, socket addr:%p", socket);
 
-    if (socket->parent.fd) {
+    if (socket->parent.fd > 0) {
         dbg_str(NET_SUC, "socket deconstruct, close socket fd:%d", socket->parent.fd);
         close(socket->parent.fd);
+        socket->parent.fd = -1;
     }
 
     return 0;
@@ -196,29 +202,8 @@ static int __connect(Inet_Tcp_Socket *socket, char *host, char *service)
     return ret;
 }
 
-static Socket * __accept(Inet_Tcp_Socket *socket, 
-                         char *remote_host, char *remote_service)
-{
-    struct sockaddr_storage cliaddr;
-    socklen_t len;
-    allocator_t *allocator = socket->parent.obj.allocator;
-    int connfd, opt = 1;
-    Socket *ret = NULL;
-
-
-    connfd = accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
-
-    if (connfd > 0) {
-        ret = object_new(allocator, "Inet_Tcp_Socket", NULL);//in order to close fd
-        dbg_str(DBG_DETAIL, "server accept new fd:%d", connfd);
-        ret->fd = connfd;
-    } 
-
-    return ret;
-}
-
-static int __accept_fd(Inet_Tcp_Socket *socket, 
-                       char *remote_host, char *remote_service)
+static int __accept(Inet_Tcp_Socket *socket, 
+                    char *remote_host, char *remote_service)
 {
     struct sockaddr_storage cliaddr;
     socklen_t len;
@@ -309,15 +294,15 @@ static class_info_entry_t inet_tcp_socket_class_info[] = {
     Init_Vfunc_Entry(5 , Inet_Tcp_Socket, bind, __bind),
     Init_Vfunc_Entry(6 , Inet_Tcp_Socket, listen, __listen),
     Init_Vfunc_Entry(7 , Inet_Tcp_Socket, accept, __accept),
-    Init_Vfunc_Entry(8 , Inet_Tcp_Socket, accept_fd, __accept_fd),
-    Init_Vfunc_Entry(9 , Inet_Tcp_Socket, connect, __connect),
-    Init_Vfunc_Entry(10, Inet_Tcp_Socket, send, __send),
-    Init_Vfunc_Entry(11, Inet_Tcp_Socket, recv, __recv),
-    Init_Vfunc_Entry(12, Inet_Tcp_Socket, sendto, __sendto),
-    Init_Vfunc_Entry(13, Inet_Tcp_Socket, recvfrom, __recvfrom),
-    Init_Vfunc_Entry(14, Inet_Tcp_Socket, getsockopt, __getsockopt),
-    Init_Vfunc_Entry(15, Inet_Tcp_Socket, setsockopt, __setsockopt),
-    Init_Vfunc_Entry(16, Inet_Tcp_Socket, setnonblocking, __setnonblocking),
+    Init_Vfunc_Entry(8 , Inet_Tcp_Socket, connect, __connect),
+    Init_Vfunc_Entry(9 , Inet_Tcp_Socket, send, __send),
+    Init_Vfunc_Entry(10, Inet_Tcp_Socket, recv, __recv),
+    Init_Vfunc_Entry(11, Inet_Tcp_Socket, sendto, __sendto),
+    Init_Vfunc_Entry(12, Inet_Tcp_Socket, recvfrom, __recvfrom),
+    Init_Vfunc_Entry(13, Inet_Tcp_Socket, getsockopt, __getsockopt),
+    Init_Vfunc_Entry(14, Inet_Tcp_Socket, setsockopt, __setsockopt),
+    Init_Vfunc_Entry(15, Inet_Tcp_Socket, setnonblocking, __setnonblocking),
+    Init_U32___Entry(16, Inet_Tcp_Socket, sub_socket_flag, 0),
     Init_End___Entry(17, Inet_Tcp_Socket),
 };
 REGISTER_CLASS("Inet_Tcp_Socket", inet_tcp_socket_class_info);
@@ -335,15 +320,16 @@ void test_inet_tcp_socket_send()
     socket->connect(socket, "127.0.0.1", "11011");
     socket->send(socket, test_str, strlen(test_str), 0);
 
-    while(1) sleep(1);
+    sleep(1);
 
     object_destroy(socket);
 }
-REGISTER_TEST_FUNC(test_inet_tcp_socket_send);
+REGISTER_TEST_CMD(test_inet_tcp_socket_send);
 
 int test_inet_tcp_socket_recv()
 {
-    Socket *socket, *new;
+    Socket *socket;
+    int fd;
     char buf[1024] = {0};
     allocator_t *allocator = allocator_get_default_alloc();
 
@@ -353,17 +339,16 @@ int test_inet_tcp_socket_recv()
     dbg_str(NET_DETAIL, "sizeof socket=%d", sizeof(Socket));
     socket->bind(socket, "127.0.0.1", "11011"); 
     socket->listen(socket, 1024);
-    new = socket->accept(socket, NULL, NULL);
 
-    new->recv(new, buf, 1024, 0);
+    fd = socket->accept(socket, NULL, NULL);
+
+    dbg_str(DBG_DETAIL, "run at here");
+    recv(fd, buf, 1024, 0);
     dbg_str(NET_SUC, "recv : %s", buf);
 
-    sleep(10);
-
-    object_destroy(new);
     object_destroy(socket);
 
     return 0;
 }
-REGISTER_TEST_FUNC(test_inet_tcp_socket_recv);
+REGISTER_TEST_CMD(test_inet_tcp_socket_recv);
 #endif

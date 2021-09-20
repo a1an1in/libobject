@@ -30,6 +30,7 @@
  * 
  */
 #include <stdio.h>
+#include <libobject/core/try.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/net/server/Server.h>
@@ -131,7 +132,9 @@ static Worker *__get_worker(Server *server)
     Worker *ret = NULL;
     allocator_t *allocator = server->obj.allocator;
     List *leisure_list = server->leisure_workers;
+    char *init  = "{\"sub_socket_flag\":1}";
     work_task_t *task;
+    Socket *socket;
 
     leisure_list->remove(leisure_list, (void **)&ret);
 
@@ -142,9 +145,15 @@ static Worker *__get_worker(Server *server)
 #define TASK_MAX_BUF_LEN 1024 * 10
         task = work_task_alloc(allocator, TASK_MAX_BUF_LEN);
         ret->task = (void *)task;
+
+        socket = object_new(allocator, "Inet_Tcp_Socket", init);//in order to close fd
+        if (socket == NULL) {
+            return NULL;
+        }
+        ret->socket = socket;
 #undef TASK_MAX_BUF_LEN
     } else {
-        dbg_str(NET_DETAIL, "get_worker, get worker from leisure list");
+        dbg_str(NET_SUC, "get_worker, get worker from leisure list");
     }
 
     return ret;
@@ -160,29 +169,34 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
     allocator_t *allocator = worker->obj.allocator;
     Worker *new_worker;
     Socket *new_socket;
+    int new_fd;
+    int ret = 1;
 
-    new_socket = socket->accept(socket, NULL, NULL);
-    new_worker = __get_worker(server);
-    if (new_worker == NULL) {
-        dbg_str(NET_ERROR, "OBJECT_NEW Worker");
-        return -1;
+    TRY {
+        new_fd = socket->accept(socket, NULL, NULL);
+        THROW_IF(new_fd <= 0, -1);
+        new_worker = __get_worker(server);
+        THROW_IF(new_worker == NULL, -1);
+        new_socket = new_worker->socket;
+        new_socket->fd = new_fd;
+
+        dbg_str(NET_VIP, "listenfd_ev_callback, new fd = %d, sizeof(worker)=%d, sizeof(socket)=%d",
+                new_socket->fd, sizeof(Worker), sizeof(Socket));
+
+        new_worker->opaque = server;
+        new_worker->assign(new_worker, new_socket->fd, EV_READ | EV_PERSIST, NULL, 
+                (void *)__new_conn_ev_callback, 
+                new_worker, 
+                (void *)worker->work_callback);
+        new_worker->enroll(new_worker, producer);
+        new_socket->opaque = new_worker;
+
+        working_list->add(working_list, new_worker);
+    } CATCH (ret) {
+        dbg_str(NET_ERROR, "server listenfd error, fd=%d", fd);
     }
 
-    dbg_str(NET_VIP, "listenfd_ev_callback, new fd = %d, sizeof(worker)=%d, sizeof(socket)=%d",
-            new_socket->fd, sizeof(Worker), sizeof(Socket));
-
-    new_worker->opaque = server;
-    new_worker->socket = new_socket;
-    new_worker->assign(new_worker, new_socket->fd, EV_READ | EV_PERSIST, NULL, 
-                       (void *)__new_conn_ev_callback, 
-                       new_worker, 
-                       (void *)worker->work_callback);
-    new_worker->enroll(new_worker, producer);
-    new_socket->opaque = new_worker;
-
-    working_list->add(working_list, new_worker);
-
-    return 0;
+    return ret;
 }
 
 static int __trustee(Server *server, void *work_callback, void *opaque)
@@ -216,8 +230,8 @@ static int __close_subsocket(Server *server, Socket *socket)
     if (ret == 1) {
         working_list->remove_element(working_list, worker);
         leisure_list->add(leisure_list, worker);
-        object_destroy(socket);
-        worker->socket = NULL;
+        close(socket->fd);
+        socket->fd = -1;
         dbg_str(NET_DETAIL, "add worker %p to leisure_list", worker);
     } else {
         dbg_str(NET_WARNNING, "worker %p has resigned", worker);

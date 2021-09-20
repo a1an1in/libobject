@@ -152,11 +152,12 @@ static int test_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
     c = client(allocator, 
                CLIENT_TYPE_INET_TCP, 
                (char *)"127.0.0.1", //char *host, 
-               (char *)"1990", //char *client_port, 
+               (char *)"19900", //char *client_port, 
                test_work_callback, 
                NULL);
     client_connect(c, "127.0.0.1", "11011");
     client_send(c, str, strlen(str), 0);
+    pause();
 
     object_destroy(c);
 }
