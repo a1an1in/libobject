@@ -27,8 +27,7 @@ struct socket_s{
 
     /*virtual methods reimplement*/
     int (*listen)(Socket *socket, int backlog);
-    Socket * (*accept)(Socket *socket, char *remote_host, char *remote_service);
-    int (*accept_fd)(Socket *socket, char *remote_host, char *remote_service);
+    int (*accept)(Socket *socket, char *remote_host, char *remote_service);
     int (*connect)(Socket *socket, char *host, char *service);
     int (*bind)(Socket *socket, char *host, char *service);
     ssize_t (*send)(Socket *socket, const void *buf, size_t len, int flags);

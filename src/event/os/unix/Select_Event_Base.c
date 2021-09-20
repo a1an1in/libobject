@@ -205,6 +205,6 @@ int test_select_base()
 
     return 1;
 }
-REGISTER_TEST_FUNC(test_select_base);
+REGISTER_TEST_CMD(test_select_base);
 
 #endif

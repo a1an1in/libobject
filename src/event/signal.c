@@ -83,7 +83,7 @@ int evsig_init(Event_Base *eb)
     Socket *s;
     char service[10];
 
-    sprintf(service, "%d", SIGNAL_SERVICE + list->count(list));
+    sprintf(service, "%d", SIGNAL_SERVICE + 5);
     s = (Socket *)object_new(allocator, "Inet_Udp_Socket", NULL);
     s->bind(s, "127.0.0.1", service);
     s->setnonblocking(s);

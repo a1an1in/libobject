@@ -58,7 +58,7 @@ static int test_signal(TEST_ENTRY *entry, void *argc, void *argv)
 
     return (1);
 }
-REGISTER_TEST_FUNC(test_signal);
+REGISTER_TEST_CMD(test_signal);
 
 static int test_two_same_signal(TEST_ENTRY *entry, void *argc, void *argv)
 {
@@ -89,7 +89,7 @@ static int test_two_same_signal(TEST_ENTRY *entry, void *argc, void *argv)
 
     return (1);
 }
-REGISTER_TEST_FUNC(test_two_same_signal);
+REGISTER_TEST_CMD(test_two_same_signal);
 
 static int test_del_signal(TEST_ENTRY *entry, void *argc, void *argv)
 {
@@ -121,5 +121,5 @@ static int test_del_signal(TEST_ENTRY *entry, void *argc, void *argv)
 
     return (1);
 }
-REGISTER_TEST_FUNC(test_del_signal);
+REGISTER_TEST_CMD(test_del_signal);
 #endif

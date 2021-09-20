@@ -145,7 +145,7 @@ static void *__start_routine(void *arg)
     Socket *s, *c;
     char service[10] = {0};
 
-    sprintf(service, "%d", EVENT_THREAD_SERVICE);
+    sprintf(service, "%d", EVENT_THREAD_SERVICE + 4);
 
     dbg_str(EV_IMPORTANT,"Event_Thread, start_routine:%p, service:%s",
             arg, service);

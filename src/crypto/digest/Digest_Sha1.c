@@ -21,7 +21,7 @@ static int __construct(Digest_Sha1 *digest, char *init_str)
         dbg_str(DBG_ERROR, "Digest_Sha1 alloc error");
     }
 
-    return -1;
+    return 1;
 }
 
 static int __deconstruct(Digest_Sha1 *digest)
