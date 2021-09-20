@@ -42,20 +42,23 @@ void * __object_get_func_of_class(char *class_name,
 {
     class_info_entry_t *entry;
     class_deamon_t *deamon;
-    int i;
+    int i, ret = 0;
 
-    deamon = class_deamon_get_global_class_deamon();
-    entry = (class_info_entry_t *) class_deamon_search_class(deamon, 
-                                                             class_name);
-    if (entry == NULL) return NULL;
+    TRY {
+        deamon = class_deamon_get_global_class_deamon();
+        entry = (class_info_entry_t *) class_deamon_search_class(deamon, 
+                class_name);
+        THROW_IF(entry == NULL, NULL);
 
-    for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (strcmp((char *)entry[i].value_name, func_name) == 0) {
-            dbg_str(OBJ_DETAIL, "found func of class");
-            return entry[i].value;
-        }
-        dbg_str(OBJ_DETAIL, "value_name:%s func_name:%s", entry[i].value_name, func_name);
-    }   
+        for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
+            if (strcmp((char *)entry[i].value_name, func_name) == 0) {
+                dbg_str(OBJ_DETAIL, "found func of class");
+                return entry[i].value;
+            }
+            dbg_str(OBJ_DETAIL, "value_name:%s func_name:%s", entry[i].value_name, func_name);
+        }   
+    } CATCH (ret) {
+    }
 
     return NULL;
 }
@@ -77,7 +80,7 @@ __object_get_normal_func_of_class(void *class_info_addr,
             }
         }   
     } CATCH (ret) {
-        dbg_str(OBJ_ERROR, "object_get_normal_func_of_class, class_info_addr:%p func_pointer_name:%s",
+        dbg_str(OBJ_ERROR, "class_info_addr:%p func_pointer_name:%s",
                 class_info_addr, func_pointer_name);
     }
 
@@ -92,28 +95,26 @@ __object_get_func_of_class_recursively(void *class_info_addr,
     char *parent_class_name = NULL;
     class_info_entry_t * entry_of_parent_class;
     class_deamon_t *deamon;
-    int i;
+    int i, ret;
 
-    if (class_info_addr == 0) {
-        return NULL;
-    }
+    TRY {
+        THROW_IF(class_info_addr == 0, -1);
 
-    for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (strcmp((char *)entry[i].value_name, func_name) == 0 && 
-            entry[i].value != NULL) {
-            return entry[i].value;
+        for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
+            if (strcmp((char *)entry[i].value_name, func_name) == 0 && entry[i].value != NULL) {
+                return entry[i].value;
+            }
+        }   
+
+        if (entry[0].type == ENTRY_TYPE_OBJ) {
+            parent_class_name = entry[0].type_name;
+            deamon = class_deamon_get_global_class_deamon();
+            entry_of_parent_class  = (class_info_entry_t *) 
+                                     class_deamon_search_class(deamon, (char *)parent_class_name);
+
+            return __object_get_func_of_class_recursively(entry_of_parent_class, func_name);
         }
-    }   
-
-    if (entry[0].type == ENTRY_TYPE_OBJ) {
-        parent_class_name = entry[0].type_name;
-        deamon = class_deamon_get_global_class_deamon();
-        entry_of_parent_class  = (class_info_entry_t *)
-                                 class_deamon_search_class(deamon,
-                                                           (char *)parent_class_name);
-
-        return __object_get_func_of_class_recursively(entry_of_parent_class,
-                                                      func_name);
+    } CATCH (ret) {
     }
 
     return NULL;
@@ -135,8 +136,6 @@ __object_get_entry_of_parent_class(void *class_info_addr)
             }
         }   
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "__object_get_entry_of_parent_class error, class_info_addr:%p",
-                class_info_addr);
     }
 
     return NULL;
@@ -169,17 +168,17 @@ int
 __object_get_class_size(void *class_info_addr)
 {
     class_info_entry_t *entry = (class_info_entry_t *)class_info_addr;
-    int i, size = 0;
+    int i, size = 0, ret;
 
-    if (class_info_addr == 0) {
-        return size;
-    }
+    TRY {
+        THROW_IF(class_info_addr == 0, 0);
+        for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
+        }   
 
-    for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-    }   
-
-    if (entry[i].type == ENTRY_TYPE_END) {
-        size = entry[i].value_len;
+        if (entry[i].type == ENTRY_TYPE_END) {
+            size = entry[i].value_len;
+        }
+    } CATCH (ret) {
     }
 
     return size;
@@ -222,7 +221,7 @@ __object_find_reimplement_func(char *method_name,
                                               super_class_name, 
                                               end_type_name);
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "__object_find_reimplement_func: method_name:%s, start_type_name:%s, end_type_name:%s",
+        dbg_str(DBG_ERROR, "method_name:%s, start_type_name:%s, end_type_name:%s",
                 method_name, start_type_name, end_type_name);
     }
 
@@ -242,9 +241,7 @@ int __object_init_funcs(void *obj, void *class_info_addr)
         for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
             if (entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
                 entry[i].type == ENTRY_TYPE_VFUNC_POINTER) {
-                dbg_str(OBJ_DETAIL, "value_name %s, value %p", 
-                        entry[i].value_name, entry[i].value);
-
+                dbg_str(OBJ_DETAIL, "value_name %s, value %p", entry[i].value_name, entry[i].value);
                 if (entry[i].value != NULL)
                     set(obj, (char *)entry[i].value_name, entry[i].value);
             }
@@ -292,33 +289,33 @@ int __object_override_virtual_funcs(void *obj,
 {
     class_info_entry_t *entry;
     class_deamon_t *deamon;
-    int i;
+    int i, ret = 1;
     int (*set)(void *obj, char *attrib, void *value);
     void *reimplement_func;
 
-    if (strcmp(cur_type_name, type_name) == 0) return 0;
+    TRY {
+        THROW_IF(strcmp(cur_type_name, type_name) == 0, 0);
 
-    deamon = class_deamon_get_global_class_deamon();
-    entry  = (class_info_entry_t *)
-             class_deamon_search_class(deamon, (char *)cur_type_name);
+        deamon = class_deamon_get_global_class_deamon();
+        entry  = (class_info_entry_t *)
+            class_deamon_search_class(deamon, (char *)cur_type_name);
 
-    set = __object_get_func_of_class_recursively(entry, "set");
-    if (set == NULL) {
-        dbg_str(OBJ_WARNNING, "obj_init_func_pointer, set func is NULL");
-        return -1;
+        set = __object_get_func_of_class_recursively(entry, "set");
+        THROW_IF(set == NULL, -1);
+
+        for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
+            if (entry[i].type == ENTRY_TYPE_VFUNC_POINTER){
+                reimplement_func = __object_find_reimplement_func(entry[i].value_name, 
+                        type_name, 
+                        cur_type_name);
+                if (reimplement_func != NULL)
+                    set(obj, (char *)entry[i].value_name, reimplement_func);
+            }
+        }   
+    } CATCH (ret) {
     }
 
-    for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (entry[i].type == ENTRY_TYPE_VFUNC_POINTER){
-            reimplement_func = __object_find_reimplement_func(entry[i].value_name, 
-                                                              type_name, 
-                                                              cur_type_name);
-            if (reimplement_func != NULL)
-                set(obj, (char *)entry[i].value_name, reimplement_func);
-        }
-    }   
-
-    return 0;
+    return ret;
 }
 
 static int 
@@ -365,9 +362,6 @@ __object_set(void *obj, char *type_name,
                 } else if (c->type & OBJECT_ARRAY) {
                     char *out;
                     out = cjson_print(c);
-                    /*
-                     *dbg_str(OBJ_DETAIL, "%s array json:%s",c->string, out);
-                     */
                     set(obj, c->string, out);
                     free(out);
                 }
@@ -402,21 +396,21 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
 
         dbg_str(OBJ_DETAIL, "obj_class addr:%p", class_info);
         if (entry_of_parent_class != NULL) {
-            __object_init(obj, entry_of_parent_class->type_name, type_name);
+            EXEC(__object_init(obj, entry_of_parent_class->type_name, type_name));
         }
 
         strcpy(o->target_name, cur_type_name);
-        __object_init_funcs(obj, class_info);
+        EXEC(__object_init_funcs(obj, class_info));
 
         if (entry_of_parent_class != NULL) {
-            __object_inherit_funcs(obj, class_info);
+            EXEC(__object_inherit_funcs(obj, class_info));
         }
 
-        __object_override_virtual_funcs(obj, cur_type_name, type_name);
+        EXEC(__object_override_virtual_funcs(obj, cur_type_name, type_name));
 
         dbg_str(OBJ_DETAIL, "obj addr:%p", obj);
         if (construct != NULL) {
-            construct(obj, NULL);
+            EXEC(construct(obj, NULL));
         }
     } CATCH (ret) {
         dbg_str(OBJ_ERROR, "__object_init error, obj:%p, cur_type_name:%s, type_name:%s",
@@ -533,7 +527,6 @@ class_info_entry_t *object_get_entry_of_class(char *class_name, char *entry_name
         entry = __object_get_entry_of_class(info, entry_name);
         THROW_IF(entry == NULL, -1);
     } CATCH (ret) {
-        entry = NULL;
     }
 
     return entry;
@@ -589,28 +582,28 @@ void * object_new(allocator_t *allocator, char *type, char *config)
 int object_set(void *obj, char *type_name, char *set_str) 
 {
     cjson_t *root;
+    char init_data[MAX_OBJECT_INIT_DATA_LEN];
+    int ret;
 
-    if (set_str == NULL) {
-        root = cjson_parse(set_str);
-    } else if (strlen(set_str) > 0) {
-        char init_data[MAX_OBJECT_INIT_DATA_LEN];
+    TRY {
+        if (set_str == NULL) {
+            root = cjson_parse(set_str);
+        } else if (strlen(set_str) > 0) {
+            THROW_IF(strlen(type_name) + strlen(set_str) + 3 >= MAX_OBJECT_INIT_DATA_LEN, -1);
+            snprintf(init_data, MAX_OBJECT_INIT_DATA_LEN, "{\"%s\":%s}", type_name, set_str);
+            dbg_str(OBJ_DETAIL, "%s", init_data);
 
-        if (strlen(type_name) + strlen(set_str) + 3 >= MAX_OBJECT_INIT_DATA_LEN) {
-            dbg_str(DBG_ERROR, "set string is too long, you may change MAX_OBJECT_INIT_DATA_LEN's default value");
-            return -1;
+            root = cjson_parse(init_data);
+        } else {
+            root = cjson_parse(set_str);
         }
-        snprintf(init_data, MAX_OBJECT_INIT_DATA_LEN, "{\"%s\":%s}", type_name, set_str);
-        dbg_str(OBJ_DETAIL, "%s", init_data);
 
-        root = cjson_parse(init_data);
-    } else {
-        root = cjson_parse(set_str);
+        EXEC(__object_set(obj, type_name, root, NULL));
+        cjson_delete(root);
+    } CATCH (ret) {
     }
 
-    __object_set(obj, type_name, root, NULL);
-    cjson_delete(root);
-
-    return 0;
+    return ret;
 }
 
 int object_init(void *obj, char *type_name) 
@@ -648,27 +641,24 @@ int object_destroy(void *obj)
     List *list = NULL;
     int ret = 0;
     
-    if (obj == NULL) return 0;
+    TRY {
+        THROW_IF(obj == NULL, 0);
 
-    cache = (Object_Cache *)o->cache;
-    if (cache) {
-        Map *map = cache->class_map;
+        cache = (Object_Cache *)o->cache;
+        if (cache) {
+            Map *map = cache->class_map;
 
-        ret = map->search(map, o->name, (void **)&list);
-        if (ret != 1) {
-            dbg_str(OBJ_ERROR, "release object %s to cache, but not found class in the cache, cache addr:%p, class count=%d",
-                    o->name, cache, map->count(map));
-            ret = -1;
-            goto end;
+            ret = map->search(map, o->name, (void **)&list);
+            THROW_IF(ret != 1, -1);
+
+            o->reset(o);
+            list->add(list, o);
+        } else {
+            __object_destroy(o, o->name);
         }
-
-        o->reset(o);
-        list->add(list, o);
-    } else {
-        __object_destroy(o, o->name);
+    } CATCH (ret) {
     }
 
-end:
     return ret;
 }
 
