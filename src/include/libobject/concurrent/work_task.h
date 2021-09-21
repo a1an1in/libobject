@@ -47,10 +47,11 @@ work_task_alloc(allocator_t *allocator, int len)
 
 static inline int work_task_free(work_task_t *task)
 {
+    if (task == NULL) return 0;
     allocator_mem_free(task->allocator, task->buf);
     allocator_mem_free(task->allocator, task);
 
-    return 0;
+    return 1;
 }
 
 #endif

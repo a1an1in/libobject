@@ -129,34 +129,37 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
 
 static Worker *__get_worker(Server *server)
 {
-    Worker *ret = NULL;
     allocator_t *allocator = server->obj.allocator;
     List *leisure_list = server->leisure_workers;
     char *init  = "{\"sub_socket_flag\":1}";
-    work_task_t *task;
-    Socket *socket;
+    work_task_t *task = NULL;
+    Socket *socket = NULL;
+    Worker *worker = NULL;
+    int ret = 1;
 
-    leisure_list->remove(leisure_list, (void **)&ret);
+    TRY {
+        leisure_list->remove(leisure_list, (void **)&worker);
+        THROW_IF(worker != NULL, 1);
 
-    if (ret == NULL) {
-        dbg_str(NET_DETAIL, "get_worker, alloc a new worker");
-        ret = object_new(allocator, "Worker", NULL);
+        dbg_str(NET_WARNNING, "get_worker, alloc a new worker");
+        worker = object_new(allocator, "Worker", NULL);
 
 #define TASK_MAX_BUF_LEN 1024 * 10
         task = work_task_alloc(allocator, TASK_MAX_BUF_LEN);
-        ret->task = (void *)task;
+        worker->task = (void *)task;
 
         socket = object_new(allocator, "Inet_Tcp_Socket", init);//in order to close fd
-        if (socket == NULL) {
-            return NULL;
-        }
-        ret->socket = socket;
+        THROW_IF(socket == NULL, -1);
+        worker->socket = socket;
 #undef TASK_MAX_BUF_LEN
-    } else {
-        dbg_str(NET_SUC, "get_worker, get worker from leisure list");
+    } CATCH (ret) {
+        work_task_free(task);
+        object_destroy(worker);
+        object_destroy(socket);
+        worker = NULL;
     }
 
-    return ret;
+    return worker;
 }
 
 static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
@@ -167,7 +170,7 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
     Producer *producer     = global_get_default_producer();
     List *working_list     = server->working_workers;
     allocator_t *allocator = worker->obj.allocator;
-    Worker *new_worker;
+    Worker *new_worker     = NULL;
     Socket *new_socket;
     int new_fd;
     int ret = 1;
@@ -185,9 +188,8 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
 
         new_worker->opaque = server;
         new_worker->assign(new_worker, new_socket->fd, EV_READ | EV_PERSIST, NULL, 
-                (void *)__new_conn_ev_callback, 
-                new_worker, 
-                (void *)worker->work_callback);
+                           (void *)__new_conn_ev_callback, new_worker, 
+                           (void *)worker->work_callback);
         new_worker->enroll(new_worker, producer);
         new_socket->opaque = new_worker;
 
