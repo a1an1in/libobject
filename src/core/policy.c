@@ -179,56 +179,56 @@ obj_set_policy_t g_obj_set_policy[ENTRY_TYPE_MAX_TYPE] = {
     [ENTRY_TYPE_OBJ_POINTER]    = {.policy = __obj_set_pointer_policy},
 };
 
-static int obj_to_json_int8_policy(cjson_t *json, char *name, void *value)
+static int __obj_to_json_int8_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((int8_t *)value));
 
     return 1;
 }
 
-static int obj_to_json_uint8_policy(cjson_t *json, char *name, void *value)
+static int __obj_to_json_uint8_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((uint8_t *)value));
 
     return 1;
 }
 
-static int obj_to_json_int16_policy(cjson_t *json, char *name, void *value)
+static int __obj_to_json_int16_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((int16_t *)value));
 
     return 1;
 }
 
-static int obj_to_json_uint16_policy(cjson_t *json, char *name, void *value)
+static int __obj_to_json_uint16_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((uint16_t *)value));
 
     return 1;
 }
 
-static int obj_to_json_int32_policy(cjson_t *json, char *name, void *value)
+static int __obj_to_json_int32_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((int32_t *)value));
 
     return 1;
 }
 
-static int obj_to_json_uint32_policy(cjson_t *json, char *name, void *value)
+static int __obj_to_json_uint32_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((uint32_t *)value));
 
     return 1;
 }
 
-static int obj_to_json_float_policy(cjson_t *json, char *name, void *value)
+static int __obj_to_json_float_policy(cjson_t *json, char *name, void *value)
 {
     cjson_add_number_to_object(json, name, *((float *)value));
 
     return 1;
 }
 
-static int obj_to_json_string_policy(cjson_t *json, char *name, void *value)
+static int __obj_to_json_string_policy(cjson_t *json, char *name, void *value)
 {
     String *s = *(String **)value;
     if (s != NULL)
@@ -237,7 +237,7 @@ static int obj_to_json_string_policy(cjson_t *json, char *name, void *value)
     return 1;
 }
 
-static int obj_to_json_sn32_policy(cjson_t *json, char *name, void *value)
+static int __obj_to_json_sn32_policy(cjson_t *json, char *name, void *value)
 {
     double d;
     Number *number = *(Number **)value;
@@ -252,7 +252,7 @@ static int obj_to_json_sn32_policy(cjson_t *json, char *name, void *value)
     return 1;
 }
 
-static int obj_to_json_vector_policy(cjson_t *json, char *name, void *value)
+static int __obj_to_json_vector_policy(cjson_t *json, char *name, void *value)
 {
     Vector *v = *((Vector **)value);
     cjson_t *item;
@@ -268,7 +268,7 @@ static int obj_to_json_vector_policy(cjson_t *json, char *name, void *value)
     return 1;
 }
 
-static int obj_to_json_object_pointer_policy(cjson_t *json, char *name, void *value)
+static int __obj_to_json_object_pointer_policy(cjson_t *json, char *name, void *value)
 {
     Obj *o = *(Obj **)value;
     cjson_t *item;
@@ -282,17 +282,17 @@ static int obj_to_json_object_pointer_policy(cjson_t *json, char *name, void *va
 }
 
 obj_to_json_policy_t g_obj_to_json_policy[ENTRY_TYPE_MAX_TYPE] = {
-    [ENTRY_TYPE_INT8_T]      = {.policy = obj_to_json_int8_policy},
-    [ENTRY_TYPE_UINT8_T]     = {.policy = obj_to_json_uint8_policy},
-    [ENTRY_TYPE_INT16_T]     = {.policy = obj_to_json_int16_policy},
-    [ENTRY_TYPE_UINT16_T]    = {.policy = obj_to_json_uint16_policy},
-    [ENTRY_TYPE_INT32_T]     = {.policy = obj_to_json_int32_policy},
-    [ENTRY_TYPE_UINT32_T]    = {.policy = obj_to_json_uint32_policy},
-    [ENTRY_TYPE_FLOAT_T]     = {.policy = obj_to_json_float_policy},
-    [ENTRY_TYPE_STRING]      = {.policy = obj_to_json_string_policy},
-    [ENTRY_TYPE_SN32]        = {.policy = obj_to_json_sn32_policy},
-    [ENTRY_TYPE_VECTOR]      = {.policy = obj_to_json_vector_policy},
-    [ENTRY_TYPE_OBJ_POINTER] = {.policy = obj_to_json_object_pointer_policy},
+    [ENTRY_TYPE_INT8_T]      = {.policy = __obj_to_json_int8_policy},
+    [ENTRY_TYPE_UINT8_T]     = {.policy = __obj_to_json_uint8_policy},
+    [ENTRY_TYPE_INT16_T]     = {.policy = __obj_to_json_int16_policy},
+    [ENTRY_TYPE_UINT16_T]    = {.policy = __obj_to_json_uint16_policy},
+    [ENTRY_TYPE_INT32_T]     = {.policy = __obj_to_json_int32_policy},
+    [ENTRY_TYPE_UINT32_T]    = {.policy = __obj_to_json_uint32_policy},
+    [ENTRY_TYPE_FLOAT_T]     = {.policy = __obj_to_json_float_policy},
+    [ENTRY_TYPE_STRING]      = {.policy = __obj_to_json_string_policy},
+    [ENTRY_TYPE_SN32]        = {.policy = __obj_to_json_sn32_policy},
+    [ENTRY_TYPE_VECTOR]      = {.policy = __obj_to_json_vector_policy},
+    [ENTRY_TYPE_OBJ_POINTER] = {.policy = __obj_to_json_object_pointer_policy},
 };
 
 
