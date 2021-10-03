@@ -69,19 +69,22 @@ static int __test_int_number(Number_Test *test)
     Number *number = test->number;
     int d = -1, expect_d = -1, ret = 0;
 
-    number->clear(number);
-    number->set_type(number, NUMBER_TYPE_SIGNED_INT);
+    TRY {
+        number->clear(number);
 
-	number->set_format_value(number, "%d", d);
-    expect_d = number->get_signed_int_value(number);
+        number->set_value(number, NUMBER_TYPE_SIGNED_INT, &d);
+        number->get_value(number, NUMBER_TYPE_SIGNED_INT, &expect_d);
 
-    ret = ASSERT_EQUAL(test, &d, &expect_d, sizeof(d));
-    if (ret != 1) {
-        dbg_str(DBG_ERROR, "test int number, d = %d, expect_d=%d", 
-                d, expect_d);
-    } else {
-        dbg_str(DBG_SUC, "test int number, d = %d, expect_d=%d", 
-                d, expect_d);
+        SET_CATCH_INT_PAR(d, expect_d);
+        THROW_IF(d != expect_d, -1);
+
+        d = -2;
+        d = NUM2S32(number);
+        SET_CATCH_INT_PAR(d, expect_d);
+        THROW_IF(d != expect_d, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "int_number error, par1=%d, par2=%d", ERROR_INT_PAR1(), ERROR_INT_PAR2());
     }
 
     return ret;

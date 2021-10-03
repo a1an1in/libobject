@@ -16,7 +16,6 @@ struct _vector_s{
     int (*deconstruct)(Vector *vector);
 
     /*virtual methods reimplement*/
-    int (*reconstruct)(Vector *vector);
     int (*set)(Vector *vector, char *attrib, void *value);
     void *(*get)(Vector *vector, char *attrib);
     char *(*to_json)(Vector *vector);

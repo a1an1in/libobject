@@ -89,7 +89,6 @@ static int __test_int_vector_add(Vector_Test *test)
 
     vector->set(vector, "/Vector/capacity", &capacity);
     vector->set(vector, "/Vector/value_type", &value_type);
-    vector->reconstruct(vector);
 
     vector->add_at(vector, 0, 1);
     vector->remove(vector, 0, (void **)&t);
@@ -271,9 +270,7 @@ static int __test_int_vector_set_init_data(Vector_Test *test)
     char *init_data = "[0, 1, 2, 3, 4, 5]";
 
     vector->set(vector, "/Vector/capacity", &capacity);
-    vector->set(vector, "/Vector/value_type", &value_type);
-    vector->set(vector, "/Vector/init_data", init_data);
-    vector->reconstruct(vector);
+    vector->assign(vector,  init_data);
 
     ASSERT_EQUAL(test, vector->to_json(vector), init_data, strlen(init_data));
 }
@@ -288,10 +285,7 @@ static int __test_string_vector_set_init_data(Vector_Test *test)
     char *init_data = "[\"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\"]";
 
     vector->set(vector, "/Vector/capacity", &capacity);
-    vector->set(vector, "/Vector/value_type", &value_type);
-    vector->set(vector, "/Vector/init_data", init_data);
-    vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
-    vector->reconstruct(vector);
+    vector->assign(vector,  init_data);
 
     dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
     ASSERT_EQUAL(test, vector->to_json(vector), init_data, strlen(init_data));
@@ -307,11 +301,8 @@ static int __test_obj_vector_set_init_data(Vector_Test *test)
     char *init_data = "[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]";
     String *string;
 
-    vector->set(vector, "/Vector/value_type", &value_type);
-    vector->set(vector, "/Vector/init_data", init_data);
     vector->set(vector, "/Vector/class_name", "Simplest_Obj");
-    vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
-    vector->reconstruct(vector);
+    vector->assign(vector, init_data);
 
     string = object_new(allocator, "String", NULL);
     string->assign(string, vector->to_json(vector));

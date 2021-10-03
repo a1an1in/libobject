@@ -96,10 +96,9 @@ int __obj_set_sn32_policy(Obj *obj, class_info_entry_t *entry, void *value)
 
     if (*addr == NULL) {
         *addr = object_new(allocator, "Number", NULL);
-        (*addr)->set_type((*addr), NUMBER_TYPE_SIGNED_INT);
     }
 
-    (*addr)->set_value((*addr), value);
+    (*addr)->set_value((*addr), NUMBER_TYPE_SIGNED_INT, value);
 
     return 1;
 }
@@ -139,10 +138,9 @@ int __obj_set_vector_policy(Obj *obj, class_info_entry_t *entry, void *value)
         THROW_IF(p[0] != '[', -1);
         THROW_IF(p[1] == ']', 0);
 
-        v->set(v, "/Vector/init_data", value);
         v->set(v, "/Vector/class_name", entry->type_name);
         v->set(v, "/Vector/trustee_flag", &trustee_flag);
-        v->reconstruct(v);
+        v->assign(v, value);
         *addr = v;
         Vector **addr = (Vector **)(base + entry->offset);
     } CATCH (ret) {
@@ -231,22 +229,26 @@ static int __obj_to_json_float_policy(cjson_t *json, char *name, void *value)
 static int __obj_to_json_string_policy(cjson_t *json, char *name, void *value)
 {
     String *s = *(String **)value;
-    if (s != NULL)
-        cjson_add_string_to_object(json, name, s->value);
+
+    if (s == NULL) {
+        return 0;
+    }
+
+    cjson_add_string_to_object(json, name, s->value);
 
     return 1;
 }
 
 static int __obj_to_json_sn32_policy(cjson_t *json, char *name, void *value)
 {
-    double d;
+    int d;
     Number *number = *(Number **)value;
 
     if (number == NULL) {
-        dbg_str(DBG_WARNNING, "Number to json, but point is null, offset:%p", value);
-        return -1;
+        return 0;
     }
-    d = number->get_signed_int_value(number);
+    number->get_value(number, NUMBER_TYPE_SIGNED_INT, &d);
+
     cjson_add_number_to_object(json, name, d);
 
     return 1;
@@ -257,13 +259,12 @@ static int __obj_to_json_vector_policy(cjson_t *json, char *name, void *value)
     Vector *v = *((Vector **)value);
     cjson_t *item;
 
-    if (v != NULL) {
-        dbg_str(DBG_DETAIL, "Vector json: %s", v->to_json(v));
-        item = cjson_parse(v->to_json(v));
-        cjson_add_item_to_object(json, name, item);
-    } else {
-        dbg_str(DBG_WARNNING, "Vector to json, but content is null, offset:%p", value);
+    if (v == NULL) {
+        return 0;
     }
+    dbg_str(DBG_DETAIL, "Vector json: %s", v->to_json(v));
+    item = cjson_parse(v->to_json(v));
+    cjson_add_item_to_object(json, name, item);
 
     return 1;
 }
@@ -273,10 +274,12 @@ static int __obj_to_json_object_pointer_policy(cjson_t *json, char *name, void *
     Obj *o = *(Obj **)value;
     cjson_t *item;
 
-    if (o != NULL) {
-        item = cjson_parse(o->to_json(o));
-        cjson_add_item_to_object(json, o->name, item);
+    if (o == NULL) {
+        return 0;
     }
+
+    item = cjson_parse(o->to_json(o));
+    cjson_add_item_to_object(json, o->name, item);
 
     return 1;
 }

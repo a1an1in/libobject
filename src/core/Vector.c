@@ -130,10 +130,7 @@ static int __reconstruct(Vector *vector)
 {
     allocator_t *allocator = vector->obj.allocator;
 
-    dbg_str(DBG_WARNNING, "vector reconstruct, vector addr:%p", vector);
-
     vector_destroy(vector->vector);
-
     vector->construct(vector, NULL);
 
     return 1;
@@ -400,30 +397,29 @@ static class_info_entry_t vector_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Vector, construct, __construct),
     Init_Nfunc_Entry(2 , Vector, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Vector, reconstruct, __reconstruct),
-    Init_Vfunc_Entry(4 , Vector, set, NULL),
-    Init_Vfunc_Entry(5 , Vector, get, NULL),
-    Init_Vfunc_Entry(6 , Vector, add, __add),
-    Init_Vfunc_Entry(7 , Vector, add_at, __add_at),
-    Init_Vfunc_Entry(8 , Vector, add_back, __add_back),
-    Init_Vfunc_Entry(9 , Vector, remove, __remove),
-    Init_Vfunc_Entry(10, Vector, remove_back, __remove_back),
-    Init_Vfunc_Entry(11, Vector, peek_at, __peek_at),
-    Init_Vfunc_Entry(12, Vector, for_each, __for_each),
-    Init_Vfunc_Entry(13, Vector, free_vector_elements, __free_vector_elements),
-    Init_Vfunc_Entry(14, Vector, reset, __reset),
-    Init_Vfunc_Entry(15, Vector, count, __count),
-    Init_Vfunc_Entry(16, Vector, empty, __empty),
-    Init_Vfunc_Entry(17, Vector, to_json, __to_json),
-    Init_Vfunc_Entry(18, Vector, assign, __assign),
-    Init_Vfunc_Entry(19, Vector, search, __search),
-    Init_Vfunc_Entry(20, Vector, get_end_index, __get_end_index),
-    Init_U32___Entry(21, Vector, value_size, NULL),
-    Init_U8____Entry(22, Vector, value_type, NULL),
-    Init_U32___Entry(23, Vector, capacity, NULL),
-    Init_Str___Entry(24, Vector, init_data, NULL),
-    Init_Str___Entry(25, Vector, class_name, NULL),
-    Init_U8____Entry(26, Vector, trustee_flag, 0),
-    Init_End___Entry(27, Vector),
+    Init_Vfunc_Entry(3 , Vector, set, NULL),
+    Init_Vfunc_Entry(4 , Vector, get, NULL),
+    Init_Vfunc_Entry(5 , Vector, add, __add),
+    Init_Vfunc_Entry(6 , Vector, add_at, __add_at),
+    Init_Vfunc_Entry(7 , Vector, add_back, __add_back),
+    Init_Vfunc_Entry(8 , Vector, remove, __remove),
+    Init_Vfunc_Entry(9 , Vector, remove_back, __remove_back),
+    Init_Vfunc_Entry(10, Vector, peek_at, __peek_at),
+    Init_Vfunc_Entry(11, Vector, for_each, __for_each),
+    Init_Vfunc_Entry(12, Vector, free_vector_elements, __free_vector_elements),
+    Init_Vfunc_Entry(13, Vector, reset, __reset),
+    Init_Vfunc_Entry(14, Vector, count, __count),
+    Init_Vfunc_Entry(15, Vector, empty, __empty),
+    Init_Vfunc_Entry(16, Vector, to_json, __to_json),
+    Init_Vfunc_Entry(17, Vector, assign, __assign),
+    Init_Vfunc_Entry(18, Vector, search, __search),
+    Init_Vfunc_Entry(19, Vector, get_end_index, __get_end_index),
+    Init_U32___Entry(20, Vector, value_size, NULL),
+    Init_U8____Entry(21, Vector, value_type, NULL),
+    Init_U32___Entry(22, Vector, capacity, NULL),
+    Init_Str___Entry(23, Vector, init_data, NULL),
+    Init_Str___Entry(24, Vector, class_name, NULL),
+    Init_U8____Entry(25, Vector, trustee_flag, 0),
+    Init_End___Entry(26, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);

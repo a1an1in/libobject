@@ -32,18 +32,8 @@ struct Number_s{
     int (*set_type)(Number *number,enum number_type_e type);
     enum number_type_e (*get_type)(Number *number);
     int (*get_size)(Number *number);
-    int (*set_value)(Number *number, void *value);
-    int (*set_format_value)(Number *number, const char *fmt, ...);
-    short (*get_signed_short_value)(Number *number);
-    unsigned short (*get_unsigned_short_value)(Number *number);
-    int (*get_signed_int_value)(Number *number);
-    unsigned int (*get_unsigned_int_value)(Number *number);
-    long (*get_signed_long_value)(Number *number);
-    unsigned long (*get_unsigned_long_value)(Number *number);
-    long long (*get_signed_long_long_value)(Number *number);
-    unsigned long long (*get_unsigned_long_long_value)(Number *number);
-    float (*get_float_value)(Number *number);
-    double (*get_double_value)(Number *number);
+    int (*set_value)(Number *number, enum number_type_e type, void *value);
+    int (*get_value)(Number *number, enum number_type_e type, void *value);
     int (*clear)(Number *number);
 
     /*attribs*/
@@ -61,7 +51,19 @@ struct Number_s{
     enum number_type_e type;
 };
 
-#define NUM2S32(number) number->get_signed_int_value(number)  
-#define NUM2U32(number) number->get_unsigned_int_value(number)  
+
+#define NUM2S32(number)                                        \
+({                                                             \
+    int value;                                                 \
+    number->get_value(number, NUMBER_TYPE_SIGNED_INT, &value); \
+    value;                                                     \
+})
+
+#define NUM2U32(number)                                        \
+({                                                             \
+    unsigned int value;                                        \
+    number->get_value(number, NUMBER_TYPE_UNSIGNED_INT, &value); \
+    value;                                                     \
+})
 
 #endif

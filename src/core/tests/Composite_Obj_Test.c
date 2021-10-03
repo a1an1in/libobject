@@ -69,7 +69,7 @@ static int __teardown(Composite_Obj_Test *test)
     return 1;
 }
 
-static void __test_marshal_composite_obj(Composite_Obj_Test *test)
+static int __test_marshal_composite_obj(Composite_Obj_Test *test)
 {
     allocator_t *allocator = test->parent.obj.allocator;
     Composite_Obj *composite;
@@ -82,46 +82,52 @@ static void __test_marshal_composite_obj(Composite_Obj_Test *test)
     char *expect = "{\"name\":\"test marshal Composite_Obj\",\"help\":1,\"num\":5,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]}";
     String *string;
 
-    obj0 = object_new(allocator, "Simplest_Obj", NULL);
-    obj1 = object_new(allocator, "Simplest_Obj", NULL);
+    TRY {
+        obj0 = object_new(allocator, "Simplest_Obj", NULL);
+        obj1 = object_new(allocator, "Simplest_Obj", NULL);
 
-    help = 1;
-    obj0->set(obj0, "/Simplest_Obj/help", &help);
-    obj0->set(obj0, "/Simplest_Obj/name", "simplest obj1");
+        help = 1;
+        obj0->set(obj0, "/Simplest_Obj/help", &help);
+        obj0->set(obj0, "/Simplest_Obj/name", "simplest obj1");
 
-    help = 2;
-    obj1->set(obj1, "/Simplest_Obj/help", &help);
-    obj1->set(obj1, "/Simplest_Obj/name", "simplest obj2");
+        help = 2;
+        obj1->set(obj1, "/Simplest_Obj/help", &help);
+        obj1->set(obj1, "/Simplest_Obj/name", "simplest obj2");
 
 
-    composite = object_new(allocator, "Composite_Obj", NULL);
+        composite = object_new(allocator, "Composite_Obj", NULL);
 
-    help = 1;
-    composite->set(composite, "name", "test marshal Composite_Obj");
-    composite->set(composite, "help", &help);
-    composite->set(composite, "num", &num);
-    vector = composite->vector;
+        help = 1;
+        composite->set(composite, "name", "test marshal Composite_Obj");
+        composite->set(composite, "help", &help);
+        composite->set(composite, "num", &num);
+        vector = composite->vector;
 
-    vector->set(vector, "/Vector/value_type", &value_type);
-    vector->set(vector, "/Vector/class_name", "Simplest_Obj");
-    vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
+        vector->set(vector, "/Vector/value_type", &value_type);
+        vector->set(vector, "/Vector/class_name", "Simplest_Obj");
+        vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
 
-    vector->add(vector, obj0);
-    vector->add(vector, obj1);
+        vector->add(vector, obj0);
+        vector->add(vector, obj1);
 
-    string = object_new(allocator, "String", NULL);
-    string->assign(string, composite->to_json(composite));
-    string->replace(string, "\t", "", -1);
-    string->replace(string, "\r", "", -1);
-    string->replace(string, "\n", "", -1);
+        string = object_new(allocator, "String", NULL);
+        string->assign(string, composite->to_json(composite));
+        string->replace(string, "\t", "", -1);
+        string->replace(string, "\r", "", -1);
+        string->replace(string, "\n", "", -1);
 
-    ret = ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
-    if (ret != 1) {
-        dbg_str(DBG_ERROR, "real:%s expect:%s", string->get_cstr(string), expect);
+        SET_CATCH_PTR_PAR(string->get_cstr(string), expect);
+        ret = strncmp(string->get_cstr(string), expect, strlen(expect));
+        THROW_IF(ret != 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "int_number error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(string);
+        object_destroy(composite);
     }
 
-    object_destroy(string);
-    object_destroy(composite);
+    return ret;
 }
 
 static void __test_unmarshal_composite_obj(Composite_Obj_Test *test)
@@ -134,39 +140,48 @@ static void __test_unmarshal_composite_obj(Composite_Obj_Test *test)
     char *init_data = "{\"name\":\"test unmarshal Composite_Obj\",\"help\":1,\"num\":5,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1},{\"name\":\"simplest obj2\",\"help\":2}]}";
     char *expect    = "{\"name\":\"test unmarshal Composite_Obj\",\"help\":1,\"num\":5,\"vector\":[{\"name\":\"simplest obj1\",\"help\":1},{\"name\":\"simplest obj2\",\"help\":2}]}";
 
-    composite = object_new(allocator, "Composite_Obj", init_data);
+    TRY {
+        composite = object_new(allocator, "Composite_Obj", init_data);
 
-    string = object_new(allocator, "String", composite->to_json(composite));
-    //string->assign(string, composite->to_json(composite));
-    string->replace(string, "\t", "" , -1);
-    string->replace(string, "\r", "" , -1);
-    string->replace(string, "\n", "" , -1);
-    string->replace(string, ", ", ",", -1);
+        string = object_new(allocator, "String", composite->to_json(composite));
+        //string->assign(string, composite->to_json(composite));
+        string->replace(string, "\t", "" , -1);
+        string->replace(string, "\r", "" , -1);
+        string->replace(string, "\n", "" , -1);
+        string->replace(string, ", ", ",", -1);
 
-    ret = ASSERT_EQUAL(test, string->get_cstr(string), expect, strlen(expect));
-    if (ret != 1) {
-        dbg_str(DBG_ERROR, "expect:%s", expect);
-        dbg_str(DBG_ERROR, "ret   :%s", string->get_cstr(string));
+        SET_CATCH_PTR_PAR(string->get_cstr(string), expect);
+        ret = strncmp(string->get_cstr(string), expect, strlen(expect));
+        THROW_IF(ret != 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "test_unmarshal_composite_obj error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(string);
+        object_destroy(composite);
     }
-
-    object_destroy(string);
-    object_destroy(composite);
 }
 
 static void __test_override_virtual_funcs(Composite_Obj_Test *test)
 {
     allocator_t *allocator = test->parent.obj.allocator;
     Composite_Obj *composite;
+    int ret;
     Obj *o;
 
-    composite = object_new(allocator, "Composite_Obj", NULL);
+    TRY {
+        composite = object_new(allocator, "Composite_Obj", NULL);
 
-    o = (Obj *)composite;
-    o->override_virtual_funcs(o, "to_json", __to_json_new);
+        o = (Obj *)composite;
+        o->override_virtual_funcs(o, "to_json", __to_json_new);
 
-    ASSERT_EQUAL(test, &composite->to_json, &composite->parent.to_json, sizeof(void *));
-
-    object_destroy(composite);
+        ret = memcmp(&composite->to_json, &composite->parent.to_json, sizeof(void *));
+        THROW_IF(ret != 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+    } FINALLY {
+        object_destroy(composite);
+    }
 }
 
 static class_info_entry_t vector_test_class_info[] = {
