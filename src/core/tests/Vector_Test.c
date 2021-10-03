@@ -31,6 +31,7 @@
  */
 #include <stdio.h>
 #include <unistd.h>
+#include <libobject/core/try.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Array_Stack.h>
@@ -345,7 +346,102 @@ static int __test_obj_vector_new_with_init_data(Vector_Test *test)
     object_destroy(vector);
     object_destroy(string);
     ASSERT_EQUAL(test, string->get_cstr(string), init_data, strlen(init_data));
+}
 
+static int int_vector_element_cmp(void *element, void *key)
+{
+    int data;
+
+    data = (int)element;
+
+    return data == *(int *)key ? 1 : 0;
+}
+
+static int __test_int_vector_search(Vector_Test *test)
+{
+    Vector *vector = test->vector;
+    int value_type = VALUE_TYPE_INT8_T;
+    int t = 2;
+    int ret, count, expect_count = 5;
+
+    TRY {
+        vector->set(vector, "/Vector/value_type", &value_type);
+
+        vector->add_at(vector, 0, 0);
+        vector->add_at(vector, 1, 1);
+        vector->add_at(vector, 2, 2);
+        vector->add_at(vector, 3, 3);
+        vector->add_at(vector, 4, 4);
+
+        ret = vector->search(vector, int_vector_element_cmp, &t);
+        SET_CATCH_INT_PAR(ret, t);
+        THROW_IF(ret != 2, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "vector search error, ret=%d, key=%d", ERROR_INT_PAR1(), ERROR_INT_PAR2());
+    }
+
+    return 1;
+}
+
+static int __test_vector_get_end_index(Vector_Test *test)
+{
+    Vector *vector = test->vector;
+    int value_type = VALUE_TYPE_INT8_T;
+    int t = 2;
+    int ret, count, expect_count = 5;
+
+    TRY {
+        vector->set(vector, "/Vector/value_type", &value_type);
+
+        vector->add_at(vector, 0, 0);
+        vector->add_at(vector, 1, 1);
+        vector->add_at(vector, 2, 2);
+        vector->add_at(vector, 3, 3);
+        vector->add_at(vector, 4, 4);
+
+        ret = vector->get_end_index(vector);
+        SET_CATCH_INT_PAR(ret, 0);
+        THROW_IF(ret != 5, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "vector search error, ret=%d, par2=%d", ERROR_INT_PAR1(), ERROR_INT_PAR2());
+    } FINALLY {
+        dbg_str(DBG_SUC, "%s test suc, end index=%d", __func__, ERROR_INT_PAR1());
+    }
+
+    return 1;
+}
+
+static int __test_int_vector_remove_back(Vector_Test *test)
+{
+    Vector *vector = test->vector;
+    int value_type = VALUE_TYPE_INT8_T;
+    int t = 2;
+    int ret, count, expect_count = 5;
+    void *element = NULL;
+
+    TRY {
+        vector->set(vector, "/Vector/value_type", &value_type);
+
+        vector->add_at(vector, 0, 0);
+        vector->add_at(vector, 1, 1);
+        vector->add_at(vector, 2, 2);
+        vector->add_at(vector, 3, 3);
+        vector->add_at(vector, 4, 4);
+
+        EXEC(vector->remove_back(vector, &element));
+        ret = vector->get_end_index(vector);
+        SET_CATCH_INT_PAR(ret, 0);
+        THROW_IF(ret != 4, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "vector search error, ret=%d, key=%d", ERROR_INT_PAR1(), ERROR_INT_PAR2());
+    } FINALLY {
+        dbg_str(DBG_SUC, "%s test suc, end index=%d", __func__, ERROR_INT_PAR1());
+    }
+
+    return 1;
 }
 
 static class_info_entry_t vector_test_class_info[] = {
@@ -367,6 +463,9 @@ static class_info_entry_t vector_test_class_info[] = {
     Init_Vfunc_Entry(15, Vector_Test, test_string_vector_set_init_data, __test_string_vector_set_init_data),
     Init_Vfunc_Entry(16, Vector_Test, test_obj_vector_set_init_data, __test_obj_vector_set_init_data),
     Init_Vfunc_Entry(17, Vector_Test, test_obj_vector_new_with_init_data, __test_obj_vector_new_with_init_data),
-    Init_End___Entry(18, Vector_Test),
+    Init_Vfunc_Entry(18, Vector_Test, test_int_vector_search, __test_int_vector_search),
+    Init_Vfunc_Entry(19, Vector_Test, test_vector_get_end_index, __test_vector_get_end_index),
+    Init_Vfunc_Entry(20, Vector_Test, test_int_vector_remove_back, __test_int_vector_remove_back),
+    Init_End___Entry(21, Vector_Test),
 };
 REGISTER_CLASS("Vector_Test", vector_test_class_info);

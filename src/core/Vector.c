@@ -36,6 +36,7 @@
 #include <libobject/core/Vector.h>
 #include <libobject/core/String.h>
 #include <libobject/core/try.h>
+#include <libobject/core/policy.h>
 #include <libobject/argument/Command.h>
 
 static int __construct(Vector *vector, char *init_str)
@@ -242,137 +243,6 @@ static int __reset(Vector *vector)
     vector_pos_init(&v->end, 0, v);
 }
 
-static int __to_json_int8_policy(cjson_t *root, void *element)
-{
-    cjson_t *item = NULL;
-    int8_t num = (int8_t)element;
-
-    item = cjson_create_number(num);
-    if (item != NULL) {
-        cjson_add_item_to_array(root, item);
-    }
-
-    return 1;
-}
-
-static int __to_json_uint8_policy(cjson_t *root, void *element)
-{
-    cjson_t *item = NULL;
-    uint8_t num = (uint8_t)element;
-
-    item = cjson_create_number(num);
-    if (item != NULL) {
-        cjson_add_item_to_array(root, item);
-    }
-
-    return 1;
-}
-
-static int __to_json_int16_policy(cjson_t *root, void *element)
-{
-    cjson_t *item = NULL;
-    int16_t num = (int16_t)element;
-
-    item = cjson_create_number(num);
-    if (item != NULL) {
-        cjson_add_item_to_array(root, item);
-    }
-
-    return 1;
-}
-
-static int __to_json_uint16_policy(cjson_t *root, void *element)
-{
-    cjson_t *item = NULL;
-    uint16_t num = (uint16_t)element;
-
-    item = cjson_create_number(num);
-    if (item != NULL) {
-        cjson_add_item_to_array(root, item);
-    }
-
-    return 1;
-}
-
-static int __to_json_int32_policy(cjson_t *root, void *element)
-{
-    cjson_t *item = NULL;
-    int32_t num = (int32_t)element;
-
-    item = cjson_create_number(num);
-    if (item != NULL) {
-        cjson_add_item_to_array(root, item);
-    }
-
-    return 1;
-}
-
-static int __to_json_uint32_policy(cjson_t *root, void *element)
-{
-    cjson_t *item = NULL;
-    uint32_t num = (uint32_t)element;
-
-    item = cjson_create_number(num);
-    if (item != NULL) {
-        cjson_add_item_to_array(root, item);
-    }
-
-    return 1;
-}
-
-static int __to_json_float_policy(cjson_t *root, void *element)
-{
-    cjson_t *item = NULL;
-    float *num = (float *)element;
-
-    item = cjson_create_number(*num);
-    if (item != NULL) {
-        cjson_add_item_to_array(root, item);
-    }
-
-    return 1;
-}
-
-static int __to_json_string_policy(cjson_t *root, void *element)
-{
-    cjson_t *item = NULL;
-    String *s = (String *)element;
-
-    item = cjson_create_string(s->get_cstr(s));
-    if (item != NULL) {
-        cjson_add_item_to_array(root, item);
-    }
-
-    return 1;
-}
-
-static int __to_json_object_pointer_policy(cjson_t *root, void *element)
-{
-    cjson_t *item = NULL;
-    Obj *o = (Obj *)element;
-
-    item = cjson_parse(o->to_json(o));
-    if (item != NULL) {
-        cjson_add_item_to_array(root, item);
-    }
-
-    return 1;
-}
-
-static struct vector_to_json_policy_s {
-    int (*policy)(cjson_t *root, void *element);
-} g_vector_to_json_policy[ENTRY_TYPE_MAX_TYPE] = {
-    [ENTRY_TYPE_INT8_T]      = {.policy = __to_json_int8_policy},
-    [ENTRY_TYPE_UINT8_T]     = {.policy = __to_json_uint8_policy},
-    [ENTRY_TYPE_INT16_T]     = {.policy = __to_json_int16_policy},
-    [ENTRY_TYPE_UINT16_T]    = {.policy = __to_json_uint16_policy},
-    [ENTRY_TYPE_INT32_T]     = {.policy = __to_json_int32_policy},
-    [ENTRY_TYPE_UINT32_T]    = {.policy = __to_json_uint32_policy},
-    [VALUE_TYPE_FLOAT_T]     = {.policy = __to_json_float_policy},
-    [VALUE_TYPE_STRING]      = {.policy = __to_json_string_policy},
-    [VALUE_TYPE_OBJ_POINTER] = {.policy = __to_json_object_pointer_policy},
-};
-
 static char *__to_json(Obj *obj)
 {
     Vector *vector = (Vector *)obj;
@@ -494,6 +364,38 @@ static int __assign(Vector *vector, char *value)
     return ret;
 }
 
+static int __search(Vector *vector, int (*cmp)(void *element, void *key), void *key) 
+{
+    vector_pos_t pos, next;
+    vector_t *v = vector->vector;
+    void *element = NULL;
+    int ret = 1, index = 0;
+
+    TRY {
+        for (vector_begin(v, &pos), vector_pos_next(&pos, &next);
+             !vector_pos_equal(&pos, &v->end);
+             pos = next, vector_pos_next(&pos, &next)) 
+        {
+            vector->peek_at(vector, index++, (void **)&element);
+            CONTINUE_IF(element == NULL);
+            ret = cmp(element, key);
+            THROW_IF(ret == 1, index - 1);
+        }
+        THROW(-1);
+    } CATCH(ret) {
+    }
+
+    return ret;
+}
+
+static int __get_end_index(Vector *vector)
+{
+    vector_t *v      = vector->vector;
+    uint32_t end_pos = v->end.vector_pos;
+
+    return end_pos;
+}
+
 static class_info_entry_t vector_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Vector, construct, __construct),
@@ -514,12 +416,14 @@ static class_info_entry_t vector_class_info[] = {
     Init_Vfunc_Entry(16, Vector, empty, __empty),
     Init_Vfunc_Entry(17, Vector, to_json, __to_json),
     Init_Vfunc_Entry(18, Vector, assign, __assign),
-    Init_U32___Entry(19, Vector, value_size, NULL),
-    Init_U8____Entry(20, Vector, value_type, NULL),
-    Init_U32___Entry(21, Vector, capacity, NULL),
-    Init_Str___Entry(22, Vector, init_data, NULL),
-    Init_Str___Entry(23, Vector, class_name, NULL),
-    Init_U8____Entry(24, Vector, trustee_flag, 0),
-    Init_End___Entry(25, Vector),
+    Init_Vfunc_Entry(19, Vector, search, __search),
+    Init_Vfunc_Entry(20, Vector, get_end_index, __get_end_index),
+    Init_U32___Entry(21, Vector, value_size, NULL),
+    Init_U8____Entry(22, Vector, value_type, NULL),
+    Init_U32___Entry(23, Vector, capacity, NULL),
+    Init_Str___Entry(24, Vector, init_data, NULL),
+    Init_Str___Entry(25, Vector, class_name, NULL),
+    Init_U8____Entry(26, Vector, trustee_flag, 0),
+    Init_End___Entry(27, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);

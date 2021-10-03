@@ -21,6 +21,7 @@ struct vector_test_s{
     int *(*teardown)(Test *);
     int (*test_int_vector_add)(Test *test);
     int (*test_int_vector_remove)(Test *test);
+    int (*test_int_vector_remove_back)(Test *test);
     int (*test_int_vector_count)(Test *test);
     int (*test_int_vector_reset)(Test *test);
     int (*test_int_vector_to_json)(Test *test);
@@ -30,6 +31,8 @@ struct vector_test_s{
     int (*test_string_vector_set_init_data)(Test *test);
     int (*test_obj_vector_set_init_data)(Test *test);
     int (*test_obj_vector_new_with_init_data)(Test *test);
+    int (*test_int_vector_search)(Test *test);
+    int (*test_vector_get_end_index)(Test *test);
 
     Vector *vector;
 };

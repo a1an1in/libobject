@@ -97,10 +97,14 @@ extern pthread_key_t try_key;
 
 #else
 
-#define ERROR_LINE() __error_line
-#define ERROR_FUNC() __error_func
-#define ERROR_CODE() __error_code
-#define ERROR_FILE() __error_file
+#define ERROR_LINE()     __error_line
+#define ERROR_FUNC()     __error_func
+#define ERROR_CODE()     __error_code
+#define ERROR_FILE()     __error_file
+#define ERROR_INT_PAR1() __error_int_par1
+#define ERROR_INT_PAR2() __error_int_par2
+#define ERROR_PTR_PAR1() __error_ptr_par1
+#define ERROR_PTR_PAR2() __error_ptr_par2
 
 #define THROW(error_code)                                                                        \
     do {                                                                                         \
@@ -136,12 +140,27 @@ extern pthread_key_t try_key;
         }                                                                                        \
     } while (0);
 
+#define SET_CATCH_INT_PAR(par1, par2)                                                            \
+    do {                                                                                         \
+        __error_int_par1 = (par1);                                                               \
+        __error_int_par2 = (par2);                                                               \
+    } while (0);
+
+#define SET_CATCH_PTR_PAR(par1, par2)                                                            \
+    do {                                                                                         \
+        __error_ptr_par1 = (par1);                                                               \
+        __error_ptr_par2 = (par2);                                                               \
+    } while (0);
 
 #define TRY                                                                                      \
     int __error_line;                                                                            \
     int __error_code = 1;                                                                        \
     char *__error_func;                                                                          \
     char *__error_file;                                                                          \
+    int __error_int_par1 = 0;                                                                    \
+    int __error_int_par2 = 0;                                                                    \
+    void *__error_ptr_par1 = NULL;                                                               \
+    void *__error_ptr_par2 = NULL;                                                               \
 
 #define CATCH(ret)                                                                               \
     __error_tab:                                                                                 \

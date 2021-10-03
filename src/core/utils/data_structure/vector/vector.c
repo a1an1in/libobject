@@ -314,6 +314,7 @@ int vector_remove_back(vector_t *vector, void **element)
         vector->count -= 1;
     }
     vector_head[offset] = NULL;
+    vector_pos_init(&vector->end, offset, vector);
     sync_unlock(&vector->vector_lock);
 
     return 1;
