@@ -75,7 +75,6 @@ static int __modulate_capacity(String *string, int write_len)
             dbg_str(OBJ_WARNNING, "auto modulate string object max value len, "
                     "write_len =%d, value_max_len from %d to %d",
                     write_len, old, string->value_max_len);
-        
         }
 
         memset(new_buf, 0, string->value_max_len);
@@ -447,14 +446,13 @@ static int __find(String *string, char *pattern, int offset, int num)
     Vector *v;
     string_piece_t *piece;
     allocator_t *allocator = string->obj.allocator;
+    uint8_t trustee_flag = 1;
+    int value_type = VALUE_TYPE_ALLOC_POINTER;
     regex_t regex;  
     regmatch_t pmatch[1];  
     int nmatch = 1, ret = -1;
 
     if (string->pieces == NULL) {
-        uint8_t trustee_flag = 1;
-        int value_type = VALUE_TYPE_ALLOC_POINTER;
-
         v = object_new(allocator, "Vector", NULL);
         v->set(v, "/Vector/trustee_flag", &trustee_flag);
         v->set(v, "/Vector/value_type", &value_type);
@@ -504,14 +502,13 @@ static int __split(String *string, char *delims, int num)
     Vector *v;
     string_piece_t *piece;
     allocator_t *allocator = string->obj.allocator;
+    uint8_t trustee_flag = 1;
+    int value_type = VALUE_TYPE_ALLOC_POINTER;
     regex_t regex;  
     regmatch_t pmatch[1];  
     int nmatch = 1, ret = -1;
 
     if (string->pieces == NULL) {
-        uint8_t trustee_flag = 1;
-        int value_type = VALUE_TYPE_ALLOC_POINTER;
-
         v = object_new(allocator, "Vector", NULL);
         v->set(v, "/Vector/trustee_flag", &trustee_flag);
         v->set(v, "/Vector/value_type", &value_type);

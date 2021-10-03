@@ -48,6 +48,7 @@ void * __object_get_func_of_class(char *class_name,
         deamon = class_deamon_get_global_class_deamon();
         entry = (class_info_entry_t *) class_deamon_search_class(deamon, 
                 class_name);
+        SET_CATCH_PTR_PAR(class_name, class_name);
         THROW_IF(entry == NULL, NULL);
 
         for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
@@ -55,9 +56,10 @@ void * __object_get_func_of_class(char *class_name,
                 dbg_str(OBJ_DETAIL, "found func of class");
                 return entry[i].value;
             }
-            dbg_str(OBJ_DETAIL, "value_name:%s func_name:%s", entry[i].value_name, func_name);
         }   
     } CATCH (ret) {
+        dbg_str(OBJ_ERROR, "object_get_func_of_class, class_name:%s func_name:%s",
+                class_name, func_name);
     }
 
     return NULL;
@@ -115,6 +117,7 @@ __object_get_func_of_class_recursively(void *class_info_addr,
             return __object_get_func_of_class_recursively(entry_of_parent_class, func_name);
         }
     } CATCH (ret) {
+        dbg_str(OBJ_ERROR, "object_get_func_of_class_recursively, func_name:%s", func_name);
     }
 
     return NULL;
@@ -157,7 +160,7 @@ __object_get_entry_of_class(void *class_info, char *entry_name)
             }
         }   
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "__object_get_entry_of_class error, class_info:%p, entry_name:%s",
+        dbg_str(DBG_ERROR, "object_get_entry_of_class error, class_info:%p, entry_name:%s",
                 class_info, entry_name);
     }
 
@@ -306,8 +309,7 @@ int __object_override_virtual_funcs(void *obj,
         for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
             if (entry[i].type == ENTRY_TYPE_VFUNC_POINTER){
                 reimplement_func = __object_find_reimplement_func(entry[i].value_name, 
-                        type_name, 
-                        cur_type_name);
+                                                                  type_name, cur_type_name);
                 if (reimplement_func != NULL)
                     set(obj, (char *)entry[i].value_name, reimplement_func);
             }
