@@ -527,6 +527,7 @@ class_info_entry_t *object_get_entry_of_class(char *class_name, char *entry_name
         entry = __object_get_entry_of_class(info, entry_name);
         THROW_IF(entry == NULL, -1);
     } CATCH (ret) {
+        dbg_str(DBG_ERROR, "class_name:%s, entry_name:%s", class_name, entry_name);
     }
 
     return entry;

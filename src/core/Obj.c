@@ -156,23 +156,27 @@ int __set_vector_policy(Obj *obj, class_info_entry_t *entry, void *value)
     Vector *v;
     uint8_t trustee_flag = 1;
     char *p = (char *)value;
+    int ret = 1;
 
-    if (*addr != NULL) {
-        v = *addr;
-    } else {
-        v = object_new(allocator, "Vector", NULL);
-    }
-    if (p[0] == '[') {
+    TRY {
+        if (*addr != NULL) {
+            v = *addr;
+        } else {
+            v = object_new(allocator, "Vector", NULL);
+        }
+        THROW_IF(p[0] != '[', -1);
+        THROW_IF(p[1] == ']', 0);
+
         v->set(v, "/Vector/init_data", value);
         v->set(v, "/Vector/class_name", entry->type_name);
         v->set(v, "/Vector/trustee_flag", &trustee_flag);
         v->reconstruct(v);
         *addr = v;
         Vector **addr = (Vector **)(base + entry->offset);
-    } else {
+    } CATCH (ret) {
     }
 
-    return 1;
+    return ret;
 }
 
 int __set_pointer_policy(Obj *obj, class_info_entry_t *entry, void *value)
