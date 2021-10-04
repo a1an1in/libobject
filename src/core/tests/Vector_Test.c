@@ -353,7 +353,8 @@ static int __test_int_vector_search(Vector_Test *test)
     Vector *vector = test->vector;
     int value_type = VALUE_TYPE_INT8_T;
     int t = 2;
-    int ret, count, expect_count = 5;
+    int ret, count, expect_count = 5, index;
+    void *element;
 
     TRY {
         vector->set(vector, "/Vector/value_type", &value_type);
@@ -364,9 +365,9 @@ static int __test_int_vector_search(Vector_Test *test)
         vector->add_at(vector, 3, 3);
         vector->add_at(vector, 4, 4);
 
-        ret = vector->search(vector, int_vector_element_cmp, &t);
-        SET_CATCH_INT_PAR(ret, t);
-        THROW_IF(ret != 2, -1);
+        EXEC(vector->search(vector, int_vector_element_cmp, &t, &element, &index));
+        SET_CATCH_INT_PAR(index, t);
+        THROW_IF(index != 2, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "vector search error, ret=%d, key=%d", ERROR_INT_PAR1(), ERROR_INT_PAR2());

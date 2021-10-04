@@ -317,7 +317,6 @@ static int __assign(Vector *vector, char *value)
         bak = c = cjson_parse(json);
         if (c->type & OBJECT_ARRAY) {
             c = c->child;
-            dbg_str(DBG_DETAIL, "array name:%s", c->string);
         }
 
         while (c) {
@@ -361,24 +360,28 @@ static int __assign(Vector *vector, char *value)
     return ret;
 }
 
-static int __search(Vector *vector, int (*cmp)(void *element, void *key), void *key) 
+static int __search(Vector *vector, int (*cmp)(void *element, void *key), void *key, void **out, int *index) 
 {
     vector_pos_t pos, next;
     vector_t *v = vector->vector;
     void *element = NULL;
-    int ret = 1, index = 0;
+    int ret = 1, i = 0;
 
     TRY {
         for (vector_begin(v, &pos), vector_pos_next(&pos, &next);
              !vector_pos_equal(&pos, &v->end);
              pos = next, vector_pos_next(&pos, &next)) 
         {
-            vector->peek_at(vector, index++, (void **)&element);
+            vector->peek_at(vector, i++, (void **)&element);
             CONTINUE_IF(element == NULL);
             ret = cmp(element, key);
-            THROW_IF(ret == 1, index - 1);
+            if (ret == 1) {
+                *index = i - 1;
+                *out = element;
+                THROW(1);
+            }
         }
-        THROW(-1);
+        THROW(0);
     } CATCH(ret) {
     }
 

@@ -29,39 +29,48 @@ class_info_entry_t * __object_get_entry_of_parent_class(void *class_info_addr);
 void * __object_get_func_of_class_recursively(void *class_info_addr, char *func_name);
 void * __object_get_func_of_class(char *class_name, char *func_name);
 
-#define OBJECT_ALLOC(alloc, type) \
-({\
-	type * obj; \
-	\
-	obj = (type *)allocator_mem_alloc(alloc,sizeof(type));\
-	if(obj == NULL) {\
-		dbg_str(DBG_DETAIL,"allocator_mem_alloc");\
-		obj = NULL;\
-	} else { \
-		memset(obj,0, sizeof(type));\
-		((Obj *)obj)->allocator = alloc;\
-        strcpy(((Obj *)obj)->name,#type);\
-	}\
-	\
-	obj;\
+#define OBJECT_ALLOC(alloc, type)                                                   \
+({                                                                                  \
+	type * obj;                                                                     \
+	                                                                                \
+	obj = (type *)allocator_mem_alloc(alloc,sizeof(type));                          \
+	if(obj == NULL) {                                                               \
+		dbg_str(DBG_DETAIL,"allocator_mem_alloc");                                  \
+		obj = NULL;                                                                 \
+	} else {                                                                        \
+		memset(obj,0, sizeof(type));                                                \
+		((Obj *)obj)->allocator = alloc;                                            \
+        strcpy(((Obj *)obj)->name,#type);                                           \
+	}                                                                               \
+	                                                                                \
+	obj;                                                                            \
  })
 
-#define OBJECT_NEW(allocator,type,set_str) \
-({\
-    void *obj = NULL;\
-    int ret;\
-    obj = OBJECT_ALLOC(allocator,type);\
-    ret = object_set(obj, #type, set_str);\
-    if( ret < 0) {\
-        dbg_str(DBG_ERROR,"object_set error");\
-        obj = NULL;\
-    } else {\
-        object_init(obj,#type);\
-    }\
-    obj;\
+#define OBJECT_NEW(allocator,type,set_str)                                          \
+({                                                                                  \
+    void *obj = NULL;                                                               \
+    int ret;                                                                        \
+    obj = OBJECT_ALLOC(allocator,type);                                             \
+    ret = object_set(obj, #type, set_str);                                          \
+    if( ret < 0) {                                                                  \
+        dbg_str(DBG_ERROR,"object_set error");                                      \
+        obj = NULL;                                                                 \
+    } else {                                                                        \
+        object_init(obj,#type);                                                     \
+    }                                                                               \
+    obj;                                                                            \
 })
 
 #define offset_of_class(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+
+#define OBJECT_DESTROY(obj)                                                         \
+({                                                                                  \
+    if (obj != NULL) {                                                              \
+        object_destroy(obj);                                                        \
+        obj = NULL;                                                                 \
+    }                                                                               \
+})
+
 
 typedef struct object_config_s{
 }object_config_t;

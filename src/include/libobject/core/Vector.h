@@ -31,7 +31,7 @@ struct _vector_s{
     int (*empty)(Vector *vector);
     int (*reset)(Vector *vector);
     int (*assign)(Vector *vector, char *value);
-    int (*search)(Vector *vector, int (*cmp)(void *element, void *key), void *key); 
+    int (*search)(Vector *vector, int (*cmp)(void *element, void *key), void *key, void **out, int *index);
     int (*get_end_index)(Vector *vector);
 
     /*attribs*/
