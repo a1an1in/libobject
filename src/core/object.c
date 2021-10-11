@@ -358,10 +358,14 @@ __object_set(void *obj, char *type_name,
                     /*
                      *set(obj, c->string, &(c->valuedouble));
                      */
-                } else if (c->type & OBJECT_STRING) {
+                } else if (c->type & CJSON_STRING) {
+                    /*
+                     * 这里只是识别到json 字符串， 具体到属性类型在set()判断，如果属性以字符串的形式赋值，就会走这个分支。
+                     * 数组和数字目前不支持字符串形式赋值.
+                     * */
                     dbg_str(OBJ_DETAIL, "set string: %s value \"%s\"", c->string, c->valuestring);
                     set(obj, c->string, c->valuestring);
-                } else if (c->type & OBJECT_ARRAY) {
+                } else if (c->type & CJSON_ARRAY) {
                     char *out;
                     out = cjson_print(c);
                     set(obj, c->string, out);
