@@ -21,6 +21,10 @@ struct Date_Time_s{
     int (*assign)(Date_Time *data, char *value);
     int (*get_timezone)(Date_Time *data);
     char *(*to_format_string)(Date_Time *date, char *fmt);
+    Date_Time *(*next_day)(Date_Time *date);
+    Date_Time *(*end_day)(Date_Time *date);
+    int (*cmp)(Date_Time *date, char *target);
+    Date_Time *(*for_each_day)(Date_Time *date, char *end, int (*callback)(char *start, char *end, void *opaque), void *opaque);
 
     String *value;
     struct tm tm;

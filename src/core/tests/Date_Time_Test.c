@@ -147,7 +147,6 @@ static int __test_timezone2(Date_Time_Test *test)
 static int __test_timezone(Date_Time_Test *test)
 {
     int ret;
-    Date_Time *date;
     char *str;
 
     TRY {
@@ -157,7 +156,210 @@ static int __test_timezone(Date_Time_Test *test)
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
     }
 
+    return ret;
+}
+
+static int __test_next_day(Date_Time_Test *test)
+{
+    int ret;
+    Date_Time *date;
+    char *start = "2021-09-03 22:31:10 UTC+0800";
+    char *expect = "2021-09-04 00:00:00 UTC+0800";
+    char *str;
+
+    TRY {
+        date = test->date;
+        str = date->next_day(date)->to_format_string(date, "%F %T UTC%z");
+        SET_CATCH_PTR_PAR(str, expect);
+        THROW_IF(strcmp(str, expect) != 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "test_next_day error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    }
+
+    return ret;
+}
+
+static int __test_cmp_case1(Date_Time_Test *test)
+{
+    int ret;
+    Date_Time *date;
+    char *src = "2021-09-03 22:31:10 UTC+0800";
+    char *target = "2021-09-03 22:31:10 UTC+0800";
+    char *str;
+
+    TRY {
+        date = test->date;
+        EXEC(date->assign(date, src));
+        ret = date->cmp(date, target);
+
+        SET_CATCH_PTR_PAR(src, target);
+        THROW_IF(ret != 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "test_cmp_case1 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    }
+
+    return ret;
+}
+
+static int __test_cmp_case2(Date_Time_Test *test)
+{
+    int ret;
+    Date_Time *date;
+    char *src = "2021-09-03 22:31:11 UTC+0800";
+    char *target = "2021-09-03 22:31:10 UTC+0800";
+    char *str;
+
+    TRY {
+        date = test->date;
+        EXEC(date->assign(date, src));
+        ret = date->cmp(date, target);
+
+        SET_CATCH_PTR_PAR(src, target);
+        THROW_IF(ret <= 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "test_cmp_case2 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    }
+
+    return ret;
+}
+
+static int __test_cmp_case3(Date_Time_Test *test)
+{
+    int ret;
+    Date_Time *date;
+    char *src = "2021-09-03 22:31:10 UTC+0800";
+    char *target = "2021-09-03 22:31:11 UTC+0800";
+    char *str;
+
+    TRY {
+        date = test->date;
+        EXEC(date->assign(date, src));
+        ret = date->cmp(date, target);
+
+        SET_CATCH_PTR_PAR(src, target);
+        THROW_IF(ret > 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "test_cmp_case3 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    }
+
+    return ret;
+}
+
+static int __test_cmp(Date_Time_Test *test)
+{
+    int ret;
+    char *str;
+
+    TRY {
+        EXEC(__test_cmp_case1(test));
+        EXEC(__test_cmp_case2(test));
+        EXEC(__test_cmp_case3(test));
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+    }
+
+    return ret;
+}
+
+static int for_each_day_count = 0;
+static int __test_for_callback(char *start, char *end, void *opaque)
+{
+    dbg_str(DBG_DETAIL, "start:%s end:%s", start, end);
+    for_each_day_count++;
+
     return 1;
+}
+
+static int __test_for_each_day_case1(Date_Time_Test *test)
+{
+    int ret;
+    Date_Time *date;
+    char *src = "2021-09-03 22:31:10 UTC+0800";
+    char *target = "2021-09-05 22:31:11 UTC+0800";
+    char *str;
+
+    TRY {
+        for_each_day_count = 0;
+        date = test->date;
+        EXEC(date->assign(date, src));
+        EXEC(date->for_each_day(date, target, __test_for_callback, test));
+
+        SET_CATCH_PTR_PAR(src, target);
+        THROW_IF(for_each_day_count != 3, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "test_for_each_day_case1 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    }
+
+    return ret;
+}
+
+static int __test_for_each_day_case2(Date_Time_Test *test)
+{
+    int ret;
+    Date_Time *date;
+    char *src = "2021-09-03 22:31:10 UTC+0800";
+    char *target = "2021-09-03 22:32:11 UTC+0800";
+    char *str;
+
+    TRY {
+        for_each_day_count = 0;
+        date = test->date;
+        EXEC(date->assign(date, src));
+        EXEC(date->for_each_day(date, target, __test_for_callback, test));
+
+        SET_CATCH_PTR_PAR(src, target);
+        THROW_IF(for_each_day_count != 1, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "test_for_each_day_case1 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    }
+
+    return ret;
+}
+
+static int __test_for_each_day_case3(Date_Time_Test *test)
+{
+    int ret;
+    Date_Time *date;
+    char *src = "2021-08-20 22:31:10 UTC+0800";
+    char *target = "2021-09-01 00:00:01 UTC+0800";
+    char *str;
+
+    TRY {
+        for_each_day_count = 0;
+        date = test->date;
+        EXEC(date->assign(date, src));
+        EXEC(date->for_each_day(date, target, __test_for_callback, test));
+
+        SET_CATCH_PTR_PAR(src, target);
+        THROW_IF(for_each_day_count != 13, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_str(DBG_ERROR, "test_for_each_day_case3 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    }
+
+    return ret;
+}
+
+static int __test_for_each_day(Date_Time_Test *test)
+{
+    int ret;
+    char *str;
+
+    TRY {
+        EXEC(__test_for_each_day_case1(test));
+        EXEC(__test_for_each_day_case2(test));
+        EXEC(__test_for_each_day_case3(test));
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+    }
+
+    return ret;
 }
 
 static class_info_entry_t data_test_class_info[] = {
@@ -170,6 +372,9 @@ static class_info_entry_t data_test_class_info[] = {
     Init_Vfunc_Entry(6 , Date_Time_Test, teardown, __teardown),
     Init_Vfunc_Entry(7 , Date_Time_Test, test_assign, __test_assign),
     Init_Vfunc_Entry(8 , Date_Time_Test, test_timezone, __test_timezone),
-    Init_End___Entry(9 , Date_Time_Test),
+    Init_Vfunc_Entry(9 , Date_Time_Test, test_next_day, __test_next_day),
+    Init_Vfunc_Entry(10, Date_Time_Test, test_cmp, __test_cmp),
+    Init_Vfunc_Entry(11, Date_Time_Test, test_for_each_day, __test_for_each_day),
+    Init_End___Entry(12, Date_Time_Test),
 };
 REGISTER_CLASS("Date_Time_Test", data_test_class_info);

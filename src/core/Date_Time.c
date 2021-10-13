@@ -71,13 +71,69 @@ static char * __get_timezone(Date_Time *date)
     return (24 * 3600 - (int)mktime(&tm)) / 3600;
 }
 
+static Date_Time *__next_day(Date_Time *date)
+{
+    time_t time;
+
+    time = mktime(&date->tm);
+    time += (23 - date->tm.tm_hour) * 3600 + (59 - date->tm.tm_min) * 60 + (60 - date->tm.tm_sec);
+    localtime_r(&time, &date->tm); 
+
+    return date;
+}
+
+static Date_Time *__end_day(Date_Time *date)
+{
+    time_t time;
+
+    time = mktime(&date->tm);
+    time += (23 - date->tm.tm_hour) * 3600 + (59 - date->tm.tm_min) * 60 + (59 - date->tm.tm_sec);
+    localtime_r(&time, &date->tm); 
+
+    return date;
+}
+
+static int __cmp(Date_Time *date, char *target)
+{
+    return strcmp(date->to_format_string(date, (char *)"%F %T UTC%z"), target); 
+}
+
+static Date_Time *__for_each_day(Date_Time *date, char *end, int (*callback)(char *start, char *end, void *opaque), void *opaque) 
+{
+    char s[50];
+    char *e;
+    int ret = 0;
+
+    TRY {
+        for (; date->cmp(date, end) <= 0; date->next_day(date)) {
+            strcpy(s, date->to_format_string(date, (char *)"%F %T UTC%z"));
+            date->end_day(date);
+            e = date->to_format_string(date, (char *)"%F %T UTC%z");
+            if (date->cmp(date, end) > 0) {
+                e = end;
+            }
+            SET_CATCH_PTR_PAR(s, e);
+            callback(s, e, opaque);
+        }
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "Date_Time::for_each_day() error, par1=%s, par2=%s",
+                ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    }
+
+    return ret;
+}
+
 static class_info_entry_t module_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
     Init_Nfunc_Entry(1, Date_Time, construct, __construct),
     Init_Nfunc_Entry(2, Date_Time, assign, __assign),
     Init_Nfunc_Entry(3, Date_Time, to_format_string, __to_format_string),
     Init_Nfunc_Entry(4, Date_Time, get_timezone, __get_timezone),
-    Init_End___Entry(5, Date_Time),
+    Init_Nfunc_Entry(5, Date_Time, next_day, __next_day),
+    Init_Nfunc_Entry(6, Date_Time, end_day, __end_day),
+    Init_Nfunc_Entry(7, Date_Time, cmp, __cmp),
+    Init_Nfunc_Entry(8, Date_Time, for_each_day, __for_each_day),
+    Init_End___Entry(9, Date_Time),
 };
 REGISTER_CLASS("Date_Time", module_class_info);
 
