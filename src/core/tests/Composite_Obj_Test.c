@@ -168,15 +168,15 @@ static void __test_override_virtual_funcs(Composite_Obj_Test *test)
     Composite_Obj *composite;
     int ret;
     Obj *o;
+    void *to_json;
 
     TRY {
         composite = object_new(allocator, "Composite_Obj", NULL);
 
         o = (Obj *)composite;
-        o->override_virtual_funcs(o, "to_json", __to_json_new);
+        object_override(o, "to_json", __to_json_new);
 
-        ret = memcmp(&composite->to_json, &composite->parent.to_json, sizeof(void *));
-        THROW_IF(ret != 0, -1);
+        THROW_IF(o->to_json != __to_json_new, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
     } FINALLY {

@@ -9,6 +9,11 @@
 
 typedef struct _vector_s Vector;
 
+enum vector_sort_type_e {
+    VECTOR_SORT_TYPE_BUBBLE = 0,
+    VECTOR_SORT_MAX_TYPE,
+};
+
 struct _vector_s{
     Obj obj;
 
@@ -26,6 +31,7 @@ struct _vector_s{
     int (*remove_back)(Vector *vector,void **value);
     int (*peek_at)(Vector *vector,int index, void **value);
     int (*for_each)(Vector *vector, int (*func)(int index, void *element));
+    int (*for_each_arg)(Vector *vector, int (*func)(int index, void *element, void *arg), void *arg);
     void (*free_vector_elements)(Vector *vector);
     uint32_t (*count)(Vector *vector);
     int (*empty)(Vector *vector);
@@ -33,6 +39,7 @@ struct _vector_s{
     int (*assign)(Vector *vector, char *value);
     int (*search)(Vector *vector, int (*cmp)(void *element, void *key), void *key, void **out, int *index);
     int (*get_end_index)(Vector *vector);
+    int (*sort)(Vector *vector, enum vector_sort_type_e type, int (*cmp)(void *e1, void *e2));
 
     /*attribs*/
     vector_t *vector;

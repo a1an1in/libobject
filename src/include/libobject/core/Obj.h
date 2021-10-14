@@ -21,7 +21,6 @@ struct obj_s{
     int (*assign)(Obj *obj, char *value); 
     char *(*reset)(Obj *obj); 
     int (*set_target_name)(Obj *obj, char *);
-    int (*override_virtual_funcs)(Obj *obj, char *func_name, void *value);
 
     char name[MAX_CLASS_NAME_LEN];
     char target_name[MAX_CLASS_NAME_LEN];

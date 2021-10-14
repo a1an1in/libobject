@@ -182,6 +182,22 @@ __for_each(Vector *vector, int (*func)(int index, void *element))
     }
 }
 
+static int 
+__for_each_arg(Vector *vector, int (*func)(int index, void *element, void *arg), void *arg)
+{
+    vector_pos_t pos, next;
+    vector_t *v = vector->vector;
+    void *element;
+    int index = 0;
+
+    for (vector_begin(v, &pos), vector_pos_next(&pos, &next);
+         !vector_pos_equal(&pos, &v->end);
+         pos = next, vector_pos_next(&pos, &next)) {
+        vector->peek_at(vector, index, (void **)&element);
+        func(index++, element, arg);
+    }
+}
+
 static void __free_vector_elements(Vector *vector)
 {   
     vector->reset(vector);
@@ -396,6 +412,45 @@ static int __get_end_index(Vector *vector)
     return end_pos;
 }
 
+static int __bubble_sort(Vector *vector, int (*cmp)(void *e1, void *e2))
+{
+    int i, j;
+    void *t;
+    int len = vector->get_end_index(vector);
+    void **array  = vector->vector->vector_head;
+
+    for (i = 0; i < len - 1; i++) {
+        for (j = 0; j < len - 1 - i; j++) {
+            if (cmp(array[j], array[j + 1])) {
+                t = array[j];
+                array[j] = array[j + 1];
+                array[j + 1] = t;
+            }
+        }
+    }
+
+    return 1;
+}
+
+static int __sort(Vector *vector, enum vector_sort_type_e type, int (*cmp)(void *e1, void *e2))
+{
+    vector_t *v      = vector->vector;
+    uint32_t end_pos = v->end.vector_pos;
+    int (*sort_methods[VECTOR_SORT_MAX_TYPE])(Vector *vector, int (*cmp)(void *e1, void *e2)) = {
+        [VECTOR_SORT_TYPE_BUBBLE] = __bubble_sort,
+    };
+    int ret;
+
+    TRY {
+        THROW_IF(type >= VECTOR_SORT_MAX_TYPE, -1);
+        THROW_IF(sort_methods[type] == NULL, -1);
+        EXEC(sort_methods[type](vector, cmp)); 
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
 static class_info_entry_t vector_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Vector, construct, __construct),
@@ -409,20 +464,22 @@ static class_info_entry_t vector_class_info[] = {
     Init_Vfunc_Entry(9 , Vector, remove_back, __remove_back),
     Init_Vfunc_Entry(10, Vector, peek_at, __peek_at),
     Init_Vfunc_Entry(11, Vector, for_each, __for_each),
-    Init_Vfunc_Entry(12, Vector, free_vector_elements, __free_vector_elements),
-    Init_Vfunc_Entry(13, Vector, reset, __reset),
-    Init_Vfunc_Entry(14, Vector, count, __count),
-    Init_Vfunc_Entry(15, Vector, empty, __empty),
-    Init_Vfunc_Entry(16, Vector, to_json, __to_json),
-    Init_Vfunc_Entry(17, Vector, assign, __assign),
-    Init_Vfunc_Entry(18, Vector, search, __search),
-    Init_Vfunc_Entry(19, Vector, get_end_index, __get_end_index),
-    Init_U32___Entry(20, Vector, value_size, NULL),
-    Init_U8____Entry(21, Vector, value_type, NULL),
-    Init_U32___Entry(22, Vector, capacity, NULL),
-    Init_Str___Entry(23, Vector, init_data, NULL),
-    Init_Str___Entry(24, Vector, class_name, NULL),
-    Init_U8____Entry(25, Vector, trustee_flag, 0),
-    Init_End___Entry(26, Vector),
+    Init_Vfunc_Entry(12, Vector, for_each_arg, __for_each_arg),
+    Init_Vfunc_Entry(13, Vector, free_vector_elements, __free_vector_elements),
+    Init_Vfunc_Entry(14, Vector, reset, __reset),
+    Init_Vfunc_Entry(15, Vector, count, __count),
+    Init_Vfunc_Entry(16, Vector, empty, __empty),
+    Init_Vfunc_Entry(17, Vector, to_json, __to_json),
+    Init_Vfunc_Entry(18, Vector, assign, __assign),
+    Init_Vfunc_Entry(19, Vector, search, __search),
+    Init_Vfunc_Entry(20, Vector, get_end_index, __get_end_index),
+    Init_Vfunc_Entry(21, Vector, sort, __sort),
+    Init_U32___Entry(22, Vector, value_size, NULL),
+    Init_U8____Entry(23, Vector, value_type, NULL),
+    Init_U32___Entry(24, Vector, capacity, NULL),
+    Init_Str___Entry(25, Vector, init_data, NULL),
+    Init_Str___Entry(26, Vector, class_name, NULL),
+    Init_U8____Entry(27, Vector, trustee_flag, 0),
+    Init_End___Entry(28, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);

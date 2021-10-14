@@ -15,19 +15,20 @@
 
 #define MAX_OBJECT_INIT_DATA_LEN 1024 * 10 * 2
 
-void * object_get_set_func_pointer(void *class_info_addr);
-int object_init_func_pointer(void *obj,void *class_info_addr);
+class_info_entry_t * __object_get_entry_of_class(void *class_info, char *entry_name);
+class_info_entry_t * __object_get_entry_of_parent_class(void *class_info_addr);
+void * __object_get_func_of_class_recursively(void *class_info_addr, char *func_name);
+void * __object_get_func_of_class(char *class_name, char *func_name);
+
 class_info_entry_t * object_get_subclass_info(void *class_info_addr);
+class_info_entry_t *object_get_entry_of_class(char *class_name, char *entry_name);
 int object_init(void *obj, char *type_name);
 int object_set(void *obj, char *type_name, char *set_str);
 int object_dump(void *obj, char *type_name, char *buf, int max_len);
 void * object_new(allocator_t *allocator, char *type, char *config);
 int object_destroy(void *obj);
-class_info_entry_t * __object_get_entry_of_class(void *class_info, char *entry_name);
-class_info_entry_t *object_get_entry_of_class(char *class_name, char *entry_name);
-class_info_entry_t * __object_get_entry_of_parent_class(void *class_info_addr);
-void * __object_get_func_of_class_recursively(void *class_info_addr, char *func_name);
-void * __object_get_func_of_class(char *class_name, char *func_name);
+int object_override(void *obj, char *func_name, void *value);
+
 
 #define OBJECT_ALLOC(alloc, type)                                                   \
 ({                                                                                  \

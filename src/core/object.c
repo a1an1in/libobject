@@ -286,7 +286,7 @@ __object_inherit_funcs(void *obj, void *class_info)
 }
 
 
-int __object_override_virtual_funcs(void *obj, 
+int __object_override_virtual_func(void *obj, 
                                     char *cur_type_name,
                                     char *type_name)
 {
@@ -412,7 +412,7 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
             EXEC(__object_inherit_funcs(obj, class_info));
         }
 
-        EXEC(__object_override_virtual_funcs(obj, cur_type_name, type_name));
+        EXEC(__object_override_virtual_func(obj, cur_type_name, type_name));
 
         dbg_str(OBJ_DETAIL, "obj addr:%p", obj);
         if (construct != NULL) {
@@ -519,6 +519,38 @@ int __object_destroy(void *obj, char *type_name)
     return 0;
 }
 
+static int 
+__object_override_virtual_funcs(void *obj, char *cur_class_name, char *func_name, void *value)
+{
+    class_deamon_t *deamon;
+    void *class_info;
+    class_info_entry_t * entry_of_parent_class;
+    int (*set)(void *obj, char *attrib, void *value);
+    Obj *o = (Obj *)obj;
+    int ret = 1;
+
+    TRY {
+        deamon = class_deamon_get_global_class_deamon();
+        THROW_IF(deamon == NULL, -1);
+
+        class_info = class_deamon_search_class(deamon, (char *)cur_class_name);
+        THROW_IF(class_info == NULL, -1);
+
+        set = __object_get_func_of_class_recursively(class_info, "set");
+        THROW_IF(set == NULL, -1);
+
+        entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
+        if (entry_of_parent_class != NULL) {
+            __object_override_virtual_funcs(obj, entry_of_parent_class->type_name, func_name, value); 
+        }
+
+        strcpy(o->target_name, cur_class_name);
+        set(obj, func_name, value); 
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
 
 class_info_entry_t *object_get_entry_of_class(char *class_name, char *entry_name)
 {
@@ -667,6 +699,11 @@ int object_destroy(void *obj)
     }
 
     return ret;
+}
+
+int object_override(void *obj, char *func_name, void *value)
+{
+    return __object_override_virtual_funcs(obj, ((Obj *)obj)->name, func_name, value); 
 }
 
 static int test_object_new() 

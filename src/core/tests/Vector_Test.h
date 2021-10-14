@@ -19,20 +19,17 @@ struct vector_test_s{
     /*virtual methods reimplement*/
     int (*setup)(Test *);
     int *(*teardown)(Test *);
-    int (*test_int_vector_add)(Test *test);
-    int (*test_int_vector_remove)(Test *test);
-    int (*test_int_vector_remove_back)(Test *test);
-    int (*test_int_vector_count)(Test *test);
-    int (*test_int_vector_reset)(Test *test);
-    int (*test_int_vector_to_json)(Test *test);
-    int (*test_string_vector_to_json)(Test *test);
-    int (*test_obj_vector_to_json)(Test *test);
-    int (*test_int_vector_set_init_data)(Test *test);
-    int (*test_string_vector_set_init_data)(Test *test);
-    int (*test_obj_vector_set_init_data)(Test *test);
-    int (*test_obj_vector_new_with_init_data)(Test *test);
-    int (*test_int_vector_search)(Test *test);
+    int (*test_vector_add)(Test *test);
+    int (*test_vector_remove)(Test *test);
+    int (*test_vector_remove_back)(Test *test);
+    int (*test_vector_count)(Test *test);
+    int (*test_vector_reset)(Test *test);
+    int (*test_vector_to_json)(Test *test);
+    int (*test_vector_assign)(Test *test);
+    int (*test_vector_new)(Test *test);
+    int (*test_vector_search)(Test *test);
     int (*test_vector_get_end_index)(Test *test);
+    int (*test_vector_sort)(Test *test);
 
     Vector *vector;
 };

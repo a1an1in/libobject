@@ -267,46 +267,6 @@ static int __assign(Obj *obj, char *value)
     return 1;
 }
 
-static int 
-__override_virtual_funcs__(Obj *obj,
-                           char *cur_class_name,
-                           char *func_name, void *value)
-{
-    class_deamon_t *deamon;
-    void *class_info;
-    class_info_entry_t * entry_of_parent_class;
-    int (*set)(void *obj, char *attrib, void *value);
-    Obj *o = (Obj *)obj;
-    int ret = 1;
-
-    TRY {
-        deamon = class_deamon_get_global_class_deamon();
-        THROW_IF(deamon == NULL, -1);
-
-        class_info = class_deamon_search_class(deamon, (char *)cur_class_name);
-        THROW_IF(class_info == NULL, -1);
-
-        set = __object_get_func_of_class_recursively(class_info, "set");
-        THROW_IF(set == NULL, -1);
-
-        entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
-        if (entry_of_parent_class != NULL) {
-            __override_virtual_funcs__(obj, entry_of_parent_class->type_name, func_name, value); 
-        }
-
-        strcpy(o->target_name, cur_class_name);
-        set(obj, func_name, value); 
-    } CATCH (ret) {
-    }
-
-    return ret;
-}
-
-static int __override_virtual_funcs(Obj *obj, char *func_name, void *value)
-{
-    return __override_virtual_funcs__(obj, obj->name, func_name, value); 
-}
-
 static class_info_entry_t obj_class_info[] = {
     [0] = {ENTRY_TYPE_NORMAL_POINTER, "allocator_t", "allocator", NULL, sizeof(void *), offset_of_class(Obj, allocator)}, 
     [1] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *), offset_of_class(Obj, construct)}, 
@@ -316,7 +276,6 @@ static class_info_entry_t obj_class_info[] = {
     [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "to_json", __to_json, sizeof(void *), offset_of_class(Obj, to_json)}, 
     [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "reset", __reset, sizeof(void *), offset_of_class(Obj, reset)}, 
     [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "assign", __assign, sizeof(void *), offset_of_class(Obj, assign)}, 
-    [8] = {ENTRY_TYPE_VFUNC_POINTER, "", "override_virtual_funcs", __override_virtual_funcs, sizeof(void *), offset_of_class(Obj, override_virtual_funcs)}, 
-    [9] = {ENTRY_TYPE_END}, 
+    [8] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS("Obj", obj_class_info);
