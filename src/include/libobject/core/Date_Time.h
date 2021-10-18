@@ -23,8 +23,14 @@ struct Date_Time_s{
     char *(*to_format_string)(Date_Time *date, char *fmt);
     Date_Time *(*next_day)(Date_Time *date);
     Date_Time *(*end_day)(Date_Time *date);
+    Date_Time *(*next_month)(Date_Time *date);
+    Date_Time *(*end_month)(Date_Time *date);
+    Date_Time *(*next_year)(Date_Time *date);
+    Date_Time *(*end_year)(Date_Time *date);
     int (*cmp)(Date_Time *date, char *target);
     Date_Time *(*for_each_day)(Date_Time *date, char *end, int (*callback)(char *start, char *end, void *opaque), void *opaque);
+    Date_Time *(*for_each_month)(Date_Time *date, char *end, int (*callback)(char *start, char *end, void *opaque), void *opaque);
+    Date_Time *(*for_each_year)(Date_Time *date, char *end, int (*callback)(char *start, char *end, void *opaque), void *opaque);
 
     String *value;
     struct tm tm;

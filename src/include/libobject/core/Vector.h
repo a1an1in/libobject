@@ -40,6 +40,7 @@ struct _vector_s{
     int (*search)(Vector *vector, int (*cmp)(void *element, void *key), void *key, void **out, int *index);
     int (*get_end_index)(Vector *vector);
     int (*sort)(Vector *vector, enum vector_sort_type_e type, int (*cmp)(void *e1, void *e2));
+    int (*reset_from)(Vector *vector, int index);
 
     /*attribs*/
     vector_t *vector;

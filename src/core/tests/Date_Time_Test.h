@@ -24,6 +24,9 @@ struct data_test_s{
     int (*test_next_day)(Date_Time_Test *test);
     int (*test_cmp)(Date_Time_Test *test);
     int (*test_for_each_day)(Date_Time_Test *test);
+    int (*test_for_each_month)(Date_Time_Test *test);
+    int (*test_for_each_year)(Date_Time_Test *test);
+
 
     Date_Time *date;
 };

@@ -180,6 +180,8 @@ __for_each(Vector *vector, int (*func)(int index, void *element))
         vector->peek_at(vector, index, (void **)&element);
         func(index++, element);
     }
+
+    return 0;
 }
 
 static int 
@@ -196,6 +198,8 @@ __for_each_arg(Vector *vector, int (*func)(int index, void *element, void *arg),
         vector->peek_at(vector, index, (void **)&element);
         func(index++, element, arg);
     }
+
+    return 0;
 }
 
 static void __free_vector_elements(Vector *vector)
@@ -254,6 +258,8 @@ static int __reset(Vector *vector)
     memset((void *)v->vector_head, 0, v->capacity * (v->step));
     v->count = 0;
     vector_pos_init(&v->end, 0, v);
+
+    return 0;
 }
 
 static char *__to_json(Obj *obj)
@@ -451,6 +457,43 @@ static int __sort(Vector *vector, enum vector_sort_type_e type, int (*cmp)(void 
     return ret;
 }
 
+static int __reset_from(Vector *vector, int index)
+{
+    vector_pos_t pos, next;
+    vector_t *v = vector->vector;
+    void *element;
+    int i = 0, end;
+
+    end = vector->get_end_index(vector);
+    if (index >= end) return 0;
+
+    for (vector_begin(v, &pos), vector_pos_next(&pos, &next);
+         !vector_pos_equal(&pos, &v->end);
+         pos = next, vector_pos_next(&pos, &next)) {
+        if (vector->trustee_flag != 1) { break; }
+        if (i < index) continue;
+        
+        vector->remove(vector, i++, (void **)&element);
+        if (element == NULL) { continue; }
+
+        if (vector->value_type == VALUE_TYPE_OBJ_POINTER) {
+            object_destroy(element);
+        } else if (vector->value_type  == VALUE_TYPE_STRING) {
+            object_destroy(element);
+        } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER) {
+            allocator_mem_free(vector->obj.allocator, element);
+        } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER) {
+            dbg_str(DBG_WARNNING, "not support reset unkown pointer");
+        } else {
+        }
+        element = NULL;
+    }
+    vector_pos_init(&v->end, index, v);
+
+    return 0;
+}
+
+
 static class_info_entry_t vector_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Vector, construct, __construct),
@@ -474,12 +517,13 @@ static class_info_entry_t vector_class_info[] = {
     Init_Vfunc_Entry(19, Vector, search, __search),
     Init_Vfunc_Entry(20, Vector, get_end_index, __get_end_index),
     Init_Vfunc_Entry(21, Vector, sort, __sort),
-    Init_U32___Entry(22, Vector, value_size, NULL),
-    Init_U8____Entry(23, Vector, value_type, NULL),
-    Init_U32___Entry(24, Vector, capacity, NULL),
-    Init_Str___Entry(25, Vector, init_data, NULL),
-    Init_Str___Entry(26, Vector, class_name, NULL),
-    Init_U8____Entry(27, Vector, trustee_flag, 0),
-    Init_End___Entry(28, Vector),
+    Init_Vfunc_Entry(22, Vector, reset_from, __reset_from),
+    Init_U32___Entry(23, Vector, value_size, NULL),
+    Init_U8____Entry(24, Vector, value_type, NULL),
+    Init_U32___Entry(25, Vector, capacity, NULL),
+    Init_Str___Entry(26, Vector, init_data, NULL),
+    Init_Str___Entry(27, Vector, class_name, NULL),
+    Init_U8____Entry(28, Vector, trustee_flag, 0),
+    Init_End___Entry(29, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);

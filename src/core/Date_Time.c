@@ -93,12 +93,70 @@ static Date_Time *__end_day(Date_Time *date)
     return date;
 }
 
+static Date_Time *__next_month(Date_Time *date)
+{
+    time_t time;
+
+    date->tm.tm_year += (date->tm.tm_mon + 1) / 12;
+    date->tm.tm_mon = (date->tm.tm_mon + 1) % 12;
+    date->tm.tm_mday = 1;
+    date->tm.tm_hour = 0;
+    date->tm.tm_min = 0;
+    date->tm.tm_sec = 0;
+    time = mktime(&date->tm);
+    localtime_r(&time, &date->tm); 
+
+    return date;
+}
+
+static Date_Time *__end_month(Date_Time *date)
+{
+    time_t time;
+
+    date->next_month(date);
+    time = mktime(&date->tm);
+    time -= 1;
+    localtime_r(&time, &date->tm); 
+
+    return date;
+}
+
+static Date_Time *__next_year(Date_Time *date)
+{
+    time_t time;
+
+    date->tm.tm_year = (date->tm.tm_year + 1);
+    date->tm.tm_mon = 0;
+    date->tm.tm_mday = 1;
+    date->tm.tm_hour = 0;
+    date->tm.tm_min = 0;
+    date->tm.tm_sec = 0;
+    time = mktime(&date->tm);
+    localtime_r(&time, &date->tm); 
+
+    return date;
+}
+
+static Date_Time *__end_year(Date_Time *date)
+{
+    time_t time;
+
+    date->next_year(date);
+    time = mktime(&date->tm);
+    time -= 1;
+    localtime_r(&time, &date->tm); 
+
+    return date;
+}
+
+
 static int __cmp(Date_Time *date, char *target)
 {
     return strcmp(date->to_format_string(date, (char *)"%F %T UTC%z"), target); 
 }
 
-static Date_Time *__for_each_day(Date_Time *date, char *end, int (*callback)(char *start, char *end, void *opaque), void *opaque) 
+static Date_Time *
+__for_each_day(Date_Time *date, char *end, int (*callback)(char *start, char *end, void *opaque), void *opaque) 
 {
     char s[50];
     char *e;
@@ -109,9 +167,7 @@ static Date_Time *__for_each_day(Date_Time *date, char *end, int (*callback)(cha
             strcpy(s, date->to_format_string(date, (char *)"%F %T UTC%z"));
             date->end_day(date);
             e = date->to_format_string(date, (char *)"%F %T UTC%z");
-            if (date->cmp(date, end) > 0) {
-                e = end;
-            }
+            if (date->cmp(date, end) > 0) { e = end; }
             SET_CATCH_PTR_PAR(s, e);
             callback(s, e, opaque);
         }
@@ -123,17 +179,71 @@ static Date_Time *__for_each_day(Date_Time *date, char *end, int (*callback)(cha
     return ret;
 }
 
+static Date_Time *
+__for_each_month(Date_Time *date, char *end, int (*callback)(char *start, char *end, void *opaque), void *opaque) 
+{
+    char s[50];
+    char *e;
+    int ret = 0;
+
+    TRY {
+        for (; date->cmp(date, end) <= 0; date->next_month(date)) {
+            strcpy(s, date->to_format_string(date, (char *)"%F %T UTC%z"));
+            date->end_month(date);
+            e = date->to_format_string(date, (char *)"%F %T UTC%z");
+            if (date->cmp(date, end) > 0) { e = end; }
+            SET_CATCH_PTR_PAR(s, e);
+            callback(s, e, opaque);
+        }
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "Date_Time::for_each_month() error, par1=%s, par2=%s",
+                ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    }
+
+    return ret;
+}
+
+static Date_Time *
+__for_each_year(Date_Time *date, char *end, int (*callback)(char *start, char *end, void *opaque), void *opaque) 
+{
+    char s[50];
+    char *e;
+    int ret = 0;
+
+    TRY {
+        for (; date->cmp(date, end) <= 0; date->next_year(date)) {
+            strcpy(s, date->to_format_string(date, (char *)"%F %T UTC%z"));
+            date->end_year(date);
+            e = date->to_format_string(date, (char *)"%F %T UTC%z");
+            if (date->cmp(date, end) > 0) { e = end; }
+            SET_CATCH_PTR_PAR(s, e);
+            callback(s, e, opaque);
+        }
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "Date_Time::for_each_year() error, par1=%s, par2=%s",
+                ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    }
+
+    return ret;
+}
+
 static class_info_entry_t module_class_info[] = {
-    Init_Obj___Entry(0, Obj, parent),
-    Init_Nfunc_Entry(1, Date_Time, construct, __construct),
-    Init_Nfunc_Entry(2, Date_Time, assign, __assign),
-    Init_Nfunc_Entry(3, Date_Time, to_format_string, __to_format_string),
-    Init_Nfunc_Entry(4, Date_Time, get_timezone, __get_timezone),
-    Init_Nfunc_Entry(5, Date_Time, next_day, __next_day),
-    Init_Nfunc_Entry(6, Date_Time, end_day, __end_day),
-    Init_Nfunc_Entry(7, Date_Time, cmp, __cmp),
-    Init_Nfunc_Entry(8, Date_Time, for_each_day, __for_each_day),
-    Init_End___Entry(9, Date_Time),
+    Init_Obj___Entry(0 , Obj, parent),
+    Init_Nfunc_Entry(1 , Date_Time, construct, __construct),
+    Init_Nfunc_Entry(2 , Date_Time, assign, __assign),
+    Init_Nfunc_Entry(3 , Date_Time, to_format_string, __to_format_string),
+    Init_Nfunc_Entry(4 , Date_Time, get_timezone, __get_timezone),
+    Init_Nfunc_Entry(5 , Date_Time, next_day, __next_day),
+    Init_Nfunc_Entry(6 , Date_Time, end_day, __end_day),
+    Init_Nfunc_Entry(7 , Date_Time, next_month, __next_month),
+    Init_Nfunc_Entry(8 , Date_Time, end_month, __end_month),
+    Init_Nfunc_Entry(9 , Date_Time, next_year, __next_year),
+    Init_Nfunc_Entry(10, Date_Time, end_year, __end_year),
+    Init_Nfunc_Entry(11, Date_Time, cmp, __cmp),
+    Init_Nfunc_Entry(12, Date_Time, for_each_day, __for_each_day),
+    Init_Nfunc_Entry(13, Date_Time, for_each_month, __for_each_month),
+    Init_Nfunc_Entry(14, Date_Time, for_each_year, __for_each_year),
+    Init_End___Entry(15, Date_Time),
 };
 REGISTER_CLASS("Date_Time", module_class_info);
 
