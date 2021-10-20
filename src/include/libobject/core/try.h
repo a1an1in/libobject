@@ -106,6 +106,14 @@ extern pthread_key_t try_key;
 #define ERROR_PTR_PAR1() __error_ptr_par1
 #define ERROR_PTR_PAR2() __error_ptr_par2
 
+#define TRY_SHOW_PTR_PARS(level)                                                                 \
+    dbg_str(level, "ERROR_FUNC:%s, ERROR_PTR_PAR1=%s, ERROR_PTR_PAR2=%s",                        \
+            ERROR_FUNC(), ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+
+#define TRY_SHOW_INT_PARS(level)                                                                 \
+    dbg_str(level, "ERROR_FUNC:%s, ERROR_INT_PAR1=%d, ERROR_INT_PAR2=%d",                        \
+            ERROR_FUNC(), ERROR_INT_PAR1(), ERROR_INT_PAR2());
+
 #define THROW(error_code)                                                                        \
     do {                                                                                         \
         __error_line = __LINE__;                                                                 \

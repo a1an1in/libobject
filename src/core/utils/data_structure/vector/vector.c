@@ -197,12 +197,8 @@ int vector_add_at(vector_t *vector, int index, void *data)
         sync_lock(&vector->vector_lock, NULL);
         if (offset >= capacity) {
             dbg_str(VECTOR_WARNNING, "realloc mem at %s", __func__);
-            vector->vector_head = allocator_mem_zalloc(vector->allocator, 
-                                                       2 * capacity * (vector->step));
-            if (vector->vector_head == NULL) {
-                vector->vector_head = vector_head;
-                THROW(-1);
-            }
+            vector->vector_head = allocator_mem_zalloc(vector->allocator, 2 * capacity * (vector->step));
+            THROW_IF(vector->vector_head == NULL, -1);
 
             vector->capacity = 2 * capacity;
             memcpy(vector->vector_head, vector_head, capacity * vector->step);
@@ -247,14 +243,8 @@ int vector_add_back(vector_t *vector, void *data)
         sync_lock(&vector->vector_lock, NULL);
         if (offset >= capacity) {
             dbg_str(VECTOR_WARNNING, "realloc mem");
-            vector->vector_head = allocator_mem_zalloc(vector->allocator, 
-                                                       2 * capacity * (vector->step));
-            if (vector->vector_head == NULL) {
-                dbg_str(VECTOR_ERROR, "vector_add_back, realloc mem");
-                vector->vector_head = vector_head;
-                THROW(-1);
-            }
-
+            vector->vector_head = allocator_mem_zalloc(vector->allocator, 2 * capacity * (vector->step));
+            THROW_IF(vector->vector_head == NULL, -1);
             vector->capacity = 2 * capacity;
             memcpy(vector->vector_head, vector_head, capacity * step);
             allocator_mem_free(vector->allocator, vector_head);
@@ -269,8 +259,6 @@ int vector_add_back(vector_t *vector, void *data)
         dbg_str(VECTOR_DETAIL, "vector_add_back, offset=%d, capacity=%d, count=%d", 
                 offset - 1, vector->capacity, vector->count);
     } CATCH (ret) {
-        dbg_str(VECTOR_ERROR, "%s error, file:%s, line:%d, func:%s, error_code:%d", 
-                ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());
         sync_unlock(&vector->vector_lock);
     }
 

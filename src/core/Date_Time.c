@@ -44,9 +44,7 @@ static int __assign(Date_Time *date, char *value)
     if (date->timezone != 0) {
         timezone_offset = (date->timezone / 100) - date->get_timezone(date);
         time = mktime(&date->tm);
-        dbg_str(DBG_DETAIL, "time:%lld", time);
         time += (3600 * (timezone_offset));
-        dbg_str(DBG_DETAIL, "time:%lld", time);
         localtime_r(&time, &date->tm); 
     }
 

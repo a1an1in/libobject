@@ -25,7 +25,7 @@ class_info_entry_t *object_get_entry_of_class(char *class_name, char *entry_name
 int object_init(void *obj, char *type_name);
 int object_set(void *obj, char *type_name, char *set_str);
 int object_dump(void *obj, char *type_name, char *buf, int max_len);
-void * object_new(allocator_t *allocator, char *type, char *config);
+void * object_new(allocator_t *allocator, const char *type, char *config);
 int object_destroy(void *obj);
 int object_override(void *obj, char *func_name, void *value);
 

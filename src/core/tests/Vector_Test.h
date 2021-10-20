@@ -30,6 +30,7 @@ struct vector_test_s{
     int (*test_vector_search)(Test *test);
     int (*test_vector_get_end_index)(Test *test);
     int (*test_vector_sort)(Test *test);
+    int (*test_vector_filter)(Test *test);
 
     Vector *vector;
 };

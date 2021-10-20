@@ -566,6 +566,65 @@ static int __test_vector_sort(Vector_Test *test)
     return ret;
 }
 
+static int __test_vector_filter_case1_condition(void *element, void *cond)
+{
+    int c = *(int *)cond;
+    int e = (int)element;
+    int ret;
+
+    ret = e > c ? 1 : 0;
+    if (ret) {
+        dbg_str(DBG_DETAIL, "filter:c:%d, e:%d, ret:%d", c, e, ret);
+    }
+
+    return ret;
+}
+
+static int __test_vector_filter_case1(Vector_Test *test)
+{
+    Vector *vector = test->vector, *out = NULL;
+    int value_type = VALUE_TYPE_INT16_T;
+    int t = 2;
+    int ret, count, expect_count = 5;
+    void *element = NULL;
+    char *init_data  = "[900, 2, 3, -58, 34, 76, 32, 43, 56, -70, 35, -234, 532, 543, 2500]";
+    char *expect  = "[900, 2, 3, 34, 76, 32, 43, 56, 35, 532, 543, 2500]";
+    allocator_t *allocator = allocator_get_default_alloc();
+    int cond = 0;
+
+    TRY {
+        out = object_new(allocator, "Vector", NULL);
+        out->set(out, "value_type", &value_type);
+
+        vector->set(vector, "value_type", &value_type);
+        vector->assign(vector,  init_data);
+        dbg_str(DBG_DETAIL, "vector before filter:%s", vector->to_json(vector));
+        EXEC(vector->filter(vector, __test_vector_filter_case1_condition, &cond, out));
+
+        SET_CATCH_PTR_PAR(init_data, out->to_json(out));
+        THROW_IF(strcmp(out->to_json(out), expect) != 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        TRY_SHOW_PTR_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(out);
+    }
+
+    return 1;
+}
+
+static int __test_vector_filter(Vector_Test *test)
+{
+    int ret;
+
+    TRY {
+        EXEC(__test_vector_filter_case1(test));
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+    }
+
+    return ret;
+}
 static class_info_entry_t vector_test_class_info[] = {
     Init_Obj___Entry(0 , Test, parent),
     Init_Nfunc_Entry(1 , Vector_Test, construct, __construct),
@@ -585,6 +644,7 @@ static class_info_entry_t vector_test_class_info[] = {
     Init_Vfunc_Entry(15, Vector_Test, test_vector_get_end_index, __test_vector_get_end_index),
     Init_Vfunc_Entry(16, Vector_Test, test_vector_remove_back, __test_vector_remove_back),
     Init_Vfunc_Entry(17, Vector_Test, test_vector_sort, __test_vector_sort),
-    Init_End___Entry(18, Vector_Test),
+    Init_Vfunc_Entry(18, Vector_Test, test_vector_filter, __test_vector_filter),
+    Init_End___Entry(19, Vector_Test),
 };
 REGISTER_CLASS("Vector_Test", vector_test_class_info);

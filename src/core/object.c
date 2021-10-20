@@ -571,7 +571,7 @@ class_info_entry_t *object_get_entry_of_class(char *class_name, char *entry_name
     return entry;
 }
 
-void * object_new(allocator_t *allocator, char *type, char *config)
+void * object_new(allocator_t *allocator, const char *type, char *config)
 {
     Obj *o = NULL;
     class_info_entry_t *entry;

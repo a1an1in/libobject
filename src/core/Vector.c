@@ -493,6 +493,34 @@ static int __reset_from(Vector *vector, int index)
     return 0;
 }
 
+static int __filter(Vector *vector, int (*condition)(void *element, void *cond), void *cond, Vector *out)
+{
+    vector_pos_t pos, next;
+    vector_t *v = NULL;
+    void *element = NULL;
+    int ret, index = 0;
+
+    TRY {
+        THROW_IF(vector == NULL || out == NULL || cond == NULL, -1);
+        v = vector->vector;
+
+        for (   vector_begin(v, &pos), vector_pos_next(&pos, &next);
+                !vector_pos_equal(&pos, &v->end);
+                pos = next, vector_pos_next(&pos, &next), index++) {
+            vector->peek_at(vector, index, (void **)&element);
+
+            if (vector->value_type == VALUE_TYPE_OBJ_POINTER || vector->value_type  == VALUE_TYPE_STRING) {
+                CONTINUE_IF(element == NULL);
+            }
+
+            CONTINUE_IF(condition(element, cond) == 0);
+            out->add_back(out, element);
+        }
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
 
 static class_info_entry_t vector_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
@@ -518,12 +546,13 @@ static class_info_entry_t vector_class_info[] = {
     Init_Vfunc_Entry(20, Vector, get_end_index, __get_end_index),
     Init_Vfunc_Entry(21, Vector, sort, __sort),
     Init_Vfunc_Entry(22, Vector, reset_from, __reset_from),
-    Init_U32___Entry(23, Vector, value_size, NULL),
-    Init_U8____Entry(24, Vector, value_type, NULL),
-    Init_U32___Entry(25, Vector, capacity, NULL),
-    Init_Str___Entry(26, Vector, init_data, NULL),
-    Init_Str___Entry(27, Vector, class_name, NULL),
-    Init_U8____Entry(28, Vector, trustee_flag, 0),
-    Init_End___Entry(29, Vector),
+    Init_Vfunc_Entry(23, Vector, filter, __filter),
+    Init_U32___Entry(24, Vector, value_size, NULL),
+    Init_U8____Entry(25, Vector, value_type, NULL),
+    Init_U32___Entry(26, Vector, capacity, NULL),
+    Init_Str___Entry(27, Vector, init_data, NULL),
+    Init_Str___Entry(28, Vector, class_name, NULL),
+    Init_U8____Entry(29, Vector, trustee_flag, 0),
+    Init_End___Entry(30, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);

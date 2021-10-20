@@ -41,6 +41,7 @@ struct _vector_s{
     int (*get_end_index)(Vector *vector);
     int (*sort)(Vector *vector, enum vector_sort_type_e type, int (*cmp)(void *e1, void *e2));
     int (*reset_from)(Vector *vector, int index);
+    int (*filter)(Vector *vector, int (*condition)(void *element, void *cond), void *cond, Vector *out);
 
     /*attribs*/
     vector_t *vector;
