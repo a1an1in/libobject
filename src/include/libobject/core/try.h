@@ -114,6 +114,10 @@ extern pthread_key_t try_key;
     dbg_str(level, "ERROR_FUNC:%s, ERROR_INT_PAR1=%d, ERROR_INT_PAR2=%d",                        \
             ERROR_FUNC(), ERROR_INT_PAR1(), ERROR_INT_PAR2());
 
+#define TRY_SHOW_ERROR_PARS()                                                                    \
+        dbg_str(DBG_ERROR, "ERROR_FUNC:%s, ERROR_LINE:%d, ERROR_CODE:%d",                        \
+                ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());                                       \
+
 #define THROW(error_code)                                                                        \
     do {                                                                                         \
         __error_line = __LINE__;                                                                 \
@@ -174,8 +178,7 @@ extern pthread_key_t try_key;
     __error_tab:                                                                                 \
     ret = __error_code;                                                                          \
     if (__error_code < 0) {                                                                      \
-        dbg_str(DBG_ERROR, "ERROR_FUNC:%s, ERROR_LINE:%d, ERROR_CODE:%d",                        \
-                ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());                                       \
+        TRY_SHOW_ERROR_PARS();                                                                   \
     }                                                                                            \
     if (__error_code < 0)                                                                        \
 

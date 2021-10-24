@@ -31,6 +31,8 @@ struct vector_test_s{
     int (*test_vector_get_end_index)(Test *test);
     int (*test_vector_sort)(Test *test);
     int (*test_vector_filter)(Test *test);
+    int (*test_vector_add_vector)(Test *test);
+    int (*test_vector_copy)(Vector_Test *test);
 
     Vector *vector;
 };

@@ -138,7 +138,9 @@ int __obj_set_vector_policy(Obj *obj, class_info_entry_t *entry, void *value)
         THROW_IF(p[0] != '[', -1);
         THROW_IF(p[1] == ']', 0);
 
-        v->set(v, "/Vector/class_name", entry->type_name);
+        if (entry->type_name != NULL) {
+            v->set(v, "/Vector/class_name", entry->type_name);
+        }
         v->set(v, "/Vector/trustee_flag", &trustee_flag);
         v->assign(v, value);
         *addr = v;

@@ -151,6 +151,33 @@ static int __add_at(Vector *vector, int index, void *value)
     return vector_add_at(vector->vector, index, value);
 }
 
+static int __add_vector(Vector *vector, Vector *src)
+{
+    vector_pos_t pos, next;
+    vector_t *v = src->vector;
+    void *element = NULL;
+    int index = 0, ret = 0;
+
+    TRY {
+        THROW_IF(vector == NULL || src == NULL, -1);
+        for (vector_begin(v, &pos), vector_pos_next(&pos, &next);
+                !vector_pos_equal(&pos, &v->end);
+                pos = next, vector_pos_next(&pos, &next), index++) {
+            src->peek_at(src, index, (void **)&element);
+
+            if (src->value_type == VALUE_TYPE_OBJ_POINTER || src->value_type  == VALUE_TYPE_STRING) {
+                CONTINUE_IF(element == NULL);
+            }
+            EXEC(src->remove(src, index, (void **)&element));
+            EXEC(vector->add_back(vector, element));
+            element = NULL;
+        }
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
 static int __remove(Vector *vector, int index, void **value)
 {
     return vector_remove(vector->vector, index, value);
@@ -281,15 +308,20 @@ static char *__to_json(Obj *obj)
         json->reset(json);
     }
 
+    if (vector->value_type > ENTRY_TYPE_MAX_TYPE) {
+        return NULL;
+    }
+
     root = cjson_create_array();
 
     for (vector_begin(v, &pos), vector_pos_next(&pos, &next);
          !vector_pos_equal(&pos, &v->end);
          pos = next, vector_pos_next(&pos, &next)) {
+        element = NULL;
         vector->peek_at(vector, index++, (void **)&element);
         
-        if (vector->value_type > ENTRY_TYPE_MAX_TYPE) {
-            return NULL;
+        if (vector->value_type == VALUE_TYPE_OBJ_POINTER || vector->value_type  == VALUE_TYPE_STRING) {
+            CONTINUE_IF(element == NULL);
         }
         if (g_vector_to_json_policy[vector->value_type].policy == NULL) {
             continue;
@@ -362,7 +394,9 @@ static int __assign(Vector *vector, char *value)
                 o = object_new(allocator, STR2A(*sp2), out);
                 vector->add(vector, o);
 
-                dbg_str(DBG_DETAIL, "o: %s", o->to_json(o));
+                /*
+                 *dbg_str(DBG_DETAIL, "o: %s", o->to_json(o));
+                 */
                 free(out);
             } else {
                 dbg_str(DBG_DETAIL, "vector assign, not supported %d now!", c->type);
@@ -504,9 +538,9 @@ static int __filter(Vector *vector, int (*condition)(void *element, void *cond),
         THROW_IF(vector == NULL || out == NULL || cond == NULL, -1);
         v = vector->vector;
 
-        for (   vector_begin(v, &pos), vector_pos_next(&pos, &next);
-                !vector_pos_equal(&pos, &v->end);
-                pos = next, vector_pos_next(&pos, &next), index++) {
+        for (vector_begin(v, &pos), vector_pos_next(&pos, &next);
+             !vector_pos_equal(&pos, &v->end);
+             pos = next, vector_pos_next(&pos, &next), index++) {
             vector->peek_at(vector, index, (void **)&element);
 
             if (vector->value_type == VALUE_TYPE_OBJ_POINTER || vector->value_type  == VALUE_TYPE_STRING) {
@@ -514,8 +548,34 @@ static int __filter(Vector *vector, int (*condition)(void *element, void *cond),
             }
 
             CONTINUE_IF(condition(element, cond) == 0);
+            vector->remove(vector, index, (void **)&element);
             out->add_back(out, element);
+            element = NULL;
         }
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
+static int __copy(Vector *vector, Vector *out)
+{
+    char *json;
+    String **sp2_1, **sp2_2;
+    int ret = 0;
+
+    TRY {
+        THROW_IF(vector == NULL || out == NULL, -1);
+
+        if (vector->value_type == VALUE_TYPE_OBJ_POINTER || vector->value_type  == VALUE_TYPE_STRING) {
+            sp2_1 = vector->get(vector, "class_name");
+            sp2_2 = out->get(out, "class_name");
+            THROW_IF(sp2_1 == NULL || sp2_2 == NULL || *sp2_1 == NULL || *sp2_2 == NULL, -1);
+            THROW_IF(strcmp(STR2A(*sp2_1), STR2A(*sp2_2)) != 0, -1);
+        }
+
+        json = vector->to_json(vector);
+        out->assign(out, json);
     } CATCH (ret) {
     }
 
@@ -547,12 +607,14 @@ static class_info_entry_t vector_class_info[] = {
     Init_Vfunc_Entry(21, Vector, sort, __sort),
     Init_Vfunc_Entry(22, Vector, reset_from, __reset_from),
     Init_Vfunc_Entry(23, Vector, filter, __filter),
-    Init_U32___Entry(24, Vector, value_size, NULL),
-    Init_U8____Entry(25, Vector, value_type, NULL),
-    Init_U32___Entry(26, Vector, capacity, NULL),
-    Init_Str___Entry(27, Vector, init_data, NULL),
-    Init_Str___Entry(28, Vector, class_name, NULL),
-    Init_U8____Entry(29, Vector, trustee_flag, 0),
-    Init_End___Entry(30, Vector),
+    Init_Vfunc_Entry(24, Vector, add_vector, __add_vector),
+    Init_Vfunc_Entry(25, Vector, copy, __copy),
+    Init_U32___Entry(26, Vector, value_size, NULL),
+    Init_U8____Entry(27, Vector, value_type, NULL),
+    Init_U32___Entry(28, Vector, capacity, NULL),
+    Init_Str___Entry(29, Vector, init_data, NULL),
+    Init_Str___Entry(30, Vector, class_name, NULL),
+    Init_U8____Entry(31, Vector, trustee_flag, 0),
+    Init_End___Entry(32, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);

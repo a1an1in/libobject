@@ -26,6 +26,7 @@ struct _vector_s{
     char *(*to_json)(Vector *vector);
     int (*add)(Vector *vector,void *value);
     int (*add_at)(Vector *vector,int index, void *value);
+    int (*add_vector)(Vector *vector, Vector *src);
     int (*add_back)(Vector *vector,void *value);
     int (*remove)(Vector *vector, int index, void **value);
     int (*remove_back)(Vector *vector,void **value);
@@ -42,6 +43,7 @@ struct _vector_s{
     int (*sort)(Vector *vector, enum vector_sort_type_e type, int (*cmp)(void *e1, void *e2));
     int (*reset_from)(Vector *vector, int index);
     int (*filter)(Vector *vector, int (*condition)(void *element, void *cond), void *cond, Vector *out);
+    int (*copy)(Vector *vector, Vector *out);
 
     /*attribs*/
     vector_t *vector;

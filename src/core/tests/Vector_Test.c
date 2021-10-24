@@ -345,11 +345,12 @@ static int __test_vector_assign_case3(Vector_Test *test)
     int capacity = 19, value_type = VALUE_TYPE_OBJ_POINTER;
     uint8_t trustee_flag = 1;
     char *init_data = "[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]";
-    String *string;
+    String *string, **addr;
 
     TRY {
         vector->reset(vector);
         vector->set(vector, "/Vector/class_name", "Simplest_Obj");
+        addr = vector->get(vector, "/Vector/class_name");
         vector->assign(vector, init_data);
 
         string = object_new(allocator, "String", NULL);
@@ -570,14 +571,8 @@ static int __test_vector_filter_case1_condition(void *element, void *cond)
 {
     int c = *(int *)cond;
     int e = (int)element;
-    int ret;
 
-    ret = e > c ? 1 : 0;
-    if (ret) {
-        dbg_str(DBG_DETAIL, "filter:c:%d, e:%d, ret:%d", c, e, ret);
-    }
-
-    return ret;
+    return e > c ? 1 : 0;
 }
 
 static int __test_vector_filter_case1(Vector_Test *test)
@@ -625,6 +620,145 @@ static int __test_vector_filter(Vector_Test *test)
 
     return ret;
 }
+
+static int __test_vector_add_vector_case1(Vector_Test *test)
+{
+    Vector *vector = test->vector, *out = NULL;
+    int value_type = VALUE_TYPE_INT16_T;
+    int t = 2;
+    int ret, count, expect_count = 5;
+    void *element = NULL;
+    char *init_data1  = "[900, 2, 3, -58, 34, 76, 32, 43]";
+    char *init_data2  = "[56, -70, 35, -234, 532, 543, 2500]";
+    char *expect  = "[900, 2, 3, -58, 34, 76, 32, 43, 56, -70, 35, -234, 532, 543, 2500]";
+    allocator_t *allocator = allocator_get_default_alloc();
+    int cond = 0;
+
+    TRY {
+        out = object_new(allocator, "Vector", init_data2);
+        vector->assign(vector,  init_data1);
+
+        dbg_str(DBG_DETAIL, "vector src json:%s", out->to_json(out));
+        dbg_str(DBG_DETAIL, "vector dst json:%s", vector->to_json(vector));
+        EXEC(vector->add_vector(vector, out));
+
+        SET_CATCH_PTR_PAR(expect, vector->to_json(vector));
+        THROW_IF(strcmp(vector->to_json(vector), expect) != 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        TRY_SHOW_PTR_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(out);
+    }
+
+    return 1;
+}
+
+static int __test_vector_add_vector(Vector_Test *test)
+{
+    int ret;
+
+    TRY {
+        EXEC(__test_vector_add_vector_case1(test));
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+    }
+
+    return ret;
+}
+
+static int __test_vector_copy_case1(Vector_Test *test)
+{
+    Vector *vector = test->vector, *out = NULL;
+    int value_type = VALUE_TYPE_INT16_T;
+    uint8_t trustee_flag = 1;
+    int t = 2;
+    int ret, count, expect_count = 5;
+    void *element = NULL;
+    char *expect  = "[900, 2, 3, -58, 34, 76, 32, 43, 56, -70, 35, -234, 532, 543, 2500]";
+    char *init_data  = "[900, 2, 3, -58, 34, 76, 32, 43, 56, -70, 35, -234, 532, 543, 2500]";
+    allocator_t *allocator = allocator_get_default_alloc();
+    int cond = 0;
+
+    TRY {
+        out = object_new(allocator, "Vector", NULL);
+        out->set(out, "/Vector/trustee_flag", &trustee_flag);
+        out->set(out, "/Vector/value_type", &value_type);
+
+        EXEC(vector->assign(vector, init_data));
+        EXEC(vector->copy(vector, out));
+
+        SET_CATCH_PTR_PAR(expect, out->to_json(out));
+        THROW_IF(strcmp(out->to_json(out), expect) != 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        TRY_SHOW_PTR_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(out);
+    }
+
+    return 1;
+}
+
+static int __test_vector_copy_case2(Vector_Test *test)
+{
+    Vector *vector = test->vector, *out = NULL;
+    int value_type = VALUE_TYPE_OBJ_POINTER;
+    uint8_t trustee_flag = 1;
+    int t = 2;
+    int ret, count, expect_count = 5;
+    void *element = NULL;
+    char *init_data = "[{\"name\":\"simplest obj1\",\"help\":1},{\"name\":\"simplest obj2\",\"help\":2}]";
+    char *expect = "[{\"name\":\"simplest obj1\",\"help\":1},{\"name\":\"simplest obj2\",\"help\":2}]";
+    allocator_t *allocator = allocator_get_default_alloc();
+    String *json;
+    int cond = 0;
+
+    TRY {
+        vector->reset(vector);
+        vector->assign(vector,  init_data);
+        vector->set(vector, "/Vector/class_name", "Simplest_Obj");
+
+        out = object_new(allocator, "Vector", NULL);
+        THROW_IF(out == NULL, -1);
+        out->set(out, "/Vector/trustee_flag", &trustee_flag);
+        out->set(out, "/Vector/value_type", &value_type);
+        out->set(out, "/Vector/class_name", "Simplest_Obj");
+
+        EXEC(vector->copy(vector, out));
+        out->to_json(out);
+        json = ((Obj *)out)->json;
+        json->replace(json, "\t", "" , -1);
+        json->replace(json, "\r", "" , -1);
+        json->replace(json, "\n", "" , -1);
+        json->replace(json, ", ", ",", -1);
+
+        SET_CATCH_PTR_PAR(expect, STR2A(json));
+        THROW_IF(strcmp(STR2A(json), expect) != 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        TRY_SHOW_PTR_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(out);
+    }
+
+    return ret;
+}
+
+static int __test_vector_copy(Vector_Test *test)
+{
+    int ret;
+
+    TRY {
+        EXEC(__test_vector_copy_case1(test));
+        EXEC(__test_vector_copy_case2(test));
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+    }
+
+    return ret;
+}
+
 static class_info_entry_t vector_test_class_info[] = {
     Init_Obj___Entry(0 , Test, parent),
     Init_Nfunc_Entry(1 , Vector_Test, construct, __construct),
@@ -645,6 +779,8 @@ static class_info_entry_t vector_test_class_info[] = {
     Init_Vfunc_Entry(16, Vector_Test, test_vector_remove_back, __test_vector_remove_back),
     Init_Vfunc_Entry(17, Vector_Test, test_vector_sort, __test_vector_sort),
     Init_Vfunc_Entry(18, Vector_Test, test_vector_filter, __test_vector_filter),
-    Init_End___Entry(19, Vector_Test),
+    Init_Vfunc_Entry(19, Vector_Test, test_vector_add_vector, __test_vector_add_vector),
+    Init_Vfunc_Entry(20, Vector_Test, test_vector_copy, __test_vector_copy),
+    Init_End___Entry(21, Vector_Test),
 };
 REGISTER_CLASS("Vector_Test", vector_test_class_info);

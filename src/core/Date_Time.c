@@ -29,7 +29,6 @@ static int __deconstruct(Date_Time *date)
  * */
 static int __assign(Date_Time *date, char *value)
 {
-    allocator_t *allocator = date->parent.allocator;
     int timezone_offset = 0;
     time_t time;
 
@@ -228,20 +227,21 @@ __for_each_year(Date_Time *date, char *end, int (*callback)(char *start, char *e
 static class_info_entry_t module_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Date_Time, construct, __construct),
-    Init_Nfunc_Entry(2 , Date_Time, assign, __assign),
-    Init_Nfunc_Entry(3 , Date_Time, to_format_string, __to_format_string),
-    Init_Nfunc_Entry(4 , Date_Time, get_timezone, __get_timezone),
-    Init_Nfunc_Entry(5 , Date_Time, next_day, __next_day),
-    Init_Nfunc_Entry(6 , Date_Time, end_day, __end_day),
-    Init_Nfunc_Entry(7 , Date_Time, next_month, __next_month),
-    Init_Nfunc_Entry(8 , Date_Time, end_month, __end_month),
-    Init_Nfunc_Entry(9 , Date_Time, next_year, __next_year),
-    Init_Nfunc_Entry(10, Date_Time, end_year, __end_year),
-    Init_Nfunc_Entry(11, Date_Time, cmp, __cmp),
-    Init_Nfunc_Entry(12, Date_Time, for_each_day, __for_each_day),
-    Init_Nfunc_Entry(13, Date_Time, for_each_month, __for_each_month),
-    Init_Nfunc_Entry(14, Date_Time, for_each_year, __for_each_year),
-    Init_End___Entry(15, Date_Time),
+    Init_Nfunc_Entry(2 , Date_Time, deconstruct, __deconstruct),
+    Init_Nfunc_Entry(3 , Date_Time, assign, __assign),
+    Init_Nfunc_Entry(4 , Date_Time, to_format_string, __to_format_string),
+    Init_Nfunc_Entry(5 , Date_Time, get_timezone, __get_timezone),
+    Init_Nfunc_Entry(6 , Date_Time, next_day, __next_day),
+    Init_Nfunc_Entry(7 , Date_Time, end_day, __end_day),
+    Init_Nfunc_Entry(8 , Date_Time, next_month, __next_month),
+    Init_Nfunc_Entry(9 , Date_Time, end_month, __end_month),
+    Init_Nfunc_Entry(10, Date_Time, next_year, __next_year),
+    Init_Nfunc_Entry(11, Date_Time, end_year, __end_year),
+    Init_Nfunc_Entry(12, Date_Time, cmp, __cmp),
+    Init_Nfunc_Entry(13, Date_Time, for_each_day, __for_each_day),
+    Init_Nfunc_Entry(14, Date_Time, for_each_month, __for_each_month),
+    Init_Nfunc_Entry(15, Date_Time, for_each_year, __for_each_year),
+    Init_End___Entry(16, Date_Time),
 };
 REGISTER_CLASS("Date_Time", module_class_info);
 
