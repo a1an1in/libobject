@@ -90,6 +90,45 @@ static int __test_int_number(Number_Test *test)
     return ret;
 }
 
+static int __test_add_case1(Number_Test *test)
+{
+    Number *number = test->number, *add;
+    allocator_t *allocator = allocator_get_default_alloc();
+    int num1 = 1, num2 = 2, expect_d = 3, ret = 0, sum = 0;
+
+    TRY {
+        add = object_new(allocator, "Number", NULL);
+
+        number->clear(number);
+        number->set_value(number, NUMBER_TYPE_SIGNED_INT, &num1);
+        add->set_value(add, NUMBER_TYPE_SIGNED_INT, &num2);
+
+        number->add(number, add);
+        number->get_value(number, NUMBER_TYPE_SIGNED_INT, &sum);
+        SET_CATCH_INT_PAR(expect_d, sum);
+        THROW_IF(sum != expect_d, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(add);
+    }
+
+    return ret;
+}
+
+static int __test_add(Number_Test *test)
+{
+    int ret;
+
+    TRY {
+        EXEC(__test_add_case1(test));
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+    }
+    return ret;
+}
+
 static class_info_entry_t number_test_class_info[] = {
     Init_Obj___Entry(0 , Test, parent),
     Init_Nfunc_Entry(1 , Number_Test, construct, __construct),
@@ -99,6 +138,7 @@ static class_info_entry_t number_test_class_info[] = {
     Init_Vfunc_Entry(5 , Number_Test, setup, __setup),
     Init_Vfunc_Entry(6 , Number_Test, teardown, __teardown),
     Init_Vfunc_Entry(7 , Number_Test, test_int_number, __test_int_number),
-    Init_End___Entry(8 , Number_Test),
+    Init_Vfunc_Entry(8 , Number_Test, test_add, __test_add),
+    Init_End___Entry(9 , Number_Test),
 };
 REGISTER_CLASS("Number_Test", number_test_class_info);

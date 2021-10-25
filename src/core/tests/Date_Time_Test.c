@@ -463,6 +463,48 @@ static int __test_for_each_year(Date_Time_Test *test)
     return ret;
 }
 
+static int __test_now(Date_Time_Test *test)
+{
+    int ret;
+    Date_Time *date;
+    char *str;
+
+    TRY {
+        date = test->date;
+        str = date->now(date)->to_format_string(date, (char *)"%F %T UTC%z");
+
+        SET_CATCH_PTR_PAR(str, "");
+        dbg_str(DBG_DETAIL, "test now:%s", str);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        TRY_SHOW_STR_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
+static int __test_start_of_day(Date_Time_Test *test)
+{
+    int ret;
+    Date_Time *date;
+    char *str;
+
+    TRY {
+        date = test->date;
+        date->now(date);
+        date->start_of_day(date);
+        str = date->to_format_string(date, (char *)"%F %T UTC%z");
+
+        SET_CATCH_PTR_PAR(str, "");
+        dbg_str(DBG_DETAIL, "test start of day:%s", str);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        TRY_SHOW_STR_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
 static class_info_entry_t data_test_class_info[] = {
     Init_Obj___Entry(0 , Test, parent),
     Init_Nfunc_Entry(1 , Date_Time_Test, construct, __construct),
@@ -478,6 +520,8 @@ static class_info_entry_t data_test_class_info[] = {
     Init_Vfunc_Entry(11, Date_Time_Test, test_for_each_day, __test_for_each_day),
     Init_Vfunc_Entry(12, Date_Time_Test, test_for_each_month, __test_for_each_month),
     Init_Vfunc_Entry(13, Date_Time_Test, test_for_each_year, __test_for_each_year),
-    Init_End___Entry(14, Date_Time_Test),
+    Init_Vfunc_Entry(14, Date_Time_Test, test_now, __test_now),
+    Init_Vfunc_Entry(15, Date_Time_Test, test_start_of_day, __test_start_of_day),
+    Init_End___Entry(16, Date_Time_Test),
 };
 REGISTER_CLASS("Date_Time_Test", data_test_class_info);

@@ -26,7 +26,8 @@ struct data_test_s{
     int (*test_for_each_day)(Date_Time_Test *test);
     int (*test_for_each_month)(Date_Time_Test *test);
     int (*test_for_each_year)(Date_Time_Test *test);
-
+    int (*test_now)(Date_Time_Test *test);
+    int (*test_start_of_day)(Date_Time_Test *test);
 
     Date_Time *date;
 };

@@ -242,13 +242,14 @@ int vector_add_back(vector_t *vector, void *data)
     TRY {
         sync_lock(&vector->vector_lock, NULL);
         if (offset >= capacity) {
-            dbg_str(VECTOR_WARNNING, "realloc mem");
             vector->vector_head = allocator_mem_zalloc(vector->allocator, 2 * capacity * (vector->step));
             THROW_IF(vector->vector_head == NULL, -1);
             vector->capacity = 2 * capacity;
             memcpy(vector->vector_head, vector_head, capacity * step);
             allocator_mem_free(vector->allocator, vector_head);
             vector_head = vector->vector_head;
+            dbg_str(VECTOR_WARNNING, "realloc mem, end_pos:%d, old capacity:%d, new capacity:%d", offset, capacity, vector->capacity);
+            print_backtrace();
         }
 
         vector_head[offset++] = data;

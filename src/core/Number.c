@@ -181,6 +181,56 @@ static int __clear(Number *number)
 {
     number->size = 0;
     number->type = 0;
+
+    return 0;
+}
+
+static int __add(Number *number, Number *add)
+{
+    enum number_type_e type;
+    int ret = 1;
+
+    type = number->get_type(number);
+
+    switch(type) {
+        case NUMBER_TYPE_SIGNED_SHORT: {
+            number->data.short_data += add->data.short_data;
+            break;
+        }
+        case NUMBER_TYPE_UNSIGNED_SHORT: {
+            number->data.unsigned_short_data += add->data.unsigned_short_data;
+            break;
+        }
+        case NUMBER_TYPE_SIGNED_INT: {
+            number->data.int_data += add->data.int_data;
+            break;
+        }
+        case NUMBER_TYPE_UNSIGNED_INT: {
+            number->data.unsigned_int_data += add->data.unsigned_int_data;
+            break;
+        }
+        case NUMBER_TYPE_SIGNED_LONG: {
+            number->data.long_data += add->data.long_data;
+            break;
+        }
+        case NUMBER_TYPE_UNSIGNED_LONG: {
+            number->data.unsigned_short_data += add->data.unsigned_short_data;
+            break;
+        }
+        case NUMBER_TYPE_FLOAT: {
+            number->data.float_data += add->data.float_data;
+            break;
+        }
+        case NUMBER_TYPE_DOUBLE: {
+            number->data.double_data += add->data.double_data;
+            break;
+        }
+        default:
+            ret = -1;
+            break;
+    }
+
+    return ret;
 }
 
 static class_info_entry_t number_class_info[] = {
@@ -196,7 +246,8 @@ static class_info_entry_t number_class_info[] = {
     Init_Vfunc_Entry(9 , Number, set_value, __set_value),
     Init_Vfunc_Entry(10, Number, get_value, __get_value),
     Init_Vfunc_Entry(11, Number, clear, __clear),
-    Init_End___Entry(12, Number),
+    Init_Vfunc_Entry(12, Number, add, __add),
+    Init_End___Entry(13, Number),
 };
 REGISTER_CLASS("Number", number_class_info);
 

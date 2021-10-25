@@ -35,6 +35,7 @@ struct Number_s{
     int (*set_value)(Number *number, enum number_type_e type, void *value);
     int (*get_value)(Number *number, enum number_type_e type, void *value);
     int (*clear)(Number *number);
+    int (*add)(Number *number, Number *add);
 
     /*attribs*/
     union {

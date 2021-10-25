@@ -600,7 +600,7 @@ static int __test_vector_filter_case1(Vector_Test *test)
         THROW_IF(strcmp(out->to_json(out), expect) != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-        TRY_SHOW_PTR_PARS(DBG_ERROR);
+        TRY_SHOW_STR_PARS(DBG_ERROR);
     } FINALLY {
         object_destroy(out);
     }
@@ -646,7 +646,7 @@ static int __test_vector_add_vector_case1(Vector_Test *test)
         THROW_IF(strcmp(vector->to_json(vector), expect) != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-        TRY_SHOW_PTR_PARS(DBG_ERROR);
+        TRY_SHOW_STR_PARS(DBG_ERROR);
     } FINALLY {
         object_destroy(out);
     }
@@ -692,7 +692,7 @@ static int __test_vector_copy_case1(Vector_Test *test)
         THROW_IF(strcmp(out->to_json(out), expect) != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-        TRY_SHOW_PTR_PARS(DBG_ERROR);
+        TRY_SHOW_STR_PARS(DBG_ERROR);
     } FINALLY {
         object_destroy(out);
     }
@@ -737,7 +737,7 @@ static int __test_vector_copy_case2(Vector_Test *test)
         THROW_IF(strcmp(STR2A(json), expect) != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-        TRY_SHOW_PTR_PARS(DBG_ERROR);
+        TRY_SHOW_STR_PARS(DBG_ERROR);
     } FINALLY {
         object_destroy(out);
     }

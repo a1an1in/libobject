@@ -55,7 +55,7 @@ static int __construct(Vector *vector, char *init_str)
         vector->value_size = sizeof(void *);
     }
     if (vector->capacity == 0) {
-        vector->capacity = 10;
+        vector->capacity = 20;
     }
     vector_init(vector->vector, vector->value_size, vector->capacity);
 
@@ -430,7 +430,7 @@ static int __search(Vector *vector, int (*cmp)(void *element, void *key), void *
         {
             vector->peek_at(vector, i++, (void **)&element);
             CONTINUE_IF(element == NULL);
-            ret = cmp(element, key);
+            THROW_IF((ret = cmp(element, key)) < 0, -1);
             if (ret == 1) {
                 *index = i - 1;
                 *out = element;
@@ -546,8 +546,8 @@ static int __filter(Vector *vector, int (*condition)(void *element, void *cond),
             if (vector->value_type == VALUE_TYPE_OBJ_POINTER || vector->value_type  == VALUE_TYPE_STRING) {
                 CONTINUE_IF(element == NULL);
             }
-
-            CONTINUE_IF(condition(element, cond) == 0);
+            THROW_IF((ret = condition(element, cond)) < 0, -1);
+            CONTINUE_IF(ret == 0);
             vector->remove(vector, index, (void **)&element);
             out->add_back(out, element);
             element = NULL;

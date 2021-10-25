@@ -139,9 +139,11 @@ static void *__get(Obj *obj, char *attrib)
             strcpy(buf, attrib);
             str_split(buf, "/", out, &cnt);
 
-            dbg_str(DBG_WARNNING, "get class attribute, class name:%s", out[cnt - 2]);
-            target_name = out[cnt - 2]; //class name
-            attrib = out[cnt - 1]; //real attrib name
+            target_name = out[cnt - 2]; /* class name */
+            attrib = out[cnt - 1];      /* real attrib name */
+            /*
+             *dbg_str(DBG_DETAIL, "get class attribute, class name:%s, attrib:%s", target_name, attrib);
+             */
         } else {
             target_name = obj->target_name;
         }
