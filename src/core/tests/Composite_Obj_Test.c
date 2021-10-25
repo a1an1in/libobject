@@ -116,7 +116,7 @@ static int __test_marshal_composite_obj(Composite_Obj_Test *test)
         string->replace(string, "\r", "", -1);
         string->replace(string, "\n", "", -1);
 
-        SET_CATCH_PTR_PAR(string->get_cstr(string), expect);
+        SET_CATCH_STR_PARS(string->get_cstr(string), expect);
         ret = strncmp(string->get_cstr(string), expect, strlen(expect));
         THROW_IF(ret != 0, -1);
     } CATCH (ret) {
@@ -150,7 +150,7 @@ static void __test_unmarshal_composite_obj(Composite_Obj_Test *test)
         string->replace(string, "\n", "" , -1);
         string->replace(string, ", ", ",", -1);
 
-        SET_CATCH_PTR_PAR(string->get_cstr(string), expect);
+        SET_CATCH_STR_PARS(string->get_cstr(string), expect);
         ret = strncmp(string->get_cstr(string), expect, strlen(expect));
         THROW_IF(ret != 0, -1);
     } CATCH (ret) {

@@ -109,7 +109,7 @@ static int __test_timezone1(Date_Time_Test *test)
         THROW_IF(str == NULL, -1);
         THROW_IF(strlen(str) == 0, -1);
 
-        SET_CATCH_PTR_PAR(str, expect);
+        SET_CATCH_STR_PARS(str, expect);
         THROW_IF(strcmp(str, expect) != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -134,7 +134,7 @@ static int __test_timezone2(Date_Time_Test *test)
         str = date->to_format_string(date, "%F %T UTC%z");
         THROW_IF(str == NULL, -1);
         THROW_IF(strlen(str) == 0, -1);
-        SET_CATCH_PTR_PAR(str, expect);
+        SET_CATCH_STR_PARS(str, expect);
         THROW_IF(strcmp(str, expect) != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -170,7 +170,7 @@ static int __test_next_day(Date_Time_Test *test)
     TRY {
         date = test->date;
         str = date->next_day(date)->to_format_string(date, "%F %T UTC%z");
-        SET_CATCH_PTR_PAR(str, expect);
+        SET_CATCH_STR_PARS(str, expect);
         THROW_IF(strcmp(str, expect) != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -193,7 +193,7 @@ static int __test_cmp_case1(Date_Time_Test *test)
         EXEC(date->assign(date, src));
         ret = date->cmp(date, target);
 
-        SET_CATCH_PTR_PAR(src, target);
+        SET_CATCH_STR_PARS(src, target);
         THROW_IF(ret != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -216,7 +216,7 @@ static int __test_cmp_case2(Date_Time_Test *test)
         EXEC(date->assign(date, src));
         ret = date->cmp(date, target);
 
-        SET_CATCH_PTR_PAR(src, target);
+        SET_CATCH_STR_PARS(src, target);
         THROW_IF(ret <= 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -239,7 +239,7 @@ static int __test_cmp_case3(Date_Time_Test *test)
         EXEC(date->assign(date, src));
         ret = date->cmp(date, target);
 
-        SET_CATCH_PTR_PAR(src, target);
+        SET_CATCH_STR_PARS(src, target);
         THROW_IF(ret > 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -288,7 +288,7 @@ static int __test_for_each_day_case1(Date_Time_Test *test)
         EXEC(date->assign(date, src));
         EXEC(date->for_each_day(date, target, __test_for_callback, test));
 
-        SET_CATCH_PTR_PAR(src, target);
+        SET_CATCH_STR_PARS(src, target);
         THROW_IF(for_each_count != 3, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -312,7 +312,7 @@ static int __test_for_each_day_case2(Date_Time_Test *test)
         EXEC(date->assign(date, src));
         EXEC(date->for_each_day(date, target, __test_for_callback, test));
 
-        SET_CATCH_PTR_PAR(src, target);
+        SET_CATCH_STR_PARS(src, target);
         THROW_IF(for_each_count != 1, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -336,7 +336,7 @@ static int __test_for_each_day_case3(Date_Time_Test *test)
         EXEC(date->assign(date, src));
         EXEC(date->for_each_day(date, target, __test_for_callback, test));
 
-        SET_CATCH_PTR_PAR(src, target);
+        SET_CATCH_STR_PARS(src, target);
         THROW_IF(for_each_count != 13, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -376,7 +376,7 @@ static int __test_for_each_month_case1(Date_Time_Test *test)
         EXEC(date->assign(date, src));
         EXEC(date->for_each_month(date, target, __test_for_callback, test));
 
-        SET_CATCH_PTR_PAR(src, target);
+        SET_CATCH_STR_PARS(src, target);
         THROW_IF(for_each_count != 9, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -400,7 +400,7 @@ static int __test_for_each_month_case2(Date_Time_Test *test)
         EXEC(date->assign(date, src));
         EXEC(date->for_each_month(date, target, __test_for_callback, test));
 
-        SET_CATCH_PTR_PAR(src, target);
+        SET_CATCH_STR_PARS(src, target);
         THROW_IF(for_each_count != 5, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -439,7 +439,7 @@ static int __test_for_each_year_case1(Date_Time_Test *test)
         EXEC(date->assign(date, src));
         EXEC(date->for_each_year(date, target, __test_for_callback, test));
 
-        SET_CATCH_PTR_PAR(src, target);
+        SET_CATCH_STR_PARS(src, target);
         THROW_IF(for_each_count != 3, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -473,7 +473,7 @@ static int __test_now(Date_Time_Test *test)
         date = test->date;
         str = date->now(date)->to_format_string(date, (char *)"%F %T UTC%z");
 
-        SET_CATCH_PTR_PAR(str, "");
+        SET_CATCH_STR_PARS(str, "");
         dbg_str(DBG_DETAIL, "test now:%s", str);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -495,7 +495,7 @@ static int __test_start_of_day(Date_Time_Test *test)
         date->start_of_day(date);
         str = date->to_format_string(date, (char *)"%F %T UTC%z");
 
-        SET_CATCH_PTR_PAR(str, "");
+        SET_CATCH_STR_PARS(str, "");
         dbg_str(DBG_DETAIL, "test start of day:%s", str);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());

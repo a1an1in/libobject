@@ -48,7 +48,7 @@ void * __object_get_func_of_class(char *class_name,
         deamon = class_deamon_get_global_class_deamon();
         entry = (class_info_entry_t *) class_deamon_search_class(deamon, 
                 class_name);
-        SET_CATCH_PTR_PAR(class_name, class_name);
+        SET_CATCH_STR_PARS(class_name, class_name);
         THROW_IF(entry == NULL, NULL);
 
         for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {

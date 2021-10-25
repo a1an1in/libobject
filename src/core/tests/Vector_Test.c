@@ -267,7 +267,7 @@ static int __test_vector_to_json_case3(Vector_Test *test)
         string->replace(string, "\r", "", -1);
         string->replace(string, "\n", "", -1);
 
-        SET_CATCH_PTR_PAR(string->get_cstr(string), init_data);
+        SET_CATCH_STR_PARS(string->get_cstr(string), init_data);
         THROW_IF(strcmp(string->get_cstr(string), init_data) != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -453,7 +453,7 @@ static int __test_vector_search(Vector_Test *test)
         vector->add_at(vector, 4, 4);
 
         EXEC(vector->search(vector, __int_vector_element_cmp, &t, &element, &index));
-        SET_CATCH_INT_PAR(index, t);
+        SET_CATCH_INT_PARS(index, t);
         THROW_IF(index != 2, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -480,7 +480,7 @@ static int __test_vector_get_end_index(Vector_Test *test)
         vector->add_at(vector, 4, 4);
 
         ret = vector->get_end_index(vector);
-        SET_CATCH_INT_PAR(ret, 0);
+        SET_CATCH_INT_PARS(ret, 0);
         THROW_IF(ret != 5, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -511,7 +511,7 @@ static int __test_vector_remove_back(Vector_Test *test)
 
         EXEC(vector->remove_back(vector, &element));
         ret = vector->get_end_index(vector);
-        SET_CATCH_INT_PAR(ret, 0);
+        SET_CATCH_INT_PARS(ret, 0);
         THROW_IF(ret != 4, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -543,7 +543,7 @@ static int __test_vector_sort_case1(Vector_Test *test)
         vector->assign(vector,  init_data);
         dbg_str(DBG_DETAIL, "vector json:%s", vector->to_json(vector));
         vector->sort(vector, 0, __vector_int_cmp);
-        SET_CATCH_PTR_PAR(vector->to_json(vector), expect);
+        SET_CATCH_STR_PARS(vector->to_json(vector), expect);
         THROW_IF(strcmp(vector->to_json(vector), expect) != 0, -1);
         dbg_str(DBG_DETAIL, "vector json:%s", vector->to_json(vector));
     } CATCH (ret) {
@@ -596,7 +596,7 @@ static int __test_vector_filter_case1(Vector_Test *test)
         dbg_str(DBG_DETAIL, "vector before filter:%s", vector->to_json(vector));
         EXEC(vector->filter(vector, __test_vector_filter_case1_condition, &cond, out));
 
-        SET_CATCH_PTR_PAR(init_data, out->to_json(out));
+        SET_CATCH_STR_PARS(init_data, out->to_json(out));
         THROW_IF(strcmp(out->to_json(out), expect) != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -642,7 +642,7 @@ static int __test_vector_add_vector_case1(Vector_Test *test)
         dbg_str(DBG_DETAIL, "vector dst json:%s", vector->to_json(vector));
         EXEC(vector->add_vector(vector, out));
 
-        SET_CATCH_PTR_PAR(expect, vector->to_json(vector));
+        SET_CATCH_STR_PARS(expect, vector->to_json(vector));
         THROW_IF(strcmp(vector->to_json(vector), expect) != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -688,7 +688,7 @@ static int __test_vector_copy_case1(Vector_Test *test)
         EXEC(vector->assign(vector, init_data));
         EXEC(vector->copy(vector, out));
 
-        SET_CATCH_PTR_PAR(expect, out->to_json(out));
+        SET_CATCH_STR_PARS(expect, out->to_json(out));
         THROW_IF(strcmp(out->to_json(out), expect) != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -733,7 +733,7 @@ static int __test_vector_copy_case2(Vector_Test *test)
         json->replace(json, "\n", "" , -1);
         json->replace(json, ", ", ",", -1);
 
-        SET_CATCH_PTR_PAR(expect, STR2A(json));
+        SET_CATCH_STR_PARS(expect, STR2A(json));
         THROW_IF(strcmp(STR2A(json), expect) != 0, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());

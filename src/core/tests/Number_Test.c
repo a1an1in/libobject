@@ -75,12 +75,12 @@ static int __test_int_number(Number_Test *test)
         number->set_value(number, NUMBER_TYPE_SIGNED_INT, &d);
         number->get_value(number, NUMBER_TYPE_SIGNED_INT, &expect_d);
 
-        SET_CATCH_INT_PAR(d, expect_d);
+        SET_CATCH_INT_PARS(d, expect_d);
         THROW_IF(d != expect_d, -1);
 
         d = -2;
         d = NUM2S32(number);
-        SET_CATCH_INT_PAR(d, expect_d);
+        SET_CATCH_INT_PARS(d, expect_d);
         THROW_IF(d != expect_d, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
@@ -105,7 +105,7 @@ static int __test_add_case1(Number_Test *test)
 
         number->add(number, add);
         number->get_value(number, NUMBER_TYPE_SIGNED_INT, &sum);
-        SET_CATCH_INT_PAR(expect_d, sum);
+        SET_CATCH_INT_PARS(expect_d, sum);
         THROW_IF(sum != expect_d, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());

@@ -165,7 +165,7 @@ __for_each_day(Date_Time *date, char *end, int (*callback)(char *start, char *en
             date->end_of_day(date);
             e = date->to_format_string(date, (char *)"%F %T UTC%z");
             if (date->cmp(date, end) > 0) { e = end; }
-            SET_CATCH_PTR_PAR(s, e);
+            SET_CATCH_STR_PARS(s, e);
             callback(s, e, opaque);
         }
     } CATCH (ret) {
@@ -189,7 +189,7 @@ __for_each_month(Date_Time *date, char *end, int (*callback)(char *start, char *
             date->end_of_month(date);
             e = date->to_format_string(date, (char *)"%F %T UTC%z");
             if (date->cmp(date, end) > 0) { e = end; }
-            SET_CATCH_PTR_PAR(s, e);
+            SET_CATCH_STR_PARS(s, e);
             callback(s, e, opaque);
         }
     } CATCH (ret) {
@@ -213,7 +213,7 @@ __for_each_year(Date_Time *date, char *end, int (*callback)(char *start, char *e
             date->end_of_year(date);
             e = date->to_format_string(date, (char *)"%F %T UTC%z");
             if (date->cmp(date, end) > 0) { e = end; }
-            SET_CATCH_PTR_PAR(s, e);
+            SET_CATCH_STR_PARS(s, e);
             callback(s, e, opaque);
         }
     } CATCH (ret) {

@@ -152,13 +152,13 @@ extern pthread_key_t try_key;
         }                                                                                        \
     } while (0);
 
-#define SET_CATCH_INT_PAR(par1, par2)                                                            \
+#define SET_CATCH_INT_PARS(par1, par2)                                                            \
     do {                                                                                         \
         __error_int_par1 = (par1);                                                               \
         __error_int_par2 = (par2);                                                               \
     } while (0);
 
-#define SET_CATCH_PTR_PAR(par1, par2)                                                            \
+#define SET_CATCH_STR_PARS(par1, par2)                                                            \
     do {                                                                                         \
         __error_ptr_par1 = (par1);                                                               \
         __error_ptr_par2 = (par2);                                                               \
