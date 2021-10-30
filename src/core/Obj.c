@@ -198,7 +198,7 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
     cjson_t *item;
     void *value;
     Obj *o = (Obj *)obj;
-    int ret;
+    int ret = 0;
 
     TRY {
         deamon = class_deamon_get_global_class_deamon();

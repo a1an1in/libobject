@@ -281,7 +281,7 @@ static int __obj_to_json_object_pointer_policy(cjson_t *json, char *name, void *
     }
 
     item = cjson_parse(o->to_json(o));
-    cjson_add_item_to_object(json, o->name, item);
+    cjson_add_item_to_object(json, name, item);
 
     return 1;
 }

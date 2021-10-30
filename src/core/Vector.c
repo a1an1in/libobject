@@ -432,8 +432,9 @@ static int __search(Vector *vector, int (*cmp)(void *element, void *key), void *
             CONTINUE_IF(element == NULL);
             THROW_IF((ret = cmp(element, key)) < 0, -1);
             if (ret == 1) {
-                *index = i - 1;
                 *out = element;
+                THROW_IF(index == NULL, 1);
+                *index = i - 1;
                 THROW(1);
             }
         }

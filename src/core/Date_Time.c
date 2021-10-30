@@ -247,6 +247,45 @@ static Date_Time *__start_of_day(Date_Time *date)
     return date;
 }
 
+static Date_Time *__start_of_month(Date_Time *date)
+{
+    time_t time;
+
+    date->tm.tm_mday = 1;
+    date->tm.tm_hour = 0;
+    date->tm.tm_min = 0;
+    date->tm.tm_sec = 0;
+    time = mktime(&date->tm);
+    localtime_r(&time, &date->tm); 
+
+    return date;
+}
+
+static Date_Time *__start_of_year(Date_Time *date)
+{
+    time_t time;
+
+    date->tm.tm_mon = 0;
+    date->tm.tm_mday = 1;
+    date->tm.tm_hour = 0;
+    date->tm.tm_min = 0;
+    date->tm.tm_sec = 0;
+    time = mktime(&date->tm);
+    localtime_r(&time, &date->tm); 
+
+    return date;
+}
+static Date_Time *__add_seconds(Date_Time *date, int secs)
+{
+    time_t time;
+
+    time = mktime(&date->tm);
+    time += secs;
+    localtime_r(&time, &date->tm); 
+
+    return date;
+}
+
 static class_info_entry_t module_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Date_Time, construct, __construct),
@@ -266,7 +305,10 @@ static class_info_entry_t module_class_info[] = {
     Init_Nfunc_Entry(15, Date_Time, for_each_year, __for_each_year),
     Init_Nfunc_Entry(16, Date_Time, now, __now),
     Init_Nfunc_Entry(17, Date_Time, start_of_day, __start_of_day),
-    Init_End___Entry(18, Date_Time),
+    Init_Nfunc_Entry(18, Date_Time, start_of_month, __start_of_month),
+    Init_Nfunc_Entry(19, Date_Time, start_of_year, __start_of_year),
+    Init_Nfunc_Entry(20, Date_Time, add_seconds, __add_seconds),
+    Init_End___Entry(21, Date_Time),
 };
 REGISTER_CLASS("Date_Time", module_class_info);
 
