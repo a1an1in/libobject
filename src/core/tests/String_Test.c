@@ -128,7 +128,7 @@ static int __test_len(String_Test *test)
     ASSERT_EQUAL(test, parent->get_cstr(parent), test1, strlen(test1));
 }
 
-static int __test_get_substring(String_Test *test)
+static int __test_get_substring_case0(String_Test *test)
 {
     String *string = test->str;
     /*
@@ -144,6 +144,41 @@ static int __test_get_substring(String_Test *test)
         dbg_str(DBG_DETAIL, "start:%d", start);
         dbg_str(DBG_DETAIL, "sub:%s", &string->value[start]);
         THROW_IF(start == -1, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+    }
+
+    return ret;
+}
+
+static int __test_get_substring_case1(String_Test *test)
+{
+    String *string = test->str;
+    char *t = "userName=alan; userId=4; token=3cb1257cb544ccca19df70cfa327392123ccdce; maxAge=900";
+    char *regex = "userName=([a-z0-9A-Z\._,&=-]+);";
+    int ret, start = -1, len;
+
+    TRY {
+        string->assign(string, t);
+        EXEC(string->get_substring(string, regex, 0, &start, &len));
+        string->value[start + len] = '\0';
+        dbg_str(DBG_DETAIL, "sub:%s", &string->value[start]);
+        THROW_IF(start == -1, -1);
+        THROW_IF(strcmp(&string->value[start], "alan") != 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+    }
+
+    return ret;
+}
+
+static int __test_get_substring(String_Test *test)
+{
+    int ret;
+
+    TRY {
+        EXEC(__test_get_substring_case0(test));
+        EXEC(__test_get_substring_case1(test));
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
     }
