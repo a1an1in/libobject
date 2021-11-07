@@ -5,11 +5,12 @@ macro (set_cmake_evironment_variable)
 
     INCLUDE_DIRECTORIES(/usr/local/include
         ${PROJECT_SOURCE_DIR}/src/include)
-
+    
+    set (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
     SET(ExternalLibs ${ExternalLibs} -Wl,--whole-archive object -Wl,--no-whole-archive pthread m )
 
-    set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/linux/bin)
-    set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/linux/lib)
+    set (EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)  
+    set (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
 endmacro()
 
 macro (display_linux_platform_configs)

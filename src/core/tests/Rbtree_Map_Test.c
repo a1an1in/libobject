@@ -36,7 +36,7 @@
 #include <libobject/core/Array_Stack.h>
 #include <libobject/event/Event_Base.h>
 #include <libobject/core/utils/registry/registry.h>
-#include "RBTree_Map_Test.h"
+#include "Rbtree_Map_Test.h"
 
 
 struct test{

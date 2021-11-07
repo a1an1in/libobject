@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/ctest/Test.h>
-#include <libobject/core/RBTree_Map.h>
+#include <libobject/core/Rbtree_Map.h>
 
 typedef struct rbtree_map_test_s RBTree_Map_Test;
 

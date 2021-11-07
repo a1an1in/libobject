@@ -8,6 +8,7 @@ config_build_options()
 
 set (CMAKE_MACOSX_RPATH 1)
 set (CMAKE_BUILD_TYPE "Debug")
+message("platform ${PLATFORM}")
 display_configs("${PLATFORM}")
 
 add_subdirectory(src)
