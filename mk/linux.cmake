@@ -1,4 +1,8 @@
 macro (set_cmake_evironment_variable)
+    if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local")
+        set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/linux)
+    endif ()
+
     LINK_DIRECTORIES(/usr/local/lib 
         /usr/lib
         ${PROJECT_SOURCE_DIR}/lib)
