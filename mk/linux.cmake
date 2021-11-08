@@ -5,7 +5,7 @@ macro (set_cmake_evironment_variable)
 
     LINK_DIRECTORIES(/usr/local/lib 
         /usr/lib
-        ${PROJECT_SOURCE_DIR}/lib)
+        ${CMAKE_INSTALL_PREFIX}/lib)
 
     INCLUDE_DIRECTORIES(/usr/local/include
         ${PROJECT_SOURCE_DIR}/src/include)
