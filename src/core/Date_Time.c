@@ -39,6 +39,7 @@ static int __assign(Date_Time *date, char *value)
            &date->timezone);
     date->tm.tm_year -= 1900;
     date->tm.tm_mon -= 1;
+    dbg_str(DBG_DETAIL, "%d %d", date->get_timezone(date), date->timezone);
 
     if (date->timezone != 0) {
         timezone_offset = (date->timezone / 100) - date->get_timezone(date);
