@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
+#include <libobject/net/client/Client.h>
 #include "Stun.h"
 
 typedef struct Stun_Udp_s Stun_Udp;
@@ -18,6 +19,11 @@ struct Stun_Udp_s{
     int (*set)(Stun_Udp *, char *attrib, void *value);
     void *(*get)(Stun_Udp *, char *attrib);
     char *(*to_json)(Stun_Udp *); 
+    int (*connect)(Stun_Udp *stun);
+    int (*send)(Stun_Udp *stun, void *buf, int len, int flags);
+    int (*discovery)(Stun_Udp *stun);
+
+    Client *c;
 };
 
 #endif
