@@ -19,8 +19,8 @@ struct Stun_Udp_s{
     int (*set)(Stun_Udp *, char *attrib, void *value);
     void *(*get)(Stun_Udp *, char *attrib);
     char *(*to_json)(Stun_Udp *); 
-    int (*connect)(Stun_Udp *stun);
-    int (*send)(Stun_Udp *stun, void *buf, int len, int flags);
+    int (*connect)(Stun_Udp *stun, char *host, char *service);
+    int (*send)(Stun_Udp *stun);
     int (*discovery)(Stun_Udp *stun);
 
     Client *c;

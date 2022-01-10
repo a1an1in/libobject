@@ -28,25 +28,46 @@ static int __connect(Stun_Udp *stun, char *host, char *service)
     int ret = 0;
 
     TRY {
-        stun->c = client(allocator, CLIENT_TYPE_INET_TCP, 
-                (char *)"127.0.0.1", //char *host, 
-                (char *)"19900", //char *client_port, 
-                __stun_client_response_callback, NULL);
+        stun->c = client(allocator, CLIENT_TYPE_INET_UDP, 
+                (char *)"0.0.0.0", //char *host, 
+                (char *)"9090", //char *client_port, 
+                __stun_client_response_callback, stun);
         THROW_IF(stun->c == NULL, -1);
         EXEC(client_connect(stun->c, host, service));
+        dbg_str(DBG_DETAIL, "client stun:%p", stun);
     } CATCH (ret) {
     }
 
     return ret;
 }
 
-int __send(Stun_Udp *stun, void *buf, int len, int flags)
+int __send(Stun_Udp *stun)
 {
-    return stun->c->send(stun->c, buf, len, flags); 
+    Request *req = stun->parent.req;
+    Map *map = req->attribs;
+    int i = 0;
+    int ret = 0;
+
+    TRY {
+        if (map->count(map) == 0) {
+            req->len = sizeof(stun_header_t);
+        } else {
+        }
+
+        dbg_str(DBG_DETAIL, "stun send: atttrib count:%d, len%d", map->count(map), req->len);
+        client_send(stun->c, req->header, req->len, 0);
+    } CATCH (ret) {
+    }
+
+    return ret;
 }
 
 int __discovery(Stun_Udp *stun)
 {
+    Request *req = stun->parent.req;
+
+    req->write_head(req, STUN_BINDREQ, 0, 0x2112A442);
+    stun->send(stun);
 }
 
 static class_info_entry_t stun_class_info[] = {
@@ -63,21 +84,46 @@ REGISTER_CLASS("Stun_Udp", stun_class_info);
 static int __stun_client_response_callback(void *task)
 {
     work_task_t *t = (work_task_t *)task;
-    dbg_str(DBG_DETAIL,"%s", t->buf);
+    Stun_Udp *stun = t->opaque;
+    Response *response;
+    int ret;
 
+    TRY {
+        THROW_IF(stun == NULL, -1);
+        response = stun->parent.response;
+        dbg_str(DBG_DETAIL,"recv buf: len:%d", t->buf_len);
+    } CATCH (ret) {
+    }
+
+    return ret;
 }
 static int test_stun_udp(TEST_ENTRY *entry, void *argc, void *argv)
 {
     allocator_t *allocator = allocator_get_default_alloc();
-    Client *c = NULL;
+    Stun *stun = NULL;
     char *str = "hello world";
+    int ret;
 
-    dbg_str(NET_DETAIL, "test_obj_client_send");
+    dbg_str(NET_DETAIL, "test_stun_udp");
 
-    client_send(c, str, strlen(str), 0);
-    pause();
+    TRY {
+        stun = object_new(allocator, "Stun_Udp", NULL);
+        stun->connect(stun, "stun.voipstunt.com", "3478");
+        /*
+         *EXEC(stun->connect(stun, "77.72.169.213", "3478"));
+         */
+        /*
+         *EXEC(stun->connect(stun, "75.2.81.221", "3478"));
+         */
+        /*
+         *EXEC(stun->connect(stun, "77.72.174.163", "3478"));
+         */
+        EXEC(stun->discovery(stun));
+        pause();
 
-    object_destroy(c);
+    } CATCH (ret) {
+    }
+    object_destroy(stun);
 }
 REGISTER_TEST_CMD(test_stun_udp);
 

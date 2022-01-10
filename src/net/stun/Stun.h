@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
+#include "stun_header.h"
+#include "Request.h"
+#include "Response.h"
 
 #define STUN_ATR_TYPE_MAPPED_ADDR   		0x0001
 #define STUN_ATR_TYPE_RESPONSE_ADDRESS	    0x0002
@@ -20,50 +23,6 @@
 
 typedef struct Stun_s Stun;
 
-/* STUN Message Structure
- *
- *  0                   1                   2                   3
- *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |0 0|     STUN Message Type     |         Message Length        |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |                         Magic Cookie                          |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |                                                               |
- * |                     Transaction ID (96 bits)                  |
- * |                                                               |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- */
-
-typedef struct stun_header_s {
-    unsigned short msgtype;
-    unsigned short msglen;
-    unsigned int magic_cookie;
-    unsigned int transaction_id[4];
-    unsigned char attr[0];
-} stun_header_t;
-
-/*
- * Message Attributes
- *
- * After the header are 0 or more attributes.  Each attribute is TLV
- * encoded, with a 16 bit type, 16 bit length, and variable value:
- *
- *  0                   1                   2                   3
- *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |         Type                  |            Length             |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |                             Value                             ....
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- */
-
-typedef struct stun_attrib_s {
-    unsigned short type;
-    unsigned short len;
-    unsigned char value[0];
-} stun_attrib_t;
-
 
 struct Stun_s{
     Obj parent;
@@ -75,9 +34,12 @@ struct Stun_s{
     int (*set)(Stun *module, char *attrib, void *value);
     void *(*get)(Stun *, char *attrib);
     char *(*to_json)(Stun *); 
+    int (*connect)(Stun *stun, char *host, char *service);
+    int (*send)(Stun *stun);
+    int (*discovery)(Stun *stun);
 
-    stun_header_t *header;
-    Map *attribs;
+    Request *req;
+    Response *response;
 };
 
 #endif

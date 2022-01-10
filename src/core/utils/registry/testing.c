@@ -176,7 +176,7 @@ int execute_test_designated_func(char *func_name, void *arg1, void *arg2)
     for (i = 0; i< size; i++){
         reg_heap_remove(reg_heap, (void **)&element);
 
-        if (strcmp(element->func_name, func_name) != 0) {
+        if (strncmp(element->func_name, func_name, strlen(func_name)) != 0) {
             free(element);
             continue;
         }
