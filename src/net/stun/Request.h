@@ -19,10 +19,11 @@ struct Request_s{
     int (*set)(Request *module, char *attrib, void *value);
     void *(*get)(Request *, char *attrib);
     char *(*to_json)(Request *); 
-    int (*write_head)(Request *request, int type, int len, uint32_t cookie);
-    int (*write_attrib)(Request *request, int type, int len, char *value);
+    int (*set_head)(Request *request, int type, int len, uint32_t cookie);
+    int (*set_attrib)(Request *request, int type, int len, char *value);
 
     stun_header_t *header;
+    int header_max_len;
     int len;
     Map *attribs;
 };

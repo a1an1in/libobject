@@ -9,7 +9,7 @@
 
 #include "Stun_Udp.h"
 
-static int __stun_client_response_callback(void *task);
+static int __stun_client_resp_callback(void *task);
 
 static int __construct(Stun_Udp *stun, char *init_str)
 {
@@ -31,7 +31,7 @@ static int __connect(Stun_Udp *stun, char *host, char *service)
         stun->c = client(allocator, CLIENT_TYPE_INET_UDP, 
                 (char *)"0.0.0.0", //char *host, 
                 (char *)"9090", //char *client_port, 
-                __stun_client_response_callback, stun);
+                __stun_client_resp_callback, stun);
         THROW_IF(stun->c == NULL, -1);
         EXEC(client_connect(stun->c, host, service));
         dbg_str(DBG_DETAIL, "client stun:%p", stun);
@@ -62,11 +62,19 @@ int __send(Stun_Udp *stun)
     return ret;
 }
 
+static int __stun_bind_request_read_post_process(Request * request, void *opaque)
+{
+
+    dbg_str(DBG_DETAIL, "__stun_bind_request_read_post_process");
+    return 0;
+}
+
 int __discovery(Stun_Udp *stun)
 {
     Request *req = stun->parent.req;
 
-    req->write_head(req, STUN_BINDREQ, 0, 0x2112A442);
+    req->set_head(req, STUN_BINDREQ, 0, 0x2112A442);
+    stun->set_read_post_callback(stun, __stun_bind_request_read_post_process);
     stun->send(stun);
 }
 
@@ -77,20 +85,37 @@ static class_info_entry_t stun_class_info[] = {
     Init_Vfunc_Entry(3, Stun_Udp, connect, __connect),
     Init_Vfunc_Entry(4, Stun_Udp, discovery, __discovery),
     Init_Vfunc_Entry(5, Stun_Udp, send, __send),
-    Init_End___Entry(6, Stun_Udp),
+    Init_Vfunc_Entry(6, Stun_Udp, set_read_post_callback, NULL),
+    Init_End___Entry(7, Stun_Udp),
 };
 REGISTER_CLASS("Stun_Udp", stun_class_info);
 
-static int __stun_client_response_callback(void *task)
+static int __stun_client_resp_callback(void *task)
 {
     work_task_t *t = (work_task_t *)task;
     Stun_Udp *stun = t->opaque;
-    Response *response;
-    int ret;
+    Response *resp;
+    int ret = 0, len = 0;
 
     TRY {
         THROW_IF(stun == NULL, -1);
-        response = stun->parent.response;
+        resp = stun->parent.response;
+
+        while (len != t->buf_len) {
+            ret = resp->buffer->write(resp->buffer, t->buf + len, t->buf_len - len);
+            if (ret >= 0) {
+                len += ret;
+                dbg_str(DBG_DETAIL,"task buffer len=%d, write ring buffer len=%d, total wrote len=%d",
+                        t->buf_len, ret, len);
+            }
+
+            ret = resp->read(resp);
+            THROW_IF(ret < 0, -1);
+            if (ret == 1) {
+                resp->read_post_callback(resp, stun);
+                break;
+            }
+        } 
         dbg_str(DBG_DETAIL,"recv buf: len:%d", t->buf_len);
     } CATCH (ret) {
     }

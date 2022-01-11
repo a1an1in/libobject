@@ -37,6 +37,7 @@ struct Stun_s{
     int (*connect)(Stun *stun, char *host, char *service);
     int (*send)(Stun *stun);
     int (*discovery)(Stun *stun);
+    int (*set_read_post_callback)(Stun *stun, int (*func)(Response *, void *arg));
 
     Request *req;
     Response *response;

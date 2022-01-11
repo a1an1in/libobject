@@ -22,6 +22,7 @@ struct Stun_Udp_s{
     int (*connect)(Stun_Udp *stun, char *host, char *service);
     int (*send)(Stun_Udp *stun);
     int (*discovery)(Stun_Udp *stun);
+    int (*set_read_post_callback)(Stun_Udp *stun, int (*func)(Response *, void *arg));
 
     Client *c;
 };

@@ -32,6 +32,14 @@ static int __deconstruct(Stun *stun)
     return 0;
 }
 
+
+int __set_read_post_callback(Stun *stun, int (*func)(Response *, void *arg)) 
+{
+    stun->response->read_post_callback = func;
+
+    return 1;
+}
+
 static class_info_entry_t stun_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
     Init_Nfunc_Entry(1, Stun, construct, __construct),
@@ -39,7 +47,8 @@ static class_info_entry_t stun_class_info[] = {
     Init_Vfunc_Entry(3, Stun, connect, NULL),
     Init_Vfunc_Entry(4, Stun, discovery, NULL),
     Init_Vfunc_Entry(5, Stun, send, NULL),
-    Init_End___Entry(6, Stun),
+    Init_Vfunc_Entry(6, Stun, set_read_post_callback, __set_read_post_callback),
+    Init_End___Entry(7, Stun),
 };
 REGISTER_CLASS("Stun", stun_class_info);
 

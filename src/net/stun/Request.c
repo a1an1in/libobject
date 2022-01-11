@@ -23,7 +23,8 @@ static int __construct(Request *request, char *init_str)
     * UDP header, assuming no IP options are used). 
     */
     TRY {
-        request->header = allocator_mem_alloc(allocator, 548); 
+        request->header_max_len = 548;
+        request->header = allocator_mem_alloc(allocator, request->header_max_len); 
         THROW_IF(request->header == NULL, -1); 
         map = object_new(allocator, "RBTree_Map", NULL);
         THROW_IF(map == NULL, -1);
@@ -47,7 +48,7 @@ static int __deconstruct(Request *request)
     return 0;
 }
 
-static int __write_attrib(Request *request, int type, int len, char *value)
+static int __set_attrib(Request *request, int type, int len, char *value)
 {
     allocator_t *allocator = request->parent.allocator;
     stun_attrib_t *attrib;
@@ -67,7 +68,7 @@ static int __write_attrib(Request *request, int type, int len, char *value)
     return ret;
 }
 
-static int __write_head(Request *request, int type, int len, uint32_t cookie)
+static int __set_head(Request *request, int type, int len, uint32_t cookie)
 {
     int i = 0;
     int ret = 0;
@@ -90,8 +91,8 @@ static class_info_entry_t request_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
     Init_Nfunc_Entry(1, Request, construct, __construct),
     Init_Nfunc_Entry(2, Request, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, Request, write_attrib, __write_attrib),
-    Init_Nfunc_Entry(4, Request, write_head, __write_head),
+    Init_Nfunc_Entry(3, Request, set_attrib, __set_attrib),
+    Init_Nfunc_Entry(4, Request, set_head, __set_head),
     Init_End___Entry(5, Request),
 };
 REGISTER_CLASS("Request", request_class_info);

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
+#include <libobject/io/Ring_Buffer.h>
 #include "stun_header.h"
 
 typedef struct Response_s Response;
@@ -19,12 +20,14 @@ struct Response_s{
     int (*set)(Response *, char *attrib, void *value);
     void *(*get)(Response *, char *attrib);
     char *(*to_json)(Response *); 
-    int (*write_head)(Response *request, int type, int len, uint32_t cookie);
-    int (*write_attrib)(Response *request, int type, int len, char *value);
+    int (*read)(Response *response);
 
     stun_header_t *header;
+    int header_max_len;
     int len;
     Map *attribs;
+    Ring_Buffer *buffer;
+    int (*read_post_callback)(Response *, void *arg);
 };
 
 #endif
