@@ -8,21 +8,7 @@
 #include "Request.h"
 #include "Response.h"
 
-#define STUN_ATR_TYPE_MAPPED_ADDR   		0x0001
-#define STUN_ATR_TYPE_RESPONSE_ADDRESS	    0x0002
-#define STUN_ATR_TYPE_CHANGE_REQUEST	    0x0003
-#define STUN_ATR_TYPE_SOURCE_ADDRESS	    0x0004
-#define STUN_ATR_TYPE_CHANGED_ADDRESS	    0x0005
-#define STUN_ATR_TYPE_USERNAME			    0x0006
-#define STUN_ATR_TYPE_PASSWORD			    0x0007
-#define STUN_ATR_TYPE_INTEGRITY		        0x0008
-#define STUN_ATR_TYPE_ERROR_CODE			0x0009
-#define STUN_ATR_TYPE_UNKNOWN_ATTRIBUTES	0x000a
-#define STUN_ATR_TYPE_REFLECTED_FROM		0x000b
-#define STUN_ATR_TYPE_XOR-MAPPED-ADDRESS	0x0020
-
 typedef struct Stun_s Stun;
-
 
 struct Stun_s{
     Obj parent;
@@ -42,5 +28,11 @@ struct Stun_s{
     Request *req;
     Response *response;
 };
+
+typedef struct attrib_parse_policy_s {
+    int (*policy)(stun_attrib_t *, stun_attrib_t *);
+} attrib_parse_policy_t;
+
+attrib_parse_policy_t g_parse_attr_policies[ENTRY_TYPE_MAX_TYPE];
 
 #endif

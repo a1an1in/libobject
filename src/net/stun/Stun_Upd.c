@@ -101,6 +101,8 @@ static int __stun_client_resp_callback(void *task)
         THROW_IF(stun == NULL, -1);
         resp = stun->parent.response;
 
+        dbg_str(DBG_DETAIL,"recv buf: len:%d", t->buf_len);
+
         while (len != t->buf_len) {
             ret = resp->buffer->write(resp->buffer, t->buf + len, t->buf_len - len);
             if (ret >= 0) {
@@ -116,7 +118,6 @@ static int __stun_client_resp_callback(void *task)
                 break;
             }
         } 
-        dbg_str(DBG_DETAIL,"recv buf: len:%d", t->buf_len);
     } CATCH (ret) {
     }
 

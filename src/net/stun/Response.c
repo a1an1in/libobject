@@ -8,6 +8,7 @@
  */
 
 #include <math.h>
+#include "Stun.h"
 #include "Response.h"
 
 static int __construct(Response *response, char *init_str)
@@ -62,19 +63,25 @@ static int __read_head(Response *response)
 static int __read_attribs(Response *response)
 {
     allocator_t *allocator = response->parent.allocator;
-    stun_attrib_t *attrib;
-    int ret = 0;
+    stun_header_t *header = response->header;
+    uint8_t *attr_addr = header->attr;
+    Map *map = response->attribs;
+    stun_attrib_t *raw, *attr;
+    int ret = 0, i = 0;
 
     TRY {
-        /*
-         *attrib = allocator_mem_alloc(allocator, sizeof(stun_attrib_t) + len);
-         *THROW_IF(attrib == NULL, -1);
-         *
-         *attrib->len = htons(len);
-         *attrib->type = htons(type);
-         *memcpy(attrib->value, value, len);
-         *response->attribs->add(response->attribs, type, attrib);
-         */
+        for (i = 0; i < header->msglen; ) {
+            raw = (stun_attrib_t *)(attr_addr + i);
+            raw->type = ntohs(raw->type);
+            raw->len = ntohs(raw->len);
+            i +=  sizeof(int) + raw->len;
+            dbg_str(DBG_DETAIL, "raw  type :%d , len:%d", raw->type, raw->len);
+            CONTINUE_IF((raw->type > STUN_ATR_TYPE_MAX) || (g_parse_attr_policies[raw->type].policy == NULL));
+
+            attr = allocator_mem_alloc(allocator, sizeof(stun_attrib_t));
+            EXEC(g_parse_attr_policies[raw->type].policy(raw, attr));
+            map->add(map, raw->type, attr);
+        }
     } CATCH (ret) {
     }
 
@@ -94,6 +101,9 @@ static int __read(Response *response)
         buffer->read(buffer, response->header, len);
 
         EXEC(__read_head(response));
+        THROW_IF(response->header->msglen == 0, 1);
+
+        EXEC(__read_attribs(response));
     } CATCH (ret) {
     }
 

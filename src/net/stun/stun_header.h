@@ -25,6 +25,7 @@
 #define STUN_ATR_TYPE_UNKNOWN_ATTRIBUTES	0x000a
 #define STUN_ATR_TYPE_REFLECTED_FROM		0x000b
 #define STUN_ATR_TYPE_XOR-MAPPED-ADDRESS	0x0020
+#define STUN_ATR_TYPE_MAX	                0x0021
 
 typedef struct Request_s Request;
 
@@ -70,11 +71,49 @@ typedef struct stun_header_s {
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
 
+typedef struct mapped_address_s {
+    uint8_t reserved;
+    uint8_t family;
+    uint16_t port;
+    uint8_t ip[8];
+    char host[32];
+    char service[8];
+} mapped_address_t;
+
+typedef struct changed_address_s {
+    uint8_t reserved;
+    uint8_t family;
+    uint16_t port;
+    uint8_t ip[8];
+    char host[32];
+    char service[8];
+} changed_address_t;
+
+typedef struct xor_mapped_address_s {
+    uint8_t reserved;
+    uint8_t family;
+    uint16_t port;
+    uint8_t ip[8];
+    char host[32];
+    char service[8];
+} xor_mapped_address_t;
+
+typedef struct change_request_s {
+    uint32_t value;
+} change_request_t;
+
 typedef struct stun_attrib_s {
     unsigned short type;
     unsigned short len;
+    union {
+        mapped_address_t mapped_address;
+        changed_address_t changed_address;
+        xor_mapped_address_t xor_mapped_address;
+        change_request_t change_request;
+    }u;
     unsigned char value[0];
 } stun_attrib_t;
+
 
 
 #endif

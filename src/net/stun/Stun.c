@@ -52,3 +52,61 @@ static class_info_entry_t stun_class_info[] = {
 };
 REGISTER_CLASS("Stun", stun_class_info);
 
+static int __parse_attrib_mapped_addr(stun_attrib_t *raw, stun_attrib_t *out)
+{
+    int ret;
+    int i, len, family;
+    uint8_t *p, *host;
+
+    TRY {
+        family = raw->u.mapped_address.family;
+        SET_CATCH_INT_PARS(family, 0);
+        THROW_IF(family != 0x1 && family != 2, -1);
+        snprintf(out->u.mapped_address.service, 8, "%d", ntohs(raw->u.mapped_address.port));
+        len = family == 0x1 ? 4 : 8;
+        p = raw->u.mapped_address.ip;
+        host = out->u.mapped_address.host;
+        for (i = 0; i < len - 1; i++) {
+            snprintf(host + strlen(host), 32 - strlen(host), "%d.", *(p + i));
+        }
+        snprintf(host + strlen(host), 32 - strlen(host), "%d", *(p + i));
+        dbg_str(DBG_DETAIL, "parse maped addr, host:%s, server:%s",
+                out->u.mapped_address.host, out->u.mapped_address.service);
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
+static int __parse_attrib_changed_addr(stun_attrib_t *raw, stun_attrib_t *out)
+{
+    int ret;
+    int i, len,  family;
+    uint8_t *p, *host;
+
+    TRY {
+        family = raw->u.mapped_address.family;
+        SET_CATCH_INT_PARS(family, 0);
+        THROW_IF(family != 0x1 && family != 2, -1);
+        snprintf(out->u.changed_address.service, 8, "%d", ntohs(raw->u.changed_address.port));
+        len = family == 0x1 ? 4 : 8;
+        p = raw->u.changed_address.ip;
+        host = out->u.changed_address.host;
+        for (i = 0; i < len - 1; i++) {
+            snprintf(host + strlen(host), 32 - strlen(host), "%d.", *(p + i));
+        }
+        snprintf(host + strlen(host), 32 - strlen(host), "%d", *(p + i));
+        dbg_str(DBG_DETAIL, "parse changed addr, host:%s, server:%s",
+                out->u.changed_address.host, out->u.changed_address.service);
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
+attrib_parse_policy_t g_parse_attr_policies[ENTRY_TYPE_MAX_TYPE] = {
+    [STUN_ATR_TYPE_MAPPED_ADDR] = {.policy = __parse_attrib_mapped_addr},
+    [STUN_ATR_TYPE_CHANGED_ADDRESS] = {.policy = __parse_attrib_changed_addr},
+};
