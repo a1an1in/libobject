@@ -95,5 +95,5 @@ static class_info_entry_t request_class_info[] = {
     Init_Nfunc_Entry(4, Request, set_head, __set_head),
     Init_End___Entry(5, Request),
 };
-REGISTER_CLASS("Request", request_class_info);
+REGISTER_CLASS("Stun::Request", request_class_info);
 

@@ -15,8 +15,8 @@ static int __construct(Stun *stun, char *init_str)
     int ret = 0;
 
     TRY {
-       stun->req = object_new(allocator, "Request", NULL);
-       stun->response = object_new(allocator, "Response", NULL);
+       stun->req = object_new(allocator, "Stun::Request", NULL);
+       stun->response = object_new(allocator, "Stun::Response", NULL);
        THROW_IF(stun->req == NULL || stun->response == NULL, -1);
 
     } CATCH (ret) {

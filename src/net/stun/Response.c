@@ -117,5 +117,5 @@ static class_info_entry_t response_class_info[] = {
     Init_Nfunc_Entry(3, Response, read, __read),
     Init_End___Entry(4, Response),
 };
-REGISTER_CLASS("Response", response_class_info);
+REGISTER_CLASS("Stun::Response", response_class_info);
 
