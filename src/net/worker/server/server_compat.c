@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/net/server/Inet_Tcp_Server.h>
+#include <libobject/net/worker/Inet_Tcp_Server.h>
 
 void *server(allocator_t *allocator, char *type,
              char *host, char *service,

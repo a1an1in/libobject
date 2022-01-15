@@ -134,7 +134,10 @@ static int test_stun_udp(TEST_ENTRY *entry, void *argc, void *argv)
 
     TRY {
         stun = object_new(allocator, "Stun_Udp", NULL);
-        stun->connect(stun, "stun.voipstunt.com", "3478");
+        /*
+         *stun->connect(stun, "stun.voipstunt.com", "3478");
+         */
+        stun->connect(stun, "77.72.169.212", "3479");
         /*
          *EXEC(stun->connect(stun, "77.72.169.213", "3478"));
          */
@@ -142,7 +145,13 @@ static int test_stun_udp(TEST_ENTRY *entry, void *argc, void *argv)
          *EXEC(stun->connect(stun, "75.2.81.221", "3478"));
          */
         /*
-         *EXEC(stun->connect(stun, "77.72.174.163", "3478"));
+         *EXEC(stun->connect(stun, "212.227.67.34", "3478"));
+         */
+        /*
+         *EXEC(stun->connect(stun, "stun.voip.aebc.com", "3478"));
+         */
+        /*
+         *EXEC(stun->connect(stun, "stun.voiparound.com", "3478"));
          */
         EXEC(stun->discovery(stun));
         pause();
