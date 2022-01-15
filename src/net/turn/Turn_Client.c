@@ -15,8 +15,8 @@ static int __construct(Turn_Client *turn, char *init_str)
     int ret = 0;
 
     TRY {
-       turn->req = object_new(allocator, "Request", NULL);
-       turn->response = object_new(allocator, "Response", NULL);
+       turn->req = object_new(allocator, "Turn::Request", NULL);
+       turn->response = object_new(allocator, "Turn::Response", NULL);
        THROW_IF(turn->req == NULL || turn->response == NULL, -1);
 
     } CATCH (ret) {

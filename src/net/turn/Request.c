@@ -32,6 +32,10 @@ static int __construct(Request *request, char *init_str)
         map->set(map, "/Map/trustee_flag", &trustee_flag);
         map->set(map, "/Map/value_type", &value_type);
         request->attribs = map;
+
+        request->buffer = object_new(allocator, "Buffer", NULL);
+        THROW_IF(request->buffer == NULL, -1);
+        request->buffer->set_capacity(request->buffer, 1024);
     } CATCH (ret) {
     }
 
@@ -44,6 +48,7 @@ static int __deconstruct(Request *request)
 
     allocator_mem_free(allocator, request->header);
     object_destroy(request->attribs);
+    object_destroy(request->buffer);
 
     return 0;
 }
@@ -60,7 +65,7 @@ static int __set_attrib(Request *request, int type, int len, char *value)
         
         attrib->len = htons(len);
         attrib->type = htons(type);
-        memcpy(attrib->value, value, len);
+        memcpy(&attrib->u, value, len);
         request->attribs->add(request->attribs, type, attrib);
     } CATCH (ret) {
     }
@@ -96,5 +101,5 @@ static class_info_entry_t request_class_info[] = {
     Init_Nfunc_Entry(4, Request, set_head, __set_head),
     Init_End___Entry(5, Request),
 };
-REGISTER_CLASS("Request", request_class_info);
+REGISTER_CLASS("Turn::Request", request_class_info);
 

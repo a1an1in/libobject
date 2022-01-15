@@ -77,8 +77,8 @@ static int __read_attribs(Response *response)
             raw = (turn_attrib_t *)(attr_addr + i);
             raw->type = ntohs(raw->type);
             raw->len = ntohs(raw->len);
-            i +=  sizeof(int) + raw->len;
-            dbg_str(DBG_DETAIL, "raw  type :%d , len:%d", raw->type, raw->len);
+            i += (sizeof(int) + (raw->len + (4 - (raw->len % 4)) % 4));
+            dbg_str(DBG_DETAIL, "raw type :%x , attrib len:%d", raw->type, raw->len);
             CONTINUE_IF((raw->type > TURN_ATR_TYPE_MAX) || (policies[raw->type].policy == NULL));
 
             attr = allocator_mem_alloc(allocator, sizeof(turn_attrib_t));
@@ -120,5 +120,5 @@ static class_info_entry_t response_class_info[] = {
     Init_Nfunc_Entry(3, Response, read, __read),
     Init_End___Entry(4, Response),
 };
-REGISTER_CLASS("Response", response_class_info);
+REGISTER_CLASS("Turn::Response", response_class_info);
 

@@ -42,18 +42,42 @@ static int __connect(Turn_Udp_Client *turn, char *host, char *service)
 static int __send(Turn_Udp_Client *turn)
 {
     Request *req = turn->parent.req;
+    Buffer *buffer = req->buffer;
     Map *map = req->attribs;
-    int i = 0;
+    int i = 0, attrib_len = 0;
     int ret = 0;
+    Iterator *cur, *end;
+    turn_attrib_t *attrib;
 
     TRY {
-        if (map->count(map) == 0) {
-            req->len = sizeof(turn_header_t);
-        } else {
+        buffer->reset(buffer);
+
+        /* compute attribs len */
+        if (map->count(map) != 0) {
+            cur = map->begin(map);
+            end = map->end(map);
+            for (; !end->equal(end, cur); cur->next(cur)) {
+                attrib = (turn_attrib_t *)cur->get_vpointer(cur);
+                attrib_len += ntohs(attrib->len) + 4;
+            }
         }
 
+        dbg_str(DBG_DETAIL, " atttrib len%d", attrib_len);
+        req->header->msglen = htons(attrib_len);
+        buffer->write(buffer, req->header,  sizeof(turn_header_t));
+
+        if (map->count(map) != 0) {
+            cur = map->begin(map);
+            end = map->end(map);
+            for (; !end->equal(end, cur); cur->next(cur)) {
+                attrib = (turn_attrib_t *)cur->get_vpointer(cur);
+                buffer->write(buffer, attrib,  ntohs(attrib->len) + 4);
+            }
+        }
+
+        req->len = buffer->get_len(buffer);
+        client_send(turn->c, buffer->addr + buffer->r_offset, req->len, 0);
         dbg_str(DBG_DETAIL, "turn send: atttrib count:%d, len%d", map->count(map), req->len);
-        client_send(turn->c, req->header, req->len, 0);
     } CATCH (ret) {
     }
 
@@ -81,7 +105,7 @@ static int __allocate_address(Turn_Udp_Client *turn)
 }
 
 static class_info_entry_t turn_class_info[] = {
-    Init_Obj___Entry(0, Turn, parent),
+    Init_Obj___Entry(0, Turn_Client, parent),
     Init_Nfunc_Entry(1, Turn_Udp_Client, construct, __construct),
     Init_Nfunc_Entry(2, Turn_Udp_Client, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3, Turn_Udp_Client, connect, __connect),
@@ -136,25 +160,7 @@ static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
 
     TRY {
         turn = object_new(allocator, "Turn_Udp_Client", NULL);
-        /*
-         *turn->connect(turn, "turn.voipturnt.com", "3478");
-         */
-        turn->connect(turn, "77.72.169.212", "3479");
-        /*
-         *EXEC(turn->connect(turn, "77.72.169.213", "3478"));
-         */
-        /*
-         *EXEC(turn->connect(turn, "75.2.81.221", "3478"));
-         */
-        /*
-         *EXEC(turn->connect(turn, "212.227.67.34", "3478"));
-         */
-        /*
-         *EXEC(turn->connect(turn, "turn.voip.aebc.com", "3478"));
-         */
-        /*
-         *EXEC(turn->connect(turn, "turn.voiparound.com", "3478"));
-         */
+        turn->connect(turn, "172.16.49.3", "3478");
         EXEC(turn->allocate_address(turn));
         pause();
 
