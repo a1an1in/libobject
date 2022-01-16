@@ -6,39 +6,40 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
 
-#define TURN_METHOD_BINDREQ    0x0001
-#define TURN_METHOD_BINDRESP   0x0101
-#define TURN_METHOD_BINDERROR  0x0111
-#define TURN_METHOD_SECREQ     0x0002
-#define TURN_METHOD_SECRESP    0x0102
-#define TURN_METHOD_SECERROR   0x0112
-#define TURN_METHOD_ALLOCATE   0x0003
+#define TURN_METHOD_BINDREQ                             0x0001
+#define TURN_METHOD_BINDRESP                            0x0101
+#define TURN_METHOD_BINDERROR                           0x0111
+#define TURN_METHOD_SECREQ                              0x0002
+#define TURN_METHOD_SECRESP                             0x0102
+#define TURN_METHOD_SECERROR                            0x0112
+#define TURN_METHOD_ALLOCATE                            0x0003
 
-#define TURN_ATR_TYPE_MAPPED_ADDR   	               	0x0001
-#define TURN_ATR_TYPE_RESPONSE_ADDRESS	                0x0002
-#define TURN_ATR_TYPE_CHANGE_REQUEST	                0x0003
-#define TURN_ATR_TYPE_SOURCE_ADDRESS	                0x0004
-#define TURN_ATR_TYPE_CHANGED_ADDRESS	                0x0005
-#define TURN_ATR_TYPE_USERNAME			                0x0006
-#define TURN_ATR_TYPE_PASSWORD			                0x0007
-#define TURN_ATR_TYPE_INTEGRITY		                    0x0008
-#define TURN_ATR_TYPE_ERROR_CODE		               	0x0009
-#define TURN_ATR_TYPE_UNKNOWN_ATTRIBUTES               	0x000a
-#define TURN_ATR_TYPE_REFLECTED_FROM	               	0x000b
-#define TURN_ATR_TYPE_XOR_MAPPED_ADDRESS               	0x0020
-#define TURN_ATR_TYPE_CHANNEL_NUMBER                    0x000C 
-#define TURN_ATR_TYPE_LIFETIME                          0x000D 
-#define TURN_ATR_TYPE_Reserved (was BANDWIDTH)          0x0010 
-#define TURN_ATR_TYPE_XOR_PEER_ADDRESS                  0x0012 
-#define TURN_ATR_TYPE_DATA                              0x0013 
-#define TURN_ATR_TYPE_XOR_RELAYED_ADDRESS               0x0016 
-#define TURN_ATR_TYPE_EVEN_PORT                         0x0018 
-#define TURN_ATR_TYPE_REQUESTED_TRANSPORT               0x0019 
-#define TURN_ATR_TYPE_DONT_FRAGMENT                     0x001A 
-#define TURN_ATR_TYPE_Reserved (was TIMER_VAL)          0x0021 
-#define TURN_ATR_TYPE_RESERVATION_TOKEN                 0x0022 
-#define TURN_ATR_TYPE_MAX	                            0x0023
-
+#define TURN_ATTR_TYPE_MAPPED_ADDR   	               	0x0001
+#define TURN_ATTR_TYPE_RESPONSE_ADDRESS	                0x0002
+#define TURN_ATTR_TYPE_CHANGE_REQUEST	                0x0003
+#define TURN_ATTR_TYPE_SOURCE_ADDRESS	                0x0004
+#define TURN_ATTR_TYPE_CHANGED_ADDRESS	                0x0005
+#define TURN_ATTR_TYPE_USERNAME			                0x0006
+#define TURN_ATTR_TYPE_PASSWORD			                0x0007
+#define TURN_ATTR_TYPE_INTEGRITY		                0x0008
+#define TURN_ATTR_TYPE_ERROR_CODE		               	0x0009
+#define TURN_ATTR_TYPE_UNKNOWN_ATTRIBUTES            	0x000a
+#define TURN_ATTR_TYPE_REFLECTED_FROM	               	0x000b
+#define TURN_ATTR_TYPE_CHANNEL_NUMBER                   0x000C 
+#define TURN_ATTR_TYPE_LIFETIME                         0x000D 
+#define TURN_ATTR_TYPE_XOR_PEER_ADDRESS                 0x0012 
+#define TURN_ATTR_TYPE_DATA                             0x0013 
+#define TURN_ATTR_TYPE_REALM                            0x0014 
+#define TURN_ATTR_TYPE_NONCE                            0x0015 
+#define TURN_ATTR_TYPE_XOR_RELAYED_ADDRESS              0x0016 
+#define TURN_ATTR_TYPE_EVEN_PORT                        0x0018 
+#define TURN_ATTR_TYPE_REQUESTED_TRANSPORT              0x0019 
+#define TURN_ATTR_TYPE_DONT_FRAGMENT                    0x001A 
+#define TURN_ATTR_TYPE_XOR_MAPPED_ADDRESS               0x0020
+#define TURN_ATTR_TYPE_Reserved                         0x0021 
+#define TURN_ATTR_TYPE_RESERVATION_TOKEN                0x0022 
+#define TURN_ATTR_TYPE_SOFTWARE                         0x8022 
+#define TURN_ATTR_TYPE_FINGERPRINT                      0x8028 
 
 typedef struct Request_s Request;
 
@@ -83,6 +84,11 @@ typedef struct turn_header_s {
  * |                             Value                             ....
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
+
+typedef struct turn_attrib_header_s {
+    unsigned short type;
+    unsigned short len;
+} turn_attrib_header_t;
 
 typedef struct mapped_address_s {
     unsigned short type;
@@ -156,10 +162,23 @@ typedef struct error_code_s {
     uint8_t reason[0];
 } turn_attrib_error_code_t;
 
-typedef struct turn_attrib_header_s {
+typedef struct realm_s {
     unsigned short type;
     unsigned short len;
-} turn_attrib_header_t;
+    uint8_t value[0];
+} turn_attrib_realm_t;
+
+typedef struct software_s {
+    unsigned short type;
+    unsigned short len;
+    uint8_t value[0];
+} turn_attrib_software_t;
+
+typedef struct turn_attrib_fingerprint_s {
+    unsigned short type;
+    unsigned short len;
+    int crc32;
+} turn_attrib_fingerprint_t;
 
 typedef struct turn_attribs_s {
     turn_attrib_mapped_address_t *mapped_address;
@@ -170,6 +189,9 @@ typedef struct turn_attribs_s {
     turn_attrib_lifetime_t *lifetime;
     turn_attrib_requested_transport_t *requested_transport;
     turn_attrib_error_code_t *error_code;
+    turn_attrib_realm_t *realm;
+    turn_attrib_software_t *software;
+    turn_attrib_fingerprint_t *fingerprint;
 } turn_attribs_t;
 
 typedef struct attrib_parse_policy_s {
@@ -177,5 +199,13 @@ typedef struct attrib_parse_policy_s {
 } attrib_parse_policy_t;
 
 
+typedef struct attrib_type_map_s {
+    int index;
+    int type;
+} attrib_type_map_t;
+
 attrib_parse_policy_t *protocol_get_parse_policies();
+
+extern int turn_get_policy_index(int type);
+
 #endif

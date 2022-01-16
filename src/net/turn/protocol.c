@@ -86,14 +86,141 @@ static int __parse_attrib_error_code(turn_attribs_t *attribs, uint8_t *attrib)
     return 0;
 }
 
+static int __parse_attrib_realm(turn_attribs_t *attribs, uint8_t *attrib)
+{
+    turn_attrib_realm_t *attr;
+
+    attribs->realm = (turn_attrib_realm_t *)attrib;
+    attr = attribs->realm;
+
+    dbg_str(DBG_DETAIL, "realm:%s", attr->value);
+
+    return 0;
+}
+
+static int __parse_attrib_nonce(turn_attribs_t *attribs, uint8_t *attrib)
+{
+    turn_attrib_nonce_t *nonce;
+    uint8_t buf[128] = {0};
+
+    attribs->nonce = (turn_attrib_nonce_t *)attrib;
+    nonce = attribs->nonce;
+    memcpy(buf, nonce->value, nonce->len);
+    dbg_str(DBG_DETAIL, "nonce, len:%d value:%s", nonce->len, buf);
+
+    return 0;
+}
+
+static int __parse_attrib_software(turn_attribs_t *attribs, uint8_t *attrib)
+{
+    turn_attrib_software_t *software;
+    uint8_t buf[128] = {0};
+
+    attribs->software = (turn_attrib_software_t *)attrib;
+    software = attribs->software;
+    
+    memcpy(buf, software->value, software->len);
+    dbg_str(DBG_DETAIL, "software, len:%d value:%s", software->len, buf);
+
+    return 0;
+}
+
+static int __parse_attrib_fingerprint(turn_attribs_t *attribs, uint8_t *attrib)
+{
+    turn_attrib_fingerprint_t *attr;
+
+    attribs->fingerprint = (turn_attrib_fingerprint_t *)attrib;
+    attr = attribs->fingerprint;
+    attr->crc32 = ntohl(attr->crc32);
+    
+    dbg_str(DBG_DETAIL, "fingerprint, crc32:%x", attr->crc32);
+
+    return 0;
+}
+
+enum {
+    TURN_ATTR_ENUM_MAPPED_ADDR = 0,
+    TURN_ATTR_ENUM_RESPONSE_ADDRESS,	                
+    TURN_ATTR_ENUM_CHANGE_REQUEST,	                
+    TURN_ATTR_ENUM_SOURCE_ADDRESS,	                
+    TURN_ATTR_ENUM_CHANGED_ADDRESS,	                
+    TURN_ATTR_ENUM_USERNAME,			                
+    TURN_ATTR_ENUM_PASSWORD,			                
+    TURN_ATTR_ENUM_INTEGRITY,		                
+    TURN_ATTR_ENUM_ERROR_CODE,		               	
+    TURN_ATTR_ENUM_UNKNOWN_ATTRIBUTES,               
+    TURN_ATTR_ENUM_REFLECTED_FROM,	               	
+    TURN_ATTR_ENUM_XOR_MAPPED_ADDRESS,               
+    TURN_ATTR_ENUM_CHANNEL_NUMBER,                    
+    TURN_ATTR_ENUM_LIFETIME,                          
+    TURN_ATTR_ENUM_XOR_PEER_ADDRESS,                  
+    TURN_ATTR_ENUM_DATA,                 
+    TURN_ATTR_ENUM_REALM,                             
+    TURN_ATTR_ENUM_NONCE,                             
+    TURN_ATTR_ENUM_XOR_RELAYED_ADDRESS,               
+    TURN_ATTR_ENUM_EVEN_PORT,              
+    TURN_ATTR_ENUM_REQUESTED_TRANSPORT,               
+    TURN_ATTR_ENUM_DONT_FRAGMENT,              
+    TURN_ATTR_ENUM_Reserved,                          
+    TURN_ATTR_ENUM_RESERVATION_TOKEN,                 
+    TURN_ATTR_ENUM_SOFTWARE, 
+    TURN_ATTR_ENUM_FINGERPRINT, 
+    TURN_ATTR_ENUM_MAX,	                            
+};
+
+static attrib_type_map_t g_parse_policies_type_map[TURN_ATTR_ENUM_MAX] = {
+    {TURN_ATTR_ENUM_MAPPED_ADDR, TURN_ATTR_TYPE_MAPPED_ADDR},
+    {TURN_ATTR_ENUM_RESPONSE_ADDRESS, TURN_ATTR_TYPE_RESPONSE_ADDRESS},
+    {TURN_ATTR_ENUM_CHANGE_REQUEST, TURN_ATTR_TYPE_CHANGE_REQUEST},
+    {TURN_ATTR_ENUM_SOURCE_ADDRESS, TURN_ATTR_TYPE_SOURCE_ADDRESS},
+    {TURN_ATTR_ENUM_CHANGED_ADDRESS, TURN_ATTR_TYPE_CHANGED_ADDRESS},
+    {TURN_ATTR_ENUM_USERNAME, TURN_ATTR_TYPE_USERNAME},
+    {TURN_ATTR_ENUM_PASSWORD, TURN_ATTR_TYPE_PASSWORD},
+    {TURN_ATTR_ENUM_INTEGRITY, TURN_ATTR_TYPE_INTEGRITY},
+    {TURN_ATTR_ENUM_ERROR_CODE, TURN_ATTR_TYPE_ERROR_CODE},
+    {TURN_ATTR_ENUM_UNKNOWN_ATTRIBUTES, TURN_ATTR_TYPE_UNKNOWN_ATTRIBUTES},
+    {TURN_ATTR_ENUM_REFLECTED_FROM, TURN_ATTR_TYPE_REFLECTED_FROM},
+    {TURN_ATTR_ENUM_CHANNEL_NUMBER, TURN_ATTR_TYPE_CHANNEL_NUMBER},
+    {TURN_ATTR_ENUM_LIFETIME, TURN_ATTR_TYPE_LIFETIME},
+    {TURN_ATTR_ENUM_XOR_PEER_ADDRESS, TURN_ATTR_TYPE_XOR_PEER_ADDRESS },
+    {TURN_ATTR_ENUM_DATA, TURN_ATTR_TYPE_DATA },
+    {TURN_ATTR_ENUM_REALM, TURN_ATTR_TYPE_REALM },
+    {TURN_ATTR_ENUM_NONCE, TURN_ATTR_TYPE_NONCE },
+    {TURN_ATTR_ENUM_XOR_RELAYED_ADDRESS, TURN_ATTR_TYPE_XOR_RELAYED_ADDRESS },
+    {TURN_ATTR_ENUM_EVEN_PORT, TURN_ATTR_TYPE_EVEN_PORT },
+    {TURN_ATTR_ENUM_REQUESTED_TRANSPORT, TURN_ATTR_TYPE_REQUESTED_TRANSPORT },
+    {TURN_ATTR_ENUM_XOR_MAPPED_ADDRESS, TURN_ATTR_TYPE_XOR_MAPPED_ADDRESS},
+    {TURN_ATTR_ENUM_RESERVATION_TOKEN, TURN_ATTR_TYPE_RESERVATION_TOKEN},
+    {TURN_ATTR_ENUM_SOFTWARE, TURN_ATTR_TYPE_SOFTWARE},
+    {TURN_ATTR_ENUM_FINGERPRINT, TURN_ATTR_TYPE_FINGERPRINT},
+};
 
 static attrib_parse_policy_t g_parse_attr_policies[ENTRY_TYPE_MAX_TYPE] = {
-    [TURN_ATR_TYPE_MAPPED_ADDR] = {.policy = __parse_attrib_mapped_addr},
-    [TURN_ATR_TYPE_CHANGED_ADDRESS] = {.policy = __parse_attrib_changed_addr},
-    [TURN_ATR_TYPE_ERROR_CODE] = {.policy = __parse_attrib_error_code},
+    [TURN_ATTR_ENUM_MAPPED_ADDR] = {.policy = __parse_attrib_mapped_addr},
+    [TURN_ATTR_ENUM_CHANGED_ADDRESS] = {.policy = __parse_attrib_changed_addr},
+    [TURN_ATTR_ENUM_ERROR_CODE] = {.policy = __parse_attrib_error_code},
+    [TURN_ATTR_ENUM_REALM] = {.policy = __parse_attrib_realm},
+    [TURN_ATTR_ENUM_NONCE] = {.policy = __parse_attrib_nonce},
+    [TURN_ATTR_ENUM_SOFTWARE] = {.policy = __parse_attrib_software},
+    [TURN_ATTR_ENUM_FINGERPRINT] = {.policy = __parse_attrib_fingerprint},
 };
 
 attrib_parse_policy_t *protocol_get_parse_policies()
 {
     return g_parse_attr_policies;
 }
+
+int turn_get_policy_index(int type) 
+{
+    int i, ret = -1;
+
+    for (i = 0; i < TURN_ATTR_ENUM_MAX; i++) {
+        if (g_parse_policies_type_map[i].type == type) {
+            ret = g_parse_policies_type_map[i].index;
+            break;
+        }
+    }
+
+    return ret;
+}
+
