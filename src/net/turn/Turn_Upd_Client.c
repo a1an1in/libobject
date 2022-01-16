@@ -47,7 +47,7 @@ static int __send(Turn_Udp_Client *turn)
     int i = 0, attrib_len = 0;
     int ret = 0;
     Iterator *cur, *end;
-    turn_attrib_t *attrib;
+    turn_attrib_header_t *attrib;
 
     TRY {
         buffer->reset(buffer);
@@ -57,7 +57,7 @@ static int __send(Turn_Udp_Client *turn)
             cur = map->begin(map);
             end = map->end(map);
             for (; !end->equal(end, cur); cur->next(cur)) {
-                attrib = (turn_attrib_t *)cur->get_vpointer(cur);
+                attrib = (turn_attrib_header_t *)cur->get_vpointer(cur);
                 attrib_len += ntohs(attrib->len) + 4;
             }
         }
@@ -70,7 +70,7 @@ static int __send(Turn_Udp_Client *turn)
             cur = map->begin(map);
             end = map->end(map);
             for (; !end->equal(end, cur); cur->next(cur)) {
-                attrib = (turn_attrib_t *)cur->get_vpointer(cur);
+                attrib = (turn_attrib_header_t *)cur->get_vpointer(cur);
                 buffer->write(buffer, attrib,  ntohs(attrib->len) + 4);
             }
         }
@@ -94,12 +94,13 @@ static int __turn_bind_request_read_post_process(Request * request, void *opaque
 static int __allocate_address(Turn_Udp_Client *turn)
 {
     Request *req = turn->parent.req;
-    nonce_t *nonce;
-    requested_transport_t requested_transport = {0};
+    turn_attrib_requested_transport_t requested_transport = {0};
 
     req->set_head(req, TURN_METHOD_BINDREQ | TURN_METHOD_ALLOCATE, 0, 0x2112A442);
     requested_transport.protocol = 17;
-    req->set_attrib(req, TURN_ATR_TYPE_REQUESTED_TRANSPORT, sizeof(requested_transport_t), &requested_transport);
+    requested_transport.type = htons(TURN_ATR_TYPE_REQUESTED_TRANSPORT);
+    requested_transport.len = htons(4);
+    req->set_attrib(req, TURN_ATR_TYPE_REQUESTED_TRANSPORT, &requested_transport, sizeof(turn_attrib_requested_transport_t));
     turn->set_read_post_callback(turn, __turn_bind_request_read_post_process);
     turn->send(turn);
 }
@@ -149,6 +150,7 @@ static int __turn_client_resp_callback(void *task)
 
     return ret;
 }
+
 static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
 {
     allocator_t *allocator = allocator_get_default_alloc();

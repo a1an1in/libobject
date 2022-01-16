@@ -53,19 +53,17 @@ static int __deconstruct(Request *request)
     return 0;
 }
 
-static int __set_attrib(Request *request, int type, int len, char *value)
+static int __set_attrib(Request *request, int type, uint8_t *value, int len)
 {
     allocator_t *allocator = request->parent.allocator;
-    turn_attrib_t *attrib;
+    turn_attrib_header_t *attrib;
     int ret = 0;
 
     TRY {
-        attrib = allocator_mem_alloc(allocator, sizeof(turn_attrib_t) + len);
+        attrib = allocator_mem_alloc(allocator, len);
         THROW_IF(attrib == NULL, -1);
         
-        attrib->len = htons(len);
-        attrib->type = htons(type);
-        memcpy(&attrib->u, value, len);
+        memcpy(attrib, value, len);
         request->attribs->add(request->attribs, type, attrib);
     } CATCH (ret) {
     }

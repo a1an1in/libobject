@@ -25,7 +25,7 @@ struct Response_s{
     turn_header_t *header;
     int header_max_len;
     int len;
-    Map *attribs;
+    turn_attribs_t attribs;
     Ring_Buffer *buffer;
     int (*read_post_callback)(Response *, void *arg);
 };

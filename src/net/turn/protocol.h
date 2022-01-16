@@ -85,69 +85,95 @@ typedef struct turn_header_s {
  */
 
 typedef struct mapped_address_s {
+    unsigned short type;
+    unsigned short len;
     uint8_t reserved;
     uint8_t family;
     uint16_t port;
-    uint8_t ip[8];
-    char host[32];
-    char service[8];
-} mapped_address_t;
+    union {
+        uint8_t ipv4[4];
+        uint8_t ipv6[16];
+    } u;
+} turn_attrib_mapped_address_t;
 
 typedef struct changed_address_s {
+    unsigned short type;
+    unsigned short len;
     uint8_t reserved;
     uint8_t family;
     uint16_t port;
-    uint8_t ip[8];
-    char host[32];
-    char service[8];
-} changed_address_t;
+    union {
+        uint8_t ipv4[4];
+        uint8_t ipv6[16];
+    } u;
+} turn_attrib_changed_address_t;
 
 typedef struct xor_mapped_address_s {
+    unsigned short type;
+    unsigned short len;
     uint8_t reserved;
     uint8_t family;
     uint16_t port;
-    uint8_t ip[8];
-    char host[32];
-    char service[8];
-} xor_mapped_address_t;
+    union {
+        uint8_t ipv4[4];
+        uint8_t ipv6[16];
+    } u;
+} turn_attrib_xor_mapped_address_t;
 
 typedef struct nonce_s {
+    unsigned short type;
+    unsigned short len;
     uint8_t value[0];
-} nonce_t;
+} turn_attrib_nonce_t;
 
 typedef struct lifetime_s {
+    unsigned short type;
+    unsigned short len;
     uint32_t value;
-} lifetime_t;
+} turn_attrib_lifetime_t;
 
 typedef struct change_request_s {
+    unsigned short type;
+    unsigned short len;
     uint32_t value;
-} change_request_t;
+} turn_attrib_change_request_t;
 
 typedef struct requested_transport_s {
+    unsigned short type;
+    unsigned short len;
     uint8_t protocol;
     uint8_t reserved1;
     uint8_t reserved2;
     uint8_t reserved3;
-} requested_transport_t;
+} turn_attrib_requested_transport_t;
 
-typedef struct turn_attrib_s {
+typedef struct error_code_s {
     unsigned short type;
     unsigned short len;
-    union {
-        mapped_address_t mapped_address;
-        changed_address_t changed_address;
-        xor_mapped_address_t xor_mapped_address;
-        change_request_t change_request;
-        nonce_t nonce;
-        lifetime_t lifetime;
-        requested_transport_t requested_transport;
-    }u;
-    unsigned char value[0];
-} turn_attrib_t;
+    uint16_t reserved;
+    uint8_t class_bits:3;
+    uint8_t number_bits;
+    uint8_t reason[0];
+} turn_attrib_error_code_t;
 
+typedef struct turn_attrib_header_s {
+    unsigned short type;
+    unsigned short len;
+} turn_attrib_header_t;
+
+typedef struct turn_attribs_s {
+    turn_attrib_mapped_address_t *mapped_address;
+    turn_attrib_changed_address_t *changed_address;
+    turn_attrib_xor_mapped_address_t *xor_mapped_address;
+    turn_attrib_change_request_t *change_request;
+    turn_attrib_nonce_t *nonce;
+    turn_attrib_lifetime_t *lifetime;
+    turn_attrib_requested_transport_t *requested_transport;
+    turn_attrib_error_code_t *error_code;
+} turn_attribs_t;
 
 typedef struct attrib_parse_policy_s {
-    int (*policy)(turn_attrib_t *, turn_attrib_t *);
+    int (*policy)(turn_attribs_t *attribs, uint8_t *addr);
 } attrib_parse_policy_t;
 
 

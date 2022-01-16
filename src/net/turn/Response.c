@@ -16,19 +16,11 @@ static int __construct(Response *response, char *init_str)
     allocator_t *allocator = response->parent.allocator;
     int ret = 0, trustee_flag = 1;;
     int value_type = VALUE_TYPE_ALLOC_POINTER;
-    Map *map;
 
     TRY {
         response->header_max_len = 548;
         response->header = allocator_mem_alloc(allocator, response->header_max_len); 
         THROW_IF(response->header == NULL, -1);
-
-        map = object_new(allocator, "RBTree_Map", NULL);
-        THROW_IF(map == NULL, -1);
-        map->set_cmp_func(map, default_key_cmp_func);
-        map->set(map, "/Map/trustee_flag", &trustee_flag);
-        map->set(map, "/Map/value_type", &value_type);
-        response->attribs = map;
 
         response->buffer = object_new(allocator, "Ring_Buffer", NULL);
         THROW_IF(response->buffer == NULL, -1);
@@ -43,7 +35,6 @@ static int __deconstruct(Response *response)
     allocator_t *allocator = response->parent.allocator;
 
     allocator_mem_free(allocator, response->header);
-    object_destroy(response->attribs);
 
     return 0;
 }
@@ -62,28 +53,25 @@ static int __read_head(Response *response)
 
 static int __read_attribs(Response *response)
 {
-    allocator_t *allocator = response->parent.allocator;
     turn_header_t *header = response->header;
     uint8_t *attr_addr = header->attr;
-    Map *map = response->attribs;
-    turn_attrib_t *raw, *attr;
-    int ret = 0, i = 0;
+    turn_attrib_header_t *attr;
+    int ret = 0, i = 0, attr_len = 0;
     attrib_parse_policy_t *policies;
 
     TRY {
         policies = protocol_get_parse_policies();
 
         for (i = 0; i < header->msglen; ) {
-            raw = (turn_attrib_t *)(attr_addr + i);
-            raw->type = ntohs(raw->type);
-            raw->len = ntohs(raw->len);
-            i += (sizeof(int) + (raw->len + (4 - (raw->len % 4)) % 4));
-            dbg_str(DBG_DETAIL, "raw type :%x , attrib len:%d", raw->type, raw->len);
-            CONTINUE_IF((raw->type > TURN_ATR_TYPE_MAX) || (policies[raw->type].policy == NULL));
+            attr = (turn_attrib_header_t *)(attr_addr + i);
+            attr->type = ntohs(attr->type);
+            attr->len = ntohs(attr->len);
+            attr_len = (sizeof(int) + (attr->len + (4 - (attr->len % 4)) % 4));
+            i += attr_len;
+            dbg_str(DBG_DETAIL, "attr type :%x , attrib attr len:%d, real len:%d", attr->type, attr->len, attr_len);
+            CONTINUE_IF((attr->type > TURN_ATR_TYPE_MAX) || (policies[attr->type].policy == NULL));
 
-            attr = allocator_mem_alloc(allocator, sizeof(turn_attrib_t));
-            EXEC(policies[raw->type].policy(raw, attr));
-            map->add(map, raw->type, attr);
+            EXEC(policies[attr->type].policy(&response->attribs, attr));
         }
     } CATCH (ret) {
     }
