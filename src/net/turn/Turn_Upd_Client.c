@@ -115,8 +115,7 @@ static int __send(Turn_Udp_Client *turn)
 }
 
 static int 
-__allocate_address(Turn_Udp_Client *turn, uint8_t *nonce, uint8_t nonce_len,
-                   char *realm, char *user, uint32_t lifetime, uint8_t family)
+__allocate_address(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
 {
     allocator_t *allocator = turn->parent.parent.allocator;
     Request *req = turn->parent.req;
@@ -130,40 +129,41 @@ __allocate_address(Turn_Udp_Client *turn, uint8_t *nonce, uint8_t nonce_len,
     int ret;
 
     TRY {
-        SET_CATCH_INT_PARS(nonce_len, 0);
-        THROW_IF(nonce_len > 128, -1);
+        THROW_IF(arg == NULL, -1);
+        SET_CATCH_INT_PARS(arg->nonce_len, 0);
+        THROW_IF(arg->nonce_len > 128, -1);
 
         req->set_head(req, TURN_METHOD_BINDREQ | TURN_METHOD_ALLOCATE, 0, 0x2112A442);
 
-        if (nonce_len > 0) {
-            attr_nonce = allocator_mem_zalloc(allocator, sizeof(turn_attrib_nonce_t) + nonce_len);
-            turn_set_attrib_nonce(attr_nonce, sizeof(turn_attrib_nonce_t) + nonce_len, nonce, nonce_len);
+        if (arg->nonce_len > 0) {
+            attr_nonce = allocator_mem_zalloc(allocator, sizeof(turn_attrib_nonce_t) + arg->nonce_len);
+            turn_set_attrib_nonce(attr_nonce, sizeof(turn_attrib_nonce_t) + arg->nonce_len, arg->nonce, arg->nonce_len);
             req->set_attrib(req, requested_transport);
         }
 
-        if (realm != NULL) {
-            len = strlen(realm);
+        if (arg->realm != NULL) {
+            len = strlen(arg->realm);
             attr_realm = allocator_mem_zalloc(allocator, sizeof(turn_attrib_realm_t) + len);
-            turn_set_attrib_realm(attr_realm, sizeof(turn_attrib_realm_t) + len, realm, len);
+            turn_set_attrib_realm(attr_realm, sizeof(turn_attrib_realm_t) + len, arg->realm, len);
             req->set_attrib(req, attr_realm);
         }
 
-        if (user != NULL) {
-            len = strlen(user);
+        if (arg->user != NULL) {
+            len = strlen(arg->user);
             attr_username = allocator_mem_zalloc(allocator, sizeof(turn_attrib_username_t) + len);
-            turn_set_attrib_username(attr_username, sizeof(turn_attrib_username_t) + len, user, len);
+            turn_set_attrib_username(attr_username, sizeof(turn_attrib_username_t) + len, arg->user, len);
             req->set_attrib(req, attr_username);
         }
 
-        if (lifetime >= 0) {
+        if (arg->lifetime >= 0) {
             attr_lifetime = allocator_mem_zalloc(allocator, sizeof(turn_attrib_lifetime_t));
-            turn_set_attrib_lifetime(attr_lifetime, lifetime);
+            turn_set_attrib_lifetime(attr_lifetime, arg->lifetime);
             req->set_attrib(req, attr_lifetime);
         }
 
-        if (family == 1 || family == 2) {
+        if (arg->family == 1 || arg->family == 2) {
             attr_family = allocator_mem_zalloc(allocator, sizeof(turn_attrib_requested_family_t));
-            turn_set_attrib_requested_family(attr_family, family);
+            turn_set_attrib_requested_family(attr_family, arg->family);
             req->set_attrib(req, attr_family);
         }
 
@@ -279,6 +279,7 @@ static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
     allocator_t *allocator = allocator_get_default_alloc();
     Turn_Client *turn = NULL;
     char *str = "hello world";
+    allocate_address_reqest_arg_t arg = {0};
     int ret;
 
     dbg_str(NET_DETAIL, "test_turn_udp");
@@ -286,7 +287,9 @@ static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
     TRY {
         turn = object_new(allocator, "Turn_Udp_Client", NULL);
         turn->connect(turn, "172.16.49.3", "3478");
-        EXEC(turn->allocate_address(turn, NULL, 0, NULL, NULL, -1, 1));
+        arg.nonce_len = -1;
+        arg.lifetime = -1;
+        EXEC(turn->allocate_address(turn, &arg));
 
         sleep(2);
     } CATCH (ret) {
