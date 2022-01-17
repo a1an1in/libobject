@@ -187,7 +187,8 @@ static class_info_entry_t turn_class_info[] = {
     Init_Vfunc_Entry(4, Turn_Udp_Client, allocate_address, __allocate_address),
     Init_Vfunc_Entry(5, Turn_Udp_Client, send, __send),
     Init_Vfunc_Entry(6, Turn_Udp_Client, set_read_post_callback, NULL),
-    Init_End___Entry(7, Turn_Udp_Client),
+    Init_Vfunc_Entry(7, Turn_Udp_Client, generate_auth_code, NULL),
+    Init_End___Entry(8, Turn_Udp_Client),
 };
 REGISTER_CLASS("Turn_Udp_Client", turn_class_info);
 
@@ -287,9 +288,12 @@ static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
     TRY {
         turn = object_new(allocator, "Turn_Udp_Client", NULL);
         turn->connect(turn, "172.16.49.3", "3478");
-        arg.nonce_len = -1;
         arg.lifetime = -1;
         EXEC(turn->allocate_address(turn, &arg));
+        /*
+         *EXEC(turn->generate_auth_code(turn, "toto", "domain.org", "4588"));
+         */
+        EXEC(turn->compute_integrity(turn));
 
         sleep(2);
     } CATCH (ret) {

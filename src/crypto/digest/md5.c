@@ -6,7 +6,7 @@
 
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
-#include "md5.h"
+#include <libobject/crypto/md5.h>
 
 /*
  * The basic MD5 functions.

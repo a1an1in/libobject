@@ -23,6 +23,7 @@ struct Turn_Udp_s{
     int (*send)(Turn_Udp_Client *turn);
     int (*allocate_address)(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg);
     int (*set_read_post_callback)(Turn_Udp_Client *turn, int (*func)(Response *, void *arg));
+    int (*generate_auth_code)(Turn_Udp_Client *turn, char *username, char *realm, char *password);
 
     Client *c;
 };

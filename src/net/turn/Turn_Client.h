@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
+#include <libobject/crypto/Digest.h>
 #include "Request.h"
 #include "Response.h"
 
@@ -42,9 +43,12 @@ struct Turn_Client_s{
     int (*send)(Turn_Client *turn);
     int (*allocate_address)(Turn_Client *turn, allocate_address_reqest_arg_t *arg);
     int (*set_read_post_callback)(Turn_Client *turn, int (*func)(Response *, void *arg));
+    int (*generate_auth_code)(Turn_Client *turn, char *username, char *realm, char *password);
+    int (*compute_integrity)(Turn_Client *turn);
 
     Request *req;
     Response *response;
+    Digest *digest;
 };
 
 #endif
