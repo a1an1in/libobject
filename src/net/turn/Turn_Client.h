@@ -44,11 +44,12 @@ struct Turn_Client_s{
     int (*allocate_address)(Turn_Client *turn, allocate_address_reqest_arg_t *arg);
     int (*set_read_post_callback)(Turn_Client *turn, int (*func)(Response *, void *arg));
     int (*generate_auth_code)(Turn_Client *turn, char *username, char *realm, char *password);
-    int (*compute_integrity)(Turn_Client *turn);
+    int (*compute_integrity)(Turn_Client *turn, uint8_t *key, uint8_t key_len, uint8_t *data, uint32_t data_len, uint8_t *out, uint8_t out_len);
 
     Request *req;
     Response *response;
     Digest *digest;
+    Digest *hmac_sha1_digest;
 };
 
 #endif

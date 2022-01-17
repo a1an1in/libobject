@@ -180,7 +180,7 @@ __allocate_address(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
 }
 
 static class_info_entry_t turn_class_info[] = {
-    Init_Obj___Entry(0, Turn_Client, parent),
+    Init_DObj__Entry(0, "Turn::Turn_Client", "parent"),
     Init_Nfunc_Entry(1, Turn_Udp_Client, construct, __construct),
     Init_Nfunc_Entry(2, Turn_Udp_Client, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3, Turn_Udp_Client, connect, __connect),
@@ -190,7 +190,7 @@ static class_info_entry_t turn_class_info[] = {
     Init_Vfunc_Entry(7, Turn_Udp_Client, generate_auth_code, NULL),
     Init_End___Entry(8, Turn_Udp_Client),
 };
-REGISTER_CLASS("Turn_Udp_Client", turn_class_info);
+REGISTER_CLASS("Turn::Turn_Udp_Client", turn_class_info);
 
 static int __turn_client_resp_callback(void *task)
 {
@@ -281,19 +281,20 @@ static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
     Turn_Client *turn = NULL;
     char *str = "hello world";
     allocate_address_reqest_arg_t arg = {0};
+    uint8_t result[20];
     int ret;
 
     dbg_str(NET_DETAIL, "test_turn_udp");
 
     TRY {
-        turn = object_new(allocator, "Turn_Udp_Client", NULL);
+        turn = object_new(allocator, "Turn::Turn_Udp_Client", NULL);
         turn->connect(turn, "172.16.49.3", "3478");
         arg.lifetime = -1;
         EXEC(turn->allocate_address(turn, &arg));
         /*
          *EXEC(turn->generate_auth_code(turn, "toto", "domain.org", "4588"));
          */
-        EXEC(turn->compute_integrity(turn));
+        EXEC(turn->compute_integrity(turn, "12345", 5, "1111111111", 10, result, 20));
 
         sleep(2);
     } CATCH (ret) {

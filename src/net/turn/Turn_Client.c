@@ -4,7 +4,7 @@
  * @Synopsis  
  * @author alan lin
  * @version 
- * @date 2019-06-19
+ * @date 2022-1-17
  */
 
 #include <libobject/crypto/md5.h>
@@ -20,7 +20,7 @@ static int __construct(Turn_Client *turn, char *init_str)
        turn->response = object_new(allocator, "Turn::Response", NULL);
        THROW_IF(turn->req == NULL || turn->response == NULL, -1);
 
-       turn->digest = object_new(allocator, "Digest_Sha1", NULL);
+       turn->digest = object_new(allocator, "Openssl::Digest_HmacSha1", NULL);
 
     } CATCH (ret) {
     }
@@ -73,24 +73,27 @@ static int __generate_auth_code(Turn_Client *turn, char *username, char *realm, 
     return ret;
 }
 
-static int __compute_integrity(Turn_Client *turn)
+static int 
+__compute_integrity(Turn_Client *turn, 
+                    uint8_t *key, uint8_t key_len,
+                    uint8_t *data, uint32_t data_len,
+                    uint8_t *out, uint8_t out_len)
 {
     Digest *digest = turn->digest;
-    unsigned char buffer[1024] = {1};
-    unsigned char result[20] = {0};
     char result_hex[100] = {0};
-    int i, len;
-    int ret = 0;
+    int i, ret = 0;
 
     TRY {
-        digest->init(digest);
-        digest->update(digest, buffer, 99);
-        digest->final(digest, result, 20);
+        THROW_IF(out_len < 20, -1);
+
+        digest->init_with_key(digest, key, key_len);
+        digest->update(digest, data, data_len);
+        digest->final(digest, out, out_len);
 
         for (i= 0; i < 20; i++) {
-            sprintf(result_hex + strlen(result_hex), "%02x", result[i]);
+            sprintf(result_hex + strlen(result_hex), "%02x", out[i]);
         }
-        dbg_str(DBG_ERROR, "compute_integrity code:%s", result_hex);
+        dbg_str(DBG_SUC, "compute_integrity code:%s", result_hex);
 
     } CATCH (ret) {
     }
@@ -110,4 +113,4 @@ static class_info_entry_t turn_class_info[] = {
     Init_Vfunc_Entry(8, Turn_Client, compute_integrity, __compute_integrity),
     Init_End___Entry(9, Turn_Client),
 };
-REGISTER_CLASS("Turn_Client", turn_class_info);
+REGISTER_CLASS("Turn::Turn_Client", turn_class_info);
