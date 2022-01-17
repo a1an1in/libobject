@@ -180,7 +180,7 @@ __allocate_address(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
 }
 
 static class_info_entry_t turn_class_info[] = {
-    Init_DObj__Entry(0, "Turn::Turn_Client", "parent"),
+    Init_Obj___Entry(0, Turn::Turn_Client, parent),
     Init_Nfunc_Entry(1, Turn_Udp_Client, construct, __construct),
     Init_Nfunc_Entry(2, Turn_Udp_Client, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3, Turn_Udp_Client, connect, __connect),

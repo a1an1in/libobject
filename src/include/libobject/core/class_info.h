@@ -88,7 +88,4 @@ typedef struct class_info_entry_s{
 #define Init_Obj___Entry Init_Obj_Entry
 #define Init_End___Entry Init_End_Entry
 
-/* init object with domain */
-#define Init_DObj__Entry(id, type_name, value_name)                                                                      \
-    [id] = {ENTRY_TYPE_OBJ, type_name, value_name}
 #endif
