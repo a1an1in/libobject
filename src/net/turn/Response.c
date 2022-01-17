@@ -35,6 +35,7 @@ static int __deconstruct(Response *response)
     allocator_t *allocator = response->parent.allocator;
 
     allocator_mem_free(allocator, response->header);
+    object_destroy(response->buffer);
 
     return 0;
 }
@@ -60,7 +61,7 @@ static int __read_attribs(Response *response)
     attrib_parse_policy_t *policies;
 
     TRY {
-        policies = protocol_get_parse_policies();
+        policies = turn_get_parser_policies();
 
         for (i = 0; i < header->msglen; ) {
             attr = (turn_attrib_header_t *)(attr_addr + i);
@@ -68,7 +69,7 @@ static int __read_attribs(Response *response)
             attr->len = ntohs(attr->len);
             attr_len = (sizeof(int) + (attr->len + (4 - (attr->len % 4)) % 4));
             i += attr_len;
-            policy_index = turn_get_policy_index(attr->type);
+            policy_index = turn_get_parser_policy_index(attr->type);
             CONTINUE_IF(policy_index == -1 || policies[policy_index].policy == NULL);
             dbg_str(DBG_DETAIL, "attr type :%x, policy_index:%d , attrib attr len:%d, real len:%d", 
                     attr->type, policy_index, attr->len, attr_len);

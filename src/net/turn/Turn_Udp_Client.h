@@ -21,7 +21,7 @@ struct Turn_Udp_s{
     char *(*to_json)(Turn_Udp_Client *); 
     int (*connect)(Turn_Udp_Client *turn, char *host, char *service);
     int (*send)(Turn_Udp_Client *turn);
-    int (*allocate_address)(Turn_Udp_Client *turn);
+    int (*allocate_address)(Turn_Udp_Client *turn, uint8_t *nonce, uint8_t nonce_len, char *realm, char *user, uint32_t lifetime, uint8_t family);
     int (*set_read_post_callback)(Turn_Udp_Client *turn, int (*func)(Response *, void *arg));
 
     Client *c;

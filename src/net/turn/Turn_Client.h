@@ -7,9 +7,9 @@
 #include "Request.h"
 #include "Response.h"
 
-typedef struct Turn_s Turn_Client;
+typedef struct Turn_Client_s Turn_Client;
 
-struct Turn_s{
+struct Turn_Client_s{
     Obj parent;
 
     int (*construct)(Turn_Client *,char *);
@@ -21,11 +21,21 @@ struct Turn_s{
     char *(*to_json)(Turn_Client *); 
     int (*connect)(Turn_Client *turn, char *host, char *service);
     int (*send)(Turn_Client *turn);
-    int (*allocate_address)(Turn_Client *turn);
+    int (*allocate_address)(Turn_Client *turn, uint8_t *nonce, uint8_t nonce_len, char *realm, char *user, uint32_t lifetime, uint8_t family);
     int (*set_read_post_callback)(Turn_Client *turn, int (*func)(Response *, void *arg));
 
     Request *req;
     Response *response;
 };
+
+
+typedef struct turn_method_policy_s {
+    int (*policy)(Response *, void *opaque);
+} turn_method_policy_t;
+
+typedef struct turn_method_map_s {
+    int index;
+    int type;
+} turn_method_map_t;
 
 #endif

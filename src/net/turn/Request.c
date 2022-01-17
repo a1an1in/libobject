@@ -15,7 +15,7 @@ static int __construct(Request *request, char *init_str)
     allocator_t *allocator = request->parent.allocator;
     int ret = 0, trustee_flag = 1;;
     int value_type = VALUE_TYPE_ALLOC_POINTER;
-    Map *map;
+    Vector *vector;
 
    /*
     * for IPv4, the actual TURN message would need
@@ -26,12 +26,11 @@ static int __construct(Request *request, char *init_str)
         request->header_max_len = 548;
         request->header = allocator_mem_alloc(allocator, request->header_max_len); 
         THROW_IF(request->header == NULL, -1); 
-        map = object_new(allocator, "RBTree_Map", NULL);
-        THROW_IF(map == NULL, -1);
-        map->set_cmp_func(map, default_key_cmp_func);
-        map->set(map, "/Map/trustee_flag", &trustee_flag);
-        map->set(map, "/Map/value_type", &value_type);
-        request->attribs = map;
+        vector = object_new(allocator, "Vector", NULL);
+        THROW_IF(vector == NULL, -1);
+        vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
+        vector->set(vector, "/Vector/value_type", &value_type);
+        request->attribs = vector;
 
         request->buffer = object_new(allocator, "Buffer", NULL);
         THROW_IF(request->buffer == NULL, -1);
@@ -53,18 +52,13 @@ static int __deconstruct(Request *request)
     return 0;
 }
 
-static int __set_attrib(Request *request, int type, uint8_t *value, int len)
+static int __set_attrib(Request *request, uint8_t *value)
 {
-    allocator_t *allocator = request->parent.allocator;
-    turn_attrib_header_t *attrib;
     int ret = 0;
 
     TRY {
-        attrib = allocator_mem_alloc(allocator, len);
-        THROW_IF(attrib == NULL, -1);
-        
-        memcpy(attrib, value, len);
-        request->attribs->add(request->attribs, type, attrib);
+        THROW_IF(value == NULL, -1);
+        request->attribs->add_back(request->attribs, value);
     } CATCH (ret) {
     }
 

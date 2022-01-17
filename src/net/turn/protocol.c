@@ -9,7 +9,7 @@
 
 #include "protocol.h"
 
-static int __parse_attrib_mapped_addr(turn_attribs_t *attribs, uint8_t *attrib)
+static int turn_parse_attrib_mapped_addr(turn_attribs_t *attribs, uint8_t *attrib)
 {
     turn_attrib_mapped_address_t *attr;
 
@@ -28,7 +28,7 @@ static int __parse_attrib_mapped_addr(turn_attribs_t *attribs, uint8_t *attrib)
 }
 
 /*
- *static int __parse_attrib_changed_addr(turn_attrib_t *raw, turn_attrib_t *out)
+ *static int turn_parse_attrib_changed_addr(turn_attrib_t *raw, turn_attrib_t *out)
  *{
  *    int ret;
  *    int i, len,  family;
@@ -56,7 +56,7 @@ static int __parse_attrib_mapped_addr(turn_attribs_t *attribs, uint8_t *attrib)
  *}
  */
 
-static int __parse_attrib_changed_addr(turn_attribs_t *attribs, uint8_t *attrib)
+static int turn_parse_attrib_changed_addr(turn_attribs_t *attribs, uint8_t *attrib)
 {
     turn_attrib_changed_address_t *attr;
 
@@ -74,7 +74,7 @@ static int __parse_attrib_changed_addr(turn_attribs_t *attribs, uint8_t *attrib)
     return 0;
 }
 
-static int __parse_attrib_error_code(turn_attribs_t *attribs, uint8_t *attrib)
+static int turn_parse_attrib_error_code(turn_attribs_t *attribs, uint8_t *attrib)
 {
     turn_attrib_error_code_t *attr;
 
@@ -86,7 +86,7 @@ static int __parse_attrib_error_code(turn_attribs_t *attribs, uint8_t *attrib)
     return 0;
 }
 
-static int __parse_attrib_realm(turn_attribs_t *attribs, uint8_t *attrib)
+static int turn_parse_attrib_realm(turn_attribs_t *attribs, uint8_t *attrib)
 {
     turn_attrib_realm_t *attr;
 
@@ -98,7 +98,7 @@ static int __parse_attrib_realm(turn_attribs_t *attribs, uint8_t *attrib)
     return 0;
 }
 
-static int __parse_attrib_nonce(turn_attribs_t *attribs, uint8_t *attrib)
+static int turn_parse_attrib_nonce(turn_attribs_t *attribs, uint8_t *attrib)
 {
     turn_attrib_nonce_t *nonce;
     uint8_t buf[128] = {0};
@@ -111,7 +111,7 @@ static int __parse_attrib_nonce(turn_attribs_t *attribs, uint8_t *attrib)
     return 0;
 }
 
-static int __parse_attrib_software(turn_attribs_t *attribs, uint8_t *attrib)
+static int turn_parse_attrib_software(turn_attribs_t *attribs, uint8_t *attrib)
 {
     turn_attrib_software_t *software;
     uint8_t buf[128] = {0};
@@ -125,7 +125,7 @@ static int __parse_attrib_software(turn_attribs_t *attribs, uint8_t *attrib)
     return 0;
 }
 
-static int __parse_attrib_fingerprint(turn_attribs_t *attribs, uint8_t *attrib)
+static int turn_parse_attrib_fingerprint(turn_attribs_t *attribs, uint8_t *attrib)
 {
     turn_attrib_fingerprint_t *attr;
 
@@ -196,21 +196,21 @@ static attrib_type_map_t g_parse_policies_type_map[TURN_ATTR_ENUM_MAX] = {
 };
 
 static attrib_parse_policy_t g_parse_attr_policies[ENTRY_TYPE_MAX_TYPE] = {
-    [TURN_ATTR_ENUM_MAPPED_ADDR] = {.policy = __parse_attrib_mapped_addr},
-    [TURN_ATTR_ENUM_CHANGED_ADDRESS] = {.policy = __parse_attrib_changed_addr},
-    [TURN_ATTR_ENUM_ERROR_CODE] = {.policy = __parse_attrib_error_code},
-    [TURN_ATTR_ENUM_REALM] = {.policy = __parse_attrib_realm},
-    [TURN_ATTR_ENUM_NONCE] = {.policy = __parse_attrib_nonce},
-    [TURN_ATTR_ENUM_SOFTWARE] = {.policy = __parse_attrib_software},
-    [TURN_ATTR_ENUM_FINGERPRINT] = {.policy = __parse_attrib_fingerprint},
+    [TURN_ATTR_ENUM_MAPPED_ADDR] = {.policy = turn_parse_attrib_mapped_addr},
+    [TURN_ATTR_ENUM_CHANGED_ADDRESS] = {.policy = turn_parse_attrib_changed_addr},
+    [TURN_ATTR_ENUM_ERROR_CODE] = {.policy = turn_parse_attrib_error_code},
+    [TURN_ATTR_ENUM_REALM] = {.policy = turn_parse_attrib_realm},
+    [TURN_ATTR_ENUM_NONCE] = {.policy = turn_parse_attrib_nonce},
+    [TURN_ATTR_ENUM_SOFTWARE] = {.policy = turn_parse_attrib_software},
+    [TURN_ATTR_ENUM_FINGERPRINT] = {.policy = turn_parse_attrib_fingerprint},
 };
 
-attrib_parse_policy_t *protocol_get_parse_policies()
+attrib_parse_policy_t *turn_get_parser_policies()
 {
     return g_parse_attr_policies;
 }
 
-int turn_get_policy_index(int type) 
+int turn_get_parser_policy_index(int type) 
 {
     int i, ret = -1;
 
@@ -224,3 +224,131 @@ int turn_get_policy_index(int type)
     return ret;
 }
 
+int turn_set_attrib_requested_transport(turn_attrib_requested_transport_t *attrib, uint8_t protocol)
+{
+    int ret;
+
+    TRY {
+        attrib->protocol = protocol;
+        attrib->type = htons(TURN_ATTR_TYPE_REQUESTED_TRANSPORT);
+        attrib->len = htons(4);
+
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
+int turn_set_attrib_nonce(turn_attrib_nonce_t *attrib, uint8_t attr_len, uint8_t *nonce, uint8_t nonce_len)
+{
+    int ret;
+
+    TRY {
+        SET_CATCH_INT_PARS(attr_len, nonce_len);
+        THROW_IF(attr_len < nonce_len + sizeof(turn_attrib_header_t), -1);
+
+        attrib->len = htons(nonce_len);
+        attrib->type = htons(TURN_ATTR_TYPE_NONCE);
+        memcpy(attrib->value, nonce, nonce_len);
+
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
+int turn_set_attrib_realm(turn_attrib_realm_t *attrib, uint8_t attr_len, uint8_t *realm, uint8_t realm_len)
+{
+    int ret;
+
+    TRY {
+        SET_CATCH_INT_PARS(attr_len, realm_len);
+        THROW_IF(attr_len < realm_len + sizeof(turn_attrib_header_t), -1);
+
+        attrib->len = htons(realm_len);
+        attrib->type = htons(TURN_ATTR_TYPE_REALM);
+        memcpy(attrib->value, realm, realm_len);
+
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
+int turn_set_attrib_username(turn_attrib_username_t *attrib, uint8_t attr_len, uint8_t *username, uint8_t username_len)
+{
+    int ret;
+
+    TRY {
+        SET_CATCH_INT_PARS(attr_len, username_len);
+        THROW_IF(attr_len < username_len + sizeof(turn_attrib_header_t), -1);
+
+        attrib->len = htons(username_len);
+        attrib->type = htons(TURN_ATTR_TYPE_USERNAME);
+        memcpy(attrib->value, username, username_len);
+
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
+int turn_set_attrib_lifetime(turn_attrib_lifetime_t *attrib, uint32_t lifetime)
+{
+    int ret;
+
+    TRY {
+        SET_CATCH_INT_PARS(lifetime, 0);
+
+        attrib->len = htons(4);
+        attrib->type = htons(TURN_ATTR_TYPE_LIFETIME);
+        attrib->value = htonl(lifetime);
+
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
+int turn_set_attrib_requested_family(turn_attrib_requested_family_t *attrib, uint8_t family)
+{
+    int ret;
+
+    TRY {
+        SET_CATCH_INT_PARS(family, 0);
+
+        attrib->len = htons(4);
+        attrib->type = htons(TURN_ATTR_TYPE_REQUESTED_FAMILY);
+        attrib->family = family;
+
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
+/*
+ *int turn_set_attrib_requested_family(turn_attrib_requested_family_t *attrib, uint8_t family)
+ *{
+ *    int ret;
+ *
+ *    TRY {
+ *        SET_CATCH_INT_PARS(family, 0);
+ *
+ *        attrib->len = htons(4);
+ *        attrib->type = htons(TURN_ATTR_TYPE_REQUESTED_FAMILY);
+ *        attrib->family = family;
+ *
+ *    } CATCH (ret) {
+ *        TRY_SHOW_INT_PARS(DBG_ERROR);
+ *    }
+ *
+ *    return ret;
+ *}
+ */

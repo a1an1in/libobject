@@ -6,15 +6,20 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
 
-#define TURN_METHOD_BINDREQ                             0x0001
-#define TURN_METHOD_BINDRESP                            0x0101
-#define TURN_METHOD_BINDERROR                           0x0111
-#define TURN_METHOD_SECREQ                              0x0002
-#define TURN_METHOD_SECRESP                             0x0102
-#define TURN_METHOD_SECERROR                            0x0112
+#define TURN_METHOD_BINDREQ                             0x0001
+#define TURN_METHOD_SECREQ                              0x0002
 #define TURN_METHOD_ALLOCATE                            0x0003
+#define TURN_METHOD_REFRESH                             0x0004
+#define TURN_METHOD_SEND                                0x0006   
+#define TURN_METHOD_DATA                                0x0007   
+#define TURN_METHOD_CREATEPERMISSION                    0x0008   
+#define TURN_METHOD_CHANNELBIND                         0x0009    
+#define TURN_METHOD_BINDRESP                            0x0101
+#define TURN_METHOD_SECRESP                             0x0102
+#define TURN_METHOD_BINDERROR                           0x0111
+#define TURN_METHOD_SECERROR                            0x0112
 
-#define TURN_ATTR_TYPE_MAPPED_ADDR   	               	0x0001
+#define TURN_ATTR_TYPE_MAPPED_ADDR                      0x0001
 #define TURN_ATTR_TYPE_RESPONSE_ADDRESS	                0x0002
 #define TURN_ATTR_TYPE_CHANGE_REQUEST	                0x0003
 #define TURN_ATTR_TYPE_SOURCE_ADDRESS	                0x0004
@@ -32,6 +37,7 @@
 #define TURN_ATTR_TYPE_REALM                            0x0014 
 #define TURN_ATTR_TYPE_NONCE                            0x0015 
 #define TURN_ATTR_TYPE_XOR_RELAYED_ADDRESS              0x0016 
+#define TURN_ATTR_TYPE_REQUESTED_FAMILY                 0x0017 
 #define TURN_ATTR_TYPE_EVEN_PORT                        0x0018 
 #define TURN_ATTR_TYPE_REQUESTED_TRANSPORT              0x0019 
 #define TURN_ATTR_TYPE_DONT_FRAGMENT                    0x001A 
@@ -180,6 +186,19 @@ typedef struct turn_attrib_fingerprint_s {
     int crc32;
 } turn_attrib_fingerprint_t;
 
+typedef struct turn_attrib_requested_family_s {
+    unsigned short type;
+    unsigned short len;
+    uint32_t family:8;
+    uint32_t reserved:24;
+} turn_attrib_requested_family_t;
+
+typedef struct turn_attrib_username_s {
+    unsigned short type;
+    unsigned short len;
+    uint8_t value[0];
+} turn_attrib_username_t;
+
 typedef struct turn_attribs_s {
     turn_attrib_mapped_address_t *mapped_address;
     turn_attrib_changed_address_t *changed_address;
@@ -204,8 +223,14 @@ typedef struct attrib_type_map_s {
     int type;
 } attrib_type_map_t;
 
-attrib_parse_policy_t *protocol_get_parse_policies();
+attrib_parse_policy_t *turn_get_parser_policies();
 
-extern int turn_get_policy_index(int type);
+int turn_get_parser_policy_index(int type);
+int turn_set_attrib_requested_transport(turn_attrib_requested_transport_t *attrib, uint8_t protocol);
+int turn_set_attrib_nonce(turn_attrib_nonce_t *attrib, uint8_t attr_len, uint8_t *nonce, uint8_t nonce_len);
+int turn_set_attrib_realm(turn_attrib_realm_t *attrib, uint8_t attr_len, uint8_t *realm, uint8_t realm_len);
+int turn_set_attrib_username(turn_attrib_username_t *attrib, uint8_t attr_len, uint8_t *username, uint8_t username_len);
+int turn_set_attrib_lifetime(turn_attrib_lifetime_t *attrib, uint32_t lifetime);
+int turn_set_attrib_requested_family(turn_attrib_requested_family_t *attrib, uint8_t family);
 
 #endif

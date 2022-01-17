@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
-#include <libobject/core/Map.h>
+#include <libobject/core/Vector.h>
 #include <libobject/io/Buffer.h>
 #include "protocol.h"
 
@@ -21,12 +21,12 @@ struct Request_s{
     void *(*get)(Request *, char *attrib);
     char *(*to_json)(Request *); 
     int (*set_head)(Request *request, int type, int len, uint32_t cookie);
-    int (*set_attrib)(Request *request, int type, uint8_t *value, int len);
+    int (*set_attrib)(Request *request, uint8_t *value);
 
     turn_header_t *header;
     int header_max_len;
     int len;
-    Map *attribs;
+    Vector *attribs;
     Buffer *buffer;
 };
 
