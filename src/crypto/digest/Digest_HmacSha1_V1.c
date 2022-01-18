@@ -32,6 +32,7 @@ static int __init(Digest_HmacSha1 *digest)
 
 static int __init_with_key(Digest_HmacSha1 *digest, char *key, int len)
 {
+    HMAC_CTX_reset(digest->context); 
     return HMAC_Init(digest->context, key, len, EVP_sha1());
 }
 

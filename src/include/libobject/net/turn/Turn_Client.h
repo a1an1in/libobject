@@ -26,6 +26,7 @@ typedef struct allocate_address_reqest_arg_s {
     char *user;
     uint32_t lifetime;
     uint8_t family;
+    char *password;
 } allocate_address_reqest_arg_t;
 
 
@@ -43,13 +44,18 @@ struct Turn_Client_s{
     int (*send)(Turn_Client *turn);
     int (*allocate_address)(Turn_Client *turn, allocate_address_reqest_arg_t *arg);
     int (*set_read_post_callback)(Turn_Client *turn, int (*func)(Response *, void *arg));
-    int (*generate_auth_code)(Turn_Client *turn, char *username, char *realm, char *password);
-    int (*compute_integrity)(Turn_Client *turn, uint8_t *key, uint8_t key_len, uint8_t *data, uint32_t data_len, uint8_t *out, uint8_t out_len);
+    int (*generate_auth_code)(Turn_Client *turn, char *username, char *realm, char *password, uint8_t *out, uint32_t len);
+    int (*compute_integrity)(Turn_Client *turn, uint8_t *key, uint8_t key_len, uint8_t *out, uint8_t out_len);
 
     Request *req;
     Response *response;
     Digest *digest;
     Digest *hmac_sha1_digest;
+
+    char *user;
+    char *realm;
+    char *nonce;
+    char *password;
 };
 
 #endif
