@@ -224,15 +224,21 @@ int turn_get_parser_policy_index(int type)
     return ret;
 }
 
-int turn_set_attrib_requested_transport(turn_attrib_requested_transport_t *attrib, uint8_t protocol)
+int turn_set_attrib_requested_transport(Vector *vector, uint8_t protocol)
 {
+    turn_attrib_requested_transport_t *attrib;
+    allocator_t *allocator;
     int ret;
 
     TRY {
+        allocator = vector->obj.allocator;
+
+        attrib = allocator_mem_zalloc(allocator, sizeof(turn_attrib_requested_transport_t));
         attrib->protocol = protocol;
         attrib->type = htons(TURN_ATTR_TYPE_REQUESTED_TRANSPORT);
         attrib->len = htons(4);
 
+        vector->add_back(vector, attrib);
     } CATCH (ret) {
         TRY_SHOW_INT_PARS(DBG_ERROR);
     }
@@ -240,18 +246,24 @@ int turn_set_attrib_requested_transport(turn_attrib_requested_transport_t *attri
     return ret;
 }
 
-int turn_set_attrib_nonce(turn_attrib_nonce_t *attrib, uint8_t attr_len, uint8_t *nonce, uint8_t nonce_len)
+int turn_set_attrib_nonce(Vector *vector, uint8_t *nonce, uint8_t nonce_len)
 {
+    allocator_t *allocator;
+    turn_attrib_nonce_t *attrib;
     int ret;
 
     TRY {
-        SET_CATCH_INT_PARS(attr_len, nonce_len);
-        THROW_IF(attr_len < nonce_len + sizeof(turn_attrib_header_t), -1);
+        SET_CATCH_INT_PARS(nonce_len, 0);
+        THROW_IF(nonce_len == 0, 0);
+        allocator = vector->obj.allocator;
 
+        attrib = allocator_mem_zalloc(allocator, sizeof(turn_attrib_nonce_t) + nonce_len);
         attrib->len = htons(nonce_len);
         attrib->type = htons(TURN_ATTR_TYPE_NONCE);
         memcpy(attrib->value, nonce, nonce_len);
 
+        vector->add_back(vector, attrib);
+
     } CATCH (ret) {
         TRY_SHOW_INT_PARS(DBG_ERROR);
     }
@@ -259,18 +271,23 @@ int turn_set_attrib_nonce(turn_attrib_nonce_t *attrib, uint8_t attr_len, uint8_t
     return ret;
 }
 
-int turn_set_attrib_realm(turn_attrib_realm_t *attrib, uint8_t attr_len, uint8_t *realm, uint8_t realm_len)
+int turn_set_attrib_realm(Vector *vector, uint8_t *realm, uint8_t realm_len)
 {
+    allocator_t *allocator;
+    turn_attrib_realm_t *attrib;
     int ret;
 
     TRY {
-        SET_CATCH_INT_PARS(attr_len, realm_len);
-        THROW_IF(attr_len < realm_len + sizeof(turn_attrib_header_t), -1);
+        THROW_IF(realm_len == 0, 0);
+        SET_CATCH_INT_PARS(realm_len, 0);
+        allocator = vector->obj.allocator;
 
+        attrib = allocator_mem_zalloc(allocator, sizeof(turn_attrib_realm_t) + realm_len);
         attrib->len = htons(realm_len);
         attrib->type = htons(TURN_ATTR_TYPE_REALM);
         memcpy(attrib->value, realm, realm_len);
 
+        vector->add_back(vector, attrib);
     } CATCH (ret) {
         TRY_SHOW_INT_PARS(DBG_ERROR);
     }
@@ -278,18 +295,23 @@ int turn_set_attrib_realm(turn_attrib_realm_t *attrib, uint8_t attr_len, uint8_t
     return ret;
 }
 
-int turn_set_attrib_username(turn_attrib_username_t *attrib, uint8_t attr_len, uint8_t *username, uint8_t username_len)
+int turn_set_attrib_username(Vector *vector, uint8_t *username, uint8_t username_len)
 {
+    allocator_t *allocator;
+    turn_attrib_username_t *attrib;
     int ret;
 
     TRY {
-        SET_CATCH_INT_PARS(attr_len, username_len);
-        THROW_IF(attr_len < username_len + sizeof(turn_attrib_header_t), -1);
+        THROW_IF(username_len == 0, 0);
+        SET_CATCH_INT_PARS(username_len, 0);
+        allocator = vector->obj.allocator;
 
+        attrib = allocator_mem_zalloc(allocator, sizeof(turn_attrib_username_t) + username_len);
         attrib->len = htons(username_len);
         attrib->type = htons(TURN_ATTR_TYPE_USERNAME);
         memcpy(attrib->value, username, username_len);
 
+        vector->add_back(vector, attrib);
     } CATCH (ret) {
         TRY_SHOW_INT_PARS(DBG_ERROR);
     }
@@ -297,17 +319,23 @@ int turn_set_attrib_username(turn_attrib_username_t *attrib, uint8_t attr_len, u
     return ret;
 }
 
-int turn_set_attrib_lifetime(turn_attrib_lifetime_t *attrib, uint32_t lifetime)
+int turn_set_attrib_lifetime(Vector *vector, uint32_t lifetime)
 {
+    allocator_t *allocator;
+    turn_attrib_lifetime_t *attrib;
     int ret;
 
     TRY {
+        THROW_IF(lifetime < 0, 0);
         SET_CATCH_INT_PARS(lifetime, 0);
+        allocator = vector->obj.allocator;
 
+        attrib = allocator_mem_zalloc(allocator, sizeof(turn_attrib_lifetime_t));
         attrib->len = htons(4);
         attrib->type = htons(TURN_ATTR_TYPE_LIFETIME);
         attrib->value = htonl(lifetime);
 
+        vector->add_back(vector, attrib);
     } CATCH (ret) {
         TRY_SHOW_INT_PARS(DBG_ERROR);
     }
@@ -315,17 +343,23 @@ int turn_set_attrib_lifetime(turn_attrib_lifetime_t *attrib, uint32_t lifetime)
     return ret;
 }
 
-int turn_set_attrib_requested_family(turn_attrib_requested_family_t *attrib, uint8_t family)
+int turn_set_attrib_requested_family(Vector *vector, uint8_t family)
 {
+    allocator_t *allocator;
+    turn_attrib_requested_family_t *attrib;
     int ret;
 
     TRY {
+        THROW_IF(family != 1 || family != 2, 0);
         SET_CATCH_INT_PARS(family, 0);
+        allocator = vector->obj.allocator;
 
+        attrib = allocator_mem_zalloc(allocator, sizeof(turn_attrib_requested_family_t));
         attrib->len = htons(4);
         attrib->type = htons(TURN_ATTR_TYPE_REQUESTED_FAMILY);
         attrib->family = family;
 
+        vector->add_back(vector, attrib);
     } CATCH (ret) {
         TRY_SHOW_INT_PARS(DBG_ERROR);
     }
@@ -333,22 +367,26 @@ int turn_set_attrib_requested_family(turn_attrib_requested_family_t *attrib, uin
     return ret;
 }
 
-/*
- *int turn_set_attrib_requested_family(turn_attrib_requested_family_t *attrib, uint8_t family)
- *{
- *    int ret;
- *
- *    TRY {
- *        SET_CATCH_INT_PARS(family, 0);
- *
- *        attrib->len = htons(4);
- *        attrib->type = htons(TURN_ATTR_TYPE_REQUESTED_FAMILY);
- *        attrib->family = family;
- *
- *    } CATCH (ret) {
- *        TRY_SHOW_INT_PARS(DBG_ERROR);
- *    }
- *
- *    return ret;
- *}
- */
+int turn_set_attrib_integrity(Vector *vector, uint8_t *value, int len)
+{
+    allocator_t *allocator;
+    turn_attrib_integrity_t *attrib;
+    int ret;
+
+    TRY {
+        SET_CATCH_INT_PARS(len, 0);
+        THROW_IF(len != 20, -1);
+        allocator = vector->obj.allocator;
+
+        attrib = allocator_mem_zalloc(allocator, sizeof(turn_attrib_integrity_t));
+        attrib->len = htons(len);
+        attrib->type = htons(TURN_ATTR_TYPE_INTEGRITY);
+        memcpy(attrib->value, value, len);
+
+        vector->add_back(vector, attrib);
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}

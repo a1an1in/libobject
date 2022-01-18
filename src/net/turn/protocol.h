@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
+#include <libobject/core/Vector.h>
 #include <libobject/core/Map.h>
 
 #define TURN_METHOD_BINDREQ                             0x0001
@@ -199,6 +200,13 @@ typedef struct turn_attrib_username_s {
     uint8_t value[0];
 } turn_attrib_username_t;
 
+typedef struct turn_attrib_integrity_s {
+    unsigned short type;
+    unsigned short len;
+    uint8_t value[20];
+} turn_attrib_integrity_t;
+
+
 typedef struct turn_attribs_s {
     turn_attrib_mapped_address_t *mapped_address;
     turn_attrib_changed_address_t *changed_address;
@@ -211,6 +219,7 @@ typedef struct turn_attribs_s {
     turn_attrib_realm_t *realm;
     turn_attrib_software_t *software;
     turn_attrib_fingerprint_t *fingerprint;
+    turn_attrib_integrity_t *integrity;
 } turn_attribs_t;
 
 typedef struct attrib_parse_policy_s {
@@ -226,11 +235,12 @@ typedef struct attrib_type_map_s {
 attrib_parse_policy_t *turn_get_parser_policies();
 
 int turn_get_parser_policy_index(int type);
-int turn_set_attrib_requested_transport(turn_attrib_requested_transport_t *attrib, uint8_t protocol);
-int turn_set_attrib_nonce(turn_attrib_nonce_t *attrib, uint8_t attr_len, uint8_t *nonce, uint8_t nonce_len);
-int turn_set_attrib_realm(turn_attrib_realm_t *attrib, uint8_t attr_len, uint8_t *realm, uint8_t realm_len);
-int turn_set_attrib_username(turn_attrib_username_t *attrib, uint8_t attr_len, uint8_t *username, uint8_t username_len);
-int turn_set_attrib_lifetime(turn_attrib_lifetime_t *attrib, uint32_t lifetime);
-int turn_set_attrib_requested_family(turn_attrib_requested_family_t *attrib, uint8_t family);
+int turn_set_attrib_requested_transport(Vector *vector, uint8_t protocol);
+int turn_set_attrib_nonce(Vector *vector, uint8_t *nonce, uint8_t nonce_len);
+int turn_set_attrib_realm(Vector *vector, uint8_t *realm, uint8_t realm_len);
+int turn_set_attrib_username(Vector *vector, uint8_t *username, uint8_t username_len);
+int turn_set_attrib_lifetime(Vector *vector, uint32_t lifetime);
+int turn_set_attrib_requested_family(Vector *vector, uint8_t family);
+int turn_set_attrib_integrity(Vector *vector, uint8_t *value, int len);
 
 #endif

@@ -119,6 +119,7 @@ __allocate_address(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
 {
     allocator_t *allocator = turn->parent.parent.allocator;
     Request *req = turn->parent.req;
+    Vector *vector = req->attribs;
     turn_attrib_requested_transport_t *requested_transport;
     turn_attrib_nonce_t *attr_nonce;
     turn_attrib_realm_t *attr_realm;
@@ -135,41 +136,12 @@ __allocate_address(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
 
         req->set_head(req, TURN_METHOD_BINDREQ | TURN_METHOD_ALLOCATE, 0, 0x2112A442);
 
-        if (arg->nonce_len > 0) {
-            attr_nonce = allocator_mem_zalloc(allocator, sizeof(turn_attrib_nonce_t) + arg->nonce_len);
-            turn_set_attrib_nonce(attr_nonce, sizeof(turn_attrib_nonce_t) + arg->nonce_len, arg->nonce, arg->nonce_len);
-            req->set_attrib(req, requested_transport);
-        }
-
-        if (arg->realm != NULL) {
-            len = strlen(arg->realm);
-            attr_realm = allocator_mem_zalloc(allocator, sizeof(turn_attrib_realm_t) + len);
-            turn_set_attrib_realm(attr_realm, sizeof(turn_attrib_realm_t) + len, arg->realm, len);
-            req->set_attrib(req, attr_realm);
-        }
-
-        if (arg->user != NULL) {
-            len = strlen(arg->user);
-            attr_username = allocator_mem_zalloc(allocator, sizeof(turn_attrib_username_t) + len);
-            turn_set_attrib_username(attr_username, sizeof(turn_attrib_username_t) + len, arg->user, len);
-            req->set_attrib(req, attr_username);
-        }
-
-        if (arg->lifetime >= 0) {
-            attr_lifetime = allocator_mem_zalloc(allocator, sizeof(turn_attrib_lifetime_t));
-            turn_set_attrib_lifetime(attr_lifetime, arg->lifetime);
-            req->set_attrib(req, attr_lifetime);
-        }
-
-        if (arg->family == 1 || arg->family == 2) {
-            attr_family = allocator_mem_zalloc(allocator, sizeof(turn_attrib_requested_family_t));
-            turn_set_attrib_requested_family(attr_family, arg->family);
-            req->set_attrib(req, attr_family);
-        }
-
-        requested_transport = allocator_mem_zalloc(allocator, sizeof(turn_attrib_requested_transport_t));
-        turn_set_attrib_requested_transport(requested_transport, 17);
-        req->set_attrib(req, requested_transport);
+        EXEC(turn_set_attrib_nonce(vector, arg->nonce, arg->nonce_len));
+        EXEC(turn_set_attrib_realm(vector, arg->realm, arg->realm == NULL ? 0 : strlen(arg->realm)));
+        EXEC(turn_set_attrib_username(vector, arg->user, arg->user == NULL ? 0 : strlen(arg->user)));
+        EXEC(turn_set_attrib_lifetime(vector, arg->lifetime));
+        EXEC(turn_set_attrib_requested_family(vector, arg->family));
+        EXEC(turn_set_attrib_requested_transport(vector, 17));
 
         turn->send(turn);
     } CATCH (ret) {
@@ -294,7 +266,9 @@ static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
         /*
          *EXEC(turn->generate_auth_code(turn, "toto", "domain.org", "4588"));
          */
-        EXEC(turn->compute_integrity(turn, "12345", 5, "1111111111", 10, result, 20));
+        /*
+         *EXEC(turn->compute_integrity(turn, "12345", 5, "1111111111", 10, result, 20));
+         */
 
         sleep(2);
     } CATCH (ret) {
