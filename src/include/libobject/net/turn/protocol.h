@@ -239,7 +239,7 @@ int turn_set_attrib_requested_transport(Vector *vector, uint8_t protocol);
 int turn_set_attrib_nonce(Vector *vector, uint8_t *nonce, uint8_t nonce_len);
 int turn_set_attrib_realm(Vector *vector, uint8_t *realm, uint8_t realm_len);
 int turn_set_attrib_username(Vector *vector, uint8_t *username, uint8_t username_len);
-int turn_set_attrib_lifetime(Vector *vector, uint32_t lifetime);
+int turn_set_attrib_lifetime(Vector *vector, int lifetime);
 int turn_set_attrib_requested_family(Vector *vector, uint8_t family);
 int turn_set_attrib_integrity(Vector *vector, uint8_t *value, int len);
 

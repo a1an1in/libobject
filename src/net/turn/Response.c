@@ -8,8 +8,8 @@
  */
 
 #include <math.h>
-#include "Turn_Client.h"
-#include "Response.h"
+#include <libobject/net/turn/Turn_Client.h>
+#include <libobject/net/turn/Response.h>
 
 static int __construct(Response *response, char *init_str)
 {

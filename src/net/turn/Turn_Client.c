@@ -8,7 +8,7 @@
  */
 
 #include <libobject/crypto/md5.h>
-#include "Turn_Client.h"
+#include <libobject/net/turn/Turn_Client.h>
 
 static int __construct(Turn_Client *turn, char *init_str)
 {

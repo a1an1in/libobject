@@ -7,7 +7,7 @@
  * @date 2019-06-19
  */
 
-#include "protocol.h"
+#include <libobject/net/turn/protocol.h>
 
 static int turn_parse_attrib_mapped_addr(turn_attribs_t *attribs, uint8_t *attrib)
 {
@@ -319,7 +319,7 @@ int turn_set_attrib_username(Vector *vector, uint8_t *username, uint8_t username
     return ret;
 }
 
-int turn_set_attrib_lifetime(Vector *vector, uint32_t lifetime)
+int turn_set_attrib_lifetime(Vector *vector, int lifetime)
 {
     allocator_t *allocator;
     turn_attrib_lifetime_t *attrib;
