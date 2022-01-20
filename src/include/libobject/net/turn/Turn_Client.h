@@ -2,6 +2,9 @@
 #define __TURN_H__
 
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
 #include <libobject/crypto/Digest.h>
@@ -43,6 +46,7 @@ struct Turn_Client_s{
     int (*connect)(Turn_Client *turn, char *host, char *service);
     int (*send)(Turn_Client *turn);
     int (*allocate_address)(Turn_Client *turn, allocate_address_reqest_arg_t *arg);
+    int (*create_permission)(Turn_Client *turn, allocate_address_reqest_arg_t *arg);
     int (*set_read_post_callback)(Turn_Client *turn, int (*func)(Response *, void *arg));
     int (*generate_auth_code)(Turn_Client *turn, char *username, char *realm, char *password, uint8_t *out, uint32_t len);
     int (*compute_integrity)(Turn_Client *turn, uint8_t *key, uint8_t key_len, uint8_t *out, uint8_t out_len);
@@ -54,8 +58,13 @@ struct Turn_Client_s{
 
     char *user;
     char *realm;
-    char *nonce;
     char *password;
+    turn_attrib_nonce_t *nonce;
+    struct addrinfo  *addr;
+    uint8_t auth_code[16];
 };
+
+int write_attrib_to_send_buffer_for_each(int index, void *element, void *arg);
+int count_attrib_len_for_each(int index, void *element, void *arg);
 
 #endif

@@ -27,34 +27,41 @@ static int turn_parse_attrib_mapped_addr(turn_attribs_t *attribs, uint8_t *attri
     return 0;
 }
 
-/*
- *static int turn_parse_attrib_changed_addr(turn_attrib_t *raw, turn_attrib_t *out)
- *{
- *    int ret;
- *    int i, len,  family;
- *    uint8_t *p, *host;
- *
- *    TRY {
- *        family = raw->u.mapped_address.family;
- *        SET_CATCH_INT_PARS(family, 0);
- *        THROW_IF(family != 0x1 && family != 2, -1);
- *        snprintf(out->u.changed_address.service, 8, "%d", ntohs(raw->u.changed_address.port));
- *        len = family == 0x1 ? 4 : 8;
- *        p = raw->u.changed_address.ip;
- *        host = out->u.changed_address.host;
- *        for (i = 0; i < len - 1; i++) {
- *            snprintf(host + strlen(host), 32 - strlen(host), "%d.", *(p + i));
- *        }
- *        snprintf(host + strlen(host), 32 - strlen(host), "%d", *(p + i));
- *        dbg_str(DBG_DETAIL, "parse changed addr, host:%s, server:%s",
- *                out->u.changed_address.host, out->u.changed_address.service);
- *    } CATCH (ret) {
- *        TRY_SHOW_INT_PARS(DBG_ERROR);
- *    }
- *
- *    return ret;
- *}
- */
+static int turn_parse_attrib_xor_mapped_addr(turn_attribs_t *attribs, uint8_t *attrib)
+{
+    turn_attrib_xor_mapped_address_t *attr;
+
+    attribs->xor_mapped_address = (turn_attrib_xor_mapped_address_t *)attrib;
+    attr = attribs->xor_mapped_address;
+    attr->port = ntohs(attr->port);
+
+    if (attr->family == 1) {
+        dbg_str(DBG_DETAIL, "xor mapped addr, port:%d ip:%d:%d:%d:%d",
+                attr->port, attr->u.ipv4[3],  
+                attr->u.ipv4[2],  attr->u.ipv4[1],  attr->u.ipv4[0]);
+    } else {
+    }
+
+    return 0;
+}
+
+static int turn_parse_attrib_xor_relayed_addr(turn_attribs_t *attribs, uint8_t *attrib)
+{
+    turn_attrib_xor_relayed_address_t *attr;
+
+    attribs->xor_relayed_address = (turn_attrib_xor_relayed_address_t *)attrib;
+    attr = attribs->xor_relayed_address;
+    attr->port = ntohs(attr->port);
+
+    if (attr->family == 1) {
+        dbg_str(DBG_DETAIL, "xor relayed addr, port:%d ip:%d:%d:%d:%d",
+                attr->port, attr->u.ipv4[3],  
+                attr->u.ipv4[2],  attr->u.ipv4[1],  attr->u.ipv4[0]);
+    } else {
+    }
+
+    return 0;
+}
 
 static int turn_parse_attrib_changed_addr(turn_attribs_t *attribs, uint8_t *attrib)
 {
@@ -138,36 +145,6 @@ static int turn_parse_attrib_fingerprint(turn_attribs_t *attribs, uint8_t *attri
     return 0;
 }
 
-enum {
-    TURN_ATTR_ENUM_MAPPED_ADDR = 0,
-    TURN_ATTR_ENUM_RESPONSE_ADDRESS,	                
-    TURN_ATTR_ENUM_CHANGE_REQUEST,	                
-    TURN_ATTR_ENUM_SOURCE_ADDRESS,	                
-    TURN_ATTR_ENUM_CHANGED_ADDRESS,	                
-    TURN_ATTR_ENUM_USERNAME,			                
-    TURN_ATTR_ENUM_PASSWORD,			                
-    TURN_ATTR_ENUM_INTEGRITY,		                
-    TURN_ATTR_ENUM_ERROR_CODE,		               	
-    TURN_ATTR_ENUM_UNKNOWN_ATTRIBUTES,               
-    TURN_ATTR_ENUM_REFLECTED_FROM,	               	
-    TURN_ATTR_ENUM_XOR_MAPPED_ADDRESS,               
-    TURN_ATTR_ENUM_CHANNEL_NUMBER,                    
-    TURN_ATTR_ENUM_LIFETIME,                          
-    TURN_ATTR_ENUM_XOR_PEER_ADDRESS,                  
-    TURN_ATTR_ENUM_DATA,                 
-    TURN_ATTR_ENUM_REALM,                             
-    TURN_ATTR_ENUM_NONCE,                             
-    TURN_ATTR_ENUM_XOR_RELAYED_ADDRESS,               
-    TURN_ATTR_ENUM_EVEN_PORT,              
-    TURN_ATTR_ENUM_REQUESTED_TRANSPORT,               
-    TURN_ATTR_ENUM_DONT_FRAGMENT,              
-    TURN_ATTR_ENUM_Reserved,                          
-    TURN_ATTR_ENUM_RESERVATION_TOKEN,                 
-    TURN_ATTR_ENUM_SOFTWARE, 
-    TURN_ATTR_ENUM_FINGERPRINT, 
-    TURN_ATTR_ENUM_MAX,	                            
-};
-
 static attrib_type_map_t g_parse_policies_type_map[TURN_ATTR_ENUM_MAX] = {
     {TURN_ATTR_ENUM_MAPPED_ADDR, TURN_ATTR_TYPE_MAPPED_ADDR},
     {TURN_ATTR_ENUM_RESPONSE_ADDRESS, TURN_ATTR_TYPE_RESPONSE_ADDRESS},
@@ -203,6 +180,8 @@ static attrib_parse_policy_t g_parse_attr_policies[ENTRY_TYPE_MAX_TYPE] = {
     [TURN_ATTR_ENUM_NONCE] = {.policy = turn_parse_attrib_nonce},
     [TURN_ATTR_ENUM_SOFTWARE] = {.policy = turn_parse_attrib_software},
     [TURN_ATTR_ENUM_FINGERPRINT] = {.policy = turn_parse_attrib_fingerprint},
+    [TURN_ATTR_ENUM_XOR_MAPPED_ADDRESS] = {.policy = turn_parse_attrib_xor_mapped_addr},
+    [TURN_ATTR_ENUM_XOR_RELAYED_ADDRESS] = {.policy = turn_parse_attrib_xor_relayed_addr},
 };
 
 attrib_parse_policy_t *turn_get_parser_policies()

@@ -85,13 +85,23 @@ static int __set_head(Request *request, int type, int len, uint32_t cookie)
     return ret;
 }
 
+static int __clear(Request *request)
+{
+    memset(request->header, 0, request->header_max_len);
+    request->attribs->reset(request->attribs);
+    request->buffer->reset(request->buffer);
+
+    return 0;
+}
+
 static class_info_entry_t request_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
     Init_Nfunc_Entry(1, Request, construct, __construct),
     Init_Nfunc_Entry(2, Request, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3, Request, set_attrib, __set_attrib),
     Init_Nfunc_Entry(4, Request, set_head, __set_head),
-    Init_End___Entry(5, Request),
+    Init_Nfunc_Entry(5, Request, clear, __clear),
+    Init_End___Entry(6, Request),
 };
 REGISTER_CLASS("Turn::Request", request_class_info);
 

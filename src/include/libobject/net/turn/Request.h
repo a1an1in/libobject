@@ -22,6 +22,7 @@ struct Request_s{
     char *(*to_json)(Request *); 
     int (*set_head)(Request *request, int type, int len, uint32_t cookie);
     int (*set_attrib)(Request *request, uint8_t *value);
+    int (*clear)(Request *request);
 
     turn_header_t *header;
     int header_max_len;

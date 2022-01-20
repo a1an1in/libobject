@@ -7,6 +7,11 @@
 #include <libobject/core/Vector.h>
 #include <libobject/core/Map.h>
 
+#define STUN_QUEST                                      0x0000
+#define STUN_INDICATION                                 0x0010
+#define STUN_SUCCESS_RESP                               0x0100
+#define STUN_ERROR_RESP                                 0x0110
+
 #define TURN_METHOD_BINDREQ                             0x0001
 #define TURN_METHOD_SECREQ                              0x0002
 #define TURN_METHOD_ALLOCATE                            0x0003
@@ -47,6 +52,37 @@
 #define TURN_ATTR_TYPE_RESERVATION_TOKEN                0x0022 
 #define TURN_ATTR_TYPE_SOFTWARE                         0x8022 
 #define TURN_ATTR_TYPE_FINGERPRINT                      0x8028 
+
+enum {
+    TURN_ATTR_ENUM_MAPPED_ADDR = 0,
+    TURN_ATTR_ENUM_RESPONSE_ADDRESS,	                
+    TURN_ATTR_ENUM_CHANGE_REQUEST,	                
+    TURN_ATTR_ENUM_SOURCE_ADDRESS,	                
+    TURN_ATTR_ENUM_CHANGED_ADDRESS,	                
+    TURN_ATTR_ENUM_USERNAME,			                
+    TURN_ATTR_ENUM_PASSWORD,			                
+    TURN_ATTR_ENUM_INTEGRITY,		                
+    TURN_ATTR_ENUM_ERROR_CODE,		               	
+    TURN_ATTR_ENUM_UNKNOWN_ATTRIBUTES,               
+    TURN_ATTR_ENUM_REFLECTED_FROM,	               	
+    TURN_ATTR_ENUM_XOR_MAPPED_ADDRESS,               
+    TURN_ATTR_ENUM_CHANNEL_NUMBER,                    
+    TURN_ATTR_ENUM_LIFETIME,                          
+    TURN_ATTR_ENUM_XOR_PEER_ADDRESS,                  
+    TURN_ATTR_ENUM_DATA,                 
+    TURN_ATTR_ENUM_REALM,                             
+    TURN_ATTR_ENUM_NONCE,                             
+    TURN_ATTR_ENUM_XOR_RELAYED_ADDRESS,               
+    TURN_ATTR_ENUM_EVEN_PORT,              
+    TURN_ATTR_ENUM_REQUESTED_TRANSPORT,               
+    TURN_ATTR_ENUM_DONT_FRAGMENT,              
+    TURN_ATTR_ENUM_Reserved,                          
+    TURN_ATTR_ENUM_RESERVATION_TOKEN,                 
+    TURN_ATTR_ENUM_SOFTWARE, 
+    TURN_ATTR_ENUM_FINGERPRINT, 
+    TURN_ATTR_ENUM_MAX,	                            
+};
+
 
 typedef struct Request_s Request;
 
@@ -133,6 +169,18 @@ typedef struct xor_mapped_address_s {
     } u;
 } turn_attrib_xor_mapped_address_t;
 
+typedef struct xor_relayed_address_s {
+    unsigned short type;
+    unsigned short len;
+    uint8_t reserved;
+    uint8_t family;
+    uint16_t port;
+    union {
+        uint8_t ipv4[4];
+        uint8_t ipv6[16];
+    } u;
+} turn_attrib_xor_relayed_address_t;
+
 typedef struct nonce_s {
     unsigned short type;
     unsigned short len;
@@ -211,6 +259,7 @@ typedef struct turn_attribs_s {
     turn_attrib_mapped_address_t *mapped_address;
     turn_attrib_changed_address_t *changed_address;
     turn_attrib_xor_mapped_address_t *xor_mapped_address;
+    turn_attrib_xor_relayed_address_t *xor_relayed_address;
     turn_attrib_change_request_t *change_request;
     turn_attrib_nonce_t *nonce;
     turn_attrib_lifetime_t *lifetime;
