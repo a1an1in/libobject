@@ -13,6 +13,16 @@
 
 typedef struct Turn_Client_s Turn_Client;
 
+enum turn_status_e {
+    TURN_STATUS_UNKNOWN,
+    TURN_STATUS_ALLOC_ERROR,
+    TURN_STATUS_PERMISION_ERROR,
+    TURN_STATUS_INIT_ERROR,
+    TURN_STATUS_ALLOC_SUC,
+    TURN_STATUS_PERMISION_SUC,
+    TURN_STATUS_INIT_SUC,
+};
+
 typedef struct turn_method_policy_s {
     int (*policy)(Response *, void *opaque);
 } turn_method_policy_t;
@@ -50,6 +60,7 @@ struct Turn_Client_s{
     int (*set_read_post_callback)(Turn_Client *turn, int (*func)(Response *, void *arg));
     int (*generate_auth_code)(Turn_Client *turn, char *username, char *realm, char *password, uint8_t *out, uint32_t len);
     int (*compute_integrity)(Turn_Client *turn, uint8_t *key, uint8_t key_len, uint8_t *out, uint8_t out_len);
+    int (*send_indication)(Turn_Client *turn, uint8_t *value, int len);
 
     Request *req;
     Response *response;
@@ -62,6 +73,7 @@ struct Turn_Client_s{
     turn_attrib_nonce_t *nonce;
     struct addrinfo  *addr;
     uint8_t auth_code[16];
+    int status;
 };
 
 int write_attrib_to_send_buffer_for_each(int index, void *element, void *arg);

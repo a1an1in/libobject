@@ -11,6 +11,8 @@
 
 enum {
     TURN_METHOD_ENUM_ALLOCATE = 0,
+    TURN_METHOD_ENUM_CREATE_PERMISSION,
+    TURN_METHOD_ENUM_DATA_INDICATION,
     TURN_METHOD_ENUM_MAX,	                           
 };
 
@@ -109,6 +111,7 @@ __allocate_address(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
         }
 
         turn->send(turn);
+
     } CATCH (ret) {
         TRY_SHOW_INT_PARS(DBG_ERROR);
     }
@@ -152,6 +155,40 @@ __create_permission(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
     return ret;
 }
 
+static int 
+__send_indication(Turn_Udp_Client *turn, uint8_t *value, int len)
+{
+    allocator_t *allocator = turn->parent.parent.allocator;
+    turn_attrib_nonce_t *nonce = turn->parent.nonce;
+    char *realm = turn->parent.realm;
+    char *user = turn->parent.user;
+    Request *req = turn->parent.req;
+    Vector *vector = req->attribs;
+    uint8_t result[20] = {0}, key[16] = {0};
+    int ret;
+
+    TRY {
+        dbg_str(DBG_DETAIL, "send indication");
+        req->clear(req);
+        req->set_head(req, STUN_INDICATION | TURN_METHOD_SEND, 0, 0x2112A442);
+
+        EXEC(turn_set_attrib_nonce(vector,nonce->value, nonce->len));
+        EXEC(turn_set_attrib_realm(vector, realm, realm == NULL ? 0 : strlen(realm)));
+        EXEC(turn_set_attrib_username(vector, user, user == NULL ? 0 : strlen(user)));
+
+        EXEC(turn_set_attrib_data(vector, value, len));
+        EXEC(turn_set_attrib_xor_peer_address(vector, turn->parent.addr, 0x2112A442));
+        EXEC(turn->compute_integrity(turn, turn->parent.auth_code, 16, result, 20));
+        EXEC(turn_set_attrib_integrity(vector, result, 20));
+
+        turn->send(turn);
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
 static class_info_entry_t turn_class_info[] = {
     Init_Obj___Entry(0 , Turn::Turn_Client, parent),
     Init_Nfunc_Entry(1 , Turn_Udp_Client, construct, __construct),
@@ -160,10 +197,11 @@ static class_info_entry_t turn_class_info[] = {
     Init_Vfunc_Entry(4 , Turn_Udp_Client, allocate_address, __allocate_address),
     Init_Vfunc_Entry(5 , Turn_Udp_Client, create_permission, __create_permission),
     Init_Vfunc_Entry(6 , Turn_Udp_Client, send, __send),
-    Init_Vfunc_Entry(7 , Turn_Udp_Client, set_read_post_callback, NULL),
-    Init_Vfunc_Entry(8 , Turn_Udp_Client, generate_auth_code, NULL),
-    Init_Vfunc_Entry(9 , Turn_Udp_Client, compute_integrity, NULL),
-    Init_End___Entry(10, Turn_Udp_Client),
+    Init_Vfunc_Entry(7 , Turn_Udp_Client, send_indication, __send_indication),
+    Init_Vfunc_Entry(8 , Turn_Udp_Client, set_read_post_callback, NULL),
+    Init_Vfunc_Entry(9 , Turn_Udp_Client, generate_auth_code, NULL),
+    Init_Vfunc_Entry(10, Turn_Udp_Client, compute_integrity, NULL),
+    Init_End___Entry(11, Turn_Udp_Client),
 };
 REGISTER_CLASS("Turn::Turn_Udp_Client", turn_class_info);
 
@@ -248,10 +286,49 @@ static int __turn_allocate_post_callback(Response * response, void *opaque)
 
         } else if ((response->header->msgtype & 0x110) == 0x100) {
             dbg_str(DBG_SUC, "allocation success");
+            turn->status = TURN_STATUS_ALLOC_SUC;
             arg.user = "toto";
             arg.realm = "domain.org";
             turn->create_permission(turn, &arg);
         }
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
+static int __turn_create_permisson_post_callback(Response * response, void *opaque)
+{
+    allocate_address_reqest_arg_t arg = {0};
+    Turn_Client *turn = opaque;
+    int ret;
+
+    TRY {
+        dbg_str(DBG_SUC, "__turn_create_permisson_post_callback");
+        if ((response->header->msgtype & 0x118) == 0x118) {
+            turn->status = TURN_STATUS_PERMISION_ERROR;
+        } else if ((response->header->msgtype & 0x118) == 0x108) {
+            turn->status = TURN_STATUS_PERMISION_SUC;
+            dbg_str(DBG_SUC, "TURN_STATUS_PERMISION_SUC");
+        }
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
+static int __turn_data_indication_post_callback(Response * response, void *opaque)
+{
+    allocate_address_reqest_arg_t arg = {0};
+    turn_attrib_data_t *data;
+    Turn_Client *turn = opaque;
+    int ret;
+
+    TRY {
+        data = response->attribs.data;
+        dbg_str(DBG_SUC, "__turn_data_indication_post_callback");
+        dbg_str(DBG_SUC, "recv ind data:%s", data->value);
+        dbg_buf(DBG_SUC, "recv ind data:", data->value, data->len);
     } CATCH (ret) {
     }
 
@@ -274,10 +351,14 @@ int turn_get_method_policy_index(int type)
 
 static turn_method_map_t g_turn_client_method_vector[TURN_METHOD_ENUM_MAX] = {
     {TURN_METHOD_ENUM_ALLOCATE, TURN_METHOD_ALLOCATE},
+    {TURN_METHOD_ENUM_CREATE_PERMISSION, TURN_METHOD_CREATEPERMISSION},
+    {TURN_METHOD_ENUM_DATA_INDICATION, TURN_METHOD_DATA},
 };
 
 static turn_method_policy_t g_turn_client_method_policies[TURN_METHOD_ENUM_MAX] = {
     [TURN_METHOD_ENUM_ALLOCATE] = {.policy = __turn_allocate_post_callback},
+    [TURN_METHOD_ENUM_CREATE_PERMISSION] = {.policy = __turn_create_permisson_post_callback},
+    [TURN_METHOD_ENUM_DATA_INDICATION] = {.policy = __turn_data_indication_post_callback},
 };
 
 static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
@@ -309,6 +390,14 @@ static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
 
         arg.lifetime = -1;
         EXEC(turn->allocate_address(turn, &arg));
+
+        dbg_str(DBG_ERROR, "turn status:%d", turn->status);
+        while (1) {
+            dbg_str(DBG_ERROR, "turn status:%d", turn->status);
+            if (turn->status == TURN_STATUS_PERMISION_SUC) break;
+            sleep(1);
+        }
+        EXEC(turn->send_indication(turn, "hello world", 12));
 
         sleep(5);
     } CATCH (ret) {

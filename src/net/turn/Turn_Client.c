@@ -167,9 +167,10 @@ static class_info_entry_t turn_class_info[] = {
     Init_Vfunc_Entry(4 , Turn_Client, allocate_address, NULL),
     Init_Vfunc_Entry(5 , Turn_Client, create_permission, NULL),
     Init_Vfunc_Entry(6 , Turn_Client, send, NULL),
-    Init_Vfunc_Entry(7 , Turn_Client, set_read_post_callback, __set_read_post_callback),
-    Init_Vfunc_Entry(8 , Turn_Client, generate_auth_code, __generate_auth_code),
-    Init_Vfunc_Entry(9 , Turn_Client, compute_integrity, __compute_integrity),
-    Init_End___Entry(10, Turn_Client),
+    Init_Vfunc_Entry(7 , Turn_Client, send_indication, NULL),
+    Init_Vfunc_Entry(8 , Turn_Client, set_read_post_callback, __set_read_post_callback),
+    Init_Vfunc_Entry(9 , Turn_Client, generate_auth_code, __generate_auth_code),
+    Init_Vfunc_Entry(10, Turn_Client, compute_integrity, __compute_integrity),
+    Init_End___Entry(11, Turn_Client),
 };
 REGISTER_CLASS("Turn::Turn_Client", turn_class_info);

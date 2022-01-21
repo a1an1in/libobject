@@ -266,6 +266,12 @@ typedef struct turn_attrib_integrity_s {
     uint8_t value[20];
 } turn_attrib_integrity_t;
 
+typedef struct turn_attrib_data_s {
+    unsigned short type;
+    unsigned short len;
+    uint8_t value[0];
+} turn_attrib_data_t;
+
 
 typedef struct turn_attribs_s {
     turn_attrib_mapped_address_t *mapped_address;
@@ -281,6 +287,7 @@ typedef struct turn_attribs_s {
     turn_attrib_software_t *software;
     turn_attrib_fingerprint_t *fingerprint;
     turn_attrib_integrity_t *integrity;
+    turn_attrib_data_t *data;
 } turn_attribs_t;
 
 typedef struct attrib_parse_policy_s {
@@ -304,5 +311,6 @@ int turn_set_attrib_lifetime(Vector *vector, int lifetime);
 int turn_set_attrib_requested_family(Vector *vector, uint8_t family);
 int turn_set_attrib_integrity(Vector *vector, uint8_t *value, int len);
 int turn_set_attrib_xor_peer_address(Vector *vector, struct addrinfo *addr, uint32_t cookie);
+int turn_set_attrib_data(Vector *vector, uint8_t *value, int len);
 
 #endif

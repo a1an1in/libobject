@@ -147,6 +147,15 @@ static int turn_parse_attrib_fingerprint(turn_attribs_t *attribs, uint8_t *attri
     return 0;
 }
 
+static int turn_parse_attrib_data(turn_attribs_t *attribs, uint8_t *attrib)
+{
+    turn_attrib_data_t *attr;
+
+    attribs->data = (turn_attrib_data_t *)attrib;
+
+    return 0;
+}
+
 static attrib_type_map_t g_parse_policies_type_map[TURN_ATTR_ENUM_MAX] = {
     {TURN_ATTR_ENUM_MAPPED_ADDR, TURN_ATTR_TYPE_MAPPED_ADDR},
     {TURN_ATTR_ENUM_RESPONSE_ADDRESS, TURN_ATTR_TYPE_RESPONSE_ADDRESS},
@@ -172,6 +181,7 @@ static attrib_type_map_t g_parse_policies_type_map[TURN_ATTR_ENUM_MAX] = {
     {TURN_ATTR_ENUM_RESERVATION_TOKEN, TURN_ATTR_TYPE_RESERVATION_TOKEN},
     {TURN_ATTR_ENUM_SOFTWARE, TURN_ATTR_TYPE_SOFTWARE},
     {TURN_ATTR_ENUM_FINGERPRINT, TURN_ATTR_TYPE_FINGERPRINT},
+    {TURN_ATTR_ENUM_DATA, TURN_ATTR_TYPE_DATA},
 };
 
 static attrib_parse_policy_t g_parse_attr_policies[ENTRY_TYPE_MAX_TYPE] = {
@@ -184,6 +194,7 @@ static attrib_parse_policy_t g_parse_attr_policies[ENTRY_TYPE_MAX_TYPE] = {
     [TURN_ATTR_ENUM_FINGERPRINT] = {.policy = turn_parse_attrib_fingerprint},
     [TURN_ATTR_ENUM_XOR_MAPPED_ADDRESS] = {.policy = turn_parse_attrib_xor_mapped_addr},
     [TURN_ATTR_ENUM_XOR_RELAYED_ADDRESS] = {.policy = turn_parse_attrib_xor_relayed_addr},
+    [TURN_ATTR_ENUM_DATA] = {.policy = turn_parse_attrib_data},
 };
 
 attrib_parse_policy_t *turn_get_parser_policies()
@@ -405,24 +416,43 @@ int turn_set_attrib_xor_peer_address(Vector *vector, struct addrinfo *addr, uint
         attrib = allocator_mem_zalloc(allocator, sizeof(turn_attrib_xor_peered_address_t) + len);
         cookie = htonl(cookie);
         /* host order port XOR most-significant 16 bits of the cookie */
-        msb_cookie = ((uint8_t*)&cookie)[0] << 8 | ((uint8_t*)&cookie)[1];
+        msb_cookie = ((uint8_t*)cookie_addr)[0] << 8 | ((uint8_t*)cookie_addr)[1];
         port ^= msb_cookie;
 
         for (int i = 0; i < len; i++) {
             ipaddr[i] ^= cookie_addr[i];
         }
 
-        /*
-         *for (int i = 0; i< len; i++) {
-         *    printf("%d ", ipaddr[i]);
-         *}
-         */
         attrib->type = htons(TURN_ATTR_TYPE_XOR_PEER_ADDRESS);
         attrib->len = htons(4 + len);
         attrib->family = family;
-        dbg_str(DBG_DETAIL, "turn_set_attrib_xor_peer_address, port=%d, family:%d", port, addr->ai_family);
+        attrib->port = htons(port); 
 
         memcpy(&attrib->u, ipaddr, len);
+
+        vector->add_back(vector, attrib);
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
+int turn_set_attrib_data(Vector *vector, uint8_t *value, int len)
+{
+    allocator_t *allocator;
+    turn_attrib_data_t *attrib;
+    int ret;
+
+    TRY {
+        SET_CATCH_INT_PARS(len, 0);
+        THROW_IF(len > 2048, -1);
+        allocator = vector->obj.allocator;
+
+        attrib = allocator_mem_zalloc(allocator, sizeof(turn_attrib_data_t) + len);
+        attrib->len = htons(len);
+        attrib->type = htons(TURN_ATTR_TYPE_DATA);
+        memcpy(attrib->value, value, len);
 
         vector->add_back(vector, attrib);
     } CATCH (ret) {
