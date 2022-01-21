@@ -7,6 +7,8 @@
  * @date 2019-06-19
  */
 
+#include <sys/socket.h>
+#include <netdb.h>
 #include <libobject/net/turn/protocol.h>
 
 static int turn_parse_attrib_mapped_addr(turn_attribs_t *attribs, uint8_t *attrib)
@@ -361,6 +363,66 @@ int turn_set_attrib_integrity(Vector *vector, uint8_t *value, int len)
         attrib->len = htons(len);
         attrib->type = htons(TURN_ATTR_TYPE_INTEGRITY);
         memcpy(attrib->value, value, len);
+
+        vector->add_back(vector, attrib);
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+
+int turn_set_attrib_xor_peer_address(Vector *vector, struct addrinfo *addr, uint32_t cookie)
+{
+    allocator_t *allocator;
+    turn_attrib_xor_peered_address_t *attrib;
+    struct sockaddr_in ipv4;
+    struct sockaddr_in6 ipv6;
+    uint8_t *ipaddr, *cookie_addr = &cookie;
+    uint8_t len, family;
+    uint16_t port, msb_cookie;
+    int ret;
+
+    TRY {
+        allocator = vector->obj.allocator;
+
+        switch (addr->ai_family) {
+            case AF_INET:
+                memcpy(&ipv4, addr->ai_addr, sizeof(struct sockaddr_in));
+                port = ntohs(ipv4.sin_port);
+                ipaddr = (uint8_t *)&ipv4.sin_addr;
+                len  = 4;
+                family = 1;
+                break;
+            case AF_INET6:
+                THROW(0);
+                break;
+            default:
+                THROW(0);
+                break;
+        }
+
+        attrib = allocator_mem_zalloc(allocator, sizeof(turn_attrib_xor_peered_address_t) + len);
+        cookie = htonl(cookie);
+        /* host order port XOR most-significant 16 bits of the cookie */
+        msb_cookie = ((uint8_t*)&cookie)[0] << 8 | ((uint8_t*)&cookie)[1];
+        port ^= msb_cookie;
+
+        for (int i = 0; i < len; i++) {
+            ipaddr[i] ^= cookie_addr[i];
+        }
+
+        /*
+         *for (int i = 0; i< len; i++) {
+         *    printf("%d ", ipaddr[i]);
+         *}
+         */
+        attrib->type = htons(TURN_ATTR_TYPE_XOR_PEER_ADDRESS);
+        attrib->len = htons(4 + len);
+        attrib->family = family;
+        dbg_str(DBG_DETAIL, "turn_set_attrib_xor_peer_address, port=%d, family:%d", port, addr->ai_family);
+
+        memcpy(&attrib->u, ipaddr, len);
 
         vector->add_back(vector, attrib);
     } CATCH (ret) {

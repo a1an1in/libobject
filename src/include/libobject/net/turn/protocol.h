@@ -181,6 +181,18 @@ typedef struct xor_relayed_address_s {
     } u;
 } turn_attrib_xor_relayed_address_t;
 
+typedef struct xor_peer_address_s {
+    unsigned short type;
+    unsigned short len;
+    uint8_t reserved;
+    uint8_t family;
+    uint16_t port;
+    union {
+        uint8_t ipv4[4];
+        uint8_t ipv6[16];
+    } u;
+} turn_attrib_xor_peered_address_t;
+
 typedef struct nonce_s {
     unsigned short type;
     unsigned short len;
@@ -291,5 +303,6 @@ int turn_set_attrib_username(Vector *vector, uint8_t *username, uint8_t username
 int turn_set_attrib_lifetime(Vector *vector, int lifetime);
 int turn_set_attrib_requested_family(Vector *vector, uint8_t family);
 int turn_set_attrib_integrity(Vector *vector, uint8_t *value, int len);
+int turn_set_attrib_xor_peer_address(Vector *vector, struct addrinfo *addr, uint32_t cookie);
 
 #endif

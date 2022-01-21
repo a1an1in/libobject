@@ -140,6 +140,7 @@ __create_permission(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
         EXEC(turn_set_attrib_realm(vector, realm, realm == NULL ? 0 : strlen(realm)));
         EXEC(turn_set_attrib_username(vector, user, user == NULL ? 0 : strlen(user)));
 
+        EXEC(turn_set_attrib_xor_peer_address(vector, turn->parent.addr, 0x2112A442));
         EXEC(turn->compute_integrity(turn, turn->parent.auth_code, 16, result, 20));
         EXEC(turn_set_attrib_integrity(vector, result, 20));
 
