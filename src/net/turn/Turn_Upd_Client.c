@@ -57,8 +57,8 @@ static int __send(Turn_Udp_Client *turn)
     Buffer *buffer = req->buffer;
     Vector *vector = req->attribs;
     int i = 0, attrib_len = 0;
-    int ret = 0;
     turn_attrib_header_t *attrib;
+    int ret = 0;
 
     TRY {
         buffer->reset(buffer);
@@ -373,7 +373,6 @@ static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
     dbg_str(NET_DETAIL, "test_turn_udp");
 
     TRY {
-
         turn = object_new(allocator, "Turn::Turn_Udp_Client", NULL);
         turn->user = "toto";
         turn->realm = "domain.org";
