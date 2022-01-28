@@ -90,7 +90,7 @@ static int turn_parse_attrib_error_code(turn_attribs_t *attribs, uint8_t *attrib
     attribs->error_code = (turn_attrib_error_code_t *)attrib;
     attr = attribs->error_code;
 
-    dbg_str(DBG_DETAIL, "errorcode, %d %d, error reason:%s", attr->class_bits,  attr->number_bits,  attr->reason);
+    dbg_str(DBG_DETAIL, "errorcode, %d%02d, error reason:%s", attr->class_bits,  attr->number_bits,  attr->reason);
 
     return 0;
 }

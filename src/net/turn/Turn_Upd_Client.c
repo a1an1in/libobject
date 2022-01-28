@@ -91,6 +91,7 @@ __allocate_address(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
     int ret;
 
     TRY {
+        dbg_str(DBG_SUC, "allocate_address");
         THROW_IF(arg == NULL, -1);
         SET_CATCH_INT_PARS(arg->nonce_len, 0);
         THROW_IF(arg->nonce_len > 128, -1);
@@ -136,6 +137,7 @@ __create_permission(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
         THROW_IF(arg == NULL, -1);
         THROW_IF(nonce == NULL, -1);
 
+        dbg_str(DBG_SUC, "create_permission");
         req->clear(req);
         req->set_head(req, STUN_QUEST | TURN_METHOD_CREATEPERMISSION, 0, 0x2112A442);
 
@@ -168,7 +170,7 @@ __send_indication(Turn_Udp_Client *turn, uint8_t *value, int len)
     int ret;
 
     TRY {
-        dbg_str(DBG_DETAIL, "send indication");
+        dbg_str(DBG_SUC, "send indication");
         req->clear(req);
         req->set_head(req, STUN_INDICATION | TURN_METHOD_SEND, 0, 0x2112A442);
 
@@ -381,10 +383,16 @@ static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
         bzero(&hint, sizeof(hint));
         hint.ai_family   = AF_INET;
         hint.ai_socktype = SOCK_DGRAM;
-        THROW_IF(getaddrinfo("172.16.49.3", "4588", &hint, &addr) != 0, -1);
+        /*
+         *THROW_IF(getaddrinfo("172.16.49.3", "4588", &hint, &addr) != 0, -1);
+         */
+        THROW_IF(getaddrinfo("172.17.0.5", "4588", &hint, &addr) != 0, -1);
         turn->addr = addr;
 
-        EXEC(turn->connect(turn, "172.16.49.3", "3478"));
+        /*
+         *EXEC(turn->connect(turn, "172.16.49.3", "3478"));
+         */
+        EXEC(turn->connect(turn, "122.112.200.183", "3478"));
         EXEC(turn->generate_auth_code(turn, turn->user, turn->realm, turn->password, turn->auth_code, 16));
 
         arg.lifetime = -1;
