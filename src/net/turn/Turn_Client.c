@@ -85,51 +85,6 @@ static int __generate_auth_code(Turn_Client *turn, char *username, char *realm, 
     return ret;
 }
 
-int count_attrib_len_for_each(int index, void *element, void *arg)
-{
-    int ret;
-    int *len = (int *)arg;
-    turn_attrib_header_t *attrib;
-    int res;
-
-    TRY {
-        THROW_IF(element == NULL || arg == NULL, 0);
-
-        attrib = (turn_attrib_header_t *)element;
-        res = (ntohs(attrib->len) + 4) % 4;
-        (*len) += (ntohs(attrib->len) + 4 + res);
-
-    } CATCH(ret) {
-    }
-
-    return ret;
-}
-
-int write_attrib_to_send_buffer_for_each(int index, void *element, void *arg)
-{
-    int ret;
-    Buffer *buffer = (Buffer *)arg;
-    turn_attrib_header_t *attrib;
-    char padding[4] = {0};
-    int res;
-
-    TRY {
-        THROW_IF(element == NULL || arg == NULL, 0);
-
-        attrib = (turn_attrib_header_t *)element;
-        buffer->write(buffer, attrib,  ntohs(attrib->len) + 4);
-        res = (ntohs(attrib->len) + 4) % 4;
-        if (res != 0) {
-            buffer->write(buffer, padding, res);
-            dbg_str(DBG_DETAIL, "add padding, count=%d, index=%d", res, index);
-        }
-
-    } CATCH(ret) {
-    }
-
-    return ret;
-}
-
 
 static int 
 __compute_integrity(Turn_Client *turn, 
@@ -199,26 +154,6 @@ static class_info_entry_t turn_class_info[] = {
     Init_End___Entry(13, Turn_Client),
 };
 REGISTER_CLASS("Turn::Turn_Client", turn_class_info);
-
-int turn_read_post_callback(Response * resp, void *opaque)
-{
-    int ret, method, method_index;
-    turn_header_t *header;
-
-    TRY {
-        header = resp->header;
-        method = header->msgtype & 0xeef; 
-
-        dbg_str(DBG_DETAIL, "turn_read_post_callback, method=%x", method);
-        method_index = turn_get_method_policy_index(method);
-        THROW_IF(method_index == -1, -1);
-
-        g_turn_client_method_policies[method_index].policy(resp, opaque);
-    } CATCH (ret) {
-    }
-
-    return ret;
-}
 
 static int __turn_allocate_post_callback(Response * response, void *opaque)
 {
@@ -303,4 +238,69 @@ static turn_method_policy_t g_turn_client_method_policies[TURN_METHOD_ENUM_MAX] 
     [TURN_METHOD_ENUM_CREATE_PERMISSION] = {.policy = __turn_create_permisson_post_callback},
     [TURN_METHOD_ENUM_DATA_INDICATION]   = {.policy = __turn_data_indication_post_callback},
 };
+
+int turn_read_post_callback(Response * resp, void *opaque)
+{
+    int ret, method, method_index;
+    turn_header_t *header;
+
+    TRY {
+        header = resp->header;
+        method = header->msgtype & 0xeef; 
+
+        dbg_str(DBG_DETAIL, "turn_read_post_callback, method=%x", method);
+        method_index = turn_get_method_policy_index(method);
+        THROW_IF(method_index == -1, -1);
+
+        g_turn_client_method_policies[method_index].policy(resp, opaque);
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
+int count_attrib_len_for_each(int index, void *element, void *arg)
+{
+    int ret;
+    int *len = (int *)arg;
+    turn_attrib_header_t *attrib;
+    int res;
+
+    TRY {
+        THROW_IF(element == NULL || arg == NULL, 0);
+
+        attrib = (turn_attrib_header_t *)element;
+        res = (ntohs(attrib->len) + 4) % 4;
+        (*len) += (ntohs(attrib->len) + 4 + res);
+
+    } CATCH(ret) {
+    }
+
+    return ret;
+}
+
+int write_attrib_to_send_buffer_for_each(int index, void *element, void *arg)
+{
+    int ret;
+    Buffer *buffer = (Buffer *)arg;
+    turn_attrib_header_t *attrib;
+    char padding[4] = {0};
+    int res;
+
+    TRY {
+        THROW_IF(element == NULL || arg == NULL, 0);
+
+        attrib = (turn_attrib_header_t *)element;
+        buffer->write(buffer, attrib,  ntohs(attrib->len) + 4);
+        res = (ntohs(attrib->len) + 4) % 4;
+        if (res != 0) {
+            buffer->write(buffer, padding, res);
+            dbg_str(DBG_DETAIL, "add padding, count=%d, index=%d", res, index);
+        }
+
+    } CATCH(ret) {
+    }
+
+    return ret;
+}
 
