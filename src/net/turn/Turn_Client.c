@@ -10,6 +10,16 @@
 #include <libobject/crypto/md5.h>
 #include <libobject/net/turn/Turn_Client.h>
 
+enum {
+    TURN_METHOD_ENUM_ALLOCATE = 0,
+    TURN_METHOD_ENUM_CREATE_PERMISSION,
+    TURN_METHOD_ENUM_DATA_INDICATION,
+    TURN_METHOD_ENUM_MAX,	                           
+};
+
+static turn_method_policy_t g_turn_client_method_policies[TURN_METHOD_ENUM_MAX];
+static turn_method_map_t g_turn_client_method_vector[TURN_METHOD_ENUM_MAX];
+
 static int __construct(Turn_Client *turn, char *init_str)
 {
     allocator_t *allocator = turn->parent.allocator;
@@ -159,6 +169,19 @@ __compute_integrity(Turn_Client *turn,
     return ret;
 }
 
+static int __set_method_policy(Turn_Client *turn, int index, void *callback) 
+{
+    int ret;
+
+    TRY {
+        THROW_IF(index > TURN_METHOD_ENUM_MAX, -1);
+        g_turn_client_method_policies[index].policy = callback;
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
 static class_info_entry_t turn_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Turn_Client, construct, __construct),
@@ -171,6 +194,113 @@ static class_info_entry_t turn_class_info[] = {
     Init_Vfunc_Entry(8 , Turn_Client, set_read_post_callback, __set_read_post_callback),
     Init_Vfunc_Entry(9 , Turn_Client, generate_auth_code, __generate_auth_code),
     Init_Vfunc_Entry(10, Turn_Client, compute_integrity, __compute_integrity),
-    Init_End___Entry(11, Turn_Client),
+    Init_Vfunc_Entry(11, Turn_Client, wait, NULL),
+    Init_Vfunc_Entry(12, Turn_Client, set_method_policy, __set_method_policy),
+    Init_End___Entry(13, Turn_Client),
 };
 REGISTER_CLASS("Turn::Turn_Client", turn_class_info);
+
+int turn_read_post_callback(Response * resp, void *opaque)
+{
+    int ret, method, method_index;
+    turn_header_t *header;
+
+    TRY {
+        header = resp->header;
+        method = header->msgtype & 0xeef; 
+
+        dbg_str(DBG_DETAIL, "turn_read_post_callback, method=%x", method);
+        method_index = turn_get_method_policy_index(method);
+        THROW_IF(method_index == -1, -1);
+
+        g_turn_client_method_policies[method_index].policy(resp, opaque);
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
+static int __turn_allocate_post_callback(Response * response, void *opaque)
+{
+    allocate_address_reqest_arg_t arg = {0};
+    Turn_Client *turn = opaque;
+    int ret;
+
+    TRY {
+        if ((response->header->msgtype & 0x110) == 0x110) {
+            turn->status = TURN_STATUS_ALLOC_ERROR;
+            memcpy(turn->nonce, response->attribs.nonce, response->attribs.nonce->len + 4);
+        } else if ((response->header->msgtype & 0x110) == 0x100) {
+            dbg_str(DBG_SUC, "allocation success");
+            turn->status = TURN_STATUS_ALLOC_SUC;
+        }
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
+static int __turn_create_permisson_post_callback(Response * response, void *opaque)
+{
+    allocate_address_reqest_arg_t arg = {0};
+    Turn_Client *turn = opaque;
+    int ret;
+
+    TRY {
+        dbg_str(DBG_SUC, "__turn_create_permisson_post_callback");
+        if ((response->header->msgtype & 0x118) == 0x118) {
+            turn->status = TURN_STATUS_PERMISION_ERROR;
+        } else if ((response->header->msgtype & 0x118) == 0x108) {
+            turn->status = TURN_STATUS_PERMISION_SUC;
+            dbg_str(DBG_SUC, "TURN_STATUS_PERMISION_SUC");
+        }
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
+static int __turn_data_indication_post_callback(Response * response, void *opaque)
+{
+    allocate_address_reqest_arg_t arg = {0};
+    turn_attrib_data_t *data;
+    Turn_Client *turn = opaque;
+    int ret;
+
+    TRY {
+        data = response->attribs.data;
+        dbg_str(DBG_SUC, "__turn_data_indication_post_callback");
+        dbg_str(DBG_SUC, "recv ind data:%s", data->value);
+        dbg_buf(DBG_SUC, "recv ind data:", data->value, data->len);
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
+int turn_get_method_policy_index(int type) 
+{
+    int i, ret = -1;
+
+    for (i = 0; i < TURN_METHOD_ENUM_MAX; i++) {
+        if (g_turn_client_method_vector[i].type == type) {
+            ret = g_turn_client_method_vector[i].index;
+            break;
+        }
+    }
+
+    return ret;
+}
+
+static turn_method_map_t g_turn_client_method_vector[TURN_METHOD_ENUM_MAX] = {
+    {TURN_METHOD_ENUM_ALLOCATE, TURN_METHOD_ALLOCATE},
+    {TURN_METHOD_ENUM_CREATE_PERMISSION, TURN_METHOD_CREATEPERMISSION},
+    {TURN_METHOD_ENUM_DATA_INDICATION, TURN_METHOD_DATA},
+};
+
+static turn_method_policy_t g_turn_client_method_policies[TURN_METHOD_ENUM_MAX] = {
+    [TURN_METHOD_ENUM_ALLOCATE]          = {.policy = __turn_allocate_post_callback},
+    [TURN_METHOD_ENUM_CREATE_PERMISSION] = {.policy = __turn_create_permisson_post_callback},
+    [TURN_METHOD_ENUM_DATA_INDICATION]   = {.policy = __turn_data_indication_post_callback},
+};
+

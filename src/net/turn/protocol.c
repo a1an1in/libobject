@@ -9,7 +9,9 @@
 
 #include <sys/socket.h>
 #include <netdb.h>
+#include <libobject/core/utils/data_structure/list.h>
 #include <libobject/net/turn/protocol.h>
+#include <libobject/net/turn/Response.h>
 
 static int turn_parse_attrib_mapped_addr(turn_attribs_t *attribs, uint8_t *attrib)
 {
@@ -32,15 +34,26 @@ static int turn_parse_attrib_mapped_addr(turn_attribs_t *attribs, uint8_t *attri
 static int turn_parse_attrib_xor_mapped_addr(turn_attribs_t *attribs, uint8_t *attrib)
 {
     turn_attrib_xor_mapped_address_t *attr;
+    Response *resp;
+    uint8_t*cookie_addr;
+    uint16_t msb_cookie;
+
+    resp = container_of(attribs, Response, attribs);
+    cookie_addr = &resp->header->magic_cookie;
+    msb_cookie = ((uint8_t*)cookie_addr)[0] << 8 | ((uint8_t*)cookie_addr)[1];
 
     attribs->xor_mapped_address = (turn_attrib_xor_mapped_address_t *)attrib;
     attr = attribs->xor_mapped_address;
     attr->port = ntohs(attr->port);
+    attr->port ^= msb_cookie;
 
     if (attr->family == 1) {
+        for (int i = 0; i < 4; i++) {
+            attr->u.ipv4[i] ^= cookie_addr[i];
+        }
         dbg_str(DBG_DETAIL, "xor mapped addr, port:%d ip:%d:%d:%d:%d",
-                attr->port, attr->u.ipv4[3],  
-                attr->u.ipv4[2],  attr->u.ipv4[1],  attr->u.ipv4[0]);
+                attr->port, attr->u.ipv4[0],  
+                attr->u.ipv4[1],  attr->u.ipv4[2],  attr->u.ipv4[3]);
     } else {
     }
 
@@ -50,15 +63,26 @@ static int turn_parse_attrib_xor_mapped_addr(turn_attribs_t *attribs, uint8_t *a
 static int turn_parse_attrib_xor_relayed_addr(turn_attribs_t *attribs, uint8_t *attrib)
 {
     turn_attrib_xor_relayed_address_t *attr;
+    Response *resp;
+    uint8_t*cookie_addr;
+    uint16_t msb_cookie;
+
+    resp = container_of(attribs, Response, attribs);
+    cookie_addr = &resp->header->magic_cookie;
+    msb_cookie = ((uint8_t*)cookie_addr)[0] << 8 | ((uint8_t*)cookie_addr)[1];
 
     attribs->xor_relayed_address = (turn_attrib_xor_relayed_address_t *)attrib;
     attr = attribs->xor_relayed_address;
     attr->port = ntohs(attr->port);
+    attr->port ^= msb_cookie;
 
     if (attr->family == 1) {
+        for (int i = 0; i < 4; i++) {
+            attr->u.ipv4[i] ^= cookie_addr[i];
+        }
         dbg_str(DBG_DETAIL, "xor relayed addr, port:%d ip:%d:%d:%d:%d",
-                attr->port, attr->u.ipv4[3],  
-                attr->u.ipv4[2],  attr->u.ipv4[1],  attr->u.ipv4[0]);
+                attr->port, attr->u.ipv4[0],  
+                attr->u.ipv4[1],  attr->u.ipv4[2],  attr->u.ipv4[3]);
     } else {
     }
 

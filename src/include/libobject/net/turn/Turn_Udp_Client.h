@@ -26,7 +26,8 @@ struct Turn_Udp_s{
     int (*set_read_post_callback)(Turn_Udp_Client *turn, int (*func)(Response *, void *arg));
     int (*generate_auth_code)(Turn_Udp_Client *turn, char *username, char *realm, char *password, uint8_t *out, uint32_t len);
     int (*compute_integrity)(Turn_Udp_Client *turn, uint8_t *key, uint8_t key_len, uint8_t *out, uint8_t out_len);
-    int (*send_indication)(Turn_Udp_Client *turn, uint8_t *value, int len);
+    int (*send_indication)(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg, uint8_t *value, int len);
+    int (*wait)(Turn_Udp_Client *turn, enum turn_status_e status, int time);
 
     Client *c;
 };
