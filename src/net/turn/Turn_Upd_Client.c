@@ -20,7 +20,10 @@ static int __construct(Turn_Udp_Client *turn, char *init_str)
     TRY {
         turn->c = client(allocator, CLIENT_TYPE_INET_UDP, 
                          (char *)"0.0.0.0", //char *host, 
-                         (char *)"9090", //char *client_port, 
+                         NULL,
+                         /*
+                          *(char *)"9090", //char *client_port, 
+                          */
                          __turn_client_resp_callback, turn);
         THROW_IF(turn->c == NULL, -1);
 

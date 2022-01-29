@@ -8,6 +8,7 @@
  */
 
 #include <math.h>
+#include <time.h>
 #include <libobject/net/turn/Request.h>
 
 static int __construct(Request *request, char *init_str)
@@ -69,15 +70,16 @@ static int __set_head(Request *request, int type, int len, uint32_t cookie)
 {
     int i = 0;
     int ret = 0;
+    time_t t;
 
     TRY {
         request->header->msgtype = htons(type);
         request->header->msglen = htons(len);
         request->header->magic_cookie = htonl(cookie);
 
-        srand ((unsigned) time (NULL));
+        srand ((unsigned) time (&t));
         for (i = 0; i < 3; i++) {
-            request->header->transaction_id[i] = random();
+            request->header->transaction_id[i] = rand();
         }
     } CATCH (ret) {
     }
