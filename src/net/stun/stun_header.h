@@ -6,14 +6,14 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
 
-#define STUN_BINDREQ    0x0001
+#define STUN_BINDREQ    0x0001
 #define STUN_BINDRESP   0x0101
 #define STUN_BINDERROR  0x0111
 #define STUN_SECREQ     0x0002
 #define STUN_SECRESP    0x0102
 #define STUN_SECERROR   0x0112
 
-#define STUN_ATR_TYPE_MAPPED_ADDR   		0x0001
+#define STUN_ATR_TYPE_MAPPED_ADDR           0x0001
 #define STUN_ATR_TYPE_RESPONSE_ADDRESS	    0x0002
 #define STUN_ATR_TYPE_CHANGE_REQUEST	    0x0003
 #define STUN_ATR_TYPE_SOURCE_ADDRESS	    0x0004

@@ -21,9 +21,6 @@ static int __construct(Turn_Udp_Client *turn, char *init_str)
         turn->c = client(allocator, CLIENT_TYPE_INET_UDP, 
                          (char *)"0.0.0.0", //char *host, 
                          NULL,
-                         /*
-                          *(char *)"9090", //char *client_port, 
-                          */
                          __turn_client_resp_callback, turn);
         THROW_IF(turn->c == NULL, -1);
 
@@ -287,7 +284,7 @@ static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
 
         EXEC(turn->send_indication(turn, &arg, "hello world", 12));
 
-        sleep(5);
+        sleep(10);
     } CATCH (ret) {
     }
     object_destroy(turn);

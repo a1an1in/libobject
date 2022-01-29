@@ -11,7 +11,7 @@ macro (set_cmake_evironment_variable)
         ${PROJECT_SOURCE_DIR}/src/include)
     
     set (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
-    SET(ExternalLibs ${ExternalLibs} -Wl,--whole-archive object -Wl,--no-whole-archive pthread m )
+    SET(ExternalLibs ${ExternalLibs} -Wl,--whole-archive object -Wl,--no-whole-archive crypto pthread m )
 
     set (EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)  
     set (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
