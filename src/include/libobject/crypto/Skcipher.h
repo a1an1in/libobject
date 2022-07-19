@@ -15,6 +15,13 @@ struct Skcipher_s{
     /*virtual methods reimplement*/
     int (*set)(Skcipher *sk, char *attrib, void *value);
     void *(*get)(Skcipher *, char *attrib);
+    int (*set_key)(Skcipher *sk, char *key, void *key_len);
+    int (*encrypt)(Skcipher *sk, void *in, int in_len, void *out, int out_len);
+    int (*decrypt)(Skcipher *sk, void *in, int in_len, void *out, int out_len);
+
+    /* attribs */
+    void *key;
+    int key_len;
 };
 
 #endif
