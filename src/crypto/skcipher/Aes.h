@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
-#include <libobject/crypto/Skcipher.h>>
+#include <libobject/crypto/CipherAlgo.h>
 
 typedef struct Aes_s Aes;
 #define AES_MIN_KEY_SIZE	16
@@ -16,7 +16,7 @@ typedef struct Aes_s Aes;
 #define AES_MAX_KEYLENGTH_U32	(AES_MAX_KEYLENGTH / sizeof(u32))
 
 struct Aes_s{
-    Skcipher parent;
+    CipherAlgo parent;
 
     int (*construct)(Aes *,char *);
     int (*deconstruct)(Aes *);

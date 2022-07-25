@@ -372,7 +372,7 @@ static int __decrypt(Aes *ctx, const u8 *in, u8 *out)
 }
 
 static class_info_entry_t Aes_class_info[] = {
-    Init_Obj___Entry(0, Skcipher, parent),
+    Init_Obj___Entry(0, CipherAlgo, parent),
     Init_Nfunc_Entry(1, Aes, construct, __construct),
     Init_Nfunc_Entry(2, Aes, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3, Aes, set_key, __set_key),
