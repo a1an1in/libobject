@@ -64,43 +64,31 @@ static int __set_algo(Skcipher *sk, char *algo)
 static int __encrypt(Skcipher *sk, const u8 *in, const u32 in_len, u8 *out, u32 out_len)
 {
     CipherAlgo *algo;
-    int ret;
 
-    TRY {
-        algo = sk->algo;
-        EXEC(algo->encrypt(algo, in, in_len, out, out_len));
-    } CATCH (ret) {
-    }
+    algo = sk->algo;
+    TRY_EXEC(algo->encrypt(algo, in, in_len, out, out_len));
    
-    return ret;
+    return 0;
 }
 
 static int __decrypt(Skcipher *sk, const u8 *in, const u32 in_len, u8 *out, u32 out_len)
 {
     CipherAlgo *algo;
-    int ret;
 
-    TRY {
-        algo = sk->algo;
-        EXEC(algo->decrypt(algo, in, in_len, out, out_len));
-    } CATCH (ret) {
-    }
+    algo = sk->algo;
+    TRY_EXEC(algo->decrypt(algo, in, in_len, out, out_len));
    
-    return ret;
+    return 0;
 }
 
 static int __set_key(Skcipher *sk, char *in_key, unsigned int key_len)
 {
     CipherAlgo *algo;
-    int ret;
 
-    TRY {
-        algo = sk->algo;
-        EXEC(algo->set_key(algo, in_key, key_len));
-    } CATCH (ret) {
-    }
+    algo = sk->algo;
+    TRY_EXEC(algo->set_key(algo, in_key, key_len));
    
-    return ret;
+    return 0;
 }
 
 static class_info_entry_t sk_class_info[] = {
@@ -134,8 +122,12 @@ test_skcipher_ecb_aes(TEST_ENTRY *entry, void *argc, void *argv)
 		0x00, 0x11, 0x22, 0x33,
 		0x44, 0x55, 0x66, 0x77,
 		0x88, 0x99, 0xaa, 0xbb,
+		0xcc, 0xdd, 0xee, 0xff,
+        0x00, 0x11, 0x22, 0x33,
+		0x44, 0x55, 0x66, 0x77,
+		0x88, 0x99, 0xaa, 0xbb,
 		0xcc, 0xdd, 0xee, 0xff};
-	uint8_t out[16] = {0}; // 128
+	uint8_t out[32] = {0}; // 128
 
     TRY {
         dbg_str(DBG_SUC, "test_skciphter_ecb_aes in");
@@ -146,12 +138,12 @@ test_skcipher_ecb_aes(TEST_ENTRY *entry, void *argc, void *argv)
         sk->set_key(sk, key, sizeof(key));
         sk->encrypt(sk, in, sizeof(in), out, sizeof(out));
 
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < sizeof(in); i++) {
             printf("%x ", out[i]);
         }
         printf("\n");
         sk->decrypt(sk, out, sizeof(out), out, sizeof(out));
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < sizeof(in); i++) {
             printf("%x ", out[i]);
         }
         printf("\n");

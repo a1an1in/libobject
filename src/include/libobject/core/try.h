@@ -5,16 +5,6 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <setjmp.h>
 
-#define CONTINUE_IF(expression)                                                                  \
-    if ((int)(expression) == 1) {                                                                \
-        continue;                                                                                \
-    }
-
-#define RETURN_IF(condition, return_value)                                                       \
-    if ((condition) == 1) {                                                                      \
-        return return_value;                                                                     \
-    }
-
 typedef struct exception_frame_s {
     jmp_buf env;
     int line;
@@ -53,7 +43,7 @@ extern pthread_key_t try_key;
 #define EXEC(expression)                                                                         \
     do {                                                                                         \
         int __ret__ = 0;                                                                         \
-        if ((__ret__ = (int)(expression)) < 0) {                                                \
+        if ((__ret__ = (int)(expression)) < 0) {                                                 \
             exception_throw(__ret__, __func__, __FILE__, __LINE__, "");                          \
         }                                                                                        \
     } while (0);
@@ -152,13 +142,13 @@ extern pthread_key_t try_key;
         }                                                                                        \
     } while (0);
 
-#define SET_CATCH_INT_PARS(par1, par2)                                                            \
+#define SET_CATCH_INT_PARS(par1, par2)                                                           \
     do {                                                                                         \
         __error_int_par1 = (par1);                                                               \
         __error_int_par2 = (par2);                                                               \
     } while (0);
 
-#define SET_CATCH_STR_PARS(par1, par2)                                                            \
+#define SET_CATCH_STR_PARS(par1, par2)                                                           \
     do {                                                                                         \
         __error_ptr_par1 = (par1);                                                               \
         __error_ptr_par2 = (par2);                                                               \
@@ -184,12 +174,33 @@ extern pthread_key_t try_key;
 
 #define FINALLY                                                                                  \
 
+
+#define CONTINUE_IF(expression)                                                                  \
+    if ((int)(expression) == 1) {                                                                \
+        continue;                                                                                \
+    }
+
+#define RETURN_IF(condition, return_value)                                                       \
+    if ((condition) == 1) {                                                                      \
+        return return_value;                                                                     \
+    }
+
 #define CONTINUE_IF2(func, outpar_condition) {                                                   \
     (func);                                                                                      \
     if (outpar_condition) {                                                                      \
         continue;                                                                                \
     }                                                                                            \
 }
+
+#define TRY_EXEC(expression)                                                                     \
+    do {                                                                                         \
+        int __ret__ = 0;                                                                         \
+        if ((__ret__ = (int)(expression)) < 0) {                                                 \
+            dbg_str(DBG_ERROR, "ERROR_FUNC:%s, ERROR_LINE=%d, ERROR_INT_PAR2=%d",                \
+                    __func__, __LINE__);                                                         \
+            return __ret__;                                                                      \
+        }                                                                                        \
+    } while (0);
 
 #endif //end of USE_JMP_TRY_CATCH
 
