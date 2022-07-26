@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
+#include <libobject/crypto/CipherAlgo.h>
 
 typedef struct CipherMode_s CipherMode;
 
@@ -15,7 +16,7 @@ struct CipherMode_s{
     /*virtual methods reimplement*/
     int (*set)(CipherMode *ak, char *attrib, void *value);
     void *(*get)(CipherMode *, char *attrib);
-    int (*create)(CipherMode *, char *algo_name);
+    int (*create)(CipherMode *, char *sub_algo, CipherAlgo *algo);
 };
 
 #endif

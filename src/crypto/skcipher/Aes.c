@@ -3,7 +3,7 @@
  * @Synopsis  
  * @author alan lin
  * @version 
- * @date 2019-06-19
+ * @date 2022-07-25
  */
 
 #include "Aes.h"
@@ -275,7 +275,7 @@ static int __set_key(Aes *ctx, char *in_key, unsigned int key_len)
  * @out:	Buffer to store the ciphertext
  * @in:		Buffer containing the plaintext
  */
-static int __encrypt(Aes *ctx, const u8 *in, u8 *out)
+static int __encrypt(Aes *ctx, const u8 *in, const u32 in_len, u8 *out, u32 out_len)
 {
 	const u32 *rkp = ctx->key_enc + 4;
 	int rounds = 6 + ctx->key_length / 4;
@@ -325,7 +325,7 @@ static int __encrypt(Aes *ctx, const u8 *in, u8 *out)
  * @out:	Buffer to store the plaintext
  * @in:		Buffer containing the ciphertext
  */
-static int __decrypt(Aes *ctx, const u8 *in, u8 *out)
+static int __decrypt(Aes *ctx, const u8 *in, const u32 in_len, u8 *out, u32 out_len)
 {
     const u32 *rkp = ctx->key_dec + 4;
 	int rounds = 6 + ctx->key_length / 4;

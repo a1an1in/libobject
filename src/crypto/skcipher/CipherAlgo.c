@@ -3,25 +3,22 @@
  * @Synopsis  
  * @author alan lin
  * @version 
- * @date 2020-04-25
+ * @date 2022-07-25
  */
 
 #include <libobject/crypto/CipherAlgo.h>
 
 
-static int __construct(CipherAlgo *algo, char *init_str)
-{
-    return 0;
-}
-
 static int __deconstruct(CipherAlgo *algo)
 {
+    object_destroy(algo->sub_algo);
+
     return 0;
 }
 
 static class_info_entry_t cipher_algo_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
-    Init_Nfunc_Entry(1, CipherAlgo, construct, __construct),
+    Init_Nfunc_Entry(1, CipherAlgo, construct, NULL),
     Init_Nfunc_Entry(2, CipherAlgo, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3, CipherAlgo, set_key, NULL),
     Init_Vfunc_Entry(4, CipherAlgo, encrypt, NULL),
@@ -58,13 +55,13 @@ test_aes(TEST_ENTRY *entry, void *argc, void *argv)
     algo = object_new(allocator, "Aes", NULL);
     algo->set_key(algo, key, sizeof(key));
 
-    algo->encrypt(algo, in, out);
+    algo->encrypt(algo, in, sizeof(in), out, sizeof(out));
 
     for (int i = 0; i < 16; i++) {
         printf("%x ", out[i]);
     }
     printf("\n");
-    algo->decrypt(algo, out, out);
+    algo->decrypt(algo, out, sizeof(out), out, sizeof(out));
     for (int i = 0; i < 16; i++) {
         printf("%x ", out[i]);
     }
