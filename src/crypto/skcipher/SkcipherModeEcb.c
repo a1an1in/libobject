@@ -7,6 +7,7 @@
  */
 
 #include <libobject/crypto/SkcipherModeEcb.h>
+#include <libobject/crypto/Skcipher.h>
 
 static int __encrypt(CipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, u32 out_len)
 {
@@ -46,16 +47,9 @@ static int __decrypt(CipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, 
 
 static int __set_key(CipherAlgo *algo, char *in_key, unsigned int key_len)
 {
-    CipherAlgo *sub_algo;
-    int ret;
+    CipherAlgo *sub_algo = algo->sub_algo;
 
-    TRY {
-        sub_algo = algo->sub_algo;
-        EXEC(sub_algo->set_key(sub_algo, in_key, key_len));
-    } CATCH (ret) {
-    }
-   
-    return ret;
+    return TRY_EXEC(sub_algo->set_key(sub_algo, in_key, key_len));
 }
 
 static int __create(SkcipherModeEcb *mode, char *sub_algo_name, CipherAlgo *algo)

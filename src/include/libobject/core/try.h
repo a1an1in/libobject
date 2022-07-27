@@ -192,15 +192,15 @@ extern pthread_key_t try_key;
     }                                                                                            \
 }
 
-#define TRY_EXEC(expression)                                                                     \
-    do {                                                                                         \
-        int __ret__ = 0;                                                                         \
-        if ((__ret__ = (int)(expression)) < 0) {                                                 \
-            dbg_str(DBG_ERROR, "ERROR_FUNC:%s, ERROR_LINE=%d, ERROR_INT_PAR2=%d",                \
-                    __func__, __LINE__);                                                         \
-            return __ret__;                                                                      \
-        }                                                                                        \
-    } while (0);
+#define TRY_EXEC(expression) ({                                                                  \
+    int __ret__ = 0;                                                                             \
+    if ((__ret__ = (int)(expression)) < 0) {                                                     \
+        dbg_str(DBG_ERROR, "ERROR_FUNC:%s, ERROR_LINE=%d, ERROR_CODE=%d",                        \
+                __func__, __LINE__, __ret__);                                                    \
+        return __ret__;                                                                          \
+    }                                                                                            \
+    (__ret__);                                                                                   \
+});
 
 #endif //end of USE_JMP_TRY_CATCH
 

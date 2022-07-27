@@ -206,10 +206,18 @@ static inline int aes_check_keylen(unsigned int keylen)
  */
 static int __set_key(Aes *ctx, char *in_key, unsigned int key_len)
 {
-	u32 kwords = key_len / sizeof(u32);
-	u32 rc, i, j;
+	u32 kwords, rc, i, j;
 	int err;
+	char new_key[32] = {0};
 
+    if ((key_len % 8) != 0) {
+        memcpy(new_key, in_key, key_len);
+        in_key = new_key;
+        key_len = ((key_len / 8) + 1) * 8;
+        key_len = key_len == 8 ? 16 : key_len;
+    }
+
+	kwords = key_len / sizeof(u32);
 	err = aes_check_keylen(key_len);
 	if (err)
 		return err;
