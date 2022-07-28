@@ -59,6 +59,12 @@ static int __set_algo(Skcipher *sk, char *algo)
     return ret;
 }
 
+static int __set_padding(Skcipher *sk, SkcipherPaddingEnum padding)
+{
+    sk->algo->padding = padding;
+    return 0;
+}
+
 static int __encrypt(Skcipher *sk, const u8 *in, const u32 in_len, u8 *out, u32 out_len)
 {
     return TRY_EXEC(sk->algo->encrypt(sk->algo, in, in_len, out, out_len));
@@ -82,7 +88,8 @@ static class_info_entry_t sk_class_info[] = {
     Init_Vfunc_Entry(4, Skcipher, set_key, __set_key),
     Init_Vfunc_Entry(5, Skcipher, encrypt, __encrypt),
     Init_Vfunc_Entry(6, Skcipher, decrypt, __decrypt),
-    Init_End___Entry(7, Skcipher),
+    Init_Vfunc_Entry(7, Skcipher, set_padding, __set_padding),
+    Init_End___Entry(8, Skcipher),
 };
 REGISTER_CLASS("Skcipher", sk_class_info);
 
@@ -103,6 +110,7 @@ test_skcipher_ecb_aes(TEST_ENTRY *entry, void *argc, void *argv)
 
         EXEC(sk->set_algo(sk, "Ecb(Aes)"));
         EXEC(sk->set_key(sk, key, strlen(key)));
+        EXEC(sk->set_padding(sk, SKCIPHER_PADDING_ZERO));
         EXEC(sk->encrypt(sk, in, strlen(in), out, strlen(in)));
         dbg_buf(DBG_DETAIL, "Ecb(Aes) encode:", out, strlen(in));
      

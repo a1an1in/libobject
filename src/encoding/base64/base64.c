@@ -6,28 +6,25 @@
 int base64_encode(uint8_t *src, int src_len, uint8_t *dst, int dst_len)  
 {  
     int i, j, len;  
-    uint8_t *base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";   
+    uint8_t *base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; 
+    char t;  
 
     if(src_len % 3 == 0)  
         len = src_len / 3 * 4;  
     else  
         len = (src_len / 3 + 1) * 4;  
 
-    printf("strlen:%d len:%d", src_len, len);
     if (len > dst_len) {
         return -1;
     }
 
     //以3个8位字符为一组进行编码  
-    for(i = 0, j = 0; i < len - 2; j += 3, i += 4) {  
-
-        if (j + 2 > src_len) {
-            printf("run at here, j=%d\n", j);
-        }
-        dst[i]     = base64_table[src[j] >> 2]; //取出第一个字符的前6位并找出对应的结果字符  
-        dst[i + 1] = base64_table[(src[j] & 0x3) << 4 | (src[j + 1] >> 4)]; //将第一个字符的后位与第二个字符的前4位进行组合并找到对应的结果字符  
+    for(i = 0, j = 0; i < len - 2; j += 3, i += 4) {
+        t = j + 2 > src_len ? 0 : (src[j + 1] >> 4);
+        dst[i]     = base64_table[src[j] >> 2]; //取出第一个字符的前6位并找出对应的结果字符 
+        dst[i + 1] = base64_table[(src[j] & 0x3) << 4 | t];
         dst[i + 2] = base64_table[(src[j + 1] & 0xf) << 2 | (src[j + 2] >> 6)]; //将第二个字符的后4位与第三个字符的前2位组合并找出对应的结果字符  
-        dst[i + 3] = base64_table[src[j + 2] & 0x3f]; //取出第三个字符的后6位并找出结果字符  
+        dst[i + 3] = base64_table[src[j + 2] & 0x3f]; //取出第三个字符的后6位并找出结果字符 
     }  
 
     switch(src_len % 3)  {  
@@ -88,8 +85,7 @@ test_base64_encode(TEST_ENTRY *entry, void *argc, void *argv)
 {
     // char *expect = "aGVsbG8gd29ybGQ=";
     // char *test = "hello world";
-    // uint8_t test[16] = {0xCB, 0x66, 0x73, 0xBD, 0x52, 0x55, 0x57, 0x6D, 0x6C, 0x63, 0x2E, 0x68, 0x0D, 0x29, 0x7E, 0xF8};
-    uint8_t test[17] = {0xCB, 0x66, 0x73, 0xBD, 0x52, 0x55, 0x57, 0x6D, 0x6C, 0x63, 0x2E, 0x68, 0x0D, 0x29, 0x7E, 0xF8};
+    uint8_t test[16] = {0xCB, 0x66, 0x73, 0xBD, 0x52, 0x55, 0x57, 0x6D, 0x6C, 0x63, 0x2E, 0x68, 0x0D, 0x29, 0x7E, 0xF8};
     char *expect = "y2ZzvVJVV21sYy5oDSl++A==";
     unsigned short ret;
     uint8_t dst[1024] = {0};
@@ -98,14 +94,14 @@ test_base64_encode(TEST_ENTRY *entry, void *argc, void *argv)
         EXEC(base64_encode(test, 16, dst, 1024));
         ret = assert_equal(expect, dst, strlen(expect));
         dbg_str(DBG_DETAIL, "dst:%s, expect:%s", dst, expect);
-        dbg_buf(DBG_ERROR, "result:", dst, 24);
-        dbg_buf(DBG_ERROR, "expect:", expect, 24);
 
         SET_CATCH_STR_PARS(dst, expect);
         THROW_IF(ret != 1, -1);
     } CATCH (ret){
         dbg_str(DBG_ERROR, "test_base64_decode error, encode result=%s, expect=%s",
                 ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+        dbg_buf(DBG_ERROR, "result:", dst, strlen(dst));
+        dbg_buf(DBG_ERROR, "expect:", expect, strlen(expect));
     }
 
     return ret;
@@ -134,59 +130,3 @@ test_base64_decode(TEST_ENTRY *entry, void *argc, void *argv)
     return ret;
 }
 REGISTER_TEST_FUNC(test_base64_decode);
-
-unsigned char *base64_encode2(unsigned char *str)  
-{  
-    long len;  
-    long str_len;  
-    unsigned char *res;  
-    int i,j;  
-//定义base64编码表  
-    unsigned char *base64_table="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";  
-  
-//计算经过base64编码后的字符串长度  
-    str_len=strlen(str);  
-
-    if(str_len % 3 == 0)  
-        len=str_len/3*4;  
-    else  
-        len=(str_len/3+1)*4;  
-  
-    printf("strlen:%d len:%d", str_len, len);
-    res=malloc(sizeof(unsigned char)*len+1);  
-    res[len]='\0';  
-  
-//以3个8位字符为一组进行编码  
-    for(i=0,j=0;i<len-2;j+=3,i+=4)  
-    {  
-        res[i]=base64_table[str[j]>>2]; //取出第一个字符的前6位并找出对应的结果字符  
-        res[i+1]=base64_table[(str[j]&0x3)<<4 | (str[j+1]>>4)]; //将第一个字符的后位与第二个字符的前4位进行组合并找到对应的结果字符  
-        res[i+2]=base64_table[(str[j+1]&0xf)<<2 | (str[j+2]>>6)]; //将第二个字符的后4位与第三个字符的前2位组合并找出对应的结果字符  
-        res[i+3]=base64_table[str[j+2]&0x3f]; //取出第三个字符的后6位并找出结果字符  
-    }  
-  
-    switch(str_len % 3)  
-    {  
-        case 1:  
-            res[i-2]='=';  
-            res[i-1]='=';  
-            break;  
-        case 2:  
-            res[i-1]='=';  
-            break;  
-    }  
-  
-    return res;  
-}  
-
-static int
-test_base64_encode2(TEST_ENTRY *entry, void *argc, void *argv)
-{
-    uint8_t test[17] = {0xCB, 0x66, 0x73, 0xBD, 0x52, 0x55, 0x57, 0x6D, 0x6C, 0x63, 0x2E, 0x68, 0x0D, 0x29, 0x7E, 0xF8};
-    char *s;
-    
-    s = base64_encode2(test);
-    printf("result:%s", s);
-    return 0;
-}
-// REGISTER_TEST_FUNC(test_base64_encode2);

@@ -7,6 +7,12 @@
 typedef struct CipherAlgo_s CipherAlgo;
 typedef int (*CRIPTO_FUNC)(CipherAlgo *, const u8 *in, const u32 in_len, u8 *out, u32 out_len);
 
+typedef enum {
+    SKCIPHER_PADDING_NO = 0,
+    SKCIPHER_PADDING_ZERO,
+    SKCIPHER_PADDING_PKCS7
+} SkcipherPaddingEnum;
+
 struct CipherAlgo_s{
     Obj parent;
 
@@ -24,6 +30,7 @@ struct CipherAlgo_s{
     void *key;
     int key_len;
     void *sub_algo;
+    SkcipherPaddingEnum padding;
 };
 
 #endif

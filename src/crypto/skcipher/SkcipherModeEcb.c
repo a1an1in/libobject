@@ -18,6 +18,8 @@ static int __encrypt(CipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, 
     sub_algo = algo->sub_algo;
     func = sub_algo->encrypt;
 
+    dbg_str(DBG_DETAIL, "algo padding:%d", algo->padding);
+
     for (i = 0; i < in_len; i += 16) {
         func(sub_algo, in, 16, out, 16);
         in += 16;
