@@ -8,6 +8,99 @@
 
 #include <libobject/crypto/CipherAlgo.h>
 
+typedef struct cipher_algo_pad_policy_s {
+    int (*policy)(CipherAlgo *algo, int offset);
+} cipher_algo_pad_policy_t;
+
+static int __cipher_algo_pad_null_policy(CipherAlgo *algo, int offset)
+{
+    dbg_str(DBG_DETAIL, "run at here");
+    return 0;
+}
+
+static int __cipher_algo_pad_zero_policy(CipherAlgo *algo, int offset)
+{
+    dbg_str(DBG_DETAIL, "run at here");
+    return 0;
+}
+
+static int __cipher_algo_pad_pkcs7_policy(CipherAlgo *algo, int offset)
+{
+    char *last_block = algo->last_block;
+    int i, block_size, ret;
+
+    TRY {
+        EXEC(algo->get_block_size(algo, &block_size));
+            
+        for (i = 0; i < block_size - offset; i++) {
+            last_block[offset + i] = block_size - offset;
+        }
+        dbg_buf(DBG_DETAIL, "pad_pkcs7, last block:", last_block, block_size);
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
+cipher_algo_pad_policy_t g_cipher_algo_pad_policy[ENTRY_TYPE_MAX_TYPE] = {
+    [SKCIPHER_PADDING_NO]    = {.policy = __cipher_algo_pad_null_policy},
+    [SKCIPHER_PADDING_ZERO]  = {.policy = __cipher_algo_pad_zero_policy},
+    [SKCIPHER_PADDING_PKCS7] = {.policy = __cipher_algo_pad_pkcs7_policy},
+};
+
+static int __cipher_algo_unpad_null_policy(CipherAlgo *algo, u8 *out, u32 *out_len)
+{
+    dbg_str(DBG_DETAIL, "run at here");
+    return 0;
+}
+
+static int __cipher_algo_unpad_zero_policy(CipherAlgo *algo, u8 *out, u32 *out_len)
+{
+    dbg_str(DBG_DETAIL, "run at here");
+    return 0;
+}
+
+static int __cipher_algo_unpad_pkcs7_policy(CipherAlgo *algo, u8 *out, u32 *out_len)
+{
+    char *last_block = algo->last_block;
+    int i, block_size, ret, count;
+
+    TRY {
+        EXEC(algo->get_block_size(algo, &block_size));
+        THROW_IF(out_len == NULL && out == NULL, -1);
+
+        dbg_buf(DBG_DETAIL, "out:", out, *out_len);
+        count = out[*out_len - 1];
+        dbg_str(DBG_DETAIL, "run at here, out_len=%d, count:%d", *out_len, count);
+        THROW_IF(count > 16 || count <= 0, -1);
+
+        for (i = *out_len; i > *out_len - count; i--) {
+            out[i] = 0;
+        }
+        
+        *out_len = *out_len - count;
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
+typedef struct cipher_algo_unpad_policy_s {
+    int (*policy)(CipherAlgo *algo, u8 *out, u32 *out_len);
+} cipher_algo_unpad_policy_t;
+
+cipher_algo_unpad_policy_t g_cipher_algo_unpad_policy[ENTRY_TYPE_MAX_TYPE] = {
+    [SKCIPHER_PADDING_NO]    = {.policy = __cipher_algo_unpad_null_policy},
+    [SKCIPHER_PADDING_ZERO]  = {.policy = __cipher_algo_unpad_zero_policy},
+    [SKCIPHER_PADDING_PKCS7] = {.policy = __cipher_algo_unpad_pkcs7_policy},
+};
+
+static int __construct(CipherAlgo *algo)
+{
+    algo->padding = SKCIPHER_PADDING_PKCS7;
+
+    return 0;
+}
 
 static int __deconstruct(CipherAlgo *algo)
 {
@@ -16,14 +109,59 @@ static int __deconstruct(CipherAlgo *algo)
     return 0;
 }
 
+static int __pad(CipherAlgo *algo, const u8 *in, const u32 in_len)
+{
+    int (*policy)(CipherAlgo *algo, int offset);
+    int block_size, ret;
+
+    TRY {
+        EXEC(algo->get_block_size(algo, &block_size));
+        THROW_IF(algo->padding > SKCIPHER_PADDING_MAX, -1);
+        THROW_IF(in_len > block_size, -1);
+        
+        if (in_len) {
+            memcpy(algo->last_block, in, in_len);
+        }
+        policy = g_cipher_algo_pad_policy[algo->padding].policy;
+        THROW_IF(policy == NULL, -1);
+        dbg_str(DBG_DETAIL, "run at here");
+        EXEC(policy(algo, in_len));
+    } CATCH (ret) {
+    }
+    
+    return ret;
+}
+
+static int __unpad(CipherAlgo *algo, u8 *out, u32 *out_len)
+{
+    int (*policy)(CipherAlgo *algo, u8 *out, u32 *out_len);
+    int block_size, ret;
+
+    TRY {
+        EXEC(algo->get_block_size(algo, &block_size));
+        THROW_IF(algo->padding > SKCIPHER_PADDING_MAX, -1);
+
+        policy = g_cipher_algo_unpad_policy[algo->padding].policy;
+        THROW_IF(policy == NULL, -1);
+        dbg_str(DBG_DETAIL, "run at here");
+        EXEC(policy(algo, out, out_len));
+    } CATCH (ret) {
+    }
+    
+    return ret;
+}
+
 static class_info_entry_t cipher_algo_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
-    Init_Nfunc_Entry(1, CipherAlgo, construct, NULL),
+    Init_Nfunc_Entry(1, CipherAlgo, construct, __construct),
     Init_Nfunc_Entry(2, CipherAlgo, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3, CipherAlgo, set_key, NULL),
     Init_Vfunc_Entry(4, CipherAlgo, encrypt, NULL),
     Init_Vfunc_Entry(5, CipherAlgo, decrypt, NULL),
-    Init_End___Entry(6, CipherAlgo),
+    Init_Vfunc_Entry(6, CipherAlgo, pad, __pad),
+    Init_Vfunc_Entry(7, CipherAlgo, unpad, __unpad),
+    Init_Vfunc_Entry(8, CipherAlgo, get_block_size, NULL),
+    Init_End___Entry(9, CipherAlgo),
 };
 REGISTER_CLASS("CipherAlgo", cipher_algo_class_info);
 

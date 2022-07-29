@@ -3,7 +3,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
-int base64_encode(uint8_t *src, int src_len, uint8_t *dst, int dst_len)  
+int base64_encode(uint8_t *src, int src_len, uint8_t *dst, int *dst_len)  
 {  
     int i, j, len;  
     uint8_t *base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; 
@@ -14,7 +14,7 @@ int base64_encode(uint8_t *src, int src_len, uint8_t *dst, int dst_len)
     else  
         len = (src_len / 3 + 1) * 4;  
 
-    if (len > dst_len) {
+    if (len > *dst_len) {
         return -1;
     }
 
@@ -36,11 +36,12 @@ int base64_encode(uint8_t *src, int src_len, uint8_t *dst, int dst_len)
             dst[i - 1] = '=';  
             break;  
     }
+    *dst_len = len;
 
     return 0;  
 }  
 
-int base64_decode(uint8_t *src, int src_len, uint8_t *dst, int dst_len)  
+int base64_decode(uint8_t *src, int src_len, uint8_t *dst, int *dst_len)  
 {    
     int i, j, len; 
     int table[] = {
@@ -66,7 +67,7 @@ int base64_decode(uint8_t *src, int src_len, uint8_t *dst, int dst_len)
     else  
         len = src_len / 4 * 3;  
 
-    if (len > dst_len) {
+    if (len > *dst_len) {
         return -1;
     }
 
@@ -76,6 +77,8 @@ int base64_decode(uint8_t *src, int src_len, uint8_t *dst, int dst_len)
         dst[j + 1] = (((unsigned char)table[src[i + 1]]) << 4) | (((unsigned char)table[src[i + 2]]) >> 2); //取出第二个字符对应base64表的十进制数的后4位与第三个字符对应bas464表的十进制数的后4位进行组合  
         dst[j + 2] = (((unsigned char)table[src[i + 2]]) << 6) | ((unsigned char)table[src[i + 3]]); //取出第三个字符对应base64表的十进制数的后2位与第4个字符进行组合  
     }
+
+    *dst_len = len;
 
     return 0;  
 }
@@ -89,9 +92,10 @@ test_base64_encode(TEST_ENTRY *entry, void *argc, void *argv)
     char *expect = "y2ZzvVJVV21sYy5oDSl++A==";
     unsigned short ret;
     uint8_t dst[1024] = {0};
+    int len = 1024;
 
     TRY {
-        EXEC(base64_encode(test, 16, dst, 1024));
+        EXEC(base64_encode(test, 16, dst, &len));
         ret = assert_equal(expect, dst, strlen(expect));
         dbg_str(DBG_DETAIL, "dst:%s, expect:%s", dst, expect);
 
@@ -115,9 +119,10 @@ test_base64_decode(TEST_ENTRY *entry, void *argc, void *argv)
     char *expect = "hello world";
     unsigned short ret;
     char dst[1024] = {0};
+    int len = 1024;
 
     TRY {
-        EXEC(base64_decode(test, strlen(test), dst, 1024));
+        EXEC(base64_decode(test, strlen(test), dst, &len));
         ret = assert_equal(expect, dst, strlen(dst));
         dbg_str(DBG_DETAIL, "dst:%s, expect:%s", dst, expect);
         SET_CATCH_STR_PARS(dst, expect);

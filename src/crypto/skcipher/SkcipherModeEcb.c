@@ -9,39 +9,61 @@
 #include <libobject/crypto/SkcipherModeEcb.h>
 #include <libobject/crypto/Skcipher.h>
 
-static int __encrypt(CipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, u32 out_len)
+static int __encrypt(CipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, u32 *out_len)
 {
     CipherAlgo *sub_algo;
     CRIPTO_FUNC func;
-    int ret, i;
+    int ret, i, block_size;
 
-    sub_algo = algo->sub_algo;
-    func = sub_algo->encrypt;
+    TRY {
+        sub_algo = algo->sub_algo;
+        func = sub_algo->encrypt;
+        EXEC(algo->get_block_size(algo, &block_size));
 
-    dbg_str(DBG_DETAIL, "algo padding:%d", algo->padding);
+        dbg_str(DBG_DETAIL, "algo padding:%d, size=%d", algo->padding, block_size);
 
-    for (i = 0; i < in_len; i += 16) {
-        func(sub_algo, in, 16, out, 16);
-        in += 16;
-        out += 16;
+        for (i = 0; i < in_len && in_len - i >= block_size; i += block_size) {
+            EXEC(func(sub_algo, in, block_size, out, 16));
+            in += block_size;
+            out += block_size;
+        }
+
+        EXEC(algo->pad(algo, in, in_len - i));
+        if (algo->padding != SKCIPHER_PADDING_NO) {
+            EXEC(func(sub_algo, algo->last_block, block_size, out, 16));
+        }
+
+        *out_len = i + block_size;
+    } CATCH (ret) {
     }
 
     return ret;
 }
 
-static int __decrypt(CipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, u32 out_len)
+static int __decrypt(CipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, u32 *out_len)
 {
     CipherAlgo *sub_algo;
     CRIPTO_FUNC func;
-    int ret, i;
+    int ret, i, block_size;
+    u8 *out_head_addr = out;
 
-    sub_algo = algo->sub_algo;
-    func = sub_algo->decrypt;
+    TRY {
+        sub_algo = algo->sub_algo;
+        func = sub_algo->decrypt;
+        EXEC(algo->get_block_size(algo, &block_size));
 
-    for (i = 0; i < in_len; i += 16) {
-        func(sub_algo, in, 16, out, 16);
-        in += 16;
-        out += 16;
+        for (i = 0; i < in_len; i += block_size) {
+            THROW_IF(i > *out_len, -1);
+            EXEC(func(sub_algo, in, block_size, out, block_size));
+            in += block_size;
+            out += block_size;
+        }
+
+        *out_len = in_len;
+        if (algo->padding != SKCIPHER_PADDING_NO) {
+            EXEC(algo->unpad(algo, out_head_addr, out_len));
+        }
+    } CATCH (ret) {
     }
 
     return ret;
@@ -52,6 +74,13 @@ static int __set_key(CipherAlgo *algo, char *in_key, unsigned int key_len)
     CipherAlgo *sub_algo = algo->sub_algo;
 
     return TRY_EXEC(sub_algo->set_key(sub_algo, in_key, key_len));
+}
+
+static int __get_block_size(CipherAlgo *algo, u32 *size)
+{
+    CipherAlgo *sub_algo = algo->sub_algo;
+
+    return TRY_EXEC(sub_algo->get_block_size(sub_algo, size));
 }
 
 static int __create(SkcipherModeEcb *mode, char *sub_algo_name, CipherAlgo *algo)
@@ -70,6 +99,7 @@ static int __create(SkcipherModeEcb *mode, char *sub_algo_name, CipherAlgo *algo
         algo->encrypt = __encrypt;
         algo->decrypt = __decrypt;
         algo->set_key = __set_key;
+        algo->get_block_size = __get_block_size;
 
         dbg_str(DBG_DETAIL, "SkcipherModeEcb create");
     } CATCH (ret) {

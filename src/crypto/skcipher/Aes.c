@@ -283,7 +283,7 @@ static int __set_key(Aes *ctx, char *in_key, unsigned int key_len)
  * @out:	Buffer to store the ciphertext
  * @in:		Buffer containing the plaintext
  */
-static int __encrypt(Aes *ctx, const u8 *in, const u32 in_len, u8 *out, u32 out_len)
+static int __encrypt(Aes *ctx, const u8 *in, const u32 in_len, u8 *out, u32 *out_len)
 {
 	const u32 *rkp = ctx->key_enc + 4;
 	int rounds = 6 + ctx->key_length / 4;
@@ -325,6 +325,8 @@ static int __encrypt(Aes *ctx, const u8 *in, const u32 in_len, u8 *out, u32 out_
 	put_unaligned_u32(subshift(st1, 1) ^ rkp[5], out + 4);
 	put_unaligned_u32(subshift(st1, 2) ^ rkp[6], out + 8);
 	put_unaligned_u32(subshift(st1, 3) ^ rkp[7], out + 12);
+
+	return 0;
 }
 
 /**
@@ -333,7 +335,7 @@ static int __encrypt(Aes *ctx, const u8 *in, const u32 in_len, u8 *out, u32 out_
  * @out:	Buffer to store the plaintext
  * @in:		Buffer containing the ciphertext
  */
-static int __decrypt(Aes *ctx, const u8 *in, const u32 in_len, u8 *out, u32 out_len)
+static int __decrypt(Aes *ctx, const u8 *in, const u32 in_len, u8 *out, u32 *out_len)
 {
     const u32 *rkp = ctx->key_dec + 4;
 	int rounds = 6 + ctx->key_length / 4;
@@ -379,6 +381,12 @@ static int __decrypt(Aes *ctx, const u8 *in, const u32 in_len, u8 *out, u32 out_
     return 0;
 }
 
+static int __get_block_size(Aes *ctx, u32 *size)
+{
+	*size = 16;
+    return 16;
+}
+
 static class_info_entry_t Aes_class_info[] = {
     Init_Obj___Entry(0, CipherAlgo, parent),
     Init_Nfunc_Entry(1, Aes, construct, __construct),
@@ -386,6 +394,7 @@ static class_info_entry_t Aes_class_info[] = {
     Init_Vfunc_Entry(3, Aes, set_key, __set_key),
     Init_Vfunc_Entry(4, Aes, encrypt, __encrypt),
     Init_Vfunc_Entry(5, Aes, decrypt, __decrypt),
-    Init_End___Entry(6, Aes),
+	Init_Vfunc_Entry(6, Aes, get_block_size, __get_block_size),
+    Init_End___Entry(7, Aes),
 };
 REGISTER_CLASS("Aes", Aes_class_info);
