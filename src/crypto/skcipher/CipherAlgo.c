@@ -20,8 +20,20 @@ static int __cipher_algo_pad_null_policy(CipherAlgo *algo, int offset)
 
 static int __cipher_algo_pad_zero_policy(CipherAlgo *algo, int offset)
 {
-    dbg_str(DBG_DETAIL, "run at here");
-    return 0;
+    char *last_block = algo->last_block;
+    int i, block_size, ret;
+
+    TRY {
+        EXEC(algo->get_block_size(algo, &block_size));
+            
+        for (i = 0; i < block_size - offset; i++) {
+            last_block[offset + i] = 0;
+        }
+        dbg_buf(DBG_DETAIL, "pad_zero, last block:", last_block, block_size);
+    } CATCH (ret) {
+    }
+
+    return ret;
 }
 
 static int __cipher_algo_pad_pkcs7_policy(CipherAlgo *algo, int offset)
@@ -56,8 +68,23 @@ static int __cipher_algo_unpad_null_policy(CipherAlgo *algo, u8 *out, u32 *out_l
 
 static int __cipher_algo_unpad_zero_policy(CipherAlgo *algo, u8 *out, u32 *out_len)
 {
-    dbg_str(DBG_DETAIL, "run at here");
-    return 0;
+    char *last_block = algo->last_block;
+    int i, block_size, ret, count;
+
+    TRY {
+        EXEC(algo->get_block_size(algo, &block_size));
+        THROW_IF(out_len == NULL && out == NULL, -1);
+
+        dbg_buf(DBG_DETAIL, "out:", out, *out_len);
+        for (i = *out_len; i > *out_len - block_size && out[i] == 0; i--) {
+            ;
+        }
+        
+        *out_len = (i + 1);
+    } CATCH (ret) {
+    }
+
+    return ret;
 }
 
 static int __cipher_algo_unpad_pkcs7_policy(CipherAlgo *algo, u8 *out, u32 *out_len)

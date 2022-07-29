@@ -112,7 +112,7 @@ test_skcipher_ecb_aes(TEST_ENTRY *entry, void *argc, void *argv)
 
         EXEC(sk->set_algo(sk, "Ecb(Aes)"));
         EXEC(sk->set_key(sk, key, strlen(key)));
-        // EXEC(sk->set_padding(sk, SKCIPHER_PADDING_ZERO));
+        EXEC(sk->set_padding(sk, SKCIPHER_PADDING_ZERO));
         EXEC(sk->encrypt(sk, in, strlen(in), out, &out_len));
         dbg_buf(DBG_DETAIL, "in:", in, strlen(in));
         dbg_buf(DBG_DETAIL, "Ecb(Aes) encode:", out, out_len);
