@@ -30,6 +30,7 @@ struct CipherAlgo_s{
     int (*pad)(CipherAlgo *, const u8 *in, const u32 in_len);
     int (*unpad)(CipherAlgo *, u8 *out, u32 *out_len);
     int (*get_block_size)(CipherAlgo *, u32 *size);
+    int (*set_iv)(CipherAlgo *, void *iv);
 
     /* attribs */
     void *key;
@@ -37,6 +38,7 @@ struct CipherAlgo_s{
     void *sub_algo;
     SkcipherPaddingEnum padding;
     uint8_t last_block[MAX_BLOCK_SIZE];
+    uint8_t iv[MAX_BLOCK_SIZE];
 };
 
 #endif

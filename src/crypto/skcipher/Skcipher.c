@@ -81,6 +81,11 @@ static int __set_key(Skcipher *sk, char *in_key, unsigned int key_len)
     return TRY_EXEC(sk->algo->set_key(sk->algo, in_key, key_len));
 }
 
+static int __set_iv(Skcipher *sk, void *iv)
+{
+    return TRY_EXEC(sk->algo->set_iv(sk->algo, iv));
+}
+
 static class_info_entry_t sk_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
     Init_Nfunc_Entry(1, Skcipher, construct, __construct),
@@ -90,7 +95,8 @@ static class_info_entry_t sk_class_info[] = {
     Init_Vfunc_Entry(5, Skcipher, encrypt, __encrypt),
     Init_Vfunc_Entry(6, Skcipher, decrypt, __decrypt),
     Init_Vfunc_Entry(7, Skcipher, set_padding, __set_padding),
-    Init_End___Entry(8, Skcipher),
+    Init_Vfunc_Entry(8, Skcipher, set_iv, __set_iv),
+    Init_End___Entry(9, Skcipher),
 };
 REGISTER_CLASS("Skcipher", sk_class_info);
 
@@ -136,3 +142,48 @@ test_skcipher_ecb_aes(TEST_ENTRY *entry, void *argc, void *argv)
     return ret;
 }
 REGISTER_TEST_FUNC(test_skcipher_ecb_aes);
+
+static int
+test_skcipher_cbc_aes(TEST_ENTRY *entry, void *argc, void *argv)
+{
+    int ret;
+    allocator_t *allocator = allocator_get_default_alloc();
+    Skcipher *sk;
+	char *key = "123456";
+	char *in = "abcdefghijklmnopq";
+	char out[64] = {0}, out2[64] = {0}; // 128
+    char out_base64[512] = {0}; 
+    int out_len = 64, out_base64_len = 512;
+    char *iv = "1234567890123456";
+
+    TRY {
+        dbg_str(DBG_SUC, "test_skciphter_cbc_aes in");
+        sk = object_new(allocator, "Skcipher", NULL);
+
+        EXEC(sk->set_algo(sk, "Cbc(Aes)"));
+        EXEC(sk->set_key(sk, key, strlen(key)));
+        EXEC(sk->set_padding(sk, SKCIPHER_PADDING_ZERO));
+        EXEC(sk->set_iv(sk, iv));
+        EXEC(sk->encrypt(sk, in, strlen(in), out, &out_len));
+        dbg_buf(DBG_DETAIL, "in:", in, strlen(in));
+        dbg_buf(DBG_DETAIL, "Cbc(Aes) encode:", out, out_len);
+     
+        EXEC(base64_encode(out, out_len, out_base64, &out_base64_len));
+        dbg_str(DBG_DETAIL, "base64 encode:%s", out_base64);
+
+        EXEC(base64_decode(out_base64, strlen(out_base64), out_base64, &out_base64_len));
+        dbg_buf(DBG_DETAIL, "base64 decode:", out_base64, out_base64_len);
+        
+        EXEC(sk->decrypt(sk, out, out_len, out2, &out_len));
+        dbg_str(DBG_DETAIL, "cbc_aes decode:%s", out2);
+        dbg_buf(DBG_DETAIL, "cbc_aes decode:", out2, out_len);
+        THROW_IF(memcmp(in, out2, out_len) != 0, -1);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "test_skcipher_cbc_aes, in:%s, out:%s", in, out2);
+    } FINALLY {
+        object_destroy(sk);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_skcipher_cbc_aes);

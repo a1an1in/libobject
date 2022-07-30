@@ -25,6 +25,7 @@ struct Skcipher_s{
     int (*encrypt)(Skcipher *sk, const u8 *in, const u32 in_len, u8 *out, u32 *out_len);
     int (*decrypt)(Skcipher *sk, const u8 *in, const u32 in_len, u8 *out, u32 *out_len);
     int (*set_padding)(Skcipher *sk, SkcipherPaddingEnum padding);
+    int (*set_iv)(Skcipher *sk, void *iv);
 
     /* attribs */
     void *key;
