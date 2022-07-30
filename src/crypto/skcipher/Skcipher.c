@@ -13,7 +13,7 @@ static int __construct(Skcipher *sk, char *init_str)
 {
     allocator_t *allocator = sk->parent.allocator;
 
-    sk->algo = object_new(allocator, "CipherAlgo", NULL);
+    sk->algo = object_new(allocator, "SkcipherAlgo", NULL);
 
     return 0;
 }

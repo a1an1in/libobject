@@ -3,12 +3,12 @@
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
-#include <libobject/crypto/CipherMode.h>
+#include <libobject/crypto/SkcipherMode.h>
 
 typedef struct SkcipherModeEcb_s SkcipherModeEcb;
 
 struct SkcipherModeEcb_s{
-    CipherMode parent;
+    SkcipherMode parent;
 
     int (*construct)(SkcipherModeEcb *,char *);
     int (*deconstruct)(SkcipherModeEcb *);
@@ -16,7 +16,7 @@ struct SkcipherModeEcb_s{
     /*virtual methods reimplement*/
     int (*set)(SkcipherModeEcb *ak, char *attrib, void *value);
     void *(*get)(SkcipherModeEcb *, char *attrib);
-    int (*create)(SkcipherModeEcb *, char *sub_algo, CipherAlgo *algo);
+    int (*create)(SkcipherModeEcb *, char *sub_algo, SkcipherAlgo *algo);
 };
 
 #endif

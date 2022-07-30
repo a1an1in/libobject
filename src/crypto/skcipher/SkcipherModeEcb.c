@@ -9,9 +9,9 @@
 #include <libobject/crypto/SkcipherModeEcb.h>
 #include <libobject/crypto/Skcipher.h>
 
-static int __encrypt(CipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, u32 *out_len)
+static int __encrypt(SkcipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, u32 *out_len)
 {
-    CipherAlgo *sub_algo;
+    SkcipherAlgo *sub_algo;
     CRIPTO_FUNC func;
     int ret, i, block_size;
 
@@ -40,9 +40,9 @@ static int __encrypt(CipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, 
     return ret;
 }
 
-static int __decrypt(CipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, u32 *out_len)
+static int __decrypt(SkcipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, u32 *out_len)
 {
-    CipherAlgo *sub_algo;
+    SkcipherAlgo *sub_algo;
     CRIPTO_FUNC func;
     int ret, i, block_size;
     u8 *out_head_addr = out;
@@ -69,24 +69,24 @@ static int __decrypt(CipherAlgo *algo, const u8 *in, const u32 in_len, u8 *out, 
     return ret;
 }
 
-static int __set_key(CipherAlgo *algo, char *in_key, unsigned int key_len)
+static int __set_key(SkcipherAlgo *algo, char *in_key, unsigned int key_len)
 {
-    CipherAlgo *sub_algo = algo->sub_algo;
+    SkcipherAlgo *sub_algo = algo->sub_algo;
 
     return TRY_EXEC(sub_algo->set_key(sub_algo, in_key, key_len));
 }
 
-static int __get_block_size(CipherAlgo *algo, u32 *size)
+static int __get_block_size(SkcipherAlgo *algo, u32 *size)
 {
-    CipherAlgo *sub_algo = algo->sub_algo;
+    SkcipherAlgo *sub_algo = algo->sub_algo;
 
     return TRY_EXEC(sub_algo->get_block_size(sub_algo, size));
 }
 
-static int __create(SkcipherModeEcb *mode, char *sub_algo_name, CipherAlgo *algo)
+static int __create(SkcipherModeEcb *mode, char *sub_algo_name, SkcipherAlgo *algo)
 {
     allocator_t *allocator = mode->parent.parent.allocator;
-    CipherAlgo *sub_algo;
+    SkcipherAlgo *sub_algo;
     int ret;
 
     TRY {
@@ -109,7 +109,7 @@ static int __create(SkcipherModeEcb *mode, char *sub_algo_name, CipherAlgo *algo
 }
 
 static class_info_entry_t cipher_mode_ecb_class_info[] = {
-    Init_Obj___Entry(0, CipherMode, parent),
+    Init_Obj___Entry(0, SkcipherMode, parent),
     Init_Nfunc_Entry(1, SkcipherModeEcb, construct, NULL),
     Init_Nfunc_Entry(2, SkcipherModeEcb, deconstruct, NULL),
     Init_Vfunc_Entry(3, SkcipherModeEcb, create, __create),

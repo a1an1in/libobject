@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/String.h>
-#include <libobject/crypto/CipherMode.h>
-#include <libobject/crypto/CipherAlgo.h>
+#include <libobject/crypto/SkcipherMode.h>
+#include <libobject/crypto/SkcipherAlgo.h>
 
 typedef struct Skcipher_s Skcipher;
 #define MAX_MODE_NAME_LEN 20
@@ -30,8 +30,8 @@ struct Skcipher_s{
     /* attribs */
     void *key;
     int key_len;
-    CipherAlgo *algo;
-    CipherMode *mode;
+    SkcipherAlgo *algo;
+    SkcipherMode *mode;
     String *str;
 };
 
