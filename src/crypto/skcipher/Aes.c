@@ -142,7 +142,7 @@ static u32 inv_mix_columns(u32 x)
 	return mix_columns(x ^ y ^ ror32(y, 16));
 }
 
-static __always_inline u32 subshift(u32 in[], int pos)
+static u32 subshift(u32 in[], int pos)
 {
 	return (aes_sbox[in[pos] & 0xff]) ^
 	       (aes_sbox[(in[(pos + 1) % 4] >>  8) & 0xff] <<  8) ^
@@ -150,7 +150,7 @@ static __always_inline u32 subshift(u32 in[], int pos)
 	       (aes_sbox[(in[(pos + 3) % 4] >> 24) & 0xff] << 24);
 }
 
-static __always_inline u32 inv_subshift(u32 in[], int pos)
+static u32 inv_subshift(u32 in[], int pos)
 {
 	return (aes_inv_sbox[in[pos] & 0xff]) ^
 	       (aes_inv_sbox[(in[(pos + 3) % 4] >>  8) & 0xff] <<  8) ^
