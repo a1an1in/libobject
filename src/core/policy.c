@@ -96,9 +96,10 @@ int __obj_set_sn32_policy(Obj *obj, class_info_entry_t *entry, void *value)
 
     if (*addr == NULL) {
         *addr = object_new(allocator, "Number", NULL);
+        (*addr)->set_type((*addr), NUMBER_TYPE_OBJ_SIGNED_INT);
     }
 
-    (*addr)->set_value((*addr), NUMBER_TYPE_SIGNED_INT, value);
+    (*addr)->set_value((*addr), value, -1);
 
     return 1;
 }
@@ -243,13 +244,14 @@ static int __obj_to_json_string_policy(cjson_t *json, char *name, void *value)
 
 static int __obj_to_json_sn32_policy(cjson_t *json, char *name, void *value)
 {
-    int d;
+    int d, len;
     Number *number = *(Number **)value;
 
     if (number == NULL) {
         return 0;
     }
-    number->get_value(number, NUMBER_TYPE_SIGNED_INT, &d);
+    len = sizeof(d);
+    number->get_value(number, &d, &len);
 
     cjson_add_number_to_object(json, name, d);
 
@@ -476,282 +478,279 @@ __number_set_type_of_double(Number *number, enum number_type_e type)
 }
 
 static int 
-__number_set_value_of_signed_or_unsigned_short(Number *number, enum number_type_e type, void *value)
+__number_set_type_of_big_number(Number *number, enum number_type_e type)
 {
-    if (type == NUMBER_TYPE_SIGNED_SHORT) {
-        short v = *((short *)value);
-        number->data.short_data = v;
-    } else if (type = NUMBER_TYPE_UNSIGNED_SHORT) {
-        unsigned short v = *((unsigned short *)value);
-        number->data.unsigned_short_data = v;
-    } else {
-        return -1;
-    }
-    
+    number->type = type;
+
     return 0;
 }
 
-static int 
-__number_set_value_of_signed_or_unsigned_int(Number *number, enum number_type_e type, void *value)
-{
-    if (type == NUMBER_TYPE_SIGNED_INT) {
-        int v = *((int *)value);
-        number->data.int_data = v;
-    } else if (type = NUMBER_TYPE_UNSIGNED_INT) {
-        unsigned int v = *((unsigned int *)value);
-        number->data.unsigned_int_data = v;
-    } else {
-        return -1;
-    }
-    
-    return 0;
-}
-
-static int 
-__number_set_value_of_signed_or_unsigned_long(Number *number, enum number_type_e type, void *value)
-{
-    if (type == NUMBER_TYPE_SIGNED_LONG) {
-        long v = *((int *)value);
-        number->data.long_data = v;
-    } else if (type = NUMBER_TYPE_UNSIGNED_LONG) {
-        unsigned long v = *((unsigned long *)value);
-        number->data.unsigned_long_data = v;
-    } else {
-        return -1;
-    }
-    
-    return 0;
-}
-
-static int 
-__number_set_value_of_float(Number *number, enum number_type_e type, void *value)
-{
-    float v = *((float *)value);
-    number->data.float_data = v;
-    
-    return 0;
-}
-
-static int 
-__number_set_value_of_double(Number *number, enum number_type_e type, void *value)
-{
-    double v = *((double *)value);
-    number->data.double_data = v;
-    
-    return 0;
-}
-
-
-static int 
-__number_get_value_of_signed_or_unsigned_short(Number *number, enum number_type_e type, void *value)
-{
-    if (type == NUMBER_TYPE_SIGNED_SHORT) {
-        *((short *)value) = number->data.short_data;
-    } else if (type = NUMBER_TYPE_UNSIGNED_SHORT) {
-        *((unsigned short *)value) = number->data.unsigned_short_data;
-    } else {
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-static int 
-__number_get_value_of_signed_or_unsigned_int(Number *number, enum number_type_e type, void *value)
-{
-    if (type == NUMBER_TYPE_SIGNED_INT) {
-        *((int *)value) = number->data.int_data;
-    } else if (type = NUMBER_TYPE_UNSIGNED_INT) {
-        *((unsigned int *)value) = number->data.unsigned_int_data;
-    } else {
-        return -1;
-    }
-    
-    return 0;
-}
-
-static int 
-__number_get_value_of_signed_or_unsigned_long(Number *number, enum number_type_e type, void *value)
-{
-    if (type == NUMBER_TYPE_SIGNED_LONG) {
-        *((long *)value) = number->data.long_data;
-    } else if (type = NUMBER_TYPE_UNSIGNED_LONG) {
-        *((unsigned long *)value) = number->data.unsigned_long_data;
-    } else {
-        return -1;
-    }
-    
-    return 0;
-}
-
-static int 
-__number_get_value_of_float(Number *number, enum number_type_e type, void *value)
-{
-    *((float *)value) = number->data.float_data;
-    
-    return 0;
-}
-
-static int 
-__number_get_value_of_double(Number *number, enum number_type_e type, void *value)
-{
-    *((double *)value) = number->data.double_data;
-    
-    return 0;
-}
-
-static int __number_add_to_short(Number *number, Number *add)
+static int __number_add_to_short(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
     TRY {
-        THROW_IF(number->type != add->type, -1);
-        number->data.short_data += add->data.short_data;
+        THROW_IF(number->type != NUMBER_TYPE_OBJ_SIGNED_SHORT, -1);
+        THROW_IF(type != NUMBER_TYPE_OBJ_SIGNED_SHORT && type != NUMBER_TYPE_SIGNED_SHORT , -1);
+
+        switch (type) {
+            case NUMBER_TYPE_SIGNED_SHORT:
+                number->data.short_data += *(short *)value;
+                break;
+            case NUMBER_TYPE_OBJ_SIGNED_SHORT:
+                value = &((Number *)value)->data.short_data;
+                number->data.short_data += *(short *)value;
+                break;
+            default:
+                break;
+        }
+        
     } CATCH (ret) {
     }
 
     return ret;
 }
 
-static int __number_add_to_unsigned_short(Number *number, Number *add)
+static int __number_add_to_unsigned_short(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
     TRY {
-        THROW_IF(number->type != add->type, -1);
-        number->data.unsigned_short_data += add->data.unsigned_short_data;
+        THROW_IF(number->type != NUMBER_TYPE_OBJ_UNSIGNED_SHORT, -1);
+        THROW_IF(type != NUMBER_TYPE_OBJ_UNSIGNED_SHORT && type != NUMBER_TYPE_UNSIGNED_SHORT , -1);
+
+        switch (type) {
+            case NUMBER_TYPE_UNSIGNED_SHORT:
+                number->data.unsigned_short_data += *(unsigned short *)value;
+                break;
+            case NUMBER_TYPE_OBJ_UNSIGNED_SHORT:
+                value = &((Number *)value)->data.unsigned_short_data;
+                number->data.unsigned_short_data += *(unsigned short *)value;
+                break;
+            default:
+                break;
+        }
+        
     } CATCH (ret) {
     }
 
     return ret;
 }
 
-static int __number_add_to_int(Number *number, Number *add)
+static int __number_add_to_int(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
     TRY {
-        THROW_IF(number->type != add->type, -1);
-        number->data.int_data += add->data.int_data;
+        THROW_IF(number->type != NUMBER_TYPE_OBJ_SIGNED_INT, -1);
+        THROW_IF(type != NUMBER_TYPE_OBJ_SIGNED_INT && type != NUMBER_TYPE_SIGNED_INT , -1);
+
+        switch (type) {
+            case NUMBER_TYPE_SIGNED_INT:
+                number->data.int_data += *(int *)value;
+                break;
+            case NUMBER_TYPE_OBJ_SIGNED_INT:
+                value = &((Number *)value)->data.int_data;
+                number->data.int_data += *(int *)value;
+                break;
+            default:
+                break;
+        }
+        
     } CATCH (ret) {
     }
 
     return ret;
 }
 
-static int __number_add_to_unsigned_int(Number *number, Number *add)
+static int __number_add_to_unsigned_int(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
     TRY {
-        THROW_IF(number->type != add->type, -1);
-        number->data.unsigned_int_data += add->data.unsigned_int_data;
+        THROW_IF(number->type != NUMBER_TYPE_OBJ_UNSIGNED_INT, -1);
+        THROW_IF(type != NUMBER_TYPE_OBJ_UNSIGNED_INT && type != NUMBER_TYPE_UNSIGNED_INT , -1);
+
+        switch (type) {
+            case NUMBER_TYPE_UNSIGNED_INT:
+                number->data.unsigned_int_data += *(unsigned int *)value;
+                break;
+            case NUMBER_TYPE_OBJ_UNSIGNED_INT:
+                value = &((Number *)value)->data.int_data;
+                number->data.unsigned_int_data += *(unsigned int *)value;
+                break;
+            default:
+                break;
+        }
+        
     } CATCH (ret) {
     }
 
     return ret;
 }
 
-static int __number_add_to_long(Number *number, Number *add)
+static int __number_add_to_long(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
     TRY {
-        THROW_IF(number->type != add->type, -1);
-        number->data.long_data += add->data.long_data;
+        THROW_IF(number->type != NUMBER_TYPE_OBJ_SIGNED_LONG, -1);
+        THROW_IF(type != NUMBER_TYPE_OBJ_SIGNED_LONG && type != NUMBER_TYPE_SIGNED_LONG , -1);
+
+        switch (type) {
+            case NUMBER_TYPE_SIGNED_LONG:
+                number->data.long_data += *(long *)value;
+                break;
+            case NUMBER_TYPE_OBJ_SIGNED_LONG:
+                value = &((Number *)value)->data.long_data;
+                number->data.long_data += *(long *)value;
+                break;
+            default:
+                break;
+        }
+        
     } CATCH (ret) {
     }
 
     return ret;
 }
 
-static int __number_add_to_unsigned_long(Number *number, Number *add)
+static int __number_add_to_unsigned_long(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
     TRY {
-        THROW_IF(number->type != add->type, -1);
-        number->data.unsigned_long_data += add->data.unsigned_long_data;
+        THROW_IF(number->type != NUMBER_TYPE_OBJ_UNSIGNED_LONG, -1);
+        THROW_IF(type != NUMBER_TYPE_OBJ_UNSIGNED_LONG && type != NUMBER_TYPE_UNSIGNED_LONG , -1);
+
+        switch (type) {
+            case NUMBER_TYPE_UNSIGNED_LONG:
+                number->data.unsigned_long_data += *(unsigned long *)value;
+                break;
+            case NUMBER_TYPE_OBJ_UNSIGNED_LONG:
+                value = &((Number *)value)->data.unsigned_long_data;
+                number->data.unsigned_long_data += *(unsigned long *)value;
+                break;
+            default:
+                break;
+        }
+        
     } CATCH (ret) {
     }
 
     return ret;
 }
 
-static int __number_add_to_float(Number *number, Number *add)
+static int __number_add_to_float(Number *number,  enum number_type_e type, void *value, int len)
 {
     int ret;
 
     TRY {
-        THROW_IF(number->type != add->type, -1);
-        number->data.float_data += add->data.float_data;
+        THROW_IF(number->type != NUMBER_TYPE_OBJ_FLOAT, -1);
+        THROW_IF(type != NUMBER_TYPE_OBJ_FLOAT && type != NUMBER_TYPE_FLOAT , -1);
+
+        switch (type) {
+            case NUMBER_TYPE_FLOAT:
+                number->data.float_data += *(float *)value;
+                break;
+            case NUMBER_TYPE_OBJ_FLOAT:
+                value = &((Number *)value)->data.float_data;
+                number->data.float_data += *(float *)value;
+                break;
+            default:
+                break;
+        }
+        
     } CATCH (ret) {
     }
 
     return ret;
 }
 
-static int __number_add_to_double(Number *number, Number *add)
+static int __number_add_to_double(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
     TRY {
-        THROW_IF(number->type != add->type, -1);
-        number->data.double_data += add->data.double_data;
+        THROW_IF(number->type != NUMBER_TYPE_OBJ_DOUBLE, -1);
+        THROW_IF(type != NUMBER_TYPE_OBJ_DOUBLE && type != NUMBER_TYPE_DOUBLE, -1);
+
+        switch (type) {
+            case NUMBER_TYPE_DOUBLE:
+                number->data.double_data += *(double *)value;
+                break;
+            case NUMBER_TYPE_OBJ_DOUBLE:
+                value = &((Number *)value)->data.double_data;
+                number->data.double_data += *(double *)value;
+                break;
+            default:
+                break;
+        }
+        
     } CATCH (ret) {
     }
 
     return ret;
 }
+
+static int __number_add_to_big_number(Number *number, enum number_type_e type, void *value, int len)
+{
+    int ret;
+
+    TRY {
+        THROW_IF(number->type != NUMBER_TYPE_OBJ_BIG_NUMBER, -1);
+        THROW_IF(type != NUMBER_TYPE_OBJ_BIG_NUMBER, -1);
+
+        switch (type) {
+            case NUMBER_TYPE_OBJ_BIG_NUMBER:
+                THROW(-1);
+                break;
+            default:
+                break;
+        }
+        
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
 
 number_policy_t g_number_policies[NUMBER_TYPE_MAX] = {
-    [NUMBER_TYPE_SIGNED_SHORT] = {
+    [NUMBER_TYPE_OBJ_SIGNED_SHORT] = {
         .set_type  = __number_set_type_of_signed_or_unsigned_short,
-        .set_value = __number_set_value_of_signed_or_unsigned_short,
-        .get_value = __number_get_value_of_signed_or_unsigned_short,
         .add       = __number_add_to_short,
     },
-    [NUMBER_TYPE_UNSIGNED_SHORT] = {
+    [NUMBER_TYPE_OBJ_UNSIGNED_SHORT] = {
         .set_type  = __number_set_type_of_signed_or_unsigned_short,
-        .set_value = __number_set_value_of_signed_or_unsigned_short,
-        .get_value = __number_get_value_of_signed_or_unsigned_short,
         .add       = __number_add_to_unsigned_short,
     },
-    [NUMBER_TYPE_SIGNED_INT] = {
+    [NUMBER_TYPE_OBJ_SIGNED_INT] = {
         .set_type  = __number_set_type_of_signed_or_unsigned_int,
-        .set_value = __number_set_value_of_signed_or_unsigned_int,
-        .get_value = __number_get_value_of_signed_or_unsigned_int,
         .add       = __number_add_to_int,
     },
-    [NUMBER_TYPE_UNSIGNED_INT] = {
+    [NUMBER_TYPE_OBJ_UNSIGNED_INT] = {
         .set_type  = __number_set_type_of_signed_or_unsigned_int,
-        .set_value = __number_set_value_of_signed_or_unsigned_int,
-        .get_value = __number_get_value_of_signed_or_unsigned_int,
         .add       = __number_add_to_unsigned_int,
     },
-    [NUMBER_TYPE_SIGNED_LONG] = {
+    [NUMBER_TYPE_OBJ_SIGNED_LONG] = {
         .set_type  = __number_set_type_of_signed_or_unsigned_long,
-        .set_value = __number_set_value_of_signed_or_unsigned_long,
-        .get_value = __number_get_value_of_signed_or_unsigned_long,
         .add       = __number_add_to_long,
     },
-    [NUMBER_TYPE_UNSIGNED_LONG] = {
+    [NUMBER_TYPE_OBJ_UNSIGNED_LONG] = {
         .set_type  = __number_set_type_of_signed_or_unsigned_long,
-        .set_value = __number_set_value_of_signed_or_unsigned_long,
-        .get_value = __number_get_value_of_signed_or_unsigned_long,
         .add       = __number_add_to_unsigned_long,
     },
-    [NUMBER_TYPE_FLOAT] = {
+    [NUMBER_TYPE_OBJ_FLOAT] = {
         .set_type  = __number_set_type_of_float,
-        .set_value = __number_set_value_of_float,
-        .get_value = __number_get_value_of_float,
         .add       = __number_add_to_float,
     },
-    [NUMBER_TYPE_DOUBLE] = {
+    [NUMBER_TYPE_OBJ_DOUBLE] = {
         .set_type  = __number_set_type_of_double,
-        .set_value = __number_set_value_of_double,
-        .get_value = __number_get_value_of_double,
         .add       = __number_add_to_double,
-    }
+    },
+    [NUMBER_TYPE_OBJ_BIG_NUMBER] = {
+        .set_type  = __number_set_type_of_big_number,
+        .add       = __number_add_to_big_number,
+    },
 };

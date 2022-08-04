@@ -17,6 +17,18 @@ enum number_type_e {
     NUMBER_TYPE_UNSIGNED_LONG_LONG,
     NUMBER_TYPE_FLOAT,
     NUMBER_TYPE_DOUBLE,
+    NUMBER_TYPE_BIG_NUMBER,
+    NUMBER_TYPE_OBJ_SIGNED_SHORT,
+    NUMBER_TYPE_OBJ_UNSIGNED_SHORT,
+    NUMBER_TYPE_OBJ_SIGNED_INT,
+    NUMBER_TYPE_OBJ_UNSIGNED_INT,
+    NUMBER_TYPE_OBJ_SIGNED_LONG,
+    NUMBER_TYPE_OBJ_UNSIGNED_LONG,
+    NUMBER_TYPE_OBJ_SIGNED_LONG_LONG,
+    NUMBER_TYPE_OBJ_UNSIGNED_LONG_LONG,
+    NUMBER_TYPE_OBJ_FLOAT,
+    NUMBER_TYPE_OBJ_DOUBLE,
+    NUMBER_TYPE_OBJ_BIG_NUMBER,
     NUMBER_TYPE_MAX,
 };
 
@@ -33,10 +45,10 @@ struct Number_s{
     int (*set_type)(Number *number,enum number_type_e type);
     enum number_type_e (*get_type)(Number *number);
     int (*get_size)(Number *number);
-    int (*set_value)(Number *number, enum number_type_e type, void *value);
-    int (*get_value)(Number *number, enum number_type_e type, void *value);
+    int (*set_value)(Number *number, void *value, int len);
+    int (*get_value)(Number *number, void *value, int *len);
     int (*clear)(Number *number);
-    int (*add)(Number *number, Number *add);
+    int (*add)(Number *number, enum number_type_e type, void *value, int len);
 
     /*attribs*/
     union {
@@ -49,23 +61,30 @@ struct Number_s{
         float float_data;
         double double_data;
     } data;
+    
+    void *big_number_data;
     int size;
+    int capacity;
     enum number_type_e type;
 };
 
 
-#define NUM2S32(number)                                        \
-({                                                             \
-    int value;                                                 \
-    number->get_value(number, NUMBER_TYPE_SIGNED_INT, &value); \
-    value;                                                     \
+#define NUM2S32(number)                                                \
+({                                                                     \
+    int value;                                                         \
+    int len = sizeof(int);                                             \
+    number->get_value(number, &value, &len);                           \
+    value;                                                             \
 })
 
-#define NUM2U32(number)                                        \
-({                                                             \
-    unsigned int value;                                        \
-    number->get_value(number, NUMBER_TYPE_UNSIGNED_INT, &value); \
-    value;                                                     \
+#define NUM2U32(number)                                                \
+({                                                                     \
+    unsigned int value;                                                \
+    int len = sizeof(int);                                             \
+    number->get_value(number, &value, &len);                           \
+    value;                                                             \
 })
+
+#define MAX_BIG_NUMBER_LEN  2048
 
 #endif

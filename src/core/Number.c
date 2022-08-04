@@ -9,6 +9,15 @@
 #include <libobject/core/Number.h>
 #include <libobject/core/policy.h>
 
+static int __deconstrcut(Number *number)
+{
+    allocator_t *allocator = number->parent.allocator;
+
+    allocator_mem_free(allocator, number->big_number_data);
+
+    return 1;
+}
+
 static int 
 __set_type(Number *number, enum number_type_e type)
 {
@@ -36,16 +45,26 @@ static int __get_size(Number *number)
 }
 
 static int 
-__set_value(Number *number, enum number_type_e type, void *value)
+__set_value(Number *number, void *value, int len)
 {
+    allocator_t *allocator = number->parent.allocator;
     int ret = 1;
+    int type;
 
     TRY {
-        THROW_IF(type >= NUMBER_TYPE_MAX,  -1);
-        THROW_IF(g_number_policies[type].set_value == NULL,  -1);
+        type = number->get_type(number);
 
-        EXEC(number->set_type(number, type));
-        EXEC(g_number_policies[type].set_value(number, type, value));
+        if (type == NUMBER_TYPE_BIG_NUMBER) {
+            if (number->big_number_data == NULL) {
+                number->big_number_data = allocator_mem_alloc(allocator, len);
+                THROW_IF(number->big_number_data == NULL, -1);
+            }
+            memcpy(number->big_number_data, value, len);
+            number->size = len;
+        } else {
+            memcpy(&number->data, value, number->size);
+            //size have been set in set_type policy.
+        }
     } CATCH (ret) {
     }
 
@@ -53,15 +72,21 @@ __set_value(Number *number, enum number_type_e type, void *value)
 }
 
 static int 
-__get_value(Number *number, enum number_type_e type, void *value)
+__get_value(Number *number, void *value, int *len)
 {
     int ret = 0;
+    int type;
 
     TRY {
-        THROW_IF(type >= NUMBER_TYPE_MAX,  -1);
-        THROW_IF(g_number_policies[type].get_value == NULL,  -1);
+        THROW_IF(*len < number->size || value == NULL || number == NULL, -1);
+        type = number->get_type(number);
 
-        EXEC(g_number_policies[type].get_value(number, type, value));
+        if (type == NUMBER_TYPE_OBJ_BIG_NUMBER) {
+            THROW_IF(number->big_number_data == NULL, -1);
+            memcpy(value, number->big_number_data, number->size);
+        } else {
+            memcpy(value, &number->data, number->size);
+        }
     } CATCH (ret) {
     }
 
@@ -76,17 +101,17 @@ static int __clear(Number *number)
     return 0;
 }
 
-static int __add(Number *number, Number *add)
+static int __add(Number *number, enum number_type_e type, void *value, int len)
 {
-    enum number_type_e type;
+    enum number_type_e number_type;
     int ret = 1;
 
     TRY {
-        type = number->get_type(number);
         THROW_IF(type >= NUMBER_TYPE_MAX,  -1);
-        THROW_IF(g_number_policies[type].add == NULL,  -1);
+        number_type = number->get_type(number);
+        THROW_IF(g_number_policies[number_type].add == NULL,  -1);
 
-        EXEC(g_number_policies[type].add(number, add));
+        EXEC(g_number_policies[number_type].add(number, type, value, len));
     } CATCH (ret) {
     }
 

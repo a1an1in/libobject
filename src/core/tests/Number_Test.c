@@ -68,12 +68,13 @@ static int __test_int_number(Number_Test *test)
 {
     Number *number = test->number;
     int d = -1, expect_d = -1, ret = 0;
+    int len = sizeof(int);
 
     TRY {
         number->clear(number);
-
-        number->set_value(number, NUMBER_TYPE_SIGNED_INT, &d);
-        number->get_value(number, NUMBER_TYPE_SIGNED_INT, &expect_d);
+        number->set_type(number, NUMBER_TYPE_OBJ_SIGNED_INT);
+        number->set_value(number,  &d, -1);
+        number->get_value(number, &expect_d, &len);
 
         SET_CATCH_INT_PARS(d, expect_d);
         THROW_IF(d != expect_d, -1);
@@ -95,16 +96,19 @@ static int __test_add_case1(Number_Test *test)
     Number *number = test->number, *add;
     allocator_t *allocator = allocator_get_default_alloc();
     int num1 = 1, num2 = 2, expect_d = 3, ret = 0, sum = 0;
+    int len = sizeof(int);
 
     TRY {
-        add = object_new(allocator, "Number", NULL);
-
         number->clear(number);
-        number->set_value(number, NUMBER_TYPE_SIGNED_INT, &num1);
-        add->set_value(add, NUMBER_TYPE_SIGNED_INT, &num2);
+        number->set_type(number, NUMBER_TYPE_OBJ_SIGNED_INT);
+        number->set_value(number,  &num1, -1);
 
-        number->add(number, add);
-        number->get_value(number, NUMBER_TYPE_SIGNED_INT, &sum);
+        add = object_new(allocator, "Number", NULL);
+        add->set_type(add, NUMBER_TYPE_OBJ_SIGNED_INT);
+        add->set_value(add, &num2, -1);
+
+        number->add(number, NUMBER_TYPE_OBJ_SIGNED_INT, add, sizeof(int));
+        number->get_value(number, &sum, &len);
         SET_CATCH_INT_PARS(expect_d, sum);
         THROW_IF(sum != expect_d, -1);
     } CATCH (ret) {

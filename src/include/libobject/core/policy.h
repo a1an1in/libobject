@@ -25,9 +25,7 @@ typedef struct obj_to_json_policy_s {
 
 typedef struct number_policy_s {
     int (*set_type)(Number *number, enum number_type_e type);
-    int (*set_value)(Number *number, enum number_type_e type, void *value);
-    int (*get_value)(Number *number, enum number_type_e type, void *value);
-    int (*add)(Number *number, Number *add);
+    int (*add)(Number *number, enum number_type_e type, void *value, int len);
 } number_policy_t;
 
 extern obj_to_json_policy_t g_obj_to_json_policy[ENTRY_TYPE_MAX_TYPE];
