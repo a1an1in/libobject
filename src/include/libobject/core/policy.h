@@ -23,7 +23,16 @@ typedef struct obj_to_json_policy_s {
     int (*policy)(cjson_t *json, char *name, void *value);
 } obj_to_json_policy_t;
 
+typedef struct number_policy_s {
+    int (*set_type)(Number *number, enum number_type_e type);
+    int (*set_value)(Number *number, enum number_type_e type, void *value);
+    int (*get_value)(Number *number, enum number_type_e type, void *value);
+    int (*add)(Number *number, Number *add);
+} number_policy_t;
+
 extern obj_to_json_policy_t g_obj_to_json_policy[ENTRY_TYPE_MAX_TYPE];
 extern obj_set_policy_t g_obj_set_policy[ENTRY_TYPE_MAX_TYPE];
 extern vector_to_json_policy_t g_vector_to_json_policy[ENTRY_TYPE_MAX_TYPE];
+extern number_policy_t g_number_policies[NUMBER_TYPE_MAX];
+
 #endif

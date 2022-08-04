@@ -17,6 +17,7 @@ enum number_type_e {
     NUMBER_TYPE_UNSIGNED_LONG_LONG,
     NUMBER_TYPE_FLOAT,
     NUMBER_TYPE_DOUBLE,
+    NUMBER_TYPE_MAX,
 };
 
 struct Number_s{
