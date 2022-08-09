@@ -1,10 +1,8 @@
-refact Number Class.
+implement big number add method.
 
 Description:
-the implement policies of set_value and get_value have some issue. there's no
-need using policies, we can do it directly.
+big number add() has been tested
 
 Major Changes:
-1. change Number set_value, get_value interface, add a len parameter.
-1. change Number add().
-2. implement big number
+1. add __number_add_to_big_number().
+2. add test cases.

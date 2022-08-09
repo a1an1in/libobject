@@ -54,10 +54,21 @@ __set_value(Number *number, void *value, int len)
     TRY {
         type = number->get_type(number);
 
-        if (type == NUMBER_TYPE_BIG_NUMBER) {
+        if (type == NUMBER_TYPE_OBJ_BIG_NUMBER) {
+            if (len < 0) {
+                number->big_number_neg_flag = 1;
+                len *= -1;
+            }
+            
             if (number->big_number_data == NULL) {
-                number->big_number_data = allocator_mem_alloc(allocator, len);
+                number->big_number_data = allocator_mem_alloc(allocator, len * 2);
                 THROW_IF(number->big_number_data == NULL, -1);
+                number->capacity = 2 * len;
+            } else if (number->capacity < len) {
+                allocator_mem_free(allocator, number->big_number_data);
+                number->big_number_data = allocator_mem_alloc(allocator, len * 2);
+                THROW_IF(number->big_number_data == NULL, -1);
+                number->capacity = 2 * len;
             }
             memcpy(number->big_number_data, value, len);
             number->size = len;
@@ -84,6 +95,7 @@ __get_value(Number *number, void *value, int *len)
         if (type == NUMBER_TYPE_OBJ_BIG_NUMBER) {
             THROW_IF(number->big_number_data == NULL, -1);
             memcpy(value, number->big_number_data, number->size);
+            *len = number->size;
         } else {
             memcpy(value, &number->data, number->size);
         }
@@ -118,10 +130,50 @@ static int __add(Number *number, enum number_type_e type, void *value, int len)
     return ret;
 }
 
+static int __sub(Number *number, enum number_type_e type, void *value, int len)
+{
+
+}
+
+static int __mul(Number *number, enum number_type_e type, void *value, int len)
+{
+
+}
+
+static int __div(Number *number, enum number_type_e type, void *value, int len)
+{
+
+}
+
+static int __mod(Number *number, enum number_type_e type, void *value, int len)
+{
+
+}
+
+static int __exp(Number *number, enum number_type_e type, void *value, int len)
+{
+
+}
+
+static int __gcd(Number *a, Number *b)
+{
+
+}
+
+static int __rand(Number *number, int bits, int top, int bottom)
+{
+
+}
+
+static int __prime(Number *number, int bits)
+{
+
+}
+
 static class_info_entry_t number_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Number, construct, NULL),
-    Init_Nfunc_Entry(2 , Number, deconstruct, NULL),
+    Init_Nfunc_Entry(2 , Number, deconstruct, __deconstrcut),
     Init_Vfunc_Entry(3 , Number, set, NULL),
     Init_Vfunc_Entry(4 , Number, get, NULL),
     Init_Vfunc_Entry(5 , Number, to_json, NULL),
@@ -132,7 +184,14 @@ static class_info_entry_t number_class_info[] = {
     Init_Vfunc_Entry(10, Number, get_value, __get_value),
     Init_Vfunc_Entry(11, Number, clear, __clear),
     Init_Vfunc_Entry(12, Number, add, __add),
-    Init_End___Entry(13, Number),
+    Init_Vfunc_Entry(13, Number, sub, __sub),
+    Init_Vfunc_Entry(14, Number, mul, __mul),
+    Init_Vfunc_Entry(15, Number, div, __div),
+    Init_Vfunc_Entry(16, Number, mod, __mod),
+    Init_Vfunc_Entry(17, Number, gcd, __gcd),
+    Init_Vfunc_Entry(18, Number, rand, __rand),
+    Init_Vfunc_Entry(19, Number, prime, __prime),
+    Init_End___Entry(20, Number),
 };
 REGISTER_CLASS("Number", number_class_info);
 

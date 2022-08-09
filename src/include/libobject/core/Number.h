@@ -49,6 +49,14 @@ struct Number_s{
     int (*get_value)(Number *number, void *value, int *len);
     int (*clear)(Number *number);
     int (*add)(Number *number, enum number_type_e type, void *value, int len);
+    int (*sub)(Number *number, enum number_type_e type, void *value, int len);
+    int (*mul)(Number *number, enum number_type_e type, void *value, int len);
+    int (*div)(Number *number, enum number_type_e type, void *value, int len);
+    int (*mod)(Number *number, enum number_type_e type, void *value, int len);
+    int (*exp)(Number *number, enum number_type_e type, void *value, int len);
+    int (*gcd)(Number *a, Number *b);
+    int (*rand)(Number *number, int bits, int top, int bottom);
+    int (*prime)(Number *number, int bits);
 
     /*attribs*/
     union {
@@ -63,6 +71,7 @@ struct Number_s{
     } data;
     
     void *big_number_data;
+    int big_number_neg_flag;
     int size;
     int capacity;
     enum number_type_e type;

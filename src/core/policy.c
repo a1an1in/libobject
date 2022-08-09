@@ -695,17 +695,62 @@ static int __number_add_to_double(Number *number, enum number_type_e type, void 
 
 static int __number_add_to_big_number(Number *number, enum number_type_e type, void *value, int len)
 {
-    int ret;
+    int ret, l, i, carry = 0, tmp1, tmp2, diff;
+    uint8_t *dest, *n1, *n2;
 
     TRY {
         THROW_IF(number->type != NUMBER_TYPE_OBJ_BIG_NUMBER, -1);
         THROW_IF(type != NUMBER_TYPE_OBJ_BIG_NUMBER, -1);
 
+        dbg_str(DBG_DETAIL, "run at here, size:%d, cap:%d", number->size, number->capacity);
         switch (type) {
-            case NUMBER_TYPE_OBJ_BIG_NUMBER:
-                THROW(-1);
+            case NUMBER_TYPE_OBJ_BIG_NUMBER: {
+                Number *add = (Number *)value;
+                if (number->big_number_neg_flag == add->big_number_neg_flag) {
+                    dest = number->big_number_data;
+                    if (number->size >= add->size) {
+                        n1 = dest;
+                        n2 = add->big_number_data;
+                        diff = number->size - add->size;
+                    } else {
+                        n2 = dest;
+                        n1 = add->big_number_data;
+                        diff = add->size - number->size;
+                    }
+
+                    /* 1. compute the same len part */
+                    l = number->size > add->size ? add->size : number->size;
+                    for (i = 0; i < l; i++) {
+                        tmp1 = n1[0];
+                        tmp1 = (tmp1 + carry) & 0xff;
+                        carry = (tmp1 < carry);
+                        tmp2 = (tmp1 + n2[0]) & 0xff;
+                        carry += (tmp2 < tmp1);
+                        dest[0] = tmp2;
+                        dest++;
+                        n1++;
+                        n2++;
+                    }
+
+                    /* 2. compute the longer len parg */
+                    n1 += l;
+                    dest += l;
+                    while (diff--) {
+                        tmp1 = *(n1++);
+                        tmp2 = (tmp1 + carry) & 0xff;
+                        (*dest++) = tmp2;
+                        carry &= (tmp2 == 0);
+                    }
+                    *dest = carry;
+                    number->size += carry;
+                } else {
+                    THROW(-1); //not support now!
+                }
+                
                 break;
+            }
             default:
+                THROW(-1);
                 break;
         }
         
