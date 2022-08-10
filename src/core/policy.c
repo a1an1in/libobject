@@ -7,6 +7,7 @@
  */
 
 #include <libobject/core/policy.h>
+#include <libobject/core/utils/bn/big_number.h>
 
 int __obj_set_int8_policy(Obj *obj, class_info_entry_t *entry, void *value)
 {
@@ -707,42 +708,8 @@ static int __number_add_to_big_number(Number *number, enum number_type_e type, v
             case NUMBER_TYPE_OBJ_BIG_NUMBER: {
                 Number *add = (Number *)value;
                 if (number->big_number_neg_flag == add->big_number_neg_flag) {
-                    dest = number->big_number_data;
-                    if (number->size >= add->size) {
-                        n1 = dest;
-                        n2 = add->big_number_data;
-                        diff = number->size - add->size;
-                    } else {
-                        n2 = dest;
-                        n1 = add->big_number_data;
-                        diff = add->size - number->size;
-                    }
-
-                    /* 1. compute the same len part */
-                    l = number->size > add->size ? add->size : number->size;
-                    for (i = 0; i < l; i++) {
-                        tmp1 = n1[0];
-                        tmp1 = (tmp1 + carry) & 0xff;
-                        carry = (tmp1 < carry);
-                        tmp2 = (tmp1 + n2[0]) & 0xff;
-                        carry += (tmp2 < tmp1);
-                        dest[0] = tmp2;
-                        dest++;
-                        n1++;
-                        n2++;
-                    }
-
-                    /* 2. compute the longer len parg */
-                    n1 += l;
-                    dest += l;
-                    while (diff--) {
-                        tmp1 = *(n1++);
-                        tmp2 = (tmp1 + carry) & 0xff;
-                        (*dest++) = tmp2;
-                        carry &= (tmp2 == 0);
-                    }
-                    *dest = carry;
-                    number->size += carry;
+                    EXEC(bn_add(number->big_number_data, number->capacity, &number->size, 
+                                add->big_number_data, add->size)); 
                 } else {
                     THROW(-1); //not support now!
                 }

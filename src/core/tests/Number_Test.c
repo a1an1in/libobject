@@ -128,13 +128,15 @@ static int __test_add_big_number_number(Number_Test *test)
     uint8_t num1[10] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa};
     uint8_t num2[10] = {0xaa, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11};
     uint8_t expect_d[11] = {0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xff};
-    uint8_t ret = 0, sum[11] = {0};
-    int len = 11;
+    uint8_t sum[11] = {0};
+    int len = 11, ret;
 
     TRY {
         number->clear(number);
         number->set_type(number, NUMBER_TYPE_OBJ_BIG_NUMBER);
         number->set_value(number,  &num1, sizeof(num1));
+
+        dbg_str(DBG_DETAIL, "num2:%p, expect_d:%p, ret:%p, sum:%p, ", num2, expect_d, &ret, sum);
 
         add = object_new(allocator, "Number", NULL);
         add->set_type(add, NUMBER_TYPE_OBJ_BIG_NUMBER);
@@ -147,6 +149,7 @@ static int __test_add_big_number_number(Number_Test *test)
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_buf(DBG_ERROR, "expect:", expect_d, len);
         dbg_buf(DBG_ERROR, "real:", sum, len);
+        
     } FINALLY {
         object_destroy(add);
     }
@@ -161,8 +164,8 @@ static int __test_add_big_number_number_with_carry(Number_Test *test)
     uint8_t num1[8] = {0xff, 0xff, 0xff, 0xff, 0x1, 0x1, 0x1, 0x1};
     uint8_t num2[6] = {0xff, 0xff, 0xff, 0xff};
     uint8_t expect_d[11] = {0xfe, 0xff, 0xff, 0xff, 0x02, 0x01, 0x01, 0x01};
-    uint8_t ret = 0, sum[11] = {0};
-    int len = 11;
+    uint8_t sum[11] = {0};
+    int len = 11, ret;
 
     TRY {
         number->clear(number);
