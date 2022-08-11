@@ -1,8 +1,9 @@
-implement big number add method.
+implement bn_sub
 
 Description:
-big number add() has been tested
+done Number::sub relevent work.
 
 Major Changes:
-1. add __number_add_to_big_number().
-2. add test cases.
+1. add Number::sub
+2. implement bn_cmp and bn_sub
+3. add Number::sub test case

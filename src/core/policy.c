@@ -727,6 +727,39 @@ static int __number_add_to_big_number(Number *number, enum number_type_e type, v
     return ret;
 }
 
+static int __number_sub_to_big_number(Number *number, enum number_type_e type, void *value, int len)
+{
+    int ret, l, i, carry = 0, tmp1, tmp2, diff;
+    uint8_t *dest, *n1, *n2;
+
+    TRY {
+        THROW_IF(number->type != NUMBER_TYPE_OBJ_BIG_NUMBER, -1);
+        THROW_IF(type != NUMBER_TYPE_OBJ_BIG_NUMBER, -1);
+
+        dbg_str(DBG_DETAIL, "run at here, size:%d, cap:%d", number->size, number->capacity);
+        switch (type) {
+            case NUMBER_TYPE_OBJ_BIG_NUMBER: {
+                Number *sub = (Number *)value;
+                if (number->big_number_neg_flag == sub->big_number_neg_flag) {
+                    EXEC(bn_sub(number->big_number_data, number->capacity, &number->size, &number->big_number_neg_flag,
+                                sub->big_number_data, sub->size)); 
+                } else {
+                    THROW(-1); //not support now!
+                }
+                
+                break;
+            }
+            default:
+                THROW(-1);
+                break;
+        }
+        
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
 
 number_policy_t g_number_policies[NUMBER_TYPE_MAX] = {
     [NUMBER_TYPE_OBJ_SIGNED_SHORT] = {
@@ -764,5 +797,6 @@ number_policy_t g_number_policies[NUMBER_TYPE_MAX] = {
     [NUMBER_TYPE_OBJ_BIG_NUMBER] = {
         .set_type  = __number_set_type_of_big_number,
         .add       = __number_add_to_big_number,
+        .sub       = __number_sub_to_big_number,
     },
 };

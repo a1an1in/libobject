@@ -132,7 +132,19 @@ static int __add(Number *number, enum number_type_e type, void *value, int len)
 
 static int __sub(Number *number, enum number_type_e type, void *value, int len)
 {
+    enum number_type_e number_type;
+    int ret = 1;
 
+    TRY {
+        THROW_IF(type >= NUMBER_TYPE_MAX,  -1);
+        number_type = number->get_type(number);
+        THROW_IF(g_number_policies[number_type].sub == NULL,  -1);
+
+        EXEC(g_number_policies[number_type].sub(number, type, value, len));
+    } CATCH (ret) {
+    }
+
+    return ret;
 }
 
 static int __mul(Number *number, enum number_type_e type, void *value, int len)

@@ -21,6 +21,7 @@ struct number_test_s{
     void *(*teardown)(Test *);
     int (*test_int_number)(Number_Test *test);
     int (*test_add)(Number_Test *test);
+    int (*test_sub)(Number_Test *test);
 
     /*attrib*/
     Number *number;

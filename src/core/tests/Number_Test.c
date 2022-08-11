@@ -91,7 +91,7 @@ static int __test_set_int_number(Number_Test *test)
     return ret;
 }
 
-static int __test_add_signed_int_number(Number_Test *test)
+static int __test_obj_signed_int_add_obj_signed_int(Number_Test *test)
 {
     Number *number = test->number, *add;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -121,7 +121,7 @@ static int __test_add_signed_int_number(Number_Test *test)
     return ret;
 }
 
-static int __test_add_big_number_number(Number_Test *test)
+static int __test_obj_big_number_add_obj_big_number(Number_Test *test)
 {
     Number *number = test->number, *add;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -157,7 +157,7 @@ static int __test_add_big_number_number(Number_Test *test)
     return ret;
 }
 
-static int __test_add_big_number_number_with_carry(Number_Test *test)
+static int __test_obj_big_number_add_obj_big_number_with_carry(Number_Test *test)
 {
     Number *number = test->number, *add;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -190,7 +190,7 @@ static int __test_add_big_number_number_with_carry(Number_Test *test)
     return ret;
 }
 
-static int __test_add_signed_int(Number_Test *test)
+static int __test_obj_signed_int_add_signed_int(Number_Test *test)
 {
     Number *number = test->number;
     int num1 = 1, num2 = 2, expect_d = 3, ret = 0, sum = 0;
@@ -218,10 +218,167 @@ static int __test_add(Number_Test *test)
     int ret;
 
     TRY {
-        EXEC(__test_add_signed_int(test));
-        EXEC(__test_add_signed_int_number(test));
-        EXEC(__test_add_big_number_number(test));
-        EXEC(__test_add_big_number_number_with_carry(test));
+        EXEC(__test_obj_signed_int_add_signed_int(test));
+        EXEC(__test_obj_signed_int_add_obj_signed_int(test));
+        EXEC(__test_obj_big_number_add_obj_big_number(test));
+        EXEC(__test_obj_big_number_add_obj_big_number_with_carry(test));
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+    }
+    return ret;
+}
+
+static int __test_obj_big_number_sub_obj_big_number(Number_Test *test)
+{
+    Number *number = test->number, *sub;
+    allocator_t *allocator = allocator_get_default_alloc();
+    uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
+    uint8_t num2[8] = {0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22};
+    uint8_t expect_d[8] = {0x78, 0x99, 0xbb, 0xdd, 0xff, 0x21, 0x44, 0x66};
+    uint8_t result[11] = {0};
+    int len = 11, ret;
+
+    TRY {
+        number->clear(number);
+        number->set_type(number, NUMBER_TYPE_OBJ_BIG_NUMBER);
+        number->set_value(number,  &num1, sizeof(num1));
+
+        dbg_str(DBG_DETAIL, "num2:%p, expect_d:%p, ret:%p, sum:%p, ", num2, expect_d, &ret, result);
+
+        sub = object_new(allocator, "Number", NULL);
+        sub->set_type(sub, NUMBER_TYPE_OBJ_BIG_NUMBER);
+        sub->set_value(sub, &num2, sizeof(num2));
+
+        number->sub(number, NUMBER_TYPE_OBJ_BIG_NUMBER, sub, sizeof(int));
+        number->get_value(number, &result, &len);
+        THROW_IF(memcmp(result , expect_d, len) != 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_buf(DBG_ERROR, "expect:", expect_d, len);
+        dbg_buf(DBG_ERROR, "result:", result, len);
+    } FINALLY {
+        object_destroy(sub);
+    }
+
+    return ret;
+}
+
+static int __test_obj_big_number_sub_obj_big_number_with_size_change(Number_Test *test)
+{
+    Number *number = test->number, *sub;
+    allocator_t *allocator = allocator_get_default_alloc();
+    uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
+    uint8_t num2[8] = {0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x88};
+    uint8_t expect_d[8] = {0x78, 0x99, 0xbb, 0xdd, 0xff, 0x21, 0x44};
+    uint8_t result[11] = {0};
+    int len = 11, ret;
+
+    TRY {
+        number->clear(number);
+        number->set_type(number, NUMBER_TYPE_OBJ_BIG_NUMBER);
+        number->set_value(number,  &num1, sizeof(num1));
+
+        dbg_str(DBG_DETAIL, "num2:%p, expect_d:%p, ret:%p, sum:%p, ", num2, expect_d, &ret, result);
+
+        sub = object_new(allocator, "Number", NULL);
+        sub->set_type(sub, NUMBER_TYPE_OBJ_BIG_NUMBER);
+        sub->set_value(sub, &num2, sizeof(num2));
+
+        number->sub(number, NUMBER_TYPE_OBJ_BIG_NUMBER, sub, sizeof(int));
+        number->get_value(number, &result, &len);
+        THROW_IF(memcmp(result , expect_d, len) != 0, -1);
+        THROW_IF(len != 7, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_buf(DBG_ERROR, "expect:", expect_d, len);
+        dbg_buf(DBG_ERROR, "result:", result, len);
+    } FINALLY {
+        object_destroy(sub);
+    }
+
+    return ret;
+}
+
+static int __test_obj_big_number_sub_obj_big_number_with_size_change2(Number_Test *test)
+{
+    Number *number = test->number, *sub;
+    allocator_t *allocator = allocator_get_default_alloc();
+    uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x1};
+    uint8_t num2[8] = {0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x78};
+    uint8_t expect_d[8] = {0x78, 0x99, 0xbb, 0xdd, 0xff, 0x21, 0xff};
+    uint8_t result[11] = {0};
+    int len = 11, ret;
+
+    TRY {
+        number->clear(number);
+        number->set_type(number, NUMBER_TYPE_OBJ_BIG_NUMBER);
+        number->set_value(number,  &num1, sizeof(num1));
+
+        dbg_str(DBG_DETAIL, "num2:%p, expect_d:%p, ret:%p, sum:%p, ", num2, expect_d, &ret, result);
+
+        sub = object_new(allocator, "Number", NULL);
+        sub->set_type(sub, NUMBER_TYPE_OBJ_BIG_NUMBER);
+        sub->set_value(sub, &num2, sizeof(num2));
+
+        number->sub(number, NUMBER_TYPE_OBJ_BIG_NUMBER, sub, sizeof(int));
+        number->get_value(number, &result, &len);
+        THROW_IF(memcmp(result , expect_d, len) != 0, -1);
+        THROW_IF(len != 7, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_buf(DBG_ERROR, "expect:", expect_d, len);
+        dbg_buf(DBG_ERROR, "result:", result, len);
+    } FINALLY {
+        object_destroy(sub);
+    }
+
+    return ret;
+}
+
+static int __test_obj_big_number_sub_obj_big_number_with_neg_result(Number_Test *test)
+{
+    Number *number = test->number, *sub;
+    allocator_t *allocator = allocator_get_default_alloc();
+    uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77};
+    uint8_t num2[8] = {0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x78};
+    uint8_t expect_d[8] = {0x88, 0x66, 0x44, 0x22, 0xf00, 0xde};
+    uint8_t result[11] = {0};
+    int len = 11, ret;
+
+    TRY {
+        number->clear(number);
+        number->set_type(number, NUMBER_TYPE_OBJ_BIG_NUMBER);
+        number->set_value(number,  &num1, sizeof(num1));
+
+        dbg_str(DBG_DETAIL, "num2:%p, expect_d:%p, ret:%p, sum:%p, ", num2, expect_d, &ret, result);
+
+        sub = object_new(allocator, "Number", NULL);
+        sub->set_type(sub, NUMBER_TYPE_OBJ_BIG_NUMBER);
+        sub->set_value(sub, &num2, sizeof(num2));
+
+        number->sub(number, NUMBER_TYPE_OBJ_BIG_NUMBER, sub, sizeof(int));
+        number->get_value(number, &result, &len);
+        THROW_IF(memcmp(result , expect_d, len) != 0, -1);
+    } CATCH (ret) {
+        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+        dbg_buf(DBG_ERROR, "expect:", expect_d, len);
+        dbg_buf(DBG_ERROR, "result:", result, len);
+    } FINALLY {
+        object_destroy(sub);
+    }
+
+    return ret;
+}
+
+static int __test_sub(Number_Test *test)
+{
+    int ret;
+
+    TRY {
+        EXEC(__test_obj_big_number_sub_obj_big_number(test));
+        EXEC(__test_obj_big_number_sub_obj_big_number_with_size_change(test));
+        EXEC(__test_obj_big_number_sub_obj_big_number_with_size_change2(test));
+        EXEC(__test_obj_big_number_sub_obj_big_number_with_neg_result(test));
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
     }
@@ -238,6 +395,7 @@ static class_info_entry_t number_test_class_info[] = {
     Init_Vfunc_Entry(6 , Number_Test, teardown, __teardown),
     Init_Vfunc_Entry(7 , Number_Test, test_int_number, __test_set_int_number),
     Init_Vfunc_Entry(8 , Number_Test, test_add, __test_add),
-    Init_End___Entry(9 , Number_Test),
+    Init_Vfunc_Entry(9 , Number_Test, test_sub, __test_sub),
+    Init_End___Entry(10, Number_Test),
 };
 REGISTER_CLASS("Number_Test", number_test_class_info);
