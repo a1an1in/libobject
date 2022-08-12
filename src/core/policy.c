@@ -434,54 +434,10 @@ vector_to_json_policy_t g_vector_to_json_policy[ENTRY_TYPE_MAX_TYPE] = {
 };
 
 static int 
-__number_set_type_of_signed_or_unsigned_short(Number *number, enum number_type_e type)
+__number_signed_or_unsigned_short_set_type(Number *number, enum number_type_e type)
 {
     number->type = type;
     number->size = sizeof(short);
-
-    return 0;
-}
-
-static int 
-__number_set_type_of_signed_or_unsigned_int(Number *number, enum number_type_e type)
-{
-    number->type = type;
-    number->size = sizeof(int);
-
-    return 0;
-}
-
-static int 
-__number_set_type_of_signed_or_unsigned_long(Number *number, enum number_type_e type)
-{
-    number->type = type;
-    number->size = sizeof(long);
-
-    return 0;
-}
-
-static int 
-__number_set_type_of_float(Number *number, enum number_type_e type)
-{
-    number->type = type;
-    number->size = sizeof(float);
-
-    return 0;
-}
-
-static int 
-__number_set_type_of_double(Number *number, enum number_type_e type)
-{
-    number->type = type;
-    number->size = sizeof(double);
-
-    return 0;
-}
-
-static int 
-__number_set_type_of_big_number(Number *number, enum number_type_e type)
-{
-    number->type = type;
 
     return 0;
 }
@@ -512,7 +468,7 @@ static int __number_add_to_short(Number *number, enum number_type_e type, void *
     return ret;
 }
 
-static int __number_add_to_unsigned_short(Number *number, enum number_type_e type, void *value, int len)
+static int __number_unsigned_short_add(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
@@ -538,7 +494,15 @@ static int __number_add_to_unsigned_short(Number *number, enum number_type_e typ
     return ret;
 }
 
-static int __number_add_to_int(Number *number, enum number_type_e type, void *value, int len)
+static int __number_signed_or_unsigned_int_set_type(Number *number, enum number_type_e type)
+{
+    number->type = type;
+    number->size = sizeof(int);
+
+    return 0;
+}
+
+static int __number_int_add(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
@@ -564,7 +528,7 @@ static int __number_add_to_int(Number *number, enum number_type_e type, void *va
     return ret;
 }
 
-static int __number_add_to_unsigned_int(Number *number, enum number_type_e type, void *value, int len)
+static int __number_unsigned_int_add(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
@@ -590,7 +554,15 @@ static int __number_add_to_unsigned_int(Number *number, enum number_type_e type,
     return ret;
 }
 
-static int __number_add_to_long(Number *number, enum number_type_e type, void *value, int len)
+static int __number_signed_or_unsigned_long_set_type(Number *number, enum number_type_e type)
+{
+    number->type = type;
+    number->size = sizeof(long);
+
+    return 0;
+}
+
+static int __number_long_add(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
@@ -616,7 +588,7 @@ static int __number_add_to_long(Number *number, enum number_type_e type, void *v
     return ret;
 }
 
-static int __number_add_to_unsigned_long(Number *number, enum number_type_e type, void *value, int len)
+static int __number_unsigned_long_add(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
@@ -642,7 +614,15 @@ static int __number_add_to_unsigned_long(Number *number, enum number_type_e type
     return ret;
 }
 
-static int __number_add_to_float(Number *number,  enum number_type_e type, void *value, int len)
+static int __number_float_set_type(Number *number, enum number_type_e type)
+{
+    number->type = type;
+    number->size = sizeof(float);
+
+    return 0;
+}
+
+static int __number_float_add(Number *number,  enum number_type_e type, void *value, int len)
 {
     int ret;
 
@@ -668,7 +648,15 @@ static int __number_add_to_float(Number *number,  enum number_type_e type, void 
     return ret;
 }
 
-static int __number_add_to_double(Number *number, enum number_type_e type, void *value, int len)
+static int __number_double_set_type(Number *number, enum number_type_e type)
+{
+    number->type = type;
+    number->size = sizeof(double);
+
+    return 0;
+}
+
+static int __number_double_add(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret;
 
@@ -694,7 +682,14 @@ static int __number_add_to_double(Number *number, enum number_type_e type, void 
     return ret;
 }
 
-static int __number_add_to_big_number(Number *number, enum number_type_e type, void *value, int len)
+static int __number_big_set_type(Number *number, enum number_type_e type)
+{
+    number->type = type;
+
+    return 0;
+}
+
+static int __number_big_add(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret, l, i, carry = 0, tmp1, tmp2, diff;
     uint8_t *dest, *n1, *n2;
@@ -727,7 +722,7 @@ static int __number_add_to_big_number(Number *number, enum number_type_e type, v
     return ret;
 }
 
-static int __number_sub_to_big_number(Number *number, enum number_type_e type, void *value, int len)
+static int __number_big_sub(Number *number, enum number_type_e type, void *value, int len)
 {
     int ret, l, i, carry = 0, tmp1, tmp2, diff;
     uint8_t *dest, *n1, *n2;
@@ -761,42 +756,48 @@ static int __number_sub_to_big_number(Number *number, enum number_type_e type, v
 }
 
 
+static int __number_big_mul(Number *number, enum number_type_e a1_type, void *a1_value, int a1_len, enum number_type_e a2_type, void *a2_value, int a2_len)
+{
+
+}
+
 number_policy_t g_number_policies[NUMBER_TYPE_MAX] = {
     [NUMBER_TYPE_OBJ_SIGNED_SHORT] = {
-        .set_type  = __number_set_type_of_signed_or_unsigned_short,
+        .set_type  = __number_signed_or_unsigned_short_set_type,
         .add       = __number_add_to_short,
     },
     [NUMBER_TYPE_OBJ_UNSIGNED_SHORT] = {
-        .set_type  = __number_set_type_of_signed_or_unsigned_short,
-        .add       = __number_add_to_unsigned_short,
+        .set_type  = __number_signed_or_unsigned_short_set_type,
+        .add       = __number_unsigned_short_add,
     },
     [NUMBER_TYPE_OBJ_SIGNED_INT] = {
-        .set_type  = __number_set_type_of_signed_or_unsigned_int,
-        .add       = __number_add_to_int,
+        .set_type  = __number_signed_or_unsigned_int_set_type,
+        .add       = __number_int_add,
     },
     [NUMBER_TYPE_OBJ_UNSIGNED_INT] = {
-        .set_type  = __number_set_type_of_signed_or_unsigned_int,
-        .add       = __number_add_to_unsigned_int,
+        .set_type  = __number_signed_or_unsigned_int_set_type,
+        .add       = __number_unsigned_int_add,
     },
     [NUMBER_TYPE_OBJ_SIGNED_LONG] = {
-        .set_type  = __number_set_type_of_signed_or_unsigned_long,
-        .add       = __number_add_to_long,
+        .set_type  = __number_signed_or_unsigned_long_set_type,
+        .add       = __number_long_add,
     },
     [NUMBER_TYPE_OBJ_UNSIGNED_LONG] = {
-        .set_type  = __number_set_type_of_signed_or_unsigned_long,
-        .add       = __number_add_to_unsigned_long,
+        .set_type  = __number_signed_or_unsigned_long_set_type,
+        .add       = __number_unsigned_long_add,
     },
     [NUMBER_TYPE_OBJ_FLOAT] = {
-        .set_type  = __number_set_type_of_float,
-        .add       = __number_add_to_float,
+        .set_type  = __number_float_set_type,
+        .add       = __number_float_add,
     },
     [NUMBER_TYPE_OBJ_DOUBLE] = {
-        .set_type  = __number_set_type_of_double,
-        .add       = __number_add_to_double,
+        .set_type  = __number_double_set_type,
+        .add       = __number_double_add,
     },
     [NUMBER_TYPE_OBJ_BIG_NUMBER] = {
-        .set_type  = __number_set_type_of_big_number,
-        .add       = __number_add_to_big_number,
-        .sub       = __number_sub_to_big_number,
+        .set_type  = __number_big_set_type,
+        .add       = __number_big_add,
+        .sub       = __number_big_sub,
+        .mul       = __number_big_mul,
     },
 };
