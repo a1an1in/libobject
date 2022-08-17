@@ -345,7 +345,7 @@ static int __number_big_mul(Number *number, enum number_type_e a1_type, void *a1
             Number *a1 = (Number *)a1_value;
             Number *a2 = (Number *)a2_value;
             if (a1->big_number_neg_flag == a2->big_number_neg_flag) {
-                EXEC(bn_mul(number->big_number_data, number->capacity,
+                EXEC(bn_mul(number->big_number_data, number->capacity, &number->size,
                             a1->big_number_data, a1->size, 
                             a2->big_number_data, a2->size)); 
             } else {

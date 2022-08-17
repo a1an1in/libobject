@@ -151,9 +151,9 @@ int bn_cmp(uint8_t *n1, int n1_len, uint8_t *n2, int n2_len, int *out)
     return ret;
 }
 
-int bn_mul_u32(uint32_t *dest, int dest_len, uint32_t *a, int a_len, uint32_t word)
+int bn_mul_u32(uint32_t *dest, int dest_len, uint32_t *a, int a_size, uint32_t word)
 {
-    int count = a_len / sizeof(int);
+    int count = a_size / sizeof(int);
     int carry = 0;
     uint32_t result, t1, t2;
     uint8_t *p1, *p2;
@@ -163,19 +163,85 @@ int bn_mul_u32(uint32_t *dest, int dest_len, uint32_t *a, int a_len, uint32_t wo
         p2 = a;
         t1 = p1[3] << 24 | p1[2] << 16 | p1[1] << 8 | p1[0];
         t2 = p2[3] << 24 | p2[2] << 16 | p2[1] << 8 | p2[0];
-        BN_MUL_U32(t2, t1, word, carry);
-        dest[0] = t2;
+        BN_MUL_U32(t1, t2, word, carry);
+        dest[0] = t1;
         dest++;
         a++;
         count--;
     }
 
+    if (carry > 0) {
+        dest[0] = carry;
+    }
+
+    dbg_str(DBG_DETAIL, "run at here, carry:%x", carry);
+
     return 1;
 }
 
-int bn_mul(uint8_t *dest, int dest_len, uint8_t *a, int a_len, int *b, int b_len)
+int bn_size(uint8_t *dest, int dest_len, int *len)
 {
-    dbg_str(DBG_DETAIL, "run at here");
+    int i;
+
+    for (i = dest_len - 1; i >= 0; i--) {
+        if (dest[i] != 0) {
+            break;
+        }
+    }
+
+    if (i >= 0) {
+        *len = i + 1;
+    } else {
+        *len = 0;
+    }
+    
+    return 1;
+}
+
+int bn_mul(uint8_t *dest, int dest_len, int *dest_size, uint8_t *a, int a_size, uint8_t *b, int b_size)
+{
+    int ret, len, i, len_bak;
+    uint8_t *tmp;
+    uint32_t value;
+
+    TRY {
+        dbg_str(DBG_DETAIL, "run at here, b_size:%d", b_size);
+        THROW_IF(dest == NULL || a == NULL || b == NULL, -1);
+        THROW_IF(dest_len < a_size + b_size, -1);
+        len_bak = dest_len;
+
+        if (a_size < b_size) {
+            tmp = a;
+            len = a_size;
+            a = b;
+            a_size = b_size;
+            b = tmp;
+            b_size = len;
+        }
+
+        THROW_IF(b_size <= 0, 0);
+
+        for (i = 0; b_size > 0; b_size -= 4) {
+            if (b_size >= 4) {
+                value = b[i + 3] << 24 | b[i + 2] << 16 | b[i + 1] << 8 | b[i + 0];
+            } else if (b_size == 3) {
+                value = b[i + 2] << 16 | b[i + 1] << 8 | b[i + 0];
+            } else if (b_size == 2) {
+                value = b[i + 1] << 8 | b[i + 0];
+            } else if (b_size == 1) {
+                value = b[i + 0];
+            } else {
+                THROW(-1);
+            }
+            
+            EXEC(bn_mul_u32(dest + i, dest_len - i, a, a_size, value));
+            i += 4;
+        }
+
+        EXEC(bn_size(dest, len_bak, dest_size));
+        dbg_str(DBG_DETAIL, "number size:%d, len_bak:%d, i:%d", *dest_size, len_bak, i);
+    } CATCH (ret) {
+    }
 
     return 1;
 }
@@ -206,8 +272,8 @@ static int
 test_mul_u32(TEST_ENTRY *entry, void *argc, void *argv)
 {
     int ret;
-    uint8_t num[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77};
-    uint8_t expect[16] = {0xc6, 0x92, 0x5f, 0x2c, 0xf9, 0xc5, 0x92, 0x2f};
+    uint8_t num[8] = {0x11, 0x22, 0x33, 0xff};
+    uint8_t expect[16] = {0xc6, 0x92, 0x5f, 0xae, 0x65};
     uint8_t result[16] = {0};
     uint32_t word = 0x66;
     uint32_t *test;
@@ -215,7 +281,7 @@ test_mul_u32(TEST_ENTRY *entry, void *argc, void *argv)
     TRY {
         test = num;
         dbg_str(DBG_DETAIL, "test:%x", *test);
-        EXEC(bn_mul_u32(result, sizeof(result), num, sizeof(num), word));
+        EXEC(bn_mul_u32(result, sizeof(result), num, 4, word));
         THROW_IF(memcmp(result , expect, 16) != 0, -1);
     } CATCH (ret) {
         dbg_buf(DBG_ERROR, "expect:", expect, 16);

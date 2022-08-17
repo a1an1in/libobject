@@ -107,6 +107,7 @@ __get_value(Number *number, void *value, int *len)
 
 static int __clear(Number *number)
 {
+    memset(number->big_number_data, 0, number->capacity);
     number->size = 0;
     number->type = 0;
 
