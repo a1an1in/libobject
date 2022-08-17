@@ -1,8 +1,8 @@
-code format modulate and Number::mul interface
+implement bn_mul_u32
 
 Description:
-do little changes.
+this algo is refer to openssl
 
 Major Changes:
-1. code format
-2. add Number::mul interface define
+1. implement bn_mul_u32
+2. add its test case.

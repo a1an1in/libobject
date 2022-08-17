@@ -147,17 +147,18 @@ static int __sub(Number *number, enum number_type_e type, void *value, int len)
     return ret;
 }
 
-static int __mul(Number *number, enum number_type_e type, void *value, int len)
+static int __mul(Number *number, enum number_type_e a1_type, 
+                 void *a1_value, int a1_len, enum number_type_e a2_type, 
+                 void *a2_value, int a2_len)
 {
     enum number_type_e number_type;
     int ret = 1;
 
     TRY {
-        THROW_IF(type >= NUMBER_TYPE_MAX,  -1);
         number_type = number->get_type(number);
         THROW_IF(g_number_policies[number_type].mul == NULL,  -1);
 
-        // EXEC(g_number_policies[number_type].mul(number, type, value, len));
+        EXEC(g_number_policies[number_type].mul(number, a1_type, a1_value, a1_len, a2_type, a2_value, a2_len));
     } CATCH (ret) {
     }
 

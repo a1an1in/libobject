@@ -58,7 +58,6 @@ int bn_add(uint8_t *dest, int dest_len, int *dest_size, uint8_t *add, int add_si
     return ret;
 }
 
-
 int bn_sub(uint8_t *dest, int dest_len, int *dest_size, int *neg_flag, uint8_t *sub, int sub_size) 
 {
     uint8_t *n1, *n2, t1, t2, diff, l, i, carry = 0;
@@ -152,9 +151,33 @@ int bn_cmp(uint8_t *n1, int n1_len, uint8_t *n2, int n2_len, int *out)
     return ret;
 }
 
+int bn_mul_u32(uint32_t *dest, int dest_len, uint32_t *a, int a_len, uint32_t word)
+{
+    int count = a_len / sizeof(int);
+    int carry = 0;
+    uint32_t result, t1, t2;
+    uint8_t *p1, *p2;
+
+    while (count) {
+        p1 = dest;
+        p2 = a;
+        t1 = p1[3] << 24 | p1[2] << 16 | p1[1] << 8 | p1[0];
+        t2 = p2[3] << 24 | p2[2] << 16 | p2[1] << 8 | p2[0];
+        BN_MUL_U32(t2, t1, word, carry);
+        dest[0] = t2;
+        dest++;
+        a++;
+        count--;
+    }
+
+    return 1;
+}
+
 int bn_mul(uint8_t *dest, int dest_len, uint8_t *a, int a_len, int *b, int b_len)
 {
-    ;
+    dbg_str(DBG_DETAIL, "run at here");
+
+    return 1;
 }
 
 static int
@@ -178,3 +201,27 @@ test_bn_cmp(TEST_ENTRY *entry, void *argc, void *argv)
     return ret;
 }
 REGISTER_TEST_FUNC(test_bn_cmp);
+
+static int
+test_mul_u32(TEST_ENTRY *entry, void *argc, void *argv)
+{
+    int ret;
+    uint8_t num[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77};
+    uint8_t expect[16] = {0xc6, 0x92, 0x5f, 0x2c, 0xf9, 0xc5, 0x92, 0x2f};
+    uint8_t result[16] = {0};
+    uint32_t word = 0x66;
+    uint32_t *test;
+
+    TRY {
+        test = num;
+        dbg_str(DBG_DETAIL, "test:%x", *test);
+        EXEC(bn_mul_u32(result, sizeof(result), num, sizeof(num), word));
+        THROW_IF(memcmp(result , expect, 16) != 0, -1);
+    } CATCH (ret) {
+        dbg_buf(DBG_ERROR, "expect:", expect, 16);
+        dbg_buf(DBG_ERROR, "result:", result, 16);
+    }
+    
+    return ret;
+}
+REGISTER_TEST_FUNC(test_mul_u32);
