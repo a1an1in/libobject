@@ -333,12 +333,19 @@ static int __number_big_sub(Number *number, enum number_type_e type, void *value
 
 static int __number_big_mul(Number *number, enum number_type_e a1_type, void *a1_value, int a1_len, enum number_type_e a2_type, void *a2_value, int a2_len)
 {
+    allocator_t *allocator = number->parent.allocator;
     int ret, l, i, carry = 0, tmp1, tmp2, diff;
     uint8_t *dest, *n1, *n2;
 
     TRY {
         THROW_IF(number->type != NUMBER_TYPE_OBJ_BIG_NUMBER, -1);
         THROW_IF(a1_type != NUMBER_TYPE_OBJ_BIG_NUMBER || a2_type != NUMBER_TYPE_OBJ_BIG_NUMBER, -1);
+
+        if (number->capacity < a1_len + a2_len) {
+            allocator_mem_free(allocator, number->big_number_data);
+            number->big_number_data = allocator_mem_alloc(allocator, (a1_len + a2_len) * 2);
+            number->capacity = (a1_len + a2_len) * 2;
+        }
 
         dbg_str(DBG_DETAIL, "run at here, size:%d, cap:%d", number->size, number->capacity);
         if ( a1_type == NUMBER_TYPE_OBJ_BIG_NUMBER && a2_type == NUMBER_TYPE_OBJ_BIG_NUMBER) {
@@ -354,6 +361,7 @@ static int __number_big_mul(Number *number, enum number_type_e a1_type, void *a1
         }
         
     } CATCH (ret) {
+        dbg_str(DBG_ERROR, "number_big_mul, a1_len:%d a2_len:%d", a1_len, a2_len);
     }
 
     return ret;

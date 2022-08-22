@@ -58,7 +58,7 @@ uint32_t debug_string_buf_to_str(uint8_t *buf_addr,
         if(str_len - offset <= 4){
             break;
         }
-        offset += snprintf(str+offset, str_len-offset, "%x-", buf_addr[i]);
+        offset += snprintf(str+offset, str_len-offset, "%02x-", buf_addr[i]);
     }
     return offset;
 }

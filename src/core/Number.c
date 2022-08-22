@@ -100,6 +100,7 @@ __get_value(Number *number, void *value, int *len)
             memcpy(value, &number->data, number->size);
         }
     } CATCH (ret) {
+        dbg_str(DBG_DETAIL, "get_value, len:%d, size:%d", *len, number->size);
     }
 
     return ret;
@@ -180,10 +181,10 @@ static int __div(Number *number,
 
         EXEC(g_number_policies[number_type].div(number, a1_type, a1_value, a1_len, a2_type, a2_value, a2_len));
     } CATCH (ret) {
+        dbg_str(DBG_ERROR, "div, number_type:%d", number_type);
     }
 
     return ret;
-
 }
 
 static int __mod(Number *number, enum number_type_e type, void *value, int len)

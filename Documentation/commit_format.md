@@ -1,9 +1,9 @@
-implement bn_div
+bug fix bn_div
 
 Description:
-this algo is refer to openssl
+bn_div has been test running ok.
 
 Major Changes:
-1. implement bn_div
-2. add its test case.
-3. bugfix bn_mul_u32
+1. bugfix bn_mul_u32()
+2. bugfix bn_mul()
+3. add some test cases
