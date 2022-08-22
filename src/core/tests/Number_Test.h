@@ -23,6 +23,7 @@ struct number_test_s{
     int (*test_add)(Number_Test *test);
     int (*test_sub)(Number_Test *test);
     int (*test_mul)(Number_Test *test);
+    int (*test_div)(Number_Test *test);
 
     /*attrib*/
     Number *number;

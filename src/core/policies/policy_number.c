@@ -359,6 +359,42 @@ static int __number_big_mul(Number *number, enum number_type_e a1_type, void *a1
     return ret;
 }
 
+static int __number_big_div(Number *number, enum number_type_e a1_type, void *a1_value, int a1_len, enum number_type_e a2_type, void *a2_value, int a2_len)
+{
+    int ret, l, i, carry = 0, tmp1, tmp2, diff, *remainder = NULL;
+    uint8_t *dest, *n1, *n2;
+    allocator_t *allocator;
+
+    TRY {
+        allocator = number->parent.allocator;
+
+        THROW_IF(number->type != NUMBER_TYPE_OBJ_BIG_NUMBER, -1);
+        THROW_IF(a1_type != NUMBER_TYPE_OBJ_BIG_NUMBER || a2_type != NUMBER_TYPE_OBJ_BIG_NUMBER, -1);
+
+        if ( a1_type == NUMBER_TYPE_OBJ_BIG_NUMBER && a2_type == NUMBER_TYPE_OBJ_BIG_NUMBER) {
+            Number *a1 = (Number *)a1_value;
+            Number *a2 = (Number *)a2_value;
+
+            remainder = allocator_mem_zalloc(allocator, a1->size + 1);
+            memset(number->big_number_data, 0, number->size);
+            if (a1->big_number_neg_flag == a2->big_number_neg_flag) {
+                EXEC(bn_div(number->big_number_data, number->capacity, &number->size,
+                            remainder,  a1->size + 1, NULL,      //need remainder to participate in computing.
+                            a1->big_number_data, a1->size, 
+                            a2->big_number_data, a2->size));
+            } else {
+                THROW(-1); //not support now!
+            }
+        }
+        
+    } CATCH (ret) {
+    } FINALLY {
+        allocator_mem_free(allocator, remainder);
+    }
+
+    return ret;
+}
+
 number_policy_t g_number_policies[NUMBER_TYPE_MAX] = {
     [NUMBER_TYPE_OBJ_SIGNED_SHORT] = {
         .set_type  = __number_signed_or_unsigned_short_set_type,
@@ -397,5 +433,6 @@ number_policy_t g_number_policies[NUMBER_TYPE_MAX] = {
         .add       = __number_big_add,
         .sub       = __number_big_sub,
         .mul       = __number_big_mul,
+        .div       = __number_big_div,
     },
 };

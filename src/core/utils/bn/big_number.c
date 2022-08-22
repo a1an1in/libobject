@@ -100,10 +100,7 @@ int bn_sub(uint8_t *dest, int dest_len, int *dest_size, int *neg_flag, uint8_t *
         }
 
         /* 3. compute number size */
-        dbg_str(DBG_DETAIL, "number size:%d", max_size);
-        dbg_str(DBG_DETAIL, "*(--dest):%x", *(dest -1));
         while (max_size && *(--dest) == 0) {
-            dbg_str(DBG_DETAIL, "run at here");
             max_size--;
         }
         if (*dest_size < sub_size) {
@@ -111,8 +108,8 @@ int bn_sub(uint8_t *dest, int dest_len, int *dest_size, int *neg_flag, uint8_t *
         }
         
         *dest_size = max_size;
-        dbg_str(DBG_DETAIL, "number size:%d", max_size);
     } CATCH (ret) {
+        dbg_str(DBG_ERROR, "max_size:%d, dest_len=%d", max_size, dest_len);
     }
 
     return ret;
@@ -158,6 +155,10 @@ int bn_mul_u32(uint32_t *dest, int dest_len, uint32_t *a, int a_size, uint32_t w
     uint32_t result, t1, t2;
     uint8_t *p1, *p2;
 
+    if (a_size % sizeof(int)) {
+        count++;
+    }
+    
     while (count) {
         p1 = dest;
         p2 = a;
@@ -172,9 +173,8 @@ int bn_mul_u32(uint32_t *dest, int dest_len, uint32_t *a, int a_size, uint32_t w
 
     if (carry > 0) {
         dest[0] = carry;
+        dbg_str(DBG_DETAIL, "bn_mul_u32 with carry:%x", carry);
     }
-
-    dbg_str(DBG_DETAIL, "run at here, carry:%x", carry);
 
     return 1;
 }
@@ -205,7 +205,6 @@ int bn_mul(uint8_t *dest, int dest_len, int *dest_size, uint8_t *a, int a_size, 
     uint32_t value;
 
     TRY {
-        dbg_str(DBG_DETAIL, "run at here, b_size:%d", b_size);
         THROW_IF(dest == NULL || a == NULL || b == NULL, -1);
         THROW_IF(dest_len < a_size + b_size, -1);
         len_bak = dest_len;
@@ -239,11 +238,96 @@ int bn_mul(uint8_t *dest, int dest_len, int *dest_size, uint8_t *a, int a_size, 
         }
 
         EXEC(bn_size(dest, len_bak, dest_size));
-        dbg_str(DBG_DETAIL, "number size:%d, len_bak:%d, i:%d", *dest_size, len_bak, i);
     } CATCH (ret) {
+        dbg_str(DBG_ERROR, "dest_len:%d, a_size:%d, b_size:%d, i:%d", dest_len, a_size, b_size, i);
     }
 
-    return 1;
+    return ret;
+}
+
+int bn_div(uint8_t *quotient, int quotient_len, int *quotient_size, 
+           uint8_t *remainder, int remainder_len, int *remainder_size,
+           uint8_t *dividend, int dividend_size, uint8_t *divisor, int divisor_size)
+{
+    int ret = 0, len, i, len_bak, multiple, tmp_size, dividend_len;
+    uint8_t *tmp, tmp_len;
+    uint32_t value;
+    int *neg_flag;
+
+    TRY {
+        THROW_IF(remainder_len < dividend_size, -1);
+        THROW_IF(quotient_len < dividend_size, -1);
+
+        dividend_len = dividend_size;
+        EXEC(bn_size(dividend, dividend_size, &dividend_size));
+        EXEC(bn_size(divisor, divisor_size, &divisor_size));
+        EXEC(bn_cmp(dividend, dividend_size, divisor, divisor_size, &ret));
+        if (ret < 0) {
+            quotient[0] = 0;
+            *quotient_size = 0;
+            THROW_IF(remainder == NULL || remainder_size == NULL, 1);
+            THROW_IF(remainder_len < dividend_size, -1);
+            memcpy(remainder, dividend, dividend_size);
+            *remainder_size = dividend_size;
+            THROW(1);
+        } else if (ret == 0) {
+            quotient[0] = 1;
+            *quotient_size = 1;
+            THROW_IF(remainder == NULL || remainder_size == NULL, 1);
+            memset(remainder, 0, remainder_len);
+            *remainder_size = 0;
+            THROW(1);
+        }
+
+        tmp = remainder;
+        tmp_len = remainder_len;
+
+        for (i = dividend_size - divisor_size; i >= 0; i = dividend_size - divisor_size) {
+            /* 1. compute the adapt multiple of the top byte */
+            if (dividend[dividend_size - 1] >= divisor[divisor_size - 1]) {
+                multiple = dividend[dividend_size - 1] / divisor[divisor_size - 1];
+            } else if (dividend_size > 2) {
+                multiple = (dividend[dividend_size - 1] << 8 |  dividend[dividend_size - 2]) / divisor[divisor_size - 1];
+                i--;
+            } else {
+                multiple = dividend[dividend_size - 1] / divisor[divisor_size - 1];
+            }
+            
+            if (multiple == 0) {
+                quotient[i] = 0;
+                continue;
+            }
+            
+            if (multiple > 0) {
+                quotient[i] = --multiple;
+                memset(tmp, 0, remainder_len);
+                EXEC(bn_mul(tmp, tmp_len, &tmp_size, divisor, divisor_size, quotient, i + 1));
+                EXEC(bn_size(tmp, tmp_len, &tmp_size));
+                EXEC(bn_sub(dividend, dividend_len, &dividend_size, &neg_flag, tmp, tmp_size));
+            }
+
+            quotient[i] = 1;
+            memset(tmp, 0, remainder_len);
+            EXEC(bn_mul(tmp, tmp_len, &tmp_size, divisor, divisor_size, quotient, i + 1));
+            EXEC(bn_size(tmp, tmp_len, &tmp_size));
+            EXEC(bn_cmp(dividend, dividend_size, tmp, tmp_size, &ret));
+            if (ret >= 0) {
+                EXEC(bn_sub(dividend, dividend_size, &dividend_size, &neg_flag, tmp, tmp_size));
+                multiple++;
+            }
+            dbg_buf(DBG_DETAIL, "bn_div dividend:", dividend, dividend_len);
+            dbg_str(DBG_VIP, "bn_div multiple:%x", multiple);
+            quotient[i] = multiple;
+        }
+
+        EXEC(bn_size(quotient, quotient_len, quotient_size));
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "remainder_len:%d", remainder_len);
+        dbg_str(DBG_ERROR, "tmp_len:%d", tmp_len);
+        dbg_str(DBG_ERROR, "dividend_len:%d", dividend_len);
+    }
+
+    return ret;
 }
 
 static int

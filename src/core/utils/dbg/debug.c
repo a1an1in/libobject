@@ -228,7 +228,7 @@ int debugger_dbg_buf(debugger_t *debugger,
     va_list ap;
     uint32_t business_num = dbg_switch >> 8;
     uint8_t level = dbg_switch & 0xff;
-    char buffer_str[MAX_BUFFER_STR_LEN];
+    char buffer_str[MAX_BUFFER_STR_LEN] = {0};
     char fmt_str[MAX_DBG_STR_LEN];
     char *level_str;
 
