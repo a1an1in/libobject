@@ -29,6 +29,7 @@ typedef struct number_policy_s {
     int (*sub)(Number *number, enum number_type_e type, void *value, int len);
     int (*mul)(Number *number, enum number_type_e a1_type, void *a1_value, int a1_len, enum number_type_e a2_type, void *a2_value, int a2_len);
     int (*div)(Number *number, enum number_type_e a1_type, void *a1_value, int a1_len, enum number_type_e a2_type, void *a2_value, int a2_len);
+    int (*mod)(Number *number, enum number_type_e a1_type, void *a1_value, int a1_len, enum number_type_e a2_type, void *a2_value, int a2_len);
 
 } number_policy_t;
 

@@ -1,9 +1,9 @@
-bug fix bn_div
+implement bn_mod
 
 Description:
-bn_div has been test running ok.
+bn_mod has been test passed.
 
 Major Changes:
-1. bugfix bn_mul_u32()
-2. bugfix bn_mul()
-3. add some test cases
+1. implement bn_mod
+2. add bn_mod test cases
+3. optimzie bn_div

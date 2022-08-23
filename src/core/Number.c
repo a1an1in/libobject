@@ -187,9 +187,26 @@ static int __div(Number *number,
     return ret;
 }
 
-static int __mod(Number *number, enum number_type_e type, void *value, int len)
+static int __mod(Number *number, 
+                 enum number_type_e a1_type, void *a1_value, int a1_len, 
+                 enum number_type_e a2_type, void *a2_value, int a2_len)
 {
+    enum number_type_e number_type;
+    int ret = 1;
 
+    TRY {
+        number_type = number->get_type(number);
+        THROW_IF(g_number_policies[number_type].mod == NULL,  -1);
+
+        EXEC(g_number_policies[number_type].mod(number, a1_type, a1_value, a1_len, a2_type, a2_value, a2_len));
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "mod, number_type:%d, a1_type:%d, a2_type:%d", 
+                number_type, a1_type, a2_type);
+        dbg_buf(DBG_ERROR, "mod, a1_value:", a1_value, a1_len);
+        dbg_buf(DBG_ERROR, "mod, a2_value:", a2_value, a2_len);
+    }
+
+    return ret;
 }
 
 static int __exp(Number *number, enum number_type_e type, void *value, int len)
