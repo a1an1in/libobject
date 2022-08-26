@@ -127,6 +127,8 @@ static int __add(Number *number, enum number_type_e type, void *value, int len)
 
         EXEC(g_number_policies[number_type].add(number, type, value, len));
     } CATCH (ret) {
+        dbg_buf(DBG_ERROR, "add, summand:", number->big_number_data, number->size);
+        dbg_buf(DBG_ERROR, "add, addend:", value, len);
     }
 
     return ret;
@@ -144,6 +146,8 @@ static int __sub(Number *number, enum number_type_e type, void *value, int len)
 
         EXEC(g_number_policies[number_type].sub(number, type, value, len));
     } CATCH (ret) {
+        dbg_buf(DBG_ERROR, "sub, minuend:", number->big_number_data, number->size);
+        dbg_buf(DBG_ERROR, "sub, subtrahend:", value, len);
     }
 
     return ret;
@@ -162,6 +166,8 @@ static int __mul(Number *number,
 
         EXEC(g_number_policies[number_type].mul(number, a1_type, a1_value, a1_len, a2_type, a2_value, a2_len));
     } CATCH (ret) {
+        dbg_buf(DBG_ERROR, "mul, a1_value:", a1_value, a1_len);
+        dbg_buf(DBG_ERROR, "mul, a2_value:", a2_value, a2_len);
     }
 
     return ret;
@@ -182,6 +188,8 @@ static int __div(Number *number,
         EXEC(g_number_policies[number_type].div(number, a1_type, a1_value, a1_len, a2_type, a2_value, a2_len));
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "div, number_type:%d", number_type);
+        dbg_buf(DBG_ERROR, "div, a1_value:", a1_value, a1_len);
+        dbg_buf(DBG_ERROR, "div, a2_value:", a2_value, a2_len);
     }
 
     return ret;

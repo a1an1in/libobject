@@ -6,6 +6,9 @@
  * @date 2022-08-11
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <libobject/core/utils/bn/big_number.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/try.h>
@@ -333,6 +336,8 @@ int bn_div(uint8_t *quotient, int quotient_len, int *quotient_size,
         dbg_str(DBG_ERROR, "dividend_len:%d", dividend_len);
         dbg_str(DBG_ERROR, "dividend_size:%d", dividend_size);
         dbg_str(DBG_ERROR, "tmp_size:%d", tmp_size);
+        dbg_buf(DBG_ERROR, "dividend:", dividend, dividend_size);
+        dbg_buf(DBG_ERROR, "divisor:", divisor, divisor_size);
     } FINALLY {
         if (quotient_size) {bn_size(quotient, quotient_len, quotient_size);}
         
@@ -343,6 +348,44 @@ int bn_div(uint8_t *quotient, int quotient_len, int *quotient_size,
     }
 
     return ret;
+}
+
+int bn_rand(uint8_t *dest, int dest_len, int *dest_size, int bits, int top, int bottom)
+{
+    int bytes;
+    int i, bit, mask, ret;
+    time_t t;
+
+    TRY {
+        bytes = (bits + 7) / 8;
+        bit = (bits - 1) % 8;
+        mask = 0xff << (bit + 1);
+
+        srand((unsigned) time(&t));
+        for (i = 0; i < bytes; i++) {
+            dest[i] = rand() % 0xff;
+        }
+
+        if (top == 0) {
+            dest[bytes - 1] |= (1 << bit);
+        } else if (top == 1 && bit == 0) {
+            dest[bytes - 1] = 1;
+            dest[bytes - 2] |= 0x80;
+        } else if (top == 1 && bit != 0) {
+            dest[bytes - 1] |= (3 << (bit -1));
+        } else {
+            THROW(-1);
+        }
+        dest[bytes - 1] &= ~mask;
+
+        if (bottom) {
+            dest[0] |= 1;
+        }
+
+        *dest_size = bytes;
+        dbg_buf(DBG_DETAIL, "rand:", dest, bytes);
+    } CATCH (ret) {
+    }
 }
 
 static int
@@ -414,3 +457,21 @@ test_mul_u32_a_size_is_not_multiple_4(TEST_ENTRY *entry, void *argc, void *argv)
     return ret;
 }
 REGISTER_TEST_FUNC(test_mul_u32_a_size_is_not_multiple_4);
+
+static int
+test_bn_random(TEST_ENTRY *entry, void *argc, void *argv)
+{
+    int ret;
+    uint8_t dest[1024] = {0};
+    int dest_size;
+
+    TRY {
+       EXEC(bn_rand(dest, sizeof(dest), &dest_size, 100, 1, 1));
+       THROW_IF(dest_size != (100 + 7) / 8, -1);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "test_bn_random, ret=%d", ret);
+    }
+    
+    return ret;
+}
+REGISTER_TEST_FUNC(test_bn_random);

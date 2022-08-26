@@ -1,9 +1,7 @@
-implement bn_mod
+implement bn_rand
 
 Description:
-bn_mod has been test passed.
+bn_rand is implemented by srand and rand funcs.
 
 Major Changes:
-1. implement bn_mod
-2. add bn_mod test cases
-3. optimzie bn_div
+1. implement bn_rand
