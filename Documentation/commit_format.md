@@ -1,7 +1,7 @@
-implement bn_rand
+move big_number test to tests dir
 
 Description:
-bn_rand is implemented by srand and rand funcs.
+update changes.
 
 Major Changes:
-1. implement bn_rand
+1. move big number test codes into test dir.

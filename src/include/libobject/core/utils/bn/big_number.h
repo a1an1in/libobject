@@ -29,5 +29,6 @@ int bn_div(uint8_t *quotient, int quotient_len, int *quotient_size,
            uint8_t *remainder, int remainder_len, int *remainder_size,
            uint8_t *a, int a_size, uint8_t *b, int b_size);
 int bn_rand(uint8_t *dest, int dest_len, int *dest_size, int bits, int top, int bottom);
+int bn_prime(uint8_t *dest, int dest_len, int *dest_size, int bits);
 
 #endif
