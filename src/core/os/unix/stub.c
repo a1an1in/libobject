@@ -1,17 +1,19 @@
-#if (defined(WINDOWS_USER_MODE))
-#include <stdio.h>
+#if (!defined(WINDOWS_USER_MODE))
 #include <unistd.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
+#include <stdlib.h>
 #include <string.h>
-#include <windows.h>
+#include <errno.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/try.h>
+#include <libobject/core/utils/registry/registry.h>
 
-#define FLATJMPCODE_LENGTH 5            //x86 平坦内存模式下，绝对跳转指令长度
-#define FLATJMPCMD_LENGTH  1            //机械码0xe9长度
-#define FLATJMPCMD         0xe9         //相应汇编的jmp指令
+#define JMP_OFFSET_LEN  5   //JMP指令的长度
+#define STUB_REPLACE_CODE_SIZE 14U
 
-typedef struct stub stub_t;
+typedef struct stub_s stub_t;
 typedef int (*stub_func_t)(void * p1, void * p2, void * p3, void * p4, void * p5, 
                 void * p6, void * p7, void * p8, void * p9, void * p10,
                 void * p11, void * p12, void * p13, void * p14, void * p15, 
@@ -22,7 +24,7 @@ typedef struct stub_exec_area {
     stub_t *stub;
 } stub_exec_area_t;
 
-struct stub {
+struct stub_s {
     stub_exec_area_t *area;
     void *reg_bp;
     void *pre;
@@ -31,51 +33,80 @@ struct stub {
     void *fn;
     unsigned int para_count;
     int area_flag;
-    unsigned char inst_backup[FLATJMPCODE_LENGTH + FLATJMPCMD_LENGTH];
+    unsigned char code_buf[STUB_REPLACE_CODE_SIZE];
 };
 
-int stub_add(stub_t *stub, void *func, void *new_fn)
+static inline void *pageof(const void *p)
 {
-	DWORD oldProtect =0;
-	DWORD TempProtectVar = 0;
-	char newCode[6] = {0};                                 //用于读取函数原有内存信息
-	HANDLE hProgress = GetCurrentProcess();                //获取进程伪句柄
-	int SIZE = FLATJMPCODE_LENGTH + FLATJMPCMD_LENGTH;     //须要改动的内存大小
-
-	if (!VirtualProtect(func, SIZE, PAGE_EXECUTE_READWRITE, &oldProtect)) { //改动内存为可读写
-		return -1;
-	}
-	if (!ReadProcessMemory(hProgress, func, newCode, SIZE, NULL)) {         //读取内存
-		return -1;
-	}
-	memcpy((void*)stub->inst_backup, (const void*)newCode, sizeof(stub->inst_backup));                //保存被打桩函数信息
-	*(BYTE*)func = FLATJMPCMD;
-	*(DWORD*)((BYTE*)func + FLATJMPCMD_LENGTH) = (DWORD)new_fn - (DWORD)func - FLATJMPCODE_LENGTH;   //桩函数注入 
-	VirtualProtect(func, SIZE, oldProtect, &TempProtectVar);  //恢复保护属性
-
-	return 1;
+    long long pagesize = sysconf(_SC_PAGE_SIZE);
+    return (void *)((unsigned long)p & ~(pagesize - 1));
 }
 
-int stub_remove(stub_t *stub, void *func)
+int stub_add(stub_t *stub, void *src, void *dst)
 {
-	int ret = -1;
-	DWORD TempProtectVar;                //暂时保护属性变量
-	MEMORY_BASIC_INFORMATION MemInfo;    //内存分页属性信息
+    unsigned long dstaddr = (unsigned long)dst;
+    // 系统页大小
+    int pagesize = sysconf(_SC_PAGESIZE);                                       
+    // JMP远跳只支持32位程序 64位程序地址占8个字节 寻址有问题
+    unsigned char jmpcmd[STUB_REPLACE_CODE_SIZE] = {0};                         
+    int ret;
 
-	VirtualQuery(func, &MemInfo, sizeof(MEMORY_BASIC_INFORMATION));
+    TRY {
+        stub->fn = src;
+        memcpy(stub->code_buf, src, STUB_REPLACE_CODE_SIZE);
+        // 使用mprotect函数使该页的内存可读可写可执行
+        EXEC(mprotect(pageof(src), pagesize, PROT_READ | PROT_WRITE | PROT_EXEC));  
+        /*
+         *当JMP指令为 FF 25 00 00 00 00时，会取下面的8个字节作为跳转地址
+         */
+        jmpcmd[0] = 0xFF;                                                        
+        /*
+         * 因此可以使用14个字节作为指令 (FF 25 00 00 00 00) + dstaddr
+         */
+        jmpcmd[1] = 0x25;                                                        
+        jmpcmd[2] = 0x00;                                                              
+        jmpcmd[3] = 0x00;
+        jmpcmd[4] = 0x00;
+        jmpcmd[5] = 0x00;
+        memcpy(&jmpcmd[6], &dstaddr, sizeof(dstaddr));                                 
+        memcpy(src, jmpcmd, sizeof(jmpcmd));   
+        __clear_cache(pageof(src), pageof(src) + pagesize);
 
-	if (VirtualProtect(MemInfo.BaseAddress, MemInfo.RegionSize, PAGE_EXECUTE_READWRITE, &MemInfo.Protect)) { //改动页面为可写
-		memcpy((void*)func, (const void*)stub->inst_backup, sizeof(stub->inst_backup));                      //恢复代码段
-		VirtualProtect(MemInfo.BaseAddress, MemInfo.RegionSize, MemInfo.Protect, &TempProtectVar);          //改回原属性
-		ret = 1;
-	}
+        /*
+         *__builtin___clear_cache(src, src + STUB_REPLACE_CODE_SIZE);
+         */
+        /*
+         *使用mprotect函数使该页的内存可读可写可执行
+         */
+        EXEC(mprotect(pageof(src), pagesize, PROT_READ | PROT_EXEC));  
+    } CATCH (ret) {
+    }
 
-	return ret;
+    return ret;
 }
+
+int stub_remove(stub_t *stub)
+{
+    int pagesize = sysconf(_SC_PAGESIZE);                                          // 系统页大小
+    int ret;
+
+    TRY {
+        THROW_IF(stub->fn == NULL, -1);
+
+        EXEC(mprotect(pageof(stub->fn), pagesize * 2, PROT_READ | PROT_WRITE | PROT_EXEC));
+        memcpy(stub->fn, stub->code_buf, STUB_REPLACE_CODE_SIZE);
+        EXEC(mprotect(pageof(stub->fn), pagesize * 2, PROT_READ | PROT_EXEC));
+        memset(stub, 0, sizeof(struct stub_s));
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
 
 int stub_parse_context(void *exec_code_addr, void *reg_bp, void *p1, void *p2, void *p3, void *p4)
 {
-    struct stub *stub;
+    stub_t *stub;
     stub_exec_area_t *area;
     stub_func_t func;
     void *p[20] = {0};
@@ -108,7 +139,7 @@ int stub_parse_context(void *exec_code_addr, void *reg_bp, void *p1, void *p2, v
         func(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], 
              p[10], p[11], p[12], p[13], p[14], p[15], p[16], p[17], p[18], p[19]);
     } else {
-        stub_remove(stub, stub->fn);
+        stub_remove(stub);
         func = (stub_func_t)stub->fn;
         func(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], 
              p[10], p[11], p[12], p[13], p[14], p[15], p[16], p[17], p[18], p[19]);
@@ -141,11 +172,11 @@ int stub_placeholder()
     return 0;
 }
 
-struct stub *stub_alloc()
+stub_t *stub_alloc()
 {
-    struct stub *stub;
+    stub_t *stub;
 
-    stub = (struct stub *)malloc(sizeof(struct stub));
+    stub = (stub_t *)malloc(sizeof(stub_t));
     stub->area_flag = 0;
 
     return stub;
@@ -153,15 +184,14 @@ struct stub *stub_alloc()
 
 int stub_alloc_exec_area(stub_t *stub)
 {
-    DWORD oldProtect =0;
-	DWORD TempProtectVar = 0;
+    int pagesize = sysconf(_SC_PAGESIZE);                                          // 系统页大小
 
     stub->area = (stub_exec_area_t *)stub_placeholder;
     
-    VirtualProtect(stub->area, sizeof(stub_exec_area_t), PAGE_EXECUTE_READWRITE, &oldProtect);
+    mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_WRITE | PROT_EXEC);  
     stub->area->stub = stub;
     stub->area_flag = 1;
-    VirtualProtect(stub->area, sizeof(stub_exec_area_t), oldProtect, &TempProtectVar);  //恢复保护属性
+    mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_EXEC);  
 
     return 1;
 }
@@ -181,7 +211,7 @@ int stub_free(stub_t *stub)
     return 1;
 }
 
-int stub_add_hooks(struct stub *stub, void *func, void *pre, void *new_fn, void *post, int para_count)
+int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post, int para_count)
 {
     unsigned char code[80] = {
         0x55,                                       //push   %rbp
@@ -200,19 +230,17 @@ int stub_add_hooks(struct stub *stub, void *func, void *pre, void *new_fn, void 
         0x5d,                                       //pop    %rbp
         0xc3,                                       //c3	 retq
     };
-    DWORD oldProtect =0;
-	DWORD TempProtectVar = 0;
+    int pagesize = sysconf(_SC_PAGESIZE);                                          // 系统页大小
     int ret;
     int call_inst_addr_offset = 49;
     int *addr = code + call_inst_addr_offset;
     int call_inst_addr_len = 4;
-    struct stub_info_s *stub_info;
 
     stub_alloc_exec_area(stub);
     *addr = ((long long)stub_parse_context - (long long)stub->area->exec_code) - call_inst_addr_offset - call_inst_addr_len;
-    VirtualProtect(stub->area, sizeof(stub_exec_area_t), PAGE_EXECUTE_READWRITE, &oldProtect);
+    mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_WRITE | PROT_EXEC);  
     memcpy(stub->area->exec_code, code, sizeof(code));
-    VirtualProtect(stub->area, sizeof(stub_exec_area_t), oldProtect, &TempProtectVar);  //恢复保护属性
+    mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_EXEC);  
     printf("offset:%x\n", *addr);
 
     stub->pre = pre;
@@ -226,53 +254,97 @@ int stub_add_hooks(struct stub *stub, void *func, void *pre, void *new_fn, void 
     return 0;
 }
 
-int stub_remove_hooks(struct stub *stub, void *func)
+int stub_remove_hooks(stub_t *stub)
 {
     stub_free_exec_area(stub);
-    stub_remove(stub, func);
+    stub_remove(stub);
 
     return 0;
 }
-
-
-int func_a_stub(void)
+int test_funcA(int *a, int *b, int *c)
 {
-	return 300;
+    printf("call funcA, a:%d, b:%d, c:%d\n", *a, *b, *c);
+    *a = *b = *c = 1;
+    return *a + *b + *c;
 }
 
-int func_a(void)
+int test_funcB(int *a, int *b, int *c)
 {
-	return 200;
+    int t;
+    printf("call funcB, a:%d, b:%d, c:%d\n", *a, *b, *c);
+    t = *a;
+    *a = *c;
+    *c = t;
+
+    return *a + *b + *c;
 }
 
-char *g_str = "hello shellcode world\n";
-int func4()
+int test_stub_add1()
 {
-    asm (
-        "sub $0x30,%%rsp\n\t"
-        "mov %%r9d,0x28(%%rsp)\n\t"
-        "mov %%r8d,0x20(%%rsp)\n\t"
-        "mov %%rdx,0x18(%%rsp)\n\t"
-        "mov %%rcx,0x10(%%rsp)\n\t"
-        "mov 0x10(%%rsp),%%r8d\n\t"
-        "mov 0x18(%%rsp),%%r9d\n\t"
-        "lea (%%rip),%%rcx\n\t"
-        "mov %%rbp,%%rdx \n\t"
-        "callq %1\n\t"
-        :
-        :"m"(g_str), "m"(memset)
-    );
+    char ac[10] = {1};
+    stub_t stub;
+    int a = 1, b = 2, c = 3;
+    int ret;
+
+    TRY {
+        stub_add(&stub, (void*)test_funcA, (void*)test_funcB);  // 添加动态桩 用B替换A
+        ret = test_funcA(&a, &b, &c);
+        THROW_IF(ret != (a + b + c), -1);
+        THROW_IF(a != 3 || c != 1, -1);
+
+        stub_remove(&stub);  // 添加动态桩 用B替换A
+        ret = test_funcA(&a, &b, &c);
+        THROW_IF(ret != 3, -1);
+    } CATCH (ret) {
+    }
+
+    return ret;
 }
 
-int func5()
+int test_strcpy_value = -1;
+static void *my_strcmp(void *s, void *d)
 {
-    return printf("hello shellcode world\n");
+    dbg_str(DBG_ERROR, "run at here");
+    test_strcpy_value = 128;
+    dbg_str(DBG_ERROR, "test_strcpy_value:%d", test_strcpy_value);
+    return NULL;
 }
 
-int func6()
+int test_stub_add2()
 {
-    return func5();
+    char buf[20] = {0};
+    stub_t stub;
+    int ret;
+
+    TRY {
+        stub_add(&stub, (void*)strcmp, (void*)my_strcmp);
+        strcmp(buf, "hello_world");
+        THROW_IF(test_strcpy_value != 128, -1);
+        stub_remove(&stub); 
+
+        strcpy(buf, "hello_world");
+        ret = strcmp(buf, "hello_world");
+        THROW_IF(ret != 0, -1);
+    } CATCH (ret) {
+        stub_remove(&stub);  // 添加动态桩 用B替换A
+        dbg_str(DBG_ERROR, "test_strcpy_value:%d", test_strcpy_value);
+    }
+    return ret;
 }
+
+int test_stub_add()
+{
+    int ret;
+
+    TRY {
+        EXEC(test_stub_add1());
+        EXEC(test_stub_add2());
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_stub_add);
 
 int func_pre(int a, int b, int c, int d, int e, int f, int *g)
 {
@@ -299,26 +371,25 @@ int print_outbound(int a, int b, int c, int d, int e, int f, int *g)
     return 1;
 }
 
-int test_stub_windows()
+int test_stub_add_hooks()
 {
-    struct stub *stub;
+    stub_t *stub;
     int g = 7;
 
+    /*
+     *stub.area.stub = &stub;
+     */
     stub = stub_alloc();
-    printf("The value:%d\r\n", func_a());
-	stub_add(stub, (void *)func_a, (void *)func_a_stub);
-	printf("The value:%d\r\n", func_a());
-	stub_remove(stub, (void *)func_a);
-	printf("The value:%d\r\n", func_a());
+    dbg_str(DBG_DETAIL, "stub:%p", stub);
 
     stub_add_hooks(stub, (void *)func, (void *)func_pre, (void *)func2, (void *)print_outbound, 7);
     func(1, 2, 3, 4, 5, 6, &g);
-    stub_remove_hooks(stub, (void *)func);
+    stub_remove_hooks(stub);
     func(1, 2, 3, 4, 5, 6, &g);
-    stub_free(stub);
 
     return 0;
 }
 
-REGISTER_TEST_CMD(test_stub_windows);
+REGISTER_TEST_CMD(test_stub_add_hooks);
+
 #endif

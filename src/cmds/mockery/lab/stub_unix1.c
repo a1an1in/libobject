@@ -109,7 +109,7 @@ void f2()
     return;
 }
 
-void *_memset(void *s, int ch, size_t n)
+void *my_memset(void *s, int ch, size_t n)
 {
     printf("-memset\n");
 
@@ -127,7 +127,7 @@ int test_stub()
         return 0;
     }
 
-    stub_set(&stub, (void *)memset, (void *)_memset);
+    stub_set(&stub, (void *)memset, (void *)my_memset);
 
     memset(ac, 0, 10);
 
