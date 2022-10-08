@@ -11,6 +11,9 @@
 #include <libobject/core/utils/registry/registry.h>
 
 #define JMP_OFFSET_LEN  5   //JMP指令的长度
+/* 经过测试只带返回值的函数体和空参数的函数代码长度为14， 所以这段代码块
+   替换目标函数是安全的(返回值和参数还有函数体完全为空的函数代码长度
+   为10， 这种函数也不该存在而且也不符合正常的编码规范) */
 #define STUB_REPLACE_CODE_SIZE 14U
 
 typedef struct stub_s stub_t;
@@ -20,7 +23,7 @@ typedef int (*stub_func_t)(void * p1, void * p2, void * p3, void * p4, void * p5
                 void * p16, void * p17, void * p18, void * p19, void * p20);
 
 typedef struct stub_exec_area {
-    unsigned char exec_code[80];
+    unsigned char exec_code[54];
     stub_t *stub;
 } stub_exec_area_t;
 
@@ -104,28 +107,29 @@ int stub_remove(stub_t *stub)
 }
 
 
-int stub_parse_context(void *exec_code_addr, void *reg_bp, void *p1, void *p2, void *p3, void *p4)
+int stub_parse_context(void *exec_code_addr, void *rsp)
 {
     stub_t *stub;
     stub_exec_area_t *area;
     stub_func_t func;
     void *p[20] = {0};
 
-    area = exec_code_addr - 48;
-    int i = 4;
-    void **par_addr = (void **)(reg_bp + 2 * sizeof(void *));
+    area = exec_code_addr - 42;
+    int i = 0, j = 0;
+    void **par_addr = (void **)(rsp);
     stub = area->stub;
 
-    printf("exec_code_addr:%p, reg_bp:%p, p1:%p, p2:%p, p3:%p, p4:%p\n", 
-           exec_code_addr, reg_bp, p1, p2, p3, p4);
     printf("area:%p par_addr:%p, par_count:%d\n", area, par_addr, stub->para_count);
-    printf("pre:%p, func:%p, post:%p, stubed_func:%p\n", stub->pre, stub->new_fn, stub->post, stub->fn);
-    p[0] = p1, p[1] = p2, p[2] = p3, p[3] = p4;
-
+    
     while(i < stub->para_count) {
-        p[i] = par_addr[i];
+        if (j == 6 || j == 7) {
+            j++;
+            continue;
+        }
+        p[i] = par_addr[j];
         printf("p[%d]:%x\n", i, p[i]);
         i++;
+        j++;
     }
 
     if (stub->pre != NULL) {
@@ -151,6 +155,7 @@ int stub_parse_context(void *exec_code_addr, void *reg_bp, void *p1, void *p2, v
         func(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], 
              p[10], p[11], p[12], p[13], p[14], p[15], p[16], p[17], p[18], p[19]);
     }
+
     return 1;
 }
 
@@ -213,26 +218,32 @@ int stub_free(stub_t *stub)
 
 int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post, int para_count)
 {
-    unsigned char code[80] = {
+    /*
+     * %rdi，%rsi，%rdx，%rcx，%r8，%r9 用作函数参数，依次对应第1参数，第2参数。。,
+     * 代码块存放p0-p5 6个参数到栈里面的存放顺序是为了后面方便用数组来取。超过6个
+     * 的参数函数调用前已经安顺序被放在rsp里面， 但是后面取的时候注意要去掉返回地址
+     * 和bsp两个数据。
+     */
+    unsigned char code[54] = {
         0x55,                                       //push   %rbp
         0x48, 0x89, 0xe5,                           //mov    %rsp,%rbp
         0x48, 0x83, 0xec, 0x30,                     //sub    $0x30,%rsp
-        0x44, 0x89, 0x4c, 0x24, 0x28,               //mov    %r9d,0x28(%rsp)
-        0x44, 0x89, 0x44, 0x24, 0x20,               //mov    %r8d,0x20(%rsp)
-        0x48, 0x89, 0x54, 0x24, 0x18,               //mov    %rdx,0x18(%rsp)
-        0x48, 0x89, 0x4c, 0x24, 0x10,               //mov    %rcx,0x10(%rsp)
-        0x44, 0x8b, 0x4c, 0x24, 0x18,	            //mov    0x18(%rsp),%r9d
-        0x44, 0x8b, 0x44, 0x24, 0x10,	            //mov    0x10(%rsp),%r8d
-        0x48, 0x89, 0xea,	                        //mov    %rbp,%rdx
-        0x48, 0x8d, 0x0d, 0x00, 0x00, 0x00, 0x00,	//lea    0x0(%rip),%rcx        # 0x401a99 <func4+35>
+        0x4c, 0x89, 0x4d, 0xf8,                     //mov    %r9,-0x8(%rbp)，  把参数5 放到栈  
+        0x4c, 0x89, 0x45, 0xf0,                     //mov    %r8,-0x10(%rbp)， 把参数4 放到栈
+        0x48, 0x89, 0x4d, 0xe8,                     //mov    %rcx,-0x18(%rbp)  ...
+        0x48, 0x89, 0x55, 0xe0,                     //mov    %rdx,-0x20(%rbp)
+        0x48, 0x89, 0x75, 0xd8,                     //mov    %rsi,-0x28(%rbp)
+        0x48, 0x89, 0x7d, 0xd0,                     //mov    %rdi,-0x30(%rbp)，把参数0 放到栈
+        0x48, 0x89, 0xe6,                           //mov    %rsp,%rsi       ，把rsp地址传给stub_parse_context参数1
+        0x48, 0x8d, 0x3d, 0x00, 0x00, 0x00, 0x00,	//lea    0x0(%rip),%rdi  , 把rsp地址传给stub_parse_context参数0
         0xe8, 0xfd, 0x17, 0x00, 0x00,               //callq  0x401a8a <func5>
         0x48, 0x83, 0xc4, 0x30,                     //add    $0x30,%rsp
         0x5d,                                       //pop    %rbp
-        0xc3,                                       //c3	 retq
+        0xc3,                                       //retq
     };
-    int pagesize = sysconf(_SC_PAGESIZE);                                          // 系统页大小
+    int pagesize = sysconf(_SC_PAGESIZE);
     int ret;
-    int call_inst_addr_offset = 49;
+    int call_inst_addr_offset = 43;
     int *addr = code + call_inst_addr_offset;
     int call_inst_addr_len = 4;
 
@@ -261,6 +272,9 @@ int stub_remove_hooks(stub_t *stub)
 
     return 0;
 }
+
+
+// test funcs
 int test_funcA(int *a, int *b, int *c)
 {
     printf("call funcA, a:%d, b:%d, c:%d\n", *a, *b, *c);
@@ -277,6 +291,11 @@ int test_funcB(int *a, int *b, int *c)
     *c = t;
 
     return *a + *b + *c;
+}
+
+int test_null_fun() 
+{
+    return 1;
 }
 
 int test_stub_add1()
@@ -326,7 +345,7 @@ int test_stub_add2()
         ret = strcmp(buf, "hello_world");
         THROW_IF(ret != 0, -1);
     } CATCH (ret) {
-        stub_remove(&stub);  // 添加动态桩 用B替换A
+        // stub_remove(&stub);  // 添加动态桩 用B替换A
         dbg_str(DBG_ERROR, "test_strcpy_value:%d", test_strcpy_value);
     }
     return ret;
@@ -380,16 +399,53 @@ int test_stub_add_hooks()
      *stub.area.stub = &stub;
      */
     stub = stub_alloc();
-    dbg_str(DBG_DETAIL, "stub:%p", stub);
+    dbg_str(DBG_DETAIL, "stub:%p, g addr:%p", stub, &g);
 
     stub_add_hooks(stub, (void *)func, (void *)func_pre, (void *)func2, (void *)print_outbound, 7);
     func(1, 2, 3, 4, 5, 6, &g);
     stub_remove_hooks(stub);
     func(1, 2, 3, 4, 5, 6, &g);
 
-    return 0;
+    return 1;
 }
 
 REGISTER_TEST_CMD(test_stub_add_hooks);
+
+int test_asm_f2(void *p0, void *p1, void *p2, void *p3, void *p4, void *p5)
+{
+    printf("%s\n", p2);
+    return 1;
+}
+char *test_str = "hello world";
+
+int test_asm_f1(void *p0, void *p1, void *p2, void *p3, void *p4, void *p5)
+{
+    asm (
+        "push %%rbp\n\t"
+        "mov %%rsp,%%rbp\n\t"
+        "sub $0x30,%%rsp\n\t"
+        "mov %%r9,-0x8(%%rbp)\n\t"
+        "mov %%r8,-0x10(%%rbp)\n\t"
+        "mov %%rcx,-0x18(%%rbp)\n\t"
+        "mov %%rdx,-0x20(%%rbp)\n\t"
+        "mov %%rsi,-0x28(%%rbp)\n\t"
+        "mov %%rdi,-0x30(%%rbp)\n\t"
+        "mov %%rsp,%%rsi \n\t"
+        "lea 0x0(%%rip),%%rdi\n\t"
+        "callq %0\n\t"
+        "add $30, %%rsp\n\t"
+        "pop %%rbp\n\t"
+        "retq\n\t"
+        :
+        :"m"(test_asm_f2)
+    );
+}
+int test_asm()
+{
+    int a = 1, b = 1, c = 1, d = 1, e = 1, f = 1;
+    test_asm_f1(&a, &b, &c, &d, &e, &f);
+    return 1;
+}
+REGISTER_TEST_CMD(test_asm_f1);
 
 #endif

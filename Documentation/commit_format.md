@@ -1,7 +1,9 @@
-move big_number test to tests dir
+implement stub of unix
 
 Description:
-update changes.
+debug ok at linux env. may expend stubplace holder and wrapper.
 
 Major Changes:
-1. move big number test codes into test dir.
+1. modify asm code.
+2. add comments.
+3. debug at linux env
