@@ -19,6 +19,6 @@ list(REMOVE_ITEM MOUDLE_SRC ${Main_File})
 
 add_library(${PROJECT_NAME} STATIC ${MOUDLE_SRC})
 
-add_executable(main main.c)
-target_link_libraries(main ${ExternalLibs})
-ADD_DEPENDENCIES(main object)
+add_executable(xtools main.c)
+target_link_libraries(xtools ${ExternalLibs})
+ADD_DEPENDENCIES(xtools object)

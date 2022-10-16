@@ -1,9 +1,8 @@
-implement stub of unix
+Export stub relevant code to libobject-ex
 
 Description:
-debug ok at linux env. may expend stubplace holder and wrapper.
+Export stub to lib object-ex and make it to be a independent
+lib.
 
 Major Changes:
-1. modify asm code.
-2. add comments.
-3. debug at linux env
+1. Del stub relevant code.
