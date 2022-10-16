@@ -1,8 +1,7 @@
-Mv test into project root dir
+Sort test files
 
 Description:
 Do little changes
 
 Major Changes:
-1. Change test dir
-2. Change cmake file
+1. Move all test file to root/tests
