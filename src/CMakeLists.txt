@@ -1,11 +1,10 @@
-project(object)
-include (../mk/util.cmake)
+project(xtools)
 
-file(GLOB_RECURSE MOUDLE_HEADERS
+file(GLOB MOUDLE_HEADERS
     "*.h"
 )
 
-file(GLOB_RECURSE MOUDLE_SOURCES
+file(GLOB MOUDLE_SOURCES
     "*.c"
 )
 
@@ -14,11 +13,14 @@ file(GLOB MOUDLE_SRC
     ${MOUDLE_SOURCES}
 )
 
-find_main_file(Main_File)
-list(REMOVE_ITEM MOUDLE_SRC ${Main_File})
+add_executable(${PROJECT_NAME} ${MOUDLE_SRC})
+target_link_libraries(${PROJECT_NAME} ${ExternalLibs})
+target_link_libraries(${PROJECT_NAME} mysqlclient)
+#add_dependencies(${PROJECT_NAME} object)
 
-add_library(${PROJECT_NAME} STATIC ${MOUDLE_SRC})
+#set_compiler_flags(${PROJECT_NAME})
 
-add_executable(xtools main.c)
-target_link_libraries(xtools ${ExternalLibs})
-ADD_DEPENDENCIES(xtools object)
+#target_include_directories(${PROJECT_NAME} PUBLIC "${YHSDK_INCLUDE_DIR}")
+#target_link_libraries(${PROJECT_NAME} yhnet)
+
+#install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION ${LIBRARY_DIRECTORY})

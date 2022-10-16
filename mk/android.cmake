@@ -13,7 +13,7 @@ macro (set_android_environment_variable)
     set(CMAKE_ANDROID_STL_TYPE gnustl_static)
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_ANDROID_NDK}/build/cmake/android.toolchain.cmake)
 
-    SET(ExternalLibs ${ExternalLibs} log -Wl,--whole-archive object -Wl,--no-whole-archive )
+    SET(ExternalLibs ${ExternalLibs} log)
 endmacro()
 
 macro (set_cmake_evironment_variable)

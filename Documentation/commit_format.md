@@ -1,8 +1,8 @@
-Export stub relevant code to libobject-ex
+Mv test into project root dir
 
 Description:
-Export stub to lib object-ex and make it to be a independent
-lib.
+Do little changes
 
 Major Changes:
-1. Del stub relevant code.
+1. Change test dir
+2. Change cmake file
