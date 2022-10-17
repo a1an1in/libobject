@@ -1,7 +1,7 @@
-Sort test files
+do some modification after merge libobject-ex in to libobject.
 
 Description:
 Do little changes
 
 Major Changes:
-1. Move all test file to root/tests
+1. change cmake file

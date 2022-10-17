@@ -187,7 +187,7 @@ static int test_unixfshell_load()
     #if (defined(MAC_USER_MODE))
     char *lib_name = "./sysroot/mac/lib/libobject-ex-testlib.dylib";
     #else
-    char *lib_name = "./sysroot/linux/lib/libobject-ex-testlib.so";
+    char *lib_name = "./sysroot/linux/lib/libobject-testlib.so";
     #endif
     char name[20];
     void *addr;
@@ -214,7 +214,7 @@ static int test_unixfshell_load_and_get_func_addr()
     #if (defined(MAC_USER_MODE))
     char *lib_name = "./sysroot/mac/lib/libobject-ex-testlib.dylib";
     #else
-    char *lib_name = "./sysroot/linux/lib/libobject-ex-testlib.so";
+    char *lib_name = "./sysroot/linux/lib/libobject-testlib.so";
     #endif
     char name[20];
     allocator_t *allocator = allocator_get_default_alloc();

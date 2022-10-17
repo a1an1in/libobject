@@ -53,7 +53,7 @@ list(APPEND module_lists "src/scripts")
 list(APPEND module_lists "src/stub")
 #list(APPEND module_lists "src/ui")
 
-list(APPEND module_lists "3rd/lib")
+list(APPEND module_lists "3rd/test_lib")
 #list(APPEND module_lists "3rd/app")
 list(APPEND module_lists "tests")
 
