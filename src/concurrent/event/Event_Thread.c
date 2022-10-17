@@ -34,10 +34,10 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/event/Event_Base.h>
-#include <libobject/event/Select_Base.h>
+#include <libobject/concurrent/event/Event_Base.h>
+#include <libobject/concurrent/event/Select_Base.h>
 #include <libobject/core/Linked_Queue.h>
-#include <libobject/event/Event_Thread.h>
+#include <libobject/concurrent/event/Event_Thread.h>
 #include <libobject/libobject.h>
 #include <libobject/config.h>
 

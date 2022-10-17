@@ -37,7 +37,6 @@
 #include <fcntl.h> 
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/event/Event_Base.h>
 #include <libobject/core/Thread.h>
 #include <sys/un.h>
 #include "Unix_Udp_Socket.h"

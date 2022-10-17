@@ -10,7 +10,7 @@
 #include <string.h>
 #include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/event/event_compat.h>
+#include <libobject/concurrent/event/event_compat.h>
 
 static void
 signal_cb(int fd, short event_res, void *arg)

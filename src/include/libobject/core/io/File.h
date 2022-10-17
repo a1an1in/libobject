@@ -6,7 +6,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/String.h>
-#include <libobject/io/Stream.h>
+#include <libobject/core/io/Stream.h>
 
 typedef struct file_s File;
 

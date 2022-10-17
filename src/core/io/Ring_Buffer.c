@@ -33,7 +33,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/io/Ring_Buffer.h>
+#include <libobject/core/io/Ring_Buffer.h>
 
 #define DEFAULT_BUFFER_SIZE 1024
 

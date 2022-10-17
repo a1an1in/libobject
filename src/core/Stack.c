@@ -33,7 +33,6 @@
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/event/Event_Base.h>
 #include <libobject/core/Stack.h>
 
 static class_info_entry_t stack_class_info[] = {

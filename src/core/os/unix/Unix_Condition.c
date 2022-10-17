@@ -35,7 +35,6 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Thread.h>
 #include <libobject/core/Linked_Queue.h>
-#include <libobject/event/Event_Base.h>
 #include "Unix_Condition.h"
 
 static int __construct(Unix_Condition *cond, char *init_str)

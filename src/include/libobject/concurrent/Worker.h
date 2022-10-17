@@ -6,8 +6,8 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/Hash_Map.h>
 #include <libobject/concurrent/Producer.h>
-#include <libobject/event/event.h>
-#include <libobject/io/Socket.h>
+#include <libobject/concurrent/event/event.h>
+#include <libobject/core/io/Socket.h>
 
 typedef struct worker_s Worker;
 

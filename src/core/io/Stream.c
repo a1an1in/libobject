@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/io/Stream.h>
+#include <libobject/core/io/Stream.h>
 
 static class_info_entry_t stream_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),

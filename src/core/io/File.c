@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/io/File.h>
+#include <libobject/core/io/File.h>
 #include <errno.h>
 
 static int __construct(File *file,char *init_str)

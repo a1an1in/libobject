@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
-#include <libobject/io/Ring_Buffer.h>
+#include <libobject/core/io/Ring_Buffer.h>
 #include "stun_header.h"
 
 typedef struct Response_s Response;

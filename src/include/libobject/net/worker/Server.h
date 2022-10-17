@@ -6,7 +6,7 @@
 #include <libobject/core/Obj.h>
 #include <libobject/concurrent/Worker.h>
 #include <libobject/core/List.h>
-#include <libobject/io/Socket.h>
+#include <libobject/core/io/Socket.h>
 
 typedef struct server_s Server;
 

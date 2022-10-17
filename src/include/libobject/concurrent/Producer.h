@@ -7,7 +7,7 @@
 #include <libobject/core/Hash_Map.h>
 #include <libobject/core/List.h>
 #include <libobject/concurrent/Dispatcher.h>
-#include <libobject/event/Event_Thread.h>
+#include <libobject/concurrent/event/Event_Thread.h>
 
 typedef struct producer_s Producer;
 

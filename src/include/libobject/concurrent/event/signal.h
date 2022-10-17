@@ -2,10 +2,10 @@
 #define __SIGNAL_H__
 
 #include <stdio.h>
-#include <libobject/event/event.h>
+#include <libobject/concurrent/event/event.h>
 #include <libobject/core/utils/miscellany/buffer.h>
 #include <libobject/core/Map.h>
-#include <libobject/io/Socket.h>
+#include <libobject/core/io/Socket.h>
 
 struct evsig_s{
     Socket *sender;

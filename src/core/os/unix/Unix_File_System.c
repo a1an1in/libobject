@@ -41,7 +41,6 @@
 #include <sys/stat.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/event/Event_Base.h>
 #include "Unix_File_System.h"
 
 static int __list(Unix_File_System *fs, char *path, char **list, int count, int max_name_len)

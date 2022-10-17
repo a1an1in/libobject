@@ -1,6 +1,6 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
-#include <libobject/io/fs_compat.h>
+#include <libobject/core/io/fs_compat.h>
 
 #if (!defined(WINDOWS_USER_MODE))
 File_System *globle_file_system;

@@ -33,7 +33,6 @@
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/event/Event_Base.h>
 #include <libobject/core/Thread.h>
 
 static int __construct(Thread *thread, char *init_str)

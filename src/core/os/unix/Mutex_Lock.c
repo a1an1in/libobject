@@ -33,7 +33,6 @@
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/event/Event_Base.h>
 #include "Mutex_Lock.h"
 
 static int __construct(Mutex_Lock *lock, char *init_str)

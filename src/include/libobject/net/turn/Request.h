@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/Vector.h>
-#include <libobject/io/Buffer.h>
+#include <libobject/core/io/Buffer.h>
 #include "protocol.h"
 
 

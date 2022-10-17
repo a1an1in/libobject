@@ -6,10 +6,10 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
 #include <libobject/core/Object_Chain.h>
-#include <libobject/io/Ring_Buffer.h>
-#include <libobject/io/Buffer.h>
+#include <libobject/core/io/Ring_Buffer.h>
+#include <libobject/core/io/Buffer.h>
 #include <libobject/net/http/http_status.h>
-#include <libobject/io/Socket.h>
+#include <libobject/core/io/Socket.h>
 
 typedef struct response_s Response;
 

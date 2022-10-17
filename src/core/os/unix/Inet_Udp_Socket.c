@@ -41,7 +41,6 @@
 #include <fcntl.h> 
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/event/Event_Base.h>
 #include <libobject/core/Thread.h>
 #include "Inet_Udp_Socket.h"
 #include <libobject/core/utils/registry/registry.h>

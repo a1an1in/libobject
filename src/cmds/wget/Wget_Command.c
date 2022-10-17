@@ -7,7 +7,7 @@
  */
 #include "Wget_Command.h"
 #include <libobject/net/http/Client.h>
-#include <libobject/io/File.h>
+#include <libobject/core/io/File.h>
 #include <libobject/argument/Application.h>
 #include <libobject/argument/Argument.h>
 #include <libobject/net/url/Url.h>

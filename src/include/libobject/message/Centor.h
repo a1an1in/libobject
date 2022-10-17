@@ -8,7 +8,7 @@
 #include <libobject/core/Queue.h>
 #include <libobject/core/Map.h>
 #include <libobject/core/Lock.h>
-#include <libobject/io/Socket.h>
+#include <libobject/core/io/Socket.h>
 
 typedef struct centor_s Centor;
 

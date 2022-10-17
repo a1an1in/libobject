@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
-#include <libobject/io/Stream.h>
+#include <libobject/core/io/Stream.h>
 #include <libobject/core/String.h>
-#include <libobject/io/Buffer.h>
+#include <libobject/core/io/Buffer.h>
 
 typedef struct ring_buffer_s Ring_Buffer;
 

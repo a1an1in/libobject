@@ -36,7 +36,6 @@
 #include <libobject/core/Condition.h>
 #include <libobject/core/Thread.h>
 #include <libobject/core/Linked_Queue.h>
-#include <libobject/event/Event_Base.h>
 
 static class_info_entry_t condition_class_info[] = {
     Init_Obj___Entry(0, Obj, obj),
