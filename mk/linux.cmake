@@ -25,12 +25,10 @@ macro (set_cmake_evironment_variable)
             object-db 
             object-net
             object-concurrent
-            object-event
             object-crypto
             object-encoding
             object-ctest
             object-argument
-            object-io
             object-core
         -Wl,--no-whole-archive 
         crypto dl pthread m)

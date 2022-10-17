@@ -34,8 +34,6 @@ macro (set_cmake_evironment_variable)
         -force_load object-ctest
         -force_load object-db
         -force_load object-encoding
-        -force_load object-event
-        -force_load object-io
         #-force_load object-media
         -force_load object-message
         -force_load object-net
