@@ -185,7 +185,7 @@ static int test_unixfshell_load()
     FShell *shell;
     char *expect_func_name = "test_lib_print_outbound";
     #if (defined(MAC_USER_MODE))
-    char *lib_name = "./sysroot/mac/lib/libobject-ex-testlib.dylib";
+    char *lib_name = "./sysroot/mac/lib/libobject-testlib.dylib";
     #else
     char *lib_name = "./sysroot/linux/lib/libobject-testlib.so";
     #endif
@@ -212,7 +212,7 @@ static int test_unixfshell_load_and_get_func_addr()
     FShell *shell;
     char *func_name = "test_lib_print_outbound";
     #if (defined(MAC_USER_MODE))
-    char *lib_name = "./sysroot/mac/lib/libobject-ex-testlib.dylib";
+    char *lib_name = "./sysroot/mac/lib/libobject-testlib.dylib";
     #else
     char *lib_name = "./sysroot/linux/lib/libobject-testlib.so";
     #endif
