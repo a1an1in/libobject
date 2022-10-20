@@ -1,7 +1,8 @@
-fix fshell test.
+Add shell feature
 
 Description:
-do little change
+The shell can support input.
 
 Major Changes:
-1. fix test
+1. Continue to implement shell
+2. Disable python script on Mac

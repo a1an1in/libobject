@@ -1,3 +1,4 @@
+#if (defined(LINUX_USER_MODE))
 #include <Python.h>
 #include <libobject/core/try.h>
 #include <libobject/core/utils/registry/registry.h>
@@ -74,3 +75,4 @@ static int test_python()
     return ret;
 }
 REGISTER_TEST_FUNC(test_python);
+#endif

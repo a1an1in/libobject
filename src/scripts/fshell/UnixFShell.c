@@ -117,6 +117,28 @@ static int __get_func_name(UnixFShell *shell, char *lib_name, void *addr, char *
     return ret;
 }
 
+static int __open(UnixFShell *shell)
+{
+    int ret;
+    char *linebuf = NULL;
+    size_t linebuf_size = 0;
+
+    TRY {
+        while(shell->parent.close_flag != 1) {
+            printf("%s", shell->parent.prompt);
+            if(getline(&linebuf, &linebuf_size,stdin) < 0)
+                break;
+            /*
+             *printf("%s\n", linebuf);
+             */
+        }
+        dbg_str(DBG_DETAIL, "run at here");
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
 static class_info_entry_t shell_class_info[] = {
     Init_Obj___Entry(0, FShell, parent),
     Init_Nfunc_Entry(1, UnixFShell, construct, __construct),
@@ -125,11 +147,31 @@ static class_info_entry_t shell_class_info[] = {
     Init_Vfunc_Entry(4, UnixFShell, unload, __unload),
     Init_Vfunc_Entry(5, UnixFShell, get_func_addr, __get_func_addr),
     Init_Vfunc_Entry(6, UnixFShell, get_func_name, __get_func_name),
-    Init_End___Entry(7, UnixFShell),
+    Init_Vfunc_Entry(7, UnixFShell, open, __open),
+    Init_End___Entry(8, UnixFShell),
 };
 REGISTER_CLASS("UnixFShell", shell_class_info);
 
 extern int print_outbound(int a, int b, int c, int d, int e, int f, int *g);
+
+static int test_unixfshell_open()
+{
+    int ret;
+    FShell *shell;
+    void *addr;
+    allocator_t *allocator = allocator_get_default_alloc();
+
+    TRY {
+        shell = OBJECT_NEW(allocator, UnixFShell, NULL);
+        shell->open(shell);
+    } CATCH (ret) {
+    } FINALLY {
+        object_destroy(shell);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_unixfshell_open);
 
 static int test_unixfshell_get_addr()
 {
