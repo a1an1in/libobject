@@ -9,6 +9,7 @@ macro (set_cmake_evironment_variable)
     INCLUDE_DIRECTORIES(
         /usr/include
         /usr/include/mysql
+        /usr/include/python3.8
         /usr/local/include
         ${PROJECT_SOURCE_DIR}/src/include
         ${CMAKE_INSTALL_PREFIX}/include)
@@ -30,8 +31,8 @@ macro (set_cmake_evironment_variable)
             object-ctest
             object-argument
             object-core
-        -Wl,--no-whole-archive 
-        crypto dl pthread m)
+        -Wl,--no-whole-archive
+        python3.8 crypto dl pthread m)
 endmacro()
 
 macro (display_linux_platform_configs)

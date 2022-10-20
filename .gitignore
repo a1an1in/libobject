@@ -38,6 +38,7 @@ bin/ios/
 bin/linux
 bin/mac
 lib/
+3rd/test_python/__pycache__/
 sysroot/
 .idea
 cmake-build-debug/

@@ -1,0 +1,2 @@
+[20221019 22:51:16][INFO][test_python.py:15]---> vender = 2, dataid = 10001
+[20221019 22:51:16][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]
