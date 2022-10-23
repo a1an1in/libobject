@@ -73,21 +73,19 @@ static int __set_prompt(FShell *shell, char *prompt)
 {
 }
 
-typedef int (*stub_func_t)(void * p1, void * p2, void * p3, void * p4, void * p5, 
-                           void * p6, void * p7, void * p8, void * p9, void * p10,
-                           void * p11, void * p12, void * p13, void * p14, void * p15, 
-                           void * p16, void * p17, void * p18, void * p19, void * p20);
 static int __run_func(FShell *shell, String *str)
 {
     int ret, i, cnt;
     char *arg;
-    stub_func_t func = NULL;
+    fshell_func_t func = NULL;
     void *par[20] = {0};
 
     TRY {
         THROW_IF(str == NULL, -1);
         cnt = str->split(str, "[,\t\n();]", -1);
 
+        dbg_str(DBG_SUC, "run at here, cnt:%d", cnt);
+        THROW_IF(cnt <= 0, 0);
         arg = str->get_splited_cstr(str, 0);
         EXEC(shell->get_func_addr(shell, NULL, arg, &func));
         THROW_IF(func == NULL, -1);
@@ -105,7 +103,6 @@ static int __run_func(FShell *shell, String *str)
                 par[i -1] = arg;
             }
         }
-        dbg_str(DBG_SUC, "run at here2");
         ret = func(par[0], par[1], par[2], par[3], par[4],
                    par[5], par[6], par[7], par[8], par[9], 
                    par[10], par[11], par[12], par[13], par[14],
