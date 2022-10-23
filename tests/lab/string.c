@@ -38,57 +38,6 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
-int ex(int a, int b)
-{
-    int d = 1;
-    int i;
-
-    for (i = 0; i < b ; i++) {
-        d = d * a;
-    }
-
-    return d;
-}
-int hexstr_to_int(char *str)
-{
-    int len, i, d, t = 0, count = 0;
-    char c;
-
-    len = strlen(str);
-
-    for (i = len - 1; i >= 0; i--) {
-        printf("%d\n", i);
-        c = str[i];
-
-        if (c >= 'a' && c <= 'f') {
-            d = c - 'a' + 10;
-        } else if (c >= 'A' && c <= 'F') {
-            d = c - 'A' + 10;
-        } else {
-            d = c - '0';
-        }
-
-        if (c == 'x' || c == 'X') break;
-
-        t += ex(16, count++) * d;
-
-        printf("len = %d count=%d e=%d d=%d\n",len,  count, ex(16, count), d);
-    }
-
-    return t;
-}
-int test_hex_to_int()
-{
-    char buf[1024];
-    int d;
-
-    while(gets(buf)) {
-        d = hexstr_to_int(buf);
-        printf("%d\n", d);
-    }
-}
-REGISTER_TEST_CMD(test_hex_to_int);
-
 char* strchr_n(char *s, char c, int n)
 {
     int count = 0;

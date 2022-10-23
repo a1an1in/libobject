@@ -547,9 +547,11 @@ static int __split(String *string, char *delims, int num)
         }
     }
 
-    piece_count++;
-    piece = __new_string_peice(allocator, pos, strlen(pos)); 
-    v->add_back(v, piece); 
+    if (strlen(pos)) {
+        piece_count++;
+        piece = __new_string_peice(allocator, pos, strlen(pos)); 
+        v->add_back(v, piece); 
+    }
 
     regfree_wrap(&regex);  
 

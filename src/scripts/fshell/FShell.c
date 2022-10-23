@@ -6,6 +6,8 @@
  * @date 2019-06-19
  */
 
+#include <stdlib.h>
+#include <libobject/core/utils/string.h>
 #include <libobject/scripts/FShell.h>
 
 static void __close_callback(int fd, short event_res, void *arg)
@@ -14,6 +16,7 @@ static void __close_callback(int fd, short event_res, void *arg)
 
     shell->close_flag = 1;
     dbg_str(DBG_SUC, "close shel");
+    event_del(shell->signal);
 
 }
 
@@ -58,7 +61,9 @@ static int __deconstruct(FShell *shell)
     allocator_t *allocator = shell->parent.allocator;
 
     object_destroy(shell->map);
-    event_del(shell->signal);
+    /*
+     *event_del(shell->signal);
+     */
     allocator_mem_free(allocator, shell->signal);
 
     return 0;
@@ -68,17 +73,86 @@ static int __set_prompt(FShell *shell, char *prompt)
 {
 }
 
+typedef int (*stub_func_t)(void * p1, void * p2, void * p3, void * p4, void * p5, 
+                           void * p6, void * p7, void * p8, void * p9, void * p10,
+                           void * p11, void * p12, void * p13, void * p14, void * p15, 
+                           void * p16, void * p17, void * p18, void * p19, void * p20);
+static int __run_func(FShell *shell, String *str)
+{
+    int ret, i, cnt;
+    char *arg;
+    stub_func_t func = NULL;
+    void *par[20] = {0};
+
+    TRY {
+        THROW_IF(str == NULL, -1);
+        cnt = str->split(str, "[,\t\n();]", -1);
+
+        arg = str->get_splited_cstr(str, 0);
+        EXEC(shell->get_func_addr(shell, NULL, arg, &func));
+        THROW_IF(func == NULL, -1);
+
+        for (i = 1; i < cnt; i++) {
+            arg = str->get_splited_cstr(str, i);
+            if (arg != NULL) {
+                dbg_str(DBG_SUC, "%d:%s", i, arg);
+            }
+            arg = str_trim(arg);
+            if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
+                par[i - 1] = str_hex_to_int(arg);
+                dbg_str(DBG_SUC, "par i:%d value:%x", i - 1, par[i - 1]);
+            } else {
+                par[i -1] = arg;
+            }
+        }
+        dbg_str(DBG_SUC, "run at here2");
+        ret = func(par[0], par[1], par[2], par[3], par[4],
+                   par[5], par[6], par[7], par[8], par[9], 
+                   par[10], par[11], par[12], par[13], par[14],
+                   par[15], par[16], par[17], par[18], par[19]);
+        dbg_str(DBG_SUC, "run func ret:%x", ret);
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
 static class_info_entry_t shell_class_info[] = {
-    Init_Obj___Entry(0, Obj, parent),
-    Init_Nfunc_Entry(1, FShell, construct, __construct),
-    Init_Nfunc_Entry(2, FShell, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, FShell, load, NULL),
-    Init_Vfunc_Entry(4, FShell, unload, NULL),
-    Init_Vfunc_Entry(5, FShell, get_func_addr, NULL),
-    Init_Vfunc_Entry(6, FShell, get_func_name, NULL),
-    Init_Vfunc_Entry(7, FShell, open, NULL),
-    Init_Vfunc_Entry(8, FShell, set_prompt, __set_prompt),
-    Init_End___Entry(9, FShell),
+    Init_Obj___Entry(0 , Obj, parent),
+    Init_Nfunc_Entry(1 , FShell, construct, __construct),
+    Init_Nfunc_Entry(2 , FShell, deconstruct, __deconstruct),
+    Init_Vfunc_Entry(3 , FShell, load, NULL),
+    Init_Vfunc_Entry(4 , FShell, unload, NULL),
+    Init_Vfunc_Entry(5 , FShell, get_func_addr, NULL),
+    Init_Vfunc_Entry(6 , FShell, get_func_name, NULL),
+    Init_Vfunc_Entry(7 , FShell, open, NULL),
+    Init_Vfunc_Entry(8 , FShell, set_prompt, __set_prompt),
+    Init_Vfunc_Entry(9 , FShell, run_func, __run_func),
+    Init_End___Entry(10, FShell),
 };
 REGISTER_CLASS("FShell", shell_class_info);
+
+int test_hello()
+{
+    printf("hello world\n");
+    return 0;
+}
+
+int test_add(int a, int b)
+{
+    printf("test add, a:%x, b=%x\n", a, b);
+    return a + b;
+}
+
+int test_printf(char *fmt, ...)
+{
+    va_list ap;
+
+    printf("test_printf, fmt:%s\n", fmt);
+    va_start(ap, fmt);
+    vprintf(fmt, ap);
+    va_end(ap);
+
+    return 1;
+}
 

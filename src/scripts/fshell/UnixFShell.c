@@ -3,12 +3,13 @@
  * @Synopsis  
  * @author alan lin
  * @version 
- * @date 2019-06-19
+ * @date 2022-10-20
  */
 
 #if (!defined(WINDOWS_USER_MODE))
 #define _GNU_SOURCE
 #include <dlfcn.h>
+#include <libobject/core/String.h>
 #include "UnixFShell.h"
 
 static int __construct(UnixFShell *shell, char *init_str)
@@ -119,21 +120,52 @@ static int __get_func_name(UnixFShell *shell, char *lib_name, void *addr, char *
 
 static int __open(UnixFShell *shell)
 {
-    int ret;
-    char *linebuf = NULL;
+    char *linebuf = NULL, *p;
     size_t linebuf_size = 0;
+    allocator_t *allocator;
+    String *str;
+    int ret, i, cnt;
 
     TRY {
+        THROW_IF(shell == NULL, -1);
+        allocator = shell->parent.parent.allocator;
+        str = object_new(allocator, "String", NULL);
+
         while(shell->parent.close_flag != 1) {
             printf("%s", shell->parent.prompt);
-            if(getline(&linebuf, &linebuf_size,stdin) < 0)
+            /*
+             * Alternatively, before calling getline(), *lineptr can contain a
+             * pointer to a malloc(3)-allocated buffer *n bytes in size.  If the
+             * buffer is not large enough to hold the line, getline() resizes it
+             * with realloc(3), updating *lineptr and *n as necessary.
+             **/
+
+            if(getline(&linebuf, &linebuf_size, stdin) < 0)
                 break;
+
+            str->assign(str, linebuf);  
+            /*
+             *cnt = str->split(str, "[,\t\n(); ]", -1);
+             */
+
+            /*
+             *for (i = 0; i < cnt; i++) {
+             *    p = str->get_splited_cstr(str, i);
+             *    if (p != NULL) {
+             *        dbg_str(DBG_SUC, "%d:%s", i, p);
+             *    }
+             *}
+             */
+            EXEC(shell->run_func(shell, str));
             /*
              *printf("%s\n", linebuf);
              */
         }
         dbg_str(DBG_DETAIL, "run at here");
     } CATCH (ret) {
+    } FINALLY {
+        if (linebuf) free(linebuf);
+        if (str) object_destroy(str);
     }
 
     return ret;
@@ -148,7 +180,8 @@ static class_info_entry_t shell_class_info[] = {
     Init_Vfunc_Entry(5, UnixFShell, get_func_addr, __get_func_addr),
     Init_Vfunc_Entry(6, UnixFShell, get_func_name, __get_func_name),
     Init_Vfunc_Entry(7, UnixFShell, open, __open),
-    Init_End___Entry(8, UnixFShell),
+    Init_Vfunc_Entry(8, UnixFShell, run_func, NULL),
+    Init_End___Entry(9, UnixFShell),
 };
 REGISTER_CLASS("UnixFShell", shell_class_info);
 
@@ -266,7 +299,7 @@ static int test_unixfshell_load_and_get_func_addr()
         shell = OBJECT_NEW(allocator, UnixFShell, NULL);
         system("pwd");
         EXEC(shell->load(shell, lib_name, RTLD_LOCAL | RTLD_LAZY));
-        EXEC(shell->get_func_addr(shell, lib_name, func_name, &func));
+        EXEC(shell->get_func_addr(shell, lib_name, func_name, (void **)&func));
         dbg_str(DBG_DETAIL, "xx  func addr:%p", func);
         func(1, 2, 3, 4, 5, 6, &ret);
         THROW_IF(ret != 123, -1);

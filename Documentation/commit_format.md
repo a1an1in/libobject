@@ -1,8 +1,8 @@
-Add shell feature
+Support run func at shell
 
 Description:
-The shell can support input.
+Continued to implement shell
 
 Major Changes:
-1. Continue to implement shell
-2. Disable python script on Mac
+1. Add c string func in util/string.c
+2. implement FShell:run_func

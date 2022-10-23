@@ -20,7 +20,7 @@ struct UnixFShell_s{
     int (*unload)(UnixFShell *, char *lib_name);
     int (*get_func_addr)(UnixFShell *, char *lib_name, char *func_name, void **);
     int (*get_func_name)(UnixFShell *, char *lib_name, void *func_addr, char *name, unsigned int name_len);
-    int (*run_func)(UnixFShell *, char *func_name, int argc, char *argv[]);
+    int (*run_func)(UnixFShell *, String *s);
     int (*open)(UnixFShell *);
     int (*close)(UnixFShell *);
 
