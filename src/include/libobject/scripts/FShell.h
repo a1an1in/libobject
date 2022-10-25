@@ -23,8 +23,8 @@ struct FShell_s{
     int (*get_func_addr)(FShell *, char *lib_name, char *func_name, void **);
     int (*get_func_name)(FShell *, char *lib_name, void *func_addr, char *name, unsigned int name_len);
     int (*run_func)(FShell *, String *);
-    int (*open)(FShell *);
-    int (*close)(FShell *);
+    int (*open_ui)(FShell *);
+    int (*is_key)(FShell *, char *);
     int (*set_prompt)(FShell *shell, char *prompt);
 
     Map *map;

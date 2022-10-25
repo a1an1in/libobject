@@ -7,6 +7,7 @@
  */
 
 #include <stdlib.h>
+#include <signal.h>
 #include <libobject/core/utils/string.h>
 #include <libobject/scripts/FShell.h>
 
@@ -84,7 +85,7 @@ static int __run_func(FShell *shell, String *str)
         THROW_IF(str == NULL, -1);
         cnt = str->split(str, "[,\t\n();]", -1);
 
-        dbg_str(DBG_SUC, "run at here, cnt:%d", cnt);
+        dbg_str(DBG_DETAIL, "run at here, cnt:%d", cnt);
         THROW_IF(cnt <= 0, 0);
         arg = str->get_splited_cstr(str, 0);
         EXEC(shell->get_func_addr(shell, NULL, arg, &func));
@@ -93,21 +94,22 @@ static int __run_func(FShell *shell, String *str)
         for (i = 1; i < cnt; i++) {
             arg = str->get_splited_cstr(str, i);
             if (arg != NULL) {
-                dbg_str(DBG_SUC, "%d:%s", i, arg);
+                dbg_str(DBG_DETAIL, "%d:%s", i, arg);
             }
             arg = str_trim(arg);
             if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
                 par[i - 1] = str_hex_to_int(arg);
-                dbg_str(DBG_SUC, "par i:%d value:%x", i - 1, par[i - 1]);
+                dbg_str(DBG_DETAIL, "par i:%d value:%x", i - 1, par[i - 1]);
             } else {
                 par[i -1] = arg;
             }
         }
         ret = func(par[0], par[1], par[2], par[3], par[4],
-                   par[5], par[6], par[7], par[8], par[9], 
-                   par[10], par[11], par[12], par[13], par[14],
-                   par[15], par[16], par[17], par[18], par[19]);
-        dbg_str(DBG_SUC, "run func ret:%x", ret);
+                par[5], par[6], par[7], par[8], par[9], 
+                par[10], par[11], par[12], par[13], par[14],
+                par[15], par[16], par[17], par[18], par[19]);
+        dbg_str(DBG_DETAIL, "run func ret:%x", ret);
+        
     } CATCH (ret) {
     }
 
@@ -122,10 +124,11 @@ static class_info_entry_t shell_class_info[] = {
     Init_Vfunc_Entry(4 , FShell, unload, NULL),
     Init_Vfunc_Entry(5 , FShell, get_func_addr, NULL),
     Init_Vfunc_Entry(6 , FShell, get_func_name, NULL),
-    Init_Vfunc_Entry(7 , FShell, open, NULL),
+    Init_Vfunc_Entry(7 , FShell, open_ui, NULL),
     Init_Vfunc_Entry(8 , FShell, set_prompt, __set_prompt),
     Init_Vfunc_Entry(9 , FShell, run_func, __run_func),
-    Init_End___Entry(10, FShell),
+    Init_Vfunc_Entry(10, FShell, is_key, NULL),
+    Init_End___Entry(11, FShell),
 };
 REGISTER_CLASS("FShell", shell_class_info);
 
@@ -146,6 +149,7 @@ int test_printf(char *fmt, ...)
     va_list ap;
 
     printf("test_printf, fmt:%s\n", fmt);
+    dbg_buf(DBG_DETAIL, "fmt:", fmt, strlen(fmt));
     va_start(ap, fmt);
     vprintf(fmt, ap);
     va_end(ap);

@@ -118,13 +118,15 @@ static int __get_func_name(UnixFShell *shell, char *lib_name, void *addr, char *
     return ret;
 }
 
-static int __open(UnixFShell *shell)
+static int __open_ui(UnixFShell *shell)
 {
     char *linebuf = NULL, *p;
     size_t linebuf_size = 0;
     allocator_t *allocator;
     String *str;
-    int ret, i, cnt;
+    char c;
+    int ret, i, cnt, len;
+    // char linebuf[1024];
 
     TRY {
         THROW_IF(shell == NULL, -1);
@@ -140,28 +142,23 @@ static int __open(UnixFShell *shell)
              * with realloc(3), updating *lineptr and *n as necessary.
              **/
 
+            // c = getchar();
+            // printf("%c", c);
             if(getline(&linebuf, &linebuf_size, stdin) < 0)
                 break;
-
-            str->assign(str, linebuf);  
-            /*
-             *cnt = str->split(str, "[,\t\n(); ]", -1);
-             */
-
-            /*
-             *for (i = 0; i < cnt; i++) {
-             *    p = str->get_splited_cstr(str, i);
-             *    if (p != NULL) {
-             *        dbg_str(DBG_SUC, "%d:%s", i, p);
-             *    }
-             *}
-             */
-            EXEC(shell->run_func(shell, str));
-            /*
-             *printf("%s\n", linebuf);
-             */
+            
+            if (shell->is_key(shell, linebuf)) {
+                dbg_buf(DBG_DETAIL, "linebuf:", linebuf, strlen(linebuf));
+                linebuf = strlen(linebuf);
+                for (i = 0; i < len; i++) {
+                    printf("\b");
+                }
+            } else {
+                str->assign(str, linebuf);
+                EXEC(shell->run_func(shell, str));
+            }
         }
-        dbg_str(DBG_DETAIL, "run at here");
+        dbg_str(DBG_DETAIL, "close shell ui");
     } CATCH (ret) {
     } FINALLY {
         if (linebuf) free(linebuf);
@@ -171,17 +168,35 @@ static int __open(UnixFShell *shell)
     return ret;
 }
 
+static int __is_key(UnixFShell *shell, char *str)
+{
+    int len, ret = 0;
+    return 0;
+
+    TRY {
+        len = strlen(str);
+        THROW_IF(len <= 0, -1);
+        if (str[len - 1] == ';') {
+            return 1;
+        }
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
 static class_info_entry_t shell_class_info[] = {
-    Init_Obj___Entry(0, FShell, parent),
-    Init_Nfunc_Entry(1, UnixFShell, construct, __construct),
-    Init_Nfunc_Entry(2, UnixFShell, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, UnixFShell, load, __load),
-    Init_Vfunc_Entry(4, UnixFShell, unload, __unload),
-    Init_Vfunc_Entry(5, UnixFShell, get_func_addr, __get_func_addr),
-    Init_Vfunc_Entry(6, UnixFShell, get_func_name, __get_func_name),
-    Init_Vfunc_Entry(7, UnixFShell, open, __open),
-    Init_Vfunc_Entry(8, UnixFShell, run_func, NULL),
-    Init_End___Entry(9, UnixFShell),
+    Init_Obj___Entry(0 , FShell, parent),
+    Init_Nfunc_Entry(1 , UnixFShell, construct, __construct),
+    Init_Nfunc_Entry(2 , UnixFShell, deconstruct, __deconstruct),
+    Init_Vfunc_Entry(3 , UnixFShell, load, __load),
+    Init_Vfunc_Entry(4 , UnixFShell, unload, __unload),
+    Init_Vfunc_Entry(5 , UnixFShell, get_func_addr, __get_func_addr),
+    Init_Vfunc_Entry(6 , UnixFShell, get_func_name, __get_func_name),
+    Init_Vfunc_Entry(7 , UnixFShell, open_ui, __open_ui),
+    Init_Vfunc_Entry(8 , UnixFShell, run_func, NULL),
+    Init_Vfunc_Entry(9 , UnixFShell, is_key, __is_key),
+    Init_End___Entry(10, UnixFShell),
 };
 REGISTER_CLASS("UnixFShell", shell_class_info);
 
@@ -196,7 +211,7 @@ static int test_unixfshell_open()
 
     TRY {
         shell = OBJECT_NEW(allocator, UnixFShell, NULL);
-        shell->open(shell);
+        shell->open_ui(shell);
     } CATCH (ret) {
     } FINALLY {
         object_destroy(shell);

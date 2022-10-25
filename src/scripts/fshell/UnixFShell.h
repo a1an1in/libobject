@@ -21,9 +21,8 @@ struct UnixFShell_s{
     int (*get_func_addr)(UnixFShell *, char *lib_name, char *func_name, void **);
     int (*get_func_name)(UnixFShell *, char *lib_name, void *func_addr, char *name, unsigned int name_len);
     int (*run_func)(UnixFShell *, String *s);
-    int (*open)(UnixFShell *);
-    int (*close)(UnixFShell *);
-
+    int (*open_ui)(UnixFShell *);
+    int (*is_key)(UnixFShell *, char *);
 };
 
 #endif

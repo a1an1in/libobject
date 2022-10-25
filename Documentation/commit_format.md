@@ -1,8 +1,8 @@
-Support run func at shell
-
-Description:
 Continued to implement shell
 
+Description:
+update
+
 Major Changes:
-1. Add c string func in util/string.c
-2. implement FShell:run_func
+1. change open to open_ui
+2. do little changes.
