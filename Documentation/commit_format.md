@@ -1,8 +1,7 @@
-Continued to implement shell
+add two scripts which's good to learn
 
 Description:
 update
 
 Major Changes:
-1. change open to open_ui
-2. do little changes.
+1. add two scritps demo
