@@ -1,4 +1,4 @@
-add two scripts which's good to learn
+add scripts
 
 Description:
 update
