@@ -1,4 +1,4 @@
-add scripts
+add dockerfile and init scripts to adapt this repo
 
 Description:
 update

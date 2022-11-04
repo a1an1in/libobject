@@ -1,0 +1,108 @@
+FROM ubuntu:20.04
+
+RUN dpkg --add-architecture i386 && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update && apt-get install -y --no-install-recommends \
+        gcc-multilib        \
+        build-essential     \
+        net-tools           \
+        gawk                \
+        wget                \
+        diffstat            \
+        xvfb                \
+        chrpath             \
+        socat               \
+        xterm               \
+        autoconf            \
+        libtool             \
+        python              \
+        git                 \
+        unzip               \
+        texinfo             \
+        zlib1g-dev          \
+        libsdl1.2-dev       \
+        libncurses5-dev     \
+        libssl-dev          \
+        zlib1g:i386         \
+        # These are also required but not listed
+        # Detect distro as Ubuntu
+        lsb-release         \
+        cpio                \
+        rsync               \
+        # For xlsclients
+        x11-utils           \
+        # Required by hardware description import
+        libgtk2.0-bin       \
+        # For xxd
+        vim-common          \
+        # The en_US.UTF-8 locale is also required
+        locales             \
+        bc                  \
+        less                \
+        tzdata              \
+        libtinfo5           \
+    # Set /bin/sh to bash
+    && echo "dash dash/sh boolean false" | debconf-set-selections \
+    && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash \
+    # Generate required locales, then remove the package
+    && locale-gen --no-archive en_US.UTF-8 \
+    && apt-get purge -y locales \
+    && apt-get autoremove -y \
+    # Remove apt caches
+    && rm -rf /var/lib/apt/lists/* /tmp/*
+
+ARG ARTIFACTORY_URL
+ARG ARTIFACTORY_PUBLIC_INSTALL_MEDIA_BASE
+ENV ARTIFACTORY_URL ${ARTIFACTORY_URL}
+ENV ARTIFACTORY_PUBLIC_INSTALL_MEDIA_BASE ${ARTIFACTORY_PUBLIC_INSTALL_MEDIA_BASE}
+ENV PLSDK_INSTALL_ROOT /opt
+ENV PLSDK_INSTALL_PATH $PLSDK_INSTALL_ROOT/xilinx/petalinux
+
+RUN echo "download sdk, please wait..."
+COPY ./auto-install.sh /tmp
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl expect \
+    && cd /tmp \
+    && PLSDK_INSTALLER_NAME=petalinux-v2022.1-final-installer.run \
+    && curl -O --insecure --fail "${ARTIFACTORY_URL}${ARTIFACTORY_PUBLIC_INSTALL_MEDIA_BASE}/xilinx/petalinux/v2022.1/petalinux-v2022.1-final-installer.run/$PLSDK_INSTALLER_NAME" \
+    && chmod a+x $PLSDK_INSTALLER_NAME \
+    && cd /tmp \
+    && mkdir -p $PLSDK_INSTALL_PATH \
+    && chown nobody $PLSDK_INSTALL_PATH \
+    && PLSDK_INSTALLER_NAME=petalinux-v2022.1-final-installer.run \
+    && su -s /bin/sh nobody -c "./auto-install.sh ./$PLSDK_INSTALLER_NAME $PLSDK_INSTALL_PATH"\
+    # Remove packages only used for installation
+    && apt-get purge -y curl expect \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* /tmp/*
+
+# Install packages required for building ELSW but that are not
+# required when installing the SDK. This avoids the most time-
+# consuming parts of creating a new Docker image when new
+# dependencies are added.
+RUN apt-get update && apt-get install -y --no-install-recommends ssh \
+    tree                \
+    vim                 \
+    nano                \
+    tmux                \
+    # For git ssh access to our repositories
+    && rm -rf /var/lib/apt/lists/* /tmp/*
+
+# Set up environment
+ENV LANG C.UTF-8
+# Wrapper for PetaLinux settings script (to get rid of TFTP warning)
+COPY ./plsdk-settings-wrapper.sh /usr/local/share
+# Automatically set up PetaLinux in interactive shells
+# (unless already inherited from parent process environment)
+RUN echo 'if [ -z "$PETALINUX" ]; then . /usr/local/share/plsdk-settings-wrapper.sh; fi' >> /etc/bash.bashrc
+# Wrapper for running single PetaLinux command with correct environment
+COPY ./plenv /usr/local/bin
+
+ARG HOST_USER_GID
+ARG HOST_USER_UID
+ENV HOME /home/plsdk
+ 
+RUN groupadd -r plsdk -g "$HOST_USER_GID" \
+    && useradd -d "$HOME" --no-log-init -u "$HOST_USER_UID" -m -g plsdk plsdk
+
+WORKDIR /work
+CMD /bin/bash
