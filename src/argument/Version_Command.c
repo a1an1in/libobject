@@ -11,9 +11,7 @@
 
 static int __run_action(Command *command)
 {
-    dbg_str(ARG_DETAIL, "libobject version:%d.%d.%d.%d", 
-            LIBOBJECT_VERSION_MAJOR, LIBOBJECT_VERSION_MINOR,
-            LIBOBJECT_VERSION_MAINTENANCE, LIBOBJECT_VERSION_BUILD);
+    dbg_str(ARG_DETAIL, "libobject version:%s", PROJECT_VERSION);
 
     return 1;
 }

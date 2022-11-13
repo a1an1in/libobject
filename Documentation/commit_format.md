@@ -1,7 +1,6 @@
-add dockerfile and init scripts to adapt this repo
-
+add version control using cmake and move incude file position
 Description:
-update
+we need version control, which is needed by deploy.
 
 Major Changes:
 1. update

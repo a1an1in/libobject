@@ -1,7 +1,17 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.0)
 include (mk/util.cmake)
 init_platform()
-project (libobject)
+
+if (POLICY CMP0048)
+    cmake_policy(SET CMP0048 NEW)
+endif (POLICY CMP0048)
+project (libobject VERSION 2.5.0.3)
+configure_file(
+    ${PROJECT_SOURCE_DIR}/src/include/libobject/version.h.in
+    ${PROJECT_SOURCE_DIR}/src/include/libobject/version.h
+    @ONLY
+)
+
 config_platform()
 
 set (CMAKE_MACOSX_RPATH 1)
