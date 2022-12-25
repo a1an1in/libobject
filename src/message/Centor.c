@@ -40,7 +40,6 @@
 #include <libobject/message/Publisher.h>
 #include <libobject/core/Linked_Queue.h>
 #include <libobject/core/Rbtree_Map.h>
-#include <libobject/libobject.h>
 #include <libobject/config.h>
 
 static void

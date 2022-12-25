@@ -5,7 +5,7 @@
 #if (!defined(WINDOWS_USER_MODE))
 File_System *globle_file_system;
 
-int fs_init()
+int libobject_init_fs()
 {
     allocator_t *allocator = allocator_get_default_alloc();
 #   if (defined(UNIX_USER_MODE)    ||\
@@ -21,13 +21,11 @@ int fs_init()
 
     return 0;
 }
-REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_FS, fs_init);
 
-int fs_release()
+int libobject_destroy_fs()
 {
     return object_destroy(globle_file_system);
 }
-REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_FS, fs_release);
 
 int fs_is_directory(char *name)
 {

@@ -94,7 +94,7 @@ struct event_base *get_default_event_base()
     return global_event_base;
 }
 
-int default_event_base_constructor()
+int concurrent_init_event_base()
 {
     Producer *producer = global_get_default_producer();
     allocator_t *allocator = allocator_get_default_alloc();
@@ -111,10 +111,8 @@ int default_event_base_constructor()
 
     return 0;
 }
-REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_EVBASE, 
-                   default_event_base_constructor);
 
-int default_event_base_destructor()
+int concurrent_destroy_event_base()
 {
     allocator_t *allocator = allocator_get_default_alloc();
     struct event_base *eb = get_default_event_base();
@@ -123,6 +121,4 @@ int default_event_base_destructor()
      
     return 0;
 }
-REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_EVBASE, 
-                   default_event_base_destructor);
 

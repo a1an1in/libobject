@@ -8,7 +8,7 @@
 
 #include <libobject/argument/Application.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/libobject.h>
+#include <libobject/core/init.h>
 #include <libobject/core/try.h>
 
 #define MAX_APP_COMMANDS_COUNT 1024
@@ -92,7 +92,8 @@ int app(int argc, char *argv[])
     Application *app;
     int ret = 0;
 
-    libobject_init();
+    libobject_init_core();
+    libobject_init_concurrent();
     exception_init();
 
     TRY {
@@ -102,9 +103,10 @@ int app(int argc, char *argv[])
         dbg_str(DBG_ERROR, "main catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
                 ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());
     } FINALLY {
-        dbg_str(ARG_SUC, "exit app!");
         object_destroy(app);
-        libobject_exit();
+        libobject_destroy_concurrent();
+        libobject_destroy_core();
+        dbg_str(ARG_SUC, "exit app!");
     }
 
     return ret;

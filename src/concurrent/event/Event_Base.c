@@ -235,11 +235,6 @@ static int __loop(Event_Base *eb)
     Timer *timer = eb->timer;
     struct timeval tv, *tv_p;
 
-    set_quit_signal(eb);
-    /*
-     *set_segment_signal(eb);
-     */
-
     while (eb->break_flag == 0) {
         tv_p = &tv;
         timer->timeout_next(timer, &tv_p);
@@ -247,7 +242,7 @@ static int __loop(Event_Base *eb)
         __process_timeout_events(eb);
     }
 
-    dbg_str(EV_DETAIL, "break Event_Base loop");
+    dbg_str(DBG_VIP, "break Event_Base loop");
 }
 
 static class_info_entry_t event_base_class_info[] = {

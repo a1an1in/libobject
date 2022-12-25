@@ -37,8 +37,8 @@
 #include <libobject/concurrent/event/Event_Base.h>
 #include <libobject/concurrent/event/Select_Base.h>
 #include <libobject/core/Linked_Queue.h>
+#include <libobject/core/init.h>
 #include <libobject/concurrent/event/Event_Thread.h>
-#include <libobject/libobject.h>
 #include <libobject/config.h>
 
 static int __construct(Event_Thread *thread, char *init_str)
@@ -128,6 +128,8 @@ static void event_thread_notifier_callback(int fd, short events, void *arg)
         case 'a': 
         case 'd': 
             break;
+        case 'e': //exit
+            break;
         default:
             break;
     }
@@ -174,7 +176,22 @@ static void *__start_routine(void *arg)
     eb->loop(eb);
 
     et->flags = EVTHREAD_STATE_DESTROYED;
-    dbg_str(EV_IMPORTANT,"Event Thread, out start routine");
+    dbg_str(DBG_VIP,"Event Thread, out start routine");
+}
+
+static int __stop(Event_Thread *thread)
+{
+    Socket *c      = thread->c;
+    Event_Base *eb = thread->eb;
+
+    eb->break_flag = 1;
+
+    if (c->send(c, "e", 1, 0) != 1) {//to make option task effect
+        return -1;
+    }
+    dbg_str(EV_VIP,"Event Thread stop");
+
+    return 0;
 }
 
 static class_info_entry_t event_thread_class_info[] = {
@@ -187,7 +204,7 @@ static class_info_entry_t event_thread_class_info[] = {
     Init_Vfunc_Entry(6 , Event_Thread, set_start_routine, NULL),
     Init_Vfunc_Entry(7 , Event_Thread, set_start_arg, NULL),
     Init_Vfunc_Entry(8 , Event_Thread, start_routine, __start_routine),
-    Init_Vfunc_Entry(9 , Event_Thread, detach, NULL),
+    Init_Vfunc_Entry(9 , Event_Thread, stop, __stop),
     Init_End___Entry(10, Event_Thread),
 };
 REGISTER_CLASS("Event_Thread",event_thread_class_info);

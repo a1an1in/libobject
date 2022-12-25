@@ -27,6 +27,7 @@ struct producer_s{
 
     /*inherited methods*/
     int (*start)(Producer *);
+    int (*close)(Producer *);
 
     Dispatcher *dispatcher;
     List *workers;

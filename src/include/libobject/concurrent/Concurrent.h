@@ -24,4 +24,7 @@ struct concurrent_s{
 
 };
 
+int libobject_init_concurrent();
+int libobject_destroy_concurrent();
+
 #endif

@@ -4,7 +4,6 @@
 #include <signal.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
-#include <libobject/libobject.h>
 #include <libobject/concurrent/Producer.h>
 #include <libobject/version.h>
 
@@ -14,7 +13,8 @@
 #include <winsock2.h>
 #endif
 
-int libobject_init()
+
+int libobject_init_core()
 {
 #if (defined(WINDOWS_USER_MODE))
     WSADATA wsa_data;
@@ -23,24 +23,20 @@ int libobject_init()
         return -1;
     }
 #endif
+
     execute_ctor_funcs();
+
+    libobject_init_fs();
 
     return 1;
 }
 
-int libobject_exit()
+int libobject_destroy_core()
 {
 //#if (defined(WINDOWS_USER_MODE))
 //    WSACleanup();
 //#endif
-#if (!defined(WINDOWS_USER_MODE))
-    kill(0, SIGQUIT);
-#endif
-    return 1;
-}
-
-int __attribute__((destructor)) destruct_libobject()
-{
+    libobject_destroy_fs();
     execute_dtor_funcs();
 
     return 1;

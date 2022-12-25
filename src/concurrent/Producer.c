@@ -40,6 +40,8 @@
 #include <libobject/concurrent/Worker.h>
 
 Producer *global_default_producer;
+extern int concurrent_init_event_base();
+extern int concurrent_destroy_event_base();
 
 static int __construct(Producer *producer, char *init_str)
 {
@@ -108,6 +110,15 @@ static int __del_dispatcher(Producer *producer, void *worker)
 {
 }
 
+static int __close(Producer *producer)
+{
+    Event_Thread *thread = &producer->parent;
+
+    thread->stop(thread);
+
+    return 0;
+}
+
 static class_info_entry_t producer_class_info[] = {
     Init_Obj___Entry(0, Event_Thread, parent),
     Init_Nfunc_Entry(1, Producer, construct, __construct),
@@ -117,7 +128,8 @@ static class_info_entry_t producer_class_info[] = {
     Init_Vfunc_Entry(5, Producer, add_dispatcher, __add_dispatcher),
     Init_Vfunc_Entry(6, Producer, del_dispatcher, __del_dispatcher),
     Init_Vfunc_Entry(7, Producer, start, NULL),
-    Init_End___Entry(8, Producer),
+    Init_Vfunc_Entry(8, Producer, close, __close),
+    Init_End___Entry(9, Producer),
 };
 REGISTER_CLASS("Producer", producer_class_info);
 
@@ -126,13 +138,12 @@ Producer *global_get_default_producer()
     return global_default_producer;
 }
 
-int default_producer_constructor()
+static int concurrent_init_producer()
 {
     Producer *producer;
     allocator_t *allocator = allocator_get_default_alloc();
 
-    ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, run default producer\n", 
-            REGISTRY_CTOR_PRIORITY_CONCURRENT);
+    dbg_str(DBG_VIP, "concurrent_init_producer");
     producer = OBJECT_NEW(allocator, Producer, NULL);
     global_default_producer = producer;
 
@@ -140,40 +151,33 @@ int default_producer_constructor()
 
     return 0;
 }
-REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_CONCURRENT, 
-                   default_producer_constructor);
 
-int default_producer_destructor()
+static int concurrent_destroy_producer()
 {
     Producer *producer = global_get_default_producer();
 
-    ATTRIB_PRINT("REGISTRY_DTOR_PRIORITY=%d, destruct default producer\n", 
-            REGISTRY_DTOR_PRIORITY_CONCURRENT);
+    dbg_str(DBG_VIP, "concurrent_destroy_producer start");
+    producer->close(producer);
     while (producer->parent.flags != EVTHREAD_STATE_DESTROYED) usleep(1000000);
 
     object_destroy(producer);
+    dbg_str(DBG_VIP, "concurrent_destroy_producer end");
+
+    return 0;
 }
-REGISTER_DTOR_FUNC(REGISTRY_DTOR_PRIORITY_CONCURRENT, 
-                   default_producer_destructor);
 
-void test_obj_producer()
+int libobject_init_concurrent()
 {
-    Producer *producer;
-    allocator_t *allocator = allocator_get_default_alloc();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
+    concurrent_init_producer();
+    concurrent_init_event_base();
 
-    c = cfg_alloc(allocator); 
-    dbg_str(CONCURRENT_SUC, "configurator_t addr:%p", c);
-    cfg_config_str(c, "/Producer", "name", "alan producer") ;  
+    return 1;
+}
 
-    producer = OBJECT_NEW(allocator, Producer, c->buf);
+int libobject_destroy_concurrent()
+{
+    concurrent_destroy_event_base();
+    concurrent_destroy_producer();
 
-    object_dump(producer, "Producer", buf, 2048);
-    dbg_str(CONCURRENT_DETAIL, "Producer dump: %s", buf);
-
-    object_destroy(producer);
-    cfg_destroy(c);
+    return 1;
 }
