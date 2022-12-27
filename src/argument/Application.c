@@ -90,32 +90,44 @@ int app_register_cmd(char *cmd)
 
 int libobject_init()
 {
-    #if (defined(WINDOWS_USER_MODE))
-    WSADATA wsa_data;
-    if (WSAStartup(MAKEWORD(2, 1), &wsa_data)) {
-        dbg_str(NET_ERROR, "WSAStartup error");
-        return -1;
+    int ret;
+
+    TRY {
+        #if (defined(WINDOWS_USER_MODE))
+        WSADATA wsa_data;
+        if (WSAStartup(MAKEWORD(2, 1), &wsa_data)) {
+            dbg_str(NET_ERROR, "WSAStartup error");
+            return -1;
+        }
+        #endif
+        EXEC(execute_ctor_funcs());
+        EXEC(core_init_fs());
+        EXEC(concurrent_init_producer());
+        EXEC(concurrent_init_event_base());
+
+        exception_init();
+    } CATCH (ret) {
     }
-    #endif
-
-    execute_ctor_funcs();
-
-    core_init_fs();
-    concurrent_init_producer();
-    concurrent_init_event_base();
-    exception_init();
+    return ret;
 }
 
 int libobject_destroy()
 {
-    concurrent_destroy_event_base();
-    concurrent_destroy_producer();
+    int ret;
 
-    //#if (defined(WINDOWS_USER_MODE))
-    //    WSACleanup();
-    //#endif
-    core_destroy_fs();
-    execute_dtor_funcs();
+    TRY {
+        EXEC(concurrent_destroy_event_base());
+        EXEC(concurrent_destroy_producer());
+
+        //#if (defined(WINDOWS_USER_MODE))
+        //    WSACleanup();
+        //#endif
+        EXEC(core_destroy_fs());
+        EXEC(execute_dtor_funcs());
+    } CATCH (ret) {
+    }
+    
+    return ret;
 }
 
 int app(int argc, char *argv[])

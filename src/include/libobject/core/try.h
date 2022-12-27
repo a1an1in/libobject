@@ -158,7 +158,7 @@ extern pthread_key_t try_key;
     int __error_line;                                                                            \
     int __error_code = 1;                                                                        \
     char *__error_func;                                                                          \
-    char *__error_file;                                                                          \
+    char *__error_file __attribute__((unused));                                                  \
     int __error_int_par1 = 0;                                                                    \
     int __error_int_par2 = 0;                                                                    \
     void *__error_ptr_par1 = NULL;                                                               \
