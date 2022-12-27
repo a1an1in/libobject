@@ -1,6 +1,8 @@
-add version control using cmake and move incude file position
+change libobject init and destroy funcs.
+
 Description:
-we need version control, which is needed by deploy.
+we change the init and destroy funcs position and del useless files.
 
 Major Changes:
-1. update
+1. del init.c and init.h of core.
+2. some modules may need init, we do those process in argument module.

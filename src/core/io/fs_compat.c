@@ -5,7 +5,7 @@
 #if (!defined(WINDOWS_USER_MODE))
 File_System *globle_file_system;
 
-int libobject_init_fs()
+int core_init_fs()
 {
     allocator_t *allocator = allocator_get_default_alloc();
 #   if (defined(UNIX_USER_MODE)    ||\
@@ -22,7 +22,7 @@ int libobject_init_fs()
     return 0;
 }
 
-int libobject_destroy_fs()
+int core_destroy_fs()
 {
     return object_destroy(globle_file_system);
 }

@@ -138,7 +138,7 @@ Producer *global_get_default_producer()
     return global_default_producer;
 }
 
-static int concurrent_init_producer()
+int concurrent_init_producer()
 {
     Producer *producer;
     allocator_t *allocator = allocator_get_default_alloc();
@@ -152,7 +152,7 @@ static int concurrent_init_producer()
     return 0;
 }
 
-static int concurrent_destroy_producer()
+int concurrent_destroy_producer()
 {
     Producer *producer = global_get_default_producer();
 
@@ -164,20 +164,4 @@ static int concurrent_destroy_producer()
     dbg_str(DBG_VIP, "concurrent_destroy_producer end");
 
     return 0;
-}
-
-int libobject_init_concurrent()
-{
-    concurrent_init_producer();
-    concurrent_init_event_base();
-
-    return 1;
-}
-
-int libobject_destroy_concurrent()
-{
-    concurrent_destroy_event_base();
-    concurrent_destroy_producer();
-
-    return 1;
 }

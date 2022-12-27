@@ -37,7 +37,6 @@
 #include <libobject/concurrent/event/Event_Base.h>
 #include <libobject/concurrent/event/Select_Base.h>
 #include <libobject/core/Linked_Queue.h>
-#include <libobject/core/init.h>
 #include <libobject/concurrent/event/Event_Thread.h>
 #include <libobject/config.h>
 

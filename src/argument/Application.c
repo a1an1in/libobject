@@ -8,8 +8,9 @@
 
 #include <libobject/argument/Application.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/init.h>
 #include <libobject/core/try.h>
+#include <libobject/core/io/fs_compat.h>
+#include <libobject/concurrent/Producer.h>
 
 #define MAX_APP_COMMANDS_COUNT 1024
 static char *app_commands[MAX_APP_COMMANDS_COUNT];
@@ -87,16 +88,44 @@ int app_register_cmd(char *cmd)
     app_commands[app_command_count++] = cmd;
 }
 
+
+int libobject_init()
+{
+    #if (defined(WINDOWS_USER_MODE))
+    WSADATA wsa_data;
+    if (WSAStartup(MAKEWORD(2, 1), &wsa_data)) {
+        dbg_str(NET_ERROR, "WSAStartup error");
+        return -1;
+    }
+    #endif
+
+    execute_ctor_funcs();
+
+    core_init_fs();
+    concurrent_init_producer();
+    concurrent_init_event_base();
+    exception_init();
+}
+
+int libobject_destroy()
+{
+    concurrent_destroy_event_base();
+    concurrent_destroy_producer();
+
+    //#if (defined(WINDOWS_USER_MODE))
+    //    WSACleanup();
+    //#endif
+    core_destroy_fs();
+    execute_dtor_funcs();
+}
+
 int app(int argc, char *argv[])
 {
     Application *app;
     int ret = 0;
 
-    libobject_init_core();
-    libobject_init_concurrent();
-    exception_init();
-
     TRY {
+        EXEC(libobject_init());
         app = object_new(NULL, "Application", NULL);
         EXEC(app->run(app, argc, argv));
     } CATCH (ret) {
@@ -104,8 +133,7 @@ int app(int argc, char *argv[])
                 ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());
     } FINALLY {
         object_destroy(app);
-        libobject_destroy_concurrent();
-        libobject_destroy_core();
+        libobject_destroy();
         dbg_str(ARG_SUC, "exit app!");
     }
 

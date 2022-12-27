@@ -33,6 +33,8 @@ struct producer_s{
     List *workers;
 };
 
-Producer *global_get_default_producer();
+extern Producer *global_get_default_producer();
+extern int concurrent_init_producer();
+extern int concurrent_destroy_producer();
 
 #endif
