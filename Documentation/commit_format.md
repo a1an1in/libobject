@@ -1,8 +1,7 @@
-change libobject init and destroy funcs.
+add init.h in argument module.
 
 Description:
-we change the init and destroy funcs position and del useless files.
+update
 
 Major Changes:
-1. del init.c and init.h of core.
-2. some modules may need init, we do those process in argument module.
+1. update

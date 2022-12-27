@@ -88,7 +88,6 @@ int app_register_cmd(char *cmd)
     app_commands[app_command_count++] = cmd;
 }
 
-
 int libobject_init()
 {
     #if (defined(WINDOWS_USER_MODE))
