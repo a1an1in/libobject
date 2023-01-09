@@ -13,9 +13,11 @@ struct Akcipher_s{
     int (*deconstruct)(Akcipher *);
 
     /*virtual methods reimplement*/
-    int (*set)(Akcipher *ak, char *attrib, void *value);
-    void *(*get)(Akcipher *, char *attrib);
-    char *(*to_json)(Akcipher *); 
+    int (*generate_keys)(Akcipher *, int key_len);
+    int (*get_public_key)(Akcipher *);
+    int (*get_private_key)(Akcipher *);
+    int (*encrypt)(Akcipher *, void *key, const u8 *in, const u32 in_len, u8 *out, u32 *out_len);
+    int (*decrypt)(Akcipher *, void *key, const u8 *in, const u32 in_len, u8 *out, u32 *out_len);
 };
 
 #endif
