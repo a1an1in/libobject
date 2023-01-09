@@ -27,7 +27,7 @@ macro (set_cmake_evironment_variable)
         #-force_load object-archive
         -force_load object-argument
         -force_load object-cmds
-        #-force_load object-compress
+        -force_load object-compress
         -force_load object-concurrent
         -force_load object-core
         -force_load object-crypto
