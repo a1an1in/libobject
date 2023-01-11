@@ -1,8 +1,7 @@
-add AkcipherDsa frame
+update AkcipherDsa
 
 Description:
 update
 
 Major Changes:
-1. implement AkcipherDsa frame
-2. add AkcipherDsa test case
+1. add new interfaces for AkcipherDsa
