@@ -416,8 +416,8 @@ static int __get_substring(String *string, char *pattern, int offset, int *start
     int nmatch = 2, ret = -1;
 
     TRY {
-        ret = regcomp_wrap(&regex, pattern, REG_EXTENDED|REG_ICASE);  
-        if (ret) return -1;
+        ret = regcomp_wrap(&regex, pattern, REG_EXTENDED | REG_ICASE);
+        THROW_IF(ret != 0, -1);
 
         pos = string->get_cstr(string);
         if (strlen(pos) == 0) return 0;

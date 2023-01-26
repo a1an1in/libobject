@@ -40,7 +40,9 @@ static int __set_algo(Skcipher *sk, char *algo)
         str = object_new(allocator, "String", algo);
 
         sk->str = str;
-        ret = str->get_substring(str, "\\((.*?)\\)", 0, &start, &len);
+        // ret = str->get_substring(str, "\\w*\\((\\w+)\\)", 0, &start, &len);
+        ret = str->get_substring(str, "[a-z0-9A-Z]+\\(([a-z0-9A-Z]+)\\)", 0, &start, &len);
+        
         if (ret >= 0) {
             strncpy(sub_algo, &str->value[start], len);
             strncpy(mode, str->value, start - 1);

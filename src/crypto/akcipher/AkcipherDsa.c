@@ -51,7 +51,7 @@ static int __deconstruct(AkcipherDsa *cipher)
 
 static class_info_entry_t cipher_algo_class_info[] = {
     Init_Obj___Entry(0, Akcipher,    parent),
-    Init_Nfunc_Entry(1 , AkcipherDsa, construct, __construct),
+    Init_Nfunc_Entry(1, AkcipherDsa, construct, __construct),
     Init_Nfunc_Entry(2, AkcipherDsa, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3, AkcipherDsa, generate_keys, __generate_keys),
     Init_Vfunc_Entry(4, AkcipherDsa, get_public_key, __get_public_key),
