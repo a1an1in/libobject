@@ -85,13 +85,13 @@ static int __run_func(FShell *shell, String *str)
         THROW_IF(str == NULL, -1);
         cnt = str->split(str, "[,\t\n();]", -1);
 
-        dbg_str(DBG_DETAIL, "run at here, cnt:%d", cnt);
         THROW_IF(cnt <= 0, 0);
         arg = str->get_splited_cstr(str, 0);
         EXEC(shell->get_func_addr(shell, NULL, arg, &func));
         THROW_IF(func == NULL, -1);
 
         for (i = 1; i < cnt; i++) {
+            dbg_str(DBG_DETAIL, "run at here, cnt:%d", cnt);
             arg = str->get_splited_cstr(str, i);
             if (arg != NULL) {
                 dbg_str(DBG_DETAIL, "%d:%s", i, arg);
@@ -101,14 +101,14 @@ static int __run_func(FShell *shell, String *str)
                 par[i - 1] = str_hex_to_int(arg);
                 dbg_str(DBG_DETAIL, "par i:%d value:%x", i - 1, par[i - 1]);
             } else {
-                par[i -1] = arg;
+                par[i - 1] = arg;
             }
         }
         ret = func(par[0], par[1], par[2], par[3], par[4],
                 par[5], par[6], par[7], par[8], par[9], 
                 par[10], par[11], par[12], par[13], par[14],
                 par[15], par[16], par[17], par[18], par[19]);
-        dbg_str(DBG_DETAIL, "run func ret:%x", ret);
+        dbg_str(DBG_DETAIL, "run func ret:%d", ret);
         
     } CATCH (ret) {
     }
@@ -140,7 +140,7 @@ int test_hello()
 
 int test_add(int a, int b)
 {
-    printf("test add, a:%x, b=%x\n", a, b);
+    printf("test add, a:%d, b:%d, count:%d\n", a, b, a + b);
     return a + b;
 }
 
