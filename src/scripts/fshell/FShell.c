@@ -62,9 +62,7 @@ static int __deconstruct(FShell *shell)
     allocator_t *allocator = shell->parent.allocator;
 
     object_destroy(shell->map);
-    /*
-     *event_del(shell->signal);
-     */
+    event_del(shell->signal);
     allocator_mem_free(allocator, shell->signal);
 
     return 0;
