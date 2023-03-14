@@ -125,7 +125,7 @@ static int __open_ui(UnixFShell *shell)
     allocator_t *allocator;
     String *str;
     char c;
-    int ret, i, cnt, len;
+    int ret = 0, i, cnt, len;
     // char linebuf[1024];
 
     TRY {
@@ -147,15 +147,13 @@ static int __open_ui(UnixFShell *shell)
             if(getline(&linebuf, &linebuf_size, stdin) < 0)
                 break;
             
-            if (shell->is_key(shell, linebuf)) {
+            if (shell->is_statement(shell, linebuf) == 1) {
                 dbg_buf(DBG_DETAIL, "linebuf:", linebuf, strlen(linebuf));
-                linebuf = strlen(linebuf);
-                for (i = 0; i < len; i++) {
-                    printf("\b");
-                }
-            } else {
                 str->assign(str, linebuf);
                 EXEC(shell->run_func(shell, str));
+            } else {
+                dbg_buf(DBG_DETAIL, "linebuf:", linebuf, strlen(linebuf));
+                THROW(-1);
             }
         }
         dbg_str(DBG_DETAIL, "close shell ui");
@@ -163,23 +161,6 @@ static int __open_ui(UnixFShell *shell)
     } FINALLY {
         if (linebuf) free(linebuf);
         if (str) object_destroy(str);
-    }
-
-    return ret;
-}
-
-static int __is_key(UnixFShell *shell, char *str)
-{
-    int len, ret = 0;
-    return 0;
-
-    TRY {
-        len = strlen(str);
-        THROW_IF(len <= 0, -1);
-        if (str[len - 1] == ';') {
-            return 1;
-        }
-    } CATCH (ret) {
     }
 
     return ret;
@@ -195,7 +176,7 @@ static class_info_entry_t shell_class_info[] = {
     Init_Vfunc_Entry(6 , UnixFShell, get_func_name, __get_func_name),
     Init_Vfunc_Entry(7 , UnixFShell, open_ui, __open_ui),
     Init_Vfunc_Entry(8 , UnixFShell, run_func, NULL),
-    Init_Vfunc_Entry(9 , UnixFShell, is_key, __is_key),
+    Init_Vfunc_Entry(9 , UnixFShell, is_statement, NULL),
     Init_End___Entry(10, UnixFShell),
 };
 REGISTER_CLASS("UnixFShell", shell_class_info);

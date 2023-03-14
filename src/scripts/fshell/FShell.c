@@ -114,6 +114,22 @@ static int __run_func(FShell *shell, String *str)
     return ret;
 }
 
+static int __is_statement(FShell *shell, char *str)
+{
+    int len, ret = 0;
+
+    TRY {
+        len = strlen(str);
+        THROW_IF(len <= 1, -1);
+        if (str[len - 1] == ';') {
+            return 1;
+        }
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
 static class_info_entry_t shell_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , FShell, construct, __construct),
@@ -125,7 +141,7 @@ static class_info_entry_t shell_class_info[] = {
     Init_Vfunc_Entry(7 , FShell, open_ui, NULL),
     Init_Vfunc_Entry(8 , FShell, set_prompt, __set_prompt),
     Init_Vfunc_Entry(9 , FShell, run_func, __run_func),
-    Init_Vfunc_Entry(10, FShell, is_key, NULL),
+    Init_Vfunc_Entry(10, FShell, is_statement, __is_statement),
     Init_End___Entry(11, FShell),
 };
 REGISTER_CLASS("FShell", shell_class_info);

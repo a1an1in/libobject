@@ -22,7 +22,7 @@ struct UnixFShell_s{
     int (*get_func_name)(UnixFShell *, char *lib_name, void *func_addr, char *name, unsigned int name_len);
     int (*run_func)(UnixFShell *, String *s);
     int (*open_ui)(UnixFShell *);
-    int (*is_key)(UnixFShell *, char *);
+    int (*is_statement)(UnixFShell *, char *);
 };
 
 #endif
