@@ -1,4 +1,4 @@
-move Player Command to media dir.
+move http relavent command to http dir.
 
 Description:
 update.
