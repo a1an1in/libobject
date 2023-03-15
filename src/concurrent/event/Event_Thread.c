@@ -104,7 +104,10 @@ static int __del_event(Event_Thread *thread, event_t *event)
     dbg_str(DBG_VIP, "event_thread, del_event fd=%d", event->ev_fd);
     eb->del(eb, event);
 
-    if (c->send(c, "d", 1, 0) != 1) {//to make option task effect
+    /* let the option take effect, not only update map, fresh the base
+     * (take select for example, update read and write set fd also) 
+     */
+    if (c->send(c, "d", 1, 0) != 1) {
         return -1;
     }
 

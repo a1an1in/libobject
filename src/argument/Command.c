@@ -433,7 +433,7 @@ static int __run_option_actions(Command *command)
     option_count = options->count(options);
     for (i = 0; i < option_count; i++) {
         options->peek_at(options, i, (void **)&o);
-        if (o != NULL && o->set_flag == 1 && o->action != NULL) {
+        if (o != NULL && o->action != NULL) {
             int (*option_action)(void *, void *) = o->action;
             option_action(o, o->opaque);
             printf("run option action:%s\n", o->name->get_cstr(o->name));

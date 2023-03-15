@@ -40,8 +40,6 @@
 #include <libobject/concurrent/Worker.h>
 
 Producer *global_default_producer;
-extern int concurrent_init_event_base();
-extern int concurrent_destroy_event_base();
 
 static int __construct(Producer *producer, char *init_str)
 {
@@ -142,12 +140,20 @@ int concurrent_init_producer()
 {
     Producer *producer;
     allocator_t *allocator = allocator_get_default_alloc();
+    configurator_t * c;
+
+    c = cfg_alloc(allocator); 
+    cfg_config_str(c, "/Producer", "event-thread-service", "11110"); 
+    cfg_config_str(c, "/Producer", "event-signal-service", "11120"); 
+
+    dbg_str(DBG_DETAIL, "Producer init str:%s", c->buf);
 
     dbg_str(DBG_VIP, "concurrent_init_producer");
     producer = OBJECT_NEW(allocator, Producer, NULL);
     global_default_producer = producer;
 
     producer->start(producer);
+    cfg_destroy(c);
 
     return 0;
 }

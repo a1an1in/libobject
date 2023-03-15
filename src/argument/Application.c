@@ -17,10 +17,25 @@ static char *app_commands[MAX_APP_COMMANDS_COUNT];
 static int app_command_count;
 #undef MAX_APP_COMMANDS_COUNT
 
+
+static int __option_set_event_thread_service_callback(Option *option, void *opaque)
+{
+    dbg_str(DBG_SUC,"option_set_event_thread_service_callback:%s", STR2A(option->value));
+    return 1;
+}
+
+static int __option_set_event_signal_service_callback(Option *option, void *opaque)
+{
+    dbg_str(DBG_SUC,"option_set_event_signal_service_callback:%s", STR2A(option->value));
+    return 1;
+}
+
 static int __construct(Application *app, char *init_str)
 {
     Command *command = (Command *)app;
-    command->set(command, "/Command/name", "main");
+    command->set(command, "/Command/name", "xtool");
+    command->add_option(command, "--event-thread-service", "", "11110", "event-thread-service address", __option_set_event_thread_service_callback, NULL);
+    command->add_option(command, "--event-signal-service", "", "11120", "event-signal-service address", __option_set_event_signal_service_callback, NULL);
 
     return 0;
 }
@@ -45,6 +60,7 @@ static int __run(Application *app, int argc, char *argv[])
 
         command->set_args(command, argc, (char **)argv);
         command->parse_args(command);
+        EXEC(command->run_option_actions(command));
 
         default_subcommand = app->get_subcommand(app, "help");
 
@@ -103,7 +119,7 @@ int libobject_init()
         EXEC(execute_ctor_funcs());
         EXEC(core_init_fs());
         EXEC(concurrent_init_producer());
-        EXEC(concurrent_init_event_base());
+        EXEC(event_base_init_default());
 
         exception_init();
     } CATCH (ret) {
@@ -116,7 +132,7 @@ int libobject_destroy()
     int ret;
 
     TRY {
-        EXEC(concurrent_destroy_event_base());
+        EXEC(event_base_destroy_default());
         EXEC(concurrent_destroy_producer());
 
         //#if (defined(WINDOWS_USER_MODE))

@@ -70,7 +70,7 @@ static int __construct(Player *player,char *init_str)
     allocator_t *allocator = player->obj.allocator;
     configurator_t * c;
     char buf[2048];
-    struct event_base* base = get_default_event_base();
+    struct event_base* base = event_base_get_default();
 
     dbg_str(DBG_SUC,"construct player in");
 

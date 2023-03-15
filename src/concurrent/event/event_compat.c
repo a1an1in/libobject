@@ -89,12 +89,7 @@ int event_base_free(struct event_base *event_base)
     return 0;
 }
 
-struct event_base *get_default_event_base()
-{
-    return global_event_base;
-}
-
-int concurrent_init_event_base()
+int event_base_init_default()
 {
     Producer *producer = global_get_default_producer();
     allocator_t *allocator = allocator_get_default_alloc();
@@ -112,13 +107,16 @@ int concurrent_init_event_base()
     return 0;
 }
 
-int concurrent_destroy_event_base()
+int event_base_destroy_default()
 {
     allocator_t *allocator = allocator_get_default_alloc();
-    struct event_base *eb = get_default_event_base();
+    struct event_base *eb = event_base_get_default();
 
     allocator_mem_free(allocator, eb);
      
     return 0;
 }
-
+struct event_base *event_base_get_default()
+{
+    return global_event_base;
+}

@@ -1,8 +1,9 @@
-fix FShell.
+optimize code.
 
 Description:
-change is_key() to is_statement()
+at present, event base's service address is fixed, i want to
+fix it, but it need some changes in sorts of module.
 
 Major Changes:
-1. change api
-2. fix a bug in is_statement
+1. change default event base api name.
+2. add two xtool command option.
