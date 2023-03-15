@@ -96,7 +96,7 @@ REGISTER_CLASS("__Event", event_class_info);
 void test_obj_event()
 {
     __Event *event;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     event = OBJECT_NEW(allocator, __Event, "");
 }

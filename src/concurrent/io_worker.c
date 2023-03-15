@@ -128,7 +128,7 @@ static int create_fifo(char *name)
 
 void test_obj_io_worker()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Worker *worker;
     int fd;
 

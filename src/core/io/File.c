@@ -144,7 +144,7 @@ int test_file()
 {
     File *file;
     char *content = "hello world";
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     file = OBJECT_NEW(allocator, File, NULL);
 

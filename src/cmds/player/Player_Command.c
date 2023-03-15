@@ -27,7 +27,7 @@
 
 int player(int argc, char **argv)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Player *player;
     configurator_t * c;
     char *set_str;

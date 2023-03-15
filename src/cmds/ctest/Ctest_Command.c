@@ -38,7 +38,7 @@ static int __option_run_action_callback(Option *option, void *opaque)
 static int __action(Command *command)
 {
     Test_Runner *runner, **r;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Vector *failed_cases, *success_cases;
     int count;
     Argument *arg;

@@ -86,7 +86,7 @@ static int test_allocator_performance(TEST_ENTRY *enTRY, void *argc, void *argv)
 {
     void *addr;
     struct timeval start, end, tv;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     timeval_now(&start, NULL);
     for (int i = 0; i < 100; i++) {
@@ -116,7 +116,7 @@ static struct test *__init_test_instance(struct test *t, int a, int b)
 static int test_rbtree_add_performance(TEST_ENTRY *enTRY, void *argc, void *argv)
 {
     struct timeval start, end, tv;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Map *map = object_new(allocator, "RBTree_Map", NULL);
     struct test t0;
 

@@ -109,7 +109,7 @@ int sdl_character()
     Character *c2;
     Character *c3;
     Font *font;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *set_str;
     char buf[2048];
 

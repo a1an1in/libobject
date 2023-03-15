@@ -174,7 +174,7 @@ static void test_ev_callback(int fd, short events, void *arg)
 int test_select_base()
 {
     Event_Base *eb;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *set_str;
     char buf[2048];
     cjson_t *root, *e, *s;

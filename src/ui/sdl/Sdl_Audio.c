@@ -305,7 +305,7 @@ REGISTER_CLASS("Sdl_Audio", sdl_audio_class_info);
 void test_obj_sdl_audio()
 {
     Sdl_Audio *sdl_audio;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     sdl_audio = OBJECT_NEW(allocator, Sdl_Audio, "");
     sdl_audio->path->assign(sdl_audio->path, "hello world");

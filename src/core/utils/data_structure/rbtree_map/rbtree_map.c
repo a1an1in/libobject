@@ -415,7 +415,7 @@ int test_rbtree_map_insert(TEST_ENTRY *entry)
     int ret = 0;
     rbtree_map_pos_t it,next,end;
     rbtree_map_t *map;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     struct rbtree_map_node *mnode;
     int key_len = 2;
     struct test *t, t0, t1, t2, t3, t4, t5;
@@ -455,7 +455,7 @@ int test_rbtree_map_search_default(TEST_ENTRY *entry)
     int ret = 0;
     rbtree_map_pos_t it,next,end;
     rbtree_map_t *map;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     struct rbtree_map_node *mnode;
     struct test *t, t0, t1, t2, t3, t4, t5;
     void *key0 = 0, *key1 = 1, *key2 = 2, *key3 = 3, *key4 = 4, *key5 =5,
@@ -509,7 +509,7 @@ int test_rbtree_map_search_string_key(TEST_ENTRY *entry)
     int ret = 0;
     rbtree_map_pos_t it,next,end;
     rbtree_map_t *map;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     struct rbtree_map_node *mnode;
     struct test *t, t0, t1, t2, t3, t4, t5;
 

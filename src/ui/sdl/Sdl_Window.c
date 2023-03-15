@@ -409,7 +409,7 @@ int sdl_window()
 {
     Window *window;
     Render *r;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *set_str;
     char buf[2048];
     configurator_t * c;

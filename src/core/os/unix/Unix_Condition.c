@@ -164,7 +164,7 @@ static int test_cond_produce_consume()
 {
 
 
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     cond  = OBJECT_NEW(allocator,Unix_Condition,NULL);
     mutex_lock = OBJECT_NEW(allocator,Mutex_Lock,NULL);

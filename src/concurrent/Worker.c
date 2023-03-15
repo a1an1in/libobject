@@ -131,7 +131,7 @@ void test_obj_worker()
 {
     Worker *worker;
     Producer *producer;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     struct timeval ev_tv;
 
     ev_tv.tv_sec  = 2;

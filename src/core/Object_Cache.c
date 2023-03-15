@@ -168,7 +168,7 @@ REGISTER_CLASS("Object_Cache", object_cache_info);
 
 static int test_object_cache_new()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Object_Cache *cache;
     int ret = 0;
     String *str;

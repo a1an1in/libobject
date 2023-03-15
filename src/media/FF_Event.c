@@ -671,7 +671,7 @@ REGISTER_CLASS("FF_Event", sdl_event_class_info);
 extern char *gen_window_setting_str();
 static int sdl_event()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Window *window;
     char *set_str;
     char buf[2048];

@@ -1,9 +1,8 @@
-optimize code.
+change two default instance name.
 
 Description:
-at present, event base's service address is fixed, i want to
-fix it, but it need some changes in sorts of module.
+update.
 
 Major Changes:
-1. change default event base api name.
-2. add two xtool command option.
+1. rename event_base_get_default_instance.
+2. rename allocator_get_default_instance.

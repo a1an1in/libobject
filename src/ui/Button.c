@@ -186,7 +186,7 @@ static event_listener_t button_listener = {
 
 static int button()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Window *window;
     Border_Layout *layout;
     Button *button;

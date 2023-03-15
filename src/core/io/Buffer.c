@@ -270,7 +270,7 @@ REGISTER_CLASS("Buffer", buffer_class_info);
 int test_buffer(TEST_ENTRY *entry)
 {
     Buffer *buffer;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char in[14] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'};
     char out[14] = {'\0'};
     int len, ret;
@@ -302,7 +302,7 @@ REGISTER_TEST_FUNC(test_buffer);
 int test_buffer_get_needle_offset(TEST_ENTRY *entry)
 {
     Buffer *buffer;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char in[14] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'};
     char out[14] = {'\0'};
     int offset, ret = -1;
@@ -328,7 +328,7 @@ int test_buffer_read_to_string(TEST_ENTRY *entry)
 {
     Buffer *buffer;
     String *str;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char in[14] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'};
     char out[14] = {'\0'};
     int offset, ret = -1;

@@ -180,7 +180,7 @@ int test_heap()
     int size = 0;
     int capacity = 1024;
     int i;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     heap = heap_alloc(allocator);
     heap_set(heap, "comparator", (void *)greater_than);

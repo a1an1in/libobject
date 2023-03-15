@@ -62,7 +62,7 @@ REGISTER_CLASS("__Timer", timer_class_info);
 void test_obj_timer()
 {
     __Timer *timer;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     timer = OBJECT_NEW(allocator, __Timer, "");
 }

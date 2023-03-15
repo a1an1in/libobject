@@ -402,7 +402,7 @@ static struct test *init_test_instance(struct test *t, int a, int b)
 int test_llist_add(TEST_ENTRY *entry)
 {
     llist_t *llist;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int lock_type = 1;
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;
@@ -440,7 +440,7 @@ REGISTER_TEST_FUNC(test_llist_add);
 int test_llist_search(TEST_ENTRY *entry)
 {
     llist_t *llist;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int lock_type = 1;
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 1;
@@ -469,7 +469,7 @@ REGISTER_TEST_FUNC(test_llist_search);
 int test_llist_remove_front(TEST_ENTRY *entry)
 {
     llist_t *llist;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int lock_type = 1;
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;

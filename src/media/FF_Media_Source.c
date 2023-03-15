@@ -398,7 +398,7 @@ static int hls_parse(void *base,int argc,char **argv)
     FF_Media_Source *self = NULL ;
     int bitrate_number = 0;
     int i;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     self = OBJECT_NEW(allocator,FF_Media_Source,NULL);
 

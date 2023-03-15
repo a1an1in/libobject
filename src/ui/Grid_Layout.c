@@ -298,7 +298,7 @@ void *new_grid_layout(allocator_t *allocator, int x, int y, int width, int heigh
 
 void test_ui_grid_layout()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Window *window;
     Grid_Layout *grid;
     Label *l;

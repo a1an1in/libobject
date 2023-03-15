@@ -205,7 +205,7 @@ REGISTER_CLASS("Sdl_Font", font_class_info);
 void test_obj_sdl_font()
 {
     Font *font;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int w, h;
 
     font = OBJECT_NEW(allocator, Sdl_Font, "");

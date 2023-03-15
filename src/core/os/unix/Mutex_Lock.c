@@ -81,7 +81,7 @@ REGISTER_CLASS("Mutex_Lock", lock_class_info);
 int test_mutex_lock()
 {
     Lock *lock;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *set_str;
     cjson_t *root, *e, *s;
     char buf[2048];

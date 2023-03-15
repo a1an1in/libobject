@@ -71,7 +71,7 @@ REGISTER_CLASS("Digest_Sha1", digest_class_info);
 static int
 test_obj_sha1(TEST_ENTRY *entry, void *argc, void *argv)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *expect = "f7c3bc1d808e04732adf679965ccc34ca7ae3441";
     char *test = "123456789";
     unsigned char result[20] = {0};

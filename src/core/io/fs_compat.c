@@ -7,7 +7,7 @@ File_System *globle_file_system;
 
 int core_init_fs()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 #   if (defined(UNIX_USER_MODE)    ||\
         defined(LINUX_USER_MODE)   ||\
         defined(ANDROID_USER_MODE) ||\
@@ -55,7 +55,7 @@ int fs_get_size(char *path)
 
 static int test_fs_list(TEST_ENTRY *entry)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char **list;
     int count = 0, i;
 

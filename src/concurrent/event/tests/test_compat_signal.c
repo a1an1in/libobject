@@ -64,7 +64,7 @@ static int test_two_same_signal(TEST_ENTRY *entry, void *argc, void *argv)
 {
     struct event signal_event1;
     struct event signal_event2;
-    struct event_base* base = event_base_get_default();
+    struct event_base* base = event_base_get_default_instance();
 
     /* Initalize the event library */
 
@@ -95,7 +95,7 @@ static int test_del_signal(TEST_ENTRY *entry, void *argc, void *argv)
 {
     struct event signal_event1;
     struct event signal_event2;
-    struct event_base* base = event_base_get_default();
+    struct event_base* base = event_base_get_default_instance();
 
     /* Initalize the event library */
 

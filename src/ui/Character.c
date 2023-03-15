@@ -68,7 +68,7 @@ REGISTER_CLASS("Character", character_class_info);
 void test_obj_character()
 {
     Character *character;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     character = OBJECT_NEW(allocator, Character, "");
 }

@@ -345,7 +345,7 @@ void test_blob()
 {
     blob_t *blob;
     blob_attr_t *tb[ARRAY_SIZE(pol)] = {NULL};
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char buffer[] = "01234234214234234234234";
     
     blob = blob_create(allocator);

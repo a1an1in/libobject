@@ -497,7 +497,7 @@ REGISTER_CLASS("Component", component_class_info);
 void test_ui_component()
 {
     Subject *subject;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *set_str;
     cjson_t *root, *e, *s;
     char buf[2048];

@@ -39,7 +39,7 @@ int test_map_hash_map(TEST_ENTRY *entry)
     map_t *map;
     map_iterator_t it;
     struct A *p;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int ret = 0;
 
     struct A t1 = {1, 2};
@@ -78,7 +78,7 @@ int test_map_rbtree_map(TEST_ENTRY *entry)
     map_t *map;
     map_iterator_t it;
     struct A *p;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int ret = 0;
 
     struct A t1 = {1, 2};

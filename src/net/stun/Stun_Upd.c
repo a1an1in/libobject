@@ -125,7 +125,7 @@ static int __stun_client_resp_callback(void *task)
 }
 static int test_stun_udp(TEST_ENTRY *entry, void *argc, void *argv)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Stun *stun = NULL;
     char *str = "hello world";
     int ret;

@@ -69,7 +69,7 @@ static int test_work_callback(void *task)
 static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
 {
     Server *s;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int pre_alloc_count, after_alloc_count;
     int ret;
 

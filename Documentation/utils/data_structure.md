@@ -46,7 +46,7 @@ int test_heap()
     void *element;
     int size                 = 0;
     int capacity             = 1024;
-    allocator_t *allocator   = allocator_get_default_alloc();
+    allocator_t *allocator   = allocator_get_default_instance();
  
     heap                     = heap_alloc(allocator);
     heap_set(heap, "comparator", (void *)greater_than);

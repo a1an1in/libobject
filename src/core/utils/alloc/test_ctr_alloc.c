@@ -119,7 +119,7 @@ void test_ctr_alloc()
     allocator = allocator_create(ALLOCATOR_TYPE_CTR_MALLOC,1);
     allocator_ctr_init(allocator, 0, 0, 1024);
 #else
-    allocator = allocator_get_default_alloc();
+    allocator = allocator_get_default_instance();
 #endif
 
     dbg_str(ALLOC_SUC,"ctr alloc test begin");
@@ -189,7 +189,7 @@ void* test_thread1_func_cb(void *arg)
     void *p1 ,*p2,*p3, *p4;
     uint32_t size = 8;
 
-    allocator = allocator_get_default_alloc();
+    allocator = allocator_get_default_instance();
 
     while(1){
         /*
@@ -215,7 +215,7 @@ void* test_thread2_func_cb(void *arg)
     void *p1 ,*p2,*p3, *p4;
     uint32_t size = 8;
 
-    allocator = allocator_get_default_alloc();
+    allocator = allocator_get_default_instance();
 
     while(1){
         /*
@@ -239,7 +239,7 @@ void* test_thread3_func_cb(void *arg)
     void *p1 ,*p2,*p3, *p4;
     uint32_t size = 8;
 
-    allocator = allocator_get_default_alloc();
+    allocator = allocator_get_default_instance();
 
     while(1){
         /*
@@ -261,7 +261,7 @@ void test_ctr_alloc()
     pthread_t tid1, tid2, tid3;                                     
     int ret;                                                                     
 
-    allocator = allocator_get_default_alloc();
+    allocator = allocator_get_default_instance();
 
     ret = pthread_create(&tid1,NULL,test_thread1_func_cb,NULL);                                     
     if(ret < 0){                                                                 

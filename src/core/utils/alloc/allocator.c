@@ -114,7 +114,7 @@ int allocator_save_upper_nlayer_name(allocator_t *allocator, int n, void *dst)
 }
 #endif
 
-allocator_t * allocator_get_default_alloc()
+allocator_t * allocator_get_default_instance()
 {
     return global_allocator_default;
 }
@@ -144,7 +144,7 @@ REGISTER_CTOR_FUNC(REGISTRY_CTOR_PRIORITY_DEFAULT_ALLOCATOR,
 
 int default_allocator_destructor()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     ATTRIB_PRINT("REGISTRY_DTOR_PRIORITY=%d, "
                  "default allocator destructor, destruct default allocator, alloc count =%d\n",

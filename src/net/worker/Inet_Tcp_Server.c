@@ -86,7 +86,7 @@ static void test_work_callback(void *task)
 void test_obj_inet_tcp_server()
 {
     Inet_Tcp_Server *server;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     /*
      *sleep(1);

@@ -266,7 +266,7 @@ REGISTER_CLASS("Inet_Tcp_Socket", inet_tcp_socket_class_info);
 void test_inet_tcp_send()
 {
     Socket *socket;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     char *test_str = "hello world";
 
@@ -285,7 +285,7 @@ int test_inet_tcp_recv()
     Socket *socket;
     int fd;
     char buf[1024] = {0};
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     dbg_str(DBG_DETAIL, "run at here");
     socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);

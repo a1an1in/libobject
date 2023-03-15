@@ -259,7 +259,7 @@ int label()
     Render *r;
     Subject *subject;
     __Event *event;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *set_str;
     char buf[2048];
 

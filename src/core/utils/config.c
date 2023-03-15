@@ -94,7 +94,7 @@ int
 cfg_config_num(configurator_t * c,
                const char *path, const char *name, int value) 
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     cjson_t *root, *object, *item;
     char *buf;  
     char **out;  
@@ -172,7 +172,7 @@ int
 cfg_config_str(configurator_t * c, 
                const char *path, const char *name, void *value) 
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     cjson_t *root, *object, *item;
     char *buf;  
     char **out;  
@@ -247,7 +247,7 @@ end:
 int test_cfg_config_num(TEST_ENTRY *entry)
 {
     configurator_t * c;
-    allocator_t *allocator = allocator_get_default_alloc(); 
+    allocator_t *allocator = allocator_get_default_instance(); 
     char *expectation ="\"Hash_Map\":	{\
 		\"key_size\":	10,\
 		\"value_size\":	25,\

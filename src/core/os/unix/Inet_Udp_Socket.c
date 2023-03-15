@@ -246,7 +246,7 @@ REGISTER_CLASS("Inet_Udp_Socket", inet_udp_socket_class_info);
 void test_inet_udp_socket_send()
 {
     Socket *socket;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     char *test_str = "hello world";
 
@@ -265,7 +265,7 @@ void test_inet_udp_socket_recv()
 {
     Socket *socket;
     char buf[1024] = {0};
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     /*
      *dbg_str(NET_DETAIL, "run at here");

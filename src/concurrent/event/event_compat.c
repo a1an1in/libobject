@@ -11,7 +11,7 @@ struct event_base * event_base_new(void)
 {
     Event_Base *eb;
     char buf[2048];
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     struct event_base *event_base;
 
     eb = object_new(allocator, "Select_Base", NULL);
@@ -80,7 +80,7 @@ int event_base_dispatch(struct event_base *event_base)
 
 int event_base_free(struct event_base *event_base)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     dbg_str(DBG_DETAIL,"event_base_free");
     object_destroy(event_base->eb);
@@ -89,10 +89,10 @@ int event_base_free(struct event_base *event_base)
     return 0;
 }
 
-int event_base_init_default()
+int event_base_init_default_instance()
 {
     Producer *producer = global_get_default_producer();
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     struct event_base *event_base;
 
     event_base = (struct event_base *) allocator_mem_alloc(allocator,
@@ -107,16 +107,16 @@ int event_base_init_default()
     return 0;
 }
 
-int event_base_destroy_default()
+int event_base_destroy_default_instance()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
-    struct event_base *eb = event_base_get_default();
+    allocator_t *allocator = allocator_get_default_instance();
+    struct event_base *eb = event_base_get_default_instance();
 
     allocator_mem_free(allocator, eb);
      
     return 0;
 }
-struct event_base *event_base_get_default()
+struct event_base *event_base_get_default_instance()
 {
     return global_event_base;
 }

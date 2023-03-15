@@ -48,7 +48,7 @@ void allocator_ctr_init(allocator_t * alloc,
                         uint32_t data_min_size,
                         uint32_t mempool_capacity);
 static inline void allocator_mem_tag(allocator_t * alloc,void *addr, void *tag);
-allocator_t * allocator_get_default_alloc();
+allocator_t * allocator_get_default_instance();
 int allocator_save_upper_nlayer_name(allocator_t *allocator, int n, void *dst);
 
 #if 0

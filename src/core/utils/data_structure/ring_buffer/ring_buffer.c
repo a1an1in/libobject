@@ -207,7 +207,7 @@ void test_datastructure_ring_buffer()
     ring_buffer_t *rbuf;
     char *buffer_addr;
     uint32_t len = 1024;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *value_out[100];
     int ret;
 

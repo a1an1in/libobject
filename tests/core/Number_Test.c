@@ -93,7 +93,7 @@ static int __test_set_int_number(Number_Test *test)
 static int __test_obj_signed_int_add_obj_signed_int(Number_Test *test)
 {
     Number *number = test->number, *add;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int num1 = 1, num2 = 2, expect_d = 3, ret = 0, sum = 0;
     int len = sizeof(int);
 
@@ -123,7 +123,7 @@ static int __test_obj_signed_int_add_obj_signed_int(Number_Test *test)
 static int __test_obj_big_number_add_obj_big_number(Number_Test *test)
 {
     Number *number = test->number, *add;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[10] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa};
     uint8_t num2[10] = {0xaa, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11};
     uint8_t expect_d[11] = {0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xff};
@@ -159,7 +159,7 @@ static int __test_obj_big_number_add_obj_big_number(Number_Test *test)
 static int __test_obj_big_number_add_obj_big_number_with_carry(Number_Test *test)
 {
     Number *number = test->number, *add;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[8] = {0xff, 0xff, 0xff, 0xff, 0x1, 0x1, 0x1, 0x1};
     uint8_t num2[6] = {0xff, 0xff, 0xff, 0xff};
     uint8_t expect_d[11] = {0xfe, 0xff, 0xff, 0xff, 0x02, 0x01, 0x01, 0x01};
@@ -230,7 +230,7 @@ static int __test_add(Number_Test *test)
 static int __test_obj_big_number_sub_obj_big_number(Number_Test *test)
 {
     Number *number = test->number, *sub;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
     uint8_t num2[8] = {0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22};
     uint8_t expect_d[8] = {0x78, 0x99, 0xbb, 0xdd, 0xff, 0x21, 0x44, 0x66};
@@ -265,7 +265,7 @@ static int __test_obj_big_number_sub_obj_big_number(Number_Test *test)
 static int __test_obj_big_number_sub_obj_big_number_with_size_change(Number_Test *test)
 {
     Number *number = test->number, *sub;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
     uint8_t num2[8] = {0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x88};
     uint8_t expect_d[8] = {0x78, 0x99, 0xbb, 0xdd, 0xff, 0x21, 0x44};
@@ -301,7 +301,7 @@ static int __test_obj_big_number_sub_obj_big_number_with_size_change(Number_Test
 static int __test_obj_big_number_sub_obj_big_number_with_size_change2(Number_Test *test)
 {
     Number *number = test->number, *sub;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x1};
     uint8_t num2[8] = {0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x78};
     uint8_t expect_d[8] = {0x78, 0x99, 0xbb, 0xdd, 0xff, 0x21, 0xff};
@@ -337,7 +337,7 @@ static int __test_obj_big_number_sub_obj_big_number_with_size_change2(Number_Tes
 static int __test_obj_big_number_sub_obj_big_number_with_neg_result(Number_Test *test)
 {
     Number *number = test->number, *sub;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77};
     uint8_t num2[8] = {0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x78};
     uint8_t expect_d[8] = {0x88, 0x66, 0x44, 0x22, 0xf00, 0xde};
@@ -387,7 +387,7 @@ static int __test_sub(Number_Test *test)
 static int __test_obj_big_number_mul_obj_big_number_case1(Number_Test *test)
 {
     Number *number = test->number, *a1, *a2;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44, 0x55};
     uint8_t num2[8] = {0x99, 0x88, 0x77, 0x66};
     uint8_t expect_d[9] = {0x29, 0x64, 0x8f, 0x88, 0x88, 0x92, 0xfc, 0x20, 0x22};
@@ -426,7 +426,7 @@ static int __test_obj_big_number_mul_obj_big_number_case1(Number_Test *test)
 static int __test_obj_big_number_mul_obj_big_number_case2(Number_Test *test)
 {
     Number *number = test->number, *a1, *a2;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[20] = {0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22};
     uint8_t num2[20] = {0, 0, 0, 0, 0, 0, 0, 0, 0x99};
     uint8_t expect_d[20] = {0, 0, 0, 0, 0, 0, 0, 0, 0x71, 0xa3, 0x70, 0x3d, 0x0a, 0xd7, 0xa3, 0x70, 0x14};
@@ -478,7 +478,7 @@ static int __test_mul(Number_Test *test)
 static int __test_obj_big_number_div_obj_big_number_case1(Number_Test *test)
 {
     Number *number = test->number, *a1, *a2;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num2[9] = {0x29, 0x64, 0x8f, 0x88, 0xbb, 0x37, 0x4c, 0x1b};
     uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44};
     uint8_t expect_d[8] = {0};
@@ -517,7 +517,7 @@ static int __test_obj_big_number_div_obj_big_number_case1(Number_Test *test)
 static int __test_obj_big_number_div_obj_big_number_case2(Number_Test *test)
 {
     Number *number = test->number, *a1, *a2;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[9] = {0x11, 0x22, 0x33, 0x44};
     uint8_t num2[8] = {0x11, 0x22, 0x33, 0x44};
     uint8_t expect_d[8] = {1};
@@ -556,7 +556,7 @@ static int __test_obj_big_number_div_obj_big_number_case2(Number_Test *test)
 static int __test_obj_big_number_div_obj_big_number_case3(Number_Test *test)
 {
     Number *number = test->number, *a1, *a2;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[9] = {0x29, 0x64, 0x8f, 0x88, 0xbb, 0x37, 0x4c, 0x1b};
     uint8_t num2[8] = {0x11, 0x22, 0x33, 0x44};
     uint8_t expect_d[8] = {0x99, 0x88, 0x77, 0x66};
@@ -596,7 +596,7 @@ static int __test_obj_big_number_div_obj_big_number_case3(Number_Test *test)
 static int __test_obj_big_number_div_obj_big_number_case4(Number_Test *test)
 {
     Number *number = test->number, *a1, *a2;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[100] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0xff, 0x88, 
                         0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x11, 0x22, 
                         0x33, 0x44, 0x55, 0x66, 0xff, 0x66, 0xff, 0x88,
@@ -647,7 +647,7 @@ static int __test_obj_big_number_div_obj_big_number_case4(Number_Test *test)
 static int __test_obj_big_number_div_obj_big_number_case5(Number_Test *test)
 {
     Number *number = test->number, *a1, *a2;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[20] = {0x55, 0x66, 0x77, 0x88, 0x99};
     uint8_t num2[20] = {0x88, 0x99};
     uint8_t expect[80] = {0xc7, 0, 0, 1};
@@ -686,7 +686,7 @@ static int __test_obj_big_number_div_obj_big_number_case5(Number_Test *test)
 static int __test_obj_big_number_div_obj_big_number_case6(Number_Test *test)
 {
     Number *number = test->number, *a1, *a2;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[20] = {0x55, 0x66, 0x77, 0x88, 0x99};
     uint8_t num2[20] = {0x2};
     uint8_t expect[80] = {0x2a, 0xb3, 0x3b, 0xc4, 0x4c};
@@ -742,7 +742,7 @@ static int __test_div(Number_Test *test)
 static int __test_obj_big_number_mod_obj_big_number_case1(Number_Test *test)
 {
     Number *number = test->number, *a1, *a2;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44};
     uint8_t num2[9] = {0x29, 0x64, 0x8f, 0x88, 0xbb, 0x37, 0x4c, 0x1b};
     uint8_t expect_d[8] = {0};
@@ -781,7 +781,7 @@ static int __test_obj_big_number_mod_obj_big_number_case1(Number_Test *test)
 static int __test_obj_big_number_mod_obj_big_number_case2(Number_Test *test)
 {
     Number *number = test->number, *a1, *a2;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44};
     uint8_t expect_d[8] = {0};
     uint8_t result[11] = {0};
@@ -817,7 +817,7 @@ static int __test_obj_big_number_mod_obj_big_number_case2(Number_Test *test)
 static int __test_obj_big_number_mod_obj_big_number_case3(Number_Test *test)
 {
     Number *number = test->number, *a1, *a2;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     uint8_t num1[9] = {0x11, 0x22, 0x33, 0x44, 0x55};
     uint8_t num2[8] = {0x11, 0x22, 0x33, 0x44};
     uint8_t expect_d[8] = {0xd1, 0x8c, 0x48, 0x4};

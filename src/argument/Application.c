@@ -119,7 +119,7 @@ int libobject_init()
         EXEC(execute_ctor_funcs());
         EXEC(core_init_fs());
         EXEC(concurrent_init_producer());
-        EXEC(event_base_init_default());
+        EXEC(event_base_init_default_instance());
 
         exception_init();
     } CATCH (ret) {
@@ -132,7 +132,7 @@ int libobject_destroy()
     int ret;
 
     TRY {
-        EXEC(event_base_destroy_default());
+        EXEC(event_base_destroy_default_instance());
         EXEC(concurrent_destroy_producer());
 
         //#if (defined(WINDOWS_USER_MODE))

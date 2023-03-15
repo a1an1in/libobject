@@ -209,7 +209,7 @@ REGISTER_CLASS("Rbtree_Timer", rbtree_timer_class_info);
 void test_obj_event_rbtree_timer()
 {
     Timer *timer;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     configurator_t * c;
     char *set_str;
     cjson_t *root, *e, *s;

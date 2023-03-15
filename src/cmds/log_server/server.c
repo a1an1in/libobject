@@ -13,7 +13,7 @@ static int test_work_callback(void *task)
 
 void log_server()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Client *c = NULL;
 
     dbg_str(DBG_DETAIL,"test_obj_client_recv");

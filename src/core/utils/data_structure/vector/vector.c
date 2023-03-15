@@ -357,7 +357,7 @@ int test_datastructure_vector()
 {
     vector_t *vector;
     vector_pos_t pos;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret;
 

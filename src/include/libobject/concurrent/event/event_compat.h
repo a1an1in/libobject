@@ -19,8 +19,8 @@ int event_add(event_t *ev, const struct timeval *tv);
 int event_del(event_t *ev);
 int event_base_dispatch(struct event_base *event_base);
 int event_base_free(struct event_base *event_base);
-struct event_base *event_base_get_default();
-int event_base_init_default();
-int event_base_destroy_default();
+struct event_base *event_base_get_default_instance();
+int event_base_init_default_instance();
+int event_base_destroy_default_instance();
 
 #endif

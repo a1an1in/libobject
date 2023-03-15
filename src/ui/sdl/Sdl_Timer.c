@@ -127,7 +127,7 @@ static uint32_t test_sdl_timer_callback(uint32_t interval, void* param )
 void test_obj_sdl_timer()
 {
     __Timer *timer;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     if ( SDL_Init(SDL_INIT_TIMER ) < 0 ) {
         dbg_str(DBG_ERROR, "SDL_Init");

@@ -298,7 +298,7 @@ static int __test_search_string_key(Hash_Map_Test *test)
 {
     Iterator *iter, *next, *prev;
     Map *map = (Map *)test->map;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;
     int trustee_flag = 0;
@@ -333,7 +333,7 @@ static int __test_search_all_string_key(Hash_Map_Test *test)
 {
     Map *map = (Map *)test->map;
     List *list;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     struct test *t, t0, t1, t2, t3, t4, t5;
     int ret = 0;
     int trustee_flag = 0;
@@ -377,7 +377,7 @@ static int __test_search_int_key(Hash_Map_Test *test)
 {
     Iterator *iter, *next, *prev;
     Map *map = (Map *)test->map;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int key0, key1, key2, key3, key4;
     int ret = 0;
     struct test *t, t0, t1, t2, t3, t4, t5;
@@ -439,7 +439,7 @@ static int __test_search_all_int_key(Hash_Map_Test *test)
 {
     Map *map = (Map *)test->map;
     List *list;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int key0, key1, key2, key3, key4, key5, key6, key7;
     int ret;
     struct test *t, t0, t1, t2, t3, t4, t5;

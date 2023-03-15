@@ -417,7 +417,7 @@ static int __test_replace(String_Test *test)
 
 static int __test_empty(String_Test *test)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     String *string = test->str;
     char *test1 = "&rsv//_sug1 = 107&rsv_sug7 = 100&rsv_sug2 = 0&prefixsug = ffmpeg%2520hls%2520%2520%25E6%25A8%25A1%25";
     int ret, expect_ret = 1;

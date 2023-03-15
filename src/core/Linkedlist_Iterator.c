@@ -98,7 +98,7 @@ REGISTER_CLASS("LList_Iterator", hmap_iter_class_info);
 void test_obj_linked_list_iter()
 {
     Iterator *iter, *next, *prev;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *set_str = NULL;
     cjson_t *root, *e, *s;
     char buf[2048];

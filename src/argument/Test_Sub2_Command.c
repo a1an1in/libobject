@@ -48,7 +48,7 @@ REGISTER_CLASS("Test_Sub2_Command", test_sub2_command_class_info);
 
 static int test_sub2_command(TEST_ENTRY *entry)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Command *command = NULL;
     int ret = 0, help = 0;
 

@@ -509,7 +509,7 @@ void print_line_info(Iterator *iter)
 void test_obj_text()
 {
     Text *text;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     dbg_str(DBG_DETAIL, "test_obj_text");
     text = OBJECT_NEW(allocator, Text, "");

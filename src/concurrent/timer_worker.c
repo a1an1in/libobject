@@ -109,7 +109,7 @@ static void test_work_callback(void *task)
 #if 1
 int test_timer_worker(TEST_ENTRY *entry)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Worker *worker;
     struct timeval ev_tv;
 
@@ -137,7 +137,7 @@ REGISTER_TEST_CMD(test_timer_worker);
 void test_obj_timer_worker()
 {
     Producer *producer     = global_get_default_producer();
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Worker *worker;
     struct timeval ev_tv;
 

@@ -412,7 +412,7 @@ REGISTER_CLASS("Ring_Buffer",ring_rb_class_info);
 int test_ring_rb(TEST_ENTRY *entry)
 {
     Ring_Buffer *rb;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char in[14] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'};
     char out[14] = {'\0'};
     int len, ret;
@@ -444,7 +444,7 @@ REGISTER_TEST_FUNC(test_ring_rb);
 int test_ring_rb_find(TEST_ENTRY *entry)
 {
     Ring_Buffer *rb;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *test = "abc hello world\r\n you gota work hard";
     int len, ret;
     void *addr;
@@ -473,7 +473,7 @@ REGISTER_TEST_FUNC(test_ring_rb_find);
 int test_ring_rb_find2(TEST_ENTRY *entry)
 {
     Ring_Buffer *rb;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *test = "abc hello "\
                  "world\r\n "\
                  "you gotta "\
@@ -509,7 +509,7 @@ REGISTER_TEST_FUNC(test_ring_rb_find2);
 int test_ring_rb_find3(TEST_ENTRY *entry)
 {
     Ring_Buffer *rb;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *test = "abc hello "\
                  "world\r\n   "\
                  "you gotta "\
@@ -545,7 +545,7 @@ REGISTER_TEST_FUNC(test_ring_rb_find3);
 int test_ring_rb_get_needle_offset(TEST_ENTRY *entry)
 {
     Ring_Buffer *rb;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *test = "abc hello "\
                  "world\r\n yo"\
                  "u gotta wo"\

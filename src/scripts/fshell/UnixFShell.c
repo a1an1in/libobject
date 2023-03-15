@@ -188,7 +188,7 @@ static int test_unixfshell_open()
     int ret;
     FShell *shell;
     void *addr;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     TRY {
         shell = OBJECT_NEW(allocator, UnixFShell, NULL);
@@ -209,7 +209,7 @@ static int test_unixfshell_get_addr()
     char *func_name = "print_outbound";
     void *expect_addr = print_outbound;
     void *addr;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     TRY {
         shell = OBJECT_NEW(allocator, UnixFShell, NULL);
@@ -233,7 +233,7 @@ static int test_unixfshell_get_func_name()
     char *expect_func_name = "print_outbound";
     char name[20];
     void *addr;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     TRY {
         shell = OBJECT_NEW(allocator, UnixFShell, NULL);
@@ -262,7 +262,7 @@ static int test_unixfshell_load()
     #endif
     char name[20];
     void *addr;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     TRY {
         shell = OBJECT_NEW(allocator, UnixFShell, NULL);
@@ -288,7 +288,7 @@ static int test_unixfshell_load_and_get_func_addr()
     char *lib_name = "./sysroot/linux/lib/libobject-testlib.so";
     #endif
     char name[20];
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int (*func)(int a, int b, int c, int d, int e, int f, int *g);
 
     TRY {

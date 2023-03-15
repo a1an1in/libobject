@@ -90,7 +90,7 @@ REGISTER_CLASS("Panel", panel_class_info);
 void test_ui_panel()
 {
 #define MAX_BUFFER_LEN 1024
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Window *window;
     Border_Layout *layout;
     Panel *panel;

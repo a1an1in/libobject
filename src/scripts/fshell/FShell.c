@@ -26,7 +26,7 @@ static int __construct(FShell *shell, char *init_str)
     Map *map;
     int ev_fd;
     struct event *signal;
-    struct event_base* base = event_base_get_default();
+    struct event_base* base = event_base_get_default_instance();
     allocator_t *allocator = shell->parent.allocator;
 
     map = object_new(shell->parent.allocator, "RBTree_Map", NULL);

@@ -583,7 +583,7 @@ void * object_new(allocator_t *allocator, const char *type, char *config)
         THROW_IF(type == NULL, -1);
 
         if (allocator == NULL) {
-            allocator = allocator_get_default_alloc();
+            allocator = allocator_get_default_instance();
         }
 
         deamon = class_deamon_get_global_class_deamon();
@@ -708,7 +708,7 @@ int object_override(void *obj, char *func_name, void *value)
 
 static int test_object_new() 
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     String *parent;
     char *test = "abcdefg";
     int ret;

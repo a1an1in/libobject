@@ -39,7 +39,7 @@
 
 void test_bus_daemon()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     busd_t *busd;
 #if 0
     char *deamon_host = "bus_server_path";

@@ -449,7 +449,7 @@ REGISTER_CLASS("Sdl_Render", sdl_grath_class_info);
 void test_ui_sdl_grath()
 {
     Sdl_Render *sdl_grath;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *set_str;
     cjson_t *root, *e, *s;
     char buf[2048];

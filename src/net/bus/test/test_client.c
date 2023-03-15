@@ -5,7 +5,7 @@
 #if 1
 void test_bus_client()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     bus_t *bus;
 #if 0
     char *deamon_host = "bus_server_path";
@@ -40,7 +40,7 @@ void test_bus_client()
 #else
 void test_bus_client()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     bus_t *bus;
 #if 0
     char *deamon_host = "bus_server_path";

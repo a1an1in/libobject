@@ -140,7 +140,7 @@ REGISTER_CLASS("Audio", audio_class_info);
 void test_obj_audio()
 {
     Audio *audio;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     audio = OBJECT_NEW(allocator, Audio, "");
     audio->path->assign(audio->path, "hello world");

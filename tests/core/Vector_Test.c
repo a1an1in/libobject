@@ -185,7 +185,7 @@ static int __test_vector_to_json_case1(Vector_Test *test)
 static int __test_vector_to_json_case2(Vector_Test *test)
 {
     Vector *vector = test->vector;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int capacity = 19, value_type = VALUE_TYPE_STRING;
     String *t0, *t1, *t2, *t3, *t4, *t5;
     int ret;
@@ -230,7 +230,7 @@ static int __test_vector_to_json_case2(Vector_Test *test)
 static int __test_vector_to_json_case3(Vector_Test *test)
 {
     int ret = 0, help = 0;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int value_type = VALUE_TYPE_OBJ_POINTER;
     Vector *vector = test->vector;
     uint8_t trustee_flag = 1;
@@ -295,7 +295,7 @@ static int __test_vector_to_json(Vector_Test *test)
 static int __test_vector_assign_case1(Vector_Test *test)
 {
     Vector *vector = test->vector;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int capacity = 19, value_type = VALUE_TYPE_INT8_T;
     int ret;
     char *init_data = "[0, 1, 2, 3, 4, 5]";
@@ -316,7 +316,7 @@ static int __test_vector_assign_case1(Vector_Test *test)
 static int __test_vector_assign_case2(Vector_Test *test)
 {
     Vector *vector = test->vector;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int capacity = 19, value_type = VALUE_TYPE_STRING;
     uint8_t trustee_flag = 1;
     int ret;
@@ -340,7 +340,7 @@ static int __test_vector_assign_case3(Vector_Test *test)
 {
     int ret;
     Vector *vector = test->vector;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int capacity = 19, value_type = VALUE_TYPE_OBJ_POINTER;
     uint8_t trustee_flag = 1;
     char *init_data = "[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]";
@@ -388,7 +388,7 @@ static int __test_vector_new_case1(Vector_Test *test)
     int ret;
     Vector *vector = NULL;
     String *string = NULL;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *init_data = "[{\"name\":\"simplest obj1\",\"help\":1}, {\"name\":\"simplest obj2\",\"help\":2}]";
 
     TRY {
@@ -583,7 +583,7 @@ static int __test_vector_filter_case1(Vector_Test *test)
     void *element = NULL;
     char *init_data  = "[900, 2, 3, -58, 34, 76, 32, 43, 56, -70, 35, -234, 532, 543, 2500]";
     char *expect  = "[900, 2, 3, 34, 76, 32, 43, 56, 35, 532, 543, 2500]";
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int cond = 0;
 
     TRY {
@@ -630,7 +630,7 @@ static int __test_vector_add_vector_case1(Vector_Test *test)
     char *init_data1  = "[900, 2, 3, -58, 34, 76, 32, 43]";
     char *init_data2  = "[56, -70, 35, -234, 532, 543, 2500]";
     char *expect  = "[900, 2, 3, -58, 34, 76, 32, 43, 56, -70, 35, -234, 532, 543, 2500]";
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int cond = 0;
 
     TRY {
@@ -676,7 +676,7 @@ static int __test_vector_copy_case1(Vector_Test *test)
     void *element = NULL;
     char *expect  = "[900, 2, 3, -58, 34, 76, 32, 43, 56, -70, 35, -234, 532, 543, 2500]";
     char *init_data  = "[900, 2, 3, -58, 34, 76, 32, 43, 56, -70, 35, -234, 532, 543, 2500]";
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int cond = 0;
 
     TRY {
@@ -709,7 +709,7 @@ static int __test_vector_copy_case2(Vector_Test *test)
     void *element = NULL;
     char *init_data = "[{\"name\":\"simplest obj1\",\"help\":1},{\"name\":\"simplest obj2\",\"help\":2}]";
     char *expect = "[{\"name\":\"simplest obj1\",\"help\":1},{\"name\":\"simplest obj2\",\"help\":2}]";
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     String *json;
     int cond = 0;
 

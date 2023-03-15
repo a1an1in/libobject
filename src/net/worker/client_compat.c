@@ -99,7 +99,7 @@ static int test_work_callback(void *task)
 
 static int test_udp_client_recv(TEST_ENTRY *entry, void *argc, void *argv)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Client *c = NULL;
 
     dbg_str(NET_DETAIL,"test_obj_client_recv");
@@ -121,7 +121,7 @@ REGISTER_TEST_CMD(test_udp_client_recv);
 
 static int test_udp_client_send(TEST_ENTRY *entry, void *argc, void *argv)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Client *c = NULL;
     char *str = "hello world";
 
@@ -143,7 +143,7 @@ REGISTER_TEST_CMD(test_udp_client_send);
 
 static int test_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Client *c = NULL;
     char *str = "hello world";
 

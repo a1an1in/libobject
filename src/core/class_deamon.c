@@ -184,7 +184,7 @@ int class_deamon_destroy(class_deamon_t *class_deamon)
 int class_deamon_constructor()
 {
     class_deamon_t *class_deamon;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY =%d, run class_deamon\n", 
                  REGISTRY_CTOR_PRIORITY_OBJ_DEAMON);

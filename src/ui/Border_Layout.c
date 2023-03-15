@@ -664,7 +664,7 @@ void *new_border_layout(allocator_t *allocator, int x, int y, int width, int hei
 
 void test_ui_border_layout()
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Window *window;
     Border_Layout *layout;
     Label *l;

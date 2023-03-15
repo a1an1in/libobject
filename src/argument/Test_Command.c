@@ -53,7 +53,7 @@ REGISTER_APP_CMD("Test_Command", test_command_class_info);
 
 static int test_marshal_command(TEST_ENTRY *entry)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Command *command = NULL;
     Command *subcmd1 = NULL;
     Command *subcmd2 = NULL;
@@ -76,7 +76,7 @@ REGISTER_TEST_CMD(test_marshal_command);
 
 static int test_unmarshal_command(TEST_ENTRY *entry)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Command *command = NULL;
     Command *subcmd1 = NULL;
     Command *subcmd2 = NULL;

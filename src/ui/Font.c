@@ -72,7 +72,7 @@ REGISTER_CLASS("Font", font_class_info);
 void test_obj_font()
 {
     Font *font;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     font = OBJECT_NEW(allocator, Font, "");
     font->path->assign(font->path, "hello world");

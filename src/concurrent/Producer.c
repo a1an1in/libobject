@@ -139,7 +139,7 @@ Producer *global_get_default_producer()
 int concurrent_init_producer()
 {
     Producer *producer;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     configurator_t * c;
 
     c = cfg_alloc(allocator); 

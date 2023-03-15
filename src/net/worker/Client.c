@@ -138,7 +138,7 @@ REGISTER_CLASS("Client", client_class_info);
 void test_obj_client()
 {
     Client *client;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char buf[2048];
 
     dbg_str(NET_DETAIL, "test_obj_client");

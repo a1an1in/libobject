@@ -4,7 +4,7 @@
 
 void bus_debug_client(char *bussiness, char *sw, char *level)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     bus_t *bus;
 #if 0
     char *deamon_host = "bus_server_path";

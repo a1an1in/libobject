@@ -172,7 +172,7 @@ REGISTER_CLASS("Centor", concurent_class_info);
 int test_obj_message_centor()
 {
     Centor *centor;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char * test_str = "p";
 
     centor = OBJECT_NEW(allocator, Centor, NULL);

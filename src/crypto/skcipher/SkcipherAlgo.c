@@ -207,7 +207,7 @@ static int
 test_aes(TEST_ENTRY *entry, void *argc, void *argv)
 {
     int ret;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     SkcipherAlgo *algo;
 	uint8_t key[] = {
 		0x00, 0x01, 0x02, 0x03,

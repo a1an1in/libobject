@@ -114,7 +114,7 @@ static int test_message_publisher()
     Centor *centor;
     Publisher *publisher;
     Subscriber *subscriber;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char * test_str = "on_pause";
 
     /*

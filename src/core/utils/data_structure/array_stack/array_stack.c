@@ -93,7 +93,7 @@ int test_array_stack()
 {
     int ret = 0;
     array_stack_t *as;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     int *p;
     void *a;
 

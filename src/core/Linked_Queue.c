@@ -230,7 +230,7 @@ int test_peek_linked_queue_peek()
     Queue * queue ;
     void * element = NULL;
 
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
     
@@ -266,7 +266,7 @@ static int test_linked_queue_reset()
     int ret,i,j;
     int buf[10];
     Queue * queue ;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
     
@@ -295,7 +295,7 @@ static int test_linked_queue_is_empty()
     int ret,i,j;
     int buf[10];
     Queue * queue ;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
     
@@ -329,7 +329,7 @@ static int test_linked_queue_size()
     int ret,i,j;
     int buf[10];
     Queue * queue ;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     queue = OBJECT_NEW(allocator, Linked_Queue, NULL);
     

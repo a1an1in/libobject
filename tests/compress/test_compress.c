@@ -5,7 +5,7 @@
 static int test_zcompress_buf(TEST_ENTRY *entry, void *argc, void *argv)
 {
     Compress *c;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char plaintext[100] = "hello world";
     char compress_out[1024] = {0};
     char uncompress_out[1024] = {0};

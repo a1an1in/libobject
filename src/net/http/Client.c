@@ -183,7 +183,7 @@ int test_http_client(TEST_ENTRY *entry)
     Http_Client *client;
     Request *req;
     Response *response;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *body = "hello world from libobject";
     char *remote_host = "127.0.0.1";
     char *remote_service = "8081";

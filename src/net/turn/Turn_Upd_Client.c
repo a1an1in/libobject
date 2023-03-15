@@ -248,7 +248,7 @@ static int __turn_client_resp_callback(void *task)
 
 static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
 {
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Turn_Client *turn = NULL;
     char *str = "hello world";
     allocate_address_reqest_arg_t arg = {0};

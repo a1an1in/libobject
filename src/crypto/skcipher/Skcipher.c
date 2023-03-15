@@ -106,7 +106,7 @@ static int
 test_skcipher_ecb_aes(TEST_ENTRY *entry, void *argc, void *argv)
 {
     int ret;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Skcipher *sk;
 	char *key = "123456";
 	char *in = "abcdefghijklmnopq";
@@ -149,7 +149,7 @@ static int
 test_skcipher_cbc_aes(TEST_ENTRY *entry, void *argc, void *argv)
 {
     int ret;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     Skcipher *sk;
 	char *key = "123456";
 	char *in = "abcdefghijklmnopq";

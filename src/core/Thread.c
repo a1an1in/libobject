@@ -179,7 +179,7 @@ void *test_func(void *arg)
 int test_obj_thread()
 {
     Thread *thread;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     char *set_str;
     cjson_t *root, *e, *s;
     char buf[2048];
@@ -268,7 +268,7 @@ static int test_safe_thread()
     Thread *thread;
     Thread *thread_join;
 
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     thread = OBJECT_NEW(allocator, Thread, NULL);
     thread_join = OBJECT_NEW(allocator, Thread, NULL);
     thread->set_run_routine(thread,func);
@@ -284,7 +284,7 @@ static int test_safe_thread()
 static int test_thread_join()
 {
     Thread *thread;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
 
     thread = OBJECT_NEW(allocator, Thread, NULL);
     thread->set_run_routine(thread,func);
@@ -299,7 +299,7 @@ static int test_thread_join()
 static int  test_thread_detach1()
 {
     Thread *thread;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     thread = OBJECT_NEW(allocator, Thread, NULL);
     thread->set_run_routine(thread,func_detach);
     thread->start(thread);
@@ -312,7 +312,7 @@ static int  test_thread_detach1()
 static int  test_thread_detach2()
 {
     Thread *thread;
-    allocator_t *allocator = allocator_get_default_alloc();
+    allocator_t *allocator = allocator_get_default_instance();
     thread = OBJECT_NEW(allocator, Thread, NULL);
     thread->set_run_routine(thread,func_detach2);
     thread->start(thread);
