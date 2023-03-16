@@ -9,7 +9,7 @@
 #include <libobject/scripts/FShell.h>
 #include "FShell_Command.h"
 
-static int __run_action(Command *command)
+static int __run_command(Command *command)
 {
     int argc, i, count;
     char **argv;
@@ -59,7 +59,7 @@ static class_info_entry_t FShell_Command_class_info[] = {
     Init_Nfunc_Entry(2, FShell_Command, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3, FShell_Command, set, NULL),
     Init_Nfunc_Entry(4, FShell_Command, get, NULL),
-    Init_Vfunc_Entry(5, FShell_Command, run_action, __run_action),
+    Init_Vfunc_Entry(5, FShell_Command, run_command, __run_command),
     Init_End___Entry(6, FShell_Command),
 };
 REGISTER_APP_CMD("FShell_Command", FShell_Command_class_info);

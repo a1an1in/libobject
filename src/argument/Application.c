@@ -49,34 +49,34 @@ static int __run(Application *app, int argc, char *argv[])
 {
     int i = 0;
     Command *command = (Command *)app;
-    Command *selected_subcommand;
-    Command *default_subcommand;
+    Command *subcmd;
+    Command *default_subcmd;
     int ret = 0;
 
     TRY {
+        command->set_args(command, argc, (char **)argv);
+        command->parse_args(command);
+        EXEC(command->run_option_actions(command));
+        EXEC(command->run_command(command));
+
         for (i = 0; i < app_command_count; i++) {
             app->add_subcommand(app, app_commands[i]);
         }
 
-        command->set_args(command, argc, (char **)argv);
-        command->parse_args(command);
-        EXEC(command->run_option_actions(command));
-
-        default_subcommand = app->get_subcommand(app, "help");
-
-        selected_subcommand = command->selected_subcommand;
-        if (selected_subcommand == NULL) {
-            selected_subcommand = default_subcommand;
+        default_subcmd = app->get_subcommand(app, "help");
+        subcmd = command->selected_subcommand;
+        if (subcmd == NULL) {
+            subcmd = default_subcmd;
         }
 
-        if (selected_subcommand->run_option_actions != NULL) {
-            EXEC(selected_subcommand->run_option_actions(selected_subcommand));
+        if (subcmd->run_option_actions != NULL) {
+            EXEC(subcmd->run_option_actions(subcmd));
         }
-        if (selected_subcommand->run_argument_actions != NULL) {
-            EXEC(selected_subcommand->run_argument_actions(selected_subcommand));
+        if (subcmd->run_argument_actions != NULL) {
+            EXEC(subcmd->run_argument_actions(subcmd));
         }
-        if (selected_subcommand->run_action != NULL) {
-            EXEC(selected_subcommand->run_action(selected_subcommand));
+        if (subcmd->run_command != NULL) {
+            EXEC(subcmd->run_command(subcmd));
         }
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "Application catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
@@ -84,6 +84,28 @@ static int __run(Application *app, int argc, char *argv[])
     }
 
     return ret;
+}
+
+static int __run_command(Application *app)
+{
+    Command *command = (Command *)app;
+    Option *option;
+    char *event_thread_service, *event_signal_service;
+    int ret;
+
+    TRY {
+        dbg_str(DBG_SUC, "run Application command");
+        option = command->get_option(command, "--event-thread-service");
+        event_thread_service = STR2A(option->value);
+        option = command->get_option(command, "--event-signal-service");
+        event_signal_service = STR2A(option->value);
+
+        EXEC(concurrent_init_producer(event_thread_service, event_signal_service));
+        EXEC(event_base_init_default_instance());
+    } CATCH (ret) {
+    }
+
+    return 0;
 }
 
 static class_info_entry_t application_class_info[] = {
@@ -94,7 +116,8 @@ static class_info_entry_t application_class_info[] = {
     Init_Vfunc_Entry(4, Application, get_subcommand, NULL),
     Init_Vfunc_Entry(5, Application, to_json, NULL),
     Init_Nfunc_Entry(6, Application, run, __run),
-    Init_End___Entry(7, Application),
+    Init_Nfunc_Entry(7, Application, run_command, __run_command),
+    Init_End___Entry(8, Application),
 };
 REGISTER_CLASS("Application", application_class_info);
 
@@ -118,8 +141,6 @@ int libobject_init()
         #endif
         EXEC(execute_ctor_funcs());
         EXEC(core_init_fs());
-        EXEC(concurrent_init_producer());
-        EXEC(event_base_init_default_instance());
 
         exception_init();
     } CATCH (ret) {

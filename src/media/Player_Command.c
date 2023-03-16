@@ -98,7 +98,7 @@ int player(int argc, char **argv)
     return 1;
 }
 
-static int __run_action(Player_Command *command)
+static int __run_command(Player_Command *command)
 {
     Command *c = (Command *)command;
 
@@ -126,7 +126,7 @@ static class_info_entry_t player_command_class_info[] = {
     Init_Nfunc_Entry(2, Player_Command, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3, Player_Command, set, NULL),
     Init_Nfunc_Entry(4, Player_Command, get, NULL),
-    Init_Vfunc_Entry(5, Player_Command, run_action, __run_action),
+    Init_Vfunc_Entry(5, Player_Command, run_command, __run_command),
     Init_End___Entry(6, Player_Command),
 };
 REGISTER_APP_CMD("Player_Command", player_command_class_info);

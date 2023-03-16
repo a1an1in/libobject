@@ -16,7 +16,7 @@ struct Node_Cli_s{
     void *(*get)(Node_Cli *command, char *attrib);
     char *(*to_json)(Node_Cli *command); 
 
-	int (*run_action)(Node_Cli *command);
+	int (*run_command)(Node_Cli *command);
 };
 
 #endif

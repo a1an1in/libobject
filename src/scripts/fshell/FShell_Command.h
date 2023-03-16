@@ -16,7 +16,7 @@ struct FShell_Command_s{
     void *(*get)(FShell_Command *command, char *attrib);
     char *(*to_json)(FShell_Command *command); 
 
-    int (*run_action)(FShell_Command *command);
+    int (*run_command)(FShell_Command *command);
 
     void *shell;
 };

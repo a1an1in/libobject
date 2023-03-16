@@ -16,7 +16,7 @@ struct Node_Command_s{
     void *(*get)(Node_Command *command, char *attrib);
     char *(*to_json)(Node_Command *command); 
 
-	int (*run_action)(Node_Command *command);
+	int (*run_command)(Node_Command *command);
 };
 
 #endif

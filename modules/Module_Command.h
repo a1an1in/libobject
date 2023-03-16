@@ -16,7 +16,7 @@ struct Module_Command_s{
     void *(*get)(Module_Command *command, char *attrib);
     char *(*to_json)(Module_Command *command); 
 
-    int (*run_action)(Module_Command *command);
+    int (*run_command)(Module_Command *command);
 };
 
 #endif

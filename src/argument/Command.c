@@ -78,8 +78,7 @@ __get_subcommand(Command *command, char *command_name)
 
     for (i = 0; i < count; i++) {
         subcommands->peek_at(subcommands, i, (void **)&c);
-        if (c->name->equal(c->name, command_name))  
-        {
+        if (c->name->equal(c->name, command_name)) {
             return c;
         }
     }
@@ -171,7 +170,7 @@ __add_argument(command, value, usage, action, opaque)
 
     if (args == NULL) {
         args = object_new(command->parent.allocator, 
-                             "Vector", NULL);
+                          "Vector", NULL);
         if (args == NULL) {
             ret = -1;
             goto end;
@@ -479,7 +478,7 @@ static class_info_entry_t command_class_info[] = {
     Init_Vfunc_Entry(9 , Command, get_option, __get_option),
     Init_Vfunc_Entry(10, Command, add_argument, __add_argument),
     Init_Vfunc_Entry(11, Command, get_argment, __get_argment),
-    Init_Vfunc_Entry(12, Command, run_action, __action),
+    Init_Vfunc_Entry(12, Command, run_command, __action),
     Init_Vfunc_Entry(13, Command, run_option_actions, __run_option_actions),
     Init_Vfunc_Entry(14, Command, run_argument_actions, __run_argument_actions),
     Init_Vfunc_Entry(15, Command, set_args, __set_args),

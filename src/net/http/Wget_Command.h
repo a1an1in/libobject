@@ -17,7 +17,7 @@ struct Wget_Command_s{
     char *(*to_json)(void *obj); 
 
 	/*virtual methods reimplement*/
-    void * (*run_action)(Command *command);
+    void * (*run_command)(Command *command);
 
     String *output_file;
     String *append_output;

@@ -16,7 +16,7 @@ struct Player_Command_s{
     void *(*get)(Player_Command *command, char *attrib);
     char *(*to_json)(Player_Command *command); 
 
-    int (*run_action)(Player_Command *command);
+    int (*run_command)(Player_Command *command);
 };
 
 #endif

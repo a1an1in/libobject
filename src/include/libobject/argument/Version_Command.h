@@ -16,7 +16,7 @@ struct Version_Command_s{
     void *(*get)(void *obj, char *attrib);
     char *(*to_json)(void *obj); 
 
-    int (*run_action)(Command *command);
+    int (*run_command)(Command *command);
 };
 
 #endif

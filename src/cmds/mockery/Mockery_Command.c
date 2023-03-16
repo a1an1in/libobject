@@ -8,7 +8,7 @@
 #include <libobject/argument/Application.h>
 
 
-static int __run_action(Command *command)
+static int __run_command(Command *command)
 {
     int argc;
     char **argv;
@@ -46,7 +46,7 @@ static class_info_entry_t test_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Mockery_Command, construct, __construct),
     Init_Nfunc_Entry(2, Mockery_Command, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Mockery_Command, run_action, __run_action),
+    Init_Vfunc_Entry(3, Mockery_Command, run_command, __run_command),
     Init_End___Entry(4, Mockery_Command),
 };
 REGISTER_APP_CMD("Mockery_Command", test_command_class_info);

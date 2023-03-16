@@ -16,7 +16,7 @@ struct Downloader_Command_s{
     void *(*get)(Downloader_Command *command, char *attrib);
     char *(*to_json)(Downloader_Command *command); 
 
-	int (*run_action)(Downloader_Command *command);
+	int (*run_command)(Downloader_Command *command);
 };
 
 #endif

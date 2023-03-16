@@ -8,7 +8,7 @@
 #include <libobject/argument/Application.h>
 #include "Downloader.h"
 
-static int __run_action(Downloader_Command *command)
+static int __run_command(Downloader_Command *command)
 {
     int argc, i;
     char **argv;
@@ -45,7 +45,7 @@ static class_info_entry_t downloader_command_class_info[] = {
     Init_Nfunc_Entry(2, Downloader_Command, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3, Downloader_Command, set, NULL),
     Init_Nfunc_Entry(4, Downloader_Command, get, NULL),
-    Init_Vfunc_Entry(5, Downloader_Command, run_action, __run_action),
+    Init_Vfunc_Entry(5, Downloader_Command, run_command, __run_command),
     Init_End___Entry(6, Downloader_Command),
 };
 REGISTER_APP_CMD("Downloader_Command", downloader_command_class_info);

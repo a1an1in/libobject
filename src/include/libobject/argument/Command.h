@@ -30,7 +30,7 @@ struct Command_s{
     int (*add_argument)(Command *command, char *value, char *usage, 
             int (*action)(Argument *, void *), void *opaque);
     Argument *(*get_argment)(Command *command, int index);
-    int (*run_action)(Command *);
+    int (*run_command)(Command *);
     int (*run_option_actions)(Command *);
     int (*run_argument_actions)(Command *);
     int (*parse_args)(Command *command);

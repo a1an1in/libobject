@@ -8,7 +8,7 @@
 #include <libobject/argument/Application.h>
 #include <libobject/argument/Module_Command.h>
 
-static int __run_action(Module_Command *command)
+static int __run_command(Module_Command *command)
 {
     int argc, i;
     char **argv;
@@ -45,7 +45,7 @@ static class_info_entry_t module_command_class_info[] = {
     Init_Nfunc_Entry(2, Module_Command, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3, Module_Command, set, NULL),
     Init_Nfunc_Entry(4, Module_Command, get, NULL),
-    Init_Vfunc_Entry(5, Module_Command, run_action, __run_action),
+    Init_Vfunc_Entry(5, Module_Command, run_command, __run_command),
     Init_End___Entry(6, Module_Command),
 };
 REGISTER_APP_CMD("Module_Command", module_command_class_info);

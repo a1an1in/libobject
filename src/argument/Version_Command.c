@@ -9,7 +9,7 @@
 #include <libobject/argument/Version_Command.h>
 #include <libobject/version.h>
 
-static int __run_action(Command *command)
+static int __run_command(Command *command)
 {
     dbg_str(ARG_DETAIL, "libobject version:%s", PROJECT_VERSION);
 
@@ -32,7 +32,7 @@ static class_info_entry_t version_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Version_Command, construct, __construct),
     Init_Nfunc_Entry(2, Version_Command, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Version_Command, run_action, __run_action),
+    Init_Vfunc_Entry(3, Version_Command, run_command, __run_command),
     Init_End___Entry(4, Version_Command),
 };
 REGISTER_APP_CMD("Version_Command", version_command_class_info);

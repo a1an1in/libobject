@@ -18,7 +18,7 @@ struct Curl_Command_s{
     char *(*to_json)(void *obj); 
 
 	/*virtual methods reimplement*/
-    void * (*run_action)(Command *command);
+    void * (*run_command)(Command *command);
 
     /*attribs*/
     String *output_file;

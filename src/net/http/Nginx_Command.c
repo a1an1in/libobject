@@ -86,7 +86,7 @@ static int __deconstruct(Nginx_Command *command)
     return 0;
 }
 
-static int __run_action(Nginx_Command *command)
+static int __run_command(Nginx_Command *command)
 {
     Http_Server *server = command->server;
     Command *c = (Command *)command;
@@ -104,7 +104,7 @@ static class_info_entry_t nginx_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Nginx_Command, construct, __construct),
     Init_Nfunc_Entry(2, Nginx_Command, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, Nginx_Command, run_action, __run_action),
+    Init_Nfunc_Entry(3, Nginx_Command, run_command, __run_command),
     Init_End___Entry(4, Nginx_Command),
 };
 REGISTER_APP_CMD("Nginx_Command", nginx_command_class_info);

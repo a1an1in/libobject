@@ -8,7 +8,7 @@
 #include <libobject/argument/Application.h>
 #include <libobject/argument/Help_Command.h>
 
-static int __run_action(Command *command)
+static int __run_command(Command *command)
 {
     int argc, i;
     char **argv;
@@ -42,7 +42,7 @@ static class_info_entry_t help_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Help_Command, construct, __construct),
     Init_Nfunc_Entry(2, Help_Command, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Help_Command, run_action, __run_action),
+    Init_Vfunc_Entry(3, Help_Command, run_command, __run_command),
     Init_End___Entry(4, Help_Command),
 };
 REGISTER_APP_CMD("Help_Command", help_command_class_info);

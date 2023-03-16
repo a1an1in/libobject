@@ -179,7 +179,7 @@ static int __deconstruct(Command *command)
     return 0;
 }
 
-static int __run_action(Command *command)
+static int __run_command(Command *command)
 {
     Http_Client *client;
     Curl_Command *curl = (Curl_Command *)command;
@@ -228,7 +228,7 @@ static class_info_entry_t curl_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Curl_Command, construct, __construct),
     Init_Nfunc_Entry(2, Curl_Command, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, Curl_Command, run_action, __run_action),
+    Init_Nfunc_Entry(3, Curl_Command, run_command, __run_command),
     Init_Str___Entry(4, Curl_Command, output_file, NULL),
     Init_U32___Entry(5, Curl_Command, help, 0),
     Init_End___Entry(6, Curl_Command),

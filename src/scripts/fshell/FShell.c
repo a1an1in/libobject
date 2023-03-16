@@ -103,9 +103,9 @@ static int __run_func(FShell *shell, String *str)
             }
         }
         ret = func(par[0], par[1], par[2], par[3], par[4],
-                par[5], par[6], par[7], par[8], par[9], 
-                par[10], par[11], par[12], par[13], par[14],
-                par[15], par[16], par[17], par[18], par[19]);
+                   par[5], par[6], par[7], par[8], par[9], 
+                   par[10], par[11], par[12], par[13], par[14],
+                   par[15], par[16], par[17], par[18], par[19]);
         dbg_str(DBG_DETAIL, "run func ret:%d", ret);
         
     } CATCH (ret) {

@@ -18,7 +18,7 @@ struct Nginx_Command_s{
     char *(*to_json)(Nginx_Command *obj); 
 
 	/*virtual methods reimplement*/
-    void * (*run_action)(Nginx_Command *command);
+    void * (*run_command)(Nginx_Command *command);
 
     Http_Server *server;
 };

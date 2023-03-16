@@ -34,7 +34,7 @@ struct producer_s{
 };
 
 extern Producer *global_get_default_producer();
-extern int concurrent_init_producer();
+extern int concurrent_init_producer(char *event_thread_service, char *event_signal_service);
 extern int concurrent_destroy_producer();
 
 #endif

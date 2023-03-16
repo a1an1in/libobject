@@ -136,15 +136,15 @@ Producer *global_get_default_producer()
     return global_default_producer;
 }
 
-int concurrent_init_producer()
+int concurrent_init_producer(char *event_thread_service, char *event_signal_service)
 {
     Producer *producer;
     allocator_t *allocator = allocator_get_default_instance();
     configurator_t * c;
 
     c = cfg_alloc(allocator); 
-    cfg_config_str(c, "/Producer", "event-thread-service", "11110"); 
-    cfg_config_str(c, "/Producer", "event-signal-service", "11120"); 
+    cfg_config_str(c, "/Producer", "event-thread-service", event_thread_service); 
+    cfg_config_str(c, "/Producer", "event-signal-service", event_signal_service); 
 
     dbg_str(DBG_DETAIL, "Producer init str:%s", c->buf);
 
