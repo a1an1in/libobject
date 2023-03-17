@@ -46,8 +46,10 @@ static int __construct(Event_Thread *thread, char *init_str)
     Event_Base *eb;
 
     dbg_str(EV_DETAIL,"Event_Thread construct, thread addr:%p",thread);
+    dbg_str(DBG_DETAIL,"Event_Thread construct, thread service:%s, signal service:%s",
+            STR2A(thread->thread_service), STR2A(thread->signal_service));
 
-    thread->eb    = (Event_Base *)object_new(allocator, "Select_Base", NULL);
+    thread->eb = (Event_Base *)object_new(allocator, "Select_Base", NULL);
     thread->flags = 0;
 
     return 0;
@@ -63,6 +65,8 @@ static int __deconstrcut(Event_Thread *thread)
     dbg_str(EV_DETAIL,"Event thread deconstruct,thread addr:%p",thread);
 
     thread->del_event(thread, event);
+    object_destroy(thread->thread_service);
+    object_destroy(thread->signal_service);
     object_destroy(thread->s);
     object_destroy(thread->c);
     object_destroy(thread->eb);
@@ -147,21 +151,18 @@ static void *__start_routine(void *arg)
     Event_Base *eb         = et->eb;
     event_t *event         = &et->notifier_event;
     Socket *s, *c;
-    char service[10] = {0};
 
-    sprintf(service, "%d", EVENT_THREAD_SERVICE + 4);
-
-    dbg_str(EV_IMPORTANT,"Event_Thread, start_routine:%p, service:%s",
-            arg, service);
+    dbg_str(DBG_IMPORTANT,"Event_Thread, start_routine:%p, service:%s",
+            arg, STR2A(et->thread_service));
             
     tt->detach(tt);
     s = object_new(allocator, "Inet_Udp_Socket", NULL);
-    s->bind(s, "127.0.0.1", service);
+    s->bind(s, "127.0.0.1", STR2A(et->thread_service));
     s->setnonblocking(s);
     et->s = s;
 
     c = object_new(allocator, "Inet_Udp_Socket", NULL);
-    c->connect(c, "127.0.0.1", service);
+    c->connect(c, "127.0.0.1", STR2A(et->thread_service));
     c->setnonblocking(c);
     et->c = c;
 
@@ -207,7 +208,8 @@ static class_info_entry_t event_thread_class_info[] = {
     Init_Vfunc_Entry(7 , Event_Thread, set_start_arg, NULL),
     Init_Vfunc_Entry(8 , Event_Thread, start_routine, __start_routine),
     Init_Vfunc_Entry(9 , Event_Thread, stop, __stop),
-    Init_End___Entry(10, Event_Thread),
+    Init_Str___Entry(10, Event_Thread, thread_service, NULL),
+    Init_Str___Entry(11, Event_Thread, signal_service, NULL),
+    Init_End___Entry(12, Event_Thread),
 };
 REGISTER_CLASS("Event_Thread",event_thread_class_info);
-

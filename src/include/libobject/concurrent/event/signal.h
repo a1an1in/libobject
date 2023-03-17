@@ -7,7 +7,7 @@
 #include <libobject/core/Map.h>
 #include <libobject/core/io/Socket.h>
 
-struct evsig_s{
+struct evsig_s {
     Socket *sender;
     Socket *receiver;
 

@@ -42,6 +42,8 @@ struct event_thread_s{
     Queue *ev_queue;
     Socket *s, *c;
     int flags;
+    String *thread_service;
+    String *signal_service;
 };
 
 #endif

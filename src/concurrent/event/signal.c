@@ -79,7 +79,6 @@ int evsig_init(Event_Base *eb)
     event_t *event = &eb->evsig.signal_event;
     struct evsig_s *evsig = &eb->evsig;
     allocator_t *allocator = eb->obj.allocator;
-    List *list = global_event_base_list;
     Socket *s;
     char service[10];
 

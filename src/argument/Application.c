@@ -54,14 +54,14 @@ static int __run(Application *app, int argc, char *argv[])
     int ret = 0;
 
     TRY {
+        for (i = 0; i < app_command_count; i++) {
+            app->add_subcommand(app, app_commands[i]);
+        }
+
         command->set_args(command, argc, (char **)argv);
         command->parse_args(command);
         EXEC(command->run_option_actions(command));
         EXEC(command->run_command(command));
-
-        for (i = 0; i < app_command_count; i++) {
-            app->add_subcommand(app, app_commands[i]);
-        }
 
         default_subcmd = app->get_subcommand(app, "help");
         subcmd = command->selected_subcommand;
@@ -100,8 +100,8 @@ static int __run_command(Application *app)
         option = command->get_option(command, "--event-signal-service");
         event_signal_service = STR2A(option->value);
 
-        EXEC(concurrent_init_producer(event_thread_service, event_signal_service));
-        EXEC(event_base_init_default_instance());
+        // EXEC(concurrent_init_producer(event_thread_service, event_signal_service));
+        // EXEC(event_base_init_default_instance());
     } CATCH (ret) {
     }
 
@@ -141,6 +141,8 @@ int libobject_init()
         #endif
         EXEC(execute_ctor_funcs());
         EXEC(core_init_fs());
+        EXEC(concurrent_init_producer("11110", "11120"));
+        EXEC(event_base_init_default_instance());
 
         exception_init();
     } CATCH (ret) {
