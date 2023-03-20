@@ -61,7 +61,12 @@ static int __run(Application *app, int argc, char *argv[])
         command->set_args(command, argc, (char **)argv);
         command->parse_args(command);
         EXEC(command->run_option_actions(command));
-        EXEC(command->run_command(command));
+
+        /*
+         * init producer at here, which means we can't use producer 
+         * in constructor.
+         */
+        EXEC(command->run_command(command)); 
 
         default_subcmd = app->get_subcommand(app, "help");
         subcmd = command->selected_subcommand;
@@ -100,8 +105,8 @@ static int __run_command(Application *app)
         option = command->get_option(command, "--event-signal-service");
         event_signal_service = STR2A(option->value);
 
-        // EXEC(concurrent_init_producer(event_thread_service, event_signal_service));
-        // EXEC(event_base_init_default_instance());
+        EXEC(concurrent_init_producer(event_thread_service, event_signal_service));
+        EXEC(event_base_init_default_instance());
     } CATCH (ret) {
     }
 
@@ -141,8 +146,8 @@ int libobject_init()
         #endif
         EXEC(execute_ctor_funcs());
         EXEC(core_init_fs());
-        EXEC(concurrent_init_producer("11110", "11120"));
-        EXEC(event_base_init_default_instance());
+        // EXEC(concurrent_init_producer("11110", "11120"));
+        // EXEC(event_base_init_default_instance());
 
         exception_init();
     } CATCH (ret) {

@@ -26,6 +26,7 @@ struct FShell_s{
     int (*open_ui)(FShell *);
     int (*is_statement)(FShell *, char *);
     int (*set_prompt)(FShell *shell, char *prompt);
+    int (*init)(FShell *shell);
 
     Map *map;
     struct event *signal;

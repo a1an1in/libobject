@@ -25,6 +25,7 @@ static int __run_command(Command *command)
         arg = command->get_argment(command, 0);
         dbg_str(DBG_SUC,"arg0:%s", arg->value->get_cstr(arg->value));
     }
+    shell->init(shell);
     shell->open_ui(shell);
 
     dbg_str(DBG_DETAIL, "fshell out");

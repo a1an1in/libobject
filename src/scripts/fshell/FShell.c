@@ -24,9 +24,7 @@ static void __close_callback(int fd, short event_res, void *arg)
 static int __construct(FShell *shell, char *init_str)
 {
     Map *map;
-    int ev_fd;
     struct event *signal;
-    struct event_base* base = event_base_get_default_instance();
     allocator_t *allocator = shell->parent.allocator;
 
     map = object_new(shell->parent.allocator, "RBTree_Map", NULL);
@@ -40,18 +38,6 @@ static int __construct(FShell *shell, char *init_str)
     shell->signal = signal;
     shell->close_flag = 0;
 
-#if (!defined(WINDOWS_USER_MODE))
-    ev_fd = SIGINT;
-#else
-    ev_fd = SIGINT;
-#endif
-
-    dbg_str(DBG_SUC, "fshell event base:%p", base);
-    event_assign(signal, base, ev_fd, EV_SIGNAL|EV_PERSIST,
-                 __close_callback, shell);
-
-    event_add(signal, NULL);
-
     sprintf(shell->prompt, "%s", "fshell$ ");
 
     return 0;
@@ -64,6 +50,28 @@ static int __deconstruct(FShell *shell)
     object_destroy(shell->map);
     event_del(shell->signal);
     allocator_mem_free(allocator, shell->signal);
+
+    return 0;
+}
+
+static int __init(FShell *shell)
+{
+    int ev_fd;
+    struct event *signal;
+    struct event_base* base = event_base_get_default_instance();
+
+#if (!defined(WINDOWS_USER_MODE))
+    ev_fd = SIGINT;
+#else
+    ev_fd = SIGINT;
+#endif
+
+    signal = shell->signal;
+    dbg_str(DBG_SUC, "fshell event base:%p", base);
+    event_assign(signal, base, ev_fd, EV_SIGNAL|EV_PERSIST,
+                 __close_callback, shell);
+
+    event_add(signal, NULL);
 
     return 0;
 }
@@ -123,6 +131,8 @@ static int __is_statement(FShell *shell, char *str)
         THROW_IF(len <= 1, -1);
         if (str[len - 1] == ';') {
             return 1;
+        } else {
+            return 0;
         }
     } CATCH (ret) {
     }
@@ -142,7 +152,8 @@ static class_info_entry_t shell_class_info[] = {
     Init_Vfunc_Entry(8 , FShell, set_prompt, __set_prompt),
     Init_Vfunc_Entry(9 , FShell, run_func, __run_func),
     Init_Vfunc_Entry(10, FShell, is_statement, __is_statement),
-    Init_End___Entry(11, FShell),
+    Init_Vfunc_Entry(11, FShell, init, __init),
+    Init_End___Entry(12, FShell),
 };
 REGISTER_CLASS("FShell", shell_class_info);
 

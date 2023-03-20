@@ -131,7 +131,7 @@ static class_info_entry_t producer_class_info[] = {
 };
 REGISTER_CLASS("Producer", producer_class_info);
 
-Producer *global_get_default_producer()
+Producer *concurrent_get_default_instance()
 {
     return global_default_producer;
 }
@@ -160,7 +160,7 @@ int concurrent_init_producer(char *thread_service, char *signal_service)
 
 int concurrent_destroy_producer()
 {
-    Producer *producer = global_get_default_producer();
+    Producer *producer = concurrent_get_default_instance();
 
     dbg_str(DBG_VIP, "concurrent_destroy_producer start");
     producer->close(producer);

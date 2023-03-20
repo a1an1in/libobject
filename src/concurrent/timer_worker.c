@@ -63,7 +63,7 @@ peroid_timer_worker(allocator_t *allocator,
                     struct timeval *ev_tv, void *opaque, 
                     void *work_callback)
 {
-    Producer *producer = global_get_default_producer();
+    Producer *producer = concurrent_get_default_instance();
     Worker *worker = NULL;
 
     worker = OBJECT_NEW(allocator, Worker, NULL);
@@ -81,7 +81,7 @@ Worker *timer_worker(allocator_t *allocator,
                       struct timeval *ev_tv, void *opaque, 
                       void *work_callback)
 {
-    Producer *producer = global_get_default_producer();
+    Producer *producer = concurrent_get_default_instance();
     Worker *worker = NULL;
 
     worker = OBJECT_NEW(allocator, Worker, NULL);
@@ -136,7 +136,7 @@ REGISTER_TEST_CMD(test_timer_worker);
 
 void test_obj_timer_worker()
 {
-    Producer *producer     = global_get_default_producer();
+    Producer *producer     = concurrent_get_default_instance();
     allocator_t *allocator = allocator_get_default_instance();
     Worker *worker;
     struct timeval ev_tv;

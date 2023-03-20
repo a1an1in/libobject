@@ -49,7 +49,7 @@ io_worker(allocator_t *allocator, int fd,
     Worker *worker = NULL;
 
     if (producer == NULL) {
-        producer = global_get_default_producer();
+        producer = concurrent_get_default_instance();
     }
     worker = OBJECT_NEW(allocator, Worker, NULL);
     worker->opaque = opaque;
