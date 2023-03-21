@@ -64,8 +64,8 @@ static void __evsig_send(void *element, void *c)
 
 static void signal_handler(int sig)
 {
-    char msg        = (char) sig;
-    pthread_t   tid = pthread_self();
+    char msg = (char) sig;
+    pthread_t tid = pthread_self();
 
     List *list = global_event_base_list;
     dbg_str(EV_VIP, "signal_handler receive signal=%d, event base count=%d, thread id:%d", 

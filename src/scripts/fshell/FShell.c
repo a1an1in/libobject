@@ -30,7 +30,6 @@ static int __construct(FShell *shell, char *init_str)
     map = object_new(shell->parent.allocator, "RBTree_Map", NULL);
     map->set_cmp_func(map, string_key_cmp_func);
     shell->map = map;
-
     shell->close_flag = 0;
 
     sprintf(shell->prompt, "%s", "fshell$ ");
@@ -71,6 +70,9 @@ static int __init(FShell *shell)
 
 static int __set_prompt(FShell *shell, char *prompt)
 {
+    memset(shell->prompt, 0, sizeof(shell->prompt));
+    sprintf(shell->prompt, "%s", prompt);
+    return 0;
 }
 
 static int __run_func(FShell *shell, String *str)
@@ -158,7 +160,7 @@ int test_hello()
 
 int test_add(int a, int b)
 {
-    printf("test add, a:%d, b:%d, count:%d\n", a, b, a + b);
+    dbg_str(DBG_DETAIL, "test add, a:%d, b:%d, count:%d", a, b, a + b);
     return a + b;
 }
 

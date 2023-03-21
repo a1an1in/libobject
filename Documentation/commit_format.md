@@ -1,10 +1,9 @@
-To optimize worker, and fix a issue in fshell
+To optimize code
 
 Description:
 update.
 
 Major Changes:
-1.del io_worker.c, merge signal, timer and io worker into worker.c
-2.add try catch for event_del
-3.change event_assign to signal_worker.
-4.mv test of worker to test_worker.c
+1.mv concurrent tests to tests/conrruent dir.
+2.change evsig_init and evsig_release exec position.
+3.add set_prompt.

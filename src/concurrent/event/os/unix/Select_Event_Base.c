@@ -49,16 +49,12 @@ static int __construct(Select_Base *eb, char *init_str)
     FD_ZERO(&eb->event_readset_out);
     FD_ZERO(&eb->event_writeset_out);
 
-    evsig_init((Event_Base *)eb);
-
     return 0;
 }
 
 static int __deconstrcut(Select_Base *eb)
 {
     dbg_str(OBJ_DETAIL, "select constructor");
-
-    evsig_release((Event_Base *)eb);
 
     return 0;
 }

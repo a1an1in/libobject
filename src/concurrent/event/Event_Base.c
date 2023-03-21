@@ -57,6 +57,8 @@ static int __construct(Event_Base *eb, char *init_str)
 
     (*list)->add_back(*list, eb);
 
+    evsig_init(eb);
+
     return 0;
 }
 
@@ -66,6 +68,7 @@ static int __deconstrcut(Event_Base *eb)
 
     dbg_str(EV_VIP, "Event_Base deconstruct, eb addr:%p", eb);
 
+    evsig_release(eb);
     object_destroy(eb->timer);
     object_destroy(eb->io_map);
 

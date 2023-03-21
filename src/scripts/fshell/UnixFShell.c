@@ -152,7 +152,7 @@ static int __open_ui(UnixFShell *shell)
                 str->assign(str, linebuf);
                 EXEC(shell->run_func(shell, str));
             } else {
-                dbg_buf(DBG_DETAIL, "linebuf:", linebuf, strlen(linebuf));
+                // dbg_buf(DBG_DETAIL, "linebuf:", linebuf, strlen(linebuf));
                 continue;
             }
         }
