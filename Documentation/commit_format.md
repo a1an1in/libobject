@@ -1,9 +1,10 @@
-To make producer reentrant
+To optimize worker, and fix a issue in fshell
 
 Description:
-there still have some issue, will modify later, since i
-haven't found good solution.
+update.
 
 Major Changes:
-1.rename concurrent_get_default_instance
-2.add Fshell::init()
+1.del io_worker.c, merge signal, timer and io worker into worker.c
+2.add try catch for event_del
+3.change event_assign to signal_worker.
+4.mv test of worker to test_worker.c

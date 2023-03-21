@@ -10,14 +10,14 @@
 #include <signal.h>
 #include <libobject/core/utils/string.h>
 #include <libobject/scripts/FShell.h>
+#include <libobject/concurrent/Worker.h>
 
-static void __close_callback(int fd, short event_res, void *arg)
+static void __close_fshell_callback(void *arg)
 {
     FShell *shell = (FShell *)arg;
 
     shell->close_flag = 1;
     dbg_str(DBG_SUC, "close shel");
-    event_del(shell->signal);
 
 }
 
@@ -31,11 +31,6 @@ static int __construct(FShell *shell, char *init_str)
     map->set_cmp_func(map, string_key_cmp_func);
     shell->map = map;
 
-    signal = allocator_mem_alloc(allocator, sizeof(struct event));
-    if (signal == NULL) {
-        return -1;
-    }
-    shell->signal = signal;
     shell->close_flag = 0;
 
     sprintf(shell->prompt, "%s", "fshell$ ");
@@ -47,9 +42,10 @@ static int __deconstruct(FShell *shell)
 {
     allocator_t *allocator = shell->parent.allocator;
 
+    dbg_str(DBG_DETAIL, "fshell deconstruct in, shell->worker=%p", shell->worker);
     object_destroy(shell->map);
-    event_del(shell->signal);
-    allocator_mem_free(allocator, shell->signal);
+    worker_destroy(shell->worker);
+    dbg_str(DBG_DETAIL, "fshell deconstruct out");
 
     return 0;
 }
@@ -59,6 +55,7 @@ static int __init(FShell *shell)
     int ev_fd;
     struct event *signal;
     struct event_base* base = event_base_get_default_instance();
+    allocator_t *allocator = shell->parent.allocator;
 
 #if (!defined(WINDOWS_USER_MODE))
     ev_fd = SIGINT;
@@ -66,12 +63,8 @@ static int __init(FShell *shell)
     ev_fd = SIGINT;
 #endif
 
-    signal = shell->signal;
-    dbg_str(DBG_SUC, "fshell event base:%p", base);
-    event_assign(signal, base, ev_fd, EV_SIGNAL|EV_PERSIST,
-                 __close_callback, shell);
-
-    event_add(signal, NULL);
+    shell->worker = signal_worker(allocator, ev_fd, __close_fshell_callback, shell);
+    dbg_str(DBG_DETAIL, "fshell init, shell->worker=%p", shell->worker);
 
     return 0;
 }
@@ -128,8 +121,8 @@ static int __is_statement(FShell *shell, char *str)
 
     TRY {
         len = strlen(str);
-        THROW_IF(len <= 1, -1);
-        if (str[len - 1] == ';') {
+        THROW_IF(len <= 1, 0);
+        if (str[len - 2] == ';') {
             return 1;
         } else {
             return 0;

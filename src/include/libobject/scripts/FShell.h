@@ -5,7 +5,7 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
 #include <libobject/core/Vector.h>
-#include <libobject/concurrent/event/event_compat.h>
+#include <libobject/concurrent/Worker.h>
 
 typedef struct FShell_s FShell;
 
@@ -29,7 +29,7 @@ struct FShell_s{
     int (*init)(FShell *shell);
 
     Map *map;
-    struct event *signal;
+    Worker *worker;
     int close_flag;
     char prompt[20];
 };

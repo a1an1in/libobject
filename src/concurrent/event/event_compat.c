@@ -62,11 +62,18 @@ int event_add(event_t *ev, const struct timeval *tv)
 
 int event_del(event_t *ev)
 {
-    Event_Base *eb = (Event_Base *)ev->ev_base;
+    Event_Base *eb;
+    int ret;
 
-    eb->del(eb, ev);
+    TRY {
+        THROW_IF(ev == NULL || ev->ev_base == NULL, -1);
 
-    return 0;
+        eb = (Event_Base *)ev->ev_base;
+        eb->del(eb, ev);
+    } CATCH (ret) {
+    }
+
+    return ret;
 }
 
 int event_base_dispatch(struct event_base *event_base)

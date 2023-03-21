@@ -1,5 +1,5 @@
 /**
- * @file timer_worker.c
+ * @file io_worker.c
  * @Synopsis  
  * @author alan lin
  * @version 
@@ -30,13 +30,65 @@
  * 
  */
 #include <stdio.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/concurrent/Worker.h>
 #include <libobject/concurrent/Producer.h>
-#include <libobject/core/utils/registry/registry.h>
 
-static struct timeval lasttime;
+Worker *
+io_worker(allocator_t *allocator, int fd, 
+          struct timeval *ev_tv, void *ev_callback, 
+          void *work_callback, Producer *producer, 
+          void *opaque)
+{
+    Worker *worker = NULL;
+
+    if (producer == NULL) {
+        producer = concurrent_get_default_instance();
+    }
+    worker = OBJECT_NEW(allocator, Worker, NULL);
+    worker->opaque = opaque;
+
+    worker->assign(worker, fd, EV_READ | EV_PERSIST, ev_tv, 
+                   ev_callback, worker, work_callback);
+    worker->enroll(worker, producer);
+
+    return worker;
+}
+
+static void
+signal_worker_cb(int fd, short event, void *arg)
+{
+    Worker *worker = (Worker *)arg;
+
+    worker->work_callback(worker->opaque);
+
+    return;
+}
+
+Worker *signal_worker(allocator_t *allocator, 
+                      int fd, void *work_callback, void *opaque)
+{
+    Producer *producer = concurrent_get_default_instance();
+    Worker *worker = NULL;
+
+    worker = OBJECT_NEW(allocator, Worker, NULL);
+    worker->opaque = opaque;
+
+    worker->assign(worker, fd, EV_SIGNAL|EV_PERSIST, NULL, 
+                   signal_worker_cb, worker, 
+                   work_callback);
+    worker->enroll(worker, producer);
+
+    return worker;
+}
+
+struct timeval lasttime;
 static void
 timer_worker_timeout_cb(int fd, short event, void *arg)
 {
@@ -58,10 +110,9 @@ timer_worker_timeout_cb(int fd, short event, void *arg)
     return;
 }
 
-Worker *
-peroid_timer_worker(allocator_t *allocator, 
-                    struct timeval *ev_tv, void *opaque, 
-                    void *work_callback)
+Worker *timer_worker(allocator_t *allocator, int ev_events,
+                     struct timeval *ev_tv, 
+                     void *work_callback, void *opaque)
 {
     Producer *producer = concurrent_get_default_instance();
     Worker *worker = NULL;
@@ -69,7 +120,7 @@ peroid_timer_worker(allocator_t *allocator,
     worker = OBJECT_NEW(allocator, Worker, NULL);
     worker->opaque = opaque;
 
-    worker->assign(worker, -1, EV_READ | EV_PERSIST, ev_tv, 
+    worker->assign(worker, -1, ev_events, ev_tv, 
                    timer_worker_timeout_cb, worker, 
                    work_callback);
     worker->enroll(worker, producer);
@@ -77,83 +128,10 @@ peroid_timer_worker(allocator_t *allocator,
     return worker;
 }
 
-Worker *timer_worker(allocator_t *allocator, 
-                      struct timeval *ev_tv, void *opaque, 
-                      void *work_callback)
+int worker_destroy(Worker *worker)
 {
-    Producer *producer = concurrent_get_default_instance();
-    Worker *worker = NULL;
-
-    worker = OBJECT_NEW(allocator, Worker, NULL);
-    worker->opaque = opaque;
-
-    worker->assign(worker, -1, EV_READ, ev_tv, 
-                   timer_worker_timeout_cb, worker, 
-                   work_callback);
-    worker->enroll(worker, producer);
-
-    return worker;
-}
-
-int timer_worker_destroy(Worker *worker)
-{
+    if (worker == NULL) return 0;
     worker->resign(worker);
     return object_destroy(worker);
 }
 
-static void test_work_callback(void *task)
-{
-    dbg_str(DBG_SUC, "timer opaque:%p", task);
-}
-
-#if 1
-int test_timer_worker(TEST_ENTRY *entry)
-{
-    allocator_t *allocator = allocator_get_default_instance();
-    Worker *worker;
-    struct timeval ev_tv;
-
-    sleep(1);
-
-    gettimeofday(&lasttime, NULL);
-    ev_tv.tv_sec  = 2;
-    ev_tv.tv_usec = 0;
-
-    dbg_str(DBG_SUC, "opaque addr:%p", &ev_tv);
-    worker = peroid_timer_worker(allocator, &ev_tv, &ev_tv, test_work_callback);
-    /*
-     *worker = timer_worker(allocator, &ev_tv, NULL, test_work_callback);
-     */
-    sleep(5);
-    timer_worker_destroy(worker);
-    sleep(5);
-
-    return 1;
-}
-REGISTER_TEST_CMD(test_timer_worker);
-
-#else
-
-void test_obj_timer_worker()
-{
-    Producer *producer     = concurrent_get_default_instance();
-    allocator_t *allocator = allocator_get_default_instance();
-    Worker *worker;
-    struct timeval ev_tv;
-
-    ev_tv.tv_sec  = 2;
-    ev_tv.tv_usec = 0;
-
-    sleep(1);
-
-    worker = OBJECT_NEW(allocator, Worker, NULL);
-    dbg_str(DBG_DETAIL, "worker addr:%p", worker);
-    worker->assign(worker, -1, EV_READ | EV_PERSIST, 
-                   ev_tv, test_timeout_cb, worker, test_work_callback);
-    worker->enroll(worker, producer);
-
-    pause();
-    object_destroy(worker);
-}
-
-#endif

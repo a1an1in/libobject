@@ -153,7 +153,7 @@ static int __open_ui(UnixFShell *shell)
                 EXEC(shell->run_func(shell, str));
             } else {
                 dbg_buf(DBG_DETAIL, "linebuf:", linebuf, strlen(linebuf));
-                THROW(-1);
+                continue;
             }
         }
         dbg_str(DBG_DETAIL, "close shell ui");
@@ -192,6 +192,7 @@ static int test_unixfshell_open()
 
     TRY {
         shell = OBJECT_NEW(allocator, UnixFShell, NULL);
+        shell->init(shell);
         shell->open_ui(shell);
     } CATCH (ret) {
     } FINALLY {

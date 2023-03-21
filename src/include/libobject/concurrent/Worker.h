@@ -35,10 +35,19 @@ struct worker_s{
     int flags;
 };
 
-extern Worker *
-io_worker(allocator_t *allocator, int fd, 
+Worker *io_worker(allocator_t *allocator, int fd, 
           struct timeval *ev_tv, void *ev_callback, 
           void *work_callback, Producer *producer, 
           void *opaque);
+        
+Worker *signal_worker(allocator_t *allocator, 
+                      int fd, void *work_callback, void *opaque);
+
+Worker *timer_worker(allocator_t *allocator, int ev_events, struct timeval *ev_tv, 
+                      void *work_callback, void *opaque);                      
+
+int worker_destroy(Worker *worker);
+
+extern struct timeval lasttime;
 
 #endif
