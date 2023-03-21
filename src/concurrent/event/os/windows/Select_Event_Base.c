@@ -177,6 +177,7 @@ int test_select_base()
     event_t event;
 
     eb = OBJECT_NEW(allocator, Select_Base, NULL);
+    eb->init(eb);
 
     dbg_str(EV_DETAIL, "run at here, eb=%p", eb);
 

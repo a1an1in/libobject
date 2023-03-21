@@ -72,6 +72,7 @@ int test_event_io()
     socket = create_fifo((char *)"event.fifo");
 
     eb = OBJECT_NEW(allocator, Select_Base, NULL);
+    eb->init(eb);
 
     /*
      *object_dump(eb, "Select_Base", buf, 2048);

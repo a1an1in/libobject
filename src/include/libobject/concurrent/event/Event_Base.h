@@ -23,6 +23,7 @@ struct event_base_s{
     int (*set)(Event_Base *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     int (*loop)(Event_Base *);
+    int (*init)(Event_Base *);
     int (*activate_io)(Event_Base *, int fd, short events); 
     int (*activate_signal)(Event_Base *, int fd, short events); 
     int (*add)(Event_Base *, event_t *e);
@@ -42,6 +43,7 @@ struct event_base_s{
     struct evsig_s evsig;
     int break_flag;
     event_t break_event;
+    String *signal_service;
 };
 
 int evsig_add(Event_Base *eb, event_t *event);

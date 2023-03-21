@@ -57,8 +57,6 @@ static int __construct(Event_Base *eb, char *init_str)
 
     (*list)->add_back(*list, eb);
 
-    evsig_init(eb);
-
     return 0;
 }
 
@@ -80,7 +78,15 @@ static int __deconstrcut(Event_Base *eb)
         dbg_str(EV_DETAIL, "remove global_event_base_list, count=%d", list->count(list));
     }
 
+    object_destroy(eb->signal_service);
+
     return 0;
+}
+
+static int __init(Event_Base *eb)
+{
+    dbg_str(DBG_DETAIL, "Event_Base, init");
+    return evsig_init(eb);
 }
 
 static int __add(Event_Base *eb, event_t *event)
@@ -252,15 +258,18 @@ static class_info_entry_t event_base_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj), 
     Init_Nfunc_Entry(1 , Event_Base, construct, __construct), 
     Init_Nfunc_Entry(2 , Event_Base, deconstruct, __deconstrcut), 
-    Init_Vfunc_Entry(3 , Event_Base, loop, __loop), 
-    Init_Vfunc_Entry(4 , Event_Base, activate_io, __activate_io), 
-    Init_Vfunc_Entry(5 , Event_Base, activate_signal, __activate_signal), 
-    Init_Vfunc_Entry(6 , Event_Base, add, __add), 
-    Init_Vfunc_Entry(7 , Event_Base, del, __del), 
-    Init_Vfunc_Entry(8 , Event_Base, trustee_io, NULL), 
-    Init_Vfunc_Entry(9 , Event_Base, reclaim_io, NULL), 
-    Init_Vfunc_Entry(10, Event_Base, dispatch, NULL), 
-    Init_End___Entry(11, Event_Base), 
+    Init_Vfunc_Entry(3 , Event_Base, set, NULL), 
+    Init_Vfunc_Entry(4 , Event_Base, init, __init), 
+    Init_Vfunc_Entry(5 , Event_Base, loop, __loop), 
+    Init_Vfunc_Entry(6 , Event_Base, activate_io, __activate_io), 
+    Init_Vfunc_Entry(7 , Event_Base, activate_signal, __activate_signal), 
+    Init_Vfunc_Entry(8 , Event_Base, add, __add), 
+    Init_Vfunc_Entry(9 , Event_Base, del, __del), 
+    Init_Vfunc_Entry(10 , Event_Base, trustee_io, NULL), 
+    Init_Vfunc_Entry(11, Event_Base, reclaim_io, NULL), 
+    Init_Vfunc_Entry(12, Event_Base, dispatch, NULL),
+    Init_Str___Entry(13, Event_Base, signal_service, NULL),
+    Init_End___Entry(14, Event_Base), 
 };
 REGISTER_CLASS("Event_Base", event_base_class_info);
 

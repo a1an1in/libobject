@@ -1,9 +1,9 @@
-To optimize code
+Event_Base is independent now.
 
 Description:
-update.
+making Event_Base's signal sevice can be configured.
+now the xtool can be run multi processs at one host.
 
 Major Changes:
-1.mv concurrent tests to tests/conrruent dir.
-2.change evsig_init and evsig_release exec position.
-3.add set_prompt.
+1. add Event_Base::init()
+2. set signal service at event thread.

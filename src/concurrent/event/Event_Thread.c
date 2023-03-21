@@ -49,7 +49,10 @@ static int __construct(Event_Thread *thread, char *init_str)
     dbg_str(DBG_DETAIL,"Event_Thread construct, thread service:%s, signal service:%s",
             STR2A(thread->thread_service), STR2A(thread->signal_service));
 
-    thread->eb = (Event_Base *)object_new(allocator, "Select_Base", NULL);
+    eb = (Event_Base *)object_new(allocator, "Select_Base", NULL);
+    eb->set(eb, "/Event_Base/signal_service", STR2A(thread->signal_service));
+    eb->init(eb);
+    thread->eb = eb;
     thread->flags = 0;
 
     return 0;

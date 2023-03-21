@@ -15,6 +15,7 @@ struct event_base * event_base_new(void)
     struct event_base *event_base;
 
     eb = object_new(allocator, "Select_Base", NULL);
+    eb->init(eb);
 
     event_base = (struct event_base *) allocator_mem_alloc(allocator, sizeof(struct event_base));
     if (event_base == NULL) {

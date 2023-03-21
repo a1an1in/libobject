@@ -146,8 +146,7 @@ int concurrent_init_producer(char *thread_service, char *signal_service)
     cfg_config_str(c, "/Event_Thread", "thread_service", thread_service); 
     cfg_config_str(c, "/Event_Thread", "signal_service", signal_service); 
 
-    dbg_str(DBG_DETAIL, "Producer init str:%s", c->buf);
-
+    // dbg_str(DBG_DETAIL, "Producer init str:%s", c->buf);
     dbg_str(DBG_VIP, "concurrent_init_producer");
     producer = OBJECT_NEW(allocator, Producer, c->buf);
     global_default_producer = producer;
