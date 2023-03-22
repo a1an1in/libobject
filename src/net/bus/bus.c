@@ -96,11 +96,10 @@ int bus_init(bus_t *bus,
     bus->client = client(bus->allocator, 
                          bus->client_sk_type, 
                          bus->server_host, 
-                         bus->server_srv, 
-                         process_client_task_cb, 
-                         bus);
+                         bus->server_srv);
 
     client_connect(bus->client, bus->server_host, bus->server_srv);
+    client_trustee(bus->client, NULL, process_client_task_cb, bus);
 
     bus->blob = blob_create(bus->allocator);
     if (bus->blob == NULL) {

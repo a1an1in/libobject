@@ -169,7 +169,7 @@ static int __process_static_request(Http_Server *server, Request *r, Response *r
 
         snprintf(filename, MAX_FILE_LEN, "%s%s", 
                 server->root->get_cstr(server->root),
-                r->uri);
+                (char *)r->uri);
 
         EXEC(stat(filename, &st));
 
@@ -240,7 +240,7 @@ static int __process_request_cookie(Http_Server *server, Request *r, Response *r
     int i, cnt, ret;
 
     TRY {
-        headers->search(headers, "cookie", &value);
+        headers->search(headers, "cookie", (void **)&value);
         THROW_IF(value == NULL, 0);
         r->cookies = chain->new(chain, "String", value);
     } CATCH (ret) {

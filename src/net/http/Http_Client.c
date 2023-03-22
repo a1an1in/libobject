@@ -122,12 +122,8 @@ __request(Http_Client *hc, int (*request_cb)(void *, void *), void *arg)
         hc->request_cb = request_cb;
         hc->request_cb_arg = arg;
 
-        c = client(allocator, 
-                   CLIENT_TYPE_INET_TCP, 
-                   (char *)"127.0.0.1", //char *host, 
-                   (char *)"19924", //char *client_port, 
-                   __http_client_response_callback, 
-                   arg);
+        c = client(allocator, CLIENT_TYPE_INET_TCP, 
+                   (char *)"127.0.0.1", (char *)"19924");
 
         dbg_str(NET_SUC,"remote_host:%s remote_service:%s",
                 hc->remote_host, hc->remote_service);
@@ -137,6 +133,8 @@ __request(Http_Client *hc, int (*request_cb)(void *, void *), void *arg)
             dbg_str(NET_ERROR, "client connect error");
             goto end;
         }
+        client_trustee(c, NULL, __http_client_response_callback, arg);
+        dbg_str(DBG_SUC,"run at here");
 
         req->socket = c->socket;
         req->write(req);

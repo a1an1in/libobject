@@ -188,7 +188,7 @@ static int __get_request_type(Request *request)
 
     snprintf(filename, MAX_FILE_LEN, "%s%s", 
              server->root->get_cstr(server->root),
-             request->uri);
+             (char *)request->uri);
 
     if (stat(filename, &st) == -1) {
         return REQUEST_TYPE_DYNAMIC;

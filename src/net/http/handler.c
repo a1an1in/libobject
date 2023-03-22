@@ -57,7 +57,7 @@ int __handler_get_directory_list(Request *req, Response *res, void *opaque)
 
     snprintf(path, MAX_FILE_PATH_LEN, "%s%s", 
              server->root->get_cstr(server->root),
-             req->uri);
+             (char *)req->uri);
 
     dbg_str(DBG_SUC, "handler_directory_request, dir path:%s", path);
 
@@ -88,10 +88,10 @@ int __handler_get_directory_list(Request *req, Response *res, void *opaque)
         ret = strlen(req->uri);
         if (((char *)req->uri)[ret - 1] != '/') {
             snprintf(path, MAX_FILE_PATH_LEN, "%s%s/%s", server->root->get_cstr(server->root),
-                    req->uri, list[i]);
+                    (char *)req->uri, list[i]);
         } else {
             snprintf(path, MAX_FILE_PATH_LEN, "%s%s%s", server->root->get_cstr(server->root),
-                    req->uri, list[i]);
+                    (char *)req->uri, list[i]);
         }
 
         dbg_str(DBG_DETAIL, "path:%s", path);

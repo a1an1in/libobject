@@ -29,11 +29,10 @@ static int __connect(Stun_Udp *stun, char *host, char *service)
 
     TRY {
         stun->c = client(allocator, CLIENT_TYPE_INET_UDP, 
-                (char *)"0.0.0.0", //char *host, 
-                (char *)"9090", //char *client_port, 
-                __stun_client_resp_callback, stun);
+                         (char *)"0.0.0.0", (char *)"9090");
         THROW_IF(stun->c == NULL, -1);
         EXEC(client_connect(stun->c, host, service));
+        EXEC(client_trustee(stun->c, NULL, __stun_client_resp_callback, stun));
         dbg_str(DBG_DETAIL, "client stun:%p", stun);
     } CATCH (ret) {
     }

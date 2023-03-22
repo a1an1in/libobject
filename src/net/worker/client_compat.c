@@ -41,12 +41,8 @@
 #define CLIENT_TYPE_UNIX_TCP "unix_tcp_client_type"
 #define CLIENT_TYPE_UNIX_UDP "unix_udp_client_type"
 
-void *client(allocator_t *allocator,
-             char *type,
-             char *host,
-             char *service,
-             int (*process_task_cb)(void *arg),
-             void *opaque)
+void *client(allocator_t *allocator, char *type,
+             char *host, char *service)
 {
     Client *client = NULL;
 
@@ -56,16 +52,8 @@ void *client(allocator_t *allocator,
         client = OBJECT_NEW(allocator, Inet_Udp_Client, NULL);
         if (service != NULL)
             client->bind(client, host, service); 
-        if (process_task_cb != NULL)
-            client->trustee(client, NULL, (void *)process_task_cb, opaque);
     } else if (!strcmp(type,CLIENT_TYPE_INET_TCP)){
         client = OBJECT_NEW(allocator, Inet_Tcp_Client, NULL);
-        /*
-         *if (service != NULL)
-         *    client->bind(client, host, service); 
-         */
-        if (process_task_cb != NULL)
-            client->trustee(client, NULL, (void *)process_task_cb, opaque);
     } else {
         dbg_str(NET_WARNNING,"client error type");
         return NULL;
@@ -78,6 +66,20 @@ int client_connect(void *client, char *host, char *service)
 {
     Client *c = (Client *)client;
     return c->connect(c, host, service);
+}
+
+int client_trustee(void *client, struct timeval *tv, void *work_callback, void *opaque)
+{
+    Client *c = (Client *)client;
+    int ret;
+
+    TRY {
+        THROW_IF(work_callback == NULL, -1);
+        c->trustee(c, NULL, (void *)work_callback, opaque);
+    } CATCH (ret) {
+    }
+
+    return ret;
 }
 
 int client_send(void *client, void *buf, int len, int flags)
@@ -104,12 +106,9 @@ static int test_udp_client_recv(TEST_ENTRY *entry, void *argc, void *argv)
 
     dbg_str(NET_DETAIL,"test_obj_client_recv");
 
-    c = client(allocator,
-               CLIENT_TYPE_INET_UDP,
-               (char *)"127.0.0.1",//char *host,
-               (char *)"1989",//char *client_port,
-               test_work_callback,
-               NULL);
+    c = client(allocator, CLIENT_TYPE_INET_UDP,
+               (char *)"127.0.0.1", (char *)"1989");
+    client_trustee(c, NULL, test_work_callback, NULL);
 #if (defined(WINDOWS_USER_MODE))
     system("pause"); 
 #else
@@ -127,13 +126,10 @@ static int test_udp_client_send(TEST_ENTRY *entry, void *argc, void *argv)
 
     dbg_str(NET_DETAIL,"test_obj_client_send");
 
-    c = client(allocator,
-               CLIENT_TYPE_INET_UDP,
-               (char *)"127.0.0.1",//char *host,
-               (char *)"1990",//char *client_port,
-               test_work_callback,
-               NULL);
+    c = client(allocator, CLIENT_TYPE_INET_UDP,
+               (char *)"127.0.0.1", (char *)"1990");
     client_connect(c, "127.0.0.1", "1989");
+    client_trustee(c, NULL, test_work_callback, NULL);
     client_send(c, str, strlen(str), 0);
 
     object_destroy(c);
@@ -149,13 +145,10 @@ static int test_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
 
     dbg_str(NET_DETAIL, "test_obj_client_send");
 
-    c = client(allocator, 
-               CLIENT_TYPE_INET_TCP, 
-               (char *)"127.0.0.1", //char *host, 
-               (char *)"19900", //char *client_port, 
-               test_work_callback, 
-               NULL);
+    c = client(allocator, CLIENT_TYPE_INET_TCP, 
+               (char *)"127.0.0.1", (char *)"19900");
     client_connect(c, "127.0.0.1", "11011");
+    client_trustee(c, NULL, test_work_callback, NULL);
     client_send(c, str, strlen(str), 0);
     pause();
 

@@ -19,10 +19,9 @@ static int __construct(Turn_Udp_Client *turn, char *init_str)
 
     TRY {
         turn->c = client(allocator, CLIENT_TYPE_INET_UDP, 
-                         (char *)"0.0.0.0", //char *host, 
-                         NULL,
-                         __turn_client_resp_callback, turn);
+                         (char *)"0.0.0.0", NULL);
         THROW_IF(turn->c == NULL, -1);
+        EXEC(client_trustee(turn->c, NULL, __turn_client_resp_callback, turn));
 
         turn->set_read_post_callback(turn, turn_read_post_callback);
     } CATCH (ret) {
