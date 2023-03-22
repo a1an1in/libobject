@@ -36,9 +36,8 @@ struct worker_s{
 };
 
 Worker *io_worker(allocator_t *allocator, int fd, 
-          struct timeval *ev_tv, void *ev_callback, 
-          void *work_callback, Producer *producer, 
-          void *opaque);
+          struct timeval *ev_tv, Producer *producer, void *ev_callback, 
+          void *work_callback, void *opaque);
         
 Worker *signal_worker(allocator_t *allocator, 
                       int fd, void *work_callback, void *opaque);

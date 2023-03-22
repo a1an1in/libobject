@@ -132,7 +132,7 @@ static int __open_ui(UnixFShell *shell)
         THROW_IF(shell == NULL, -1);
         allocator = shell->parent.parent.allocator;
         str = object_new(allocator, "String", NULL);
-
+        
         while(shell->parent.close_flag != 1) {
             printf("%s", shell->parent.prompt);
             /*
@@ -156,7 +156,7 @@ static int __open_ui(UnixFShell *shell)
                 continue;
             }
         }
-        dbg_str(DBG_DETAIL, "close shell ui");
+        dbg_str(DBG_DETAIL, "close shell ui, __open_ui:%p", __open_ui);
     } CATCH (ret) {
     } FINALLY {
         if (linebuf) free(linebuf);

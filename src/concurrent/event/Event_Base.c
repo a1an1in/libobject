@@ -265,7 +265,7 @@ static class_info_entry_t event_base_class_info[] = {
     Init_Vfunc_Entry(7 , Event_Base, activate_signal, __activate_signal), 
     Init_Vfunc_Entry(8 , Event_Base, add, __add), 
     Init_Vfunc_Entry(9 , Event_Base, del, __del), 
-    Init_Vfunc_Entry(10 , Event_Base, trustee_io, NULL), 
+    Init_Vfunc_Entry(10, Event_Base, trustee_io, NULL), 
     Init_Vfunc_Entry(11, Event_Base, reclaim_io, NULL), 
     Init_Vfunc_Entry(12, Event_Base, dispatch, NULL),
     Init_Str___Entry(13, Event_Base, signal_service, NULL),

@@ -135,10 +135,9 @@ static int __construct(Centor *centor, char *init_str)
     dbg_str(DBG_SUC, "centor add io_worker fd=%d", centor->s->fd);
     centor->worker = io_worker(allocator,
                                centor->s->fd,
-                               NULL,
+                               NULL, NULL,
                                message_centor_ev_callback,
                                message_centor_work_callback,
-                               NULL,
                                centor);
 
     centor->message_queue  = object_new(allocator, "Linked_Queue", NULL);

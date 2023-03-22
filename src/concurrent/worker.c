@@ -42,9 +42,8 @@
 
 Worker *
 io_worker(allocator_t *allocator, int fd, 
-          struct timeval *ev_tv, void *ev_callback, 
-          void *work_callback, Producer *producer, 
-          void *opaque)
+          struct timeval *ev_tv, Producer *producer,
+          void *ev_callback, void *work_callback, void *opaque)
 {
     Worker *worker = NULL;
 
