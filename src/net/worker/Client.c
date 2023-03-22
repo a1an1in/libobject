@@ -106,7 +106,7 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
 static int __trustee(Client *client, struct timeval *tv, 
                      void *work_callback, void *opaque)
 {
-    Producer *producer = concurrent_get_default_instance();
+    Producer *producer = producer_get_default_instance();
     Client *c          = (Client *)client;
     Worker *worker     = c->worker;
     int fd             = c->socket->fd;

@@ -131,12 +131,12 @@ static class_info_entry_t producer_class_info[] = {
 };
 REGISTER_CLASS("Producer", producer_class_info);
 
-Producer *concurrent_get_default_instance()
+Producer *producer_get_default_instance()
 {
     return global_default_producer;
 }
 
-int concurrent_init_producer(char *thread_service, char *signal_service)
+int producer_init_default_instance(char *thread_service, char *signal_service)
 {
     Producer *producer;
     allocator_t *allocator = allocator_get_default_instance();
@@ -147,7 +147,7 @@ int concurrent_init_producer(char *thread_service, char *signal_service)
     cfg_config_str(c, "/Event_Thread", "signal_service", signal_service); 
 
     // dbg_str(DBG_DETAIL, "Producer init str:%s", c->buf);
-    dbg_str(DBG_VIP, "concurrent_init_producer");
+    dbg_str(DBG_VIP, "producer_init_default_instance");
     producer = OBJECT_NEW(allocator, Producer, c->buf);
     global_default_producer = producer;
 
@@ -157,16 +157,16 @@ int concurrent_init_producer(char *thread_service, char *signal_service)
     return 0;
 }
 
-int concurrent_destroy_producer()
+int producer_destroy_default_instance()
 {
-    Producer *producer = concurrent_get_default_instance();
+    Producer *producer = producer_get_default_instance();
 
-    dbg_str(DBG_VIP, "concurrent_destroy_producer start");
+    dbg_str(DBG_VIP, "producer_destroy_default_instance start");
     producer->close(producer);
     while (producer->parent.flags != EVTHREAD_STATE_DESTROYED) usleep(1000000);
 
     object_destroy(producer);
-    dbg_str(DBG_VIP, "concurrent_destroy_producer end");
+    dbg_str(DBG_VIP, "producer_destroy_default_instance end");
 
     return 0;
 }

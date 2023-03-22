@@ -99,7 +99,7 @@ int event_base_free(struct event_base *event_base)
 
 int event_base_init_default_instance()
 {
-    Producer *producer = concurrent_get_default_instance();
+    Producer *producer = producer_get_default_instance();
     allocator_t *allocator = allocator_get_default_instance();
     struct event_base *event_base;
 

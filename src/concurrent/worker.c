@@ -48,7 +48,7 @@ io_worker(allocator_t *allocator, int fd,
     Worker *worker = NULL;
 
     if (producer == NULL) {
-        producer = concurrent_get_default_instance();
+        producer = producer_get_default_instance();
     }
     worker = OBJECT_NEW(allocator, Worker, NULL);
     worker->opaque = opaque;
@@ -73,7 +73,7 @@ signal_worker_cb(int fd, short event, void *arg)
 Worker *signal_worker(allocator_t *allocator, 
                       int fd, void *work_callback, void *opaque)
 {
-    Producer *producer = concurrent_get_default_instance();
+    Producer *producer = producer_get_default_instance();
     Worker *worker = NULL;
 
     worker = OBJECT_NEW(allocator, Worker, NULL);
@@ -113,7 +113,7 @@ Worker *timer_worker(allocator_t *allocator, int ev_events,
                      struct timeval *ev_tv, 
                      void *work_callback, void *opaque)
 {
-    Producer *producer = concurrent_get_default_instance();
+    Producer *producer = producer_get_default_instance();
     Worker *worker = NULL;
 
     worker = OBJECT_NEW(allocator, Worker, NULL);

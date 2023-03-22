@@ -167,7 +167,7 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
     Worker *worker         = (Worker *)arg;
     Server *server         = (Server *)worker->opaque;
     Socket *socket         = server->socket;
-    Producer *producer     = concurrent_get_default_instance();
+    Producer *producer     = producer_get_default_instance();
     List *working_list     = server->working_workers;
     allocator_t *allocator = worker->obj.allocator;
     Worker *new_worker     = NULL;
@@ -203,7 +203,7 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
 
 static int __trustee(Server *server, void *work_callback, void *opaque)
 {
-    Producer *producer = concurrent_get_default_instance();
+    Producer *producer = producer_get_default_instance();
     Worker *worker     = server->worker;
     int fd             = server->socket->fd;
     Socket *socket     = server->socket;

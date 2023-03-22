@@ -33,8 +33,8 @@ struct producer_s{
     List *workers;
 };
 
-extern Producer *concurrent_get_default_instance();
-extern int concurrent_init_producer(char *event_thread_service, char *event_signal_service);
-extern int concurrent_destroy_producer();
+extern Producer *producer_get_default_instance();
+extern int producer_init_default_instance(char *event_thread_service, char *event_signal_service);
+extern int producer_destroy_default_instance();
 
 #endif

@@ -105,7 +105,7 @@ static int __run_command(Application *app)
         option = command->get_option(command, "--event-signal-service");
         event_signal_service = STR2A(option->value);
 
-        EXEC(concurrent_init_producer(event_thread_service, event_signal_service));
+        EXEC(producer_init_default_instance(event_thread_service, event_signal_service));
         EXEC(event_base_init_default_instance());
     } CATCH (ret) {
     }
@@ -146,7 +146,7 @@ int libobject_init()
         #endif
         EXEC(execute_ctor_funcs());
         EXEC(core_init_fs());
-        // EXEC(concurrent_init_producer("11110", "11120"));
+        // EXEC(producer_init_default_instance("11110", "11120"));
         // EXEC(event_base_init_default_instance());
 
         exception_init();
@@ -161,7 +161,7 @@ int libobject_destroy()
 
     TRY {
         EXEC(event_base_destroy_default_instance());
-        EXEC(concurrent_destroy_producer());
+        EXEC(producer_destroy_default_instance());
 
         //#if (defined(WINDOWS_USER_MODE))
         //    WSACleanup();
