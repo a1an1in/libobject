@@ -32,7 +32,7 @@ work_task_alloc(allocator_t *allocator, int len)
 
     task->buf = allocator_mem_alloc(allocator, len);
     if (task->buf == NULL) {
-        dbg_str(DBG_ERROR,"net task buf alloc error");
+        dbg_str(DBG_ERROR,"net task buf alloc error, len=%d", len);
         allocator_mem_free(allocator, task);
         return NULL;
     }

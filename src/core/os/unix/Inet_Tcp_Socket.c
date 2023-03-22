@@ -226,7 +226,14 @@ static ssize_t __send(Inet_Tcp_Socket *socket, const void *buf, size_t len, int 
 
 static ssize_t __recv(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags)
 {
-    return recv(socket->parent.fd, buf, len, flags);
+    int ret;
+    
+    ret = recv(socket->parent.fd, buf, len, flags);
+    if (ret <= 0) {
+        dbg_str(DBG_ERROR, "recv fd:%d error: %s", socket->parent.fd, strerror(errno));
+    }
+
+    return ret;
 }
 
 static ssize_t 

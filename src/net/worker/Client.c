@@ -86,21 +86,30 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
     char buf[EV_CALLBACK_MAX_BUF_LEN];
     int  buf_len = EV_CALLBACK_MAX_BUF_LEN, len = 0;
 #undef EV_CALLBACK_MAX_BUF_LEN
+    int ret;
 
-    if (fd == socket->fd)
-        len = socket->recv(socket, buf, buf_len, 0);
+    TRY {
+        if (fd == socket->fd)
+            len = socket->recv(socket, buf, buf_len, 0);
 
-    if (worker->work_callback && len) {
-        work_task_t *task;
-        task = work_task_alloc(worker->obj.allocator, len + 1);
-        memcpy(task->buf, buf, len);
-        task->buf_len = len;
-        task->opaque  = client->opaque;
-        worker->work_callback(task);
-        work_task_free(task);
+        if (len <= 0) {
+            dbg_str(DBG_ERROR, "client ev_callback error, fd:%d, len=%d", fd, len);
+        }
+
+        if (worker->work_callback && len > 0) {
+            work_task_t *task;
+            task = work_task_alloc(worker->obj.allocator, len + 1);
+            THROW_IF(task == NULL, -1);
+            memcpy(task->buf, buf, len);
+            task->buf_len = len;
+            task->opaque  = client->opaque;
+            worker->work_callback(task);
+            work_task_free(task);
+        }
+    } CATCH (ret) {
     }
 
-    return 0;
+    return ret;
 }
 
 static int __trustee(Client *client, struct timeval *tv, 
