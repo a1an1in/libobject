@@ -105,7 +105,7 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
 
     bzero(&hint, sizeof(hint));
     hint.ai_family   = AF_INET;
-    hint.ai_socktype = SOCK_DGRAM;
+    hint.ai_socktype = SOCK_STREAM;
 
     if (host == NULL && service == NULL) {
         h = socket->parent.local_host;
@@ -164,7 +164,7 @@ static int __connect(Inet_Tcp_Socket *socket, char *host, char *service)
 
     bzero(&hint, sizeof(hint));
     hint.ai_family   = AF_INET;
-    hint.ai_socktype = SOCK_DGRAM;
+    hint.ai_socktype = SOCK_STREAM;
 
     if (host == NULL && service == NULL) {
         h = socket->parent.remote_host;

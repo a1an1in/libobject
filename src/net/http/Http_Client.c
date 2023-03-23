@@ -125,7 +125,7 @@ __request(Http_Client *hc, int (*request_cb)(void *, void *), void *arg)
         c = client(allocator, CLIENT_TYPE_INET_TCP, 
                    (char *)"127.0.0.1", (char *)"19924");
 
-        dbg_str(NET_SUC,"remote_host:%s remote_service:%s",
+        dbg_str(DBG_SUC,"http client connect to remote_host:%s remote_service:%s",
                 hc->remote_host, hc->remote_service);
 
         ret = client_connect(c, hc->remote_host, hc->remote_service);
