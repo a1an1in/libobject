@@ -409,6 +409,7 @@ int test_stub_add_hooks()
     int ret;
 
     TRY {
+        sleep(1);
         stub = stub_alloc();
         dbg_str(DBG_DETAIL, "stub:%p, g addr:%p", stub, &g);
 

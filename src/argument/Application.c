@@ -146,8 +146,6 @@ int libobject_init()
         #endif
         EXEC(execute_ctor_funcs());
         EXEC(core_init_fs());
-        // EXEC(producer_init_default_instance("11110", "11120"));
-        // EXEC(event_base_init_default_instance());
 
         exception_init();
     } CATCH (ret) {
