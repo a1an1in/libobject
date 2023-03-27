@@ -41,6 +41,9 @@ add_definitions(-Wno-uninitialized)
 add_definitions(-Wno-nullability-completeness)
 add_definitions(-Wno-expansion-to-defined)
 add_definitions(-Wno-deprecated-declarations)
+add_definitions(-Wno-pointer-sign)
+add_definitions(-Wno-incompatible-pointer-types)
+add_definitions(-Wno-pointer-to-int-cast)
 
 #include (mk/build_external.cmake)
 

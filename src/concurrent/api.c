@@ -40,26 +40,6 @@
 #include <libobject/concurrent/Worker.h>
 #include <libobject/concurrent/Producer.h>
 
-Worker *
-io_worker(allocator_t *allocator, int fd, 
-          struct timeval *ev_tv, Producer *producer,
-          void *ev_callback, void *work_callback, void *opaque)
-{
-    Worker *worker = NULL;
-
-    if (producer == NULL) {
-        producer = producer_get_default_instance();
-    }
-    worker = OBJECT_NEW(allocator, Worker, NULL);
-    worker->opaque = opaque;
-
-    worker->assign(worker, fd, EV_READ | EV_PERSIST, ev_tv, 
-                   ev_callback, worker, work_callback);
-    worker->enroll(worker, producer);
-
-    return worker;
-}
-
 static void
 signal_worker_cb(int fd, short event, void *arg)
 {
@@ -68,23 +48,6 @@ signal_worker_cb(int fd, short event, void *arg)
     worker->work_callback(worker->opaque);
 
     return;
-}
-
-Worker *signal_worker(allocator_t *allocator, 
-                      int fd, void *work_callback, void *opaque)
-{
-    Producer *producer = producer_get_default_instance();
-    Worker *worker = NULL;
-
-    worker = OBJECT_NEW(allocator, Worker, NULL);
-    worker->opaque = opaque;
-
-    worker->assign(worker, fd, EV_SIGNAL|EV_PERSIST, NULL, 
-                   signal_worker_cb, worker, 
-                   work_callback);
-    worker->enroll(worker, producer);
-
-    return worker;
 }
 
 struct timeval lasttime;
@@ -107,6 +70,43 @@ timer_worker_timeout_cb(int fd, short event, void *arg)
     worker->work_callback(worker->opaque);
 
     return;
+}
+
+Worker *
+io_worker(allocator_t *allocator, int fd, 
+          struct timeval *ev_tv, Producer *producer,
+          void *ev_callback, void *work_callback, void *opaque)
+{
+    Worker *worker = NULL;
+
+    if (producer == NULL) {
+        producer = producer_get_default_instance();
+    }
+    worker = OBJECT_NEW(allocator, Worker, NULL);
+    worker->opaque = opaque;
+
+    worker->assign(worker, fd, EV_READ | EV_PERSIST, ev_tv, 
+                   ev_callback, worker, work_callback);
+    worker->enroll(worker, producer);
+
+    return worker;
+}
+
+Worker *signal_worker(allocator_t *allocator, 
+                      int fd, void *work_callback, void *opaque)
+{
+    Producer *producer = producer_get_default_instance();
+    Worker *worker = NULL;
+
+    worker = OBJECT_NEW(allocator, Worker, NULL);
+    worker->opaque = opaque;
+
+    worker->assign(worker, fd, EV_SIGNAL|EV_PERSIST, NULL, 
+                   signal_worker_cb, worker, 
+                   work_callback);
+    worker->enroll(worker, producer);
+
+    return worker;
 }
 
 Worker *timer_worker(allocator_t *allocator, int ev_events,

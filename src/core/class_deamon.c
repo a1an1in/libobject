@@ -162,7 +162,7 @@ int class_deamon_print_element(map_iterator_t *it)
 
 int class_deamon_info(class_deamon_t *class_deamon)
 {
-    return map_for_each(class_deamon->map, class_deamon_print_element);
+    return map_for_each(class_deamon->map, (int (*)(map_iterator_t *it))class_deamon_print_element);
 }
 
 class_deamon_t *class_deamon_get_global_class_deamon()

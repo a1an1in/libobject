@@ -6,8 +6,8 @@
 #include <fcntl.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/concurrent/Worker.h>
 #include <libobject/concurrent/Producer.h>
+#include <libobject/concurrent/api.h>
 
 static void test_work_callback(void *task)
 {

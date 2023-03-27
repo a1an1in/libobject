@@ -37,7 +37,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Linked_List.h>
 #include <libobject/concurrent/Producer.h>
-#include <libobject/concurrent/Worker.h>
+#include <libobject/concurrent/api.h>
 
 Producer *global_default_producer;
 

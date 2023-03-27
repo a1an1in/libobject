@@ -6,7 +6,7 @@
 int base64_encode(uint8_t *src, int src_len, uint8_t *dst, int *dst_len)  
 {  
     int i, j, len;  
-    uint8_t *base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; 
+    char *base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; 
     char t;  
 
     if(src_len % 3 == 0)  
@@ -60,9 +60,9 @@ int base64_decode(uint8_t *src, int src_len, uint8_t *dst, int *dst_len)
     };  
 
     //判断编码后的字符串后是否有 =   
-    if(strstr(src, "=="))  
+    if(strstr((char *)src, "=="))  
         len = src_len / 4 * 3 - 2;  
-    else if(strstr(src, "="))  
+    else if(strstr((char *)src, "="))  
         len = src_len / 4 * 3 - 1;  
     else  
         len = src_len / 4 * 3;  

@@ -29,7 +29,7 @@ struct A{
     int b;
 };
 
-void test_print_context(map_iterator_t *it)
+int test_print_context(map_iterator_t *it)
 {
     struct A *p = (struct A *)map_get_pointer(it);
     dbg_str(DBG_DETAIL, "a =%d, b=%d", p->a, p->b);

@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
-#include <libobject/concurrent/Worker.h>
 #include <libobject/core/io/Socket.h>
+#include <libobject/concurrent/api.h>
 
 typedef struct client_s Client;
 

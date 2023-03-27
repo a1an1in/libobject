@@ -5,7 +5,7 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
 #include <libobject/core/Vector.h>
-#include <libobject/concurrent/Worker.h>
+#include <libobject/concurrent/api.h>
 
 typedef struct FShell_s FShell;
 

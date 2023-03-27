@@ -120,7 +120,7 @@ static inline void * map_get_key(map_iterator_t *it)
 }
 
 static inline int 
-map_for_each(map_t *map,void (*func)(map_iterator_t *it))
+map_for_each(map_t *map, int (*func)(map_iterator_t *it))
 {
 	map_iterator_t it,next,end;
 

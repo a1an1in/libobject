@@ -34,8 +34,10 @@ static int __construct(Application *app, char *init_str)
 {
     Command *command = (Command *)app;
     command->set(command, "/Command/name", "xtool");
-    command->add_option(command, "--event-thread-service", "", "11110", "event-thread-service address", __option_set_event_thread_service_callback, NULL);
-    command->add_option(command, "--event-signal-service", "", "11120", "event-signal-service address", __option_set_event_signal_service_callback, NULL);
+    command->add_option(command, "--event-thread-service", "", "11110", "event-thread-service address",
+                        __option_set_event_thread_service_callback, NULL);
+    command->add_option(command, "--event-signal-service", "", "11120", "event-signal-service address",
+                        __option_set_event_signal_service_callback, NULL);
 
     return 0;
 }

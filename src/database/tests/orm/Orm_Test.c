@@ -396,7 +396,7 @@ static int __test_merge_table(Orm_Test *test)
 
         EXEC(table->merge(table, __table_element_cmp));
 
-        table->peek_at_model(table, 0, &user);
+        table->peek_at_model(table, 0, (void **)&user);
         THROW_IF(NUM2S32(user->count) != 44, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
