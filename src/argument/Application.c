@@ -30,6 +30,19 @@ static int __option_set_event_signal_service_callback(Option *option, void *opaq
     return 1;
 }
 
+static int __option_help_callback(Option *option, void *opaque)
+{
+    Application *app = (Application *)opaque;
+
+    if (option->set_flag == 1) {
+        dbg_str(DBG_SUC,"xtools help");
+        app->help(app);
+        exit(0);
+    }
+    
+    return 1;
+}
+
 static int __construct(Application *app, char *init_str)
 {
     Command *command = (Command *)app;
@@ -38,6 +51,8 @@ static int __construct(Application *app, char *init_str)
                         __option_set_event_thread_service_callback, NULL);
     command->add_option(command, "--event-signal-service", "", "11120", "event-signal-service address",
                         __option_set_event_signal_service_callback, NULL);
+    command->add_option(command, "--help", "-h", "false", "help for xtools",
+                        __option_help_callback, app);
 
     return 0;
 }
@@ -124,7 +139,8 @@ static class_info_entry_t application_class_info[] = {
     Init_Vfunc_Entry(5, Application, to_json, NULL),
     Init_Nfunc_Entry(6, Application, run, __run),
     Init_Nfunc_Entry(7, Application, run_command, __run_command),
-    Init_End___Entry(8, Application),
+    Init_Nfunc_Entry(8, Application, help, NULL),
+    Init_End___Entry(9, Application),
 };
 REGISTER_CLASS("Application", application_class_info);
 

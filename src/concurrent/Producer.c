@@ -162,6 +162,10 @@ int producer_destroy_default_instance()
     Producer *producer = producer_get_default_instance();
 
     dbg_str(DBG_VIP, "producer_destroy_default_instance start");
+    while (producer->parent.flags < EVTHREAD_STATE_RUNNING){
+        dbg_str(DBG_SUC, "default_producer not ready, waiting...");
+        usleep(100000);
+    }
     producer->close(producer);
     while (producer->parent.flags != EVTHREAD_STATE_DESTROYED) usleep(1000000);
 

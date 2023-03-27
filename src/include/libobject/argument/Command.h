@@ -35,6 +35,7 @@ struct Command_s{
     int (*run_argument_actions)(Command *);
     int (*parse_args)(Command *command);
     int (*set_args)(Command *command, int argc, char **argv);
+    int (*help)(Command *command);
 
     /*attribs*/
     Command *selected_subcommand;

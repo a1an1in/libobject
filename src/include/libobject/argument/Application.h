@@ -21,6 +21,7 @@ struct Application_s{
     Command *(*get_subcommand)(Application *, char *command_name);
     int (*run)(Application *, int argc, char *argv[]);
     int (*run_command)(Application *);
+    int (*help)(Application *);
 
     /*attribs*/
     int argc;

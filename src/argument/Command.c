@@ -465,6 +465,21 @@ static int __action(Command *command)
     return 0;
 }
 
+static int __help(Command *command)
+{
+    Vector *subcommands = command->subcommands;
+    Vector *options = command->options;
+    Vector *args = command->args;
+    int ret;
+
+    TRY {
+        dbg_str(DBG_SUC, "run %s command help", STR2A(command->name));
+    } CATCH (ret) {
+    }
+
+    return 0;
+}
+
 static class_info_entry_t command_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Command, construct, __construct),
@@ -483,10 +498,11 @@ static class_info_entry_t command_class_info[] = {
     Init_Vfunc_Entry(14, Command, run_argument_actions, __run_argument_actions),
     Init_Vfunc_Entry(15, Command, set_args, __set_args),
     Init_Vfunc_Entry(16, Command, parse_args, __parse_args),
-    Init_Vec___Entry(17, Command, subcommands, NULL, "Test_Command"),
-    Init_Vec___Entry(18, Command, options, NULL, "Option"),
-    Init_Str___Entry(19, Command, name, NULL),
-    Init_Point_Entry(20, Command, opaque, NULL),
-    Init_End___Entry(21, Command),
+    Init_Vfunc_Entry(17, Command, help, __help),
+    Init_Vec___Entry(18, Command, subcommands, NULL, "Test_Command"),
+    Init_Vec___Entry(19, Command, options, NULL, "Option"),
+    Init_Str___Entry(20, Command, name, NULL),
+    Init_Point_Entry(21, Command, opaque, NULL),
+    Init_End___Entry(22, Command),
 };
 REGISTER_CLASS("Command", command_class_info);
