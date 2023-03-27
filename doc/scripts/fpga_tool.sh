@@ -25,6 +25,11 @@ function parse_args { # Read commande line arguments and update global vairbles
                 OPTION_HELP=""
                 shift # past argument
                 ;;
+            -f=*|--file=*)
+                OPTION_FILE="${i#*=}"
+                OPTION_HELP=""
+                shift # past argument
+                ;;
             *)
                 error_msg="Unknown option $i"
                 OPTION_HELP="true"
@@ -50,7 +55,7 @@ cat << EOF
     help                   Print this help message.
 
     demos:
-    ./doc/scripts/fpga_tool.sh read_eci_iq_ingress -p=0 -a=0x0303501 -s=10
+    ./fpga_tool.sh read_eci_iq_ingress -p=0 -a=0x0303501 -s=10
 EOF
 }
 
@@ -168,23 +173,38 @@ function do_read_eci_iq_ingress {
     local value
     local array=()
     echo "do_read_eci_iq_ingress $OPTION_PORT $OPTION_ADDRESS $OPTION_SIZE"
-    echo  > a.txt
-     for (( i=0; i<$OPTION_SIZE; ++i )); do
+    if [[ -f $OPTION_FILE ]]; then
+        echo "output file name:$OPTION_FILE"
+        rm -rf $OPTION_FILE
+    fi
+    
+    for (( i=0; i<$OPTION_SIZE; ++i )); do
+        local index=$(($i % 16))
+        
         write_fpga $(($(to_dec 0x03035024) + $OPTION_PORT * $(to_dec 0x100))) $i
         # echo write_fpga $(to_hex $(( $(to_dec 0x03035024) + $OPTION_PORT * $(to_dec 0x100)))) $i
         value=$(read_fpga $(to_hex $(($(to_dec 0x03035028) + $OPTION_PORT * $(to_dec 0x100)))))
         # echo read_fpga  $(to_hex $(($(to_dec 0x03035028) + $OPTION_PORT * $(to_dec 0x100))))
-
-        local index=$(($i % 16))
+        
         array[$index]=$value
+        # array[$index]=$i
+
         if [[ $((($i + 1) % 16)) -eq 0 ]]; then
-            echo ${array[*]}
+            if [[ -n $OPTION_FILE ]]; then
+                echo ${array[*]} >> $OPTION_FILE
+            else
+                echo ${array[*]}
+            fi
             unset array
         elif [[ $i == $(($OPTION_SIZE - 1)) ]]; then
-            echo ${array[*]}
+            if [[ -n $OPTION_FILE ]]; then
+                echo ${array[*]} >> $OPTION_FILE
+            else
+                echo ${array[*]}
+            fi
             unset array
         fi
-     done
+    done
 }
 
 parse_args "$@"

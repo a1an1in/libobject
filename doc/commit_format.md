@@ -1,8 +1,8 @@
-optimize code.
+update doc.
 
 Description:
 update.
 
 Major Changes:
-1. add help interface for Command class.
-2. solve a bug of producer_destroy_default_instance.
+1. update shell learning note.md.
+2. fpga_tool support designating file.
