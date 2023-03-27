@@ -30,14 +30,4 @@ struct server_s{
     List *leisure_workers;
 };
 
-#define SERVER_TYPE_INET_TCP "inet_tcp_server_type"
-#define SERVER_TYPE_UNIX_TCP "tcp_userver_type"
-void *server(allocator_t *allocator, 
-             char *type,
-             char *host,
-             char *service,
-             int (*process_task_cb)(void *arg),
-             void *opaque);
-int server_destroy(void *server);
-
 #endif

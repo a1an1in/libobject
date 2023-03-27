@@ -4,11 +4,11 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
-#include <libobject/net/worker/Server.h>
 #include <libobject/net/http/http_status.h>
 #include <libobject/net/http/Request.h>
 #include <libobject/net/http/Response.h>
 #include <libobject/net/http/handler.h>
+#include <libobject/net/worker/api.h>
 
 #define HTTP_MAX_FILE_LEN 1024
 

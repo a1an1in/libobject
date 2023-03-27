@@ -1,10 +1,10 @@
 #ifndef __BUS_H__
 #define __BUS_H__
 
-#include <libobject/net/worker/Client.h>
-#include <libobject/concurrent/work_task.h>
 #include <libobject/core/utils/blob/blob.h>
 #include <libobject/core/Map.h>
+#include <libobject/concurrent/work_task.h>
+#include <libobject/net/worker/api.h>
 
 enum {
 	BUS_ID,

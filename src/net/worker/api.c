@@ -1,5 +1,5 @@
 /**
- * @file Inet_Tcp_Server.c
+ * @file Client.c
  * @Synopsis  
  * @author alan lin
  * @version 
@@ -32,7 +32,67 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
+#include <libobject/net/worker/Inet_Udp_Client.h>
+#include <libobject/net/worker/Inet_Tcp_Client.h>
 #include <libobject/net/worker/Inet_Tcp_Server.h>
+#include <libobject/net/worker/api.h>
+
+#define CLIENT_TYPE_INET_TCP "inet_tcp_client_type"
+#define CLIENT_TYPE_INET_UDP "inet_udp_client_type"
+#define CLIENT_TYPE_UNIX_TCP "unix_tcp_client_type"
+#define CLIENT_TYPE_UNIX_UDP "unix_udp_client_type"
+
+void *client(allocator_t *allocator, char *type,
+             char *host, char *service)
+{
+    Client *client = NULL;
+
+    //there may add id_str check....
+
+    if (!strcmp(type,CLIENT_TYPE_INET_UDP)){
+        client = OBJECT_NEW(allocator, Inet_Udp_Client, NULL);
+        if (service != NULL)
+            client->bind(client, host, service); 
+    } else if (!strcmp(type,CLIENT_TYPE_INET_TCP)){
+        client = OBJECT_NEW(allocator, Inet_Tcp_Client, NULL);
+    } else {
+        dbg_str(NET_WARNNING,"client error type");
+        return NULL;
+    }
+
+    return (void *)client;
+}
+
+int client_connect(void *client, char *host, char *service)
+{
+    Client *c = (Client *)client;
+    return c->connect(c, host, service);
+}
+
+int client_trustee(void *client, struct timeval *tv, void *work_callback, void *opaque)
+{
+    Client *c = (Client *)client;
+    int ret;
+
+    TRY {
+        THROW_IF(work_callback == NULL, -1);
+        c->trustee(c, NULL, (void *)work_callback, opaque);
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
+int client_send(void *client, void *buf, int len, int flags)
+{
+    Client *c = (Client *)client;
+    return c->send(c, buf, len, flags);
+}
+
+int client_destroy(void *client)
+{
+    return object_destroy(client);
+}
 
 void *server(allocator_t *allocator, char *type,
              char *host, char *service,
@@ -41,7 +101,7 @@ void *server(allocator_t *allocator, char *type,
 {
     Server *server;
 
-    if(!strcmp(type,SERVER_TYPE_INET_TCP)){
+    if(!strcmp(type, SERVER_TYPE_INET_TCP)){
         server = OBJECT_NEW(allocator, Inet_Tcp_Server, NULL);
         server->bind(server, host, service); 
         if (process_task_cb != NULL)
@@ -59,12 +119,69 @@ int server_destroy(void *server)
     return object_destroy(server);
 }
 
+
 static int test_work_callback(void *task)
 {
     work_task_t *t = (work_task_t *)task;
     dbg_str(NET_SUC,"%s", t->buf);
-    dbg_str(NET_SUC,"task opaque=%p", t->opaque);
 }
+
+static int test_udp_client_recv(TEST_ENTRY *entry, void *argc, void *argv)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    Client *c = NULL;
+
+    dbg_str(NET_DETAIL,"test_obj_client_recv");
+
+    c = client(allocator, CLIENT_TYPE_INET_UDP,
+               (char *)"127.0.0.1", (char *)"1989");
+    client_trustee(c, NULL, test_work_callback, NULL);
+#if (defined(WINDOWS_USER_MODE))
+    system("pause"); 
+#else
+    pause();
+#endif
+    object_destroy(c);
+}
+REGISTER_TEST_CMD(test_udp_client_recv);
+
+static int test_udp_client_send(TEST_ENTRY *entry, void *argc, void *argv)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    Client *c = NULL;
+    char *str = "hello world";
+
+    dbg_str(NET_DETAIL,"test_obj_client_send");
+
+    c = client(allocator, CLIENT_TYPE_INET_UDP,
+               (char *)"127.0.0.1", (char *)"1990");
+    client_connect(c, "127.0.0.1", "1989");
+    client_trustee(c, NULL, test_work_callback, NULL);
+    client_send(c, str, strlen(str), 0);
+
+    object_destroy(c);
+    dbg_str(NET_WARNNING,"test_obj_client_send end");
+}
+REGISTER_TEST_CMD(test_udp_client_send);
+
+static int test_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    Client *c = NULL;
+    char *str = "hello world";
+
+    dbg_str(NET_DETAIL, "test_obj_client_send");
+
+    c = client(allocator, CLIENT_TYPE_INET_TCP, 
+               (char *)"127.0.0.1", (char *)"19900");
+    client_connect(c, "127.0.0.1", "11011");
+    client_trustee(c, NULL, test_work_callback, NULL);
+    client_send(c, str, strlen(str), 0);
+    pause();
+
+    object_destroy(c);
+}
+REGISTER_TEST_CMD(test_inet_tcp_client);
 
 static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
 {
@@ -102,3 +219,4 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
     return 1;
 }
 REGISTER_TEST_CMD(test_inet_tcp_server);
+

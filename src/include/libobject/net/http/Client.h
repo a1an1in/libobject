@@ -6,7 +6,7 @@
 #include <libobject/core/Obj.h>
 #include <libobject/net/http/Request.h>
 #include <libobject/net/http/Response.h>
-#include <libobject/net/worker/Client.h>
+#include <libobject/net/worker/api.h>
 #include <libobject/argument/Command.h>
 
 typedef struct http_client_s Http_Client;

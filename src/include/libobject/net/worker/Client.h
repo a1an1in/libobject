@@ -30,16 +30,4 @@ struct client_s{
     void *opaque;
 };
 
-#define CLIENT_TYPE_INET_TCP "inet_tcp_client_type"
-#define CLIENT_TYPE_INET_UDP "inet_udp_client_type"
-#define CLIENT_TYPE_UNIX_TCP "unix_tcp_client_type"
-#define CLIENT_TYPE_UNIX_UDP "unix_udp_client_type"
-
-void *client(allocator_t *allocator, char *type,
-             char *host, char *service);
-int client_connect(void *client, char *host, char *service);
-int client_trustee(void *client, struct timeval *tv, void *work_callback, void *opaque);
-int client_send(void *client, void *buf, int len, int flags);
-int client_destroy(void *client);
-
 #endif

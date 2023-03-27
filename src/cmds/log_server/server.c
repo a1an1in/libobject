@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/net/worker/Client.h>
-#include <libobject/net/worker/Inet_Udp_Client.h>
-#include <libobject/net/worker/Inet_Tcp_Client.h>
+#include <libobject/net/worker/api.h>
 
 static int test_work_callback(void *task)
 {
