@@ -193,6 +193,58 @@ static int __printf(Buffer *buffer, int len, const char *fmt, ...)
     return ret;
 }
 
+static uint8_t *__find(Buffer *buffer, void *needle, int needle_len)
+{
+    void *target = NULL;
+    int needle_offset, buf_len, cnt = 0;
+    int ret = 1;
+
+    TRY {
+        buf_len = buffer->get_len(buffer);
+        THROW_IF(buf_len < needle_len, -1);
+
+        while (cnt <= buf_len - needle_len) {
+            target = buffer->addr + buffer->r_offset + cnt;
+            if (!memcmp(target, needle, needle_len)) {
+                return target;
+            }
+            cnt++;
+        }
+        THROW(-1);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "needle:%s, needle_len:%d, target:%p", needle, needle_len, target);
+    }
+
+    return NULL;
+}
+
+static uint8_t *__rfind(Buffer *buffer, void *needle, int needle_len)
+{
+    void *target = NULL;
+    int needle_offset, buf_len, cnt = 0;
+    int ret = NULL;
+
+    TRY {
+        buf_len = buffer->get_len(buffer);
+        THROW_IF(buf_len < needle_len, -1);
+
+        while (cnt <= buf_len - needle_len) {
+            target = buffer->addr + buffer->r_offset + buf_len - needle_len - cnt;
+            if (!memcmp(target, needle, needle_len)) {
+                break;
+            }
+
+            cnt++;
+        }
+        THROW_IF(target == NULL, -1);
+        return target;
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "needle:%s, needle_len:%d, target:%p", needle, needle_len, target);
+    }
+
+    return NULL;
+}
+
 static int __get_needle_offset(Buffer *buffer, void *needle, int needle_len)
 {
     void *haystack, *target = NULL;
@@ -259,11 +311,13 @@ static class_info_entry_t buffer_class_info[] = {
     Init_Vfunc_Entry(7 , Buffer, printf, __printf),
     Init_Vfunc_Entry(8 , Buffer, reset, __reset),
     Init_Vfunc_Entry(9 , Buffer, get_len, __get_len),
-    Init_Vfunc_Entry(10, Buffer, get_needle_offset, __get_needle_offset),
-    Init_Vfunc_Entry(11, Buffer, read_to_string, __read_to_string),
-    Init_Vfunc_Entry(12, Buffer, set_capacity, __set_capacity),
-    Init_Vfunc_Entry(13, Buffer, get_free_capacity, __get_free_capacity),
-    Init_End___Entry(14, Buffer),
+    Init_Vfunc_Entry(10, Buffer, find, __find),
+    Init_Vfunc_Entry(11, Buffer, rfind, __rfind),
+    Init_Vfunc_Entry(12, Buffer, get_needle_offset, __get_needle_offset),
+    Init_Vfunc_Entry(13, Buffer, read_to_string, __read_to_string),
+    Init_Vfunc_Entry(14, Buffer, set_capacity, __set_capacity),
+    Init_Vfunc_Entry(15, Buffer, get_free_capacity, __get_free_capacity),
+    Init_End___Entry(16, Buffer),
 };
 REGISTER_CLASS("Buffer", buffer_class_info);
 
@@ -351,3 +405,57 @@ int test_buffer_read_to_string(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_FUNC(test_buffer_read_to_string);
+
+int test_buffer_rfind(TEST_ENTRY *entry)
+{
+    Buffer *buffer;
+    allocator_t *allocator = allocator_get_default_instance();
+    char in[14] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'};
+    char out[14] = {'\0'};
+    uint8_t *addr = NULL;
+    int ret = -1;
+
+    TRY {
+        buffer = OBJECT_NEW(allocator, Buffer, NULL);
+        buffer->set_capacity(buffer, 14);
+        buffer->write(buffer, in, 14);
+        addr = buffer->rfind(buffer, "gh", 2);
+
+        THROW_IF(addr != buffer->addr + 6, -1);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "test_buffer_rfind, buffer head addr:%p, find addr:%p", 
+                buffer->addr, addr);
+    } FINALLY {
+        object_destroy(buffer);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_buffer_rfind);
+
+int test_buffer_find(TEST_ENTRY *entry)
+{
+    Buffer *buffer;
+    allocator_t *allocator = allocator_get_default_instance();
+    char in[14] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'};
+    char out[14] = {'\0'};
+    uint8_t *addr = NULL;
+    int ret = -1;
+
+    TRY {
+        buffer = OBJECT_NEW(allocator, Buffer, NULL);
+        buffer->set_capacity(buffer, 14);
+        buffer->write(buffer, in, 14);
+        addr = buffer->find(buffer, "gh", 2);
+
+        THROW_IF(addr != buffer->addr + 6, -1);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "test_buffer_find, buffer head addr:%p, find addr:%p", 
+                buffer->addr, addr);
+    } FINALLY {
+        object_destroy(buffer);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_buffer_find);

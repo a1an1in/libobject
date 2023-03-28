@@ -28,8 +28,8 @@ struct ring_buffer_s{
     int (*read_to_string)(Ring_Buffer *, String *str, int len);
     int (*read_to_buffer)(Ring_Buffer *rb, Buffer *buffer, int len);
     int (*write)(Ring_Buffer *, void *src, int len);
-    void *(*find)(Ring_Buffer *buffer, void* needle, int needle_len, int len);
-    int (*get_needle_offset)(Ring_Buffer *buffer, void *needle, int needle_len, int len);
+    void *(*find)(Ring_Buffer *buffer, void* needle, int needle_len);
+    int (*get_needle_offset)(Ring_Buffer *buffer, void *needle, int needle_len);
     int (*get_len)(Ring_Buffer *);
     int (*set_size)(Ring_Buffer *, int size);
     int (*printf)(Ring_Buffer *buffer, const char *fmt, ...);

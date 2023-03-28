@@ -5,6 +5,7 @@
  * @version 
  * @date 2019-05-19
  */
+#include <libobject/core/io/Buffer.h>
 #include <libobject/argument/Command.h>
 
 static int __construct(Command *command, char *init_str)
@@ -14,21 +15,11 @@ static int __construct(Command *command, char *init_str)
 
 static int __deconstruct(Command *command)
 {
-    if (command->subcommands != NULL) {
-        object_destroy(command->subcommands);
-    }
+    object_destroy(command->subcommands);
+    object_destroy(command->options);
+    object_destroy(command->args);
+    object_destroy(command->name);
 
-    if (command->options != NULL) {
-        object_destroy(command->options);
-    }
-
-    if (command->args != NULL) {
-        object_destroy(command->args);
-    }
-
-    if (command->name != NULL) {
-        object_destroy(command->name);
-    }
     return 0;
 }
 
@@ -465,16 +456,39 @@ static int __action(Command *command)
     return 0;
 }
 
+static int __help_for_each_callback(int index, void *element, void *arg)
+{
+    Command *command = (Command *)element;
+    Buffer *buffer = (Buffer *)arg;
+
+    if (command == NULL) {
+        return 0;
+    }
+
+    buffer->printf(buffer, 512, "%s | ", STR2A(command->name));
+
+    return 0;
+}
+
 static int __help(Command *command)
 {
+    allocator_t *allocator = command->parent.allocator;
     Vector *subcommands = command->subcommands;
     Vector *options = command->options;
     Vector *args = command->args;
-    int ret;
+    Buffer *buffer = NULL;
+    int count, ret;
 
     TRY {
-        dbg_str(DBG_SUC, "run %s command help", STR2A(command->name));
+        buffer = OBJECT_NEW(allocator, Buffer, NULL);
+        dbg_str(DBG_DETAIL, "run %s command help", STR2A(command->name));
+
+        subcommands->for_each_arg(subcommands, __help_for_each_callback, buffer);
+        dbg_str(DBG_DETAIL, "%s", buffer->addr);
+
     } CATCH (ret) {
+    } FINALLY {
+        object_destroy(buffer);
     }
 
     return 0;

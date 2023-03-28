@@ -27,6 +27,8 @@ struct buffer_s{
     int (*read_to_string)(Buffer *buffer, String *str, int len);
     int (*set_capacity)(Buffer *, int size);
     int (*get_free_capacity)(Buffer *buffer);
+    uint8_t *(*find)(Buffer *buffer, void *needle, int needle_len);
+    uint8_t *(*rfind)(Buffer *buffer, void *needle, int needle_len);
 
     /*attribs*/
     void *addr;

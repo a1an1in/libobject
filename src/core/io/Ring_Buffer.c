@@ -235,18 +235,15 @@ end:
     return l;
 }
 
-static void* __find(Ring_Buffer *rb, void* needle, int needle_len, int len)
+static void* __find(Ring_Buffer *rb, void *needle, int needle_len)
 {
     void *haystack;
-    int haystack_len, cnt = 0;
+    int cnt = 0, len;
     void *tmp;
 
 
-    haystack_len = rb->get_len(rb);
-
-    if (haystack_len < len        || 
-        haystack_len < needle_len ||
-        needle_len > len) {
+    len = rb->get_len(rb);
+    if (needle_len > len) {
         return NULL;
     }
 
@@ -283,12 +280,13 @@ static void* __find(Ring_Buffer *rb, void* needle, int needle_len, int len)
 }
 
 /*find needle in the haystack*/
-static int __get_needle_offset(Ring_Buffer *rb, void *needle, int needle_len, int len)
+static int __get_needle_offset(Ring_Buffer *rb, void *needle, int needle_len)
 {
     void *addr;
     int needle_offset;
+    int len;
 
-    addr = rb->find(rb, needle, needle_len, len);
+    addr = rb->find(rb, needle, needle_len);
     if (addr != NULL) {
         needle_offset = addr - rb->addr;
         len = needle_offset - rb->r_offset;
@@ -455,7 +453,7 @@ int test_ring_rb_find(TEST_ENTRY *entry)
 
     rb->set_size(rb, len);
     rb->write(rb, test, len);
-    addr = rb->find(rb, "\r\n", 2, len);
+    addr = rb->find(rb, "\r\n", 2);
 
     dbg_str(IO_DETAIL, "test addr:%p, find addr:%p", (rb->addr + 15), addr);
     if (addr == (rb->addr + 15)) {
@@ -491,7 +489,7 @@ int test_ring_rb_find2(TEST_ENTRY *entry)
     rb->w_offset = rb->r_offset = 22;
     rb->last_operation_flag = BUFFER_WRITE_OPERATION;
 
-    addr = rb->find(rb, "\r\n", 2, len);
+    addr = rb->find(rb, "\r\n", 2);
 
     dbg_str(IO_DETAIL, "test addr:%p, find addr:%p", (rb->addr + 15), addr);
     if (addr == (rb->addr + 15)) {
@@ -527,7 +525,7 @@ int test_ring_rb_find3(TEST_ENTRY *entry)
     rb->w_offset = rb->r_offset = 30;
     rb->last_operation_flag = BUFFER_WRITE_OPERATION;
 
-    addr = rb->find(rb, "dabc", 4, len);
+    addr = rb->find(rb, "dabc", 4);
 
     dbg_str(IO_DETAIL, "test addr:%p, find addr:%p", (rb->addr + 39), addr);
     if (addr == (rb->addr + 39)) {
@@ -564,7 +562,7 @@ int test_ring_rb_get_needle_offset(TEST_ENTRY *entry)
     rb->w_offset = rb->r_offset = 20;
     rb->last_operation_flag = BUFFER_WRITE_OPERATION;
 
-    len = rb->get_needle_offset(rb, "\r\n", 2, len);
+    len = rb->get_needle_offset(rb, "\r\n", 2);
     len += 2;
 
     dbg_str(IO_DETAIL, "len=%d", len);

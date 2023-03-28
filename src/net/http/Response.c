@@ -222,7 +222,7 @@ static int __read_headers(Response *response)
     str = chain->new(chain, "String", NULL);
 
     while (1) {
-        len = buffer->get_needle_offset(buffer, "\r\n", 2, buffer->get_len(buffer));
+        len = buffer->get_needle_offset(buffer, "\r\n", 2);
         if (len < 0) {
             ret = -1;
             break;
@@ -274,7 +274,7 @@ static int __read_start_line(Response *response)
 
     response->status = STATUS_READ_START_LINE;
 
-    len = buffer->get_needle_offset(buffer, "\r\n", 2, buffer->get_len(buffer));
+    len = buffer->get_needle_offset(buffer, "\r\n", 2);
     if (len < 0) {
         return -1;
     }

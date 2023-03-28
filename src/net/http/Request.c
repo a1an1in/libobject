@@ -326,7 +326,7 @@ static int __read_start_line(Request *request)
 
     request->status = STATUS_READ_START_LINE;
 
-    len = buffer->get_needle_offset(buffer, "\r\n", 2, buffer->get_len(buffer));
+    len = buffer->get_needle_offset(buffer, "\r\n", 2);
     if (len < 0) {
         return -1;
     }
@@ -379,7 +379,7 @@ static int __read_headers(Request *request)
     request->status = STATUS_READ_HEADERS;
 
     while (1) {
-        len = buffer->get_needle_offset(buffer, "\r\n", 2, buffer->get_len(buffer));
+        len = buffer->get_needle_offset(buffer, "\r\n", 2);
         if (len < 0) {
             ret = -1;
             break;
