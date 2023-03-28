@@ -66,4 +66,4 @@ static int test_oj_22(TEST_ENTRY *entry, void *argc, void *argv) {
         return 0;
     }
 }
-REGISTER_TEST_FUNC(test_oj_22);
+REGISTER_TEST_CMD(test_oj_22);

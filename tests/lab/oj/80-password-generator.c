@@ -92,4 +92,4 @@ static int test_oj_80(TEST_ENTRY *entry, void *argc, void *argv) {
 
     return 1;
 }
-REGISTER_TEST_FUNC(test_oj_80);
+REGISTER_TEST_CMD(test_oj_80);

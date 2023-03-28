@@ -142,4 +142,4 @@ static int test_str_minus(TEST_ENTRY *entry, void *argc, void *argv)
 
     return 1;
 }
-REGISTER_TEST_FUNC(test_str_minus)
+REGISTER_TEST_CMD(test_str_minus)

@@ -67,4 +67,4 @@ static int test_oj_52(TEST_ENTRY *entry, void *argc, void *argv) {
     printf("is %s and %s is same:%d\n", s1, s2, str_is_same(s1, s2));
     return 1;
 }
-REGISTER_TEST_FUNC(test_oj_52);
+REGISTER_TEST_CMD(test_oj_52);

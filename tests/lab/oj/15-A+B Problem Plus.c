@@ -99,4 +99,4 @@ static int test_str_plus(TEST_ENTRY *entry, void *argc, void *argv)
 
     return 1;
 }
-REGISTER_TEST_FUNC(test_str_plus)
+REGISTER_TEST_CMD(test_str_plus)

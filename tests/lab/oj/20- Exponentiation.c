@@ -183,4 +183,4 @@ static int test_str_multply_with_dot(TEST_ENTRY *entry, void *argc, void *argv)
     }
 
 }
-REGISTER_TEST_FUNC(test_str_multply_with_dot);
+REGISTER_TEST_CMD(test_str_multply_with_dot);

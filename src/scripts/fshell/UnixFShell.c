@@ -201,7 +201,7 @@ static int test_unixfshell_open()
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_unixfshell_open);
+REGISTER_TEST_CMD(test_unixfshell_open);
 
 static int test_unixfshell_get_addr()
 {

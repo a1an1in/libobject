@@ -123,4 +123,4 @@ static int test_str_common_multiple_1_to_n_raw_method(TEST_ENTRY *entry, void *a
 
     return 1;
 }
-REGISTER_TEST_FUNC(test_str_common_multiple_1_to_n_raw_method)
+REGISTER_TEST_CMD(test_str_common_multiple_1_to_n_raw_method)

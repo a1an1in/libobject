@@ -77,7 +77,7 @@ static int test_oj_31_1(TEST_ENTRY *entry, void *argc, void *argv) {
     printf("partition num: %d\n", dp(num, num));
     return 1;
 }
-REGISTER_TEST_FUNC(test_oj_31_1);
+REGISTER_TEST_CMD(test_oj_31_1);
 
 
 static void recursion(int num, int max, int *count)
@@ -106,4 +106,4 @@ static int test_oj_31_2(TEST_ENTRY *entry, void *argc, void *argv) {
 
     return 1;
 }
-REGISTER_TEST_FUNC(test_oj_31_2);
+REGISTER_TEST_CMD(test_oj_31_2);

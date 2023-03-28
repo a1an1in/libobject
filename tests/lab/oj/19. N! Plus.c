@@ -94,4 +94,4 @@ static int test_factorial(TEST_ENTRY *entry, void *argc, void *argv)
 
     return 1;
 }
-REGISTER_TEST_FUNC(test_factorial);
+REGISTER_TEST_CMD(test_factorial);

@@ -98,4 +98,4 @@ static int test_str_multply(TEST_ENTRY *entry, void *argc, void *argv)
     }
 
 }
-REGISTER_TEST_FUNC(test_str_multply);
+REGISTER_TEST_CMD(test_str_multply);

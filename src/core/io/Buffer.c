@@ -218,6 +218,7 @@ static uint8_t *__find(Buffer *buffer, void *needle, int needle_len)
     return NULL;
 }
 
+/* find need from reverse */
 static uint8_t *__rfind(Buffer *buffer, void *needle, int needle_len)
 {
     void *target = NULL;
