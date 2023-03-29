@@ -21,6 +21,7 @@ macro (set_cmake_evironment_variable)
         -Wl,--whole-archive
             object-tests
             object-cmds
+            object-compress 
             object-scripts 
             object-stub 
             object-db 
@@ -32,7 +33,7 @@ macro (set_cmake_evironment_variable)
             object-argument
             object-core
         -Wl,--no-whole-archive
-        python3.8 crypto dl pthread m)
+        python3.8 crypto dl pthread m z)
 endmacro()
 
 macro (display_linux_platform_configs)

@@ -142,7 +142,7 @@ int execute_test_funcs()
         }
         if (element->args_count == 1) {
             ret = element->func1((void *)element);
-            if (ret == 0) {
+            if (ret <= 0) {
                 dbg_str(DBG_ERROR, 
                         "test failed, func_name = %s,  file = %s, line = %d", 
                         element->func_name,
@@ -192,7 +192,7 @@ int execute_test_designated_func(char *func_name, void *arg1, void *arg2)
             continue;
         }
 
-        if (ret == 0) {
+        if (ret <= 0) {
             dbg_str(DBG_ERROR, 
                     "test failed, func_name = %s,  file = %s, line = %d", 
                     element->func_name,

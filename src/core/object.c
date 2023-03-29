@@ -589,6 +589,7 @@ void * object_new(allocator_t *allocator, const char *type, char *config)
         deamon = class_deamon_get_global_class_deamon();
         entry  = (class_info_entry_t *)class_deamon_search_class(deamon, type);
 
+        THROW_IF(entry == NULL, -1);
         THROW_IF((size = __object_get_class_size(entry)) == 0, -1);
         THROW_IF((o = (Obj *)allocator_mem_alloc(allocator, size)) == NULL, -1);
 

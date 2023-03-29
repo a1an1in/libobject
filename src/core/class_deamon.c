@@ -119,7 +119,7 @@ void * class_deamon_search_class(class_deamon_t *class_deamon, char *class_name)
     int ret;
 
     ret = map_search(class_deamon->map, class_name, &it);
-    if (ret < 0) {
+    if (ret <= 0) {
         dbg_str(OBJ_WARNNING, "class_deamon_search_method, not found %s", class_name);
         return NULL;
     }

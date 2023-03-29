@@ -10,8 +10,18 @@
 
  static int __deflate_buf(ZCompress *c, char *in, int in_len, char *out, int *out_len)
  {
-    RETURN_IF(compressBound(in_len) < out_len, -1);
-    return TRY_EXEC(compress(out, out_len, in, in_len));
+    int ret;
+
+    TRY {
+      THROW_IF(compressBound(in_len) > *out_len, -1);
+      EXEC(compress(out, out_len, in, in_len));
+
+    } CATCH (ret) {
+       dbg_str(DBG_ERROR, "in_len:%d, out_len:%d, compressBound(in_len):%d", 
+               in_len, *out_len, compressBound(in_len));
+    }
+
+    return ret;
  }
 
  static int __inflate_buf(ZCompress *c, char *in, int in_len, char *out, int *out_len)
