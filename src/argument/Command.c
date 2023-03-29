@@ -456,16 +456,50 @@ static int __action(Command *command)
     return 0;
 }
 
-static int __help_for_each_callback(int index, void *element, void *arg)
+static int __help_subcommand_for_each_callback(int index, void *element, void *arg)
 {
     Command *command = (Command *)element;
     Buffer *buffer = (Buffer *)arg;
+    void *addr;
 
     if (command == NULL) {
         return 0;
     }
 
+    addr = buffer->rfind(buffer, "\n", 1);
+    if (addr != NULL && (buffer->w_offset - (addr - buffer->addr) + strlen(STR2A(command->name)) > 80)) {
+        buffer->printf(buffer, 512, "%s", "\n\t");
+    }
     buffer->printf(buffer, 512, "%s | ", STR2A(command->name));
+
+    return 0;
+}
+
+static int __help_option_for_each_callback(int index, void *element, void *arg)
+{
+    Option *option = (Option *)element;
+    Buffer *buffer = (Buffer *)arg;
+    void *addr;
+
+    if (option == NULL) {
+        return 0;
+    }
+
+    addr = buffer->rfind(buffer, "\n", 1);
+    if (addr != NULL && (buffer->w_offset - (addr - buffer->addr) + strlen(STR2A(option->name)) > 80)) {
+        buffer->printf(buffer, 512, "%s", "\n\t");
+    }
+
+    if (strlen(STR2A(option->value)) > 0) {
+        buffer->printf(buffer, 512, "[%s|%s=<%s>] ", 
+                       strlen(STR2A(option->alias)) > 0 ? STR2A(option->alias) : "n/a", 
+                       strlen(STR2A(option->name)) > 0 ? STR2A(option->name) : "n/a", 
+                       strlen(STR2A(option->value)) > 0 ? STR2A(option->value) : "n/a");
+    } else {
+        buffer->printf(buffer, 512, "[%s|%s] ", 
+                       strlen(STR2A(option->alias)) > 0 ? STR2A(option->alias) : "n/a", 
+                       strlen(STR2A(option->name)) > 0 ? STR2A(option->name) : "n/a");
+    }
 
     return 0;
 }
@@ -482,9 +516,13 @@ static int __help(Command *command)
     TRY {
         buffer = OBJECT_NEW(allocator, Buffer, NULL);
         dbg_str(DBG_DETAIL, "run %s command help", STR2A(command->name));
+        buffer->printf(buffer, 512, "usage:\n");
+        buffer->printf(buffer, 512, "%s ", STR2A(command->name));
 
-        subcommands->for_each_arg(subcommands, __help_for_each_callback, buffer);
-        dbg_str(DBG_DETAIL, "%s", buffer->addr);
+        options->for_each_arg(options, __help_option_for_each_callback, buffer);
+        subcommands->for_each_arg(subcommands, __help_subcommand_for_each_callback, buffer);
+        buffer->printf(buffer, 512, "\n\nsubcomands details:\n");
+        printf("%s\n", buffer->addr);
 
     } CATCH (ret) {
     } FINALLY {

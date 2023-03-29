@@ -4,3 +4,7 @@
 [20230328 19:34:15][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]
 [20230328 19:35:54][INFO][test_python.py:15]---> vender = 2, dataid = 10001
 [20230328 19:35:54][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]
+[20230328 21:31:06][INFO][test_python.py:15]---> vender = 2, dataid = 10001
+[20230328 21:31:06][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]
+[20230328 21:32:34][INFO][test_python.py:15]---> vender = 2, dataid = 10001
+[20230328 21:32:34][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]

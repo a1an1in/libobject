@@ -52,8 +52,8 @@ static int test_python()
         int a;
         float b;
         // PyArg_Parse(pResult, "i", &a);
-        PyArg_ParseTuple(pResult,"if",&a,&b);
-        printf("%d %f\n", a,b);
+        PyArg_ParseTuple(pResult, "if", &a, &b);
+        THROW_IF(a != 15 && b != 5.6, -1);
     } CATCH (ret) {
 
     } FINALLY {

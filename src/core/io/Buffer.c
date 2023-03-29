@@ -227,7 +227,7 @@ static uint8_t *__rfind(Buffer *buffer, void *needle, int needle_len)
 
     TRY {
         buf_len = buffer->get_len(buffer);
-        THROW_IF(buf_len < needle_len, -1);
+        THROW_IF(buf_len < needle_len, 0);
 
         while (cnt <= buf_len - needle_len) {
             target = buffer->addr + buffer->r_offset + buf_len - needle_len - cnt;
