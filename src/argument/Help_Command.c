@@ -29,6 +29,7 @@ static int __run_command(Command *command)
 static int __construct(Command *command, char *init_str)
 {
     command->set(command, "/Command/name", "help");
+    command->set(command, "/Command/description", "show xtool help information.");
 
     return 0;
 }

@@ -40,6 +40,9 @@ static int __construct(Command *command, char *init_str)
     allocator_t *allocator = command->parent.allocator;
 
     command->set(command, "/Command/name", "fshell");
+    command->set(command, "/Command/description", "fshell is used to run funtion in the specified shell.\n"
+                 "                                For example, some means can be used to dynamically \n"
+                 "                                execute certain functions to achieve certain goals.");
     command->add_argument(command, "", "arg0", NULL, NULL);
     command->add_argument(command, "", "arg1", NULL, NULL);
     fcommand->shell = object_new(allocator, "UnixFShell", NULL);

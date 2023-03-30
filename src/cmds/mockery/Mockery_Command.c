@@ -33,6 +33,8 @@ static int __run_command(Command *command)
 static int __construct(Command *command, char *init_str)
 {
     command->set(command, "/Command/name", "mockery");
+    command->set(command, "/Command/description", "mockery is used to do functional interface unit testing \n"
+                 "                                and system testing. it can also run command like funtion.");
 
     return 0;
 }

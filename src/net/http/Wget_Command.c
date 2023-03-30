@@ -60,6 +60,7 @@ static int __construct(Command *command, char *init_str)
     command->add_option(command, "--input-file", "-i", "", "input url file", NULL, NULL);
     command->add_argument(command, "", "url", NULL, NULL);
     command->set(command, "/Command/name", "wget");
+    command->set(command, "/Command/description", "wget is used to download resource of specified url.");
 
     return 0;
 }

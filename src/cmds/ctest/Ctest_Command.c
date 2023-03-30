@@ -103,6 +103,7 @@ static int __construct(Command *command, char *init_str)
     command->add_argument(command, "", "test cases", NULL, NULL);
     command->set(command, "/Command/name", "ctest");
     command->set(command, "/Command/opaque", runner);
+    command->set(command, "/Command/description", "ctest is test tool for class of libobject.");
 
     return 0;
 }

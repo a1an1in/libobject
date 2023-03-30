@@ -19,6 +19,7 @@ static int __deconstruct(Command *command)
     object_destroy(command->options);
     object_destroy(command->args);
     object_destroy(command->name);
+    object_destroy(command->description);
 
     return 0;
 }
@@ -456,7 +457,7 @@ static int __action(Command *command)
     return 0;
 }
 
-static int __help_subcommand_for_each_callback(int index, void *element, void *arg)
+static int __help_head_subcommand_for_each_callback(int index, void *element, void *arg)
 {
     Command *command = (Command *)element;
     Buffer *buffer = (Buffer *)arg;
@@ -475,7 +476,7 @@ static int __help_subcommand_for_each_callback(int index, void *element, void *a
     return 0;
 }
 
-static int __help_option_for_each_callback(int index, void *element, void *arg)
+static int __help_head_option_for_each_callback(int index, void *element, void *arg)
 {
     Option *option = (Option *)element;
     Buffer *buffer = (Buffer *)arg;
@@ -504,6 +505,46 @@ static int __help_option_for_each_callback(int index, void *element, void *arg)
     return 0;
 }
 
+static int __help_details_option_for_each_callback(int index, void *element, void *arg)
+{
+    Option *option = (Option *)element;
+    Buffer *buffer = (Buffer *)arg;
+    void *addr;
+    char tmp[50];
+
+    if (option == NULL) {
+        return 0;
+    }
+
+    snprintf(tmp, 50, "[%s|%s]", 
+             strlen(STR2A(option->alias)) > 0 ? STR2A(option->alias) : "n/a", 
+             strlen(STR2A(option->name)) > 0 ? STR2A(option->name) : "n/a");
+
+    buffer->printf(buffer, 512, "%-30s\t%s\n", tmp, STR2A(option->usage));
+
+    return 0;
+}
+
+static int __help_details_subcommand_for_each_callback(int index, void *element, void *arg)
+{
+    Command *command = (Command *)element;
+    Buffer *buffer = (Buffer *)arg;
+    char *desc;
+
+    if (command == NULL) {
+        return 0;
+    }
+
+    if (command->description) {
+        desc = STR2A(command->description);
+    } else {
+        desc = "n/a";
+    }
+    buffer->printf(buffer, 1024, "%-30s\t%s\n", STR2A(command->name), desc);
+
+    return 0;
+}
+
 static int __help(Command *command)
 {
     allocator_t *allocator = command->parent.allocator;
@@ -519,9 +560,15 @@ static int __help(Command *command)
         buffer->printf(buffer, 512, "usage:\n");
         buffer->printf(buffer, 512, "%s ", STR2A(command->name));
 
-        options->for_each_arg(options, __help_option_for_each_callback, buffer);
-        subcommands->for_each_arg(subcommands, __help_subcommand_for_each_callback, buffer);
-        buffer->printf(buffer, 512, "\n\nsubcomands details:\n");
+        options->for_each_arg(options, __help_head_option_for_each_callback, buffer);
+        subcommands->for_each_arg(subcommands, __help_head_subcommand_for_each_callback, buffer);
+        if (subcommands->count(subcommands) > 0) {
+            buffer->w_offset -= 3;
+        }
+        buffer->printf(buffer, 512, "\n\noptions details:\n");
+        options->for_each_arg(options, __help_details_option_for_each_callback, buffer);
+        buffer->printf(buffer, 512, "\nsubcommands details:\n");
+        subcommands->for_each_arg(subcommands, __help_details_subcommand_for_each_callback, buffer);
         printf("%s\n", buffer->addr);
 
     } CATCH (ret) {
@@ -554,7 +601,8 @@ static class_info_entry_t command_class_info[] = {
     Init_Vec___Entry(18, Command, subcommands, NULL, "Test_Command"),
     Init_Vec___Entry(19, Command, options, NULL, "Option"),
     Init_Str___Entry(20, Command, name, NULL),
-    Init_Point_Entry(21, Command, opaque, NULL),
-    Init_End___Entry(22, Command),
+    Init_Str___Entry(21, Command, description, NULL),
+    Init_Point_Entry(22, Command, opaque, NULL),
+    Init_End___Entry(23, Command),
 };
 REGISTER_CLASS("Command", command_class_info);

@@ -30,6 +30,7 @@ static int __run_command(Downloader_Command *command)
 static int __construct(Downloader_Command *command, char *init_str)
 {
     command->set(command, "/Command/name", "downloader");
+    command->set(command, "/Command/description", "downloader is responsible for upgrading of application.");
 
     return 0;
 }

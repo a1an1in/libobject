@@ -162,6 +162,7 @@ static int __construct(Command *command, char *init_str)
     command->add_option(command, "--request", "-X", "GET", "指定什么命令", __option_request_action_callback, req);
     command->add_argument(command, "", "url", __argument_url_action_callback, client);
     command->set(command, "/Command/name", "curl");
+    command->set(command, "/Command/description", "curl is mimic CURL and is used in much the same way.");
 
     return 0;
 }

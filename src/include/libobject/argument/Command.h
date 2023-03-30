@@ -43,6 +43,7 @@ struct Command_s{
     Vector *options;
     Vector *args;
     String *name;
+    String *description;
     int argc;
     char **argv;
     void *opaque;

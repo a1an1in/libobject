@@ -1,7 +1,8 @@
-implement part of help interface of Command.
+implement help api of Command.
 
 Description:
 update.
 
 Major Changes:
-1. can print usage of command.
+1. add description of commands.
+2. implemement help of command.

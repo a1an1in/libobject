@@ -73,6 +73,7 @@ static int __construct(Nginx_Command *command, char *init_str)
     c->add_option(c, "--service", "-s", "", "set server ip port", __option_service_callback, server);
     
     c->set(c, "/Command/name", "nginx");
+    c->set(c, "/Command/description", "nginx is mimic nginx and is used in much the same way.");
 
     return 0;
 }
