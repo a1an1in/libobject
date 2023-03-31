@@ -8,8 +8,24 @@
 #include <libobject/core/io/Buffer.h>
 #include <libobject/argument/Command.h>
 
+
+static int __option_help_callback(Option *option, void *opaque)
+{
+    Command *command = (Command *)opaque;
+
+    if (option->set_flag == 1) {
+        printf("xxxxxxxx command help, name:%s\n", STR2A(command->name));
+        command->help(command);
+        exit(1);
+    }
+
+    return 1;
+}
+
 static int __construct(Command *command, char *init_str)
 {
+    command->add_option(command, "--help", "-h", "false", "wget help option", 
+                        __option_help_callback, command);
     return 0;
 }
 
@@ -560,19 +576,22 @@ static int __help(Command *command)
         buffer->printf(buffer, 512, "usage:\n");
         buffer->printf(buffer, 512, "%s ", STR2A(command->name));
 
-        options->for_each_arg(options, __help_head_option_for_each_callback, buffer);
+        options != NULL && options->for_each_arg(options, __help_head_option_for_each_callback, buffer);
 
         if (subcommands != NULL) {
             subcommands->for_each_arg(subcommands, __help_head_subcommand_for_each_callback, buffer);
-            if (subcommands != NULL && subcommands->count(subcommands) > 0) {
+            if (subcommands->count(subcommands) > 0) {
                 buffer->w_offset -= 3;
             }
         }
 
-        buffer->printf(buffer, 512, "\n\noptions details:\n");
-        options->for_each_arg(options, __help_details_option_for_each_callback, buffer);
-        buffer->printf(buffer, 512, "\nsubcommands details:\n");
+        if (options != NULL) {
+            buffer->printf(buffer, 512, "\n\noptions details:\n");
+            options->for_each_arg(options, __help_details_option_for_each_callback, buffer);
+        }
+
         if (subcommands != NULL) {
+            buffer->printf(buffer, 512, "\nsubcommands details:\n");
             subcommands->for_each_arg(subcommands, __help_details_subcommand_for_each_callback, buffer);
         }
         

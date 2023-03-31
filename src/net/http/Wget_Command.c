@@ -55,7 +55,7 @@ static int __construct(Command *command, char *init_str)
 {
     command->add_option(command, "--output-document", "-O", "", "output document name", NULL, NULL);
     command->add_option(command, "--directory-prefix", "-P", "./", "output directory", NULL, NULL);
-    command->add_option(command, "--limit-rate", NULL, "10M", "limit download rate", NULL, NULL);
+    command->add_option(command, "--limit-rate", "", "10M", "limit download rate", NULL, NULL);
     command->add_option(command, "--continue", "-c", "true", "resumes transmission at break-points", NULL, NULL);
     command->add_option(command, "--input-file", "-i", "", "input url file", NULL, NULL);
     command->add_argument(command, "", "url", NULL, NULL);

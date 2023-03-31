@@ -1,10 +1,9 @@
-bugfix when show help of subcommand.
+add help option callback to Command.
 
 Description:
 update.
 
 Major Changes:
-1. add description of commands.
-2. fix xtool name which set at command to xtools.
-3. add fshell help option.
+1. add_option of help at Command constructor.
+2. del help option of fshell.
 
