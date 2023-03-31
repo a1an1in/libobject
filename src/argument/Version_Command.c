@@ -11,7 +11,7 @@
 
 static int __run_command(Command *command)
 {
-    dbg_str(ARG_DETAIL, "libobject version:%s", PROJECT_VERSION);
+    dbg_str(DBG_VIP, "libobject version:%s", PROJECT_VERSION);
 
     return 1;
 }
@@ -19,7 +19,7 @@ static int __run_command(Command *command)
 static int __construct(Command *command, char *init_str)
 {
     command->set(command, "/Command/name", "version");
-    command->set(command, "/Command/description", "show xtool version information.");
+    command->set(command, "/Command/description", "show xtools version information.");
 
     return 0;
 }

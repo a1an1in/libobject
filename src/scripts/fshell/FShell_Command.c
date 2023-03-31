@@ -33,6 +33,16 @@ static int __run_command(Command *command)
     return 1;
 }
 
+static int __option_help_callback(Option *option, void *opaque)
+{
+    Command *command = (Command *)opaque;
+
+    command->help(command);
+    exit(1);
+
+    return 1;
+}
+
 static int __construct(Command *command, char *init_str)
 {
     FShell_Command *fcommand = (FShell_Command *)command;
@@ -43,6 +53,7 @@ static int __construct(Command *command, char *init_str)
     command->set(command, "/Command/description", "fshell is used to run funtion in the specified shell.\n"
                  "                                For example, some means can be used to dynamically \n"
                  "                                execute certain functions to achieve certain goals.");
+    command->add_option(command, "--help", "-h", "false", "fshell help option", __option_help_callback, command);
     command->add_argument(command, "", "arg0", NULL, NULL);
     command->add_argument(command, "", "arg1", NULL, NULL);
     fcommand->shell = object_new(allocator, "UnixFShell", NULL);
