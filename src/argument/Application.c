@@ -43,6 +43,27 @@ static int __option_help_callback(Option *option, void *opaque)
     return 1;
 }
 
+static int __option_log_level_callback(Option *option, void *opaque)
+{
+    Application *app = (Application *)opaque;
+    int ret;
+
+    TRY {
+        RETURN_IF(option->set_flag != 1, 0);
+        THROW_IF(option->value == NULL, -1);
+
+        dbg_str(DBG_SUC,"xtools log level:%s, digtal value:%d", 
+                STR2A(option->value), atoi(STR2A(option->value)));
+        debugger_set_all_businesses_level(debugger_gp, 1, atoi(STR2A(option->value)));
+    } CATCH (ret) {
+
+    }
+
+
+    
+    return 1;
+}
+
 static int __construct(Application *app, char *init_str)
 {
     Command *command = (Command *)app;
@@ -51,8 +72,10 @@ static int __construct(Application *app, char *init_str)
                         __option_set_event_thread_service_callback, NULL);
     command->add_option(command, "--event-signal-service", "", "11120", "event-signal-service address",
                         __option_set_event_signal_service_callback, NULL);
-    command->add_option(command, "--help", "-h", "false", "help for xtools",
+    command->add_option(command, "--help", "-h", NULL, "help for xtools",
                         __option_help_callback, app);
+    command->add_option(command, "--log-level", "", "6", "setting log display level, the default value is 6.",
+                        __option_log_level_callback, app);
 
     return 0;
 }
@@ -164,6 +187,7 @@ int libobject_init()
         #endif
         EXEC(execute_ctor_funcs());
         EXEC(core_init_fs());
+        debugger_set_all_businesses_level(debugger_gp, 1, 3);
 
         exception_init();
     } CATCH (ret) {

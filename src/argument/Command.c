@@ -14,9 +14,8 @@ static int __option_help_callback(Option *option, void *opaque)
     Command *command = (Command *)opaque;
 
     if (option->set_flag == 1) {
-        printf("xxxxxxxx command help, name:%s\n", STR2A(command->name));
         command->help(command);
-        exit(1);
+        exit(0);
     }
 
     return 1;
@@ -24,8 +23,6 @@ static int __option_help_callback(Option *option, void *opaque)
 
 static int __construct(Command *command, char *init_str)
 {
-    command->add_option(command, "--help", "-h", "false", "wget help option", 
-                        __option_help_callback, command);
     return 0;
 }
 
@@ -46,6 +43,7 @@ __add_subcommand(Command *command, void *command_name)
     Vector *subcommands = command->subcommands;
     int value_type = VALUE_TYPE_OBJ_POINTER;
     uint8_t trustee_flag = 1;
+    char tmp[128] = {0};
     Command *c;
     int ret = 0;
 
@@ -67,6 +65,8 @@ __add_subcommand(Command *command, void *command_name)
     } else {
         ret = -1;
     }
+    snprintf(tmp,128, "%s help option", STR2A(c->name));
+    c->add_option(c, "--help", "-h", NULL, tmp, __option_help_callback, c);
 
 end:
     return ret;
@@ -288,7 +288,7 @@ static int __parse_option_with_no_value(Command *command, char *option)
 
     o = command->get_option(command, option);
     if (o != NULL) {
-        o->set(o, "value", "true");
+        // o->set(o, "value", "true");
         o->set(o, "set_flag", &set_flag);
     }
 }
@@ -333,15 +333,11 @@ static int __does_option_need_value(Command *command, char *option)
     o = command->get_option(command, option);
 
     if (o == NULL) return -1;
-    if (o != NULL && (o->value->equal(o->value, "true") ||
-                      o->value->equal(o->value, "True") ||
-                      o->value->equal(o->value, "false") ||
-                      o->value->equal(o->value, "False"))) 
-    {
-        return 0;
+    if ((o->value !=NULL)) {
+        return 1;
     }
 
-    return 1;
+    return 0;
 }
 
 static int __parse_args(Command *command)
@@ -443,7 +439,7 @@ static int __run_option_actions(Command *command)
         if (o != NULL && o->action != NULL) {
             int (*option_action)(void *, void *) = o->action;
             option_action(o, o->opaque);
-            printf("run option action:%s\n", o->name->get_cstr(o->name));
+            dbg_str(DBG_DETAIL, "run option action:%s\n", o->name->get_cstr(o->name));
         }
     }
     return 0;
@@ -507,7 +503,7 @@ static int __help_head_option_for_each_callback(int index, void *element, void *
         buffer->printf(buffer, 512, "%s", "\n\t");
     }
 
-    if (strlen(STR2A(option->value)) > 0) {
+    if (option->value != NULL) {
         buffer->printf(buffer, 512, "[%s|%s=<%s>] ", 
                        strlen(STR2A(option->alias)) > 0 ? STR2A(option->alias) : "n/a", 
                        strlen(STR2A(option->name)) > 0 ? STR2A(option->name) : "n/a", 
