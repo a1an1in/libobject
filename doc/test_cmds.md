@@ -9,4 +9,5 @@
 * ./sysroot/linux/bin/xtools player http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8
 * ./sysroot/linux/bin/xtools --event-thread-service=11111 --event-signal-service=11112 fshell
 * ./sysroot/linux/bin/xtools --log-level=6 
+* ./sysroot/linux/bin/xtools fshell --log-level=6
     

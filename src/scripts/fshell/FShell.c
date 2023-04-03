@@ -11,6 +11,7 @@
 #include <libobject/core/utils/string.h>
 #include <libobject/scripts/FShell.h>
 #include <libobject/concurrent/Worker.h>
+#include <libobject/scripts/api.h>
 
 static void __close_fshell_callback(void *arg)
 {
@@ -63,6 +64,7 @@ static int __init(FShell *shell)
 #endif
 
     shell->worker = signal_worker(allocator, ev_fd, __close_fshell_callback, shell);
+    g_shell = shell;
     dbg_str(DBG_DETAIL, "fshell init, shell->worker=%p", shell->worker);
 
     return 0;
@@ -151,29 +153,4 @@ static class_info_entry_t shell_class_info[] = {
     Init_End___Entry(12, FShell),
 };
 REGISTER_CLASS("FShell", shell_class_info);
-
-int test_hello()
-{
-    printf("hello world\n");
-    return 0;
-}
-
-int test_add(int a, int b)
-{
-    dbg_str(DBG_DETAIL, "test add, a:%d, b:%d, count:%d", a, b, a + b);
-    return a + b;
-}
-
-int test_printf(char *fmt, ...)
-{
-    va_list ap;
-
-    printf("test_printf, fmt:%s\n", fmt);
-    dbg_buf(DBG_DETAIL, "fmt:", fmt, strlen(fmt));
-    va_start(ap, fmt);
-    vprintf(fmt, ap);
-    va_end(ap);
-
-    return 1;
-}
 

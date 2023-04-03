@@ -21,6 +21,24 @@ static int __option_help_callback(Option *option, void *opaque)
     return 1;
 }
 
+static int __option_log_level_callback(Option *option, void *opaque)
+{
+    Command *app = (Command *)opaque;
+    int ret;
+
+    TRY {
+        RETURN_IF(option->set_flag != 1, 0);
+        THROW_IF(option->value == NULL, -1);
+
+        dbg_str(DBG_SUC,"xtools log level:%s, digtal value:%d", 
+                STR2A(option->value), atoi(STR2A(option->value)));
+        debugger_set_all_businesses_level(debugger_gp, 1, atoi(STR2A(option->value)));
+    } CATCH (ret) {
+    }
+    
+    return 1;
+}
+
 static int __construct(Command *command, char *init_str)
 {
     return 0;
@@ -67,6 +85,8 @@ __add_subcommand(Command *command, void *command_name)
     }
     snprintf(tmp,128, "%s help option", STR2A(c->name));
     c->add_option(c, "--help", "-h", NULL, tmp, __option_help_callback, c);
+    c->add_option(c, "--log-level", "", "6", "setting log display level, the default value is 6.",
+                      __option_log_level_callback, c);
 
 end:
     return ret;

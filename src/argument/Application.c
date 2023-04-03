@@ -56,10 +56,7 @@ static int __option_log_level_callback(Option *option, void *opaque)
                 STR2A(option->value), atoi(STR2A(option->value)));
         debugger_set_all_businesses_level(debugger_gp, 1, atoi(STR2A(option->value)));
     } CATCH (ret) {
-
     }
-
-
     
     return 1;
 }
