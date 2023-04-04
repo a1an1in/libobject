@@ -400,10 +400,7 @@ static int __parse_args(Command *command)
             if (ret < 0) {
                 dbg_str(ARG_WARNNING, "not recognized option");
                 continue;
-            }
-
-            /*second, process option without value*/
-            if (ret == 0) {
+            } else if (ret == 0) { /*second, process option without value*/
                 __parse_option_with_no_value(command, command->argv[i]);
                 continue;
             }

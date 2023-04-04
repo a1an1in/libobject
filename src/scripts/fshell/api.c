@@ -51,15 +51,9 @@ int fsh_printf(char *fmt, ...)
     return 1;
 }
 
-int fsh_hello()
-{
-    printf("hello world\n");
-    return 0;
-}
-
 int fsh_add(int a, int b)
 {
-    dbg_str(DBG_DETAIL, "fsh add, a:%d, b:%d, count:%d", a, b, a + b);
+    printf("fsh add, a:%d, b:%d, count:%d\n", a, b, a + b);
     return a + b;
 }
 
@@ -67,4 +61,29 @@ int fsh_exec(char *string)
 {
     printf("fsh_exec:%s\n", string);
     return system(string);
+}
+
+int test_hello()
+{
+    printf("hello world\n");
+    return 0;
+}
+
+int fsh_call(void *p1, void *p2, void *p3, void *p4, void *p5, 
+             void *p6, void *p7, void *p8, void *p9, void *p10,
+             void *p11, void *p12, void *p13, void *p14, void *p15, 
+             void *p16, void *p17, void *p18, void *p19, void *p20)
+{
+    FShell *shell = g_shell;
+    fshell_func_t func = NULL;
+    int ret;
+
+    TRY {
+        printf("fsh call:%s\n", (char *)p1);
+        EXEC(shell->get_func_addr(shell, NULL, (char *)p1, &func));
+        EXEC(func(p2, p3, p3, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, 0));
+    } CATCH (ret) {
+    }
+
+    return ret;
 }

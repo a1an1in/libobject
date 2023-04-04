@@ -4,6 +4,6 @@ Description:
 update.
 
 Major Changes:
-1. add fshell api.c
-2. add __option_log_level_callback for all subcommands.
+1. add fsh_call
+2. add test_attach
 
