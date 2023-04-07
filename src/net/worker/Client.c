@@ -93,7 +93,7 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
             len = socket->recv(socket, buf, buf_len, 0);
 
         if (len <= 0) {
-            dbg_str(DBG_ERROR, "client ev_callback error, fd:%d, len=%d", fd, len);
+            //dbg_str(DBG_ERROR, "client ev_callback error, fd:%d, len=%d", fd, len);
         }
 
         if (worker->work_callback && len > 0) {

@@ -37,6 +37,7 @@ static int __wget_request_callback(Response *resp, void *arg)
     dbg_str(DBG_SUC,"request callback run, arg=%p", arg);
     dbg_str(DBG_SUC,"status code =%d", resp->status_code);
     dbg_str(DBG_SUC,"output file =%s", output_document->get_cstr(output_document));
+    printf("status code =%d, output file =%s\n", resp->status_code, STR2A(output_document));
 
     file = object_new(allocator, "File", NULL);
     file->open(file, path->get_cstr(path), "w+");   

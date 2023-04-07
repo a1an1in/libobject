@@ -81,7 +81,8 @@ int fsh_call(void *p1, void *p2, void *p3, void *p4, void *p5,
     TRY {
         printf("fsh call:%s\n", (char *)p1);
         EXEC(shell->get_func_addr(shell, NULL, (char *)p1, &func));
-        EXEC(func(p2, p3, p3, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, 0));
+        EXEC(func(p2, p3, p3, p5, p6, p7, p8, p9, p10, p11, 
+                  p12, p13, p14, p15, p16, p17, p18, p19, p20, 0));
     } CATCH (ret) {
     }
 

@@ -1,9 +1,8 @@
-add fshell api.
+optimize code.
 
 Description:
 update.
 
 Major Changes:
-1. add fsh_call
-2. add test_attach
+1. update
 

@@ -10,4 +10,5 @@
 * ./sysroot/linux/bin/xtools --event-thread-service=11111 --event-signal-service=11112 fshell
 * ./sysroot/linux/bin/xtools --log-level=6 
 * ./sysroot/linux/bin/xtools fshell --log-level=6
+* ./sysroot/linux/bin/xtools --log-level=6  mockery test_skcipher_ecb_aes
     

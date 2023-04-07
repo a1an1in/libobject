@@ -75,14 +75,12 @@ static int __parse_scheme(Url *url)
     url->scheme = scheme;
 
     cnt = scheme->replace(scheme, "://", "/", -1);
-    dbg_str(DBG_ERROR, "run at here, cnt=%d", cnt);
     if (cnt != 1) {
         object_destroy(scheme);
         return -1;
     }
 
     cnt = scheme->split(scheme, (char *)"/", 1);
-    dbg_str(DBG_ERROR, "run at here");
     user = (String *)object_new(allocator, (char *)"String", NULL);
     if (cnt == 2) {
         dbg_str(DBG_SUC, "scheme:%s", scheme->get_cstr(scheme));
@@ -222,8 +220,8 @@ static int __parse_query(Url *url)
     
     query = url->query;
 
-    printf("parse query: %p\n", query);
     if (query == NULL) return 0;
+    printf("parse query: %p\n", query);
 
     fragment = (String *)object_new(allocator, (char *)"String", NULL);
 

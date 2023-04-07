@@ -36,7 +36,8 @@ static int __option_help_callback(Option *option, void *opaque)
 
     if (option->set_flag == 1) {
         dbg_str(DBG_SUC,"xtools help");
-        app->help(app);
+        app->help(app);            
+        printf("Run 'xtools COMMAND --help' for more information on a command.\n\n");
         exit(0);
     }
     
