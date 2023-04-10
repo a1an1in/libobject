@@ -32,8 +32,8 @@ int fsh_quit()
 {
     FShell *shell = g_shell;
 
-    printf("fshell quit\n");
     shell->close_flag = 1;
+    printf("fshell quit ok.\n");
 
     return 1; 
 }
@@ -59,8 +59,19 @@ int fsh_add(int a, int b)
 
 int fsh_exec(char *string)
 {
-    printf("fsh_exec:%s\n", string);
-    return system(string);
+    int ret, len;
+
+    TRY {
+        THROW_IF(string == NULL, -1);
+        if (string[0] == '"') {
+            len = strlen(string);
+            string[len - 1] = '\0';
+            string = &string[1];
+        }
+        EXEC(system(string));
+    } CATCH (ret) { }
+
+    return ret;
 }
 
 int test_hello()
@@ -83,8 +94,7 @@ int fsh_call(void *p1, void *p2, void *p3, void *p4, void *p5,
         EXEC(shell->get_func_addr(shell, NULL, (char *)p1, &func));
         EXEC(func(p2, p3, p3, p5, p6, p7, p8, p9, p10, p11, 
                   p12, p13, p14, p15, p16, p17, p18, p19, p20, 0));
-    } CATCH (ret) {
-    }
+    } CATCH (ret) { }
 
     return ret;
 }

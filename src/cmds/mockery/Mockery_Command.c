@@ -14,17 +14,18 @@ static int __run_command(Command *command)
     char **argv;
     dbg_str(DBG_DETAIL, "mockery start");
 
+    debugger_set_all_businesses_level(debugger_gp, 1, 6);
     argc = command->argc;
     argv = command->argv;
     if (argc == 2) {
         int targc = argc - 1;
         execute_test_designated_func(argv[1], (void *)&targc, argv + 1);
     } else {
-        debugger_set_all_businesses_level(debugger_gp, 1, 6);
         execute_test_funcs();
     }
 
     dbg_str(DBG_DETAIL, "mockery end");
+    debugger_set_all_businesses_level(debugger_gp, 1, 3);
 
     return 1;
 }

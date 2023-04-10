@@ -69,24 +69,23 @@ static int __deconstrcut(Thread *thread)
 static int __start(Thread *thread)
 {
     void *arg;
+    int ret = 0;
 
-    if (thread->is_run) {
-        return -1;
-    }
-    if (thread->start_routine == NULL) {
-        return -1;
-    }
+    TRY {
+        THROW_IF(thread->is_run, -1);
+        THROW_IF(thread->start_routine == NULL, -1);
 
-    if (thread->arg == NULL) {
-        thread->arg = thread;
-    }
-    if ((pthread_create(&thread->tid, NULL, thread->start_routine, thread->arg)) != 0) {
-        dbg_str(OBJ_WARNNING, "pthread start error");
-    }
+        if (thread->arg == NULL) {
+            thread->arg = thread;
+        }
+        if ((pthread_create(&thread->tid, NULL, thread->start_routine, thread->arg)) != 0) {
+            dbg_str(OBJ_WARNNING, "pthread start error");
+        }
 
-    thread->is_run = 0;
+        thread->is_run = 0;
+    } CATCH (ret) {}
 
-    return 0;
+    return ret;
 }
 
 static int __set_start_routine(Thread *thread, void *routine)

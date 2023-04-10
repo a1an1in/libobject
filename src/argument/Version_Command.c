@@ -11,8 +11,8 @@
 
 static int __run_command(Command *command)
 {
-    dbg_str(DBG_VIP, "libobject version:%s", PROJECT_VERSION);
-
+    printf("libobject version:%s\n", PROJECT_VERSION);
+    
     return 1;
 }
 

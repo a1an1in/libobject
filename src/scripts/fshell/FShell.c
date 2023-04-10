@@ -113,8 +113,7 @@ static int __run_func(FShell *shell, String *str)
                    par[15], par[16], par[17], par[18], par[19]);
         dbg_str(DBG_DETAIL, "run func ret:%d", ret);
         
-    } CATCH (ret) {
-    }
+    } CATCH (ret) { }
 
     return ret;
 }
@@ -131,8 +130,7 @@ static int __is_statement(FShell *shell, char *str)
         } else {
             return 0;
         }
-    } CATCH (ret) {
-    }
+    } CATCH (ret) { }
 
     return ret;
 }

@@ -11,6 +11,7 @@
 #include <libobject/core/try.h>
 #include <libobject/core/io/fs_compat.h>
 #include <libobject/concurrent/Producer.h>
+#include <libobject/version.h>
 
 #define MAX_APP_COMMANDS_COUNT 1024
 static char *app_commands[MAX_APP_COMMANDS_COUNT];
@@ -27,6 +28,14 @@ static int __option_set_event_thread_service_callback(Option *option, void *opaq
 static int __option_set_event_signal_service_callback(Option *option, void *opaque)
 {
     dbg_str(DBG_SUC,"option_set_event_signal_service_callback:%s", STR2A(option->value));
+    return 1;
+}
+
+static int __option_version_callback(Option *option, void *opaque)
+{
+    if (option->set_flag == 1) {
+        printf("libobject version:%s\n", PROJECT_VERSION);
+    }
     return 1;
 }
 
@@ -70,6 +79,8 @@ static int __construct(Application *app, char *init_str)
                         __option_set_event_thread_service_callback, NULL);
     command->add_option(command, "--event-signal-service", "", "11120", "event-signal-service address",
                         __option_set_event_signal_service_callback, NULL);
+    command->add_option(command, "--version", "-v", NULL, "show version of xtools",
+                        __option_version_callback, NULL);
     command->add_option(command, "--help", "-h", NULL, "help for xtools",
                         __option_help_callback, app);
     command->add_option(command, "--log-level", "", "6", "setting log display level, the default value is 6.",
