@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
+. $(dirname $0)/scripts/utils.sh
+
 function do_build_linux {
+    increase_version_tweak_number
     rm -rf /usr/local/include/libobject
     mkdir -p build/linux
     cd build/linux
@@ -16,8 +19,8 @@ function do_build_mac {
     mkdir -p build/mac
     cd build/mac
     cmake ../.. -DPLATFORM=mac &&make
-    #make install
-    cd ..
+    cd ../..
+    printf '\x07' | dd of=sysroot/mac/bin/xtools bs=1 seek=160 count=1 conv=notrunc
 }
 
 function do_build_ios {
@@ -232,7 +235,8 @@ cat << EOF
     help                   Print this help message.
 
     demos:
-    ./devops.sh docker --install --platform=linux    #install docker at linux platform
     ./devops.sh build --platform=linux
+    ./devops.sh docker --install --platform=linux    #install docker at linux platform
+    
 EOF
 }
