@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+OPTION_HELP="false"
+
+OPTION_PLATFORM=""
+OPTION_INSTALL="false"
+OPTION_BUILD="false"
+OPTION_DB_IP=""
+OPTION_PACKAGE_PATH=""
+OPTION_NAME=""
+OPTION_ARGS=""
+OPTION_REMOVE="false"
+OPTION_RUN="false"
+
+CMD_BUILD="false"
+CMD_NAME="false"

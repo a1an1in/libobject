@@ -1,0 +1,40 @@
+FROM ubuntu:20.04
+
+ARG TAR_PACKAGE_NAME
+ARG DB_IP
+ENV TAR_PACKAGE_NAME ${TAR_PACKAGE_NAME}
+ENV DB_IP ${DB_IP}
+
+RUN    echo "deb http://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse" >> /etc/apt/sources.list                  \
+    && echo "deb http://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse" >> /etc/apt/sources.list         \
+    && echo "deb http://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse" >> /etc/apt/sources.list          \
+    && echo "deb http://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse" >> /etc/apt/sources.list        \
+    #    echo "deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse"               >  /etc/apt/sources.list \
+    # && echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse"      >> /etc/apt/sources.list \
+    # && echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse"       >> /etc/apt/sources.list \
+    # && echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse"      >> /etc/apt/sources.list \
+    # && echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse"     >> /etc/apt/sources.list \
+    # && echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse"           >> /etc/apt/sources.list \
+    # && echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse"  >> /etc/apt/sources.list \  
+    # && echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse"   >> /etc/apt/sources.list \
+    # && echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse"  >> /etc/apt/sources.list \
+    # && echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list \
+    && apt-get update                                                                                                                 \
+    && apt-get upgrade
+
+RUN    apt-get install -y net-tools                                                                                                   \
+    && apt-get install -y iputils-ping                                                                                                \
+    && apt-get install -y libmysqlclient-dev
+
+RUN mkdir -p /root/softs
+COPY package/${TAR_PACKAGE_NAME} /root/softs
+COPY docker/webroot /root/softs/paddlefish/bin/webroot
+
+RUN echo "TAR_PACKAGE_NAME: ${TAR_PACKAGE_NAME}, DB_IP:${DB_IP}"
+
+RUN cd /root/softs                                                                                                                    \
+    && tar -zxvf ${TAR_PACKAGE_NAME}                                                                                                  \
+    && rm ${TAR_PACKAGE_NAME}
+
+WORKDIR /root/softs/paddlefish/bin
+CMD cd /root/softs/paddlefish/bin && ./paddlefish -h "0.0.0.0" -s "81" > p.log

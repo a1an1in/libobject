@@ -10,25 +10,25 @@ This lib is designed for object-oriented programming using c language. It contai
 * Mac OS
 
 ```
-./build_mac.sh
+./devops.sh build --platform=mac
 ```
 
 * Linux
 
 ```
-./build_linux.sh
+./devops.sh build --platform=linux
 ```
 
 * Android
 
 ```
-./build_android.sh
+./devops.sh build --platform=android
 ```
 
 * Windows
 
 ```
-./build_windows.bat
+./devops.sh build --platform=windows
 ```
 
 ## User Guide

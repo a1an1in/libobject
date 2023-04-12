@@ -1,8 +1,12 @@
-optimize code.
+change build scripts.
 
 Description:
-update.
+i copy docker dir from paddlefish, which haven't been
+debug at libobject. so the docker may not useable. but
+the compling is ok now.
 
 Major Changes:
-1. update
+1. change old build_platform.sh scritps to devops.sh
+2. change readme.
+
 
