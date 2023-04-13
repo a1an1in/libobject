@@ -12,17 +12,17 @@ static int __run_command(Command *command)
 {
     int argc, i;
     char **argv;
+    Application *app = (Application *)command->opaque;
 
-    dbg_str(DBG_DETAIL, "help command");
+    printf("help command\n");
 
-    argc = command->argc;
-    argv = command->argv;
+    // argc = command->argc;
+    // argv = command->argv;
 
-    for (i = 0; i < argc; i++) {
-        dbg_str(DBG_DETAIL, "argv[%d]: %s", i, argv[i]);
-    }
-
-    dbg_str(DBG_DETAIL, "help command end");
+    // for (i = 0; i < argc; i++) {
+    //     printf("argv[%d]: %s\n", i, argv[i]);
+    // }
+    app->help(app);
 
     return 1;
 }

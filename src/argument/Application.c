@@ -118,6 +118,7 @@ static int __run(Application *app, int argc, char *argv[])
         EXEC(command->run_command(command)); 
 
         default_subcmd = app->get_subcommand(app, "help");
+        default_subcmd->opaque = app;
         subcmd = command->selected_subcommand;
         if (subcmd == NULL) {
             subcmd = default_subcmd;

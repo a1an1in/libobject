@@ -1,9 +1,10 @@
-support auto change tweak number.
+add help command.
 
 Description:
-we'll change tweak number of cmake when compling.
+update.
 
 Major Changes:
-1. change util.sh.
+1. add help command for app.
+2. change version
 
 
