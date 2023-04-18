@@ -30,16 +30,16 @@ int stub_add(stub_t *stub, void *func, void *new_fn)
 	return 1;
 }
 
-int stub_remove(stub_t *stub, void *func)
+int stub_remove(stub_t *stub)
 {
 	int ret = -1;
 	DWORD TempProtectVar;                //暂时保护属性变量
 	MEMORY_BASIC_INFORMATION MemInfo;    //内存分页属性信息
 
-	VirtualQuery(func, &MemInfo, sizeof(MEMORY_BASIC_INFORMATION));
+	VirtualQuery(stub->fn, &MemInfo, sizeof(MEMORY_BASIC_INFORMATION));
 
 	if (VirtualProtect(MemInfo.BaseAddress, MemInfo.RegionSize, PAGE_EXECUTE_READWRITE, &MemInfo.Protect)) { //改动页面为可写
-		memcpy((void*)func, (const void*)stub->inst_backup, sizeof(stub->inst_backup));                      //恢复代码段
+		memcpy((void*)stub->fn, (const void*)stub->inst_backup, sizeof(stub->inst_backup));                      //恢复代码段
 		VirtualProtect(MemInfo.BaseAddress, MemInfo.RegionSize, MemInfo.Protect, &TempProtectVar);          //改回原属性
 		ret = 1;
 	}
@@ -82,7 +82,7 @@ int stub_parse_context(void *exec_code_addr, void *reg_bp, void *p1, void *p2, v
         func(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], 
              p[10], p[11], p[12], p[13], p[14], p[15], p[16], p[17], p[18], p[19]);
     } else {
-        stub_remove(stub, stub->fn);
+        stub_remove(stub);
         func = (stub_func_t)stub->fn;
         func(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], 
              p[10], p[11], p[12], p[13], p[14], p[15], p[16], p[17], p[18], p[19]);
@@ -97,23 +97,16 @@ int stub_parse_context(void *exec_code_addr, void *reg_bp, void *p1, void *p2, v
     return 1;
 }
 
-int stub_alloc_exec_area(stub_t *stub)
+int stub_config_exec_area(stub_t *stub)
 {
     DWORD oldProtect =0;
 	DWORD TempProtectVar = 0;
-
-    stub->area = (stub_exec_area_t *)stub_placeholder;
     
     VirtualProtect(stub->area, sizeof(stub_exec_area_t), PAGE_EXECUTE_READWRITE, &oldProtect);
     stub->area->stub = stub;
     stub->area_flag = 1;
     VirtualProtect(stub->area, sizeof(stub_exec_area_t), oldProtect, &TempProtectVar);  //恢复保护属性
 
-    return 1;
-}
-
-int stub_free_exec_area(stub_t *stub)
-{
     return 1;
 }
 
@@ -144,7 +137,6 @@ int stub_add_hooks(struct stub *stub, void *func, void *pre, void *new_fn, void 
     int call_inst_addr_len = 4;
     struct stub_info_s *stub_info;
 
-    stub_alloc_exec_area(stub);
     *addr = ((long long)stub_parse_context - (long long)stub->area->exec_code) - call_inst_addr_offset - call_inst_addr_len;
     VirtualProtect(stub->area, sizeof(stub_exec_area_t), PAGE_EXECUTE_READWRITE, &oldProtect);
     memcpy(stub->area->exec_code, code, sizeof(code));
@@ -161,15 +153,6 @@ int stub_add_hooks(struct stub *stub, void *func, void *pre, void *new_fn, void 
 
     return 0;
 }
-
-int stub_remove_hooks(struct stub *stub, void *func)
-{
-    stub_free_exec_area(stub);
-    stub_remove(stub, func);
-
-    return 0;
-}
-
 
 int func_a_stub(void)
 {
@@ -244,12 +227,12 @@ int test_stub_windows()
     printf("The value:%d\r\n", func_a());
 	stub_add(stub, (void *)func_a, (void *)func_a_stub);
 	printf("The value:%d\r\n", func_a());
-	stub_remove(stub, (void *)func_a);
+	stub_remove(stub);
 	printf("The value:%d\r\n", func_a());
 
     stub_add_hooks(stub, (void *)func, (void *)func_pre, (void *)func2, (void *)print_outbound, 7);
     func(1, 2, 3, 4, 5, 6, &g);
-    stub_remove_hooks(stub, (void *)func);
+    stub_remove_hooks(stub);
     func(1, 2, 3, 4, 5, 6, &g);
     stub_free(stub);
 

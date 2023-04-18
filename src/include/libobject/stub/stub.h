@@ -4,19 +4,6 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 
-// typedef struct Stub_s Stub;
-
-// struct Stub_s{
-// 	Obj parent;
-
-// 	int (*construct)(Stub *,char *);
-// 	int (*deconstruct)(Stub *);
-
-// 	/*virtual methods reimplement*/
-// 	int (*set)(Stub *module, char *attrib, void *value);
-//     void *(*get)(Stub *, char *attrib);
-// };
-
 #define JMP_OFFSET_LEN  5   //JMP指令的长度
 /* 经过测试只带返回值的函数体和空参数的函数代码长度为14， 所以这段代码块
    替换目标函数是安全的(返回值和参数还有函数体完全为空的函数代码长度
@@ -56,8 +43,10 @@ struct stub_s {
 int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post, int para_count);
 int stub_remove_hooks(stub_t *stub);
 stub_t *stub_alloc();
-int stub_alloc_exec_area(stub_t *stub);
-int stub_free_exec_area(stub_t *stub);
+int stub_config_exec_area(stub_t *stub);
 int stub_placeholder();
+int stub_remove_hooks(stub_t *stub);
+int stub_remove(stub_t *stub);
+extern int stub_placeholder_size;
 
 #endif

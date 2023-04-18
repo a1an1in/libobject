@@ -11,7 +11,6 @@
 #include <libobject/core/try.h>
 #include <libobject/stub/stub.h>
 
-
 static inline void *pageof(const void *p)
 {
     long long pagesize = sysconf(_SC_PAGE_SIZE);
@@ -77,7 +76,6 @@ int stub_remove(stub_t *stub)
     return ret;
 }
 
-
 int stub_parse_context(void *exec_code_addr, void *rsp)
 {
     stub_t *stub;
@@ -102,7 +100,7 @@ int stub_parse_context(void *exec_code_addr, void *rsp)
             continue;
         }
         p[i] = par_addr[j];
-        printf("p[%d]:%x\n", i, p[i]);
+        printf("p[%d]:%p\n", i, p[i]);
         i++;
         j++;
     }
@@ -134,15 +132,13 @@ int stub_parse_context(void *exec_code_addr, void *rsp)
     return 1;
 }
 
-int stub_alloc_exec_area(stub_t *stub)
+int stub_config_exec_area(stub_t *stub)
 {
     int pagesize = sysconf(_SC_PAGESIZE);                                          // 系统页大小
     int ret;
 
     TRY {
-        stub->area = (stub_exec_area_t *)stub_placeholder;
-
-        dbg_str(DBG_DETAIL, "stub_alloc_exec_area, stub:%p", stub);
+        dbg_str(DBG_DETAIL, "stub_config_exec_area, stub:%p", stub);
         EXEC(mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_WRITE | PROT_EXEC));  
         stub->area->stub = stub;
         stub->area_flag = 1;
@@ -151,12 +147,6 @@ int stub_alloc_exec_area(stub_t *stub)
 
     return ret;
 }
-
-int stub_free_exec_area(stub_t *stub)
-{
-    return 1;
-}
-
 
 int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post, int para_count)
 {
@@ -206,14 +196,6 @@ int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post
     } CATCH (ret) {}
 
     return ret;
-}
-
-int stub_remove_hooks(stub_t *stub)
-{
-    stub_free_exec_area(stub);
-    stub_remove(stub);
-
-    return 0;
 }
 
 #endif
