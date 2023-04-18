@@ -7,37 +7,10 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/try.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/core/try.h>
+#include <libobject/stub/stub.h>
 
-#define JMP_OFFSET_LEN  5   //JMP指令的长度
-/* 经过测试只带返回值的函数体和空参数的函数代码长度为14， 所以这段代码块
-   替换目标函数是安全的(返回值和参数还有函数体完全为空的函数代码长度
-   为10， 这种函数也不该存在而且也不符合正常的编码规范) */
-#define STUB_REPLACE_CODE_SIZE 14U
-
-typedef struct stub_s stub_t;
-typedef int (*stub_func_t)(void * p1, void * p2, void * p3, void * p4, void * p5, 
-                           void * p6, void * p7, void * p8, void * p9, void * p10,
-                           void * p11, void * p12, void * p13, void * p14, void * p15, 
-                           void * p16, void * p17, void * p18, void * p19, void * p20);
-
-typedef struct stub_exec_area {
-    unsigned char exec_code[54];
-    stub_t *stub;
-} stub_exec_area_t;
-
-struct stub_s {
-    stub_exec_area_t *area;
-    void *reg_bp;
-    void *pre;
-    void *post;
-    void *new_fn;
-    void *fn;
-    unsigned int para_count;
-    int area_flag;
-    unsigned char code_buf[STUB_REPLACE_CODE_SIZE];
-};
 
 static inline void *pageof(const void *p)
 {
@@ -82,8 +55,7 @@ int stub_add(stub_t *stub, void *src, void *dst)
          *使用mprotect函数使该页的内存可读可写可执行
          */
         EXEC(mprotect(pageof(src), pagesize, PROT_READ | PROT_EXEC));  
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -100,8 +72,7 @@ int stub_remove(stub_t *stub)
         memcpy(stub->fn, stub->code_buf, STUB_REPLACE_CODE_SIZE);
         EXEC(mprotect(pageof(stub->fn), pagesize * 2, PROT_READ | PROT_EXEC));
         memset(stub, 0, sizeof(struct stub_s));
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -124,7 +95,7 @@ int stub_parse_context(void *exec_code_addr, void *rsp)
     while(i < stub->para_count) {
         /* 
          * 如果参数大于6个， 需要跳过rsp里面存放的第6和7个数据，
-         * 里面存放的市bsp和返回地址.
+         * 里面存放的是bsp和返回地址.
          **/
         if (j == 6 || j == 7) {
             j++;
@@ -163,34 +134,6 @@ int stub_parse_context(void *exec_code_addr, void *rsp)
     return 1;
 }
 
-int stub_placeholder()
-{
-    asm (
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        :
-        :
-    );
-    
-    return 0;
-}
-
-stub_t *stub_alloc()
-{
-    stub_t *stub;
-
-    stub = (stub_t *)malloc(sizeof(stub_t));
-    stub->area_flag = 0;
-
-    return stub;
-}
-
 int stub_alloc_exec_area(stub_t *stub)
 {
     int pagesize = sysconf(_SC_PAGESIZE);                                          // 系统页大小
@@ -204,8 +147,7 @@ int stub_alloc_exec_area(stub_t *stub)
         stub->area->stub = stub;
         stub->area_flag = 1;
         mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_EXEC);  
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -215,15 +157,6 @@ int stub_free_exec_area(stub_t *stub)
     return 1;
 }
 
-int stub_free(stub_t *stub)
-{
-    if (stub->area_flag == 1) {
-        stub_free_exec_area(stub);
-    }
-    free(stub);
-
-    return 1;
-}
 
 int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post, int para_count)
 {
@@ -244,7 +177,7 @@ int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post
         0x48, 0x89, 0x75, 0xd8,                     //mov    %rsi,-0x28(%rbp)
         0x48, 0x89, 0x7d, 0xd0,                     //mov    %rdi,-0x30(%rbp)，把参数0 放到栈
         0x48, 0x89, 0xe6,                           //mov    %rsp,%rsi       ，把rsp地址传给stub_parse_context参数1
-        0x48, 0x8d, 0x3d, 0x00, 0x00, 0x00, 0x00,	//lea    0x0(%rip),%rdi  , 把rsp地址传给stub_parse_context参数0
+        0x48, 0x8d, 0x3d, 0x00, 0x00, 0x00, 0x00,	//lea    0x0(%rip),%rdi  , 把rip地址(call语句的地址）传给stub_parse_context参数0
         0xe8, 0xfd, 0x17, 0x00, 0x00,               //callq  0x401a8a <func5>
         0x48, 0x83, 0xc4, 0x30,                     //add    $0x30,%rsp
         0x5d,                                       //pop    %rbp
@@ -257,7 +190,6 @@ int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post
     int call_inst_addr_len = 4;
 
     TRY {
-        EXEC(stub_alloc_exec_area(stub));
         *addr = ((long long)stub_parse_context - (long long)stub->area->exec_code) - call_inst_addr_offset - call_inst_addr_len;
         mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_WRITE | PROT_EXEC);  
         memcpy(stub->area->exec_code, code, sizeof(code));
@@ -271,8 +203,7 @@ int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post
         stub->para_count = para_count;
         printf("pre:%p, func:%p, post:%p, stubed_func:%p\n", stub->pre, stub->new_fn, stub->post, stub->fn);
         EXEC(stub_add(stub, func, stub->area->exec_code));
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -284,145 +215,5 @@ int stub_remove_hooks(stub_t *stub)
 
     return 0;
 }
-
-
-// test funcs
-int test_funcA(int *a, int *b, int *c)
-{
-    printf("call funcA, a:%d, b:%d, c:%d\n", *a, *b, *c);
-    *a = *b = *c = 1;
-    return *a + *b + *c;
-}
-
-int test_funcB(int *a, int *b, int *c)
-{
-    int t;
-    printf("call funcB, a:%d, b:%d, c:%d\n", *a, *b, *c);
-    t = *a;
-    *a = *c;
-    *c = t;
-
-    return *a + *b + *c;
-}
-
-int test_null_fun() 
-{
-    return 1;
-}
-
-int test_stub_add1()
-{
-    char ac[10] = {1};
-    stub_t stub;
-    int a = 1, b = 2, c = 3;
-    int ret;
-
-    TRY {
-        stub_add(&stub, (void*)test_funcA, (void*)test_funcB);  // 添加动态桩 用B替换A
-        ret = test_funcA(&a, &b, &c);
-        THROW_IF(ret != (a + b + c), -1);
-        THROW_IF(a != 3 || c != 1, -1);
-
-        stub_remove(&stub);  // 添加动态桩 用B替换A
-        ret = test_funcA(&a, &b, &c);
-        THROW_IF(ret != 3, -1);
-    } CATCH (ret) {
-    }
-
-    return ret;
-}
-
-int test_strcpy_value = -1;
-static void *my_strcmp(void *s, void *d)
-{
-    dbg_str(DBG_ERROR, "run at here");
-    test_strcpy_value = 128;
-    dbg_str(DBG_ERROR, "test_strcpy_value:%d", test_strcpy_value);
-    return NULL;
-}
-
-int test_stub_add2()
-{
-    char buf[20] = {0};
-    stub_t stub;
-    int ret;
-
-    TRY {
-        stub_add(&stub, (void*)strcmp, (void*)my_strcmp);
-        strcmp(buf, "hello_world");
-        THROW_IF(test_strcpy_value != 128, -1);
-        stub_remove(&stub); 
-
-        strcpy(buf, "hello_world");
-        ret = strcmp(buf, "hello_world");
-        THROW_IF(ret != 0, -1);
-    } CATCH (ret) {
-        // stub_remove(&stub);  // 添加动态桩 用B替换A
-        dbg_str(DBG_ERROR, "test_strcpy_value:%d", test_strcpy_value);
-    }
-    return ret;
-}
-
-int test_stub_add()
-{
-    int ret;
-
-    TRY {
-        EXEC(test_stub_add1());
-        EXEC(test_stub_add2());
-    } CATCH (ret) {
-    }
-
-    return ret;
-}
-REGISTER_TEST_CMD(test_stub_add);
-
-int func_pre(int a, int b, int c, int d, int e, int f, int *g)
-{
-    printf("func_pre, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-int func(int a, int b, int c, int d, int e, int f, int *g)
-{
-    printf("func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-int func2(int a, int b, int c, int d, int e, int f, int *g)
-{
-    *g = 8;
-    printf("func2, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-int print_outbound(int a, int b, int c, int d, int e, int f, int *g)
-{
-    printf("func_post, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-int test_stub_add_hooks()
-{
-    stub_t *stub;
-    int g = 7;
-    int ret;
-
-    TRY {
-        sleep(1);
-        stub = stub_alloc();
-        dbg_str(DBG_DETAIL, "stub:%p, g addr:%p", stub, &g);
-
-        EXEC(stub_add_hooks(stub, (void *)func, (void *)func_pre, (void *)func2, (void *)print_outbound, 7));
-        func(1, 2, 3, 4, 5, 6, &g);
-        stub_remove_hooks(stub);
-        func(1, 2, 3, 4, 5, 6, &g);
-    } CATCH (ret) {
-    }
-
-    return ret;
-}
-
-REGISTER_TEST_CMD(test_stub_add_hooks);
 
 #endif

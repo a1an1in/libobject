@@ -6,33 +6,7 @@
 #include <errno.h>
 #include <string.h>
 #include <windows.h>
-
-#define FLATJMPCODE_LENGTH 5            //x86 平坦内存模式下，绝对跳转指令长度
-#define FLATJMPCMD_LENGTH  1            //机械码0xe9长度
-#define FLATJMPCMD         0xe9         //相应汇编的jmp指令
-
-typedef struct stub stub_t;
-typedef int (*stub_func_t)(void * p1, void * p2, void * p3, void * p4, void * p5, 
-                void * p6, void * p7, void * p8, void * p9, void * p10,
-                void * p11, void * p12, void * p13, void * p14, void * p15, 
-                void * p16, void * p17, void * p18, void * p19, void * p20);
-
-typedef struct stub_exec_area {
-    unsigned char exec_code[80];
-    stub_t *stub;
-} stub_exec_area_t;
-
-struct stub {
-    stub_exec_area_t *area;
-    void *reg_bp;
-    void *pre;
-    void *post;
-    void *new_fn;
-    void *fn;
-    unsigned int para_count;
-    int area_flag;
-    unsigned char inst_backup[FLATJMPCODE_LENGTH + FLATJMPCMD_LENGTH];
-};
+#include <libobject/stub/stub.h>
 
 int stub_add(stub_t *stub, void *func, void *new_fn)
 {
@@ -123,34 +97,6 @@ int stub_parse_context(void *exec_code_addr, void *reg_bp, void *p1, void *p2, v
     return 1;
 }
 
-int stub_placeholder()
-{
-    asm (
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;"
-        :
-        :
-    );
-    
-    return 0;
-}
-
-struct stub *stub_alloc()
-{
-    struct stub *stub;
-
-    stub = (struct stub *)malloc(sizeof(struct stub));
-    stub->area_flag = 0;
-
-    return stub;
-}
-
 int stub_alloc_exec_area(stub_t *stub)
 {
     DWORD oldProtect =0;
@@ -168,16 +114,6 @@ int stub_alloc_exec_area(stub_t *stub)
 
 int stub_free_exec_area(stub_t *stub)
 {
-    return 1;
-}
-
-int stub_free(stub_t *stub)
-{
-    if (stub->area_flag == 1) {
-        stub_free_exec_area(stub);
-    }
-    free(stub);
-
     return 1;
 }
 
