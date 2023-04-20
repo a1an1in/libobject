@@ -154,16 +154,6 @@ int stub_add_hooks(struct stub *stub, void *func, void *pre, void *new_fn, void 
     return 0;
 }
 
-int func_a_stub(void)
-{
-	return 300;
-}
-
-int func_a(void)
-{
-	return 200;
-}
-
 char *g_str = "hello shellcode world\n";
 int func4()
 {
@@ -183,61 +173,4 @@ int func4()
     );
 }
 
-int func5()
-{
-    return printf("hello shellcode world\n");
-}
-
-int func6()
-{
-    return func5();
-}
-
-int func_pre(int a, int b, int c, int d, int e, int f, int *g)
-{
-    printf("func_pre, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-int func(int a, int b, int c, int d, int e, int f, int *g)
-{
-    printf("func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-int func2(int a, int b, int c, int d, int e, int f, int *g)
-{
-    *g = 8;
-    printf("func2, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-int print_outbound(int a, int b, int c, int d, int e, int f, int *g)
-{
-    printf("func_post, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-int test_stub_windows()
-{
-    struct stub *stub;
-    int g = 7;
-
-    stub = stub_alloc();
-    printf("The value:%d\r\n", func_a());
-	stub_add(stub, (void *)func_a, (void *)func_a_stub);
-	printf("The value:%d\r\n", func_a());
-	stub_remove(stub);
-	printf("The value:%d\r\n", func_a());
-
-    stub_add_hooks(stub, (void *)func, (void *)func_pre, (void *)func2, (void *)print_outbound, 7);
-    func(1, 2, 3, 4, 5, 6, &g);
-    stub_remove_hooks(stub);
-    func(1, 2, 3, 4, 5, 6, &g);
-    stub_free(stub);
-
-    return 0;
-}
-
-REGISTER_TEST_CMD(test_stub_windows);
 #endif

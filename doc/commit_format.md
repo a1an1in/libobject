@@ -1,8 +1,7 @@
-release a new version.
+del useless codes.
 
 Description:
-stub is useable.
+update.
 
 Major Changes:
-1. optimize print of stub.
-2. add a new version
+1. update.
