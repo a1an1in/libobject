@@ -86,7 +86,7 @@ stub_t *stub_admin_alloc(stub_admin_t *admin)
         if (list->count(list)) {
             EXEC(list->detach_front(list, &stub));
             EXEC(stub_config_exec_area(stub));
-            printf("stub_admin_alloc1, stub addr:%p\n", stub);
+            dbg_str(DBG_DETAIL,"stub_admin_alloc, alloc from free list, stub addr:%p\n", stub);
             return stub;
         }
 
@@ -95,17 +95,19 @@ stub_t *stub_admin_alloc(stub_admin_t *admin)
             EXEC(list->detach_front(list, &cur));
         } else if ( (cur->size - cur->index) < sizeof(stub_exec_area_t)) {
             allocator_mem_free(allocator, cur);
+            cur = NULL;
             EXEC(list->detach_front(list, &cur));
+            THROW_IF(cur == NULL, -1);
         }
 
         admin->cur = cur;
         stub = (stub_t *)allocator_mem_alloc(allocator, sizeof(stub_t));
         stub->area = cur->addr + cur->index;
-        printf("stub_admin_alloc, addr:%p, index:%d\n", cur->addr, cur->index);
         cur->index += sizeof(stub_exec_area_t);
         
         EXEC(stub_config_exec_area(stub));
-        printf("stub_admin_alloc2, stub addr:%p\n", stub);
+        dbg_str(DBG_DETAIL,"stub_admin_alloc, alloc from alloc, stub addr:%p, addr:%p, index:%d", 
+                stub, cur->addr, cur->index);
     } CATCH (ret) {
         stub = NULL;
     }

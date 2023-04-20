@@ -89,7 +89,7 @@ int stub_parse_context(void *exec_code_addr, void *rsp)
     void **par_addr = (void **)(rsp);
     stub = area->stub;
 
-    printf("area:%p par_addr:%p, par_count:%d\n", area, par_addr, stub->para_count);
+    dbg_str(DBG_DETAIL,"stub_parse_context, area:%p par_addr:%p, par_count:%d", area, par_addr, stub->para_count);
     
     while(i < stub->para_count) {
         /* 
@@ -101,7 +101,7 @@ int stub_parse_context(void *exec_code_addr, void *rsp)
             continue;
         }
         p[i] = par_addr[j];
-        printf("p[%d]:%p\n", i, p[i]);
+        // printf("p[%d]:%p\n", i, p[i]);
         i++;
         j++;
     }
@@ -185,14 +185,15 @@ int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post
         mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_WRITE | PROT_EXEC);  
         memcpy(stub->area->exec_code, code, sizeof(code));
         mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_EXEC);  
-        printf("offset:%x\n", *addr);
+        // printf("offset:%x\n", *addr);
 
         stub->pre = pre;
         stub->new_fn = new_fn;
         stub->fn = func;
         stub->post = post;
         stub->para_count = para_count;
-        printf("pre:%p, func:%p, post:%p, stubed_func:%p\n", stub->pre, stub->new_fn, stub->post, stub->fn);
+        dbg_str(DBG_DETAIL,"pre:%p, func:%p, post:%p, stubed_func:%p", 
+                stub->pre, stub->new_fn, stub->post, stub->fn);
         EXEC(stub_add(stub, func, stub->area->exec_code));
     } CATCH (ret) {}
 

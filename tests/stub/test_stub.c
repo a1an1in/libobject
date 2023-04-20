@@ -107,30 +107,30 @@ int test_stub_add()
 
     return ret;
 }
-REGISTER_TEST_CMD(test_stub_add);
+REGISTER_TEST_FUNC(test_stub_add);
 
-int func_pre(int a, int b, int c, int d, int e, int f, int *g)
+int print_inbound(int a, int b, int c, int d, int e, int f, int *g)
 {
-    printf("func_pre, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
+    printf("inbound func of add_hooks_test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
     return 1;
 }
 
-int func(int a, int b, int c, int d, int e, int f, int *g)
+int add_hooks_test_func(int a, int b, int c, int d, int e, int f, int *g)
 {
-    printf("func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
+    printf("original add_hooks_test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
     return 1;
 }
 
-int func2(int a, int b, int c, int d, int e, int f, int *g)
+int target_func(int a, int b, int c, int d, int e, int f, int *g)
 {
     *g = 8;
-    printf("func2, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
+    printf("target add_hooks_test_func which replaced the original add_hooks_test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
     return 1;
 }
 
 int print_outbound(int a, int b, int c, int d, int e, int f, int *g)
 {
-    printf("func_post, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
+    printf("outbound func of add_hooks_test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
     return 1;
 }
 
@@ -141,20 +141,19 @@ int test_stub_add_hooks()
     int ret;
 
     TRY {
-        sleep(1);
         stub = stub_alloc();
         THROW_IF(stub == NULL, -1);
         dbg_str(DBG_DETAIL, "stub:%p, g addr:%p", stub, &g);
 
-        EXEC(stub_add_hooks(stub, (void *)func, (void *)func_pre, (void *)func2, (void *)print_outbound, 7));
-        func(1, 2, 3, 4, 5, 6, &g);
+        add_hooks_test_func(1, 2, 3, 4, 5, 6, &g);
+        EXEC(stub_add_hooks(stub, (void *)add_hooks_test_func, (void *)print_inbound, (void *)target_func, (void *)print_outbound, 7));
+        add_hooks_test_func(1, 2, 3, 4, 5, 6, &g);
         stub_remove_hooks(stub);
-        func(1, 2, 3, 4, 5, 6, &g);
+        add_hooks_test_func(1, 2, 3, 4, 5, 6, &g);
     } CATCH (ret) { } FINALLY {
         stub_free(stub);
     }
 
-
     return ret;
 }
-REGISTER_TEST_CMD(test_stub_add_hooks);
+REGISTER_TEST_FUNC(test_stub_add_hooks);
