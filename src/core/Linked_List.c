@@ -126,20 +126,21 @@ static int __count(List *list)
     return llist_get_count(l->llist);
 }
 
-static int __detach_front(List *list, Iterator *iter)
+static int __detach_front(List *list, void **data)
 {
-    Linked_List *l    = (Linked_List *)list;
-    LList_Iterator *i = (LList_Iterator *)iter;
+    Linked_List *ll = (Linked_List *)list;
+    list_t *l;
     void *ret;
 
-    i->list_pos = l->llist->begin;
+    TRY {
+        l = llist_detach_front(ll->llist);
+        THROW_IF(l == NULL, -1);
 
-    ret = llist_detach(l->llist, &(i->list_pos));
-    if (ret == NULL) {
-        i->list_pos.list_head_p = NULL;
-    }
+        *data = l->data;
+        allocator_mem_free(ll->llist->allocator, l);
+    } CATCH (ret) {}
 
-    return 0;
+    return ret;
 }
 
 static int __free_detached(List *list, Iterator *iter)

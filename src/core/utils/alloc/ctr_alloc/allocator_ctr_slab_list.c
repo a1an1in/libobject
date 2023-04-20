@@ -207,7 +207,7 @@ slab_attach_list_to_free_slabs(allocator_t *alloc,
 void slab_print_list(ctr_slab_t *slab_list, uint16_t slab_index)
 {
     if (slab_index != 0xffff) {
-        dbg_str(ALLOC_VIP, 
+        dbg_str(ALLOC_WARNNING, 
                 "slab info, slab index =%d\t, alloc size=%d\t, req_size =%d\t, "
                 "slab_size=%d\t, slab_start:%p\t, slab_end:%p, tag:%s", 
                 slab_index, 
@@ -217,7 +217,7 @@ void slab_print_list(ctr_slab_t *slab_list, uint16_t slab_index)
                 (uint8_t*)slab_list +  slab_list->size + sizeof(ctr_slab_t), 
                 slab_list->tag);
     } else {
-        dbg_str(ALLOC_VIP, 
+        dbg_str(ALLOC_WARNNING, 
                 "slab info, alloc size=%d\t, req_size =%d\t, slab_size=%d\t, "
                 "slab_start:%p\t, slab_end:%p, tag:%s", 
                 slab_list->size, slab_list->data_size, 

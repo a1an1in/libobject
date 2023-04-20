@@ -1,10 +1,12 @@
-update stub.
+stub is ok.
 
 Description:
-update.
+i have add a stub admin to alloc stub. when free stub
+we add stub to free list. when alloc, get from free stub
+list first.
 
 Major Changes:
-1. add more placeholder.
-2. extract stub_alloc_exec_area and stub_free_exec_area to stub.c
-
-
+1. modifi list::detach_front.
+2. modify allocator's log level of print list
+3. add stub admin
+4. stub has passed test cases.

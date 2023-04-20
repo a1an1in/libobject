@@ -88,7 +88,7 @@ __allocator_mem_alloc(allocator_t * alloc,uint32_t size)
     if (ret != NULL) {\
         char tmp[1024];\
         sprintf(tmp, "%d:%s", __LINE__, extract_filename_in_macro(__FILE__));\
-        allocator_save_upper_nlayer_name(alloc, 2, ret);\
+        allocator_mem_tag(alloc,ret, tmp);\
     }\
     ret;\
 })

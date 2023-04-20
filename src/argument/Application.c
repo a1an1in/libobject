@@ -11,6 +11,7 @@
 #include <libobject/core/try.h>
 #include <libobject/core/io/fs_compat.h>
 #include <libobject/concurrent/Producer.h>
+#include <libobject/stub/admin.h>
 #include <libobject/version.h>
 
 #define MAX_APP_COMMANDS_COUNT 1024
@@ -157,6 +158,7 @@ static int __run_command(Application *app)
 
         EXEC(producer_init_default_instance(event_thread_service, event_signal_service));
         EXEC(event_base_init_default_instance());
+        EXEC(stub_admin_init_default_instance());
     } CATCH (ret) {
     }
 
@@ -210,6 +212,7 @@ int libobject_destroy()
     int ret;
 
     TRY {
+        EXEC(stub_admin_destroy_default_instance());
         EXEC(event_base_destroy_default_instance());
         EXEC(producer_destroy_default_instance());
 

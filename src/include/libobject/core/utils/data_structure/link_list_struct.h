@@ -31,11 +31,13 @@
 typedef struct llist_list_s{
 	struct list_head list_head;
 	void * data;
-}list_t;
+} list_t;
+
 typedef struct llist_pos_s{
 	struct list_head *list_head_p;
 	struct llist_s *llist;
-}list_pos_t;
+} list_pos_t;
+
 typedef struct llist_s{
 	sync_lock_t list_lock;
 	uint32_t list_count;
@@ -43,5 +45,6 @@ typedef struct llist_s{
 	list_t *list;
 	uint8_t lock_type;
 	allocator_t *allocator;
-}llist_t;
+} llist_t;
+
 #endif

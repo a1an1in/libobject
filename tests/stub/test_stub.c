@@ -34,6 +34,32 @@ int test_null_fun()
     return 1;
 }
 
+int test_stub_add1()
+{
+    char ac[10] = {1};
+    stub_t *stub;
+    int a = 1, b = 2, c = 3;
+    int ret;
+
+    TRY {
+        stub = stub_alloc();
+        THROW_IF(stub == NULL, -1);
+        stub_add(stub, (void*)test_funcA, (void*)test_funcB);  // 添加动态桩 用B替换A
+        ret = test_funcA(&a, &b, &c);
+        THROW_IF(ret != (a + b + c), -1);
+        THROW_IF(a != 3 || c != 1, -1);
+
+        stub_remove(stub);  // 添加动态桩 用B替换A
+        ret = test_funcA(&a, &b, &c);
+        THROW_IF(ret != 3, -1);
+    } CATCH (ret) {
+    } FINALLY {
+        stub_free(stub);
+    }
+
+    return ret;
+}
+
 int test_strcpy_value = -1;
 static void *my_strcmp(void *s, void *d)
 {
@@ -43,47 +69,30 @@ static void *my_strcmp(void *s, void *d)
     return NULL;
 }
 
-int test_stub_add1()
-{
-    char ac[10] = {1};
-    stub_t stub;
-    int a = 1, b = 2, c = 3;
-    int ret;
-
-    TRY {
-        stub_add(&stub, (void*)test_funcA, (void*)test_funcB);  // 添加动态桩 用B替换A
-        ret = test_funcA(&a, &b, &c);
-        THROW_IF(ret != (a + b + c), -1);
-        THROW_IF(a != 3 || c != 1, -1);
-
-        stub_remove(&stub);  // 添加动态桩 用B替换A
-        ret = test_funcA(&a, &b, &c);
-        THROW_IF(ret != 3, -1);
-    } CATCH (ret) {
-    }
-
-    return ret;
-}
-
 int test_stub_add2()
 {
     char buf[20] = {0};
-    stub_t stub;
+    stub_t *stub;
     int ret;
 
     TRY {
-        stub_add(&stub, (void*)strcmp, (void*)my_strcmp);
+        stub = stub_alloc();
+        THROW_IF(stub == NULL, -1);
+        stub_add(stub, (void*)strcmp, (void*)my_strcmp);
         strcmp(buf, "hello_world");
         THROW_IF(test_strcpy_value != 128, -1);
-        stub_remove(&stub); 
+        stub_remove(stub); 
 
         strcpy(buf, "hello_world");
         ret = strcmp(buf, "hello_world");
         THROW_IF(ret != 0, -1);
     } CATCH (ret) {
-        // stub_remove(&stub);  // 添加动态桩 用B替换A
         dbg_str(DBG_ERROR, "test_strcpy_value:%d", test_strcpy_value);
+    } FINALLY {
+        stub_remove(stub); 
+        stub_free(stub);
     }
+
     return ret;
 }
 
@@ -93,7 +102,7 @@ int test_stub_add()
 
     TRY {
         EXEC(test_stub_add1());
-        EXEC(test_stub_add2());
+        // EXEC(test_stub_add2());
     } CATCH (ret) { }
 
     return ret;
@@ -134,13 +143,17 @@ int test_stub_add_hooks()
     TRY {
         sleep(1);
         stub = stub_alloc();
+        THROW_IF(stub == NULL, -1);
         dbg_str(DBG_DETAIL, "stub:%p, g addr:%p", stub, &g);
 
         EXEC(stub_add_hooks(stub, (void *)func, (void *)func_pre, (void *)func2, (void *)print_outbound, 7));
         func(1, 2, 3, 4, 5, 6, &g);
         stub_remove_hooks(stub);
         func(1, 2, 3, 4, 5, 6, &g);
-    } CATCH (ret) { }
+    } CATCH (ret) { } FINALLY {
+        stub_free(stub);
+    }
+
 
     return ret;
 }

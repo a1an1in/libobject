@@ -65,12 +65,13 @@ int stub_remove(stub_t *stub)
     int ret;
 
     TRY {
+        THROW_IF(stub == NULL, -1);
         THROW_IF(stub->fn == NULL, -1);
 
         EXEC(mprotect(pageof(stub->fn), pagesize * 2, PROT_READ | PROT_WRITE | PROT_EXEC));
         memcpy(stub->fn, stub->code_buf, STUB_REPLACE_CODE_SIZE);
         EXEC(mprotect(pageof(stub->fn), pagesize * 2, PROT_READ | PROT_EXEC));
-        memset(stub, 0, sizeof(struct stub_s));
+        // memset(stub, 0, sizeof(struct stub_s));
     } CATCH (ret) {}
 
     return ret;
@@ -138,7 +139,7 @@ int stub_config_exec_area(stub_t *stub)
     int ret;
 
     TRY {
-        dbg_str(DBG_DETAIL, "stub_config_exec_area, stub:%p", stub);
+        THROW_IF(stub->area == NULL, -1);
         EXEC(mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_WRITE | PROT_EXEC));  
         stub->area->stub = stub;
         stub->area_flag = 1;
