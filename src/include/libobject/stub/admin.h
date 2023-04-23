@@ -26,4 +26,8 @@ stub_admin_t *stub_admin_get_default_instance();
 stub_t *stub_admin_alloc(stub_admin_t *admin);
 int stub_admin_free(stub_admin_t *admin, stub_t *stub);
 
+extern int stub_config_exec_area(stub_t *stub);
+extern int stub_placeholder();
+extern int stub_placeholder_size;
+
 #endif

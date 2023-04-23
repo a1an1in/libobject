@@ -28,7 +28,6 @@ struct Linked_List_s{
     int (*remove_element)(List *list, void *data);
     int (*count)(List *list);
     void* (*detach_front)(List *list, void **data);
-    int (*free_detached)(List *list,Iterator *iter);
     void (*for_each)(List *list,void (*func)(void *element));
     Iterator *(*begin)(List *list);
     Iterator *(*end)(List *list);

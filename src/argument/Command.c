@@ -182,13 +182,10 @@ static Option *__get_option(Command *command, char *option_name)
     return NULL;
 }
 
-    static int 
+static int 
 __add_argument(command, value, usage, action, opaque)
-    Command *command; 
-    char *value; 
-    char *usage; 
-    int (*action)(Argument *,  void *); 
-    void *opaque;
+    Command *command;  char *value; char *usage; 
+    int (*action)(Argument *,  void *); void *opaque;
 {
     Vector *args = command->args;
     Argument *arg;

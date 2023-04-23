@@ -40,13 +40,11 @@ struct stub_s {
 #endif
 };
 
-int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post, int para_count);
-int stub_remove_hooks(stub_t *stub);
 stub_t *stub_alloc();
-int stub_config_exec_area(stub_t *stub);
-int stub_placeholder();
-int stub_remove_hooks(stub_t *stub);
+int stub_add(stub_t *stub, void *src, void *dst);
+int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post, int para_count);
 int stub_remove(stub_t *stub);
-extern int stub_placeholder_size;
+int stub_remove_hooks(stub_t *stub);
+int stub_free(stub_t *stub);
 
 #endif

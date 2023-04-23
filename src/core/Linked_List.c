@@ -143,17 +143,6 @@ static int __detach_front(List *list, void **data)
     return ret;
 }
 
-static int __free_detached(List *list, Iterator *iter)
-{
-    Linked_List *l    = (Linked_List *)list;
-    LList_Iterator *i = (LList_Iterator *)iter;
-    void *p;
-
-    p = container_of(i->list_pos.list_head_p, list_t, list_head);
-    allocator_mem_free(l->llist->allocator, p);
-
-    return 0;
-}
 
 static Iterator *__begin(List *list)
 {
@@ -189,9 +178,8 @@ static class_info_entry_t llist_class_info[] = {
     Init_Vfunc_Entry(10, Linked_List, count, __count),
     Init_Vfunc_Entry(11, Linked_List, delete, __delete),
     Init_Vfunc_Entry(12, Linked_List, detach_front, __detach_front),
-    Init_Vfunc_Entry(13, Linked_List, free_detached, __free_detached),
-    Init_Vfunc_Entry(14, Linked_List, begin, __begin),
-    Init_Vfunc_Entry(15, Linked_List, end, __end),
-    Init_End___Entry(16, Linked_List),
+    Init_Vfunc_Entry(13, Linked_List, begin, __begin),
+    Init_Vfunc_Entry(14, Linked_List, end, __end),
+    Init_End___Entry(15, Linked_List),
 };
 REGISTER_CLASS("Linked_List", llist_class_info);

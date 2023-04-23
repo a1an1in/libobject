@@ -29,7 +29,6 @@ struct _list_s{
     int (*count)(List *list);
     int (*is_empty)(List *list);
     void* (*detach_front)(List *list, void **data);
-    int (*free_detached)(List *list,Iterator *iter);
     void (*for_each)(List *list,void (*func)(void *element));
     void (*for_each_arg)(List *list,void (*func)(void *element, void *arg),void *arg);
     Iterator *(*begin)(List *list);
