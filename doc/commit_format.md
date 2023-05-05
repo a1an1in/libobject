@@ -1,8 +1,8 @@
-optimize code.
+add todo mk doc.
 
 Description:
 update.
 
 Major Changes:
-1. del free_detached api of Link
-2. add static to test of stub
+1. add todo file
+2. modify test_stub.c

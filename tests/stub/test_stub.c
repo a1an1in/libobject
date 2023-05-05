@@ -36,7 +36,7 @@ int test_null_fun()
     return 1;
 }
 
-static int test_stub_add1()
+static int test_stub_add_stub_only1()
 {
     char ac[10] = {1};
     stub_t *stub;
@@ -68,7 +68,7 @@ static int my_str_hex_to_int(char *s)
     return 0xdead;
 }
 
-static int test_stub_add2()
+static int test_stub_add_stub_only2()
 {
     char buf[20] = {0};
     stub_t *stub;
@@ -89,18 +89,18 @@ static int test_stub_add2()
     return ret;
 }
 
-static int test_stub_add()
+static int test_stub_add_stub_only()
 {
     int ret;
 
     TRY {
-        EXEC(test_stub_add1());
-        EXEC(test_stub_add2());
+        EXEC(test_stub_add_stub_only1());
+        EXEC(test_stub_add_stub_only2());
     } CATCH (ret) { }
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_stub_add);
+REGISTER_TEST_FUNC(test_stub_add_stub_only);
 
 static int print_inbound(int a, int b, int c, int d, int e, int f, int *g)
 {
