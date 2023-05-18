@@ -85,7 +85,7 @@ static int __rename(File *file, char *path)
 /* not user access as interface, for access mode paramater is not general */
 static int __is_exist(File *file, char *path)
 {
-    if (access(path, F_OK) < 0) {
+    if (access(path, 0) < 0) {
         return 0;
     } else {
         return 1;
@@ -94,11 +94,17 @@ static int __is_exist(File *file, char *path)
 
 static int __mkdir(File *file, char *path, mode_t mode)
 {
-    if(mkdir(path, mode) < 0) {
-        return -1;
-    } else {
-        return 1;
-    }
+    int ret;
+
+    TRY {
+#if (defined(WINDOWS_USER_MODE))
+    EXEC(mkdir(path));
+#else
+    EXEC(mkdir(path, mode));
+#endif
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static int __close(File *file)

@@ -3,8 +3,13 @@
 
 #include <stdio.h>
 #include <sys/types.h>
+#if (defined(WINDOWS_USER_MODE))
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <netdb.h>
+#endif
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
 #include <libobject/crypto/Digest.h>

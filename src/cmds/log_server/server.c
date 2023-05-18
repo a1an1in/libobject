@@ -1,3 +1,4 @@
+#if (!defined(WINDOWS_USER_MODE))
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
@@ -27,3 +28,4 @@ void log_server()
 #endif
     object_destroy(c);
 }
+#endif

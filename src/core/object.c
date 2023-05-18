@@ -593,7 +593,7 @@ void * object_new(allocator_t *allocator, const char *type, char *config)
         THROW_IF((size = __object_get_class_size(entry)) == 0, -1);
         THROW_IF((o = (Obj *)allocator_mem_alloc(allocator, size)) == NULL, -1);
 
-        allocator_save_upper_nlayer_name(allocator, 7, o);
+        // allocator_save_upper_nlayer_name(allocator, 7, o);
         memset(o, 0, size);
         o->allocator = allocator;
         strcpy(o->name, type);

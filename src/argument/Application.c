@@ -11,8 +11,11 @@
 #include <libobject/core/try.h>
 #include <libobject/core/io/fs_compat.h>
 #include <libobject/concurrent/Producer.h>
-#include <libobject/stub/admin.h>
 #include <libobject/version.h>
+
+#if (defined(WINDOWS_USER_MODE))
+#include <winsock2.h>
+#endif
 
 #define MAX_APP_COMMANDS_COUNT 1024
 static char *app_commands[MAX_APP_COMMANDS_COUNT];
@@ -191,14 +194,16 @@ int libobject_init()
 
     TRY {
         #if (defined(WINDOWS_USER_MODE))
-        WSADATA wsa_data;
-        if (WSAStartup(MAKEWORD(2, 1), &wsa_data)) {
-            dbg_str(NET_ERROR, "WSAStartup error");
-            return -1;
-        }
+            WSADATA wsa_data;
+            if (WSAStartup(MAKEWORD(2, 1), &wsa_data)) {
+                dbg_str(NET_ERROR, "WSAStartup error");
+                return -1;
+            }
+        #else
+            EXEC(core_init_fs());
         #endif
         EXEC(execute_ctor_funcs());
-        EXEC(core_init_fs());
+        
         debugger_set_all_businesses_level(debugger_gp, 1, 3);
 
         exception_init();
@@ -216,10 +221,12 @@ int libobject_destroy()
         EXEC(event_base_destroy_default_instance());
         EXEC(producer_destroy_default_instance());
 
-        //#if (defined(WINDOWS_USER_MODE))
-        //    WSACleanup();
-        //#endif
-        EXEC(core_destroy_fs());
+        #if (defined(WINDOWS_USER_MODE))
+            WSACleanup();
+        #else
+            EXEC(core_destroy_fs());
+        #endif
+        
         EXEC(execute_dtor_funcs());
     } CATCH (ret) {
     }

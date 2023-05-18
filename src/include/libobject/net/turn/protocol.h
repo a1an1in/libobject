@@ -7,6 +7,14 @@
 #include <libobject/core/Vector.h>
 #include <libobject/core/Map.h>
 
+#if (defined(WINDOWS_USER_MODE))
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <sys/socket.h>
+#include <netdb.h>
+#endif
+
 #define STUN_QUEST                                      0x0000
 #define STUN_INDICATION                                 0x0010
 #define STUN_SUCCESS_RESP                               0x0100

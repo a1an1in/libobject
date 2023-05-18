@@ -5,7 +5,7 @@
  * @version 
  * @date 2019-06-19
  */
-
+#if (!defined(WINDOWS_USER_MODE))
 #include <libobject/core/Date_Time.h>
 
 static int __construct(Date_Time *date, char *init_str)
@@ -313,3 +313,4 @@ static class_info_entry_t module_class_info[] = {
 };
 REGISTER_CLASS("Date_Time", module_class_info);
 
+#endif

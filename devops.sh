@@ -81,8 +81,6 @@ function parse_args { # Read commande line arguments and update global vairbles
 
 function process_args {
     if [[ $CMD_NAME == "build" ]]; then
-        echo "need build"
-        echo "PlatForm: ${OPTION_PLATFORM}"
         do_build
     elif [[ $CMD_NAME == "release" ]]; then
         do_release

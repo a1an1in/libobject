@@ -49,6 +49,19 @@ function do_build_android {
     #cp -rf src/include/libobject ~/workspace/goya-github/android/goya-alone/app/src/main/jni/include/libobject
 }
 
+function do_build_windows {
+    increase_version_tweak_number
+    # rm -rf /usr/local/include/libobject
+    mkdir -p build/windows
+    cd build/windows
+    cmake ../.. -G "Unix Makefiles" -DPLATFORM=windows -DMODULE_UI=off
+    make
+    if [[ $OPTION_INSTALL == "true" ]]; then
+        mingw32-make install
+        exit 0
+    fi
+}
+
 function do_build {
     if [[ $OPTION_PLATFORM == "linux" ]]; then
         echo "build linux"
@@ -66,6 +79,10 @@ function do_build {
         echo "build android"
         echo "PlatForm: ${OPTION_PLATFORM}"
         do_build_android
+    elif [[ $OPTION_PLATFORM == "windows" ]]; then
+        echo "-- build windows"
+        echo "-- PlatForm: ${OPTION_PLATFORM}"
+        do_build_windows
     else
         OPTION_HELP="true"
     fi
@@ -236,6 +253,7 @@ cat << EOF
 
     demos:
     ./devops.sh build --platform=linux
+    ./devops.sh build --platform=windows
     ./devops.sh docker --install --platform=linux    #install docker at linux platform
     
 EOF

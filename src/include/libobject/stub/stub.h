@@ -20,7 +20,7 @@ typedef int (*stub_func_t)(void * p1, void * p2, void * p3, void * p4, void * p5
                            void * p16, void * p17, void * p18, void * p19, void * p20);
 
 typedef struct stub_exec_area {
-    unsigned char exec_code[54];
+    unsigned char exec_code[60];
     stub_t *stub;
 } stub_exec_area_t;
 

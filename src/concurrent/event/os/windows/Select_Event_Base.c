@@ -31,13 +31,10 @@
  */
 
 #if (defined(WINDOWS_USER_MODE))
-
 #include <stdio.h>
 #include <errno.h>
-#include <libobject/core/utils/dbg/debug.h>
-#include <libobject/event/Select_Base.h>
-#include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/concurrent/event/Select_Base.h>
 
 static int __construct(Select_Base *eb, char *init_str)
 {

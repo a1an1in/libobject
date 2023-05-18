@@ -15,7 +15,6 @@ file(GLOB MOUDLE_SRC
 
 add_executable(${PROJECT_NAME} ${MOUDLE_SRC})
 target_link_libraries(${PROJECT_NAME} ${ExternalLibs})
-target_link_libraries(${PROJECT_NAME} mysqlclient)
 #add_dependencies(${PROJECT_NAME} object)
 
 #set_compiler_flags(${PROJECT_NAME})

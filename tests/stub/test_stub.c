@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/mman.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/try.h>
@@ -51,7 +50,7 @@ static int test_stub_add_stub_only1()
         THROW_IF(ret != (a + b + c), -1);
         THROW_IF(a != 3 || c != 1, -1);
 
-        stub_remove(stub);  // 添加动态桩 用B替换A
+        EXEC(stub_remove(stub));  // 添加动态桩 用B替换A
         ret = test_funcA(&a, &b, &c);
         THROW_IF(ret != 3, -1);
     } CATCH (ret) {

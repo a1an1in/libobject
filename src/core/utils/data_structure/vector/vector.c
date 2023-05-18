@@ -249,7 +249,7 @@ int vector_add_back(vector_t *vector, void *data)
             allocator_mem_free(vector->allocator, vector_head);
             vector_head = vector->vector_head;
             dbg_str(VECTOR_WARNNING, "realloc mem, end_pos:%d, old capacity:%d, new capacity:%d", offset, capacity, vector->capacity);
-            print_backtrace();
+            // print_backtrace();
         }
 
         vector_head[offset++] = data;
