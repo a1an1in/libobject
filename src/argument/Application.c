@@ -199,10 +199,12 @@ int libobject_init()
                 dbg_str(NET_ERROR, "WSAStartup error");
                 return -1;
             }
-        #else
-            EXEC(core_init_fs());
         #endif
         EXEC(execute_ctor_funcs());
+
+        #if (!defined(WINDOWS_USER_MODE))
+            EXEC(core_init_fs());
+        #endif
         
         debugger_set_all_businesses_level(debugger_gp, 1, 3);
 

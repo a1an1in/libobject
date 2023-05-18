@@ -33,6 +33,7 @@ macro (set_cmake_evironment_variable)
             object-argument
             object-core
         -Wl,--no-whole-archive
+        mysqlclient
         python3.8 crypto dl pthread m z)
 endmacro()
 

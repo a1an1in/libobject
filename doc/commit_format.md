@@ -1,12 +1,9 @@
-unify stub interface and make it runnable on windows.
+fix bug which bring in by windows changes.
 
 Description:
-After a few iteration, the lib can't run on windows. this
-commit is to solve this windows issues and debuged stub
-feature. This lib can run windows now.
+solve compiling error on linux which was brought
+in by windows modifcation.
 
 Major Changes:
-1. let this lib can complie on windows.
-2. solve compiling errors on windows.
-3. refact stub_parse_context func, del some paramaters.
-4. the stub has passed tests on windows.
+1. del WINDOWS_USER_MODE define c file.
+2. add macro to uint64_t

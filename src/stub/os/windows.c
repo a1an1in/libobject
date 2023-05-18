@@ -1,4 +1,3 @@
-#define WINDOWS_USER_MODE
 #if (defined(WINDOWS_USER_MODE))
 #include <stdio.h>
 #include <stdlib.h>
