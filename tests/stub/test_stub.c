@@ -88,7 +88,7 @@ static int test_stub_add_stub_only2()
     return ret;
 }
 
-static int test_stub_add_stub_only()
+static int test_stub_add_stub_only(TEST_ENTRY *entry)
 {
     int ret;
 
@@ -126,7 +126,7 @@ int print_outbound(int a, int b, int c, int d, int e, int f, int *g)
     return 1;
 }
 
-static int test_stub_add_hooks()
+static int test_stub_add_hooks(TEST_ENTRY *entry)
 {
     stub_t *stub;
     int g = 7;

@@ -16,7 +16,7 @@
 #include <libobject/core/try.h>
 
 #ifdef USE_JMP_TRY_CATCH
-static int test_try_catch1(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_try_catch1(TEST_ENTRY *entry)
 {
     exception_init();
     int ret;
@@ -42,7 +42,7 @@ static void try_catch_test_fuc()
 {
     THROW(-5);
 }
-static int test_try_catch2(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_try_catch2(TEST_ENTRY *entry)
 {
     int ret = -5;
 

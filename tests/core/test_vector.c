@@ -16,7 +16,7 @@
 #include <libobject/core/try.h>
 #include <libobject/core/Vector.h>
 
-static int test_vector_add(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_add(TEST_ENTRY *entry)
 {
     Vector *vector;
     allocator_t *allocator = allocator_get_default_instance();
@@ -41,7 +41,7 @@ static int test_vector_add(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_vector_add);
 
-static int test_vector_remove(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_remove(TEST_ENTRY *entry)
 {
     Vector *vector;
     allocator_t *allocator = allocator_get_default_instance();
@@ -69,7 +69,7 @@ static int test_vector_remove(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_vector_remove);
 
-static int test_vector_count(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_count(TEST_ENTRY *entry)
 {
     Vector *vector;
     allocator_t *allocator = allocator_get_default_instance();
@@ -224,7 +224,7 @@ static int test_vector_to_json_case3()
     return ret;
 }
 
-static int test_vector_to_json(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_to_json(TEST_ENTRY *entry)
 {
     int ret;
 
@@ -316,7 +316,7 @@ static int test_vector_assign_case3()
     return ret;
 }
 
-static int test_vector_assign(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_assign(TEST_ENTRY *entry)
 {
     int ret;
 
@@ -330,7 +330,7 @@ static int test_vector_assign(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_vector_assign);
 
-static int test_vector_new(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_new(TEST_ENTRY *entry)
 {
     int ret;
     Vector *vector = NULL;
@@ -367,7 +367,7 @@ static int __int_vector_element_cmp(void *element, void *key)
     return data == *(int *)key ? 1 : 0;
 }
 
-static int test_vector_search(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_search(TEST_ENTRY *entry)
 {
     Vector *vector;
     int value_type = VALUE_TYPE_INT8_T;
@@ -397,7 +397,7 @@ static int test_vector_search(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_vector_search);
 
-static int test_vector_get_end_index(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_get_end_index(TEST_ENTRY *entry)
 {
     Vector *vector;
     allocator_t *allocator = allocator_get_default_instance();
@@ -426,7 +426,7 @@ static int test_vector_get_end_index(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_vector_get_end_index);
 
-static int test_vector_remove_back(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_remove_back(TEST_ENTRY *entry)
 {
     Vector *vector;
     allocator_t *allocator = allocator_get_default_instance();
@@ -462,7 +462,7 @@ static int __vector_int_cmp(void *e1, void *e2)
     return (int)e1 > (int)e2 ? 1 : 0;
 }
 
-static int test_vector_sort(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_sort(TEST_ENTRY *entry)
 {
     Vector *vector;
     allocator_t *allocator = allocator_get_default_instance();
@@ -498,7 +498,7 @@ static int __test_vector_filter_condition(void *element, void *cond)
     return e > c ? 1 : 0;
 }
 
-static int test_vector_filter(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_filter(TEST_ENTRY *entry)
 {
     Vector *vector, *out = NULL;
     int value_type = VALUE_TYPE_INT16_T;
@@ -531,7 +531,7 @@ static int test_vector_filter(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_vector_filter);
 
-static int test_vector_add_vector(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_add_vector(TEST_ENTRY *entry)
 {
     Vector *vector, *out = NULL;
     int value_type = VALUE_TYPE_INT16_T;
@@ -643,7 +643,7 @@ static int test_vector_copy_case2()
     return ret;
 }
 
-static int test_vector_copy(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_vector_copy(TEST_ENTRY *entry)
 {
     int ret;
 

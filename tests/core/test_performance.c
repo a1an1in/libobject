@@ -17,7 +17,7 @@
 #include <libobject/core/try.h>
 #include <libobject/core/Map.h>
 
-static int test_try_catch_performance(TEST_ENTRY *enTRY, void *argc, void *argv)
+static int test_try_catch_performance(TEST_ENTRY *entry)
 {
     struct timeval start, end, tv;
     int a;
@@ -49,7 +49,7 @@ static int func_wrapper_test(int height, int a, int b, int c)
     }
 }
 
-static int test_func_wrapper_performance(TEST_ENTRY *enTRY, void *argc, void *argv)
+static int test_func_wrapper_performance(TEST_ENTRY *entry)
 {
     struct timeval start, end, tv;
     int a, b, c;
@@ -64,7 +64,7 @@ static int test_func_wrapper_performance(TEST_ENTRY *enTRY, void *argc, void *ar
 }
 REGISTER_TEST_FUNC(test_func_wrapper_performance);
 
-static int test_malloc_performance(TEST_ENTRY *enTRY, void *argc, void *argv)
+static int test_malloc_performance(TEST_ENTRY *entry)
 {
     void *addr;
     struct timeval start, end, tv;
@@ -82,7 +82,7 @@ static int test_malloc_performance(TEST_ENTRY *enTRY, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_malloc_performance);
 
-static int test_allocator_performance(TEST_ENTRY *enTRY, void *argc, void *argv)
+static int test_allocator_performance(TEST_ENTRY *entry)
 {
     void *addr;
     struct timeval start, end, tv;
@@ -113,7 +113,7 @@ static struct test *__init_test_instance(struct test *t, int a, int b)
 
     return t;
 }
-static int test_rbtree_add_performance(TEST_ENTRY *enTRY, void *argc, void *argv)
+static int test_rbtree_add_performance(TEST_ENTRY *entry)
 {
     struct timeval start, end, tv;
     allocator_t *allocator = allocator_get_default_instance();
@@ -132,7 +132,7 @@ static int test_rbtree_add_performance(TEST_ENTRY *enTRY, void *argc, void *argv
 }
 REGISTER_TEST_FUNC(test_rbtree_add_performance);
 
-static int test_printf_performance(TEST_ENTRY *enTRY, void *argc, void *argv)
+static int test_printf_performance(TEST_ENTRY *entry)
 {
     struct timeval start, end, tv;
 

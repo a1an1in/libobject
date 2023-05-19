@@ -45,7 +45,7 @@
 #include <libobject/core/try.h>
 #include <libobject/core/String.h>
 
-static int test_string_get_cstr(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_string_get_cstr(TEST_ENTRY *entry)
 {
     String *string;
     allocator_t *allocator = allocator_get_default_instance();
@@ -65,7 +65,7 @@ static int test_string_get_cstr(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_string_get_cstr);
 
-static int test_string_sprintf(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_string_sprintf(TEST_ENTRY *entry)
 {
     String *string;
     allocator_t *allocator = allocator_get_default_instance();
@@ -90,7 +90,7 @@ static int test_string_sprintf(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_string_sprintf);
 
-static int test_string_append(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_string_append(TEST_ENTRY *entry)
 {
     String *string;
     allocator_t *allocator = allocator_get_default_instance();
@@ -115,7 +115,7 @@ static int test_string_append(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_string_append);
 
-static int test_string_len(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_string_len(TEST_ENTRY *entry)
 {
     String *string;
     allocator_t *allocator = allocator_get_default_instance();
@@ -183,7 +183,7 @@ static int test_string_get_substring_case1()
     return ret;
 }
 
-static int test_string_get_substring(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_string_get_substring(TEST_ENTRY *entry)
 {
     int ret;
 
@@ -196,7 +196,7 @@ static int test_string_get_substring(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_string_get_substring);
 
-static int test_string_insert(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_string_insert(TEST_ENTRY *entry)
 {
     String *string;
     allocator_t *allocator = allocator_get_default_instance();
@@ -387,7 +387,7 @@ static int test_string_split_case4_using_reg()
     return ret;
 }
 
-static int test_string_split(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_string_split(TEST_ENTRY *entry)
 {
     int ret;
 
@@ -403,7 +403,7 @@ static int test_string_split(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_string_split);
 
-static int test_string_find(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_string_find(TEST_ENTRY *entry)
 {
     String *string;
     allocator_t *allocator = allocator_get_default_instance();
@@ -469,7 +469,7 @@ static int test_string_replace_case1()
     return ret;
 }
 
-static int test_string_replace(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_string_replace(TEST_ENTRY *entry)
 {
     int ret;
 
@@ -482,7 +482,7 @@ static int test_string_replace(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_string_replace);
 
-static int test_string_is_empty(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_string_is_empty(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     String *string;
@@ -504,7 +504,7 @@ static int test_string_is_empty(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_string_is_empty);
 
-static int test_string_ltrim(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_string_ltrim(TEST_ENTRY *entry)
 {
     String *string;
     allocator_t *allocator = allocator_get_default_instance();
@@ -525,7 +525,7 @@ static int test_string_ltrim(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_string_ltrim);
 
-static int test_string_rtrim(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_string_rtrim(TEST_ENTRY *entry)
 {
     String *string;
     allocator_t *allocator = allocator_get_default_instance();

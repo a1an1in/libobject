@@ -103,10 +103,8 @@ static int test_fs_get_size(TEST_ENTRY *entry)
     if (ret < 0) {
         return 0;
     }
-    
-    dbg_str(DBG_ERROR, "README size:%d", ret);
 
-    return 1;
+    return ret;
 }
 REGISTER_TEST_FUNC(test_fs_get_size);
 #endif

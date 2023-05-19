@@ -37,7 +37,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Trie.h>
 
-static int test_trie_insert(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_trie_insert(TEST_ENTRY *entry)
 {
     Trie *trie;
     allocator_t *allocator = allocator_get_default_instance();
@@ -63,7 +63,7 @@ static int test_trie_insert(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_trie_insert);
 
-static int test_trie_search(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_trie_search(TEST_ENTRY *entry)
 {
     Trie *trie;
     allocator_t *allocator = allocator_get_default_instance();
@@ -86,7 +86,7 @@ static int test_trie_search(TEST_ENTRY *entry, void *argc, void *argv)
 }
 REGISTER_TEST_FUNC(test_trie_search);
 
-static int test_trie_delete(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_trie_delete(TEST_ENTRY *entry)
 {
     Trie *trie;
     allocator_t *allocator = allocator_get_default_instance();

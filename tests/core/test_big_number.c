@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdio.h>d *argc, void *argv
 #include <stdlib.h>
 #include <time.h>
 #include <libobject/core/utils/bn/big_number.h>
@@ -6,7 +6,7 @@
 #include <libobject/core/try.h>
 
 static int
-test_bn_cmp(TEST_ENTRY *entry, void *argc, void *argv)
+test_bn_cmp(TEST_ENTRY *entry)
 {
     int ret;
     uint8_t num1[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77};
@@ -28,7 +28,7 @@ test_bn_cmp(TEST_ENTRY *entry, void *argc, void *argv)
 REGISTER_TEST_FUNC(test_bn_cmp);
 
 static int
-test_mul_u32(TEST_ENTRY *entry, void *argc, void *argv)
+test_mul_u32(TEST_ENTRY *entry)
 {
     int ret;
     uint8_t num[8] = {0x11, 0x22, 0x33, 0xff};
@@ -52,7 +52,7 @@ test_mul_u32(TEST_ENTRY *entry, void *argc, void *argv)
 REGISTER_TEST_FUNC(test_mul_u32);
 
 static int
-test_bn_mul_u32_a_size_is_not_multiple_4(TEST_ENTRY *entry, void *argc, void *argv)
+test_bn_mul_u32_a_size_is_not_multiple_4(TEST_ENTRY *entry)
 {
     int ret;
     uint8_t num[5] = {0x11, 0x22, 0x33, 0x44, 0x99};
@@ -76,7 +76,7 @@ test_bn_mul_u32_a_size_is_not_multiple_4(TEST_ENTRY *entry, void *argc, void *ar
 REGISTER_TEST_FUNC(test_bn_mul_u32_a_size_is_not_multiple_4);
 
 static int
-test_bn_random(TEST_ENTRY *entry, void *argc, void *argv)
+test_bn_random(TEST_ENTRY *entry)
 {
     int ret;
     uint8_t dest[1024] = {0};

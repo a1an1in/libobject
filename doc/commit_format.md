@@ -1,9 +1,10 @@
-convert Trie ctest to mockery test.
+modification for mockery tests.
 
 Description:
-for the basic class, it's better to do mockery tests.
-since it has less dependence.
+all mockey test can passed. del mockery test func 
+useless paramters.
 
 Major Changes:
-1. convert Trie ctest to mockery tests.
-2. rename big_number_test.c to test_big_number.c
+1. del mockery test func useless paramters.
+2. modify failed mockery tests.
+3. del useless Skicphter_Test

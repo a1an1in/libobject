@@ -246,7 +246,7 @@ static int multiply(int a, int b)
 
 static int test_add(TEST_ENTRY *entry)
 {
-    return entry->ret = assert_int_equal(add(1, 2), 4);
+    return entry->ret = assert_int_equal(add(1, 2), 3);
 }
 REGISTER_TEST_FUNC(test_add);
 

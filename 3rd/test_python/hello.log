@@ -14,3 +14,15 @@
 [20230419 23:06:19][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]
 [20230518 21:41:03][INFO][test_python.py:15]---> vender = 2, dataid = 10001
 [20230518 21:41:03][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]
+[20230518 21:58:22][INFO][test_python.py:15]---> vender = 2, dataid = 10001
+[20230518 21:58:22][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]
+[20230518 21:59:54][INFO][test_python.py:15]---> vender = 2, dataid = 10001
+[20230518 21:59:54][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]
+[20230518 22:06:20][INFO][test_python.py:15]---> vender = 2, dataid = 10001
+[20230518 22:06:20][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]
+[20230518 22:10:18][INFO][test_python.py:15]---> vender = 2, dataid = 10001
+[20230518 22:10:18][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]
+[20230518 22:16:32][INFO][test_python.py:15]---> vender = 2, dataid = 10001
+[20230518 22:16:32][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]
+[20230518 22:21:05][INFO][test_python.py:15]---> vender = 2, dataid = 10001
+[20230518 22:21:05][INFO][test_python.py:16]---> type tuple = [<class 'tuple'>] tuple = [(78.0, 3.4100000858306885)]

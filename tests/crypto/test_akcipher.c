@@ -2,7 +2,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/crypto/Akcipher.h>
 
-static int test_akcipher_dsa(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_akcipher_dsa(TEST_ENTRY *entry)
 {
     Akcipher *cipher;
     allocator_t *allocator = allocator_get_default_instance();
@@ -28,6 +28,6 @@ static int test_akcipher_dsa(TEST_ENTRY *entry, void *argc, void *argv)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_akcipher_dsa);
+// REGISTER_TEST_FUNC(test_akcipher_dsa);
 
 

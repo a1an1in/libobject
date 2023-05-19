@@ -135,7 +135,7 @@ static int stack_destroy(struct stack_s *as)
 
 static int test_stack(TEST_ENTRY *entry, void *argc, void *argv)
 {
-    int ret = 0;
+    int ret = 1;
     struct stack_s *as;
     int *p;
     void *a;

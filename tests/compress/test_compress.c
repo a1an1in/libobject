@@ -2,7 +2,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/compress/Compress.h>
 
-static int test_zcompress_buf(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_zcompress_buf(TEST_ENTRY *entry)
 {
     Compress *c;
     allocator_t *allocator = allocator_get_default_instance();
