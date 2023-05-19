@@ -1,9 +1,8 @@
-fix bug which bring in by windows changes.
+convert vector ctest to mockery test.
 
 Description:
-solve compiling error on linux which was brought
-in by windows modifcation.
+for the basic class, it's better to do mockery tests.
+since it has less dependence.
 
 Major Changes:
-1. del WINDOWS_USER_MODE define c file.
-2. add macro to uint64_t
+1. convert vector ctest to mockery tests.

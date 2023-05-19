@@ -11,4 +11,6 @@
 * ./sysroot/linux/bin/xtools --log-level=6 
 * ./sysroot/linux/bin/xtools fshell --log-level=6
 * ./sysroot/linux/bin/xtools --log-level=6  mockery test_skcipher_ecb_aes
-    
+* ./sysroot/linux/bin/xtools ctest -r=String_Test   
+*     
+*     
