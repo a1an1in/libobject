@@ -15,7 +15,7 @@
 static int __option_version_action_callback(Option *option, void *opaque)
 {
     Option *o = option;
-    if (!o->value->equal(o->value, "ture")) {
+    if (o->value->equal(o->value, "ture")) {
         dbg_str(DBG_ERROR,"user set -v option");
     }
 }
@@ -47,6 +47,7 @@ static int __action(Command *command)
     uint8_t i, option_count = command->options->count(command->options);
 
     dbg_str(DBG_DETAIL,"test_runner in");
+    debugger_set_all_businesses_level(debugger_gp, 1, 6);
 
     r = command->get(command, "/Command/opaque");
     if (r == NULL) {
@@ -86,6 +87,7 @@ static int __action(Command *command)
             failed_cases->to_json(failed_cases));
 
     dbg_str(DBG_DETAIL,"test_runner out");
+    debugger_set_all_businesses_level(debugger_gp, 1, 3);
 
     return 0;
 }

@@ -52,7 +52,7 @@ test_mul_u32(TEST_ENTRY *entry, void *argc, void *argv)
 REGISTER_TEST_FUNC(test_mul_u32);
 
 static int
-test_mul_u32_a_size_is_not_multiple_4(TEST_ENTRY *entry, void *argc, void *argv)
+test_bn_mul_u32_a_size_is_not_multiple_4(TEST_ENTRY *entry, void *argc, void *argv)
 {
     int ret;
     uint8_t num[5] = {0x11, 0x22, 0x33, 0x44, 0x99};
@@ -73,7 +73,7 @@ test_mul_u32_a_size_is_not_multiple_4(TEST_ENTRY *entry, void *argc, void *argv)
     
     return ret;
 }
-REGISTER_TEST_FUNC(test_mul_u32_a_size_is_not_multiple_4);
+REGISTER_TEST_FUNC(test_bn_mul_u32_a_size_is_not_multiple_4);
 
 static int
 test_bn_random(TEST_ENTRY *entry, void *argc, void *argv)
