@@ -149,7 +149,7 @@ static int __construct(Centor *centor, char *init_str)
 static int __deconstrcut(Centor *centor)
 {
     dbg_str(DBG_DETAIL, "centor deconstruct, centor addr:%p", centor);
-    io_worker_destroy(centor->worker);
+    worker_destroy(centor->worker);
     object_destroy(centor->s);
     object_destroy(centor->c);
     object_destroy(centor->message_queue);

@@ -36,7 +36,6 @@ static int __deconstruct(Digest_Sha1 *digest)
 
 static int __init(Digest_Sha1 *digest)
 {
-    dbg_str(DBG_SUC, "Digest_Sha1 init");
     return digest_sha1_init((digest_sha1_t *)digest->context);
 }
 
@@ -69,7 +68,7 @@ static class_info_entry_t digest_class_info[] = {
 REGISTER_CLASS("Digest_Sha1", digest_class_info);
 
 static int
-test_obj_sha1(TEST_ENTRY *entry, void *argc, void *argv)
+test_digest_sha1(TEST_ENTRY *entry, void *argc, void *argv)
 {
     allocator_t *allocator = allocator_get_default_instance();
     char *expect = "f7c3bc1d808e04732adf679965ccc34ca7ae3441";
@@ -79,27 +78,24 @@ test_obj_sha1(TEST_ENTRY *entry, void *argc, void *argv)
     int i, ret;
     Digest *digest;
 
-    dbg_str(DBG_SUC, "Digest_Sha1 in");
-    digest = object_new(allocator, "Digest_Sha1", NULL);
-    dbg_str(DBG_SUC, "run at here");
-    digest->init(digest);
-    dbg_str(DBG_SUC, "run at here");
-    digest->update(digest, test, strlen(test));
-    dbg_str(DBG_SUC, "run at here");
-    digest->final(digest, result, 20);
+    TRY {
+        digest = object_new(allocator, "Digest_Sha1", NULL);
+        digest->init(digest);
+        digest->update(digest, test, strlen(test));
+        digest->final(digest, result, 20);
 
-    for (i= 0; i < 20; i++) {
-        sprintf(result_hex + strlen(result_hex), "%02x", result[i]);
-    }
+        for (i= 0; i < 20; i++) {
+            sprintf(result_hex + strlen(result_hex), "%02x", result[i]);
+        }
 
-    ret = assert_equal(result_hex, expect, strlen(expect));
-    if (ret == 1) {
-        dbg_str(DBG_SUC, "sucess"); 
-    } else {
+        ret = assert_equal(result_hex, expect, strlen(expect));
+        THROW_IF(ret != 1, -1);
+    } CATCH (ret) {
         dbg_str(DBG_ERROR, "expect:%s result:%s", expect, result_hex);
+    } FINALLY {
+        object_destroy(digest);
     }
-    object_destroy(digest);
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_obj_sha1);
+REGISTER_TEST_FUNC(test_digest_sha1);
