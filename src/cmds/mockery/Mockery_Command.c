@@ -19,6 +19,7 @@ static int __run_command(Command *command)
     argv = command->argv;
     if (argc == 2) {
         int targc = argc - 1;
+        debugger_set_business(debugger_gp, 0, 1, 9);
         execute_test_designated_func(argv[1], (void *)&targc, argv + 1);
     } else {
         execute_test_funcs();

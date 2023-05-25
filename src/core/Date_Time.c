@@ -39,10 +39,10 @@ static int __assign(Date_Time *date, char *value)
            &date->timezone);
     date->tm.tm_year -= 1900;
     date->tm.tm_mon -= 1;
-    dbg_str(DBG_DETAIL, "%d %d", date->get_timezone(date), date->timezone);
+    dbg_str(DBG_DETAIL, "%d %d", date->get_systimezone(date), date->timezone);
 
     if (date->timezone != 0) {
-        timezone_offset = (date->timezone / 100) - date->get_timezone(date);
+        timezone_offset = (date->timezone / 100) - date->get_systimezone(date);
         time = mktime(&date->tm);
         time += (3600 * (timezone_offset));
         localtime_r(&time, &date->tm); 
@@ -58,7 +58,7 @@ static char * __to_format_string(Date_Time *date, char *fmt)
     return STR2A(date->value);
 }
 
-static char * __get_timezone(Date_Time *date)
+static char * __get_systimezone(Date_Time *date)
 {
     struct tm tm;
 
@@ -293,7 +293,7 @@ static class_info_entry_t module_class_info[] = {
     Init_Nfunc_Entry(2 , Date_Time, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3 , Date_Time, assign, __assign),
     Init_Nfunc_Entry(4 , Date_Time, to_format_string, __to_format_string),
-    Init_Nfunc_Entry(5 , Date_Time, get_timezone, __get_timezone),
+    Init_Nfunc_Entry(5 , Date_Time, get_systimezone, __get_systimezone),
     Init_Nfunc_Entry(6 , Date_Time, next_day, __next_day),
     Init_Nfunc_Entry(7 , Date_Time, end_of_day, __end_of_day),
     Init_Nfunc_Entry(8 , Date_Time, next_month, __next_month),

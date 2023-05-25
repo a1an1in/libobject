@@ -19,7 +19,7 @@ struct Date_Time_s{
     void *(*get)(Date_Time *, char *attrib);
     char *(*to_json)(Date_Time *); 
     int (*assign)(Date_Time *data, char *value);
-    int (*get_timezone)(Date_Time *data);
+    int (*get_systimezone)(Date_Time *data);
     char *(*to_format_string)(Date_Time *date, char *fmt);
     Date_Time *(*next_day)(Date_Time *date);
     Date_Time *(*start_of_day)(Date_Time *date);

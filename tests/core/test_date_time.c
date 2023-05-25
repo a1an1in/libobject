@@ -35,73 +35,43 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Array_Stack.h>
 #include <libobject/core/utils/registry/registry.h>
-#include "Date_Time_Test.h"
+#include <libobject/core/Date_Time.h>
 
-static int __construct(Date_Time_Test *test, char *init_str)
-{
-    allocator_t *allocator = test->parent.obj.allocator;
-
-    dbg_str(DBG_DETAIL,"Date_Time_Test construct");
-    test->date = object_new(allocator, "Date_Time", NULL);
-
-    return 1;
-}
-
-static int __deconstrcut(Date_Time_Test *test)
-{
-    dbg_str(DBG_DETAIL,"Date_Time_Test deconstrcut");
-    OBJECT_DESTROY(test->date);
-
-    return 0;
-}
-
-static int __setup(Date_Time_Test *test, char *init_str)
-{
-
-    dbg_str(DBG_DETAIL,"Date_Time_Test set up");
-
-    return 0;
-}
-
-static int __teardown(Date_Time_Test *test)
-{
-    dbg_str(DBG_DETAIL,"Date_Time_Test teardown");
-
-    return 0;
-}
-
-static int __test_assign(Date_Time_Test *test)
+static int test_datetime_assign(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *str;
 
     TRY {
+        date = object_new(allocator, "Date_Time", NULL);
         dbg_str(DBG_DETAIL,"Date_Time_Test assign");
-        date = test->date;
 
         EXEC(date->assign(date, "2021-09-04 13:31:10 UTC-800"));
         str = date->to_format_string(date, "%F %T UTC%z");
         THROW_IF(str == NULL, -1);
         THROW_IF(strlen(str) == 0, -1);
         dbg_str(DBG_DETAIL, "%s", str);
-    } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
+    } CATCH (ret) {} FINALLY {
+        object_destroy(date);
     }
 
     return 1;
 }
+REGISTER_TEST_FUNC(test_datetime_assign);
 
-static int __test_timezone1(Date_Time_Test *test)
+static int test_datetime_timezone1(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *str;
     char *expect = "2021-09-04 12:31:10 UTC+0800";
 
     TRY {
+        date = object_new(allocator, "Date_Time", NULL);
         dbg_str(DBG_DETAIL,"Date_Time_Test assign");
-        date = test->date;
 
         EXEC(date->assign(date, "2021-09-04 13:31:10 UTC+700"));
         str = date->to_format_string(date, "%F %T UTC%z");
@@ -111,23 +81,25 @@ static int __test_timezone1(Date_Time_Test *test)
         SET_CATCH_STR_PARS(str, expect);
         THROW_IF(strcmp(str, expect) != 0, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "test_timezone1 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
 
-static int __test_timezone2(Date_Time_Test *test)
+static int test_datetime_timezone2(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *str;
     char *expect = "2021-09-03 22:31:10 UTC+0800";
 
     TRY {
+        date = object_new(allocator, "Date_Time", NULL);
         dbg_str(DBG_DETAIL,"Date_Time_Test assign");
-        date = test->date;
 
         EXEC(date->assign(date, "2021-09-04 13:31:10 UTC-700"));
         str = date->to_format_string(date, "%F %T UTC%z");
@@ -136,136 +108,145 @@ static int __test_timezone2(Date_Time_Test *test)
         SET_CATCH_STR_PARS(str, expect);
         THROW_IF(strcmp(str, expect) != 0, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "test_timezone1 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
 
-static int __test_timezone(Date_Time_Test *test)
+static int test_datetime_timezone(TEST_ENTRY *entry)
 {
     int ret;
     char *str;
 
     TRY {
-        EXEC(__test_timezone1(test));
-        EXEC(__test_timezone2(test));
-    } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-    }
+        EXEC(test_datetime_timezone1(entry));
+        EXEC(test_datetime_timezone2(entry));
+    } CATCH (ret) {}
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_timezone);
 
-static int __test_next_day(Date_Time_Test *test)
+static int test_datetime_next_day(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *start = "2021-09-03 22:31:10 UTC+0800";
     char *expect = "2021-09-04 00:00:00 UTC+0800";
     char *str;
 
     TRY {
-        date = test->date;
+        date = object_new(allocator, "Date_Time", NULL);
+        EXEC(date->assign(date, start));
         str = date->next_day(date)->to_format_string(date, "%F %T UTC%z");
         SET_CATCH_STR_PARS(str, expect);
         THROW_IF(strcmp(str, expect) != 0, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "test_next_day error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_next_day);
 
-static int __test_cmp_case1(Date_Time_Test *test)
+static int test_datetime_cmp_case1(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *src = "2021-09-03 22:31:10 UTC+0800";
     char *target = "2021-09-03 22:31:10 UTC+0800";
     char *str;
 
     TRY {
-        date = test->date;
+        date = object_new(allocator, "Date_Time", NULL);
         EXEC(date->assign(date, src));
         ret = date->cmp(date, target);
 
         SET_CATCH_STR_PARS(src, target);
         THROW_IF(ret != 0, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "test_cmp_case1 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
 
-static int __test_cmp_case2(Date_Time_Test *test)
+static int test_datetime_cmp_case2(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *src = "2021-09-03 22:31:11 UTC+0800";
     char *target = "2021-09-03 22:31:10 UTC+0800";
     char *str;
 
     TRY {
-        date = test->date;
+        date = object_new(allocator, "Date_Time", NULL);
         EXEC(date->assign(date, src));
         ret = date->cmp(date, target);
 
         SET_CATCH_STR_PARS(src, target);
         THROW_IF(ret <= 0, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "test_cmp_case2 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
 
-static int __test_cmp_case3(Date_Time_Test *test)
+static int test_datetime_cmp_case3(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *src = "2021-09-03 22:31:10 UTC+0800";
     char *target = "2021-09-03 22:31:11 UTC+0800";
     char *str;
 
     TRY {
-        date = test->date;
+        date = object_new(allocator, "Date_Time", NULL);
         EXEC(date->assign(date, src));
         ret = date->cmp(date, target);
 
         SET_CATCH_STR_PARS(src, target);
         THROW_IF(ret > 0, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "test_cmp_case3 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
 
-static int __test_cmp(Date_Time_Test *test)
+static int test_datetime_cmp(TEST_ENTRY *entry)
 {
     int ret;
     char *str;
 
     TRY {
-        EXEC(__test_cmp_case1(test));
-        EXEC(__test_cmp_case2(test));
-        EXEC(__test_cmp_case3(test));
-    } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-    }
+        EXEC(test_datetime_cmp_case1(entry));
+        EXEC(test_datetime_cmp_case2(entry));
+        EXEC(test_datetime_cmp_case3(entry));
+    } CATCH (ret) {}
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_cmp);
 
 static int for_each_count = 0;
-static int __test_for_callback(char *start, char *end, void *opaque)
+static int test_datetime_for_callback(char *start, char *end, void *opaque)
 {
     dbg_str(DBG_DETAIL, "start:%s end:%s", start, end);
     for_each_count++;
@@ -273,223 +254,224 @@ static int __test_for_callback(char *start, char *end, void *opaque)
     return 1;
 }
 
-static int __test_for_each_day_case1(Date_Time_Test *test)
+static int test_datetime_for_each_day_case1(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *src = "2021-09-03 22:31:10 UTC+0800";
     char *target = "2021-09-05 22:31:11 UTC+0800";
     char *str;
 
     TRY {
         for_each_count = 0;
-        date = test->date;
+        date = object_new(allocator, "Date_Time", NULL);
         EXEC(date->assign(date, src));
-        EXEC(date->for_each_day(date, target, __test_for_callback, test));
+        EXEC(date->for_each_day(date, target, test_datetime_for_callback, NULL));
 
         SET_CATCH_STR_PARS(src, target);
         THROW_IF(for_each_count != 3, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "test_for_each_day_case1 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
 
-static int __test_for_each_day_case2(Date_Time_Test *test)
+static int test_datetime_for_each_day_case2(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *src = "2021-09-03 22:31:10 UTC+0800";
     char *target = "2021-09-03 22:32:11 UTC+0800";
     char *str;
 
     TRY {
         for_each_count = 0;
-        date = test->date;
+        date = object_new(allocator, "Date_Time", NULL);
         EXEC(date->assign(date, src));
-        EXEC(date->for_each_day(date, target, __test_for_callback, test));
+        EXEC(date->for_each_day(date, target, test_datetime_for_callback, NULL));
 
         SET_CATCH_STR_PARS(src, target);
         THROW_IF(for_each_count != 1, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "test_for_each_day_case1 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
 
-static int __test_for_each_day_case3(Date_Time_Test *test)
+static int test_datetime_for_each_day_case3(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *src = "2021-08-20 22:31:10 UTC+0800";
     char *target = "2021-09-01 00:00:01 UTC+0800";
     char *str;
 
     TRY {
         for_each_count = 0;
-        date = test->date;
+        date = object_new(allocator, "Date_Time", NULL);
         EXEC(date->assign(date, src));
-        EXEC(date->for_each_day(date, target, __test_for_callback, test));
+        EXEC(date->for_each_day(date, target, test_datetime_for_callback, NULL));
 
         SET_CATCH_STR_PARS(src, target);
         THROW_IF(for_each_count != 13, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "test_for_each_day_case3 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
 
-static int __test_for_each_day(Date_Time_Test *test)
+static int test_datetime_for_each_day(TEST_ENTRY *entry)
 {
     int ret;
     char *str;
 
     TRY {
-        EXEC(__test_for_each_day_case1(test));
-        EXEC(__test_for_each_day_case2(test));
-        EXEC(__test_for_each_day_case3(test));
-    } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-    }
+        EXEC(test_datetime_for_each_day_case1(entry));
+        EXEC(test_datetime_for_each_day_case2(entry));
+        EXEC(test_datetime_for_each_day_case3(entry));
+    } CATCH (ret) {}
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_for_each_day);
 
-static int __test_for_each_month_case1(Date_Time_Test *test)
+static int test_datetime_for_each_month_case1(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *src = "2021-01-03 22:31:10 UTC+0800";
     char *target = "2021-09-05 22:31:11 UTC+0800";
     char *str;
 
     TRY {
         for_each_count = 0;
-        date = test->date;
+        date = object_new(allocator, "Date_Time", NULL);
         EXEC(date->assign(date, src));
-        EXEC(date->for_each_month(date, target, __test_for_callback, test));
+        EXEC(date->for_each_month(date, target, test_datetime_for_callback, NULL));
 
         SET_CATCH_STR_PARS(src, target);
         THROW_IF(for_each_count != 9, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "test_for_each_month_case1 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
 
-static int __test_for_each_month_case2(Date_Time_Test *test)
+static int test_datetime_for_each_month_case2(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *src = "2021-09-05 22:31:11 UTC+0800";
     char *target = "2022-01-03 22:31:10 UTC+0800";
     char *str;
 
     TRY {
         for_each_count = 0;
-        date = test->date;
+        date = object_new(allocator, "Date_Time", NULL);
         EXEC(date->assign(date, src));
-        EXEC(date->for_each_month(date, target, __test_for_callback, test));
+        EXEC(date->for_each_month(date, target, test_datetime_for_callback, NULL));
 
         SET_CATCH_STR_PARS(src, target);
         THROW_IF(for_each_count != 5, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "test_for_each_month_case1 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
 
-static int __test_for_each_month(Date_Time_Test *test)
+static int test_datetime_for_each_month(TEST_ENTRY *entry)
 {
     int ret;
     char *str;
 
     TRY {
-        EXEC(__test_for_each_month_case1(test));
-        EXEC(__test_for_each_month_case2(test));
-    } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-    }
+        EXEC(test_datetime_for_each_month_case1(entry));
+        EXEC(test_datetime_for_each_month_case2(entry));
+    } CATCH (ret) { }
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_for_each_month);
 
-static int __test_for_each_year_case1(Date_Time_Test *test)
+static int test_datetime_for_each_year(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *src = "2019-01-03 22:31:10 UTC+0800";
     char *target = "2021-09-05 22:31:11 UTC+0800";
     char *str;
 
     TRY {
         for_each_count = 0;
-        date = test->date;
+        date = object_new(allocator, "Date_Time", NULL);
         EXEC(date->assign(date, src));
-        EXEC(date->for_each_year(date, target, __test_for_callback, test));
+        EXEC(date->for_each_year(date, target, test_datetime_for_callback, NULL));
 
         SET_CATCH_STR_PARS(src, target);
         THROW_IF(for_each_count != 3, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "test_for_each_year_case1 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_for_each_year);
 
-static int __test_for_each_year(Date_Time_Test *test)
-{
-    int ret;
-    char *str;
-
-    TRY {
-        EXEC(__test_for_each_year_case1(test));
-    } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-    }
-
-    return ret;
-}
-
-static int __test_now(Date_Time_Test *test)
+static int test_datetime_now(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *str;
 
     TRY {
-        date = test->date;
+        date = object_new(allocator, "Date_Time", NULL);
         str = date->now(date)->to_format_string(date, (char *)"%F %T UTC%z");
 
         SET_CATCH_STR_PARS(str, "");
         dbg_str(DBG_DETAIL, "test now:%s", str);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         TRY_SHOW_STR_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_now);
 
-static int __test_start_of_day(Date_Time_Test *test)
+static int test_datetime_start_of_day(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
+    allocator_t *allocator = allocator_get_default_instance();
     char *str;
 
     TRY {
-        date = test->date;
+        date = object_new(allocator, "Date_Time", NULL);
         date->now(date);
         date->start_of_day(date);
         str = date->to_format_string(date, (char *)"%F %T UTC%z");
@@ -497,30 +479,12 @@ static int __test_start_of_day(Date_Time_Test *test)
         SET_CATCH_STR_PARS(str, "");
         dbg_str(DBG_DETAIL, "test start of day:%s", str);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         TRY_SHOW_STR_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(date);
     }
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_start_of_day);
 
-static class_info_entry_t data_test_class_info[] = {
-    Init_Obj___Entry(0 , Test, parent),
-    Init_Nfunc_Entry(1 , Date_Time_Test, construct, __construct),
-    Init_Nfunc_Entry(2 , Date_Time_Test, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Date_Time_Test, set, NULL),
-    Init_Vfunc_Entry(4 , Date_Time_Test, get, NULL),
-    Init_Vfunc_Entry(5 , Date_Time_Test, setup, __setup),
-    Init_Vfunc_Entry(6 , Date_Time_Test, teardown, __teardown),
-    Init_Vfunc_Entry(7 , Date_Time_Test, test_assign, __test_assign),
-    Init_Vfunc_Entry(8 , Date_Time_Test, test_timezone, __test_timezone),
-    Init_Vfunc_Entry(9 , Date_Time_Test, test_next_day, __test_next_day),
-    Init_Vfunc_Entry(10, Date_Time_Test, test_cmp, __test_cmp),
-    Init_Vfunc_Entry(11, Date_Time_Test, test_for_each_day, __test_for_each_day),
-    Init_Vfunc_Entry(12, Date_Time_Test, test_for_each_month, __test_for_each_month),
-    Init_Vfunc_Entry(13, Date_Time_Test, test_for_each_year, __test_for_each_year),
-    Init_Vfunc_Entry(14, Date_Time_Test, test_now, __test_now),
-    Init_Vfunc_Entry(15, Date_Time_Test, test_start_of_day, __test_start_of_day),
-    Init_End___Entry(16, Date_Time_Test),
-};
-REGISTER_CLASS("Date_Time_Test", data_test_class_info);
