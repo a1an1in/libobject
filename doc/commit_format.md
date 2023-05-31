@@ -1,8 +1,8 @@
-optimize or fix datetime
+optimize test_date_time
 
 Description:
-update.
+there still have one issue that the timezone may be
+changed after mktime.
 
 Major Changes:
-1. change Date_Time_Test to test_data_time.
-2. rename get_timezone to get_systimezone.
+1. optimize test_date_time, and let all it passed on linux.

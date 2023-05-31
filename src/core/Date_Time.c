@@ -31,24 +31,37 @@ static int __assign(Date_Time *date, char *value)
 {
     int timezone_offset = 0;
     time_t time;
+    int ret;
 
-    date->value->assign(date->value, value);
-    sscanf(value, "%d-%d-%d %d:%d:%d UTC%d", 
-           &date->tm.tm_year, &date->tm.tm_mon, &date->tm.tm_mday,
-           &date->tm.tm_hour, &date->tm.tm_min, &date->tm.tm_sec, 
-           &date->timezone);
-    date->tm.tm_year -= 1900;
-    date->tm.tm_mon -= 1;
-    dbg_str(DBG_DETAIL, "%d %d", date->get_systimezone(date), date->timezone);
+    TRY {
+        date->value->assign(date->value, value);
+        sscanf(value, "%d-%d-%d %d:%d:%d UTC%d", 
+               &date->tm.tm_year, &date->tm.tm_mon, &date->tm.tm_mday,
+               &date->tm.tm_hour, &date->tm.tm_min, &date->tm.tm_sec, 
+               &date->timezone);
+        date->tm.tm_year -= 1900;
+        date->tm.tm_mon -= 1;
+        date->tm.tm_isdst = -1,
+        dbg_str(DBG_DETAIL, "systimezone:%d timezone:%d", date->get_systimezone(date), date->timezone);
 
-    if (date->timezone != 0) {
-        timezone_offset = (date->timezone / 100) - date->get_systimezone(date);
-        time = mktime(&date->tm);
-        time += (3600 * (timezone_offset));
-        localtime_r(&time, &date->tm); 
-    }
+        if (date->timezone != 0) {
+            timezone_offset = (date->timezone - date->get_systimezone(date)) / 100;
+            time = mktime(&date->tm);
+            THROW_IF(time == -1, -1);
+            
+            dbg_str(DBG_DETAIL, "timezone_offset:%d, time:%d", timezone_offset, time);
+            time += (3600 * (timezone_offset));
+            
+            localtime_r(&time, &date->tm); 
+            dbg_str(DBG_DETAIL,"localtime:%d-%d-%d %d:%d:%d UTC%d", 
+                    date->tm.tm_year, date->tm.tm_mon, date->tm.tm_mday,
+                    date->tm.tm_hour, date->tm.tm_min, date->tm.tm_sec, 
+                    date->get_systimezone(date));
+        }
 
-    return 0;
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static char * __to_format_string(Date_Time *date, char *fmt)
@@ -58,15 +71,27 @@ static char * __to_format_string(Date_Time *date, char *fmt)
     return STR2A(date->value);
 }
 
-static char * __get_systimezone(Date_Time *date)
+static int __get_systimezone(Date_Time *date)
 {
-    struct tm tm;
+    time_t time_utc;
+    struct tm tm_local;
+    struct tm tm_gmt;
 
-    memset(&tm, 0, sizeof(tm));
-    tm.tm_year = 70;
-    tm.tm_mday = 2;
+    // Get the UTC time
+    time(&time_utc);
+    // Get the local time, Use localtime_r for threads safe
+    localtime_r(&time_utc, &tm_local);
+    // Change it to GMT tm
+    gmtime_r(&time_utc, &tm_gmt);
 
-    return (24 * 3600 - (int)mktime(&tm)) / 3600;
+    int time_zone = tm_local.tm_hour - tm_gmt.tm_hour;
+    if (time_zone < -12) {
+        time_zone += 24;
+    } else if (time_zone > 12) {
+        time_zone -= 24;
+    }
+
+    return time_zone * 100;
 }
 
 static Date_Time *__next_day(Date_Time *date)
@@ -101,8 +126,11 @@ static Date_Time *__next_month(Date_Time *date)
     date->tm.tm_hour = 0;
     date->tm.tm_min = 0;
     date->tm.tm_sec = 0;
+
+    printf("0.0end of month:time zone:%s\n", date->tm.tm_zone);
     time = mktime(&date->tm);
-    localtime_r(&time, &date->tm); 
+    printf("0.1end of month:time zone:%s\n", date->tm.tm_zone);
+    localtime_r(&time, &date->tm);
 
     return date;
 }
