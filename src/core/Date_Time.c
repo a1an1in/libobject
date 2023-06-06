@@ -26,7 +26,7 @@ static int __deconstruct(Date_Time *date)
 
 /*
  * value 为iso 8601 日期格式
- * */
+ **/
 static int __assign(Date_Time *date, char *value)
 {
     int timezone_offset = 0;
@@ -35,30 +35,13 @@ static int __assign(Date_Time *date, char *value)
 
     TRY {
         date->value->assign(date->value, value);
-        sscanf(value, "%d-%d-%d %d:%d:%d UTC%d", 
+        sscanf(value, "%d-%d-%d %d:%d:%d", 
                &date->tm.tm_year, &date->tm.tm_mon, &date->tm.tm_mday,
-               &date->tm.tm_hour, &date->tm.tm_min, &date->tm.tm_sec, 
-               &date->timezone);
+               &date->tm.tm_hour, &date->tm.tm_min, &date->tm.tm_sec);
+
         date->tm.tm_year -= 1900;
         date->tm.tm_mon -= 1;
-        date->tm.tm_isdst = -1,
-        dbg_str(DBG_DETAIL, "systimezone:%d timezone:%d", date->get_systimezone(date), date->timezone);
-
-        if (date->timezone != 0) {
-            timezone_offset = (date->timezone - date->get_systimezone(date)) / 100;
-            time = mktime(&date->tm);
-            THROW_IF(time == -1, -1);
-            
-            dbg_str(DBG_DETAIL, "timezone_offset:%d, time:%d", timezone_offset, time);
-            time += (3600 * (timezone_offset));
-            
-            localtime_r(&time, &date->tm); 
-            dbg_str(DBG_DETAIL,"localtime:%d-%d-%d %d:%d:%d UTC%d", 
-                    date->tm.tm_year, date->tm.tm_mon, date->tm.tm_mday,
-                    date->tm.tm_hour, date->tm.tm_min, date->tm.tm_sec, 
-                    date->get_systimezone(date));
-        }
-
+        date->tm.tm_isdst = -1;
     } CATCH (ret) {}
 
     return ret;
@@ -126,11 +109,11 @@ static Date_Time *__next_month(Date_Time *date)
     date->tm.tm_hour = 0;
     date->tm.tm_min = 0;
     date->tm.tm_sec = 0;
+    date->tm.tm_isdst = 0;
 
-    printf("0.0end of month:time zone:%s\n", date->tm.tm_zone);
     time = mktime(&date->tm);
-    printf("0.1end of month:time zone:%s\n", date->tm.tm_zone);
     localtime_r(&time, &date->tm);
+    date->tm.tm_hour = 0;
 
     return date;
 }
@@ -178,7 +161,9 @@ static Date_Time *__end_of_year(Date_Time *date)
 
 static int __cmp(Date_Time *date, char *target)
 {
-    return strcmp(date->to_format_string(date, (char *)"%F %T UTC%z"), target); 
+    char *str = date->to_format_string(date, (char *)"%F %T");
+
+    return strncmp(str, target, strlen(str)); 
 }
 
 static Date_Time *
@@ -190,9 +175,9 @@ __for_each_day(Date_Time *date, char *end, int (*callback)(char *start, char *en
 
     TRY {
         for (; date->cmp(date, end) <= 0; date->next_day(date)) {
-            strcpy(s, date->to_format_string(date, (char *)"%F %T UTC%z"));
+            strcpy(s, date->to_format_string(date, (char *)"%F %T"));
             date->end_of_day(date);
-            e = date->to_format_string(date, (char *)"%F %T UTC%z");
+            e = date->to_format_string(date, (char *)"%F %T");
             if (date->cmp(date, end) > 0) { e = end; }
             SET_CATCH_STR_PARS(s, e);
             callback(s, e, opaque);
@@ -214,9 +199,9 @@ __for_each_month(Date_Time *date, char *end, int (*callback)(char *start, char *
 
     TRY {
         for (; date->cmp(date, end) <= 0; date->next_month(date)) {
-            strcpy(s, date->to_format_string(date, (char *)"%F %T UTC%z"));
+            strcpy(s, date->to_format_string(date, (char *)"%F %T"));
             date->end_of_month(date);
-            e = date->to_format_string(date, (char *)"%F %T UTC%z");
+            e = date->to_format_string(date, (char *)"%F %T");
             if (date->cmp(date, end) > 0) { e = end; }
             SET_CATCH_STR_PARS(s, e);
             callback(s, e, opaque);
@@ -238,9 +223,9 @@ __for_each_year(Date_Time *date, char *end, int (*callback)(char *start, char *e
 
     TRY {
         for (; date->cmp(date, end) <= 0; date->next_year(date)) {
-            strcpy(s, date->to_format_string(date, (char *)"%F %T UTC%z"));
+            strcpy(s, date->to_format_string(date, (char *)"%F %T"));
             date->end_of_year(date);
-            e = date->to_format_string(date, (char *)"%F %T UTC%z");
+            e = date->to_format_string(date, (char *)"%F %T");
             if (date->cmp(date, end) > 0) { e = end; }
             SET_CATCH_STR_PARS(s, e);
             callback(s, e, opaque);
@@ -315,6 +300,55 @@ static Date_Time *__add_seconds(Date_Time *date, int secs)
     return date;
 }
 
+static char *__zonetime2local(Date_Time *date, char *value)
+{
+    int timezone_offset = 0;
+    time_t time;
+    char *p;
+    int ret;
+
+    TRY {
+        p = strstr(value, "UTC");
+        THROW_IF(p == NULL, -1);
+        date->value->assign(date->value, value);
+        sscanf(value, "%d-%d-%d %d:%d:%d UTC%d", 
+               &date->tm.tm_year, &date->tm.tm_mon, &date->tm.tm_mday,
+               &date->tm.tm_hour, &date->tm.tm_min, &date->tm.tm_sec,
+               &date->timezone);
+
+        date->tm.tm_year -= 1900;
+        date->tm.tm_mon -= 1;
+        date->tm.tm_isdst = -1,
+        dbg_str(DBG_DETAIL, "systimezone:%d timezone:%d", date->get_systimezone(date), date->timezone);
+
+        if (date->timezone != 0) {
+            timezone_offset = (date->timezone - date->get_systimezone(date)) / 100;
+            time = mktime(&date->tm);
+            THROW_IF(time == -1, -1);
+            
+            dbg_str(DBG_DETAIL, "timezone_offset:%d, time:%d", timezone_offset, time);
+            time += (3600 * (timezone_offset));
+            
+            localtime_r(&time, &date->tm); 
+            dbg_str(DBG_DETAIL,"localtime:%d-%d-%d %d:%d:%d UTC%d", 
+                    date->tm.tm_year, date->tm.tm_mon, date->tm.tm_mday,
+                    date->tm.tm_hour, date->tm.tm_min, date->tm.tm_sec, 
+                    date->get_systimezone(date));
+        }
+        p = date->to_format_string(date, "%F %T UTC%z");
+
+    } CATCH (ret) {
+        p = NULL;
+    }
+
+    return p;
+}
+
+static char * __zonetime2zonetime(Date_Time *date, char *zonetime, char *target_zone)
+{
+
+}
+
 static class_info_entry_t module_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Date_Time, construct, __construct),
@@ -337,7 +371,9 @@ static class_info_entry_t module_class_info[] = {
     Init_Nfunc_Entry(18, Date_Time, start_of_month, __start_of_month),
     Init_Nfunc_Entry(19, Date_Time, start_of_year, __start_of_year),
     Init_Nfunc_Entry(20, Date_Time, add_seconds, __add_seconds),
-    Init_End___Entry(21, Date_Time),
+    Init_Nfunc_Entry(21, Date_Time, zonetime2local, __zonetime2local),
+    Init_Nfunc_Entry(22, Date_Time, zonetime2zonetime, __zonetime2zonetime),
+    Init_End___Entry(23, Date_Time),
 };
 REGISTER_CLASS("Date_Time", module_class_info);
 

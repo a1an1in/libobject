@@ -36,6 +36,8 @@ struct Date_Time_s{
     Date_Time *(*for_each_year)(Date_Time *date, char *end, int (*callback)(char *start, char *end, void *opaque), void *opaque);
     Date_Time *(*now)(Date_Time *date);
     Date_Time *(*add_seconds)(Date_Time *date, int sec);
+    char *(*zonetime2local)(Date_Time *date, char *value);
+    char *(*zonetime2zonetime)(Date_Time *date, char *zonetime, char *target_zone);
 
     String *value;
     struct tm tm;

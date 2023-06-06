@@ -14,3 +14,12 @@
 * ./sysroot/linux/bin/xtools ctest -r=String_Test   
 *     
 *     
+
+## timezone test
+we can change system timezone using this command
+```
+timedatectl set-timezone Europe/Stockholm  # setting
+timedatectl set-timezone Asia/Shanghai # setting
+timedatectl                 # view current
+timedatectl list-timezones  # list all
+```
