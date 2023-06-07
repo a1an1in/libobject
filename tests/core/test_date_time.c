@@ -108,6 +108,7 @@ static int test_datetime_cmp_case1(TEST_ENTRY *entry)
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_cmp_case1);
 
 static int test_datetime_cmp_case2(TEST_ENTRY *entry)
 {
@@ -131,6 +132,7 @@ static int test_datetime_cmp_case2(TEST_ENTRY *entry)
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_cmp_case2);
 
 static int test_datetime_cmp_case3(TEST_ENTRY *entry)
 {
@@ -154,21 +156,8 @@ static int test_datetime_cmp_case3(TEST_ENTRY *entry)
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_cmp_case3);
 
-static int test_datetime_cmp(TEST_ENTRY *entry)
-{
-    int ret;
-    char *str;
-
-    TRY {
-        EXEC(test_datetime_cmp_case1(entry));
-        EXEC(test_datetime_cmp_case2(entry));
-        EXEC(test_datetime_cmp_case3(entry));
-    } CATCH (ret) {}
-
-    return ret;
-}
-REGISTER_TEST_FUNC(test_datetime_cmp);
 
 static int for_each_count = 0;
 static int test_datetime_for_callback(char *start, char *end, void *opaque)
@@ -203,6 +192,7 @@ static int test_datetime_for_each_day_case1(TEST_ENTRY *entry)
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_for_each_day_case1);
 
 static int test_datetime_for_each_day_case2(TEST_ENTRY *entry)
 {
@@ -228,6 +218,7 @@ static int test_datetime_for_each_day_case2(TEST_ENTRY *entry)
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_for_each_day_case2);
 
 static int test_datetime_for_each_day_case3(TEST_ENTRY *entry)
 {
@@ -253,21 +244,7 @@ static int test_datetime_for_each_day_case3(TEST_ENTRY *entry)
 
     return ret;
 }
-
-static int test_datetime_for_each_day(TEST_ENTRY *entry)
-{
-    int ret;
-    char *str;
-
-    TRY {
-        EXEC(test_datetime_for_each_day_case1(entry));
-        EXEC(test_datetime_for_each_day_case2(entry));
-        EXEC(test_datetime_for_each_day_case3(entry));
-    } CATCH (ret) {}
-
-    return ret;
-}
-REGISTER_TEST_FUNC(test_datetime_for_each_day);
+REGISTER_TEST_FUNC(test_datetime_for_each_day_case3);
 
 static int test_datetime_for_each_month_case1(TEST_ENTRY *entry)
 {
@@ -295,6 +272,7 @@ static int test_datetime_for_each_month_case1(TEST_ENTRY *entry)
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_for_each_month_case1);
 
 static int test_datetime_for_each_month_case2(TEST_ENTRY *entry)
 {
@@ -322,20 +300,7 @@ static int test_datetime_for_each_month_case2(TEST_ENTRY *entry)
 
     return ret;
 }
-
-static int test_datetime_for_each_month(TEST_ENTRY *entry)
-{
-    int ret;
-    char *str;
-
-    TRY {
-        EXEC(test_datetime_for_each_month_case1(entry));
-        EXEC(test_datetime_for_each_month_case2(entry));
-    } CATCH (ret) { }
-
-    return ret;
-}
-REGISTER_TEST_FUNC(test_datetime_for_each_month);
+REGISTER_TEST_FUNC(test_datetime_for_each_month_case2);
 
 static int test_datetime_for_each_year(TEST_ENTRY *entry)
 {
@@ -424,7 +389,7 @@ static int test_datetime_now(TEST_ENTRY *entry)
 }
 REGISTER_TEST_FUNC(test_datetime_now);
 
-static int test_datetime_zonetime2local1(TEST_ENTRY *entry)
+static int test_datetime_zonetime2local_case1(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
@@ -454,8 +419,9 @@ static int test_datetime_zonetime2local1(TEST_ENTRY *entry)
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_zonetime2local_case1);
 
-static int test_datetime_zonetime2local2(TEST_ENTRY *entry)
+static int test_datetime_zonetime2local_case2(TEST_ENTRY *entry)
 {
     int ret;
     Date_Time *date;
@@ -478,24 +444,12 @@ static int test_datetime_zonetime2local2(TEST_ENTRY *entry)
         SET_CATCH_STR_PARS(tmp, str);
         THROW_IF(strncmp(str, tmp, strlen(str)) != 0, -1);
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "test_datetime_zonetime2local2 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+        dbg_str(DBG_ERROR, "test_datetime_zonetime2local_case2 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
     } FINALLY {
         object_destroy(date);
     }
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_datetime_zonetime2local_case2);
 
-static int test_datetime_zonetime2local(TEST_ENTRY *entry)
-{
-    int ret;
-    char *str;
-
-    TRY {
-        EXEC(test_datetime_zonetime2local1(entry));
-        EXEC(test_datetime_zonetime2local2(entry));
-    } CATCH (ret) {}
-
-    return ret;
-}
-REGISTER_TEST_FUNC(test_datetime_zonetime2local);
