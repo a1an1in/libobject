@@ -42,7 +42,7 @@
 static int test_macro(TEST_ENTRY *entry, void *argc, void *argv)
 {
 
-    printf("file name: %s\n", extract_filename_in_macro(__FILE__));
+    printf("file name: %s\n", extract_filename_from_path(__FILE__));
     return 0;
 }
 REGISTER_TEST_CMD(test_macro);

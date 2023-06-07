@@ -34,7 +34,7 @@ extern pthread_key_t try_key;
 
 #define ERROR_MESSAGE() __exception_frame.message
 #define ERROR_LINE() __exception_frame.line
-#define ERROR_FILE() extract_filename_in_macro(__exception_frame.file)
+#define ERROR_FILE() extract_filename_from_path(__exception_frame.file)
 #define ERROR_FUNC() __exception_frame.func
 #define ERROR_CODE() __exception_frame.error_code
 
@@ -112,7 +112,7 @@ extern pthread_key_t try_key;
     do {                                                                                         \
         __error_line = __LINE__;                                                                 \
         __error_func = (char *)__func__;                                                         \
-        __error_file = (char *)extract_filename_in_macro(__FILE__);                              \
+        __error_file = (char *)extract_filename_from_path(__FILE__);                              \
         __error_code = error_code;                                                               \
         goto __error_tab;                                                                        \
     } while (0);

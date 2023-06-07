@@ -115,7 +115,7 @@ debugger_t *debugger_get_global_debugger();
 void debugger_set_all_businesses_level(debugger_t *debugger,int sw, int level);
 
 static inline const char *
-extract_filename_in_macro(const char *macro)
+extract_filename_from_path(const char *macro)
 {
     const char *index;
 
@@ -217,14 +217,14 @@ extract_filename_in_macro(const char *macro)
     		debugger_dbg_str(debugger_gp,\
                     debug_switch,"[" fmt "]--[%s:%d]",\
                     ##args,\
-                    extract_filename_in_macro(__FILE__),\
+                    extract_filename_from_path(__FILE__),\
                     __LINE__);
 
     	#define dbg_buf(debug_switch,const_str,buf,buf_len)\
     		debugger_dbg_buf(debugger_gp,\
                     debug_switch,const_str,buf,buf_len,\
                     "[%s:%d]",\
-                    extract_filename_in_macro(__FILE__), \
+                    extract_filename_from_path(__FILE__), \
                     __LINE__);
     #else
     	#define dbg_str(debug_switch,fmt,args...) do{}while(0) 

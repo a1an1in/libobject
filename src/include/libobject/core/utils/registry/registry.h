@@ -1,6 +1,7 @@
 #ifndef __INIT_REGISTRY_H__
 #define __INIT_REGISTRY_H__
 
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/reg_heap.h>
 
 #define REGISTRY_CTOR_PRIORITY_VERSION                      1 
@@ -55,12 +56,12 @@ int assert_equal(void *peer1, void *peer2, unsigned int count);
 
 #define REGISTER_TEST_FUNC(func) \
     __attribute__((constructor)) static void register_test_##func() {\
-        __register_test_func((int (*)(void *))func, #func, __FILE__, __LINE__);\
+        __register_test_func((int (*)(void *))func, #func, extract_filename_from_path(__FILE__), __LINE__);\
     }
 
 #define REGISTER_TEST_CMD(func) \
     __attribute__((constructor)) static void register_test_cmd_##func() {\
-        __register_standalone_test_func((int (*)(void *, void *, void *))func, #func, __FILE__, __LINE__);\
+        __register_standalone_test_func((int (*)(void *, void *, void *))func, #func, extract_filename_from_path(__FILE__), __LINE__);\
     } 
 
 #endif 

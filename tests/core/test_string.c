@@ -273,7 +273,7 @@ static int test_string_split_case1()
         for (i = 0; i < cnt; i++) {
             p = string->get_splited_cstr(string, i);
             if (p != NULL) {
-                dbg_str(DBG_SUC, "%d:%s", i, p);
+                dbg_str(DBG_DETAIL, "%d:%s", i, p);
             }
         }
 
@@ -308,7 +308,7 @@ static int test_string_split_case2()
         for (i = 0; i < cnt; i++) {
             p = string->get_splited_cstr(string, i);
             if (p != NULL) {
-                dbg_str(DBG_SUC, "%d:%s", i, p);
+                dbg_str(DBG_DETAIL, "%d:%s", i, p);
             }
         }
 
@@ -343,7 +343,7 @@ static int test_string_split_case3_using_reg()
         for (i = 0; i < cnt; i++) {
             p = string->get_splited_cstr(string, i);
             if (p != NULL) {
-                dbg_str(DBG_SUC, "%d:%s", i, p);
+                dbg_str(DBG_DETAIL, "%d:%s", i, p);
             }
         }
 
@@ -375,7 +375,7 @@ static int test_string_split_case4_using_reg()
         for (i = 0; i < cnt; i++) {
             p = string->get_splited_cstr(string, i);
             if (p != NULL) {
-                dbg_str(DBG_SUC, "%d:%s", i, p);
+                dbg_str(DBG_DETAIL, "%d:%s", i, p);
             }
         }
 
