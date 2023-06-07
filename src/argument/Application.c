@@ -206,7 +206,7 @@ int libobject_init()
             EXEC(core_init_fs());
         #endif
         
-        debugger_set_all_businesses_level(debugger_gp, 1, 3);
+        debugger_set_all_businesses_level(debugger_gp, 1, 6);
 
         exception_init();
     } CATCH (ret) {

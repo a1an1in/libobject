@@ -450,7 +450,9 @@ static int __run_option_actions(Command *command)
     option_count = options->count(options);
     for (i = 0; i < option_count; i++) {
         options->peek_at(options, i, (void **)&o);
-        if (o != NULL && o->action != NULL) {
+        /* if configed default value and set_flag == 1, then need run option action */
+        if ((o != NULL && o->action != NULL && o->value != NULL && strlen(STR2A(o->value)) > 0) ||
+            o->set_flag == 1) {
             int (*option_action)(void *, void *) = o->action;
             option_action(o, o->opaque);
             dbg_str(DBG_DETAIL, "run option action:%s\n", o->name->get_cstr(o->name));

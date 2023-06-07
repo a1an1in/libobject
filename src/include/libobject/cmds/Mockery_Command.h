@@ -17,7 +17,12 @@ struct Mockery_Command_s{
 	int (*set)(Command *command, char *attrib, void *value);
 	int (*run_command)(Command *command);
     void *(*get)(void *obj, char *attrib);
-    char *(*to_json)(void *obj); 
+    char *(*to_json)(void *obj);
+
+	char *test_func_name;
+	char *cmd_name;
+	char *argv[20];
+	int argc;
 };
 
 #endif

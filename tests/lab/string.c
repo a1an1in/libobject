@@ -57,7 +57,7 @@ char* strchr_n(char *s, char c, int n)
     } else return NULL;
 }
 
-int test_strchr(TEST_ENTRY *entry)
+int test_strchr(TEST_ENTRY *entry, int argc, void **argv)
 {
     char *str = "lbrnsepcfjzcpfgzqdiujo";
     char *p;

@@ -1,8 +1,8 @@
-change an func name
+optimize mockery
 
 Description:
 update
 
 Major Changes:
-1. change func from extract_filename_in_macro to extract_filename_from_path
-2. modulate string test log level
+1. add new execute_designated_command func
+2. add --run-test, --run-cmd, and --args option for mockery

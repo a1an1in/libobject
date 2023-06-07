@@ -29,7 +29,8 @@ int __register_test_func(int (*func)(void *), const char *func_name, const char 
 int execute_ctor_funcs(); 
 int execute_dtor_funcs();
 int execute_test_funcs();
-int execute_test_designated_func(char *func_name, void *arg1, void *arg2);
+int execute_designated_test_func(char *func_name);
+int execute_designated_command(char *func_name, int arg1, char **arg2);
 int assert_equal(void *peer1, void *peer2, unsigned int count);
 
 #define INIT_LIBOBJECT execute_ctor_funcs

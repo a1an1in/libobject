@@ -37,7 +37,7 @@ macro (set_cmake_evironment_variable)
         wsock32
         regex
         # api-ms-win-crt-stdio-l1-1-0
-        ucrtbased
+        # ucrtbased
         # cmt
         # ucrt
         # mysqlclient
