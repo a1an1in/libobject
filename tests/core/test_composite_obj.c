@@ -35,42 +35,16 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Array_Stack.h>
 #include <libobject/core/utils/registry/registry.h>
-#include "Composite_Obj_Test.h"
+#include "Composite_Obj.h"
 
 static char *__to_json_new(Obj *obj) 
 {
     dbg_str(DBG_SUC, "new to json");
 }
 
-static int __construct(Test *test, char *init_str)
+static int test_composite_obj_marshal(TEST_ENTRY *entry)
 {
-    return 0;
-}
-
-static int __deconstrcut(Test *test)
-{
-    return 0;
-}
-
-static int __setup(Composite_Obj_Test *test, char *init_str)
-{
-    allocator_t *allocator = test->parent.obj.allocator;
-
-    dbg_str(DBG_DETAIL,"Composite_Obj_Test set up");
-
-    return 1;
-}
-
-static int __teardown(Composite_Obj_Test *test)
-{
-    dbg_str(DBG_DETAIL,"Composite_Obj_Test teardown");
-
-    return 1;
-}
-
-static int __test_marshal_composite_obj(Composite_Obj_Test *test)
-{
-    allocator_t *allocator = test->parent.obj.allocator;
+    allocator_t *allocator = allocator_get_default_instance();
     Composite_Obj *composite;
     Vector *vector;
     int help = 1, ret, num = 5;
@@ -119,7 +93,6 @@ static int __test_marshal_composite_obj(Composite_Obj_Test *test)
         ret = strncmp(string->get_cstr(string), expect, strlen(expect));
         THROW_IF(ret != 0, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "int_number error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
     } FINALLY {
         object_destroy(string);
@@ -128,11 +101,12 @@ static int __test_marshal_composite_obj(Composite_Obj_Test *test)
 
     return ret;
 }
+REGISTER_TEST_FUNC(test_composite_obj_marshal);
 
-static void __test_unmarshal_composite_obj(Composite_Obj_Test *test)
+static int test_composite_obj_unmarshal(TEST_ENTRY *entry)
 {
     Composite_Obj *composite;
-    allocator_t *allocator = test->parent.obj.allocator;
+    allocator_t *allocator = allocator_get_default_instance();
     int help = 2;
     String *string;
     int ret;
@@ -153,17 +127,17 @@ static void __test_unmarshal_composite_obj(Composite_Obj_Test *test)
         ret = strncmp(string->get_cstr(string), expect, strlen(expect));
         THROW_IF(ret != 0, -1);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-        dbg_str(DBG_ERROR, "test_unmarshal_composite_obj error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+        dbg_str(DBG_ERROR, "test_composite_obj_unmarshal error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
     } FINALLY {
         object_destroy(string);
         object_destroy(composite);
     }
 }
+REGISTER_TEST_FUNC(test_composite_obj_unmarshal);
 
-static void __test_override_virtual_funcs(Composite_Obj_Test *test)
+static int test_composite_obj_override_virtual_funcs(TEST_ENTRY *entry)
 {
-    allocator_t *allocator = test->parent.obj.allocator;
+    allocator_t *allocator = allocator_get_default_instance();
     Composite_Obj *composite;
     int ret;
     Obj *o;
@@ -176,24 +150,10 @@ static void __test_override_virtual_funcs(Composite_Obj_Test *test)
         object_override(o, "to_json", __to_json_new);
 
         THROW_IF(o->to_json != __to_json_new, -1);
-    } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-    } FINALLY {
+    } CATCH (ret) {} FINALLY {
         object_destroy(composite);
     }
-}
 
-static class_info_entry_t vector_test_class_info[] = {
-    Init_Obj___Entry(0 , Test, parent),
-    Init_Nfunc_Entry(1 , Composite_Obj_Test, construct, __construct),
-    Init_Nfunc_Entry(2 , Composite_Obj_Test, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Composite_Obj_Test, set, NULL),
-    Init_Vfunc_Entry(4 , Composite_Obj_Test, get, NULL),
-    Init_Vfunc_Entry(5 , Composite_Obj_Test, setup, __setup),
-    Init_Vfunc_Entry(6 , Composite_Obj_Test, teardown, __teardown),
-    Init_Vfunc_Entry(7 , Composite_Obj_Test, test_marshal_composite_obj, __test_marshal_composite_obj),
-    Init_Vfunc_Entry(8 , Composite_Obj_Test, test_unmarshal_composite_obj, __test_unmarshal_composite_obj),
-    Init_Vfunc_Entry(9 , Composite_Obj_Test, test_override_virtual_funcs, __test_override_virtual_funcs),
-    Init_End___Entry(10, Composite_Obj_Test),
-};
-REGISTER_CLASS("Composite_Obj_Test", vector_test_class_info);
+    return ret;
+}
+REGISTER_TEST_FUNC(test_composite_obj_override_virtual_funcs);
