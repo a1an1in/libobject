@@ -10,12 +10,14 @@
 * ./sysroot/linux/bin/xtools --event-thread-service=11111 --event-signal-service=11112 fshell
 * ./sysroot/linux/bin/xtools --log-level=6 
 * ./sysroot/linux/bin/xtools fshell --log-level=6
-* ./sysroot/linux/bin/xtools --log-level=6  mockery test_skcipher_ecb_aes
-* ./sysroot/linux/bin/xtools ctest -r=String_Test
-* ./sysroot/windows/bin/xtools.exe mockery --log-level=6 --run-test=test_string
-* ./sysroot/windows/bin/xtools.exe mockery --run-cmd=test_mockery_command --args=123,456
-*     
-*     
+* ./sysroot/linux/bin/xtools ctest -r=Hash_Map_Test
+* ./sysroot/linux/bin/xtools mockery --log-level=6 test_mockery_command 123 456
+* ./sysroot/linux/bin/xtools mockery --log-level=6 test_string
+* ./sysroot/linux/bin/xtools mockery --log-level=6 test_stub_add_hooks
+* ./sysroot/linux/bin/xtools mockery --log-level=6 all
+* ./sysroot/linux/bin/xtools mockery test_datetime_for_each_month
+* 
+* 
 
 ## timezone test
 we can change system timezone using this command

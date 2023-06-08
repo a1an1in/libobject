@@ -42,7 +42,7 @@ static char *__to_json_new(Obj *obj)
     dbg_str(DBG_SUC, "new to json");
 }
 
-static int test_composite_obj_marshal(TEST_ENTRY *entry)
+static int test_object_marshal(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Composite_Obj *composite;
@@ -101,9 +101,9 @@ static int test_composite_obj_marshal(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_composite_obj_marshal);
+REGISTER_TEST_FUNC(test_object_marshal);
 
-static int test_composite_obj_unmarshal(TEST_ENTRY *entry)
+static int test_object_unmarshal(TEST_ENTRY *entry)
 {
     Composite_Obj *composite;
     allocator_t *allocator = allocator_get_default_instance();
@@ -127,15 +127,15 @@ static int test_composite_obj_unmarshal(TEST_ENTRY *entry)
         ret = strncmp(string->get_cstr(string), expect, strlen(expect));
         THROW_IF(ret != 0, -1);
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "test_composite_obj_unmarshal error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+        dbg_str(DBG_ERROR, "test_object_unmarshal error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
     } FINALLY {
         object_destroy(string);
         object_destroy(composite);
     }
 }
-REGISTER_TEST_FUNC(test_composite_obj_unmarshal);
+REGISTER_TEST_FUNC(test_object_unmarshal);
 
-static int test_composite_obj_override_virtual_funcs(TEST_ENTRY *entry)
+static int test_object_override_virtual_funcs(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Composite_Obj *composite;
@@ -156,4 +156,4 @@ static int test_composite_obj_override_virtual_funcs(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_composite_obj_override_virtual_funcs);
+REGISTER_TEST_FUNC(test_object_override_virtual_funcs);

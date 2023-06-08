@@ -27,6 +27,7 @@ int stub_admin_init_default_instance()
         stub_admin->free_stub_list = list;
 
         EXEC(stub_admin_add_placeholder(stub_admin, stub_placeholder, stub_placeholder_size));
+        printf("xxxxxx stub_placeholder:%p\n", stub_placeholder);
     } CATCH (ret) {}
 
     return ret;
@@ -101,13 +102,14 @@ stub_t *stub_admin_alloc(stub_admin_t *admin)
         }
 
         admin->cur = cur;
-        stub = (stub_t *)allocator_mem_alloc(allocator, sizeof(stub_t));
+        stub = (stub_t *)allocator_mem_zalloc(allocator, sizeof(stub_t));
         stub->area = cur->addr + cur->index;
         cur->index += sizeof(stub_exec_area_t);
-        
+
+        dbg_str(DBG_SUC,"stub_admin_alloc, alloc from alloc, stub addr:%p, stub area:%p, addr:%p, index:%d", 
+                stub, stub->area, cur->addr, cur->index);
         EXEC(stub_config_exec_area(stub));
-        dbg_str(DBG_DETAIL,"stub_admin_alloc, alloc from alloc, stub addr:%p, addr:%p, index:%d", 
-                stub, cur->addr, cur->index);
+        
     } CATCH (ret) {
         stub = NULL;
     }

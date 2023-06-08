@@ -140,7 +140,8 @@ int stub_config_exec_area(stub_t *stub)
 
     TRY {
         THROW_IF(stub->area == NULL, -1);
-        EXEC(mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_WRITE | PROT_EXEC));  
+        EXEC(mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_WRITE | PROT_EXEC));
+        printf("xxxxxxxxx stub->area:%p\n", stub->area);
         stub->area->stub = stub;
         stub->area_flag = 1;
         mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_EXEC);  

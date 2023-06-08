@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/List.h>
-#include <libobject/stub/stub.h>>
+#include <libobject/stub/stub.h>
 
 typedef struct placeholder_s placeholder_t;
 

@@ -165,7 +165,7 @@ int execute_test_funcs()
     return 0;
 }
 
-int execute_designated_test_func(char *func_name) 
+int execute_designated_func(char *func_name, int arg1, char **arg2) 
 {
     int i, size = 0, ret;
     init_func_entry_t *element;
@@ -184,59 +184,7 @@ int execute_designated_test_func(char *func_name)
         if (element->args_count == 1) {
             ret = element->func1((void *)element);
             flag = 1;
-        } else {
-            free(element);
-            continue;
-        }
-
-        if (ret <= 0) {
-            dbg_str(DBG_ERROR, 
-                    "test failed, func_name = %s,  file = %s, line = %d", 
-                    element->func_name,
-                    element->file,
-                    element->line);
-        } else {
-            dbg_str(DBG_SUC, 
-                    "test suc, func_name = %s,  file = %s, line = %d", 
-                    element->func_name,
-                    element->file,
-                    element->line);
-        }
-        free(element);
-    }
-
-    if (flag == 0) {
-        dbg_str(DBG_ERROR, 
-                "not found func_name = %s register map", 
-                func_name);
-    }
-
-    reg_heap_destroy(reg_heap);
-
-    return 0;
-}
-
-int execute_designated_command(char *func_name, int arg1, char **arg2) 
-{
-    int i, size = 0, ret;
-    init_func_entry_t *element;
-    reg_heap_t * reg_heap = get_global_testfunc_reg_heap();
-    int flag = 0;
-
-    size = reg_heap_size(reg_heap);
-    for (i = 0; i< size; i++){
-        reg_heap_remove(reg_heap, (void **)&element);
-
-        if (element->type != FUNC_ENTRY_TYPE_STANDALONE) {
-            continue;
-        }
-
-        if (strncmp(element->func_name, func_name, strlen(func_name)) != 0) {
-            free(element);
-            continue;
-        }
-
-        if (element->args_count == 3) {
+        } else if (element->args_count == 3) {
             ret = element->func3((void *)element, arg1, arg2);
             flag = 1;
         } else {

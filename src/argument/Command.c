@@ -227,12 +227,20 @@ end:
 static Argument *__get_argment(Command *command, int index)
 {
     Vector *args = command->args;
-    int count;
+    int count, ret;
     Argument *arg;
 
-    if (args == NULL) return NULL;
+    TRY {
+        THROW_IF(args == NULL, -1);
 
-    args->peek_at(args, index, (void **)&arg);
+        args->peek_at(args, index, (void **)&arg);
+        if (arg == NULL) {
+            command->add_argument(command, "", "", NULL, command);
+            args->peek_at(args, index, (void **)&arg);
+            THROW_IF(arg == NULL, -1);
+            dbg_str(DBG_SUC, "arg addr %p", arg);
+        }
+    } CATCH (ret) { arg = NULL; }
 
     return arg;
 }

@@ -7,17 +7,14 @@
 #include <libobject/cmds/Mockery_Command.h>
 #include <libobject/argument/Application.h>
 
-
 static int __run_command(Mockery_Command *command)
 {
     dbg_str(DBG_DETAIL, "mockery start");
 
-    if (command->test_func_name != NULL && strcmp(command->test_func_name, "all") == 0) {
+    if (command->func_name != NULL && strcmp(command->func_name, "all") == 0) {
         execute_test_funcs();
-    } else if (command->test_func_name != NULL) {
-        execute_designated_test_func(command->test_func_name);
-    } else if (command->cmd_name != NULL) {
-        execute_designated_command(command->cmd_name, command->argc, command->argv);
+    } else if (command->argument_flag == 1) {
+        execute_designated_func(command->func_name, command->argc, command->argv);
     }
 
     dbg_str(DBG_DETAIL, "mockery end");
@@ -26,52 +23,39 @@ static int __run_command(Mockery_Command *command)
     return 1;
 }
 
-static int __option_run_test_callback(Option *option, void *opaque)
-{
-    Mockery_Command *command = (Mockery_Command *)opaque;
-
-    dbg_str(DBG_SUC,"option_run_test_callback:%s", STR2A(option->value));
-    command->test_func_name = STR2A(option->value);
-
-    return 1;
-}
-
-static int __option_run_cmd_callback(Option *option, void *opaque)
-{
-    Mockery_Command *command = (Mockery_Command *)opaque;
-
-    dbg_str(DBG_SUC,"option_run_cmd_callback:%s", STR2A(option->value));
-    command->cmd_name = STR2A(option->value);
-
-    return 1;
-}
-
-static int __option_args_callback(Option *option, void *opaque)
+static int __argument_action_callback(Argument *argu, void *opaque)
 {
     Mockery_Command *command = (Mockery_Command *)opaque;
     String *str;
+    Argument *a;
     char *arg, **argv = command->argv;
-    int cnt, i;
+    int cnt, i, ret;
 
-    dbg_str(DBG_SUC,"option_args_callback:%s", STR2A(option->value));
-    str = option->value;
-    cnt = str->split(str, "[,]", -1);
-    for (i = 0; i < cnt; i++) {
-        arg = str->get_splited_cstr(str, i);
-        arg = str_trim(arg);
-        argv[i] = arg;
-        dbg_str(DBG_SUC, "cnt:%d, par i:%d value:%s", cnt, i, argv[i]);
-    }
-    command->argc = cnt;
+    TRY {
+        command->argument_flag = 1;
+        command->func_name = STR2A(argu->value);
+        cnt = command->parent.args->count(command->parent.args);
+        dbg_str(DBG_SUC,"argument_action_callback:%s, args count:%d", STR2A(argu->value), cnt);
 
-    return 1;
+        for (i = 0; i < cnt; i++) {
+            a = command->parent.get_argment(&command->parent, i);
+            THROW_IF(a == NULL, -1);
+
+            // arg = str_trim(STR2A(a->value));
+            arg = STR2A(a->value);
+            THROW_IF(arg == NULL, -1);
+            argv[i] = arg;
+            dbg_str(DBG_SUC,"arg :%s", arg);  
+        }
+        command->argc = cnt;
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static int __construct(Command *command, char *init_str)
 {
-    command->add_option(command, "--run-test", "", "", "run test funcs", __option_run_test_callback, command);
-    command->add_option(command, "--run-cmd", "", "", "run cmd", __option_run_cmd_callback, command);
-    command->add_option(command, "--args", "", "", "command args", __option_args_callback, command);
+    command->add_argument(command, "", "function name to exec, which can be test func or command name", __argument_action_callback, command);
     command->set(command, "/Command/name", "mockery");
     command->set(command, "/Command/description", "mockery is used to do functional interface unit testing \n"
                  "                                and system testing. it can also run command like funtion.");
@@ -95,8 +79,6 @@ REGISTER_APP_CMD("Mockery_Command", test_command_class_info);
 
 int test_mockery_command(TEST_ENTRY *entry, int argc, char **argv)
 {
-    char *str = "lbrnsepcfjzcpfgzqdiujo";
-    char *p;
     int len, i;
 
     dbg_str(DBG_SUC, "test_mockery_command");

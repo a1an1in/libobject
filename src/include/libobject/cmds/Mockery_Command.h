@@ -19,10 +19,10 @@ struct Mockery_Command_s{
     void *(*get)(void *obj, char *attrib);
     char *(*to_json)(void *obj);
 
-	char *test_func_name;
-	char *cmd_name;
+	char *func_name;
 	char *argv[20];
 	int argc;
+	int argument_flag;
 };
 
 #endif
