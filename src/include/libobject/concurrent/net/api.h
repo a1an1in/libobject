@@ -6,8 +6,8 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/io/Socket.h>
 #include <libobject/concurrent/api.h>
-#include <libobject/net/worker/Client.h>
-#include <libobject/net/worker/Server.h>
+#include <libobject/concurrent/net/Client.h>
+#include <libobject/concurrent/net/Server.h>
 
 #define SERVER_TYPE_INET_TCP "inet_tcp_server_type"
 #define SERVER_TYPE_UNIX_TCP "tcp_userver_type"

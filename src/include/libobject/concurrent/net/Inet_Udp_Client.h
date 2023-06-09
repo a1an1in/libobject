@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
-#include <libobject/net/worker/Client.h>
+#include <libobject/concurrent/net/Client.h>
 
 typedef struct inet_udp_client_s Inet_Udp_Client;
 

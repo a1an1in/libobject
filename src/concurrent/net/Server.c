@@ -33,8 +33,8 @@
 #include <libobject/core/try.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/net/worker/Server.h>
 #include <libobject/core/Linked_List.h>
+#include <libobject/concurrent/net/Server.h>
 
 static void __release_working_worker(void *element)
 {

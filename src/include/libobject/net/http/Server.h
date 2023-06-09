@@ -8,7 +8,7 @@
 #include <libobject/net/http/Request.h>
 #include <libobject/net/http/Response.h>
 #include <libobject/net/http/handler.h>
-#include <libobject/net/worker/api.h>
+#include <libobject/concurrent/net/api.h>
 
 #define HTTP_MAX_FILE_LEN 1024
 

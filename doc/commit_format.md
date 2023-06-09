@@ -1,8 +1,11 @@
-optimize mockery
+mv net/worker to concurrent/net
 
 Description:
-when using run-test options, it make the operation more
-complicated, so change it to support arguments,
+the net/worker is base on concurrent, sometimes when net/xxx tools
+has issues which led the net/worker can be used. after move net/worker
+to concurrent, the concurrent lib will be more independent and can be 
+dedicated solely to providing concurrent functionality for other 
+libraries.
 
 Major Changes:
-1. del --run-test, --run-cmd, and --args option for mockery
+1. mv net/worker to concurrent/net

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
-#include <libobject/net/worker/Client.h>
+#include <libobject/concurrent/net/Client.h>
 
 typedef struct inet_tcp_client_s Inet_Tcp_Client;
 

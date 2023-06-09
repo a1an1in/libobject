@@ -33,7 +33,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/net/worker/Inet_Udp_Client.h>
+#include <libobject/concurrent/net/Inet_Udp_Client.h>
 
 static int __construct(Inet_Udp_Client *client, char *init_str)
 {
