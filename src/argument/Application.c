@@ -9,7 +9,7 @@
 #include <libobject/argument/Application.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/try.h>
-#include <libobject/core/io/fs_compat.h>
+#include <libobject/core/io/file_system.h>
 #include <libobject/concurrent/Producer.h>
 #include <libobject/version.h>
 
@@ -203,7 +203,7 @@ int libobject_init()
         EXEC(execute_ctor_funcs());
 
         #if (!defined(WINDOWS_USER_MODE))
-            EXEC(core_init_fs());
+            EXEC(fs_init());
         #endif
         
         debugger_set_all_businesses_level(debugger_gp, 1, 6);
@@ -226,7 +226,7 @@ int libobject_destroy()
         #if (defined(WINDOWS_USER_MODE))
             WSACleanup();
         #else
-            EXEC(core_destroy_fs());
+            EXEC(fs_destroy());
         #endif
         
         EXEC(execute_dtor_funcs());

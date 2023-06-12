@@ -50,6 +50,7 @@ static int __list(Unix_File_System *fs, char *path, char **list, int count, int 
     allocator_t *allocator = fs->parent.obj.allocator;
     int i = 0, ret = 0;
 
+    if (fs == NULL) return -1;
     if ((dir = opendir(path)) == NULL) {
         dbg_str(DBG_ERROR, "opendir error:%s!", strerror(errno));
         return -1;
@@ -79,6 +80,7 @@ static int __count_list(Unix_File_System *fs, char *path)
     struct dirent *ptr;
     int i = 0, ret = 0;
 
+    if (fs == NULL) return -1;
     if ((dir = opendir(path)) == NULL) {
         dbg_str(DBG_ERROR, "opendir error:%s!", strerror(errno));
         return -1;
@@ -97,6 +99,8 @@ static int __is_directory(Unix_File_System *fs, char *path)
 {
     struct stat st;
 
+    if (fs == NULL) return -1;
+
     if (stat(path, &st) == -1) {
         return -1;
     }
@@ -110,6 +114,8 @@ static int __get_size(Unix_File_System *fs, char *path)
 {
     struct stat st;
 
+    if (fs == NULL) return -1;
+
     if (stat(path, &st) == -1) {
         return -1;
     }
@@ -122,13 +128,10 @@ static int __get_mtime(Unix_File_System *fs, char *path, char *time, int time_ma
     struct stat st;
     struct tm t;
 
-    if (stat(path, &st) == -1) {
-        return -1;
-    }
-
-    /*
-     *strftime(time, time_max_len, "%Y-%m-%d %H:%M:%S", localtime_r(&st.st_mtimespec.tv_sec, &t));
-     */
+    if (fs == NULL) return -1;
+    if (stat(path, &st) == -1) return -1;
+    
+    strftime(time, time_max_len, "%Y-%m-%d %H:%M:%S", localtime_r(&st.st_mtime, &t));
 
     return 0;
 }

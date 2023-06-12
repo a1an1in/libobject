@@ -98,9 +98,9 @@ static int __mkdir(File *file, char *path, mode_t mode)
 
     TRY {
 #if (defined(WINDOWS_USER_MODE))
-    EXEC(mkdir(path));
+        EXEC(mkdir(path));
 #else
-    EXEC(mkdir(path, mode));
+        EXEC(mkdir(path, mode));
 #endif
     } CATCH (ret) {}
 
@@ -122,8 +122,7 @@ static int __get_size(File *file)
         ret = ftell(file->f);
         fseek(file->f, 0L, SEEK_SET);
         THROW(ret);
-    } CATCH (ret) {
-    }
+    } CATCH (ret) { }
 
     return ret;
 }

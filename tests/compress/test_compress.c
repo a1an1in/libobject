@@ -20,8 +20,7 @@ static int test_zcompress_buf(TEST_ENTRY *entry)
         EXEC(c->inflate_buf(c, compress_out, compress_out_len, uncompress_out, &uncompress_out_len));
         THROW_IF(strlen(plaintext) != uncompress_out_len, -1);
         THROW_IF(memcmp(plaintext, uncompress_out, strlen(plaintext)) != 0, -1);
-    } CATCH(ret) {
-    } FINALLY {
+    } CATCH(ret) { } FINALLY {
         object_destroy(c);
     };
 
