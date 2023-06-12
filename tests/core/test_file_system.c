@@ -14,14 +14,15 @@ static int test_fs_list(TEST_ENTRY *entry)
         count = fs_count_list(test_path);
         THROW_IF(count < 0, -1);
 
-        printf("count:%d\n", count);
         list = allocator_mem_alloc(allocator, count * 20);
         count = fs_list(test_path, (char **)list, count, 20);
         THROW_IF(count < 0, -1);
         
         for (i = 0; i < count; i++) {
-            printf("%s\n", (char *)list + i * 20);
+            dbg_str(DBG_DETAIL,"%d: %s", i, (char *)list + i * 20);
         }
+
+        SET_CATCH_INT_PARS(count, 0);
         THROW_IF(count != 9, -1);
     } CATCH (ret) {} FINALLY {
         allocator_mem_free(allocator, list);
@@ -64,4 +65,30 @@ static int test_fs_get_size(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_FUNC(test_fs_get_size);
+
+static int test_fs_is_directory_case0(TEST_ENTRY *entry)
+{
+    int ret;
+
+    TRY {
+        ret = fs_is_directory("./res/TIMES.TTF");
+        THROW_IF(ret == 1 || ret < 0, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_fs_is_directory_case0);
+
+static int test_fs_is_directory_case1(TEST_ENTRY *entry)
+{
+    int ret;
+
+    TRY {
+        ret = fs_is_directory("./res");
+        THROW_IF(ret != 1, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_fs_is_directory_case1);
 #endif

@@ -10,13 +10,23 @@ function parse_args { # Read commande line arguments and update global vairbles
                 OPTION_HELP=""
                 shift # past argument=value
                 ;;
+            read|help)
+                CMD_NAME=$i
+                OPTION_HELP=""
+                shift # past argument=value
+                ;;
             -p=*|--port=*)
                 OPTION_PORT="${i#*=}"
                 OPTION_HELP=""
                 shift # past argument=value
                 ;;
-            -a=*|--address=*)
-                OPTION_ADDRESS="${i#*=}"
+            -r=*|--read_address=*)
+                OPTION_READ_ADDRESS="${i#*=}"
+                OPTION_HELP=""
+                shift # past argument
+                ;;
+            -w=*|--write_address=*)
+                OPTION_WRITE_ADDRESS="${i#*=}"
                 OPTION_HELP=""
                 shift # past argument
                 ;;
@@ -47,21 +57,29 @@ cat << EOF
             [-s|--size=<read or write size>]
     
     commands:
-    read_eci_iq_ingress    build this repo.
-        -p, --port:        port number.
-        -a, --address:     read or write address.
-        -s, --size:        read or write size
+    read_eci_iq_ingress      build this repo.
+        -p, --port:          port number.
+        -r, --read_address:  read address.
+        -w, --write_address: write address.
+        -s, --size:          read or write size
+    read                     read fpga.
+        -p, --port:          port number.
+        -r, --read_address:  read address.
+        -s, --size:          read or write size
 
-    help                   Print this help message.
+    help                     Print this help message.
 
     demos:
-    ./fpga_tool.sh read_eci_iq_ingress -p=0 -a=0x0303501 -s=10
+    ./fpga_tool.sh read_eci_iq_ingress -p=0 -w=0x03035024 -r=0x03035028 -s=10
+    ./fpga_tool.sh read -p=0 -r=0x03035028 -s=10
 EOF
 }
 
 function process_args {
     if [[ $CMD_NAME == "read_eci_iq_ingress" ]]; then
         do_read_eci_iq_ingress
+    elif [[ $CMD_NAME == "read" ]]; then
+        do_read
     else
         OPTION_HELP="true"
     fi
@@ -172,7 +190,7 @@ function write_fpga { # fpga write $1 $2
 function do_read_eci_iq_ingress {
     local value
     local array=()
-    echo "do_read_eci_iq_ingress $OPTION_PORT $OPTION_ADDRESS $OPTION_SIZE"
+    echo "do_read_eci_iq_ingress $OPTION_PORT $OPTION_READ_ADDRESS $OPTION_SIZE"
     if [[ -f $OPTION_FILE ]]; then
         echo "output file name:$OPTION_FILE"
         rm -rf $OPTION_FILE
@@ -181,9 +199,45 @@ function do_read_eci_iq_ingress {
     for (( i=0; i<$OPTION_SIZE; ++i )); do
         local index=$(($i % 16))
         
-        write_fpga $(($(to_dec 0x03035024) + $OPTION_PORT * $(to_dec 0x100))) $i
+        vaule=$(write_fpga $(($(to_dec $OPTION_WRITE_ADDRESS) + $OPTION_PORT * $(to_dec 0x100))) $i)
         # echo write_fpga $(to_hex $(( $(to_dec 0x03035024) + $OPTION_PORT * $(to_dec 0x100)))) $i
-        value=$(read_fpga $(to_hex $(($(to_dec 0x03035028) + $OPTION_PORT * $(to_dec 0x100)))))
+        value=$(read_fpga $(to_hex $(($(to_dec $OPTION_READ_ADDRESS) + $OPTION_PORT * $(to_dec 0x100)))))
+        # echo read_fpga  $(to_hex $(($(to_dec 0x03035028) + $OPTION_PORT * $(to_dec 0x100))))
+        
+        array[$index]=$value
+        # array[$index]=$i
+
+        if [[ $((($i + 1) % 16)) -eq 0 ]]; then
+            if [[ -n $OPTION_FILE ]]; then
+                echo ${array[*]} >> $OPTION_FILE
+            else
+                echo ${array[*]}
+            fi
+            unset array
+        elif [[ $i == $(($OPTION_SIZE - 1)) ]]; then
+            if [[ -n $OPTION_FILE ]]; then
+                echo ${array[*]} >> $OPTION_FILE
+            else
+                echo ${array[*]}
+            fi
+            unset array
+        fi
+    done
+}
+
+function do_read {
+    local value
+    local array=()
+    echo "do_read $OPTION_PORT $OPTION_READ_ADDRESS $OPTION_SIZE"
+    if [[ -f $OPTION_FILE ]]; then
+        echo "output file name:$OPTION_FILE"
+        rm -rf $OPTION_FILE
+    fi
+    
+    for (( i=0; i<$OPTION_SIZE; ++i )); do
+        local index=$(($i % 16))
+        
+        value=$(read_fpga $(to_hex $(($(to_dec $OPTION_READ_ADDRESS)))))
         # echo read_fpga  $(to_hex $(($(to_dec 0x03035028) + $OPTION_PORT * $(to_dec 0x100))))
         
         array[$index]=$value

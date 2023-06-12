@@ -28,27 +28,36 @@ int fs_destroy()
 
 int fs_is_directory(char *name)
 {
-    return globle_file_system->is_directory(globle_file_system, name);
+    return TRY_EXEC(globle_file_system->is_directory(globle_file_system, name));
 }
 
-int fs_list(char *name, char **list, int count, int max_name_len)
+/*
+ * fs_list
+ * to list the directory
+ * 
+ * name: dir name
+ * list: output buffer
+ * count: list count
+ * name_max_len: max file name len for the content.
+ */
+int fs_list(char *name, char **list, int count, int name_max_len)
 {
-    return globle_file_system->list(globle_file_system, name, list, count, max_name_len);
+    return TRY_EXEC(globle_file_system->list(globle_file_system, name, list, count, name_max_len));
 }
 
 int fs_count_list(char *name)
 {
-    return globle_file_system->count_list(globle_file_system, name);
+    return TRY_EXEC(globle_file_system->count_list(globle_file_system, name));
 }
 
 int fs_get_mtime(char *path, char *time, int time_max_len)
 {
-    return globle_file_system->get_mtime(globle_file_system, path, time, time_max_len);
+    return TRY_EXEC(globle_file_system->get_mtime(globle_file_system, path, time, time_max_len));
 }
 
 int fs_get_size(char *path)
 {
-    return globle_file_system->get_size(globle_file_system, path);
+    return TRY_EXEC(globle_file_system->get_size(globle_file_system, path));
 }
 
 #endif
