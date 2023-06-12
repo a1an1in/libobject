@@ -391,11 +391,14 @@ static int test_oj_152(TEST_ENTRY *entry, void *argc, void *argv)
     float result;
     //char *expression = "(1 + 2) * 3 * (122 - 120)";
     char *expression = "1+2*(1+1)";
+    int ret;
 
-    gets(expression);
-    result = calc_infix_expression_directly(expression);
-    printf("%.2f\n", result);
+    TRY {
+        result = calc_infix_expression_directly(expression);
+        printf("%.2f\n", result);
+        THROW_IF(result != 5.0, -1);
+    } CATCH (ret) { }
 
-    return 1;
+    return ret;
 }
-REGISTER_TEST_CMD(test_oj_152);
+REGISTER_TEST_FUNC(test_oj_152);

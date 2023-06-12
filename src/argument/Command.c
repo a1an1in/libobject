@@ -615,7 +615,7 @@ static int __help(Command *command)
             subcommands->for_each_arg(subcommands, __help_details_subcommand_for_each_callback, buffer);
         }
         
-        printf("%s\n", buffer->addr);
+        printf("%s\n", (char *)buffer->addr);
 
     } CATCH (ret) {
     } FINALLY {

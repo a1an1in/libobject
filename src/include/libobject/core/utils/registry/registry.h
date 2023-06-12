@@ -3,6 +3,7 @@
 
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/reg_heap.h>
+#include <libobject/core/try.h>
 
 #define REGISTRY_CTOR_PRIORITY_VERSION                      1 
 #define REGISTRY_CTOR_PRIORITY_LIBALLOC_REGISTER_MODULES    2 
