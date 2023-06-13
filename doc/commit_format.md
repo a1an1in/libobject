@@ -1,8 +1,8 @@
 debug net of windows.
 
 Description:
-windows net seems have issue, add debug info for it.
+concurrent net has passed tcp server/client test on windows.
 
 Major Changes:
-1. add api.c name with module name.
-2. add debug info for accept()
+1. fix window Inet_Tcp_Socket.
+2. add fflush for dbg of windows.

@@ -81,7 +81,7 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
 
     memset(&hint, 0, sizeof(struct addrinfo));
     hint.ai_family   = AF_INET;
-    hint.ai_socktype = SOCK_DGRAM;
+    hint.ai_socktype = SOCK_STREAM;
 
     if (host == NULL && service == NULL) {
         h = socket->parent.local_host;
@@ -122,10 +122,10 @@ static int __listen(Inet_Tcp_Socket *socket, int backlog)
 {
     int opt = 1;
 
-    //setsockopt(socket->parent.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    setsockopt(socket->parent.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
     if (listen(socket->parent.fd, backlog) == -1) {
-        perror("listen error");
+        dbg_str(NET_ERROR, "socket listen error, err:%d", WSAGetLastError());
         return -1;
     }
 
@@ -140,7 +140,7 @@ static int __connect(Inet_Tcp_Socket *socket, char *host, char *service)
 
     memset(&hint, 0, sizeof(struct addrinfo));
     hint.ai_family   = AF_INET;
-    hint.ai_socktype = SOCK_DGRAM;
+    hint.ai_socktype = SOCK_STREAM;
 
     if (host == NULL && service == NULL) {
         h = socket->parent.remote_host;
@@ -190,7 +190,7 @@ static int __accept(Inet_Tcp_Socket *socket,
         dbg_str(DBG_SUC, "accept new fd:%d", fd);
         THROW_IF(fd <= 1, -1);
     } CATCH (ret) {
-        perror("accept:");
+        dbg_str(NET_ERROR, "socket accept error, err:%d", WSAGetLastError());
         dbg_str(DBG_ERROR, "accept error, ret:%d, parent fd:%d, new fd:%d", 
                 ret, socket->parent.fd, fd);
         fd = ret;
@@ -213,12 +213,21 @@ static ssize_t __send(Inet_Tcp_Socket *socket, const void *buf, size_t len, int 
 
 static ssize_t __recv(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags)
 {
-    return recv(socket->parent.fd, buf, len, flags);
+    int ret;
+    
+    ret = recv(socket->parent.fd, buf, len, flags);
+    if (ret == 0) {
+        dbg_str(DBG_DETAIL, "client has closed fd:%d", socket->parent.fd);
+    } else if (ret < 0) {
+        dbg_str(DBG_ERROR, "recv error fd:%d error:%s", socket->parent.fd, strerror(errno));
+    }
+
+    return ret;
 }
 
 static ssize_t 
-__sendto(Inet_Tcp_Socket *socket, const void *buf, size_t len,
-         int flags, char *remote_host, char *remote_service)
+__sendto(Inet_Tcp_Socket *socket, const void *buf, size_t len, int flags, 
+         char *remote_host, char *remote_service)
 {
     dbg_str(NET_DETAIL, "not supported now");
     return -1;
@@ -275,7 +284,7 @@ static class_info_entry_t inet_tcp_socket_class_info[] = {
 };
 REGISTER_CLASS("Inet_Tcp_Socket", inet_tcp_socket_class_info);
 
-void test_inet_tcp_send()
+void test_inet_tcp_socket_send()
 {
     Socket *socket;
     allocator_t *allocator = allocator_get_default_instance();
@@ -285,14 +294,16 @@ void test_inet_tcp_send()
     dbg_str(DBG_DETAIL, "run at here");
     socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
 
-    socket->connect(socket, "127.0.0.1", "11011");
+    socket->connect(socket, "127.0.0.1", "11013");
     socket->send(socket, test_str, strlen(test_str), 0);
+
+    sleep(1);
 
     object_destroy(socket);
 }
-REGISTER_TEST_CMD(test_inet_tcp_send);
+REGISTER_TEST_CMD(test_inet_tcp_socket_send);
 
-int test_inet_tcp_recv()
+int test_inet_tcp_socket_recv()
 {
     Socket *socket;
     int fd;
@@ -303,10 +314,12 @@ int test_inet_tcp_recv()
     socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
 
     dbg_str(NET_DETAIL, "sizeof socket=%d", sizeof(Socket));
-    socket->bind(socket, "127.0.0.1", "11011"); 
+    socket->bind(socket, "127.0.0.1", "11013"); 
     socket->listen(socket, 1024);
+
     fd = socket->accept(socket, NULL, NULL);
 
+    dbg_str(DBG_DETAIL, "run at here");
     recv(fd, buf, 1024, 0);
     dbg_str(NET_SUC, "recv : %s", buf);
 
@@ -314,5 +327,5 @@ int test_inet_tcp_recv()
 
     return 0;
 }
-REGISTER_TEST_CMD(test_inet_tcp_recv);
+REGISTER_TEST_CMD(test_inet_tcp_socket_recv);
 #endif

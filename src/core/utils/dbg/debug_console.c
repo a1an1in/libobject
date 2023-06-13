@@ -98,7 +98,8 @@ int console_print_print_str_vl(debugger_t *debugger,
 
     return strlen(dest);
 #elif (defined(WINDOWS_USER_MODE) || defined(IOS_USER_MODE))
-    printf("%s\n", dest);
+    printf("%s\r\n", dest);
+    fflush(stdout); 
 #endif
 
     return ret;

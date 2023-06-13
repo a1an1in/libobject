@@ -180,7 +180,7 @@ static int test_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
     client_connect(c, "127.0.0.1", "11011");
     client_trustee(c, NULL, test_work_callback, NULL);
     client_send(c, str, strlen(str), 0);
-    pause();
+    sleep(100);
 
     object_destroy(c);
 }
