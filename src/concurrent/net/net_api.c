@@ -100,16 +100,19 @@ void *server(allocator_t *allocator, char *type,
              void *opaque)
 {
     Server *server;
+    int ret;
 
-    if(!strcmp(type, SERVER_TYPE_INET_TCP)){
-        server = OBJECT_NEW(allocator, Inet_Tcp_Server, NULL);
-        server->bind(server, host, service); 
-        if (process_task_cb != NULL)
-            server->trustee(server, (void *)process_task_cb, opaque);
-    } else {
-        dbg_str(NET_WARNNING,"server type error");
-        return NULL;
-    }
+    TRY {
+        if(!strcmp(type, SERVER_TYPE_INET_TCP)){
+            server = OBJECT_NEW(allocator, Inet_Tcp_Server, NULL);
+            EXEC(server->bind(server, host, service)); 
+            if (process_task_cb != NULL)
+                server->trustee(server, (void *)process_task_cb, opaque);
+        } else {
+            dbg_str(NET_WARNNING,"server type error");
+            return NULL;
+        }
+    } CATCH (ret) { server = NULL; }
 
     return (void *)server;
 }
@@ -190,11 +193,12 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
     int pre_alloc_count, after_alloc_count;
     int ret;
 
+    sleep(1);
     dbg_str(DBG_SUC, "test_inet_tcp_server");
     pre_alloc_count = allocator->alloc_count;
     s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
                          "127.0.0.1", "11011",
-                         test_work_callback, 0x1234);
+                         test_work_callback, s);
 
 #if (defined(WINDOWS_USER_MODE))
     system("pause");

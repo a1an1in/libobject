@@ -177,7 +177,7 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
 
     TRY {
         new_fd = socket->accept(socket, NULL, NULL);
-        THROW_IF(new_fd <= 0, -1);
+        THROW_IF(new_fd <= 1, -1);
         new_worker = __get_worker(server);
         THROW_IF(new_worker == NULL, -1);
         new_socket = new_worker->socket;
@@ -195,7 +195,7 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
 
         working_list->add(working_list, new_worker);
     } CATCH (ret) {
-        dbg_str(NET_ERROR, "server listenfd error, fd=%d", fd);
+        dbg_str(NET_ERROR, "server listenfd error, fd=%d, new fd:%d", fd, new_fd);
     }
 
     return ret;

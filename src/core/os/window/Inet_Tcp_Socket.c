@@ -183,8 +183,20 @@ static int __accept(Inet_Tcp_Socket *socket,
     struct sockaddr_storage cliaddr;
     socklen_t len;
     allocator_t *allocator = socket->parent.obj.allocator;
+    int fd, ret;
 
-    return accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
+    TRY {
+        fd = accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
+        dbg_str(DBG_SUC, "accept new fd:%d", fd);
+        THROW_IF(fd <= 1, -1);
+    } CATCH (ret) {
+        perror("accept:");
+        dbg_str(DBG_ERROR, "accept error, ret:%d, parent fd:%d, new fd:%d", 
+                ret, socket->parent.fd, fd);
+        fd = ret;
+    }
+
+    return fd;
 }
 
 static ssize_t __send(Inet_Tcp_Socket *socket, const void *buf, size_t len, int flags)
