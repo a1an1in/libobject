@@ -1,6 +1,6 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
-#include <libobject/core/io/file_system.h>
+#include <libobject/core/io/file_system_api.h>
 
 #if (!defined(WINDOWS_USER_MODE))
 File_System *globle_file_system;

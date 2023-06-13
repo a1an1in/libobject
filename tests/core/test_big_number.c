@@ -1,4 +1,4 @@
-#include <stdio.h>d *argc, void *argv
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <libobject/core/utils/bn/big_number.h>

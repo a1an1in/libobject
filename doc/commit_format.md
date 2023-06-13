@@ -1,8 +1,8 @@
-optimize test file system.
+fix same file name issue on windows.
 
 Description:
-update
+windows doesn't allow the same file name with upper and 
+lower case.
 
 Major Changes:
-1. add test_fs_is_directory
-2. add TRY_EXEC for file_system.c
+1. change file name.

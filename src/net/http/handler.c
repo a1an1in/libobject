@@ -12,7 +12,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/net/http/handler.h>
 #include <libobject/net/http/Server.h>
-#include <libobject/core/io/file_system.h>
+#include <libobject/core/io/file_system_api.h>
 
 int __handler_bad_request(Request *req, Response *res, void *opaque)
 {
