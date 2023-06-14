@@ -47,6 +47,7 @@ static int __construct(Worker *worker, char *init_str)
 static int __deconstrcut(Worker *worker)
 {
     dbg_str(EV_DETAIL, "worker deconstruct, worker addr:%p", worker);
+    worker->resign(worker);
 
     return 0;
 }

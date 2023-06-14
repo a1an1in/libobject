@@ -172,17 +172,20 @@ static int test_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
     allocator_t *allocator = allocator_get_default_instance();
     Client *c = NULL;
     char *str = "hello world";
+    int ret;
 
-    dbg_str(NET_DETAIL, "test_obj_client_send");
+    TRY {
+        dbg_str(NET_DETAIL, "test_obj_client_send");
 
-    c = client(allocator, CLIENT_TYPE_INET_TCP, 
-               (char *)"127.0.0.1", (char *)"19900");
-    client_connect(c, "127.0.0.1", "11011");
-    client_trustee(c, NULL, test_work_callback, NULL);
-    client_send(c, str, strlen(str), 0);
-    sleep(100);
+        c = client(allocator, CLIENT_TYPE_INET_TCP, NULL, NULL);
+        client_connect(c, "127.0.0.1", "11011");
+        client_trustee(c, NULL, test_work_callback, NULL);
+        client_send(c, str, strlen(str), 0);
+    } CATCH (ret) {} FINALLY {
+        object_destroy(c);
+    }
 
-    object_destroy(c);
+    return ret;
 }
 REGISTER_TEST_CMD(test_inet_tcp_client);
 
@@ -193,34 +196,33 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
     int pre_alloc_count, after_alloc_count;
     int ret;
 
-    sleep(1);
-    dbg_str(DBG_SUC, "test_inet_tcp_server");
-    pre_alloc_count = allocator->alloc_count;
-    s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
-                         "127.0.0.1", "11011",
-                         test_work_callback, s);
+    TRY {
+        sleep(5);
+        dbg_str(DBG_SUC, "test_inet_tcp_server");
+        pre_alloc_count = allocator->alloc_count;
+        s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
+                            "127.0.0.1", "11011",
+                            test_work_callback, s);
 
 #if (defined(WINDOWS_USER_MODE))
-    system("pause");
+        system("pause");
 #else
-    pause();
+        sleep(10);
 #endif
-    dbg_str(DBG_SUC, "run at here");
-    server_destroy(s);
-
-    after_alloc_count = allocator->alloc_count;
-    ret = assert_equal(&pre_alloc_count, &after_alloc_count, sizeof(int));
-    if (ret == 0) {
-        dbg_str(NET_WARNNING,
-                "server has memory omit, pre_alloc_count=%d, after_alloc_count=%d",
-                pre_alloc_count, after_alloc_count);
-        entry->ret = ret;
-        return ret;
+        dbg_str(DBG_SUC, "run at here");
+    } CATCH (ret) {} FINALLY {
+        server_destroy(s);
+        after_alloc_count = allocator->alloc_count;
+        ret = assert_equal(&pre_alloc_count, &after_alloc_count, sizeof(int));
+        if (ret == 0) {
+            dbg_str(NET_WARNNING, "server has memory omit, pre_alloc_count=%d, after_alloc_count=%d",
+                    pre_alloc_count, after_alloc_count);
+            ret = -1;
+        }
+        dbg_str(DBG_SUC, "run at here");
     }
 
-    entry->ret = ret;
-
-    return 1;
+    return ret;
 }
 REGISTER_TEST_CMD(test_inet_tcp_server);
 

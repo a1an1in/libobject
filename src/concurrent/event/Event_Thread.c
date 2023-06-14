@@ -70,7 +70,9 @@ static int __deconstrcut(Event_Thread *thread)
     thread->del_event(thread, event);
     object_destroy(thread->thread_service);
     object_destroy(thread->signal_service);
+    dbg_str(DBG_VIP,"Event thread destroy server sokcet");
     object_destroy(thread->s);
+    dbg_str(DBG_VIP,"Event thread destroy client sokcet");
     object_destroy(thread->c);
     object_destroy(thread->eb);
 #if (defined(WINDOWS_USER_MODE))

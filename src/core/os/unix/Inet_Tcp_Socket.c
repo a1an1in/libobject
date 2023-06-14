@@ -211,7 +211,6 @@ static int __accept(Inet_Tcp_Socket *socket,
 
     TRY {
         fd = accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
-        dbg_str(DBG_SUC, "accept new fd:%d", fd);
         THROW_IF(fd <= 1, -1);
     } CATCH (ret) {
         perror("accept:");

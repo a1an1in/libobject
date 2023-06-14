@@ -83,7 +83,7 @@ static int __bind(Server *server, char *host, char *service)
 {
     Socket *socket = server->socket;
 
-    return socket->bind(socket, host, service);
+    return TRY_EXEC(socket->bind(socket, host, service));
 }
 
 /*
@@ -176,10 +176,8 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
     int ret = 1;
 
     TRY {
-        new_fd = socket->accept(socket, NULL, NULL);
-        THROW_IF(new_fd <= 1, -1);
-        new_worker = __get_worker(server);
-        THROW_IF(new_worker == NULL, -1);
+        THROW_IF((new_fd = socket->accept(socket, NULL, NULL)) <= 1, -1);
+        THROW_IF((new_worker = __get_worker(server)) == NULL, -1);
         new_socket = new_worker->socket;
         new_socket->fd = new_fd;
 
@@ -190,10 +188,10 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
         new_worker->assign(new_worker, new_socket->fd, EV_READ | EV_PERSIST, NULL, 
                            (void *)__new_conn_ev_callback, new_worker, 
                            (void *)worker->work_callback);
-        new_worker->enroll(new_worker, producer);
+        EXEC(new_worker->enroll(new_worker, producer));
         new_socket->opaque = new_worker;
 
-        working_list->add(working_list, new_worker);
+        EXEC(working_list->add(working_list, new_worker));
     } CATCH (ret) {
         dbg_str(NET_ERROR, "server listenfd error, fd=%d, new fd:%d", fd, new_fd);
     }
@@ -207,15 +205,20 @@ static int __trustee(Server *server, void *work_callback, void *opaque)
     Worker *worker     = server->worker;
     int fd             = server->socket->fd;
     Socket *socket     = server->socket;
+    int ret;
     
-    server->opaque = opaque;
-    socket->setnonblocking(socket);
-    socket->listen(socket, 1024);
-    worker->opaque = server;
-    worker->assign(worker, fd, EV_READ | EV_PERSIST, NULL, 
-                   (void *)__listenfd_ev_callback, worker, work_callback);
+    TRY {
+        server->opaque = opaque;
+        socket->setnonblocking(socket);
+        EXEC(socket->listen(socket, 1024));
+        worker->opaque = server;
+        worker->assign(worker, fd, EV_READ | EV_PERSIST, NULL, 
+                       (void *)__listenfd_ev_callback, worker, work_callback);
 
-    return worker->enroll(worker, producer);
+        EXEC(worker->enroll(worker, producer));
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static int __close_subsocket(Server *server, Socket *socket)
