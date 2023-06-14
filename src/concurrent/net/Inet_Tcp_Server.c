@@ -96,7 +96,7 @@ void test_obj_inet_tcp_server()
     server->trustee(server, test_work_callback, NULL);
 
 #if (defined(WINDOWS_USER_MODE))
-    system("pause");
+    sleep(1000);
 #else
     pause();
 #endif

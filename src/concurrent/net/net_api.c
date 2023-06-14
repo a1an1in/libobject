@@ -205,7 +205,7 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
                             test_work_callback, s);
 
 #if (defined(WINDOWS_USER_MODE))
-        system("pause");
+        sleep(1000);
 #else
         sleep(10);
 #endif

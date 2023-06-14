@@ -60,24 +60,20 @@ static int __trustee_io(Select_Base *b, event_t *e)
 {
     int fd = e->ev_fd;
     Event_Base *p = (Event_Base *)b;
-    int readset_count;
-    int writeset_count;
 
     if (fd < 0) {
         dbg_str(EV_WARNNING, "not add this fd =%d", fd);
         return 0;
     }
 
+    b->maxfdp = b->maxfdp -1 > fd ? b->maxfdp : fd + 1; 
+
+    dbg_str(EV_DETAIL, "select base add event, fd =%d, maxfdp=%d", fd, b->maxfdp);
+
     if (e->ev_events & EV_READ)
         FD_SET(fd, &b->event_readset_in);
     if (e->ev_events & EV_WRITE)
         FD_SET(fd, &b->event_writeset_in);
-
-    readset_count = b->event_readset_in.fd_count;
-    writeset_count = b->event_writeset_in.fd_count;
-    b->maxfdp = readset_count > writeset_count ? readset_count + 1 : writeset_count + 1;
-
-    dbg_str(EV_DETAIL, "select base add event, fd =%d, maxfdp=%d", fd, b->maxfdp);
 
     return (0);
 }
@@ -86,9 +82,9 @@ static int __reclaim_io(Select_Base *b, event_t *e)
 {
     int fd = e->ev_fd;
     unsigned short events = e->ev_events;
+    int maxfd = b->maxfdp;
 
     dbg_str(EV_DETAIL, "select base add event");
-
     if (fd < 0) return 0;
 
     if (events & EV_READ)
@@ -96,6 +92,13 @@ static int __reclaim_io(Select_Base *b, event_t *e)
 
     if (events & EV_WRITE)
         FD_CLR(fd, &b->event_writeset_in);
+
+    do {
+        if (FD_ISSET(maxfd, &b->event_readset_in) || FD_ISSET(maxfd, &b->event_writeset_in))
+            break;
+    } while (maxfd--);
+
+    b->maxfdp = maxfd + 1;
 
     return 0;
 }
@@ -132,14 +135,18 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
     for (j = 0; j < nfds; ++j) {
         if (++i >= nfds)
             i = 0;
-        if (FD_ISSET(b->event_readset_in.fd_array[i], &b->event_readset_out)) {
-            dbg_str(EV_DETAIL, "fd %d has read event", b->event_readset_in.fd_array[i]);
-            b->activate_io((Event_Base *)b, b->event_readset_in.fd_array[i], EV_READ);
-        }
-        if (FD_ISSET(b->event_writeset_in.fd_array[i], &b->event_writeset_out)) {
-            dbg_str(EV_DETAIL, "fd %d has write event", b->event_writeset_in.fd_array[i]);
-            b->activate_io((Event_Base *)b, b->event_writeset_in.fd_array[i], EV_WRITE);
-        }
+        res = 0;
+
+        if (FD_ISSET(i, &b->event_readset_out))
+            res |= EV_READ;
+        if (FD_ISSET(i, &b->event_writeset_out))
+            res |= EV_WRITE;
+
+        if (res == 0)
+            continue;
+
+        dbg_str(EV_DETAIL, "fd %d has event, event_flag=%d", i, res);
+        b->activate_io((Event_Base *)b, i, res);
     }
 
     dbg_str(EV_DETAIL, "dispatch select out");

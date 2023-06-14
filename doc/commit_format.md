@@ -1,10 +1,7 @@
-add some debug info for Event Tread.
+fix windows select event base.
 
 Description:
-there's some issue on windows for Event Tread, which
-may not able to receive exit signal at some cases.
+modify according to linux select event base.
 
 Major Changes:
-1. del event for evsig_release
-2. change vip debug level
-3. add dbg log for concurrent.
+1. fix windows select event base
