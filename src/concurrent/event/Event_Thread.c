@@ -134,7 +134,7 @@ static void event_thread_notifier_callback(int fd, short events, void *arg)
         dbg_str(EV_WARNNING,"ctl_read error");
         return ;
     }
-
+    dbg_str(EV_VIP, "event_thread notifier received signal:%c", buf[0]);
     switch(buf[0]) {
         case 'a': 
         case 'd': 

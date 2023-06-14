@@ -120,7 +120,9 @@ int evsig_init(Event_Base *eb)
 int evsig_release(Event_Base *eb)
 {
     struct evsig_s *evsig = &eb->evsig;
+    event_t *event = &eb->evsig.signal_event;
 
+    eb->del(eb, event);
     object_destroy(evsig->map);
     object_destroy(evsig->list);
     object_destroy(evsig->receiver);

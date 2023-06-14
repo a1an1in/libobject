@@ -169,8 +169,8 @@ int producer_destroy_default_instance()
     producer->close(producer);
     while (producer->parent.flags != EVTHREAD_STATE_DESTROYED) usleep(1000000);
 
-    dbg_str(DBG_VIP, "producer destroy default instance");
     object_destroy(producer);
+    dbg_str(DBG_VIP, "producer destroy default instance end");
 
     return 0;
 }

@@ -251,7 +251,7 @@ int app(int argc, char *argv[])
     } FINALLY {
         object_destroy(app);
         libobject_destroy();
-        dbg_str(DBG_SUC, "exit app!");
+        dbg_str(DBG_VIP, "exit app!");
     }
 
     return ret;

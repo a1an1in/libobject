@@ -119,8 +119,6 @@ int execute_dtor_funcs()
         }
     }
 
-    printf("\n");
-
     reg_heap_destroy(reg_heap);
 
     return 0;

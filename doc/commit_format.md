@@ -1,8 +1,10 @@
-add try catch for concurrent/net.
+add some debug info for Event Tread.
 
 Description:
-concurrent net has passed tcp server/client test on windows.
+there's some issue on windows for Event Tread, which
+may not able to receive exit signal at some cases.
 
 Major Changes:
-1. add resign process when destroy worker.
-2. add try catch for net
+1. del event for evsig_release
+2. change vip debug level
+3. add dbg log for concurrent.
