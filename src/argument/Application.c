@@ -200,12 +200,9 @@ int libobject_init()
                 return -1;
             }
         #endif
-        EXEC(execute_ctor_funcs());
 
-        #if (!defined(WINDOWS_USER_MODE))
-            EXEC(fs_init());
-        #endif
-        
+        EXEC(execute_ctor_funcs());
+        EXEC(fs_init());
         debugger_set_all_businesses_level(debugger_gp, 1, 6);
 
         exception_init();
@@ -225,10 +222,9 @@ int libobject_destroy()
 
         #if (defined(WINDOWS_USER_MODE))
             WSACleanup();
-        #else
-            EXEC(fs_destroy());
         #endif
-        
+
+        EXEC(fs_destroy());
         EXEC(execute_dtor_funcs());
     } CATCH (ret) {
     }

@@ -2,7 +2,6 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/io/file_system_api.h>
 
-#if (!defined(WINDOWS_USER_MODE))
 File_System *globle_file_system;
 
 int fs_init()
@@ -14,8 +13,7 @@ int fs_init()
         defined(MAC_USER_MODE))
     globle_file_system = object_new(allocator, "Unix_File_System", NULL);
 #   elif defined(WINDOWS_USER_MODE)
-    dbg_str(DBG_ERROR, "file system not support windows nows!");
-    exit(1);
+    globle_file_system = object_new(allocator, "Windows_File_System", NULL);
 #   endif
 
     return 0;
@@ -59,5 +57,3 @@ int fs_get_size(char *path)
 {
     return TRY_EXEC(globle_file_system->get_size(globle_file_system, path));
 }
-
-#endif

@@ -2,7 +2,6 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/io/file_system_api.h>
 
-#if (!defined(WINDOWS_USER_MODE))
 static int test_fs_list(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -42,9 +41,12 @@ static int test_fs_get_mtime(TEST_ENTRY *entry)
     TRY {
         ret = fs_get_mtime("./res/TIMES.TTF", time, 1024 );
         THROW_IF(ret < 0, -1);
+        SET_CATCH_STR_PARS(time, expect);
         THROW_IF(strcmp(time, expect) != 0, -1);
         dbg_str(DBG_SUC, "time:%s", time);
-    } CATCH (ret) {}
+    } CATCH (ret) {
+        TRY_SHOW_STR_PARS(DBG_ERROR);  
+    }
 
     return ret;
 }
@@ -91,4 +93,3 @@ static int test_fs_is_directory_case1(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_FUNC(test_fs_is_directory_case1);
-#endif
