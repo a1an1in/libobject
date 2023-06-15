@@ -96,7 +96,7 @@ int client_destroy(void *client)
 
 void *server(allocator_t *allocator, char *type,
              char *host, char *service,
-             int (*process_task_cb)(void *arg),
+             int (*work_callback)(void *arg),
              void *opaque)
 {
     Server *server;
@@ -104,15 +104,18 @@ void *server(allocator_t *allocator, char *type,
 
     TRY {
         if(!strcmp(type, SERVER_TYPE_INET_TCP)){
+            THROW_IF(work_callback == NULL, -1);
             server = OBJECT_NEW(allocator, Inet_Tcp_Server, NULL);
             EXEC(server->bind(server, host, service)); 
-            if (process_task_cb != NULL)
-                server->trustee(server, (void *)process_task_cb, opaque);
+            EXEC(server->trustee(server, (void *)work_callback, opaque));
         } else {
             dbg_str(NET_WARNNING,"server type error");
             return NULL;
         }
-    } CATCH (ret) { server = NULL; }
+    } CATCH (ret) {
+        object_destroy(server);
+        server = NULL; 
+    }
 
     return (void *)server;
 }
@@ -126,7 +129,12 @@ int server_destroy(void *server)
 static int test_work_callback(void *task)
 {
     work_task_t *t = (work_task_t *)task;
-    dbg_str(NET_SUC,"%s", t->buf);
+
+    if (t->buf_len == 0) {
+        return 0;
+    }
+
+    dbg_str(NET_SUC,"task len:%d %s", t->buf_len, t->buf);
 }
 
 static int test_udp_client_recv(TEST_ENTRY *entry, void *argc, void *argv)
@@ -178,7 +186,7 @@ static int test_inet_tcp_client(TEST_ENTRY *entry, void *argc, void *argv)
         dbg_str(NET_DETAIL, "test_obj_client_send");
 
         c = client(allocator, CLIENT_TYPE_INET_TCP, NULL, NULL);
-        client_connect(c, "127.0.0.1", "11011");
+        client_connect(c, "127.0.0.1", "11013");
         client_trustee(c, NULL, test_work_callback, NULL);
         client_send(c, str, strlen(str), 0);
     } CATCH (ret) {} FINALLY {
@@ -197,11 +205,11 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
     int ret;
 
     TRY {
-        sleep(5);
+        sleep(1);
         dbg_str(DBG_SUC, "test_inet_tcp_server");
         pre_alloc_count = allocator->alloc_count;
         s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
-                            "127.0.0.1", "11011",
+                            "127.0.0.1", "11013",
                             test_work_callback, s);
 
 #if (defined(WINDOWS_USER_MODE))

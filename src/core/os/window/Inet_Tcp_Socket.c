@@ -181,7 +181,7 @@ static int __accept(Inet_Tcp_Socket *socket,
                     char *remote_host, char *remote_service)
 {
     struct sockaddr_storage cliaddr;
-    socklen_t len;
+    socklen_t len = sizeof(struct sockaddr_in);
     allocator_t *allocator = socket->parent.obj.allocator;
     int fd, ret;
 
