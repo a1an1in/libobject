@@ -9,7 +9,7 @@
 
 static int __run_command(Mockery_Command *command)
 {
-    dbg_str(DBG_VIP, "mockery start");
+    dbg_str(DBG_VIP, "mockery %s start", command->func_name);
 
     if (command->func_name != NULL && strcmp(command->func_name, "all") == 0) {
         execute_test_funcs();
@@ -17,7 +17,7 @@ static int __run_command(Mockery_Command *command)
         execute_designated_func(command->func_name, command->argc, command->argv);
     }
 
-    dbg_str(DBG_VIP, "mockery end");
+    dbg_str(DBG_VIP, "mockery %s end", command->func_name);
     debugger_set_all_businesses_level(debugger_gp, 1, 6);
 
     return 1;
@@ -45,7 +45,7 @@ static int __argument_action_callback(Argument *argu, void *opaque)
             arg = STR2A(a->value);
             THROW_IF(arg == NULL, -1);
             argv[i] = arg;
-            dbg_str(DBG_SUC,"arg :%s", arg);  
+            // dbg_str(DBG_SUC,"arg :%s", arg);  
         }
         command->argc = cnt;
     } CATCH (ret) {}

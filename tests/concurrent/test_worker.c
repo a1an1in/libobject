@@ -7,7 +7,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/concurrent/Producer.h>
-#include <libobject/concurrent/api.h>
+#include <libobject/concurrent/worker_api.h>
 
 static void test_work_callback(void *task)
 {
@@ -92,7 +92,7 @@ static int create_fifo(char *name)
     }
 }
 
-void test_obj_io_worker()
+void test_fifo_worker()
 {
     allocator_t *allocator = allocator_get_default_instance();
     Worker *worker;
@@ -107,4 +107,5 @@ void test_obj_io_worker()
     pause();
     worker_destroy(worker);
 }
+REGISTER_TEST_CMD(test_fifo_worker);
 #endif

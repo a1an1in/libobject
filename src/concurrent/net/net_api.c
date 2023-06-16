@@ -217,7 +217,6 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
 #else
         sleep(10);
 #endif
-        dbg_str(DBG_SUC, "run at here");
     } CATCH (ret) {} FINALLY {
         server_destroy(s);
         after_alloc_count = allocator->alloc_count;
@@ -227,7 +226,6 @@ static int test_inet_tcp_server(TEST_ENTRY *entry, void *argc, void *argv)
                     pre_alloc_count, after_alloc_count);
             ret = -1;
         }
-        dbg_str(DBG_SUC, "run at here");
     }
 
     return ret;

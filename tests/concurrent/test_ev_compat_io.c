@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <libobject/concurrent/event/event_compat.h>
+#include <libobject/concurrent/event_api.h>
 
 static void
 fifo_read(int fd, short event, void *arg)
