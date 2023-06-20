@@ -1,10 +1,10 @@
-change event_api.c location, and  rename concurrent test
-file names.
+add windows pipe
 
 Description:
-The event api is base on Producer, so we move it to
-concurrent dir.
+i plan to replace concurrent socket, which use 2 port and
+must config port when run at xtools. after search we found
+that on windows select can only be used for socket, so it
+cann't replaced.
 
 Major Changes:
-1. move event_api to concurrent dir.
-2. rename concurrent test file names.
+1. add windows pipe.
