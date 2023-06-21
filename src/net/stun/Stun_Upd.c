@@ -153,7 +153,11 @@ static int test_stun_udp(TEST_ENTRY *entry, void *argc, void *argv)
          *EXEC(stun->connect(stun, "stun.voiparound.com", "3478"));
          */
         EXEC(stun->discovery(stun));
+#if (defined(WINDOWS_USER_MODE))
+        sleep(1000);
+#else
         pause();
+#endif
 
     } CATCH (ret) {
     }

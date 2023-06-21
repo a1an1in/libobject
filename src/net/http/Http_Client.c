@@ -212,7 +212,11 @@ int test_http_client(TEST_ENTRY *entry)
                                (int (*)(void *, void *))test_request_callback,
                                client);
 
+#if (defined(WINDOWS_USER_MODE))
+    sleep(1000);
+#else
     pause();
+#endif
     object_destroy(client);
 
     return 1;

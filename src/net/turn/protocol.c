@@ -7,8 +7,13 @@
  * @date 2019-06-19
  */
 
+#if (defined(WINDOWS_USER_MODE))
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <netdb.h>
+#endif
 #include <libobject/core/utils/data_structure/list.h>
 #include <libobject/net/turn/protocol.h>
 #include <libobject/net/turn/Response.h>

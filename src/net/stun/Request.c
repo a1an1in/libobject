@@ -79,7 +79,11 @@ static int __set_head(Request *request, int type, int len, uint32_t cookie)
         request->header->magic_cookie = htonl(cookie);
 
         for (i = 0; i < 3; i++) {
+#if (defined(WINDOWS_USER_MODE))
+            request->header->transaction_id[i] = rand();
+#else
             request->header->transaction_id[i] = random();
+#endif
         }
     } CATCH (ret) {
     }
