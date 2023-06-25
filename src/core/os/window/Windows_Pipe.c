@@ -29,6 +29,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+#if (defined(WINDOWS_USER_MODE))
+
 #include <stdio.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/registry/registry.h>
@@ -111,3 +113,4 @@ static class_info_entry_t Windows_Pipe_class_info[] = {
     Init_End___Entry(8 , Windows_Pipe),
 };
 REGISTER_CLASS("Windows_Pipe", Windows_Pipe_class_info);
+#endif
