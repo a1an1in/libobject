@@ -57,6 +57,8 @@ static int __init(FShell *shell)
     struct event_base* base = event_base_get_default_instance();
     allocator_t *allocator = shell->parent.allocator;
 
+    if (g_shell != NULL) return -1;
+
 #if (!defined(WINDOWS_USER_MODE))
     ev_fd = SIGINT;
 #else

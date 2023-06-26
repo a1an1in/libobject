@@ -8,6 +8,8 @@
 
 #include <stdlib.h>
 #include <signal.h>
+#include <sys/ptrace.h>
+#include <sys/user.h>
 #include <libobject/core/utils/string.h>
 #include <libobject/scripts/FShell.h>
 
@@ -18,14 +20,37 @@ int fsh_help()
     printf("fshell help\n");
 }
 
-int fsh_attach()
+int fsh_attach(char *pid)
 {
-    printf("fshell attach\n");
+    int ret;
+    pid_t tpid;
+    struct user_regs_struct regs;   
+
+    TRY {
+        THROW_IF(pid == NULL, -1);
+        dbg_str(DBG_VIP, "fsh_attach pid:%s", pid);
+        tpid = atoi(pid);
+        EXEC(ptrace(PTRACE_ATTACH, tpid, NULL, NULL));  
+        wait(NULL);
+    } CATCH (ret) { }
+
+    return ret;
 }
 
-int fsh_dettach()
+int fsh_dettach(char *pid)
 {
-    printf("fshell dettach\n");
+    int ret;
+    pid_t tpid;
+    struct user_regs_struct regs;   
+
+    TRY {
+        THROW_IF(pid == NULL, -1);
+        dbg_str(DBG_VIP, "fsh_dettach pid:%s", pid);
+        tpid = atoi(pid);
+        EXEC(ptrace(PTRACE_DETACH, tpid, NULL, NULL));
+    } CATCH (ret) { }
+
+    return ret;
 }
 
 int fsh_quit()

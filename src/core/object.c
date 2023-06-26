@@ -587,7 +587,7 @@ void * object_new(allocator_t *allocator, const char *type, char *config)
         }
 
         deamon = class_deamon_get_global_class_deamon();
-        entry  = (class_info_entry_t *)class_deamon_search_class(deamon, type);
+        entry  = (class_info_entry_t *)class_deamon_search_class(deamon, (char *)type);
 
         THROW_IF(entry == NULL, -1);
         THROW_IF((size = __object_get_class_size(entry)) == 0, -1);
@@ -604,8 +604,8 @@ void * object_new(allocator_t *allocator, const char *type, char *config)
             assign_flag = 1;
         }
 
-        EXEC(object_set(o, type, config));
-        EXEC(object_init(o, type));
+        EXEC(object_set(o, (char *)type, config));
+        EXEC(object_init(o, (char *)type));
 
         if (assign_flag) {
             o->assign(o, init_data);
