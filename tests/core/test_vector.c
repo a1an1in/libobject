@@ -32,7 +32,7 @@ static int test_vector_add(TEST_ENTRY *entry)
         vector->add_at(vector, 0, 1);
         vector->remove(vector, 0, (void **)&t);
 
-        THROW_IF(t != expect_ret, -1);
+        THROW_IF((int)t != expect_ret, -1);
     } CATCH(ret) {} FINALLY {
         object_destroy(vector);
     }
@@ -60,7 +60,7 @@ static int test_vector_remove(TEST_ENTRY *entry)
         vector->add_at(vector, 4, 4);
         vector->remove(vector, 2, (void **)&t);
 
-        THROW_IF(t != expect_ret, -1);
+        THROW_IF((int)t != expect_ret, -1);
     } CATCH(ret) {} FINALLY {
         object_destroy(vector);
     }

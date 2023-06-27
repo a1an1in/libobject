@@ -1,10 +1,9 @@
-add attach tests.
+do a little changes.
 
 Description:
 update
 
 Major Changes:
-1. add macro for add_definitions of cmake
-2. add attach mockery test.
-3. fix a few compling warnnings.
-4. solve compress test bug.
+1. fix compiling warnnings.
+2. fix substring case.
+3. mv get_func_addr_by_name lab func to attach.c

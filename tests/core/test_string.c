@@ -143,16 +143,19 @@ static int test_string_get_substring_case0()
      *char *t = "Content-Disposition: filename=\"u=1573948710,2851629614&fm=26&fmt=auto&gp=0.webp\"";
      */
     char *t = "str:content-disposition: form-data; name=\"file\"; filename=\"snipaste_20210907_14-25-03.png\"";
-    char *regex = "filename=\"([a-z0-9A-Z\._,&=-]+)\"";
+    char *regex = "filename=\"([a-z0-9A-Z._,&=-]+)\"";
+    char buffer[1024] = {0};
     int ret, start = -1, len;
 
     TRY {
         string = object_new(allocator, "String", NULL);
         string->assign(string, t);
         EXEC(string->get_substring(string, regex, 0, &start, &len));
+        strncpy(buffer, &string->value[start], len);
         dbg_str(DBG_DETAIL, "start:%d", start);
-        dbg_str(DBG_DETAIL, "sub:%s", &string->value[start]);
+        dbg_str(DBG_VIP, "sub:%s", buffer);
         THROW_IF(start == -1, -1);
+        THROW_IF(strcmp(buffer, "snipaste_20210907_14-25-03.png") != 0, -1);
     } CATCH (ret) {} FINALLY {
         object_destroy(string);
     }
@@ -165,7 +168,7 @@ static int test_string_get_substring_case1()
     String *string;
     allocator_t *allocator = allocator_get_default_instance();
     char *t = "userName=alan; userId=4; token=3cb1257cb544ccca19df70cfa327392123ccdce; maxAge=900";
-    char *regex = "userName=([a-z0-9A-Z\._,&=-]+);";
+    char *regex = "userName=([a-z0-9A-Z._,&=-]+);";
     int ret, start = -1, len;
 
     TRY {
@@ -173,7 +176,7 @@ static int test_string_get_substring_case1()
         string->assign(string, t);
         EXEC(string->get_substring(string, regex, 0, &start, &len));
         string->value[start + len] = '\0';
-        dbg_str(DBG_DETAIL, "sub:%s", &string->value[start]);
+        dbg_str(DBG_VIP, "sub:%s", &string->value[start]);
         THROW_IF(start == -1, -1);
         THROW_IF(strcmp(&string->value[start], "alan") != 0, -1);
     } CATCH (ret) {} FINALLY {
@@ -188,7 +191,7 @@ static int test_string_get_substring(TEST_ENTRY *entry)
     int ret;
 
     TRY {
-        EXEC(test_string_get_substring_case1());
+        EXEC(test_string_get_substring_case0());
         EXEC(test_string_get_substring_case1());
     } CATCH (ret) {}
 
