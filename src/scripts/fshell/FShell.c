@@ -81,7 +81,7 @@ static int __set_prompt(FShell *shell, char *prompt)
 
 static int __run_func(FShell *shell, String *str)
 {
-    int ret, i, cnt;
+    int ret, i, cnt, len;
     char *arg;
     fshell_func_t func = NULL;
     void *par[20] = {0};
@@ -102,11 +102,16 @@ static int __run_func(FShell *shell, String *str)
                 dbg_str(DBG_DETAIL, "%d:%s", i, arg);
             }
             arg = str_trim(arg);
-            if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
+            if (arg[0] == '"') {
+                len = strlen(arg);
+                THROW_IF(arg[len - 1] != '"', -1);
+                arg[len - 1] = '\0';
+                par[i - 1] = arg + 1;
+            } else if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
                 par[i - 1] = str_hex_to_int(arg);
                 dbg_str(DBG_DETAIL, "par i:%d value:%x", i - 1, par[i - 1]);
             } else {
-                par[i - 1] = arg;
+                par[i - 1] = atoi(arg);
             }
         }
         ret = func(par[0], par[1], par[2], par[3], par[4],

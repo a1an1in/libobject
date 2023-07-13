@@ -1,8 +1,8 @@
-do a little changes.
+fix fshell decimal data as paramter.
 
 Description:
-update
+if the data has no prefix as "0x--", we regard the
+data as decimal in fshell.
 
 Major Changes:
-1. change app and mockery log level.
-2. code attach.c test
+1. add decimal parameter support.
