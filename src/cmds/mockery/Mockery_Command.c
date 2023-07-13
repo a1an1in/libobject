@@ -18,7 +18,7 @@ static int __run_command(Mockery_Command *command)
     }
 
     dbg_str(DBG_VIP, "mockery %s end", command->func_name);
-    debugger_set_all_businesses_level(debugger_gp, 1, 6);
+    debugger_set_all_businesses_level(debugger_gp, 1, 3);
 
     return 1;
 }

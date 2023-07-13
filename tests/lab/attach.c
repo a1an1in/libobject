@@ -85,7 +85,8 @@ static int test_attach(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
     pid_t tpid;
-    struct user_regs_struct regs;   
+    struct user_regs_struct regs;
+    void *addr = NULL;
 
     TRY {
         dbg_str(DBG_VIP, "argc:%d", argc);
@@ -98,6 +99,9 @@ static int test_attach(TEST_ENTRY *entry, int argc, void **argv)
 
         EXEC(ptrace(PTRACE_ATTACH, tpid, NULL, NULL));  
         wait(NULL);
+        addr = get_func_addr_by_name("attach_test_func");
+        sleep(60);
+        THROW_IF(addr == NULL, -1);
         
         EXEC(ptrace(PTRACE_GETREGS, tpid,NULL, &regs));
         printf("RIP: %llx,RSP: %llx\n", regs.rip, regs.rsp);

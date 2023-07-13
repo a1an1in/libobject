@@ -1,10 +1,10 @@
 project(test-attach-target)
 
-file(GLOB_RECURSE MOUDLE_HEADERS
+file(GLOB MOUDLE_HEADERS
     "*.h"
 )
 
-file(GLOB_RECURSE MOUDLE_SOURCES
+file(GLOB MOUDLE_SOURCES
     "*.c"
 )
 
@@ -14,4 +14,4 @@ file(GLOB MOUDLE_SRC
 )
 
 add_executable(${PROJECT_NAME} ${MOUDLE_SRC})
-target_link_libraries(${PROJECT_NAME} pthread)
+target_link_libraries(${PROJECT_NAME} object-testlib pthread)
