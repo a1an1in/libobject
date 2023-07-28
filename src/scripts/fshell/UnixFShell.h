@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
-#include <libobject/scripts/FShell.h>
+#include <libobject/scripts/fshell/FShell.h>
 
 typedef struct UnixFShell_s UnixFShell;
 

@@ -11,7 +11,7 @@
 #include <sys/ptrace.h>
 #include <sys/user.h>
 #include <libobject/core/utils/string.h>
-#include <libobject/scripts/FShell.h>
+#include <libobject/scripts/fshell/FShell.h>
 
 FShell *g_shell;
 

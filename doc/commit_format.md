@@ -1,9 +1,8 @@
-add fshell/Attacher.
+add unix attach framework.
 
 Description:
-At present, fshell with stub can debug local process.
-In nomal case, we most need to debug target process, so
-we need add attacher to achieve this aim.
+update.
 
 Major Changes:
-1. initiate attacher.
+1. add frame for unix attacher
+2. add fshell dir for fshell include

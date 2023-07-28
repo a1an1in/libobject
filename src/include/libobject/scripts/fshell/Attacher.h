@@ -1,5 +1,5 @@
-#ifndef __MODULE_H__
-#define __MODULE_H__
+#ifndef __ATTACHER_H__
+#define __ATTACHER_H__
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>

@@ -6,7 +6,7 @@
  * @date 2013-03-09
  */
 #include <libobject/argument/Application.h>
-#include <libobject/scripts/FShell.h>
+#include <libobject/scripts/fshell/FShell.h>
 #include "FShell_Command.h"
 
 static int __run_command(Command *command)

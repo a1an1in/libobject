@@ -9,9 +9,9 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <libobject/core/utils/string.h>
-#include <libobject/scripts/FShell.h>
 #include <libobject/concurrent/Worker.h>
-#include <libobject/scripts/api.h>
+#include <libobject/scripts/fshell/FShell.h>
+#include <libobject/scripts/fshell/api.h>
 
 static void __close_fshell_callback(void *arg)
 {
