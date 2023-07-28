@@ -1,8 +1,9 @@
-fix fshell decimal data as paramter.
+add fshell/Attacher.
 
 Description:
-if the data has no prefix as "0x--", we regard the
-data as decimal in fshell.
+At present, fshell with stub can debug local process.
+In nomal case, we most need to debug target process, so
+we need add attacher to achieve this aim.
 
 Major Changes:
-1. add decimal parameter support.
+1. initiate attacher.
