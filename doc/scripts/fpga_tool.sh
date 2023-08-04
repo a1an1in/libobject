@@ -15,6 +15,11 @@ function parse_args { # Read commande line arguments and update global vairbles
                 OPTION_HELP=""
                 shift # past argument=value
                 ;;
+            monitor|help)
+                CMD_NAME=$i
+                OPTION_HELP=""
+                shift # past argument=value
+                ;;
             -p=*|--port=*)
                 OPTION_PORT="${i#*=}"
                 OPTION_HELP=""
@@ -66,12 +71,14 @@ cat << EOF
         -p, --port:          port number.
         -r, --read_address:  read address.
         -s, --size:          read or write size
-
+    monitor                  monitor fpga register.
+        -r, --read_address:  read address.
     help                     Print this help message.
 
     demos:
     ./fpga_tool.sh read_eci_iq_ingress -p=0 -w=0x03035024 -r=0x03035028 -s=10
     ./fpga_tool.sh read -p=0 -r=0x03035028 -s=10
+    ./fpga_tool.sh monitor -r=0x0300110c
 EOF
 }
 
@@ -80,6 +87,8 @@ function process_args {
         do_read_eci_iq_ingress
     elif [[ $CMD_NAME == "read" ]]; then
         do_read
+    elif [[ $CMD_NAME == "monitor" ]]; then
+        do_monitor
     else
         OPTION_HELP="true"
     fi
@@ -257,6 +266,22 @@ function do_read {
                 echo ${array[*]}
             fi
             unset array
+        fi
+    done
+}
+
+function do_monitor {
+    echo "do_monitor, register address: $OPTION_READ_ADDRESS "
+    echo "monitor register:"${OPTION_READ_ADDRESS}
+    last_status=""
+    while true
+    do
+        status=$(testbox fpga_read bpm1 raw ${OPTION_READ_ADDRESS} | grep ${OPTION_READ_ADDRESS})
+        usleep 5000
+        if [[ ${last_status} != ${status} ]]
+        then
+            echo $(date) ${status}
+            last_status=${status}
         fi
     done
 }
