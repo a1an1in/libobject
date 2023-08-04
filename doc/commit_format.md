@@ -1,8 +1,7 @@
-do test for attacher.
+implement UnixAttacher interfaces.
 
 Description:
-update.
+new interfaces has been tested ok.
 
 Major Changes:
-1. add monitor register for fpga_tool.sh
-2. add test_mmap_and_exec_shellcode
+1. add attach and detach and call inf.

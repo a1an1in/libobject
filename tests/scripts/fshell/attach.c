@@ -102,7 +102,7 @@ static int test_attach(TEST_ENTRY *entry, int argc, void **argv)
         EXEC(ptrace(PTRACE_ATTACH, tpid, NULL, NULL));  
         wait(NULL);
         addr = get_func_addr_by_name("attach_test_func");
-        sleep(60);
+        sleep(6);
         THROW_IF(addr == NULL, -1);
         
         EXEC(ptrace(PTRACE_GETREGS, tpid,NULL, &regs));
