@@ -48,14 +48,24 @@ static int __detach(UnixAttacher *attacher)
     return ret;
 }
 
+//https://blog.csdn.net/KaiKaiaiq/article/details/114378122
 static int __call(UnixAttacher *attacher, char *function_name, void *paramters, int num)
 {
-    int ret;
-    struct user_regs_struct regs;
+    int ret, stat;
+    struct user_regs_struct regs, bak;
 
     TRY {
         EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
+        memcpy(&bak, &regs, sizeof(regs));
         printf("RIP: %llx,RSP: %llx\n", regs.rip, regs.rsp);
+        regs.rip = 0x7f9257f51217;
+        EXEC(ptrace(PTRACE_SETREGS, attacher->pid,NULL, &regs));
+        waitpid(attacher->pid, &stat, WUNTRACED);
+        // while(stat != 0xb7f) {
+            EXEC(ptrace(PTRACE_CONT, attacher->pid, NULL, NULL));
+            waitpid(attacher->pid, &stat, WUNTRACED);
+        // }
+        EXEC(ptrace(PTRACE_SETREGS, attacher->pid,NULL, &bak));
     } CATCH(ret) {}
 
     return ret;

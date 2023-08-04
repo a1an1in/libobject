@@ -1,7 +1,7 @@
-implement UnixAttacher interfaces.
+implement UnixAttacher call interface.
 
 Description:
-new interfaces has been tested ok.
+haven't been tested.
 
 Major Changes:
-1. add attach and detach and call inf.
+1. update code.

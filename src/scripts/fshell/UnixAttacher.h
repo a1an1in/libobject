@@ -6,6 +6,7 @@
 #include <libobject/scripts/fshell/Attacher.h>
 #include <sys/ptrace.h>
 #include <sys/user.h>
+#include<sys/wait.h>
 
 typedef struct UnixAttacher_s UnixAttacher;
 

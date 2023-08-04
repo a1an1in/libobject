@@ -17,9 +17,14 @@ void attach_test_func()
 	}
 }
  
+int test_lib_hello_world()
+{
+    return printf("hello world\n");
+}
+
 void *func(void *para)
 {
-    printf("attach_test_func addr: %p\n", attach_test_func);
+    printf("test_lib_hello_world addr: %p\n", test_lib_hello_world);
     printf("child process tid: %u\n", gettid());
 	attach_test_func();
     return NULL;
