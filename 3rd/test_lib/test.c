@@ -19,7 +19,8 @@ void attach_test_func()
  
 int test_lib_hello_world()
 {
-    return printf("hello world\n");
+    printf("hello world\n");
+    return 0xadad;
 }
 
 void *func(void *para)

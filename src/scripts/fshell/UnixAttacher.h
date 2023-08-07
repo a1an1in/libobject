@@ -23,7 +23,8 @@ struct UnixAttacher_s{
 
     int *(*attach)(UnixAttacher *, int pid);
     int *(*detach)(UnixAttacher *);
-    int (*call)(UnixAttacher *, char *function_name, void *paramters, int num);
+    int (*call)(UnixAttacher *, char *function_adress, void *paramters, int num);
+    int (*get_function_address)(UnixAttacher *, char *function_name, char *module_name);
     int (*add_lib)(UnixAttacher *, char *name);
     int (*remove_lib)(UnixAttacher *, char *name);
 

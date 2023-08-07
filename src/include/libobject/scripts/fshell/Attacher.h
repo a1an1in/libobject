@@ -19,7 +19,8 @@ struct Attacher_s{
 
     int *(*attach)(Attacher *, int pid);
     int *(*detach)(Attacher *);
-    int (*call)(Attacher *, char *function_name, void *paramters, int num);
+    int (*call)(Attacher *, char *function_address, void *paramters, int num);
+    int (*get_function_address)(Attacher *, char *function_name, char *module_name);
     int (*add_lib)(Attacher *, char *name);
     int (*remove_lib)(Attacher *, char *name);
 
