@@ -3,10 +3,11 @@
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
-#include <libobject/scripts/fshell/Attacher.h>
 #include <sys/ptrace.h>
 #include <sys/user.h>
-#include<sys/wait.h>
+#include <sys/wait.h>
+#include <libobject/scripts/fshell/dynamic_lib.h>
+#include <libobject/scripts/fshell/Attacher.h>
 
 typedef struct UnixAttacher_s UnixAttacher;
 

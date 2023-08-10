@@ -1,8 +1,8 @@
 implement UnixAttacher call interface.
 
 Description:
-has test call remote function without paramater.
+update.
 
 Major Changes:
-1. update code.
-2. tidy up fshell tests.
+1. add more test cases
+2. add dynamic_lib.c

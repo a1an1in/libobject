@@ -82,7 +82,15 @@ static int __call(UnixAttacher *attacher, char *function_address, void *paramter
 
 static int __get_function_address(UnixAttacher *attacher, char *function_name, char *module_name)
 {
+    void *addr;
+    int ret;
 
+    TRY {
+        addr = dl_get_func_addr_by_name("test_lib_hello_world");
+        printf("get function local address:%x\n", addr);
+    } CATCH(ret) {}
+
+    return ret;
 }
 
 static int __add_lib(UnixAttacher *attacher, char *name)

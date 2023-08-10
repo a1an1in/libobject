@@ -10,7 +10,7 @@ int test_lib_print_outbound(int a, int b, int c, int d, int e, int f, int *g)
 void attach_test_func()
 {
     int i = 0,sum = 0;
-	while(1){
+	while(1) {
 		i++;
 		sum +=i;
 		sleep(1);

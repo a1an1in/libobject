@@ -58,5 +58,53 @@ int dl_get_func_name_by_addr(void *addr, char *name, unsigned int name_len)
     return 0;
 }
 
+void *dl_get_dynamic_lib_base_address(pid_t pid, const char *module_name)
+{
+    FILE *fp;
+    long addr = 0;
+    char *pch;
+    char filename[32];
+    char line[1024];
+
+    if (pid < 0) {
+        /* self process */
+        snprintf(filename, sizeof(filename), "/proc/self/maps", pid);
+    } else {
+        snprintf(filename, sizeof(filename), "/proc/%d/maps", pid);
+    }
+
+    fp = fopen(filename, "r");
+
+    if (fp != NULL) {
+        while (fgets(line, sizeof(line), fp)) {
+            if (strstr(line, module_name)) {
+                pch = strtok(line, "-");
+                addr = strtoul(pch, NULL, 16);
+
+                if (addr == 0x8000)
+                    addr = 0;
+
+                break;
+            }
+        }
+
+        fclose(fp);
+    }
+
+    return (void *)addr;
+}
+
+void* dl_get_remote_function_adress(pid_t target_pid, const char* module_name, void* local_addr)
+{
+	void* local_handle, *remote_handle;
+
+	local_handle = dl_get_dynamic_lib_base_address(-1, module_name);
+	remote_handle = dl_get_dynamic_lib_base_address(target_pid, module_name);
+
+	printf("[+] get_remote_addr: local[%x], remote[%x]\n", local_handle, remote_handle);
+
+	return (void *)( (uint32_t)local_addr + (uint32_t)remote_handle - (uint32_t)local_handle);
+}
+
 #endif
 

@@ -15,6 +15,7 @@
 #include <libobject/scripts/fshell/dynamic_lib.h>
 
 extern int print_outbound(int a, int b, int c, int d, int e, int f, int *g);
+extern int test_lib_hello_world();
 
 int test_get_func_addr(TEST_ENTRY *entry)
 {
@@ -35,6 +36,64 @@ int test_get_func_addr(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_FUNC(test_get_func_addr);
+
+int test_dl_get_dynamic_lib_base_address(TEST_ENTRY *entry, int argc, void **argv)
+{
+    char *func_name = "test_lib_hello_world";
+    void *expect_addr = test_lib_hello_world;
+    void *addr;
+    pid_t pid;
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "argc:%d", argc);
+        for (int i = 0; i < argc; i++) {
+            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
+        }
+        THROW_IF(argc != 2, -1);
+
+        pid = atoi(argv[1]);
+        addr = dl_get_dynamic_lib_base_address(-1, "libobject-testlib.so");
+        THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "addr:%p, expect addr:%p", addr, test_lib_hello_world);
+        sleep(1000);
+        THROW_IF(addr != expect_addr, -1);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "test_get_func_addr, addr=%p, %s:%p",
+                addr, func_name, expect_addr);
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_dl_get_dynamic_lib_base_address);
+
+int test_dl_get_remote_function_adress(TEST_ENTRY *entry, int argc, void **argv)
+{
+    char *func_name = "test_lib_hello_world";
+    void *expect_addr = test_lib_hello_world;
+    void *addr;
+    pid_t pid;
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "argc:%d", argc);
+        for (int i = 0; i < argc; i++) {
+            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
+        }
+        THROW_IF(argc != 2, -1);
+
+        pid = atoi(argv[1]);
+        addr = dl_get_remote_function_adress(pid, "libobject-testlib.so", test_lib_hello_world);
+        THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "test_dl_get_remote_function_adress local:%p, remote addr:%p", test_lib_hello_world, addr);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "test_get_func_addr, addr=%p, %s:%p",
+                addr, func_name, expect_addr);
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_dl_get_remote_function_adress);
 
 #endif
 
