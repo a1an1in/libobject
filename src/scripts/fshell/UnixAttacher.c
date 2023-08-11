@@ -49,18 +49,50 @@ static int __detach(UnixAttacher *attacher)
     return ret;
 }
 
+static void *__get_function_address(UnixAttacher *attacher, void *local_func_address, char *module_name)
+{
+    void *addr;
+    int ret;
+
+    TRY {
+        addr = dl_get_remote_function_adress(attacher->pid, module_name, local_func_address);
+        THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "attacher get_function_address, function remote address:%p", addr);
+    } CATCH(ret) { addr = NULL; }
+
+    return addr;
+}
+
+static void *__set_function_pars(UnixAttacher *attacher, struct user_regs_struct *regs, void **paramters, int num)
+{
+    int ret, i;
+
+    TRY {
+        // regs->rsp -= num * sizeof(void *);
+        regs->rdi = paramters[0];
+        regs->rsi = paramters[1];
+        // regs->rdi
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 //https://blog.csdn.net/KaiKaiaiq/article/details/114378122
-static int __call(UnixAttacher *attacher, char *function_address, void *paramters, int num)
+static int __call(UnixAttacher *attacher, void *function_address, void *paramters, int num)
 {
     int ret, stat;
     struct user_regs_struct regs, bak;
 
     TRY {
+        dbg_str(DBG_VIP, "attacher call, func address:%p", function_address);
         EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
         memcpy(&bak, &regs, sizeof(regs));
         printf("RIP: %llx,RSP: %llx\n", regs.rip, regs.rsp);
-        regs.rip = 0x7fe678922237;
-        // regs.rsp -= 16;
+        if (num != 0) {
+            EXEC(attacher->set_function_pars(attacher, &regs, paramters, num));
+        }
+
+        regs.rip = function_address;
         regs.rax = 0;
         EXEC(ptrace(PTRACE_SETREGS, attacher->pid,NULL, &regs));
         EXEC(ptrace(PTRACE_CONT, attacher->pid, NULL, NULL));
@@ -73,21 +105,8 @@ static int __call(UnixAttacher *attacher, char *function_address, void *paramter
         }
         EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
         EXEC(ptrace(PTRACE_SETREGS, attacher->pid,NULL, &bak));
-        printf("return value:%x\n", regs.rax);
+        printf("return value:%llx\n", regs.rax);
         THROW(regs.rax);
-    } CATCH(ret) {}
-
-    return ret;
-}
-
-static int __get_function_address(UnixAttacher *attacher, char *function_name, char *module_name)
-{
-    void *addr;
-    int ret;
-
-    TRY {
-        addr = dl_get_func_addr_by_name("test_lib_hello_world");
-        printf("get function local address:%x\n", addr);
     } CATCH(ret) {}
 
     return ret;
@@ -104,16 +123,17 @@ static int __remove_lib(UnixAttacher *attacher, char *name)
 }
 
 static class_info_entry_t attacher_class_info[] = {
-    Init_Obj___Entry(0, Attacher, parent),
-    Init_Nfunc_Entry(1, UnixAttacher, construct, __construct),
-    Init_Nfunc_Entry(2, UnixAttacher, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, UnixAttacher, attach, __attach),
-    Init_Vfunc_Entry(4, UnixAttacher, detach, __detach),
-    Init_Vfunc_Entry(5, UnixAttacher, call, __call),
-    Init_Vfunc_Entry(6, UnixAttacher, get_function_address, __get_function_address),
-    Init_Vfunc_Entry(7, UnixAttacher, add_lib, __add_lib),
-    Init_Vfunc_Entry(8, UnixAttacher, remove_lib, __remove_lib),
-    Init_End___Entry(9, UnixAttacher),
+    Init_Obj___Entry( 0, Attacher, parent),
+    Init_Nfunc_Entry( 1, UnixAttacher, construct, __construct),
+    Init_Nfunc_Entry( 2, UnixAttacher, deconstruct, __deconstruct),
+    Init_Vfunc_Entry( 3, UnixAttacher, attach, __attach),
+    Init_Vfunc_Entry( 4, UnixAttacher, detach, __detach),
+    Init_Vfunc_Entry( 5, UnixAttacher, set_function_pars, __set_function_pars),
+    Init_Vfunc_Entry( 6, UnixAttacher, get_function_address, __get_function_address),
+    Init_Vfunc_Entry( 7, UnixAttacher, call, __call),
+    Init_Vfunc_Entry( 8, UnixAttacher, add_lib, __add_lib),
+    Init_Vfunc_Entry( 9, UnixAttacher, remove_lib, __remove_lib),
+    Init_End___Entry(10, UnixAttacher),
 };
 REGISTER_CLASS("UnixAttacher", attacher_class_info);
 

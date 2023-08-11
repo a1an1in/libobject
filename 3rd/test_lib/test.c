@@ -23,9 +23,17 @@ int test_lib_hello_world()
     return 0xadad;
 }
 
+int test_lib_hello_world_with_pars(int par1, int value)
+{
+    printf("hello world, par1:%x, par2:%x\n", par1, value);
+    return 0xadad;
+}
+
+
 void *func(void *para)
 {
     printf("test_lib_hello_world addr: %p\n", test_lib_hello_world);
+    printf("test_lib_hello_world_with_pars addr: %p\n", test_lib_hello_world_with_pars);
     printf("child process tid: %u\n", gettid());
 	attach_test_func();
     return NULL;

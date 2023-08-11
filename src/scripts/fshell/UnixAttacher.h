@@ -11,7 +11,7 @@
 
 typedef struct UnixAttacher_s UnixAttacher;
 
-struct UnixAttacher_s{
+struct UnixAttacher_s {
     Attacher parent;
 
     int (*construct)(UnixAttacher *,char *);
@@ -24,8 +24,9 @@ struct UnixAttacher_s{
 
     int *(*attach)(UnixAttacher *, int pid);
     int *(*detach)(UnixAttacher *);
-    int (*call)(UnixAttacher *, char *function_adress, void *paramters, int num);
-    int (*get_function_address)(UnixAttacher *, char *function_name, char *module_name);
+    void *(*get_function_address)(UnixAttacher *, void *local_func_address, char *module_name);
+    int (*set_function_pars)(UnixAttacher *attacher, struct user_regs_struct *regs, void *paramters, int num);
+    int (*call)(UnixAttacher *, void *function_adress, void *paramters, int num);
     int (*add_lib)(UnixAttacher *, char *name);
     int (*remove_lib)(UnixAttacher *, char *name);
 

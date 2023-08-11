@@ -4,5 +4,5 @@ Description:
 update.
 
 Major Changes:
-1. add more test cases
-2. add dynamic_lib.c
+1. add get_function_address.
+2. rename test files.

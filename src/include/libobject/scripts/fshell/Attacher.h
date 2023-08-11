@@ -6,7 +6,7 @@
 
 typedef struct Attacher_s Attacher;
 
-struct Attacher_s{
+struct Attacher_s {
     Obj parent;
 
     int (*construct)(Attacher *,char *);
@@ -19,8 +19,8 @@ struct Attacher_s{
 
     int *(*attach)(Attacher *, int pid);
     int *(*detach)(Attacher *);
-    int (*call)(Attacher *, char *function_address, void *paramters, int num);
-    int (*get_function_address)(Attacher *, char *function_name, char *module_name);
+    void *(*get_function_address)(Attacher *, void *local_func_address, char *module_name);
+    int (*call)(Attacher *, void *function_address, void *paramters, int num);
     int (*add_lib)(Attacher *, char *name);
     int (*remove_lib)(Attacher *, char *name);
 

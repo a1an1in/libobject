@@ -10,6 +10,7 @@
 #include "debug_network.h"
 #include "debug_log.h"
 #include <libobject/user_mode.h>
+#include <libobject/core/try.h>
 #include <libobject/core/utils/ini/iniparser.h>
 #include <libobject/core/utils/sync_lock.h>
 
