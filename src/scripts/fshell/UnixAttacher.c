@@ -63,15 +63,68 @@ static void *__get_function_address(UnixAttacher *attacher, void *local_func_add
     return addr;
 }
 
+static void *__read(UnixAttacher *attacher, void *addr, uint8_t *value, int len)
+{
+
+}
+
+static void *__write(UnixAttacher *attacher, void *addr, uint8_t *value, int len)
+{
+    int ret, num, i;
+    long *p = (long *)value;
+    long tmp;
+
+    TRY {
+        num = (len + sizeof(long) - 1) / sizeof(long);
+
+        for (i = 0; i < num; i++) {
+            dbg_str(DBG_VIP, "poke write addr:%p, value:%x, i:%d, num:%d, sizeof long:%d", 
+                    addr + i * sizeof(long), *(p + i), i, num, sizeof(long));
+            dbg_buf(DBG_VIP, "write:", (p + i), sizeof(long));
+            EXEC(ptrace(PTRACE_POKEDATA, attacher->pid, addr + i * sizeof(long), *(p + i)));
+        }
+
+        memset(value, 0, len);
+        for (i = 0; i < num; i++) {
+            tmp = ptrace(PTRACE_PEEKDATA, attacher->pid, addr, NULL);
+            dbg_buf(DBG_VIP, "peek data:", &tmp, sizeof(long));
+        }
+
+    } CATCH (ret) { }
+    
+    return ret;
+}
+
 static void *__set_function_pars(UnixAttacher *attacher, struct user_regs_struct *regs, void **paramters, int num)
 {
     int ret, i;
+    unsigned long long int *par_array[6] = {&regs->rdi, &regs->rsi, &regs->rdx, &regs->rcx, &regs->r8, &regs->r9};
+    unsigned long long int *addr;
 
     TRY {
-        // regs->rsp -= num * sizeof(void *);
-        regs->rdi = paramters[0];
-        regs->rsi = paramters[1];
-        // regs->rdi
+        /*
+         * %rdi，%rsi，%rdx，%rcx，%r8，%r9 用作函数参数，依次对应第1参数，第2参数。。,
+         * 代码块存放p0-p5 6个参数到栈里面的存放顺序是为了后面方便用数组来取。超过6个
+         * 的参数函数调用前已经安顺序被放在rsp里面， 但是后面取的时候注意要去掉返回地址
+         * 和bsp两个数据。
+         */
+        if (num > 6) {
+            regs->rsp -= (num - 6) * sizeof(void *);
+            addr = regs->rsp;
+            dbg_str(DBG_VIP, "attacher call, new rsp:%p", addr);
+            /* 预留返回地址， 再加上进入函数后首先会把rbp入栈， 函数取会用0x10(%rbp)的
+             * 方式来访问存在栈中的第7个参数
+             */
+            regs->rsp -= sizeof(void *); 
+        }
+        for (i = 0; i < num; i++) {
+            if (i < 6) {
+                *(par_array[i]) =  paramters[i];
+            } else {
+                dbg_str(DBG_VIP, "write (addr + (num - i - 1) * 8):%p, num:%d, i:%d", addr + (num - i -1), num, i);
+                EXEC(attacher->write(attacher, addr + i - 6, paramters + i, sizeof(void *)));
+            }
+        }
     } CATCH (ret) {}
 
     return ret;
@@ -94,7 +147,7 @@ static int __call(UnixAttacher *attacher, void *function_address, void *paramter
 
         regs.rip = function_address;
         regs.rax = 0;
-        EXEC(ptrace(PTRACE_SETREGS, attacher->pid,NULL, &regs));
+        EXEC(ptrace(PTRACE_SETREGS, attacher->pid, NULL, &regs));
         EXEC(ptrace(PTRACE_CONT, attacher->pid, NULL, NULL));
 
         waitpid(attacher->pid, &stat, WUNTRACED);
@@ -129,11 +182,13 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry( 3, UnixAttacher, attach, __attach),
     Init_Vfunc_Entry( 4, UnixAttacher, detach, __detach),
     Init_Vfunc_Entry( 5, UnixAttacher, set_function_pars, __set_function_pars),
-    Init_Vfunc_Entry( 6, UnixAttacher, get_function_address, __get_function_address),
-    Init_Vfunc_Entry( 7, UnixAttacher, call, __call),
-    Init_Vfunc_Entry( 8, UnixAttacher, add_lib, __add_lib),
-    Init_Vfunc_Entry( 9, UnixAttacher, remove_lib, __remove_lib),
-    Init_End___Entry(10, UnixAttacher),
+    Init_Vfunc_Entry( 6, UnixAttacher, read, __read),
+    Init_Vfunc_Entry( 7, UnixAttacher, write, __write),
+    Init_Vfunc_Entry( 8, UnixAttacher, get_function_address, __get_function_address),
+    Init_Vfunc_Entry( 9, UnixAttacher, call, __call),
+    Init_Vfunc_Entry(10, UnixAttacher, add_lib, __add_lib),
+    Init_Vfunc_Entry(11, UnixAttacher, remove_lib, __remove_lib),
+    Init_End___Entry(12, UnixAttacher),
 };
 REGISTER_CLASS("UnixAttacher", attacher_class_info);
 

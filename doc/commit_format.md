@@ -1,8 +1,8 @@
 implement UnixAttacher call interface.
 
 Description:
-update.
+The attacher's call interface has been tested ok.
 
 Major Changes:
-1. add get_function_address.
-2. rename test files.
+1. fix get_function_address.
+2. add read and write interfaces.
