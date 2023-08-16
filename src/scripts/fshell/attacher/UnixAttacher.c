@@ -130,14 +130,19 @@ static void *__set_function_pars(UnixAttacher *attacher, struct user_regs_struct
     return ret;
 }
 
-//https://blog.csdn.net/KaiKaiaiq/article/details/114378122
-static int __call(UnixAttacher *attacher, void *function_address, void *paramters, int num)
+/* 
+ * description:
+ * this funtion can only call remote function which's paramters has no pointer.
+ * 
+ * refer to: //https://blog.csdn.net/KaiKaiaiq/article/details/114378122
+ **/
+static long __call_without_pointer(UnixAttacher *attacher, void *function_address, void *paramters, int num)
 {
     int ret, stat;
     struct user_regs_struct regs, bak;
 
     TRY {
-        dbg_str(DBG_VIP, "attacher call, func address:%p", function_address);
+        dbg_str(DBG_VIP, "attacher call, func address:%p, sizeof(long):%d", function_address, sizeof(long));
         EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
         memcpy(&bak, &regs, sizeof(regs));
         printf("RIP: %llx,RSP: %llx\n", regs.rip, regs.rsp);
@@ -159,7 +164,85 @@ static int __call(UnixAttacher *attacher, void *function_address, void *paramter
         EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
         EXEC(ptrace(PTRACE_SETREGS, attacher->pid,NULL, &bak));
         printf("return value:%llx\n", regs.rax);
-        THROW(regs.rax);
+        return regs.rax;
+    } CATCH(ret) {}
+
+    return ret;
+}
+
+extern void *my_malloc(int size);
+extern int my_free(void *addr);
+static void *__malloc(UnixAttacher *attacher, int size, void *value)
+{
+    int ret;
+    void *addr;
+    long long pars[1] = {size};
+
+    TRY {
+        THROW_IF(size == 0, 0);
+        // addr = attacher->get_function_address(attacher, malloc, "libc.so");
+        addr = attacher->get_function_address(attacher, my_malloc, "libobject-testlib.so");
+        THROW_IF(addr == NULL, -1);
+        addr = attacher->call_without_pointer(attacher, addr, pars, 1);
+        THROW_IF(addr == NULL, -1);
+        if (value != NULL) {
+            EXEC(attacher->write(attacher, addr, value, size));
+        }
+        dbg_str(DBG_VIP, "malloc addr:%p", addr);
+        return addr;
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static int __free(UnixAttacher *attacher, void *addr)
+{
+    int ret;
+    void *free_addr;
+    long long pars[1] = {addr};
+
+    TRY {
+        THROW_IF(addr == 0, -1);
+        // free_addr = attacher->get_function_address(attacher, my_free, "libc.so");
+        free_addr = attacher->get_function_address(attacher, my_free, "libobject-testlib.so");
+        THROW_IF(free_addr == NULL, -1);
+        dbg_str(DBG_VIP, "free func addr:%p, free addr:%p", free_addr, addr);
+        ret = attacher->call_without_pointer(attacher, free_addr, pars, 1);
+        THROW(ret);
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static long __call(UnixAttacher *attacher, void *function_address, attacher_paramater_t pars[], int num)
+{
+    long ret, stat, i;
+    int pointer_flag = 0;
+    void *paramters[ATTACHER_PARAMATER_ARRAY_MAX_SIZE];
+
+    TRY {
+        THROW_IF(num > ATTACHER_PARAMATER_ARRAY_MAX_SIZE, -1);
+
+        /* retmote funtion args pre process*/
+        for (i = 0; i < num; i++) {
+            if (pars[i].size == 0) continue;
+            paramters[i] = attacher->malloc(attacher, pars[i].size, pars[i].value);
+            pointer_flag = 1;
+        }
+
+        if (pointer_flag == 0) {
+            ret = attacher->call_without_pointer(attacher, function_address, paramters, num);
+            return ret;
+        } else {
+            ret = attacher->call_without_pointer(attacher, function_address, paramters, num);
+        }
+
+        /* retmote funtion args post process */
+        for (i = 0; i < num; i++) {
+            if (pars[i].size == 0) continue;
+            attacher->free(attacher, paramters[i]);
+        }
+        return ret;
     } CATCH(ret) {}
 
     return ret;
@@ -184,11 +267,14 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry( 5, UnixAttacher, set_function_pars, __set_function_pars),
     Init_Vfunc_Entry( 6, UnixAttacher, read, __read),
     Init_Vfunc_Entry( 7, UnixAttacher, write, __write),
-    Init_Vfunc_Entry( 8, UnixAttacher, get_function_address, __get_function_address),
-    Init_Vfunc_Entry( 9, UnixAttacher, call, __call),
-    Init_Vfunc_Entry(10, UnixAttacher, add_lib, __add_lib),
-    Init_Vfunc_Entry(11, UnixAttacher, remove_lib, __remove_lib),
-    Init_End___Entry(12, UnixAttacher),
+    Init_Vfunc_Entry( 8, UnixAttacher, malloc, __malloc),
+    Init_Vfunc_Entry( 9, UnixAttacher, free, __free),
+    Init_Vfunc_Entry(10, UnixAttacher, get_function_address, __get_function_address),
+    Init_Vfunc_Entry(11, UnixAttacher, call_without_pointer, __call_without_pointer),
+    Init_Vfunc_Entry(12, UnixAttacher, call, __call),
+    Init_Vfunc_Entry(13, UnixAttacher, add_lib, __add_lib),
+    Init_Vfunc_Entry(14, UnixAttacher, remove_lib, __remove_lib),
+    Init_End___Entry(15, UnixAttacher),
 };
 REGISTER_CLASS("UnixAttacher", attacher_class_info);
 

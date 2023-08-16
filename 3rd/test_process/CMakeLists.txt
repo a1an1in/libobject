@@ -1,4 +1,4 @@
-project(test-attach-target)
+project(test-process)
 
 file(GLOB MOUDLE_HEADERS
     "*.h"

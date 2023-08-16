@@ -8,7 +8,8 @@
  
 extern void *func(void *para);
 
-int main(){ 
+int main()
+{ 
     pthread_t tid;
     int ret = pthread_create(&tid, NULL, func, NULL);
     if(ret != 0)

@@ -17,10 +17,13 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry( 5, Attacher, get_function_address, NULL),
     Init_Vfunc_Entry( 6, Attacher, read, NULL),
     Init_Vfunc_Entry( 7, Attacher, write, NULL),
-    Init_Vfunc_Entry( 8, Attacher, call, NULL),
-    Init_Vfunc_Entry( 9, Attacher, add_lib, NULL),
-    Init_Vfunc_Entry(10, Attacher, remove_lib, NULL),
-    Init_End___Entry(11, Attacher),
+    Init_Vfunc_Entry( 8, Attacher, malloc, NULL),
+    Init_Vfunc_Entry( 9, Attacher, free, NULL),
+    Init_Vfunc_Entry(10, Attacher, call_without_pointer, NULL),
+    Init_Vfunc_Entry(11, Attacher, call, NULL),
+    Init_Vfunc_Entry(12, Attacher, add_lib, NULL),
+    Init_Vfunc_Entry(13, Attacher, remove_lib, NULL),
+    Init_End___Entry(14, Attacher),
 };
 REGISTER_CLASS("Attacher", attacher_class_info);
 

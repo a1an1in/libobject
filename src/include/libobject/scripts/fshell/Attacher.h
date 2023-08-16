@@ -4,7 +4,14 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 
+#define ATTACHER_PARAMATER_ARRAY_MAX_SIZE 10
+
 typedef struct Attacher_s Attacher;
+
+typedef struct attacher_paramater_s {
+    void *value;
+    int size;
+} attacher_paramater_t;
 
 struct Attacher_s {
     Obj parent;
@@ -22,7 +29,10 @@ struct Attacher_s {
     void *(*get_function_address)(Attacher *, void *local_func_address, char *module_name);
     int (*write)(Attacher *attacher, void *addr, uint8_t *value, int len);
     int (*read)(Attacher *attacher, void *addr, uint8_t *value, int len);
-    int (*call)(Attacher *, void *function_address, void *paramters, int num);
+    void *(*malloc)(Attacher *attacher, int size, void *value);
+    int (*free)(Attacher *attacher, void *addr);
+    long (*call)(Attacher *, void *function_address, void *paramters, int num);
+    long (*call_without_pointer)(Attacher *, void *function_adress, attacher_paramater_t paramters[], int num);
     int (*add_lib)(Attacher *, char *name);
     int (*remove_lib)(Attacher *, char *name);
 
