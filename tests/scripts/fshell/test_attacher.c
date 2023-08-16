@@ -14,11 +14,11 @@
 
 extern int test_lib_hello_world();
 extern int test_lib_hello_world_without_pointer_pars(int a, int b, int c, int d, int e, int f, long g, long h);
-extern int test_lib_hello_world_with_pointer_pars(void *par1, void *par2);
+extern int test_lib_hello_world_with_pointer_pars(char *par1, char *par2);
 extern void *my_malloc(int size);
 
 /* 测试attacher， 先要运行 test-attach-target进程， 然后获取pid, 执行如下命令进行测试：
- * sudo ./sysroot/linux/bin/xtools mockery --log-level=6 test_attacher_call_without_pars 10334
+ * sudo ./sysroot/linux/bin/xtools mockery --log-level=6 test_attacher_call_adress_without_pars 10334
  */
 
 static int test_attacher_get_function_address(TEST_ENTRY *entry, int argc, void **argv)
@@ -50,7 +50,7 @@ static int test_attacher_get_function_address(TEST_ENTRY *entry, int argc, void 
 }
 REGISTER_TEST_CMD(test_attacher_get_function_address);
 
-static int test_attacher_call_without_pars(TEST_ENTRY *entry, int argc, void **argv)
+static int test_attacher_call_adress_without_pars(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
@@ -59,7 +59,7 @@ static int test_attacher_call_without_pars(TEST_ENTRY *entry, int argc, void **a
     pid_t pid;
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_without_pars");
+        dbg_str(DBG_SUC, "test_attacher_call_adress_without_pars");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -71,7 +71,7 @@ static int test_attacher_call_without_pars(TEST_ENTRY *entry, int argc, void **a
         EXEC(attacher->attach(attacher, pid));
         func_addr = attacher->get_function_address(attacher, test_lib_hello_world, "libobject-testlib.so");
         THROW_IF(func_addr == NULL, -1);
-        EXEC(ret = attacher->call_without_pointer(attacher, func_addr, 0, 0));
+        EXEC(ret = attacher->call_address_with_value_pars(attacher, func_addr, 0, 0));
         THROW_IF(ret != 0xadad, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(attacher);
@@ -79,10 +79,10 @@ static int test_attacher_call_without_pars(TEST_ENTRY *entry, int argc, void **a
 
     return ret;
 }
-REGISTER_TEST_CMD(test_attacher_call_without_pars);
+REGISTER_TEST_CMD(test_attacher_call_adress_without_pars);
 
 
-static int test_attacher_call_without_pointer_pars(TEST_ENTRY *entry, int argc, void **argv)
+static int test_attacher_call_address_with_value_pars(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
@@ -105,7 +105,7 @@ static int test_attacher_call_without_pointer_pars(TEST_ENTRY *entry, int argc, 
         EXEC(attacher->attach(attacher, pid));
         func_addr = attacher->get_function_address(attacher, test_lib_hello_world_without_pointer_pars, "libobject-testlib.so");
         THROW_IF(func_addr == NULL, -1);
-        EXEC(ret = attacher->call_without_pointer(attacher, func_addr, pars, 8));
+        EXEC(ret = attacher->call_address_with_value_pars(attacher, func_addr, pars, 8));
         THROW_IF(ret != 0xadad, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(attacher);
@@ -113,9 +113,9 @@ static int test_attacher_call_without_pointer_pars(TEST_ENTRY *entry, int argc, 
 
     return ret;
 }
-REGISTER_TEST_CMD(test_attacher_call_without_pointer_pars);
+REGISTER_TEST_CMD(test_attacher_call_address_with_value_pars);
 
-static int test_attacher_call_malloc(TEST_ENTRY *entry, int argc, void **argv)
+static int test_attacher_call_adress_malloc(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
@@ -149,16 +149,16 @@ static int test_attacher_call_malloc(TEST_ENTRY *entry, int argc, void **argv)
 
     return ret;
 }
-REGISTER_TEST_CMD(test_attacher_call_malloc);
+REGISTER_TEST_CMD(test_attacher_call_adress_malloc);
 
-static int test_attacher_call_with_pointer_pars(TEST_ENTRY *entry, int argc, void **argv)
+static int test_attacher_call_adress_with_pointer_pars(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Attacher *attacher;
     void *func_addr;
     pid_t pid;
-    long long pars[1] = {8};
+    attacher_paramater_t pars[2] = {{"test1", 8}, {"test2", 8}};
 
     TRY {
         dbg_str(DBG_SUC, "test_lib_hello_world_with_pointer_pars");
@@ -171,10 +171,10 @@ static int test_attacher_call_with_pointer_pars(TEST_ENTRY *entry, int argc, voi
 
         attacher = object_new(allocator, "UnixAttacher", NULL);
         EXEC(attacher->attach(attacher, pid));
-        func_addr = attacher->get_function_address(attacher, my_malloc, "libobject-testlib.so");
+        func_addr = attacher->get_function_address(attacher, test_lib_hello_world_with_pointer_pars, "libobject-testlib.so");
         THROW_IF(func_addr == NULL, -1);
-        dbg_str(DBG_VIP, "malloc addr:%p", func_addr);
-        EXEC(ret = attacher->call_without_pointer(attacher, func_addr, pars, 1));
+        dbg_str(DBG_VIP, "func_addr:%p", func_addr);
+        EXEC(ret = attacher->call_address(attacher, func_addr, pars, 2));
         // THROW_IF(ret != 0xadad, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(attacher);
@@ -182,7 +182,7 @@ static int test_attacher_call_with_pointer_pars(TEST_ENTRY *entry, int argc, voi
 
     return ret;
 }
-REGISTER_TEST_CMD(test_attacher_call_with_pointer_pars);
+REGISTER_TEST_CMD(test_attacher_call_adress_with_pointer_pars);
 
 #endif
 

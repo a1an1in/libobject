@@ -30,8 +30,9 @@ struct UnixAttacher_s {
     void *(*malloc)(UnixAttacher *attacher, int size, void *value);
     int (*free)(UnixAttacher *attacher, void *addr);
     int (*set_function_pars)(UnixAttacher *attacher, struct user_regs_struct *regs, void *paramters, int num);
-    long (*call_without_pointer)(UnixAttacher *, void *function_adress, void *paramters, int num);
-    long (*call)(UnixAttacher *, void *function_adress, attacher_paramater_t paramters[], int num);
+    long (*call_address_with_value_pars)(UnixAttacher *, void *function_adress, void *paramters, int num);
+    long (*call_address)(UnixAttacher *, void *function_adress, attacher_paramater_t paramters[], int num);
+    long (*call)(UnixAttacher *, char *function_name, attacher_paramater_t paramters[], int num, char *module_name);
     int (*add_lib)(UnixAttacher *, char *name);
     int (*remove_lib)(UnixAttacher *, char *name);
 

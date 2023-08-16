@@ -30,9 +30,9 @@ int test_lib_hello_world_without_pointer_pars(int a, int b, int c, int d, int e,
     return 0xadad;
 }
 
-int test_lib_hello_world_with_pointer_pars(void *par1, void *par2)
+int test_lib_hello_world_with_pointer_pars(char *par1, char *par2)
 {
-    printf("hello world, par1:%p, par2:%p\n", par1, par2);
+    printf("hello world, par1:%s, par2:%s\n", par1, par2);
     return 0xadad;
 }
 
