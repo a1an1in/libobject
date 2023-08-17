@@ -147,10 +147,10 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
     struct user_regs_struct regs, bak;
 
     TRY {
-        dbg_str(DBG_VIP, "attacher call, func address:%p, sizeof(long):%d", function_address, sizeof(long));
+        dbg_str(DBG_VIP, "call_address_with_value_pars, func address:%p, sizeof(long):%d", function_address, sizeof(long));
         EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
         memcpy(&bak, &regs, sizeof(regs));
-        printf("RIP: %llx,RSP: %llx\n", regs.rip, regs.rsp);
+        // printf("RIP: %llx,RSP: %llx\n", regs.rip, regs.rsp);
         if (num != 0) {
             EXEC(attacher->set_function_pars(attacher, &regs, paramters, num));
         }
@@ -161,14 +161,15 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
         EXEC(ptrace(PTRACE_CONT, attacher->pid, NULL, NULL));
 
         waitpid(attacher->pid, &stat, WUNTRACED);
-        printf("stat:%x\n", stat);
+        // printf("stat:%x\n", stat);
         while(stat != 0xb7f) {
             waitpid(attacher->pid, &stat, WUNTRACED);
-            printf("stat:%x\n", stat);
+            // printf("stat:%x\n", stat);
         }
         EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
         EXEC(ptrace(PTRACE_SETREGS, attacher->pid,NULL, &bak));
-        printf("return value:%llx\n", regs.rax);
+
+        dbg_str(DBG_VIP, "call_address_with_value_pars, return value:%llx", regs.rax);
         return regs.rax;
     } CATCH(ret) {}
 
@@ -217,6 +218,12 @@ static int __free(UnixAttacher *attacher, void *addr)
     return ret;
 }
 
+/* name:call_address
+ *
+ * description:
+ * this funtion can call function with remote address. if we know the remote address
+ * we can call this method.
+ **/
 static long __call_address(UnixAttacher *attacher, void *function_address, attacher_paramater_t pars[], int num)
 {
     long ret, stat, i;
@@ -231,7 +238,7 @@ static long __call_address(UnixAttacher *attacher, void *function_address, attac
             if (pars[i].size == 0) continue;
             /* We require size to be multiples of long because ptrace is written in units of long */
             THROW_IF((pars[i].size % sizeof(long) != 0), -1);
-            dbg_str(DBG_VIP, "call, par:%s", pars[i].value);
+            dbg_str(DBG_VIP, "call address prepare paramater %d", i);
             paramters[i] = attacher->malloc(attacher, pars[i].size, pars[i].value);
             pointer_flag = 1;
         }
@@ -254,15 +261,25 @@ static long __call_address(UnixAttacher *attacher, void *function_address, attac
     return ret;
 }
 
-static long __call(UnixAttacher *attacher, char *name, attacher_paramater_t pars[], int num, char *module_name)
+/* name:call_from_lib
+ *
+ * description:
+ * if only we know the func name and which lib this func is, we can call this method. 
+ **/
+
+static long __call_from_lib(UnixAttacher *attacher, char *name, attacher_paramater_t pars[], int num, char *module_name)
 {
     long ret;
     void *addr;
 
     TRY {
-        addr = attacher->get_function_address(attacher, name, module_name);
+        /* get local fuction address */
+        addr = dl_get_func_addr_by_name(name);
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_VIP, "func_addr:%p", addr);
+        /* get remote fuction address */
+        addr = attacher->get_function_address(attacher, addr, module_name);
+        THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "call from lib, func name:%s, func_addr:%p", name, addr);
         ret = attacher->call_address(attacher, addr, pars, num);
         return ret;
     } CATCH(ret) {}
@@ -294,7 +311,7 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry(10, UnixAttacher, get_function_address, __get_function_address),
     Init_Vfunc_Entry(11, UnixAttacher, call_address_with_value_pars, __call_address_with_value_pars),
     Init_Vfunc_Entry(12, UnixAttacher, call_address, __call_address),
-    Init_Vfunc_Entry(13, UnixAttacher, call, __call),
+    Init_Vfunc_Entry(13, UnixAttacher, call_from_lib, __call_from_lib),
     Init_Vfunc_Entry(14, UnixAttacher, add_lib, __add_lib),
     Init_Vfunc_Entry(15, UnixAttacher, remove_lib, __remove_lib),
     Init_End___Entry(16, UnixAttacher),

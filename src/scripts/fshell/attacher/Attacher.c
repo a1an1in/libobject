@@ -21,7 +21,7 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry( 9, Attacher, free, NULL),
     Init_Vfunc_Entry(10, Attacher, call_address_with_value_pars, NULL),
     Init_Vfunc_Entry(11, Attacher, call_address, NULL),
-    Init_Vfunc_Entry(12, Attacher, call, NULL),
+    Init_Vfunc_Entry(12, Attacher, call_from_lib, NULL),
     Init_Vfunc_Entry(13, Attacher, add_lib, NULL),
     Init_Vfunc_Entry(14, Attacher, remove_lib, NULL),
     Init_End___Entry(15, Attacher),

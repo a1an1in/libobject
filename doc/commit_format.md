@@ -1,8 +1,10 @@
 [fshell:attacher] continue to implement fshell.
 
 Description:
-call_address has been tested ok.
+update.
 
 Major Changes:
-1. rename call_address and call_address_with_value_pars.
-2. implemented call_address
+1. add call_from_lib.
+2. add annotations.
+3. optimzie test_process.
+4. add test_attacher_call_from_lib test case.

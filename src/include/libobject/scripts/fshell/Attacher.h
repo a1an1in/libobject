@@ -33,7 +33,7 @@ struct Attacher_s {
     int (*free)(Attacher *attacher, void *addr);
     long (*call_address)(Attacher *, void *function_address, void *paramters, int num);
     long (*call_address_with_value_pars)(Attacher *, void *function_adress, attacher_paramater_t paramters[], int num);
-    long (*call)(Attacher *, char *function_name, attacher_paramater_t paramters[], int num, char *module_name);
+    long (*call_from_lib)(Attacher *, char *function_name, attacher_paramater_t paramters[], int num, char *module_name);
     int (*add_lib)(Attacher *, char *name);
     int (*remove_lib)(Attacher *, char *name);
 

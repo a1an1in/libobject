@@ -18,6 +18,7 @@
 * ./sysroot/linux/bin/xtools mockery test_datetime_for_each_month
 * ./sysroot/linux/bin/xtools --event-thread-service=11111 --event-signal-service=11121 mockery test_inet_tcp_client
 * ./sysroot/linux/bin/xtools mockery --log-level=6 test_attacher
+* sudo ./sysroot/linux/bin/xtools mockery --log-level=6 test_attacher_call_from_lib 94989
 * 
 * 
 

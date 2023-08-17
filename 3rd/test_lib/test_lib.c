@@ -8,16 +8,6 @@ int test_lib_print_outbound(int a, int b, int c, int d, int e, int f, int *g)
     return 1;
 }
 
-void attach_test_func()
-{
-    int i = 0,sum = 0;
-	while(1) {
-		i++;
-		sum +=i;
-		sleep(1);
-	}
-}
- 
 int test_lib_hello_world()
 {
     printf("hello world\n");
@@ -53,12 +43,22 @@ int my_free(void *addr)
     return 0;
 }
 
-void *func(void *para)
+void *subprocess_callback(void *para)
 {
-    printf("test_lib_hello_world addr: %p\n", test_lib_hello_world);
+    int i = 0,sum = 0;
+
     printf("child process tid: %u\n", gettid());
+    printf("test_lib_hello_world addr: %p\n", test_lib_hello_world);
     printf("my_free function addr: %p\n", my_free);
     printf("my_malloc function addr: %p\n", my_malloc);
-	attach_test_func();
+    printf("test_lib_hello_world_with_pointer_pars function addr: %p\n", test_lib_hello_world_with_pointer_pars);
+
+	while (1) {
+        i++;
+        sum +=i;
+        sleep(5);
+        printf("subprocess is running ...\n");
+	}
+
     return NULL;
 }
