@@ -98,11 +98,17 @@ void *dl_get_dynamic_lib_base_address(pid_t pid, const char *module_name)
 void* dl_get_remote_function_adress(pid_t target_pid, const char* module_name, void* local_addr)
 {
 	void* local_handle, *remote_handle;
+    int ret;
 
-	local_handle = dl_get_dynamic_lib_base_address(-1, module_name);
-	remote_handle = dl_get_dynamic_lib_base_address(target_pid, module_name);
-
-	return (void *)((uint64_t)local_addr + (uint64_t)remote_handle - (uint64_t)local_handle);
+    TRY {
+        local_handle = dl_get_dynamic_lib_base_address(-1, module_name);
+        THROW_IF(local_handle == NULL, -1);
+	    remote_handle = dl_get_dynamic_lib_base_address(target_pid, module_name);
+        THROW_IF(remote_handle == NULL, -1);
+        return (void *)((uint64_t)local_addr + (uint64_t)remote_handle - (uint64_t)local_handle);
+    } CATCH (ret) {}
+	
+    return NULL;
 }
 
 #endif

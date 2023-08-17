@@ -10,6 +10,7 @@
 
 extern void *my_malloc(int size);
 extern int my_free(void *addr);
+extern void *my_dlopen(char *name, int flag);
 
 static int __construct(UnixAttacher *attacher, char *init_str)
 {
@@ -34,7 +35,7 @@ static int __attach(UnixAttacher *attacher, int pid)
         EXEC(ptrace(PTRACE_ATTACH, pid, NULL, NULL));  
         wait(NULL);
         attacher->pid = pid;
-    } CATCH(ret) {}
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -47,7 +48,7 @@ static int __detach(UnixAttacher *attacher)
         dbg_str(DBG_VIP, "dettach pid:%d", attacher->pid);
         EXEC(ptrace(PTRACE_DETACH, attacher->pid, NULL, NULL));
         attacher->pid = 0;
-    } CATCH(ret) {}
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -61,7 +62,7 @@ static void *__get_function_address(UnixAttacher *attacher, void *local_func_add
         addr = dl_get_remote_function_adress(attacher->pid, module_name, local_func_address);
         THROW_IF(addr == NULL, -1);
         dbg_str(DBG_VIP, "attacher get_function_address, function remote address:%p", addr);
-    } CATCH(ret) { addr = NULL; }
+    } CATCH (ret) { addr = NULL; }
 
     return addr;
 }
@@ -88,13 +89,6 @@ static void *__write(UnixAttacher *attacher, void *addr, uint8_t *value, int len
             dbg_buf(DBG_VIP, "write:", (p + i), sizeof(long));
             EXEC(ptrace(PTRACE_POKEDATA, attacher->pid, addr + i * sizeof(long), *(p + i)));
         }
-
-        // memset(value, 0, len);
-        // for (i = 0; i < num; i++) {
-        //     tmp = ptrace(PTRACE_PEEKDATA, attacher->pid, addr, NULL);
-        //     dbg_buf(DBG_VIP, "peek data:", &tmp, sizeof(long));
-        // }
-
     } CATCH (ret) { }
     
     return ret;
@@ -147,7 +141,9 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
     struct user_regs_struct regs, bak;
 
     TRY {
-        dbg_str(DBG_VIP, "call_address_with_value_pars, func address:%p, sizeof(long):%d", function_address, sizeof(long));
+        dbg_str(DBG_VIP, "call_address_with_value_pars, func address:%p, sizeof(long):%d", 
+                function_address, sizeof(long));
+
         EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
         memcpy(&bak, &regs, sizeof(regs));
         // printf("RIP: %llx,RSP: %llx\n", regs.rip, regs.rsp);
@@ -162,7 +158,7 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
 
         waitpid(attacher->pid, &stat, WUNTRACED);
         // printf("stat:%x\n", stat);
-        while(stat != 0xb7f) {
+        while (stat != 0xb7f) {
             waitpid(attacher->pid, &stat, WUNTRACED);
             // printf("stat:%x\n", stat);
         }
@@ -171,7 +167,7 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
 
         dbg_str(DBG_VIP, "call_address_with_value_pars, return value:%llx", regs.rax);
         return regs.rax;
-    } CATCH(ret) {}
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -237,8 +233,11 @@ static long __call_address(UnixAttacher *attacher, void *function_address, attac
         for (i = 0; i < num; i++) {
             if (pars[i].size == 0) continue;
             /* We require size to be multiples of long because ptrace is written in units of long */
-            THROW_IF((pars[i].size % sizeof(long) != 0), -1);
-            dbg_str(DBG_VIP, "call address prepare paramater %d", i);
+            if (pars[i].size % sizeof(long) != 0) {
+                pars[i].size = (pars[i].size / sizeof(long) + 1) * sizeof(long);
+                dbg_str(DBG_VIP, "call address prepare paramater %d, newsize:%d", i, pars[i].size);
+            }
+            
             paramters[i] = attacher->malloc(attacher, pars[i].size, pars[i].value);
             pointer_flag = 1;
         }
@@ -256,7 +255,7 @@ static long __call_address(UnixAttacher *attacher, void *function_address, attac
             attacher->free(attacher, paramters[i]);
         }
         return ret;
-    } CATCH(ret) {}
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -282,14 +281,25 @@ static long __call_from_lib(UnixAttacher *attacher, char *name, attacher_paramat
         dbg_str(DBG_VIP, "call from lib, func name:%s, func_addr:%p", name, addr);
         ret = attacher->call_address(attacher, addr, pars, num);
         return ret;
-    } CATCH(ret) {}
+    } CATCH (ret) {}
 
     return ret;
 }
 
 static int __add_lib(UnixAttacher *attacher, char *name)
 {
+    int ret;
+    void *handle;
+    attacher_paramater_t pars[2] = {{name, strlen(name)}, {RTLD_LOCAL | RTLD_LAZY, 0}};
 
+    TRY {
+        THROW_IF(name == NULL, -1);
+        dbg_str(DBG_VIP, "attacher add_lib, lib name:%s, flag:%x", name, RTLD_LOCAL | RTLD_LAZY);
+        handle = attacher->call_from_lib(attacher, "my_dlopen", pars, 2, "libobject-testlib.so");
+        THROW_IF(handle == NULL, -1);
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static int __remove_lib(UnixAttacher *attacher, char *name)

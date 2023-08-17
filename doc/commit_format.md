@@ -4,7 +4,7 @@ Description:
 update.
 
 Major Changes:
-1. add call_from_lib.
-2. add annotations.
-3. optimzie test_process.
-4. add test_attacher_call_from_lib test case.
+1. add add_lib
+2. add test_lib2.
+3. fix dl_get_remote_function_adress.
+4. add add_lib test case.

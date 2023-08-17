@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <dlfcn.h>
 
 int test_lib_print_outbound(int a, int b, int c, int d, int e, int f, int *g)
 {
@@ -43,6 +44,13 @@ int my_free(void *addr)
     return 0;
 }
 
+void *my_dlopen(char *name, int flag)
+{
+    printf("my_dlopen name:%s, flag:%x\n", name, flag);
+
+    return dlopen(name, flag);
+}
+
 void *subprocess_callback(void *para)
 {
     int i = 0,sum = 0;
@@ -51,6 +59,8 @@ void *subprocess_callback(void *para)
     printf("test_lib_hello_world addr: %p\n", test_lib_hello_world);
     printf("my_free function addr: %p\n", my_free);
     printf("my_malloc function addr: %p\n", my_malloc);
+    printf("dlopen function addr: %p\n", dlopen);
+    
     printf("test_lib_hello_world_with_pointer_pars function addr: %p\n", test_lib_hello_world_with_pointer_pars);
 
 	while (1) {
