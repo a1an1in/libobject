@@ -141,8 +141,8 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
     struct user_regs_struct regs, bak;
 
     TRY {
-        dbg_str(DBG_VIP, "call_address_with_value_pars, func address:%p, sizeof(long):%d", 
-                function_address, sizeof(long));
+        dbg_str(DBG_VIP, "call_address_with_value_pars, func address:%p, pars num:%d", 
+                function_address, num);
 
         EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
         memcpy(&bak, &regs, sizeof(regs));
@@ -231,7 +231,10 @@ static long __call_address(UnixAttacher *attacher, void *function_address, attac
 
         /* retmote funtion args pre process*/
         for (i = 0; i < num; i++) {
-            if (pars[i].size == 0) continue;
+            if (pars[i].size == 0) {
+                paramters[i] = pars[i].value;
+                continue;
+            }
             /* We require size to be multiples of long because ptrace is written in units of long */
             if (pars[i].size % sizeof(long) != 0) {
                 pars[i].size = (pars[i].size / sizeof(long) + 1) * sizeof(long);
@@ -242,11 +245,9 @@ static long __call_address(UnixAttacher *attacher, void *function_address, attac
             pointer_flag = 1;
         }
 
+        ret = attacher->call_address_with_value_pars(attacher, function_address, paramters, num);
         if (pointer_flag == 0) {
-            ret = attacher->call_address_with_value_pars(attacher, function_address, paramters, num);
             return ret;
-        } else {
-            ret = attacher->call_address_with_value_pars(attacher, function_address, paramters, num);
         }
 
         /* retmote funtion args post process */
@@ -296,6 +297,7 @@ static int __add_lib(UnixAttacher *attacher, char *name)
         THROW_IF(name == NULL, -1);
         dbg_str(DBG_VIP, "attacher add_lib, lib name:%s, flag:%x", name, RTLD_LOCAL | RTLD_LAZY);
         handle = attacher->call_from_lib(attacher, "my_dlopen", pars, 2, "libobject-testlib.so");
+        // handle = attacher->call_from_lib(attacher, "dlopen", pars, 2, "libdl");
         THROW_IF(handle == NULL, -1);
     } CATCH (ret) {}
 

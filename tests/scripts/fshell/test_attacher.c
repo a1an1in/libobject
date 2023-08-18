@@ -222,6 +222,7 @@ static int test_attacher_add_lib(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Attacher *attacher;
     void *func_addr;
+    char *name = "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-testlib2.so";
     pid_t pid;
 
     TRY {
@@ -236,7 +237,8 @@ static int test_attacher_add_lib(TEST_ENTRY *entry, int argc, void **argv)
         attacher = object_new(allocator, "UnixAttacher", NULL);
         EXEC(attacher->attach(attacher, pid));
 
-        EXEC(ret = attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-testlib2.so"));
+        dbg_str(DBG_VIP, "name len:%d", strlen(name));
+        EXEC(ret = attacher->add_lib(attacher, name));
         // THROW_IF(ret != 0xadad, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(attacher);

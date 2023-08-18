@@ -12,6 +12,7 @@ int test_lib_print_outbound(int a, int b, int c, int d, int e, int f, int *g)
 int test_lib_hello_world()
 {
     printf("hello world\n");
+    sleep(10);
     return 0xadad;
 }
 
@@ -46,27 +47,39 @@ int my_free(void *addr)
 
 void *my_dlopen(char *name, int flag)
 {
-    printf("my_dlopen name:%s, flag:%x\n", name, flag);
+    void *handle = NULL;
 
-    return dlopen(name, flag);
+    printf("my_dlopen name:%s, strlen:%d, flag:%x\n", name, strlen(name), flag);
+
+    // handle = dlopen("/home/alan/workspace/libobject/sysroot/linux/lib/libobject-testlib2.so", RTLD_GLOBAL | RTLD_NOW);
+    // if (handle == NULL) {
+    //     printf("dlopen error %s\n", dlerror());
+    // } else {
+    //     printf("dl handle:%p\n", handle);
+    // }
+    test_lib_hello_world();
+
+    return 1;
 }
 
 void *subprocess_callback(void *para)
 {
-    int i = 0,sum = 0;
+    int i = 0, sum = 0;
 
     printf("child process tid: %u\n", gettid());
     printf("test_lib_hello_world addr: %p\n", test_lib_hello_world);
     printf("my_free function addr: %p\n", my_free);
     printf("my_malloc function addr: %p\n", my_malloc);
+    printf("my_dlopen function addr: %p\n", my_dlopen);
     printf("dlopen function addr: %p\n", dlopen);
     
     printf("test_lib_hello_world_with_pointer_pars function addr: %p\n", test_lib_hello_world_with_pointer_pars);
 
+    my_dlopen("abc", 0);
 	while (1) {
         i++;
         sum +=i;
-        sleep(5);
+        sleep(100);
         printf("subprocess is running ...\n");
 	}
 
