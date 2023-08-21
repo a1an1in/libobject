@@ -5,7 +5,7 @@ init_platform()
 if (POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
-project (libobject VERSION 2.8.2.306)
+project (libobject VERSION 2.8.2.365)
 
 #version format "[VERSION <major>[.<minor>[.<patch>[.<tweak>]]]]"
 configure_file(
@@ -39,6 +39,7 @@ else()
     list(APPEND module_lists "src/ctest")
     list(APPEND module_lists "src/database")
     list(APPEND module_lists "src/encoding")
+    list(APPEND module_lists "src/attacher")
     
     list(APPEND module_lists "src/message")
     list(APPEND module_lists "src/net")

@@ -14,4 +14,4 @@ file(GLOB MOUDLE_SRC
 )
 
 add_executable(${PROJECT_NAME} ${MOUDLE_SRC})
-target_link_libraries(${PROJECT_NAME} object-testlib pthread dl)
+target_link_libraries(${PROJECT_NAME} object-testlib dl pthread)

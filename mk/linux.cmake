@@ -23,6 +23,7 @@ macro (set_cmake_evironment_variable)
             object-cmds
             object-compress 
             object-scripts 
+            object-attacher 
             object-stub 
             object-db 
             object-net

@@ -10,7 +10,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/try.h>
-#include <libobject/scripts/fshell/Attacher.h>
+#include <libobject/attacher/Attacher.h>
 
 extern int test_lib_hello_world();
 extern int test_lib_hello_world_without_pointer_pars(int a, int b, int c, int d, int e, int f, long g, long h);
@@ -214,6 +214,37 @@ static int test_attacher_call_from_lib(TEST_ENTRY *entry, int argc, void **argv)
     return ret;
 }
 REGISTER_TEST_CMD(test_attacher_call_from_lib);
+
+static int test_attacher_call_from_lib2(TEST_ENTRY *entry, int argc, void **argv)
+{
+    int ret;
+    allocator_t *allocator = allocator_get_default_instance();
+    Attacher *attacher;
+    void *func_addr;
+    pid_t pid;
+    attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
+
+    TRY {
+        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
+        dbg_str(DBG_VIP, "argc:%d", argc);
+        for (int i = 0; i < argc; i++) {
+            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
+        }
+        THROW_IF(argc != 2, -1);
+        pid = atoi(argv[1]);
+
+        attacher = object_new(allocator, "UnixAttacher", NULL);
+        EXEC(attacher->attach(attacher, pid));
+
+        EXEC(ret = attacher->call_from_lib(attacher, "test_lib_hello_world_with_pointer_pars2", pars, 2, "libobject-testlib.so"));
+        // THROW_IF(ret != 0xadad, -1);
+    } CATCH (ret) { } FINALLY {
+        object_destroy(attacher);
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_attacher_call_from_lib2);
 
 
 static int test_attacher_add_lib(TEST_ENTRY *entry, int argc, void **argv)

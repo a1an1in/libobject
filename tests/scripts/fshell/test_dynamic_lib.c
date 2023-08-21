@@ -11,7 +11,7 @@
 #include <sys/user.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
-#include <libobject/scripts/fshell/dynamic_lib.h>
+#include <libobject/attacher/dynamic_lib.h>
 
 extern int print_outbound(int a, int b, int c, int d, int e, int f, int *g);
 extern int test_lib_hello_world();

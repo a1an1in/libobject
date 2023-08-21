@@ -6,7 +6,7 @@
  * @date 2023-07-28
  */
 
-#include <libobject/scripts/fshell/Attacher.h>
+#include <libobject/attacher/Attacher.h>
 
 static class_info_entry_t attacher_class_info[] = {
     Init_Obj___Entry( 0, Obj, parent),

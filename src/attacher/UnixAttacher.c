@@ -11,6 +11,7 @@
 extern void *my_malloc(int size);
 extern int my_free(void *addr);
 extern void *my_dlopen(char *name, int flag);
+extern char *my_dlerror();
 
 static int __construct(UnixAttacher *attacher, char *init_str)
 {
@@ -111,7 +112,7 @@ static void *__set_function_pars(UnixAttacher *attacher, struct user_regs_struct
             regs->rsp -= (num - 6) * sizeof(void *);
             addr = regs->rsp;
             dbg_str(DBG_VIP, "attacher call, new rsp:%p", addr);
-            /* 预留返回地址， 再加上进入函数后首先会把rbp入栈， 函数取会用0x10(%rbp)的
+            /* 预留返回地址， 再加上进入函数后首先会把rbp入栈， 函数会用0x10(%rbp)的
              * 方式来访问存在栈中的第7个参数
              */
             regs->rsp -= sizeof(void *); 
@@ -162,8 +163,8 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
             waitpid(attacher->pid, &stat, WUNTRACED);
             // printf("stat:%x\n", stat);
         }
-        EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
-        EXEC(ptrace(PTRACE_SETREGS, attacher->pid,NULL, &bak));
+        EXEC(ptrace(PTRACE_GETREGS, attacher->pid, NULL, &regs));
+        EXEC(ptrace(PTRACE_SETREGS, attacher->pid, NULL, &bak));
 
         dbg_str(DBG_VIP, "call_address_with_value_pars, return value:%llx", regs.rax);
         return regs.rax;
@@ -297,6 +298,10 @@ static int __add_lib(UnixAttacher *attacher, char *name)
         THROW_IF(name == NULL, -1);
         dbg_str(DBG_VIP, "attacher add_lib, lib name:%s, flag:%x", name, RTLD_LOCAL | RTLD_LAZY);
         handle = attacher->call_from_lib(attacher, "my_dlopen", pars, 2, "libobject-testlib.so");
+
+        attacher->call_from_lib(attacher, "my_dlerror", pars, 0, "libobject-testlib.so");
+
+        
         // handle = attacher->call_from_lib(attacher, "dlopen", pars, 2, "libdl");
         THROW_IF(handle == NULL, -1);
     } CATCH (ret) {}
