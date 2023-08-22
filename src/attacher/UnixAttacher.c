@@ -116,6 +116,10 @@ static void *__set_function_pars(UnixAttacher *attacher, struct user_regs_struct
              * 方式来访问存在栈中的第7个参数
              */
             regs->rsp -= sizeof(void *); 
+        } else {
+            /* 这里必须要预留3 * sizeof(void *) 的大小， 原因还不清楚， 否则sprintf，
+             * dlopen等函数调用会中断返回。 */
+            regs->rsp -= 3 * sizeof(void *);  
         }
         for (i = 0; i < num; i++) {
             if (i < 6) {
@@ -299,9 +303,7 @@ static int __add_lib(UnixAttacher *attacher, char *name)
         dbg_str(DBG_VIP, "attacher add_lib, lib name:%s, flag:%x", name, RTLD_LOCAL | RTLD_LAZY);
         handle = attacher->call_from_lib(attacher, "my_dlopen", pars, 2, "libobject-testlib.so");
 
-        attacher->call_from_lib(attacher, "my_dlerror", pars, 0, "libobject-testlib.so");
-
-        
+        // attacher->call_from_lib(attacher, "my_dlerror", pars, 0, "libobject-testlib.so");
         // handle = attacher->call_from_lib(attacher, "dlopen", pars, 2, "libdl");
         THROW_IF(handle == NULL, -1);
     } CATCH (ret) {}

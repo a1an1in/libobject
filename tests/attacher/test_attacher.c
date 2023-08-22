@@ -270,6 +270,7 @@ static int test_attacher_add_lib(TEST_ENTRY *entry, int argc, void **argv)
 
         dbg_str(DBG_VIP, "name len:%d", strlen(name));
         EXEC(ret = attacher->add_lib(attacher, name));
+        sleep(1000);
         // THROW_IF(ret != 0xadad, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(attacher);

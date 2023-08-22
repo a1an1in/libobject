@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 
+void *my_dlopen(char *name, int flag);
+
 static char debug_info[1024] = {0};
 
 int test_lib_print_outbound(int a, int b, int c, int d, int e, int f, int *g)
@@ -32,7 +34,13 @@ int test_lib_hello_world_with_pointer_pars(char *par1, char *par2)
 
 int test_lib_hello_world_with_pointer_pars2(int par1, char *par2)
 {
-    printf("hello world, par1:%x, par2:%s\n", par1, par2);
+    printf("hello world in, par1:%x, par2:%s\n", par1, par2);
+    sprintf(debug_info, "test my_dlopen\n");
+    printf("debug_info:%s\n", debug_info);
+    my_dlopen("abc", 1);
+    sleep(1000);
+    printf("hello world out, par1:%x, par2:%s\n", par1, par2);
+    
     return 0xadad;
 }
 
@@ -65,12 +73,12 @@ void *my_dlopen(char *name, int flag)
     printf("debug_info:%s\n", debug_info);
     printf("dlopen addr:%p\n", dlopen);
     
-    // handle = dlopen("/home/alan/workspace/libobject/sysroot/linux/lib/libobject-testlib2.so", RTLD_NOW);
-    // if (handle == NULL) {
-    //     sprintf(debug_info, "dlopen error %s\n", dlerror());
-    // } else {
-    //     printf( "dl handle:%p\n", handle);
-    // }
+    handle = dlopen("/home/alan/workspace/libobject/sysroot/linux/lib/libobject-testlib2.so", RTLD_NOW);
+    if (handle == NULL) {
+        sprintf(debug_info, "dlopen error %s\n", dlerror());
+    } else {
+        printf( "dl handle:%p\n", handle);
+    }
 
     test_lib_hello_world();
 
