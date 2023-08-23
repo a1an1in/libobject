@@ -8,10 +8,25 @@
 
 #include <libobject/attacher/Attacher.h>
 
+static int __construct(Attacher *attacher, char *init_str)
+{
+    attacher->map = object_new(attacher->parent.allocator, "RBTree_Map", NULL);
+    return 0;
+}
+
+static int __deconstrcut(Attacher *attacher)
+{
+    Map *map = (Map *)attacher->map;
+
+    object_destroy(map);
+
+    return 0;
+}
+
 static class_info_entry_t attacher_class_info[] = {
     Init_Obj___Entry( 0, Obj, parent),
-    Init_Nfunc_Entry( 1, Attacher, construct, NULL),
-    Init_Nfunc_Entry( 2, Attacher, deconstruct, NULL),
+    Init_Nfunc_Entry( 1, Attacher, construct, __construct),
+    Init_Nfunc_Entry( 2, Attacher, deconstruct, __deconstrcut),
     Init_Vfunc_Entry( 3, Attacher, attach, NULL),
     Init_Vfunc_Entry( 4, Attacher, detach, NULL),
     Init_Vfunc_Entry( 5, Attacher, get_function_address, NULL),

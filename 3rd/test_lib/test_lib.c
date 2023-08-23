@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
+#include <string.h>
 
 void *my_dlopen(char *name, int flag);
 
@@ -16,7 +17,6 @@ int test_lib_print_outbound(int a, int b, int c, int d, int e, int f, int *g)
 int test_lib_hello_world()
 {
     printf("hello world\n");
-    // sleep(10);
     return 0xadad;
 }
 
@@ -62,27 +62,27 @@ int my_free(void *addr)
     return 0;
 }
 
-
 void *my_dlopen(char *name, int flag)
 {
     void *handle = NULL;
     int i;
 
-    printf("my_dlopen name:%s, strlen:%d, flag:%x\n", name, strlen(name), flag);
-    sprintf(debug_info, "test my_dlopen\n");
-    printf("debug_info:%s\n", debug_info);
-    printf("dlopen addr:%p\n", dlopen);
+    printf("my_dlopen name:%s, strlen:%ld, flag:%x\n", name, strlen(name), flag);
     
-    handle = dlopen("/home/alan/workspace/libobject/sysroot/linux/lib/libobject-testlib2.so", RTLD_NOW);
+    handle = dlopen(name, flag);
     if (handle == NULL) {
-        sprintf(debug_info, "dlopen error %s\n", dlerror());
+        printf("dlopen error %s\n", dlerror());
     } else {
-        printf( "dl handle:%p\n", handle);
+        printf("my_dlopen handle:%p\n", handle);
     }
 
-    test_lib_hello_world();
+    return handle;
+}
 
-    return 1;
+int my_dlclose (void *handle)
+{
+    printf( "my_dlclose handle:%p\n", handle);
+    return dlclose(handle);
 }
 
  char *my_dlerror()

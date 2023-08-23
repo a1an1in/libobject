@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
+#include <libobject/core/Map.h>
 
 #define ATTACHER_PARAMATER_ARRAY_MAX_SIZE 10
 
@@ -38,6 +39,7 @@ struct Attacher_s {
     int (*remove_lib)(Attacher *, char *name);
 
     int pid;
+    Map *map;
 };
 
 #endif

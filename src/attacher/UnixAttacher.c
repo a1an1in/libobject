@@ -84,10 +84,10 @@ static void *__write(UnixAttacher *attacher, void *addr, uint8_t *value, int len
         num = (len + sizeof(long) - 1) / sizeof(long);
 
         for (i = 0; i < num; i++) {
-            dbg_str(DBG_VIP, "poke write addr:%p, value:%x, i:%d, num:%d, sizeof long:%d", 
+            dbg_str(DBG_DETAIL, "poke write addr:%p, value:%x, i:%d, num:%d, sizeof long:%d", 
                     addr + i * sizeof(long), *(p + i), i, num, sizeof(long));
             tmp = *(p + i);
-            dbg_buf(DBG_VIP, "write:", (p + i), sizeof(long));
+            dbg_buf(DBG_DETAIL, "write:", (p + i), sizeof(long));
             EXEC(ptrace(PTRACE_POKEDATA, attacher->pid, addr + i * sizeof(long), *(p + i)));
         }
     } CATCH (ret) { }
@@ -146,7 +146,7 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
     struct user_regs_struct regs, bak;
 
     TRY {
-        dbg_str(DBG_VIP, "call_address_with_value_pars, func address:%p, pars num:%d", 
+        dbg_str(DBG_DETAIL, "call_address_with_value_pars, func address:%p, pars num:%d", 
                 function_address, num);
 
         EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
@@ -170,7 +170,7 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
         EXEC(ptrace(PTRACE_GETREGS, attacher->pid, NULL, &regs));
         EXEC(ptrace(PTRACE_SETREGS, attacher->pid, NULL, &bak));
 
-        dbg_str(DBG_VIP, "call_address_with_value_pars, return value:%llx", regs.rax);
+        dbg_str(DBG_DETAIL, "call_address_with_value_pars, return value:%llx", regs.rax);
         return regs.rax;
     } CATCH (ret) {}
 
@@ -296,16 +296,17 @@ static int __add_lib(UnixAttacher *attacher, char *name)
 {
     int ret;
     void *handle;
+    Map *map = ((Attacher *)attacher)->map;
     attacher_paramater_t pars[2] = {{name, strlen(name)}, {RTLD_LOCAL | RTLD_LAZY, 0}};
 
     TRY {
         THROW_IF(name == NULL, -1);
-        dbg_str(DBG_VIP, "attacher add_lib, lib name:%s, flag:%x", name, RTLD_LOCAL | RTLD_LAZY);
         handle = attacher->call_from_lib(attacher, "my_dlopen", pars, 2, "libobject-testlib.so");
-
-        // attacher->call_from_lib(attacher, "my_dlerror", pars, 0, "libobject-testlib.so");
         // handle = attacher->call_from_lib(attacher, "dlopen", pars, 2, "libdl");
+        dbg_str(DBG_VIP, "attacher add_lib, lib name:%s, flag:%x, handle:%p", 
+                name, RTLD_LOCAL | RTLD_LAZY, handle);
         THROW_IF(handle == NULL, -1);
+        map->add(map, name, handle);
     } CATCH (ret) {}
 
     return ret;
@@ -313,7 +314,21 @@ static int __add_lib(UnixAttacher *attacher, char *name)
 
 static int __remove_lib(UnixAttacher *attacher, char *name)
 {
+    int ret;
+    void *handle = NULL;
+    Map *map = ((Attacher *)attacher)->map;
+    attacher_paramater_t pars[1] = {0};
 
+    TRY {
+        THROW_IF(name == NULL, -1);
+        EXEC(map->search(map, name, &handle));
+        dbg_str(DBG_VIP, "attacher remove_lib, lib name:%s, handle:%p", name, handle);
+        THROW_IF(handle == NULL, -1);
+        pars[0].value = handle;
+        EXEC(attacher->call_from_lib(attacher, "my_dlclose", pars, 1, "libobject-testlib.so"));
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static class_info_entry_t attacher_class_info[] = {
