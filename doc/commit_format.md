@@ -1,9 +1,7 @@
-[update:attacher] attacher has completed.
+[update:attacher] optimize code.
 
 Description:
-now attacher can support calling funtion from lib which
-added by attacher.
+add a link option to force link lib.
 
 Major Changes:
-1. add test_attacher_call_from_adding_lib
-2. optimize test lib
+1. add -Wl,--no-as-needed

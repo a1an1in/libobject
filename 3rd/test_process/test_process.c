@@ -14,13 +14,6 @@ int main()
     pthread_t tid;
     void *handle;
 
-    // handle = dlopen("libobject-testlib2.so", RTLD_LOCAL | RTLD_LAZY);
-    // if (handle == NULL) {
-    //     printf("dlopen error %s\n", dlerror());
-    // } else {
-    //     printf("dl handle:%p\n", handle);
-    // }
-
     int ret = pthread_create(&tid, NULL, subprocess_callback, NULL);
     if (ret != 0) {   
         exit(errno);

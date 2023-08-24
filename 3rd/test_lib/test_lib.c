@@ -34,13 +34,8 @@ int test_lib_hello_world_with_pointer_pars(char *par1, char *par2)
 
 int test_lib_hello_world_with_pointer_pars2(int par1, char *par2)
 {
-    printf("hello world in, par1:%x, par2:%s\n", par1, par2);
-    sprintf(debug_info, "test my_dlopen\n");
-    printf("debug_info:%s\n", debug_info);
-    my_dlopen("abc", 1);
-    sleep(1000);
-    printf("hello world out, par1:%x, par2:%s\n", par1, par2);
-    
+    printf("test_lib_hello_world_with_pointer_pars2, par1:%x, par2:%s\n", par1, par2);
+
     return 0xadad;
 }
 
@@ -116,6 +111,7 @@ void *subprocess_callback(void *para)
         sum +=i;
         sleep(100);
         printf("subprocess is running ...\n");
+        test_lib_hello_world_with_pointer_pars2(1, "abc");
 	}
 
     return NULL;

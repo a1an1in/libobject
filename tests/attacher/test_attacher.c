@@ -333,8 +333,6 @@ static int test_attacher_call_from_adding_lib(TEST_ENTRY *entry, int argc, void 
         THROW_IF(argc != 2, -1);
         pid = atoi(argv[1]);
 
-        test_lib2_hello_world();
-
         attacher = object_new(allocator, "UnixAttacher", NULL);
         EXEC(attacher->attach(attacher, pid));
         EXEC(attacher->add_lib(attacher, name));
