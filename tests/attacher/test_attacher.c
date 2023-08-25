@@ -13,6 +13,7 @@
 #include <libobject/attacher/Attacher.h>
 
 extern int test_lib_hello_world();
+extern int test_lib_get_debug_info_address();
 extern int test_lib_hello_world_without_pointer_pars(int a, int b, int c, int d, int e, int f, long g, long h);
 extern int test_lib_hello_world_with_pointer_pars(char *par1, char *par2);
 extern int test_lib2_hello_world();
@@ -345,6 +346,39 @@ static int test_attacher_call_from_adding_lib(TEST_ENTRY *entry, int argc, void 
     return ret;
 }
 REGISTER_TEST_CMD(test_attacher_call_from_adding_lib);
+
+static int test_attacher_read_data(TEST_ENTRY *entry, int argc, void **argv)
+{
+    int ret;
+    allocator_t *allocator = allocator_get_default_instance();
+    Attacher *attacher;
+    void *addr;
+    pid_t pid;
+    char buffer[1024] = {0};
+
+    TRY {
+        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
+        dbg_str(DBG_VIP, "argc:%d", argc);
+        for (int i = 0; i < argc; i++) {
+            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
+        }
+        THROW_IF(argc != 2, -1);
+        pid = atoi(argv[1]);
+
+        attacher = object_new(allocator, "UnixAttacher", NULL);
+        EXEC(attacher->attach(attacher, pid));
+        addr = attacher->call_from_lib(attacher, "test_lib_get_debug_info_address", NULL, 0, "libobject-testlib.so");
+        THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "addr:%p", addr);
+        addr = attacher->read(attacher, addr, buffer, 20);
+        dbg_str(DBG_VIP, "read back data:%s", buffer);
+    } CATCH (ret) { } FINALLY {
+        object_destroy(attacher);
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_attacher_read_data);
 
 #endif
 

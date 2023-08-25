@@ -1,7 +1,7 @@
-[update:attacher] optimize code.
+[update:attacher] update code.
 
 Description:
-add a link option to force link lib.
+add read interface for attacher.
 
 Major Changes:
-1. add -Wl,--no-as-needed
+1. add read()

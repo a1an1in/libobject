@@ -70,7 +70,25 @@ static void *__get_function_address(UnixAttacher *attacher, void *local_func_add
 
 static void *__read(UnixAttacher *attacher, void *addr, uint8_t *value, int len)
 {
+    int ret, num, i;
+    long *p = (long *)value;
+    long tmp;
 
+    TRY {
+        THROW_IF(addr == NULL || value == NULL, -1);
+        dbg_str(DBG_VIP, "attacher read addr:%p, len:%d", addr, len);
+        num = (len + sizeof(long) - 1) / sizeof(long);
+
+        for (i = 0; i < num; i++) {
+            tmp = ptrace(PTRACE_PEEKDATA, attacher->pid, addr + i * sizeof(long), NULL);
+            dbg_str(DBG_VIP, "peek addr:%p, value:%llx, i:%d, num:%d", 
+                    addr + i * sizeof(long), tmp, i, num);
+            dbg_str(DBG_VIP, "value address:%p", (long *)value + i * sizeof(long));
+            *(long *)(value + i * sizeof(long)) = tmp;
+        }
+    } CATCH (ret) { }
+    
+    return ret;
 }
 
 static void *__write(UnixAttacher *attacher, void *addr, uint8_t *value, int len)
@@ -177,6 +195,9 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
     return ret;
 }
 
+/* call_address is using malloc and free interfaces, we can't implement it
+ * with call_from_lib. so, this func is irreplacable.
+ */
 static void *__malloc(UnixAttacher *attacher, int size, void *value)
 {
     int ret;

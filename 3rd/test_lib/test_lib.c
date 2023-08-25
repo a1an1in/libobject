@@ -5,7 +5,13 @@
 
 void *my_dlopen(char *name, int flag);
 
-static char debug_info[1024] = {0};
+static char debug_info[1024] = "hello world";
+
+int test_lib_get_debug_info_address()
+{
+    printf("debug_info_address:%p\n", debug_info);
+    return debug_info;
+}
 
 int test_lib_print_outbound(int a, int b, int c, int d, int e, int f, int *g)
 {
