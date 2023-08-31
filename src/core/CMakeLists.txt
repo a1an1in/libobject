@@ -13,4 +13,4 @@ file(GLOB MOUDLE_SRC
     ${MOUDLE_SOURCES}
 )
 
-add_library(${PROJECT_NAME} STATIC ${MOUDLE_SRC})
+add_library(${PROJECT_NAME} SHARED ${MOUDLE_SRC})

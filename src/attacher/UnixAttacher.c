@@ -342,7 +342,7 @@ static int __remove_lib(UnixAttacher *attacher, char *name)
 
     TRY {
         THROW_IF(name == NULL, -1);
-        EXEC(map->search(map, name, &handle));
+        EXEC(map->remove(map, name, &handle));
         dbg_str(DBG_VIP, "attacher remove_lib, lib name:%s, handle:%p", name, handle);
         THROW_IF(handle == NULL, -1);
         pars[0].value = handle;

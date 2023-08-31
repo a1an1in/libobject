@@ -33,8 +33,9 @@
 #include <string.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/data_structure/heap.h>
+#include <libobject/core/utils/registry/registry.h>
 
-int greater_than(void *element1, void *element2) 
+static int greater_than(void *element1, void *element2) 
 {
     long long e1, e2;
 
@@ -173,7 +174,7 @@ int heap_sort(heap_t *heap)
     }
 }
 
-int test_heap()
+static test_heap(TEST_ENTRY *entry, int argc, void **argv)
 {
     heap_t *heap;
     void *element;
@@ -194,13 +195,13 @@ int test_heap()
     heap_add(heap, (void *)2);
     heap_add(heap, (void *)3);
 
-    dbg_buf(DBG_DETAIL,"heap:", (void *)heap->queue, 60);
-    dbg_str(DBG_DETAIL,"size=%d", heap_size(heap));
+    dbg_buf(DBG_VIP,"heap:", (void *)heap->queue, 60);
+    dbg_str(DBG_VIP,"size=%d", heap_size(heap));
 
     size = heap_size(heap);
     for(i=0; i< size; i++){
         heap_remove(heap, &element);
-        dbg_str(DBG_DETAIL, "%d", (long long)element);
+        dbg_str(DBG_VIP, "%d", (long long)element);
     }
 
     /*
@@ -212,4 +213,5 @@ int test_heap()
     heap_destroy(heap);
     return 0;
 }
+REGISTER_TEST_CMD(test_heap);
 

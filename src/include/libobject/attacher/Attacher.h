@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
+#include <libobject/stub/stub.h>
 
 #define ATTACHER_PARAMATER_ARRAY_MAX_SIZE 10
 

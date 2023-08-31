@@ -17,6 +17,7 @@ extern int test_lib_get_debug_info_address();
 extern int test_lib_hello_world_without_pointer_pars(int a, int b, int c, int d, int e, int f, long g, long h);
 extern int test_lib_hello_world_with_pointer_pars(char *par1, char *par2);
 extern int test_lib2_hello_world();
+extern int stub_hello_world();
 extern void *my_malloc(int size);
 
 /* 测试attacher， 先要运行 test-attach-target进程， 然后获取pid, 执行如下命令进行测试：
@@ -379,6 +380,47 @@ static int test_attacher_read_data(TEST_ENTRY *entry, int argc, void **argv)
     return ret;
 }
 REGISTER_TEST_CMD(test_attacher_read_data);
+
+
+static int test_attacher_call_stub_from_adding_lib(TEST_ENTRY *entry, int argc, void **argv)
+{
+    int ret;
+    allocator_t *allocator = allocator_get_default_instance();
+    Attacher *attacher;
+    void *func_addr;
+    stub_t *stub;
+    pid_t pid;
+    attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
+
+    TRY {
+        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
+        dbg_str(DBG_VIP, "argc:%d", argc);
+        for (int i = 0; i < argc; i++) {
+            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
+        }
+        THROW_IF(argc != 2, -1);
+        pid = atoi(argv[1]);
+
+        attacher = object_new(allocator, "UnixAttacher", NULL);
+        EXEC(attacher->attach(attacher, pid));
+        EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so"));
+        // EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so"));
+
+        // EXEC(stub = attacher->call_from_lib(attacher, "stub_hello_world_with_pointer_pars2", pars, 2, "libobject-stub.so"));
+        EXEC(attacher->call_from_lib(attacher, "libobject_init", NULL, 0, "libobject-core.so"));
+        // EXEC(stub = attacher->call_from_lib(attacher, "stub_admin_init_default_instance", NULL, 0, "libobject-stub.so"));
+        
+        
+        THROW_IF(stub == NULL, -1);
+    } CATCH (ret) { } FINALLY {
+        attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so");
+        // attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so");
+        object_destroy(attacher);
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_attacher_call_stub_from_adding_lib);
 
 #endif
 
