@@ -318,7 +318,7 @@ static char *__zonetime2local(Date_Time *date, char *value)
 
         date->tm.tm_year -= 1900;
         date->tm.tm_mon -= 1;
-        date->tm.tm_isdst = -1,
+        date->tm.tm_isdst = -1;
         dbg_str(DBG_DETAIL, "systimezone:%d timezone:%d", date->get_systimezone(date), date->timezone);
 
         if (date->timezone != 0) {

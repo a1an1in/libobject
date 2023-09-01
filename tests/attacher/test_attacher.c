@@ -404,17 +404,19 @@ static int test_attacher_call_stub_from_adding_lib(TEST_ENTRY *entry, int argc, 
         attacher = object_new(allocator, "UnixAttacher", NULL);
         EXEC(attacher->attach(attacher, pid));
         EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so"));
-        // EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so"));
+        EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so"));
 
         // EXEC(stub = attacher->call_from_lib(attacher, "stub_hello_world_with_pointer_pars2", pars, 2, "libobject-stub.so"));
-        EXEC(attacher->call_from_lib(attacher, "libobject_init", NULL, 0, "libobject-core.so"));
-        // EXEC(stub = attacher->call_from_lib(attacher, "stub_admin_init_default_instance", NULL, 0, "libobject-stub.so"));
-        
-        
+        EXEC(attacher->call_from_lib(attacher, "execute_ctor_funcs", NULL, 0, "libobject-core.so"));
+        // EXEC(attacher->call_from_lib(attacher, "core_hello_world_with_pointer_pars2", pars, 2, "libobject-core.so"));
+        EXEC(attacher->call_from_lib(attacher, "stub_admin_init_default_instance", NULL, 0, "libobject-stub.so"));
+        EXEC(stub = attacher->call_from_lib(attacher, "stub_alloc", NULL, 0, "libobject-stub.so"));
+
+    
         THROW_IF(stub == NULL, -1);
     } CATCH (ret) { } FINALLY {
+        attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so");
         attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so");
-        // attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so");
         object_destroy(attacher);
     }
 

@@ -169,10 +169,7 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
 
         EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
         memcpy(&bak, &regs, sizeof(regs));
-        // printf("RIP: %llx,RSP: %llx\n", regs.rip, regs.rsp);
-        if (num != 0) {
-            EXEC(attacher->set_function_pars(attacher, &regs, paramters, num));
-        }
+        EXEC(attacher->set_function_pars(attacher, &regs, paramters, num));
 
         regs.rip = function_address;
         regs.rax = 0;
@@ -305,8 +302,9 @@ static long __call_from_lib(UnixAttacher *attacher, char *name, attacher_paramat
         /* get remote fuction address */
         addr = attacher->get_function_address(attacher, addr, module_name);
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_VIP, "call from lib, func name:%s, func_addr:%p", name, addr);
+        
         ret = attacher->call_address(attacher, addr, pars, num);
+        printf("call from lib, func name:%s, func_addr:%p, ret:%llx\n", name, addr, ret);
         return ret;
     } CATCH (ret) {}
 

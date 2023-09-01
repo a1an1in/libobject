@@ -22,7 +22,10 @@ int test_lib_print_outbound(int a, int b, int c, int d, int e, int f, int *g)
 
 int test_lib_hello_world()
 {
-    printf("hello world\n");
+    char tmp[4] = {0};
+    printf("hello world, sprintf:%p\n", sprintf);
+    sprintf(tmp, "%d", 1);
+    printf("run at here\n");
     return 0xadad;
 }
 
@@ -41,7 +44,7 @@ int test_lib_hello_world_with_pointer_pars(char *par1, char *par2)
 int test_lib_hello_world_with_pointer_pars2(int par1, char *par2)
 {
     printf("test_lib_hello_world_with_pointer_pars2, par1:%x, par2:%s\n", par1, par2);
-
+    
     return 0xadad;
 }
 
@@ -108,6 +111,7 @@ void *subprocess_callback(void *para)
     printf("my_malloc function addr: %p\n", my_malloc);
     printf("my_dlopen function addr: %p\n", my_dlopen);
     printf("dlopen function addr: %p\n", dlopen);
+    printf("sprintf function addr: %p\n", sprintf);
     
     printf("test_lib_hello_world_with_pointer_pars function addr: %p\n", test_lib_hello_world_with_pointer_pars);
 
@@ -115,7 +119,7 @@ void *subprocess_callback(void *para)
 	while (1) {
         i++;
         sum +=i;
-        sleep(100);
+        sleep(30);
         printf("subprocess is running ...\n");
         test_lib_hello_world_with_pointer_pars2(1, "abc");
 	}
