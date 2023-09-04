@@ -8,6 +8,9 @@
 
 #include <libobject/attacher/Attacher.h>
 
+extern void *my_malloc(int size);
+extern int my_free(void *addr);
+
 static int __construct(Attacher *attacher, char *init_str)
 {
     attacher->map = object_new(attacher->parent.allocator, "RBTree_Map", NULL);
@@ -23,6 +26,189 @@ static int __deconstrcut(Attacher *attacher)
     return 0;
 }
 
+/* call_address is using malloc and free interfaces, we can't implement it
+ * with call_from_lib. so, this func is irreplacable.
+ */
+static void *__malloc(Attacher *attacher, int size, void *value)
+{
+    int ret;
+    void *addr;
+    long long pars[1] = {size};
+
+    TRY {
+        THROW_IF(size == 0, 0);
+        // addr = attacher->get_function_address(attacher, malloc, "libc.so");
+        addr = attacher->get_function_address(attacher, my_malloc, "libobject-testlib.so");
+        THROW_IF(addr == NULL, -1);
+        addr = attacher->call_address_with_value_pars(attacher, addr, pars, 1);
+        THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "attacher malloc addr:%p, size:%d", addr, size);
+        if (value != NULL) {
+            EXEC(attacher->write(attacher, addr, value, size));
+        }
+        return addr;
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static int __free(Attacher *attacher, void *addr)
+{
+    int ret;
+    void *free_addr;
+    long long pars[1] = {addr};
+
+    TRY {
+        THROW_IF(addr == 0, -1);
+        // free_addr = attacher->get_function_address(attacher, my_free, "libc.so");
+        free_addr = attacher->get_function_address(attacher, my_free, "libobject-testlib.so");
+        THROW_IF(free_addr == NULL, -1);
+        dbg_str(DBG_VIP, "free func addr:%p, free addr:%p", free_addr, addr);
+        ret = attacher->call_address_with_value_pars(attacher, free_addr, pars, 1);
+        THROW(ret);
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+/* name:call_address
+ *
+ * description:
+ * this funtion can call function with remote address. if we know the remote address
+ * we can call this method.
+ **/
+static long __call_address(Attacher *attacher, void *function_address, attacher_paramater_t pars[], int num)
+{
+    long ret, stat, i;
+    int pointer_flag = 0;
+    void *paramters[ATTACHER_PARAMATER_ARRAY_MAX_SIZE];
+
+    TRY {
+        THROW_IF(num > ATTACHER_PARAMATER_ARRAY_MAX_SIZE, -1);
+
+        /* retmote funtion args pre process*/
+        for (i = 0; i < num; i++) {
+            if (pars[i].size == 0) {
+                paramters[i] = pars[i].value;
+                continue;
+            }
+            /* We require size to be multiples of long because ptrace is written in units of long */
+            if (pars[i].size % sizeof(long) != 0) {
+                pars[i].size = (pars[i].size / sizeof(long) + 1) * sizeof(long);
+                dbg_str(DBG_VIP, "call address prepare paramater %d, newsize:%d", i, pars[i].size);
+            }
+            
+            paramters[i] = attacher->malloc(attacher, pars[i].size, pars[i].value);
+            pointer_flag = 1;
+        }
+
+        ret = attacher->call_address_with_value_pars(attacher, function_address, paramters, num);
+        if (pointer_flag == 0) {
+            return ret;
+        }
+
+        /* retmote funtion args post process */
+        for (i = 0; i < num; i++) {
+            if (pars[i].size == 0) continue;
+            attacher->free(attacher, paramters[i]);
+        }
+        return ret;
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+/* name:call_from_lib
+ *
+ * description:
+ * if only we know the func name and which lib this func is, we can call this method. 
+ **/
+
+static long __call_from_lib(Attacher *attacher, char *name, attacher_paramater_t pars[], int num, char *module_name)
+{
+    long ret;
+    void *addr;
+
+    TRY {
+        /* get local fuction address */
+        addr = dl_get_func_addr_by_name(name);
+        THROW_IF(addr == NULL, -1);
+        /* get remote fuction address */
+        addr = attacher->get_function_address(attacher, addr, module_name);
+        THROW_IF(addr == NULL, -1);
+        
+        ret = attacher->call_address(attacher, addr, pars, num);
+        printf("call from lib, func name:%s, func_addr:%p, ret:%lx\n", name, addr, ret);
+        return ret;
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static int __remove_lib(Attacher *attacher, char *name)
+{
+    int ret;
+    void *handle = NULL;
+    Map *map = ((Attacher *)attacher)->map;
+    attacher_paramater_t pars[1] = {0};
+
+    TRY {
+        THROW_IF(name == NULL, -1);
+        EXEC(map->remove(map, name, &handle));
+        dbg_str(DBG_VIP, "attacher remove_lib, lib name:%s, handle:%p", name, handle);
+        THROW_IF(handle == NULL, -1);
+        pars[0].value = handle;
+        EXEC(attacher->call_from_lib(attacher, "my_dlclose", pars, 1, "libobject-testlib.so"));
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static stub_t *__alloc_stub(Attacher *attacher)
+{
+    return attacher->call_from_lib(attacher, "stub_alloc", NULL, 0, "libobject-stub.so");
+}
+
+static int __add_stub_hooks(Attacher *attacher, stub_t *stub, void *func, void *pre, void *new_fn, void *post, int para_count)
+{
+    void *addr;
+    attacher_paramater_t pars[6] = {{stub, 0}, {NULL, 0},
+                                    {NULL, 0}, {NULL, 0},
+                                    {NULL, 0}, {para_count, 0}};
+
+    if (func != NULL) {
+        func = attacher->get_function_address(attacher, func, "libobject-testlib.so");
+        printf("stub func addr:%p\n", func);
+        pars[1].value = func;
+    }
+    if (pre != NULL) {
+        pre = attacher->get_function_address(attacher, pre, "libobject-testlib.so");
+        pars[2].value = pre;
+    }
+    if (new_fn != NULL) {
+        new_fn = attacher->get_function_address(attacher, new_fn, "libobject-testlib.so");
+        pars[3].value = new_fn;
+    }
+    if (post != NULL) {
+        post = attacher->get_function_address(attacher, post, "libobject-testlib.so");
+        pars[4].value = post;
+    }
+    
+    return attacher->call_from_lib(attacher, "stub_add_hooks", pars, 6, "libobject-stub.so");
+}
+
+static int __remove_stub_hooks(Attacher *attacher, stub_t *stub)
+{
+    attacher_paramater_t pars[1] = {{stub, sizeof(void *)}};
+    return attacher->call_from_lib(attacher, "stub_remove_hooks", pars, 1, "libobject-stub.so");
+}
+
+static int __free_stub(Attacher *attacher, stub_t *stub)
+{
+    attacher_paramater_t pars[1] = {{stub, sizeof(void *)}};
+    return attacher->call_from_lib(attacher, "stub_free", pars, 1, "libobject-stub.so");
+}
+
 static class_info_entry_t attacher_class_info[] = {
     Init_Obj___Entry( 0, Obj, parent),
     Init_Nfunc_Entry( 1, Attacher, construct, __construct),
@@ -32,14 +218,18 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry( 5, Attacher, get_function_address, NULL),
     Init_Vfunc_Entry( 6, Attacher, read, NULL),
     Init_Vfunc_Entry( 7, Attacher, write, NULL),
-    Init_Vfunc_Entry( 8, Attacher, malloc, NULL),
-    Init_Vfunc_Entry( 9, Attacher, free, NULL),
+    Init_Vfunc_Entry( 8, Attacher, malloc, __malloc),
+    Init_Vfunc_Entry( 9, Attacher, free, __free),
     Init_Vfunc_Entry(10, Attacher, call_address_with_value_pars, NULL),
-    Init_Vfunc_Entry(11, Attacher, call_address, NULL),
-    Init_Vfunc_Entry(12, Attacher, call_from_lib, NULL),
+    Init_Vfunc_Entry(11, Attacher, call_address, __call_address),
+    Init_Vfunc_Entry(12, Attacher, call_from_lib, __call_from_lib),
     Init_Vfunc_Entry(13, Attacher, add_lib, NULL),
-    Init_Vfunc_Entry(14, Attacher, remove_lib, NULL),
-    Init_End___Entry(15, Attacher),
+    Init_Vfunc_Entry(14, Attacher, remove_lib, __remove_lib),
+    Init_Vfunc_Entry(15, Attacher, alloc_stub, __alloc_stub),
+    Init_Vfunc_Entry(16, Attacher, add_stub_hooks, __add_stub_hooks),
+    Init_Vfunc_Entry(17, Attacher, remove_stub_hooks, __remove_stub_hooks),
+    Init_Vfunc_Entry(18, Attacher, free_stub, __free_stub),
+    Init_End___Entry(19, Attacher),
 };
 REGISTER_CLASS("Attacher", attacher_class_info);
 

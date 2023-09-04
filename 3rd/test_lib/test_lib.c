@@ -48,6 +48,13 @@ int test_lib_hello_world_with_pointer_pars2(int par1, char *par2)
     return 0xadad;
 }
 
+int test_lib_hello_world_with_pointer_pars3(int par1, char *par2)
+{
+    printf("test_lib_hello_world_with_pointer_pars3, par1:%x, par2:%s\n", par1, par2);
+    
+    return 0xadad;
+}
+
 void *my_malloc(int size)
 {
     void *addr;
@@ -114,12 +121,14 @@ void *subprocess_callback(void *para)
     printf("sprintf function addr: %p\n", sprintf);
     
     printf("test_lib_hello_world_with_pointer_pars function addr: %p\n", test_lib_hello_world_with_pointer_pars);
+    printf("test_lib_hello_world_with_pointer_pars2 function addr: %p\n", test_lib_hello_world_with_pointer_pars2);
+    printf("test_lib_hello_world_with_pointer_pars3 function addr: %p\n", test_lib_hello_world_with_pointer_pars3);
 
     // my_dlopen("abc", 0);
 	while (1) {
         i++;
         sum +=i;
-        sleep(30);
+        sleep(10);
         printf("subprocess is running ...\n");
         test_lib_hello_world_with_pointer_pars2(1, "abc");
 	}

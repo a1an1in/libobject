@@ -8,10 +8,7 @@
 #if (!defined(WINDOWS_USER_MODE))
 #include "UnixAttacher.h"
 
-extern void *my_malloc(int size);
-extern int my_free(void *addr);
 extern void *my_dlopen(char *name, int flag);
-extern char *my_dlerror();
 
 static int __construct(UnixAttacher *attacher, char *init_str)
 {
@@ -192,124 +189,6 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
     return ret;
 }
 
-/* call_address is using malloc and free interfaces, we can't implement it
- * with call_from_lib. so, this func is irreplacable.
- */
-static void *__malloc(UnixAttacher *attacher, int size, void *value)
-{
-    int ret;
-    void *addr;
-    long long pars[1] = {size};
-
-    TRY {
-        THROW_IF(size == 0, 0);
-        // addr = attacher->get_function_address(attacher, malloc, "libc.so");
-        addr = attacher->get_function_address(attacher, my_malloc, "libobject-testlib.so");
-        THROW_IF(addr == NULL, -1);
-        addr = attacher->call_address_with_value_pars(attacher, addr, pars, 1);
-        THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_VIP, "attacher malloc addr:%p, size:%d", addr, size);
-        if (value != NULL) {
-            EXEC(attacher->write(attacher, addr, value, size));
-        }
-        return addr;
-    } CATCH (ret) {}
-
-    return ret;
-}
-
-static int __free(UnixAttacher *attacher, void *addr)
-{
-    int ret;
-    void *free_addr;
-    long long pars[1] = {addr};
-
-    TRY {
-        THROW_IF(addr == 0, -1);
-        // free_addr = attacher->get_function_address(attacher, my_free, "libc.so");
-        free_addr = attacher->get_function_address(attacher, my_free, "libobject-testlib.so");
-        THROW_IF(free_addr == NULL, -1);
-        dbg_str(DBG_VIP, "free func addr:%p, free addr:%p", free_addr, addr);
-        ret = attacher->call_address_with_value_pars(attacher, free_addr, pars, 1);
-        THROW(ret);
-    } CATCH (ret) {}
-
-    return ret;
-}
-
-/* name:call_address
- *
- * description:
- * this funtion can call function with remote address. if we know the remote address
- * we can call this method.
- **/
-static long __call_address(UnixAttacher *attacher, void *function_address, attacher_paramater_t pars[], int num)
-{
-    long ret, stat, i;
-    int pointer_flag = 0;
-    void *paramters[ATTACHER_PARAMATER_ARRAY_MAX_SIZE];
-
-    TRY {
-        THROW_IF(num > ATTACHER_PARAMATER_ARRAY_MAX_SIZE, -1);
-
-        /* retmote funtion args pre process*/
-        for (i = 0; i < num; i++) {
-            if (pars[i].size == 0) {
-                paramters[i] = pars[i].value;
-                continue;
-            }
-            /* We require size to be multiples of long because ptrace is written in units of long */
-            if (pars[i].size % sizeof(long) != 0) {
-                pars[i].size = (pars[i].size / sizeof(long) + 1) * sizeof(long);
-                dbg_str(DBG_VIP, "call address prepare paramater %d, newsize:%d", i, pars[i].size);
-            }
-            
-            paramters[i] = attacher->malloc(attacher, pars[i].size, pars[i].value);
-            pointer_flag = 1;
-        }
-
-        ret = attacher->call_address_with_value_pars(attacher, function_address, paramters, num);
-        if (pointer_flag == 0) {
-            return ret;
-        }
-
-        /* retmote funtion args post process */
-        for (i = 0; i < num; i++) {
-            if (pars[i].size == 0) continue;
-            attacher->free(attacher, paramters[i]);
-        }
-        return ret;
-    } CATCH (ret) {}
-
-    return ret;
-}
-
-/* name:call_from_lib
- *
- * description:
- * if only we know the func name and which lib this func is, we can call this method. 
- **/
-
-static long __call_from_lib(UnixAttacher *attacher, char *name, attacher_paramater_t pars[], int num, char *module_name)
-{
-    long ret;
-    void *addr;
-
-    TRY {
-        /* get local fuction address */
-        addr = dl_get_func_addr_by_name(name);
-        THROW_IF(addr == NULL, -1);
-        /* get remote fuction address */
-        addr = attacher->get_function_address(attacher, addr, module_name);
-        THROW_IF(addr == NULL, -1);
-        
-        ret = attacher->call_address(attacher, addr, pars, num);
-        printf("call from lib, func name:%s, func_addr:%p, ret:%llx\n", name, addr, ret);
-        return ret;
-    } CATCH (ret) {}
-
-    return ret;
-}
 
 static int __add_lib(UnixAttacher *attacher, char *name)
 {
@@ -331,25 +210,6 @@ static int __add_lib(UnixAttacher *attacher, char *name)
     return ret;
 }
 
-static int __remove_lib(UnixAttacher *attacher, char *name)
-{
-    int ret;
-    void *handle = NULL;
-    Map *map = ((Attacher *)attacher)->map;
-    attacher_paramater_t pars[1] = {0};
-
-    TRY {
-        THROW_IF(name == NULL, -1);
-        EXEC(map->remove(map, name, &handle));
-        dbg_str(DBG_VIP, "attacher remove_lib, lib name:%s, handle:%p", name, handle);
-        THROW_IF(handle == NULL, -1);
-        pars[0].value = handle;
-        EXEC(attacher->call_from_lib(attacher, "my_dlclose", pars, 1, "libobject-testlib.so"));
-    } CATCH (ret) {}
-
-    return ret;
-}
-
 static class_info_entry_t attacher_class_info[] = {
     Init_Obj___Entry( 0, Attacher, parent),
     Init_Nfunc_Entry( 1, UnixAttacher, construct, __construct),
@@ -359,14 +219,14 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry( 5, UnixAttacher, set_function_pars, __set_function_pars),
     Init_Vfunc_Entry( 6, UnixAttacher, read, __read),
     Init_Vfunc_Entry( 7, UnixAttacher, write, __write),
-    Init_Vfunc_Entry( 8, UnixAttacher, malloc, __malloc),
-    Init_Vfunc_Entry( 9, UnixAttacher, free, __free),
+    Init_Vfunc_Entry( 8, UnixAttacher, malloc, NULL),
+    Init_Vfunc_Entry( 9, UnixAttacher, free, NULL),
     Init_Vfunc_Entry(10, UnixAttacher, get_function_address, __get_function_address),
     Init_Vfunc_Entry(11, UnixAttacher, call_address_with_value_pars, __call_address_with_value_pars),
-    Init_Vfunc_Entry(12, UnixAttacher, call_address, __call_address),
-    Init_Vfunc_Entry(13, UnixAttacher, call_from_lib, __call_from_lib),
+    Init_Vfunc_Entry(12, UnixAttacher, call_address, NULL),
+    Init_Vfunc_Entry(13, UnixAttacher, call_from_lib, NULL),
     Init_Vfunc_Entry(14, UnixAttacher, add_lib, __add_lib),
-    Init_Vfunc_Entry(15, UnixAttacher, remove_lib, __remove_lib),
+    Init_Vfunc_Entry(15, UnixAttacher, remove_lib, NULL),
     Init_End___Entry(16, UnixAttacher),
 };
 REGISTER_CLASS("UnixAttacher", attacher_class_info);

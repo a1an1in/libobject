@@ -5,6 +5,7 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
 #include <libobject/stub/stub.h>
+#include <libobject/attacher/dynamic_lib.h>
 
 #define ATTACHER_PARAMATER_ARRAY_MAX_SIZE 10
 
@@ -38,7 +39,11 @@ struct Attacher_s {
     long (*call_from_lib)(Attacher *, char *function_name, attacher_paramater_t paramters[], int num, char *module_name);
     int (*add_lib)(Attacher *, char *name);
     int (*remove_lib)(Attacher *, char *name);
-
+    stub_t *(*alloc_stub)(Attacher *);
+    int (*add_stub_hooks)(Attacher *attacher, stub_t *stub, void *func, void *pre, void *new_fn, void *post, int para_count);
+    int (*remove_stub_hooks)(Attacher *attacher, stub_t *stub);
+    int (*free_stub)(Attacher *, stub_t *stub);
+    
     int pid;
     Map *map;
 };

@@ -17,6 +17,8 @@ extern int test_lib_get_debug_info_address();
 extern int test_lib_hello_world_without_pointer_pars(int a, int b, int c, int d, int e, int f, long g, long h);
 extern int test_lib_hello_world_with_pointer_pars(char *par1, char *par2);
 extern int test_lib2_hello_world();
+extern int test_lib_hello_world_with_pointer_pars2(int par1, char *par2);
+extern int test_lib_hello_world_with_pointer_pars3(int par1, char *par2);
 extern int stub_hello_world();
 extern void *my_malloc(int size);
 
@@ -382,7 +384,7 @@ static int test_attacher_read_data(TEST_ENTRY *entry, int argc, void **argv)
 REGISTER_TEST_CMD(test_attacher_read_data);
 
 
-static int test_attacher_call_stub_from_adding_lib(TEST_ENTRY *entry, int argc, void **argv)
+static int test_attacher_call_stub(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
@@ -410,19 +412,22 @@ static int test_attacher_call_stub_from_adding_lib(TEST_ENTRY *entry, int argc, 
         EXEC(attacher->call_from_lib(attacher, "execute_ctor_funcs", NULL, 0, "libobject-core.so"));
         // EXEC(attacher->call_from_lib(attacher, "core_hello_world_with_pointer_pars2", pars, 2, "libobject-core.so"));
         EXEC(attacher->call_from_lib(attacher, "stub_admin_init_default_instance", NULL, 0, "libobject-stub.so"));
-        EXEC(stub = attacher->call_from_lib(attacher, "stub_alloc", NULL, 0, "libobject-stub.so"));
 
-    
+        stub = attacher->alloc_stub(attacher);
         THROW_IF(stub == NULL, -1);
+        EXEC(attacher->add_stub_hooks(attacher, stub, test_lib_hello_world_with_pointer_pars2, NULL, test_lib_hello_world_with_pointer_pars3, NULL, 2));
+
     } CATCH (ret) { } FINALLY {
-        attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so");
-        attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so");
+        // attacher->remove_stub_hooks(attacher, stub);
+        // attacher->free_stub(attacher, stub);
+        // attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so");
+        // attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so");
         object_destroy(attacher);
     }
 
     return ret;
 }
-REGISTER_TEST_CMD(test_attacher_call_stub_from_adding_lib);
+REGISTER_TEST_CMD(test_attacher_call_stub);
 
 #endif
 

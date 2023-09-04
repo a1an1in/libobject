@@ -1,11 +1,9 @@
-[bugfix:attacher] fix sprintf break issue.
+[update:attacher] add stub api for attacher.
 
 Description:
-The rsp register have some issue when the func have
-no args. after that, the attacher can call stub func
-now.
+attacher stub has passed test.
 
 Major Changes:
-1. fix sprintf break issue
-2. fix a comma issue.
-3. add attach stub test.
+1. move common funcs to parent class for attacher.
+2. add stub for attacher.
+
