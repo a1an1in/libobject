@@ -199,13 +199,13 @@ static int __add_stub_hooks(Attacher *attacher, stub_t *stub, void *func, void *
 
 static int __remove_stub_hooks(Attacher *attacher, stub_t *stub)
 {
-    attacher_paramater_t pars[1] = {{stub, sizeof(void *)}};
+    attacher_paramater_t pars[1] = {{stub, 0}};
     return attacher->call_from_lib(attacher, "stub_remove_hooks", pars, 1, "libobject-stub.so");
 }
 
 static int __free_stub(Attacher *attacher, stub_t *stub)
 {
-    attacher_paramater_t pars[1] = {{stub, sizeof(void *)}};
+    attacher_paramater_t pars[1] = {{stub, 0}};
     return attacher->call_from_lib(attacher, "stub_free", pars, 1, "libobject-stub.so");
 }
 

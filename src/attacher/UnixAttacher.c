@@ -164,7 +164,7 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
         dbg_str(DBG_DETAIL, "call_address_with_value_pars, func address:%p, pars num:%d", 
                 function_address, num);
 
-        EXEC(ptrace(PTRACE_GETREGS, attacher->pid,NULL, &regs));
+        EXEC(ptrace(PTRACE_GETREGS, attacher->pid, NULL, &regs));
         memcpy(&bak, &regs, sizeof(regs));
         EXEC(attacher->set_function_pars(attacher, &regs, paramters, num));
 

@@ -7,6 +7,7 @@
 #include <dlfcn.h>
 #include <sys/ptrace.h>
 #include <sys/user.h>
+#include <signal.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/try.h>
@@ -78,6 +79,7 @@ static int test_attacher_call_address_without_pars(TEST_ENTRY *entry, int argc, 
         THROW_IF(func_addr == NULL, -1);
         EXEC(ret = attacher->call_address_with_value_pars(attacher, func_addr, 0, 0));
         THROW_IF(ret != 0xadad, -1);
+        sleep(1000);
     } CATCH (ret) { } FINALLY {
         object_destroy(attacher);
     }
@@ -407,21 +409,25 @@ static int test_attacher_call_stub(TEST_ENTRY *entry, int argc, void **argv)
         EXEC(attacher->attach(attacher, pid));
         EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so"));
         EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so"));
-
-        // EXEC(stub = attacher->call_from_lib(attacher, "stub_hello_world_with_pointer_pars2", pars, 2, "libobject-stub.so"));
+       
         EXEC(attacher->call_from_lib(attacher, "execute_ctor_funcs", NULL, 0, "libobject-core.so"));
-        // EXEC(attacher->call_from_lib(attacher, "core_hello_world_with_pointer_pars2", pars, 2, "libobject-core.so"));
         EXEC(attacher->call_from_lib(attacher, "stub_admin_init_default_instance", NULL, 0, "libobject-stub.so"));
 
         stub = attacher->alloc_stub(attacher);
         THROW_IF(stub == NULL, -1);
         EXEC(attacher->add_stub_hooks(attacher, stub, test_lib_hello_world_with_pointer_pars2, NULL, test_lib_hello_world_with_pointer_pars3, NULL, 2));
-
+        
+        ptrace(PTRACE_CONT, pid, NULL, NULL);
+        dbg_str(DBG_VIP, "sleep ...");
+        sleep(50);
     } CATCH (ret) { } FINALLY {
-        // attacher->remove_stub_hooks(attacher, stub);
-        // attacher->free_stub(attacher, stub);
-        // attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so");
-        // attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so");
+        int stat;
+        kill(pid, SIGSTOP); 
+        waitpid(pid, &stat, 0);
+        attacher->remove_stub_hooks(attacher, stub);
+        attacher->free_stub(attacher, stub);
+        attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so");
+        attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so");
         object_destroy(attacher);
     }
 
