@@ -7,7 +7,6 @@
 #include <dlfcn.h>
 #include <sys/ptrace.h>
 #include <sys/user.h>
-#include <signal.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/try.h>
@@ -417,17 +416,13 @@ static int test_attacher_call_stub(TEST_ENTRY *entry, int argc, void **argv)
         THROW_IF(stub == NULL, -1);
         EXEC(attacher->add_stub_hooks(attacher, stub, test_lib_hello_world_with_pointer_pars2, NULL, test_lib_hello_world_with_pointer_pars3, NULL, 2));
         
-        ptrace(PTRACE_CONT, pid, NULL, NULL);
+        EXEC(attacher->run(attacher));
         dbg_str(DBG_VIP, "sleep ...");
-        sleep(50);
+        sleep(10);
     } CATCH (ret) { } FINALLY {
-        int stat;
-        kill(pid, SIGSTOP); 
-        waitpid(pid, &stat, 0);
+        attacher->stop(attacher);
         attacher->remove_stub_hooks(attacher, stub);
         attacher->free_stub(attacher, stub);
-        attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so");
-        attacher->remove_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so");
         object_destroy(attacher);
     }
 

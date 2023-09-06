@@ -87,7 +87,7 @@ stub_t *stub_admin_alloc(stub_admin_t *admin)
         if (list->count(list)) {
             EXEC(list->detach_front(list, &stub));
             EXEC(stub_config_exec_area(stub));
-            dbg_str(DBG_DETAIL,"stub_admin_alloc, alloc from free list, stub addr:%p\n", stub);
+            dbg_str(DBG_SUC, "stub_admin_alloc, alloc from free list, stub addr:%p\n", stub);
             return stub;
         }
 
@@ -123,6 +123,7 @@ int stub_admin_free(stub_admin_t *admin, stub_t *stub)
     int ret;
 
     TRY {
+        dbg_str(DBG_SUC, "stub_admin_free, stub addr:%p", stub);
         list->add_back(list, stub);
     } CATCH (ret) {}
 

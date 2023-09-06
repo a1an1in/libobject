@@ -1,10 +1,9 @@
-[bugfix:attacher] modification for attacher.
+[update:attacher] optimize code.
 
 Description:
-attacher stub has passed test, but still need
-some optimization. we should add continue and
-stop interface for attacher.
+update.
 
 Major Changes:
-1. fix remove_stub_hooks issue.
+1. remove libs when deconstruct attacher
+2. mov pid from unix attacher to parent class.
 

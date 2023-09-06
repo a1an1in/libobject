@@ -20,8 +20,27 @@ static int __construct(Attacher *attacher, char *init_str)
 static int __deconstrcut(Attacher *attacher)
 {
     Map *map = (Map *)attacher->map;
+    Iterator *cur, *end;
+    void *key, *value;
 
+    /* 1. remove libs*/
+    cur = map->begin(map);
+    end = map->end(map);
+
+    for (; !end->equal(end, cur); cur->next(cur)) {
+        key = cur->get_kpointer(cur);
+        dbg_str(DB_VIP, "attacher destroy, release lib:%s", key);
+        attacher->remove_lib(attacher, key);
+    }
+
+    /* 2. destroy map*/
     object_destroy(map);
+
+    /* 3. detach */
+    if (attacher->pid != 0) {
+        attacher->detach(attacher);
+    }
+
 
     return 0;
 }
@@ -229,7 +248,9 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry(16, Attacher, add_stub_hooks, __add_stub_hooks),
     Init_Vfunc_Entry(17, Attacher, remove_stub_hooks, __remove_stub_hooks),
     Init_Vfunc_Entry(18, Attacher, free_stub, __free_stub),
-    Init_End___Entry(19, Attacher),
+    Init_Vfunc_Entry(19, Attacher, run, NULL),
+    Init_Vfunc_Entry(20, Attacher, stop, NULL),
+    Init_End___Entry(21, Attacher),
 };
 REGISTER_CLASS("Attacher", attacher_class_info);
 

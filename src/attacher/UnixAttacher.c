@@ -17,10 +17,6 @@ static int __construct(UnixAttacher *attacher, char *init_str)
 
 static int __deconstruct(UnixAttacher *attacher)
 {
-    if (attacher->pid != 0) {
-        attacher->detach(attacher);
-    }
-
     return 0;
 }
 
@@ -32,7 +28,7 @@ static int __attach(UnixAttacher *attacher, int pid)
         dbg_str(DBG_VIP, "attach pid:%d", pid);
         EXEC(ptrace(PTRACE_ATTACH, pid, NULL, NULL));  
         wait(NULL);
-        attacher->pid = pid;
+        ((Attacher *)attacher)->pid = pid;
     } CATCH (ret) {}
 
     return ret;
@@ -43,9 +39,9 @@ static int __detach(UnixAttacher *attacher)
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "dettach pid:%d", attacher->pid);
-        EXEC(ptrace(PTRACE_DETACH, attacher->pid, NULL, NULL));
-        attacher->pid = 0;
+        dbg_str(DBG_VIP, "dettach pid:%d", ((Attacher *)attacher)->pid);
+        EXEC(ptrace(PTRACE_DETACH, ((Attacher *)attacher)->pid, NULL, NULL));
+        ((Attacher *)attacher)->pid = 0;
     } CATCH (ret) {}
 
     return ret;
@@ -57,7 +53,7 @@ static void *__get_function_address(UnixAttacher *attacher, void *local_func_add
     int ret;
 
     TRY {
-        addr = dl_get_remote_function_adress(attacher->pid, module_name, local_func_address);
+        addr = dl_get_remote_function_adress(((Attacher *)attacher)->pid, module_name, local_func_address);
         THROW_IF(addr == NULL, -1);
         dbg_str(DBG_VIP, "attacher get_function_address, function remote address:%p", addr);
     } CATCH (ret) { addr = NULL; }
@@ -77,7 +73,7 @@ static void *__read(UnixAttacher *attacher, void *addr, uint8_t *value, int len)
         num = (len + sizeof(long) - 1) / sizeof(long);
 
         for (i = 0; i < num; i++) {
-            tmp = ptrace(PTRACE_PEEKDATA, attacher->pid, addr + i * sizeof(long), NULL);
+            tmp = ptrace(PTRACE_PEEKDATA, ((Attacher *)attacher)->pid, addr + i * sizeof(long), NULL);
             dbg_str(DBG_VIP, "peek addr:%p, value:%llx, i:%d, num:%d", 
                     addr + i * sizeof(long), tmp, i, num);
             dbg_str(DBG_VIP, "value address:%p", (long *)value + i * sizeof(long));
@@ -103,7 +99,7 @@ static void *__write(UnixAttacher *attacher, void *addr, uint8_t *value, int len
                     addr + i * sizeof(long), *(p + i), i, num, sizeof(long));
             tmp = *(p + i);
             dbg_buf(DBG_DETAIL, "write:", (p + i), sizeof(long));
-            EXEC(ptrace(PTRACE_POKEDATA, attacher->pid, addr + i * sizeof(long), *(p + i)));
+            EXEC(ptrace(PTRACE_POKEDATA, ((Attacher *)attacher)->pid, addr + i * sizeof(long), *(p + i)));
         }
     } CATCH (ret) { }
     
@@ -164,23 +160,23 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
         dbg_str(DBG_DETAIL, "call_address_with_value_pars, func address:%p, pars num:%d", 
                 function_address, num);
 
-        EXEC(ptrace(PTRACE_GETREGS, attacher->pid, NULL, &regs));
+        EXEC(ptrace(PTRACE_GETREGS, ((Attacher *)attacher)->pid, NULL, &regs));
         memcpy(&bak, &regs, sizeof(regs));
         EXEC(attacher->set_function_pars(attacher, &regs, paramters, num));
 
         regs.rip = function_address;
         regs.rax = 0;
-        EXEC(ptrace(PTRACE_SETREGS, attacher->pid, NULL, &regs));
-        EXEC(ptrace(PTRACE_CONT, attacher->pid, NULL, NULL));
+        EXEC(ptrace(PTRACE_SETREGS, ((Attacher *)attacher)->pid, NULL, &regs));
+        EXEC(ptrace(PTRACE_CONT, ((Attacher *)attacher)->pid, NULL, NULL));
 
-        waitpid(attacher->pid, &stat, WUNTRACED);
+        waitpid(((Attacher *)attacher)->pid, &stat, WUNTRACED);
         // printf("stat:%x\n", stat);
         while (stat != 0xb7f) {
-            waitpid(attacher->pid, &stat, WUNTRACED);
+            waitpid(((Attacher *)attacher)->pid, &stat, WUNTRACED);
             // printf("stat:%x\n", stat);
         }
-        EXEC(ptrace(PTRACE_GETREGS, attacher->pid, NULL, &regs));
-        EXEC(ptrace(PTRACE_SETREGS, attacher->pid, NULL, &bak));
+        EXEC(ptrace(PTRACE_GETREGS, ((Attacher *)attacher)->pid, NULL, &regs));
+        EXEC(ptrace(PTRACE_SETREGS, ((Attacher *)attacher)->pid, NULL, &bak));
 
         dbg_str(DBG_DETAIL, "call_address_with_value_pars, return value:%llx", regs.rax);
         return regs.rax;
@@ -193,12 +189,15 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
 static int __add_lib(UnixAttacher *attacher, char *name)
 {
     int ret;
-    void *handle;
+    void *handle = NULL;
     Map *map = ((Attacher *)attacher)->map;
     attacher_paramater_t pars[2] = {{name, strlen(name)}, {RTLD_LOCAL | RTLD_LAZY, 0}};
 
     TRY {
         THROW_IF(name == NULL, -1);
+        EXEC(map->search(map, name, &handle));
+        THROW_IF(handle != NULL, 0);
+
         handle = attacher->call_from_lib(attacher, "my_dlopen", pars, 2, "libobject-testlib.so");
         // handle = attacher->call_from_lib(attacher, "dlopen", pars, 2, "libdl");
         dbg_str(DBG_VIP, "attacher add_lib, lib name:%s, flag:%x, handle:%p", 
@@ -208,6 +207,25 @@ static int __add_lib(UnixAttacher *attacher, char *name)
     } CATCH (ret) {}
 
     return ret;
+}
+
+static int __run(UnixAttacher *attacher)
+{
+    int ret;
+    
+    ret = ptrace(PTRACE_CONT, ((Attacher *)attacher)->pid, NULL, NULL);
+    printf("attacher run, ret:%d\n", ret);
+    return ret;
+}
+
+static int __stop(UnixAttacher *attacher)
+{
+    int stat;
+    printf("attacher stop\n");
+    kill(((Attacher *)attacher)->pid, SIGSTOP); 
+    waitpid(((Attacher *)attacher)->pid, &stat, 0);
+    
+    return 1;
 }
 
 static class_info_entry_t attacher_class_info[] = {
@@ -227,7 +245,9 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry(13, UnixAttacher, call_from_lib, NULL),
     Init_Vfunc_Entry(14, UnixAttacher, add_lib, __add_lib),
     Init_Vfunc_Entry(15, UnixAttacher, remove_lib, NULL),
-    Init_End___Entry(16, UnixAttacher),
+    Init_Vfunc_Entry(16, UnixAttacher, run, __run),
+    Init_Vfunc_Entry(17, UnixAttacher, stop, __stop),
+    Init_End___Entry(18, UnixAttacher),
 };
 REGISTER_CLASS("UnixAttacher", attacher_class_info);
 

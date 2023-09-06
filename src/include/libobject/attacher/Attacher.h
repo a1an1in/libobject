@@ -43,6 +43,8 @@ struct Attacher_s {
     int (*add_stub_hooks)(Attacher *attacher, stub_t *stub, void *func, void *pre, void *new_fn, void *post, int para_count);
     int (*remove_stub_hooks)(Attacher *attacher, stub_t *stub);
     int (*free_stub)(Attacher *, stub_t *stub);
+    int (*run)(Attacher *);
+    int (*stop)(Attacher *);
     
     int pid;
     Map *map;

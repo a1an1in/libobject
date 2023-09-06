@@ -6,6 +6,7 @@
 #include <sys/user.h>
 #include <sys/wait.h>
 #include <dlfcn.h>
+#include <signal.h>
 #include <libobject/core/Obj.h>
 #include <libobject/attacher/dynamic_lib.h>
 #include <libobject/attacher/Attacher.h>
@@ -36,8 +37,8 @@ struct UnixAttacher_s {
     long (*call_from_lib)(UnixAttacher *, char *function_name, attacher_paramater_t paramters[], int num, char *module_name);
     int (*add_lib)(UnixAttacher *, char *name);
     int (*remove_lib)(UnixAttacher *, char *name);
-
-    int pid;
+    int (*run)(UnixAttacher *);
+    int (*stop)(UnixAttacher *);
 };
 
 #endif
