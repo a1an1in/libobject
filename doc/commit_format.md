@@ -4,6 +4,6 @@ Description:
 update.
 
 Major Changes:
-1. remove libs when deconstruct attacher
-2. mov pid from unix attacher to parent class.
+1. change Array_Stack_Test to mockery.
+2. add attacher::init.
 

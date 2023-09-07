@@ -406,16 +406,11 @@ static int test_attacher_call_stub(TEST_ENTRY *entry, int argc, void **argv)
 
         attacher = object_new(allocator, "UnixAttacher", NULL);
         EXEC(attacher->attach(attacher, pid));
-        EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so"));
-        EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so"));
-       
-        EXEC(attacher->call_from_lib(attacher, "execute_ctor_funcs", NULL, 0, "libobject-core.so"));
-        EXEC(attacher->call_from_lib(attacher, "stub_admin_init_default_instance", NULL, 0, "libobject-stub.so"));
+        EXEC(attacher->init(attacher));
 
-        stub = attacher->alloc_stub(attacher);
-        THROW_IF(stub == NULL, -1);
-        EXEC(attacher->add_stub_hooks(attacher, stub, test_lib_hello_world_with_pointer_pars2, NULL, test_lib_hello_world_with_pointer_pars3, NULL, 2));
-        
+        THROW_IF(((stub = attacher->alloc_stub(attacher)) == NULL), -1);
+        EXEC(attacher->add_stub_hooks(attacher, stub, test_lib_hello_world_with_pointer_pars2, NULL, 
+                                      test_lib_hello_world_with_pointer_pars3, NULL, 2));
         EXEC(attacher->run(attacher));
         dbg_str(DBG_VIP, "sleep ...");
         sleep(10);

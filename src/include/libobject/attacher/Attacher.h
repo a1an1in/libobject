@@ -34,11 +34,13 @@ struct Attacher_s {
     int (*read)(Attacher *attacher, void *addr, uint8_t *value, int len);
     void *(*malloc)(Attacher *attacher, int size, void *value);
     int (*free)(Attacher *attacher, void *addr);
-    long (*call_address)(Attacher *, void *function_address, void *paramters, int num);
-    long (*call_address_with_value_pars)(Attacher *, void *function_adress, attacher_paramater_t paramters[], int num);
+    long (*call_address_with_value_pars)(Attacher *, void *function_adress, void *paramters, int num);
+    long (*call_address)(Attacher *attacher, void *function_address, attacher_paramater_t pars[], int num);
     long (*call_from_lib)(Attacher *, char *function_name, attacher_paramater_t paramters[], int num, char *module_name);
+    long (*call)(Attacher *attacher, void *addr, attacher_paramater_t pars[], int num);
     int (*add_lib)(Attacher *, char *name);
     int (*remove_lib)(Attacher *, char *name);
+    int (*init)(Attacher *);
     stub_t *(*alloc_stub)(Attacher *);
     int (*add_stub_hooks)(Attacher *attacher, stub_t *stub, void *func, void *pre, void *new_fn, void *post, int para_count);
     int (*remove_stub_hooks)(Attacher *attacher, stub_t *stub);

@@ -164,6 +164,28 @@ static long __call_from_lib(Attacher *attacher, char *name, attacher_paramater_t
     return ret;
 }
 
+static long __call(Attacher *attacher, void *addr, attacher_paramater_t pars[], int num)
+{
+    long ret;
+    char *module_name, func_name[64];
+
+    TRY {
+        /* get module name */
+        //........
+        EXEC(dl_get_func_name_by_addr(addr, func_name, sizeof(func_name)));
+
+        /* get remote fuction address */
+        addr = attacher->get_function_address(attacher, addr, module_name);
+        THROW_IF(addr == NULL, -1);
+        
+        ret = attacher->call_address(attacher, addr, pars, num);
+        printf("call from lib, func name:%s, func_addr:%p, ret:%lx\n", func_name, addr, ret);
+        return ret;
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 static int __remove_lib(Attacher *attacher, char *name)
 {
     int ret;
@@ -228,6 +250,21 @@ static int __free_stub(Attacher *attacher, stub_t *stub)
     return attacher->call_from_lib(attacher, "stub_free", pars, 1, "libobject-stub.so");
 }
 
+static int __init(Attacher *attacher)
+{
+    int ret;
+
+    TRY {
+        EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so"));
+        EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so"));
+       
+        EXEC(attacher->call_from_lib(attacher, "execute_ctor_funcs", NULL, 0, "libobject-core.so"));
+        EXEC(attacher->call_from_lib(attacher, "stub_admin_init_default_instance", NULL, 0, "libobject-stub.so"));
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
 static class_info_entry_t attacher_class_info[] = {
     Init_Obj___Entry( 0, Obj, parent),
     Init_Nfunc_Entry( 1, Attacher, construct, __construct),
@@ -242,15 +279,17 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry(10, Attacher, call_address_with_value_pars, NULL),
     Init_Vfunc_Entry(11, Attacher, call_address, __call_address),
     Init_Vfunc_Entry(12, Attacher, call_from_lib, __call_from_lib),
-    Init_Vfunc_Entry(13, Attacher, add_lib, NULL),
-    Init_Vfunc_Entry(14, Attacher, remove_lib, __remove_lib),
-    Init_Vfunc_Entry(15, Attacher, alloc_stub, __alloc_stub),
-    Init_Vfunc_Entry(16, Attacher, add_stub_hooks, __add_stub_hooks),
-    Init_Vfunc_Entry(17, Attacher, remove_stub_hooks, __remove_stub_hooks),
-    Init_Vfunc_Entry(18, Attacher, free_stub, __free_stub),
-    Init_Vfunc_Entry(19, Attacher, run, NULL),
-    Init_Vfunc_Entry(20, Attacher, stop, NULL),
-    Init_End___Entry(21, Attacher),
+    Init_Vfunc_Entry(13, Attacher, call, __call),
+    Init_Vfunc_Entry(14, Attacher, add_lib, NULL),
+    Init_Vfunc_Entry(15, Attacher, remove_lib, __remove_lib),
+    Init_Vfunc_Entry(16, Attacher, alloc_stub, __alloc_stub),
+    Init_Vfunc_Entry(17, Attacher, add_stub_hooks, __add_stub_hooks),
+    Init_Vfunc_Entry(18, Attacher, remove_stub_hooks, __remove_stub_hooks),
+    Init_Vfunc_Entry(19, Attacher, free_stub, __free_stub),
+    Init_Vfunc_Entry(20, Attacher, init, __init),
+    Init_Vfunc_Entry(21, Attacher, run, NULL),
+    Init_Vfunc_Entry(22, Attacher, stop, NULL),
+    Init_End___Entry(23, Attacher),
 };
 REGISTER_CLASS("Attacher", attacher_class_info);
 
