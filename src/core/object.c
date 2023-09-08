@@ -415,6 +415,8 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
         EXEC(__object_override_virtual_func(obj, cur_type_name, type_name));
 
         dbg_str(OBJ_DETAIL, "obj addr:%p", obj);
+        /* 先执行父构造， 再执行子构造函数， 因为先从子函数开始找构造函数， 所以递归
+         * 执行时要放在递归函数后面执行construct. 析构的过程与构造正好相反。*/
         if (construct != NULL) {
             EXEC(construct(obj, NULL));
         }

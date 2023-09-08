@@ -14,12 +14,14 @@ extern int my_free(void *addr);
 static int __construct(Attacher *attacher, char *init_str)
 {
     attacher->map = object_new(attacher->parent.allocator, "RBTree_Map", NULL);
+    attacher->map->set_cmp_func(attacher->map, string_key_cmp_func);
     return 0;
 }
 
 static int __deconstrcut(Attacher *attacher)
 {
     Map *map = (Map *)attacher->map;
+    allocator_t *allocator = attacher->parent.allocator;
     Iterator *cur, *end;
     void *key, *value;
 
@@ -31,6 +33,7 @@ static int __deconstrcut(Attacher *attacher)
         key = cur->get_kpointer(cur);
         dbg_str(DB_VIP, "attacher destroy, release lib:%s", key);
         attacher->remove_lib(attacher, key);
+        allocator_mem_free(allocator, key);
     }
 
     /* 2. destroy map*/
@@ -137,7 +140,9 @@ static long __call_address(Attacher *attacher, void *function_address, attacher_
     return ret;
 }
 
-/* name:call_from_lib
+/* 
+ * name: function name want to call.
+ * module_name: only need module name, don't need module path.
  *
  * description:
  * if only we know the func name and which lib this func is, we can call this method. 
@@ -168,19 +173,22 @@ static long __call(Attacher *attacher, void *addr, attacher_paramater_t pars[], 
 {
     long ret;
     char *module_name, func_name[64];
+    char path[128] = {0};
 
     TRY {
         /* get module name */
-        //........
-        EXEC(dl_get_func_name_by_addr(addr, func_name, sizeof(func_name)));
+        dl_get_dynamic_lib_path(-1, "libobject-stub.so", path, 128);
+        dbg_str(DBG_VIP, "path:%s", path);
+        // //........
+        // EXEC(dl_get_func_name_by_addr(addr, func_name, sizeof(func_name)));
 
-        /* get remote fuction address */
-        addr = attacher->get_function_address(attacher, addr, module_name);
-        THROW_IF(addr == NULL, -1);
+        // /* get remote fuction address */
+        // addr = attacher->get_function_address(attacher, addr, module_name);
+        // THROW_IF(addr == NULL, -1);
         
-        ret = attacher->call_address(attacher, addr, pars, num);
-        printf("call from lib, func name:%s, func_addr:%p, ret:%lx\n", func_name, addr, ret);
-        return ret;
+        // ret = attacher->call_address(attacher, addr, pars, num);
+        // printf("call from lib, func name:%s, func_addr:%p, ret:%lx\n", func_name, addr, ret);
+        // return ret;
     } CATCH (ret) {}
 
     return ret;
@@ -253,10 +261,18 @@ static int __free_stub(Attacher *attacher, stub_t *stub)
 static int __init(Attacher *attacher)
 {
     int ret;
+    void *path_addr;
+    allocator_t *allocator = attacher->parent.allocator;
 
     TRY {
-        EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-core.so"));
-        EXEC(attacher->add_lib(attacher, "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-stub.so"));
+        path_addr = allocator_mem_zalloc(allocator, 128);
+        EXEC(dl_get_dynamic_lib_path(-1, "libobject-core.so", path_addr, 128));
+        dbg_str(DBG_VIP, "path1:%s", path_addr);
+        EXEC(attacher->add_lib(attacher, path_addr));
+        path_addr = allocator_mem_zalloc(allocator, 128);
+        EXEC(dl_get_dynamic_lib_path(-1, "libobject-stub.so", path_addr, 128));
+        dbg_str(DBG_VIP, "path2:%s", path_addr);
+        EXEC(attacher->add_lib(attacher, path_addr));
        
         EXEC(attacher->call_from_lib(attacher, "execute_ctor_funcs", NULL, 0, "libobject-core.so"));
         EXEC(attacher->call_from_lib(attacher, "stub_admin_init_default_instance", NULL, 0, "libobject-stub.so"));

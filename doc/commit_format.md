@@ -1,9 +1,8 @@
-[update:attacher] optimize code.
+[update:attacher] update.
 
 Description:
 update.
 
 Major Changes:
-1. change Array_Stack_Test to mockery.
-2. add attacher::init.
+2. add dl_get_dynamic_lib_path.
 

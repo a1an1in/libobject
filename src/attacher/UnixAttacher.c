@@ -185,7 +185,6 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
     return ret;
 }
 
-
 static int __add_lib(UnixAttacher *attacher, char *name)
 {
     int ret;

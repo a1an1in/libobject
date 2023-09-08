@@ -384,7 +384,6 @@ static int test_attacher_read_data(TEST_ENTRY *entry, int argc, void **argv)
 }
 REGISTER_TEST_CMD(test_attacher_read_data);
 
-
 static int test_attacher_call_stub(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
@@ -425,5 +424,37 @@ static int test_attacher_call_stub(TEST_ENTRY *entry, int argc, void **argv)
 }
 REGISTER_TEST_CMD(test_attacher_call_stub);
 
+
+static int test_attacher_call_directly(TEST_ENTRY *entry, int argc, void **argv)
+{
+    int ret;
+    allocator_t *allocator = allocator_get_default_instance();
+    Attacher *attacher;
+    void *func_addr;
+    stub_t *stub;
+    pid_t pid;
+    attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
+
+    TRY {
+        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
+        dbg_str(DBG_VIP, "argc:%d", argc);
+        for (int i = 0; i < argc; i++) {
+            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
+        }
+        THROW_IF(argc != 2, -1);
+        pid = atoi(argv[1]);
+
+        attacher = object_new(allocator, "UnixAttacher", NULL);
+        EXEC(attacher->attach(attacher, pid));
+
+        EXEC(ret = attacher->call(attacher, test_lib_hello_world_with_pointer_pars2, pars, 2));
+
+    } CATCH (ret) { } FINALLY {
+        object_destroy(attacher);
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_attacher_call_directly);
 #endif
 

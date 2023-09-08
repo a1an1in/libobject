@@ -111,5 +111,40 @@ void* dl_get_remote_function_adress(pid_t target_pid, const char* module_name, v
     return NULL;
 }
 
+int dl_get_dynamic_lib_path(pid_t pid, const char *module_name, char *path, int len)
+{
+    FILE *fp;
+    char *p1, *p2;
+    char filename[32];
+    char line[1024] = {0};
+    int ret;
+
+    TRY {
+        if (pid < 0) {
+            /* self process */
+            snprintf(filename, sizeof(filename), "/proc/self/maps", pid);
+        } else {
+            snprintf(filename, sizeof(filename), "/proc/%d/maps", pid);
+        }
+
+        fp = fopen(filename, "r");
+        THROW_IF(fp == NULL, -1);
+
+        while (fgets(line, sizeof(line), fp)) {
+            if (strstr(line, module_name)) {
+                printf("line:%s", line);
+                p1 = strchr(line, '/');
+                p2 = strstr(p1, ".so");
+                p2[3] = '\0';
+                memcpy(path, p1, strlen(p1));
+                break;
+            }
+        }
+    } CATCH (ret) {} FINALLY {
+        fclose(fp);
+    }
+    
+    return ret;
+}
 #endif
 
