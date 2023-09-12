@@ -172,23 +172,29 @@ static long __call_from_lib(Attacher *attacher, char *name, attacher_paramater_t
 static long __call(Attacher *attacher, void *addr, attacher_paramater_t pars[], int num)
 {
     long ret;
-    char *module_name, func_name[64];
-    char path[128] = {0};
+    char module_name[64] = {0};
+    char func_name[64] = {0};
 
     TRY {
-        /* get module name */
-        dl_get_dynamic_lib_path(-1, "libobject-stub.so", path, 128);
-        dbg_str(DBG_VIP, "path:%s", path);
-        // //........
-        // EXEC(dl_get_func_name_by_addr(addr, func_name, sizeof(func_name)));
+        /* 1.get module name */
+        dbg_str(DBG_VIP, "call addr:%p", addr);
+        /* the can be optimized by searching data base, which contain
+         * function address space parsed from dl maps
+         */
+        dl_get_dynamic_name(-1, addr, module_name, 64);
+        dbg_str(DBG_VIP, "module name:%s", module_name);
 
-        // /* get remote fuction address */
-        // addr = attacher->get_function_address(attacher, addr, module_name);
-        // THROW_IF(addr == NULL, -1);
+        /* 2. get funtion name */
+        EXEC(dl_get_func_name_by_addr(addr, func_name, sizeof(func_name)));
+
+        /* 3.get remote fuction address */
+        addr = attacher->get_function_address(attacher, addr, module_name);
+        THROW_IF(addr == NULL, -1);
         
-        // ret = attacher->call_address(attacher, addr, pars, num);
-        // printf("call from lib, func name:%s, func_addr:%p, ret:%lx\n", func_name, addr, ret);
-        // return ret;
+        /* 4.call */
+        ret = attacher->call_address(attacher, addr, pars, num);
+        printf("call from lib, func name:%s, func_addr:%p, ret:%lx\n", func_name, addr, ret);
+        return ret;
     } CATCH (ret) {}
 
     return ret;

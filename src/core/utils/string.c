@@ -5,9 +5,9 @@
 #include <libobject/core/utils/registry/registry.h>
 
 
-int ex(int a, int b)
+long ex(long a, long b)
 {
-    int d = 1;
+    long d = 1;
     int i;
 
     for (i = 0; i < b ; i++) {
@@ -17,15 +17,14 @@ int ex(int a, int b)
     return d;
 }
 
-int str_hex_to_int(char *str)
+long str_hex_to_int(char *str)
 {
-    int len, i, d, t = 0, count = 0;
+    long len, i, d, t = 0, count = 0;
     char c;
 
     len = strlen(str);
 
     for (i = len - 1; i >= 0; i--) {
-        printf("%d\n", i);
         c = str[i];
 
         if (c >= 'a' && c <= 'f') {
@@ -40,8 +39,9 @@ int str_hex_to_int(char *str)
 
         t += ex(16, count++) * d;
 
-        printf("len = %d count=%d e=%d d=%d\n",len,  count, ex(16, count), d);
+        // printf("len = %d count=%d e=%d d=%d\n",len,  count, ex(16, count), d);
     }
+    printf("str_hex_to_int, str:%s, value:%lx\n", str, t);
 
     return t;
 }

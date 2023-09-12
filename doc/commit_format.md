@@ -1,8 +1,8 @@
-[update:attacher] update.
+[update:attacher] add attach call.
 
 Description:
-update.
+support call target process's function directly.
 
 Major Changes:
-2. add dl_get_dynamic_lib_path.
+2. add attach::call.
 

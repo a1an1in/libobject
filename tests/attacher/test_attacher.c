@@ -446,8 +446,9 @@ static int test_attacher_call_directly(TEST_ENTRY *entry, int argc, void **argv)
 
         attacher = object_new(allocator, "UnixAttacher", NULL);
         EXEC(attacher->attach(attacher, pid));
+        EXEC(attacher->init(attacher));
 
-        EXEC(ret = attacher->call(attacher, test_lib_hello_world_with_pointer_pars2, pars, 2));
+        EXEC(ret = attacher->call(attacher, test_lib_hello_world_with_pointer_pars3, pars, 2));
 
     } CATCH (ret) { } FINALLY {
         object_destroy(attacher);

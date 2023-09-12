@@ -1,17 +1,11 @@
 #if (!defined(WINDOWS_USER_MODE))
 #define _GNU_SOURCE
-#include <stdio.h>
-#include <errno.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-#include <dlfcn.h>
-#include <sys/mman.h>
-#include <sys/ptrace.h>
-#include <sys/user.h>
+
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/try.h>
+#include <libobject/core/utils/string.h>
+#include <libobject/attacher/dynamic_lib.h>
 
 void * dl_get_func_addr_by_name(char *name)
 {
@@ -140,6 +134,55 @@ int dl_get_dynamic_lib_path(pid_t pid, const char *module_name, char *path, int 
                 break;
             }
         }
+    } CATCH (ret) {} FINALLY {
+        fclose(fp);
+    }
+    
+    return ret;
+}
+
+int dl_get_dynamic_name(pid_t pid, void *func_addr, char *module_name, int len)
+{
+    FILE *fp;
+    char *p1, *p2, *temp = NULL, *p;
+    char filename[32];
+    char line[1024] = {0};
+    long *addr[2];
+    char *addr_str[32] = {0};
+    int i = 0, ret;
+
+    TRY {
+        printf("addr raw:%lx\n", func_addr);
+        if (pid < 0) {
+            /* self process */
+            snprintf(filename, sizeof(filename), "/proc/self/maps", pid);
+        } else {
+            snprintf(filename, sizeof(filename), "/proc/%d/maps", pid);
+        }
+        sprintf(addr_str, "%lx", func_addr);
+
+
+        fp = fopen(filename, "r");
+        THROW_IF(fp == NULL, -1);
+
+        while (fgets(line, sizeof(line), fp)) {
+            p = line;
+            for (p = strtok_r(p, "- ", &temp), i = 0; i < 2 && p != NULL;
+                p = strtok_r(NULL, "- ", &temp), i++) {
+                *(addr + i) = str_hex_to_int(p);;
+                // printf("tok:%s, i:%d, *(addr + i):%lx\n", p, i, *(addr + i));
+            }
+
+            if (func_addr < addr[0]  || func_addr > addr[1]) continue;
+
+            printf("find line:%s", temp);
+            p1 = strrchr(temp, '/');
+            p2 = strstr(p1, ".so");
+            p2[3] = '\0';
+            THROW_IF(len < strlen(p1), -1);
+            memcpy(module_name, p1 + 1, strlen(p1 + 1));
+            break;
+        }   
     } CATCH (ret) {} FINALLY {
         fclose(fp);
     }
