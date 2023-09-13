@@ -1,8 +1,10 @@
-[update:attacher] add attach call.
+[update:core] add interval tree.
 
 Description:
-support call target process's function directly.
+attacher require a new structure to search dynamic
+lib name from function address. so need add a new
+interval tree to support it.
 
 Major Changes:
-2. add attach::call.
+1. add interval tree.
 

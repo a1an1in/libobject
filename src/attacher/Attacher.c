@@ -44,7 +44,6 @@ static int __deconstrcut(Attacher *attacher)
         attacher->detach(attacher);
     }
 
-
     return 0;
 }
 

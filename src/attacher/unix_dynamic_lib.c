@@ -161,7 +161,6 @@ int dl_get_dynamic_name(pid_t pid, void *func_addr, char *module_name, int len)
         }
         sprintf(addr_str, "%lx", func_addr);
 
-
         fp = fopen(filename, "r");
         THROW_IF(fp == NULL, -1);
 
