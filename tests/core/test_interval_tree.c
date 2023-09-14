@@ -37,7 +37,7 @@
 #include <libobject/core/Interval_Tree.h>
 #include <libobject/core/utils/registry/registry.h>
 
-#define INIT_TEST_INSTANCE(t, a, b, c) t.start=a,t.end=b,t.value=c
+#define INIT_TEST_INSTANCE(t, a, b, c) (t).start=a,(t).end=b,(t).value=c
 
 static int test_interval_tree_search_key(TEST_ENTRY *entry)
 {
@@ -73,4 +73,49 @@ static int test_interval_tree_search_key(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_FUNC(test_interval_tree_search_key);
+
+static int tree_node_free_callback(allocator_t *allocator, void *value)
+{
+    dbg_str(DBG_VIP, "tree_node_free_callback");
+    interval_tree_node_t *t = (interval_tree_node_t *)value;
+    allocator_mem_free(allocator, t->value);
+    allocator_mem_free(allocator, t);
+    return 0;
+}
+
+static int test_interval_tree_free_tree_node(TEST_ENTRY *entry)
+{
+    Interval_Tree *tree;
+    allocator_t *allocator = allocator_get_default_instance();
+    int ret = 0, count1 = 0, count2 = 0;
+    interval_tree_node_t *t, *t0, *t1, *t2;
+
+    TRY {
+        sleep(2);
+        count1 = allocator->alloc_count;
+        t0 = allocator_mem_alloc(allocator, sizeof(interval_tree_node_t));
+        t1 = allocator_mem_alloc(allocator, sizeof(interval_tree_node_t));
+        t2 = allocator_mem_alloc(allocator, sizeof(interval_tree_node_t));
+
+        INIT_TEST_INSTANCE(*t0, 0, 9, 0);
+        INIT_TEST_INSTANCE(*t1, 10, 19, 0);
+        INIT_TEST_INSTANCE(*t2, 20, 29, 0);
+
+        tree = object_new(allocator, "Interval_Tree", NULL);
+        tree->set_trustee(tree, VALUE_TYPE_STRUCT_POINTER, tree_node_free_callback);
+        tree->add(tree, t0->start, t0);
+        tree->add(tree, t1->start, t1);
+        tree->add(tree, t2->start, t2);
+
+        object_destroy(tree), tree = NULL;
+        count2 = allocator->alloc_count;
+        SET_CATCH_INT_PARS(count1, count2);
+        THROW_IF(count1 != count2, -1);
+    } CATCH (ret) { } FINALLY {
+        object_destroy(tree);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_interval_tree_free_tree_node);
 

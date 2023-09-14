@@ -111,7 +111,8 @@ static int __search(Interval_Tree *tree, void *key, interval_tree_node_t **eleme
 }
 
 //not trustee key here, key is interger by default
-static int __set_trustee(Interval_Tree *tree, int value_type)
+static int __set_trustee(Interval_Tree *tree, int value_type, 
+                         int (*value_free_callback)(allocator_t *allocator, void *value))
 {
     Map *map;
     int trustee_flag = 1;
@@ -119,6 +120,7 @@ static int __set_trustee(Interval_Tree *tree, int value_type)
     map = tree->map;
     map->set(map, "/Map/trustee_flag", &trustee_flag);
     map->set(map, "/Map/value_type", &value_type);
+    map->set(map, "/Map/value_free_callback", value_free_callback);
 
     return 1;
 }

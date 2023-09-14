@@ -123,11 +123,13 @@ static int __reset(Map *map)
 
         if (map->value_type == VALUE_TYPE_OBJ_POINTER && element != NULL) {
             object_destroy(element);
-        } else if (map->value_type  == VALUE_TYPE_STRING_POINTER && element != NULL) {
+        } else if (map->value_type == VALUE_TYPE_STRING_POINTER && element != NULL) {
             object_destroy(element);
-        } else if (map->value_type  == VALUE_TYPE_ALLOC_POINTER && element != NULL) {
+        } else if (map->value_type == VALUE_TYPE_ALLOC_POINTER && element != NULL) {
             allocator_mem_free(map->obj.allocator, element);
-        } else if (map->value_type  == VALUE_TYPE_STRUCT_POINTER && element != NULL) {
+        } else if (map->value_type == VALUE_TYPE_STRUCT_POINTER && map->value_free_callback != NULL && element != NULL) {
+            map->value_free_callback(map->obj.allocator, element);   
+        } else if (map->value_type == VALUE_TYPE_STRUCT_POINTER && map->value_free_callback == NULL && element != NULL) {
             allocator_mem_free(map->obj.allocator, element);
         } else if (map->value_type  == VALUE_TYPE_UNKNOWN_POINTER && element != NULL) {
             dbg_str(DBG_WARNNING, "not support reset unkown pointer");
@@ -171,6 +173,7 @@ static class_info_entry_t map_class_info[] = {
     Init_U8____Entry(22, Map, trustee_flag, NULL),
     Init_U8____Entry(23, Map, value_type, NULL),
     Init_U8____Entry(24, Map, key_type, NULL),
-    Init_End___Entry(25, Map),
+    Init_Point_Entry(25, Map, value_free_callback, NULL),
+    Init_End___Entry(26, Map),
 };
 REGISTER_CLASS("Map", map_class_info);

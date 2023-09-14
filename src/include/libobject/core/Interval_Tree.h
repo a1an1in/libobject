@@ -24,10 +24,10 @@ struct Interval_Tree_s {
     /*virtual methods reimplement*/
     int (*set)(Interval_Tree *tree, char *attrib, void *value);
     void *(*get)(Interval_Tree *tree, char *attrib);
-    int (*set_trustee)(Interval_Tree *tree, int value_type);
     int (*add)(Interval_Tree *tree, void *key, void *value);
     int (*search)(Interval_Tree *tree, void *key, void **element);
     int (*remove)(Interval_Tree *tree, void *key, void **element);
+    int (*set_trustee)(Interval_Tree *tree, int value_type, int (*value_free_callback)(allocator_t *allocator, void *value));
 
     /*attribs*/
     Map *map;

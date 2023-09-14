@@ -48,6 +48,8 @@ struct _map_s{
     Iterator *b, *e;
     uint8_t trustee_flag;
     uint8_t key_type, value_type;
+    int (*value_free_callback)(allocator_t *allocator, void *value);
+    int (*key_free_callback)(allocator_t *allocator, void *value);
 };
 
 #endif
