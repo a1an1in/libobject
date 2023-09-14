@@ -142,7 +142,7 @@ static int __test_reset_string_value(Linked_List_Test *test)
     List *list = (List *)test->list;
     String *t0, *t1, *t2, *t3, *t4, *t5;
     uint8_t trustee_flag = 1;
-    int value_type = VALUE_TYPE_STRING;
+    int value_type = VALUE_TYPE_STRING_POINTER;
     int count, expect_count = 0, expect_alloc_count;
 
     expect_alloc_count = allocator->alloc_count;

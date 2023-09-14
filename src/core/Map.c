@@ -113,8 +113,7 @@ static int __reset(Map *map)
     cur = map->begin(map);
     end = map->end(map);
 
-    for (; !end->equal(end, cur);
-         cur = map->begin(map), end = map->end(map)) {
+    for (; !end->equal(end, cur); cur = map->begin(map), end = map->end(map)) {
         key = cur->get_kpointer(cur);
         map->remove(map, key, &element);
 
@@ -122,17 +121,15 @@ static int __reset(Map *map)
             continue;
         }
 
-        if (map->value_type == VALUE_TYPE_OBJ_POINTER && 
-            element != NULL) {
+        if (map->value_type == VALUE_TYPE_OBJ_POINTER && element != NULL) {
             object_destroy(element);
-        } else if (map->value_type  == VALUE_TYPE_STRING &&
-                   element != NULL) {
+        } else if (map->value_type  == VALUE_TYPE_STRING_POINTER && element != NULL) {
             object_destroy(element);
-        } else if (map->value_type  == VALUE_TYPE_ALLOC_POINTER &&
-                   element != NULL) {
+        } else if (map->value_type  == VALUE_TYPE_ALLOC_POINTER && element != NULL) {
             allocator_mem_free(map->obj.allocator, element);
-        } else if (map->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
-                   element != NULL) {
+        } else if (map->value_type  == VALUE_TYPE_STRUCT_POINTER && element != NULL) {
+            allocator_mem_free(map->obj.allocator, element);
+        } else if (map->value_type  == VALUE_TYPE_UNKNOWN_POINTER && element != NULL) {
             dbg_str(DBG_WARNNING, "not support reset unkown pointer");
         } else {
         }

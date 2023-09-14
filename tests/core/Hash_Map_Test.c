@@ -165,7 +165,7 @@ static int __test_reset_string_value(Hash_Map_Test *test)
     int ret = 0;
     int count, expect_count = 0, expect_alloc_count;
     int trustee_flag = 1;
-    int value_type = VALUE_TYPE_STRING;
+    int value_type = VALUE_TYPE_STRING_POINTER;
 
     expect_alloc_count = allocator->alloc_count;
 

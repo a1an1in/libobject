@@ -15,6 +15,8 @@ static int __construct(Attacher *attacher, char *init_str)
 {
     attacher->map = object_new(attacher->parent.allocator, "RBTree_Map", NULL);
     attacher->map->set_cmp_func(attacher->map, string_key_cmp_func);
+
+    attacher->tree = object_new(attacher->parent.allocator, "Interval_Tree", NULL);
     return 0;
 }
 
@@ -38,6 +40,7 @@ static int __deconstrcut(Attacher *attacher)
 
     /* 2. destroy map*/
     object_destroy(map);
+    object_destroy(attacher->tree);
 
     /* 3. detach */
     if (attacher->pid != 0) {

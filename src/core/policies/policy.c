@@ -422,13 +422,13 @@ static int __vector_to_json_object_pointer_policy(cjson_t *root, void *element)
 }
 
 vector_to_json_policy_t g_vector_to_json_policy[ENTRY_TYPE_MAX_TYPE] = {
-    [ENTRY_TYPE_INT8_T]      = {.policy = __vector_to_json_int8_policy},
-    [ENTRY_TYPE_UINT8_T]     = {.policy = __vector_to_json_uint8_policy},
-    [ENTRY_TYPE_INT16_T]     = {.policy = __vector_to_json_int16_policy},
-    [ENTRY_TYPE_UINT16_T]    = {.policy = __vector_to_json_uint16_policy},
-    [ENTRY_TYPE_INT32_T]     = {.policy = __vector_to_json_int32_policy},
-    [ENTRY_TYPE_UINT32_T]    = {.policy = __vector_to_json_uint32_policy},
-    [VALUE_TYPE_FLOAT_T]     = {.policy = __vector_to_json_float_policy},
-    [VALUE_TYPE_STRING]      = {.policy = __vector_to_json_string_policy},
-    [VALUE_TYPE_OBJ_POINTER] = {.policy = __vector_to_json_object_pointer_policy},
+    [ENTRY_TYPE_INT8_T]         = {.policy = __vector_to_json_int8_policy},
+    [ENTRY_TYPE_UINT8_T]        = {.policy = __vector_to_json_uint8_policy},
+    [ENTRY_TYPE_INT16_T]        = {.policy = __vector_to_json_int16_policy},
+    [ENTRY_TYPE_UINT16_T]       = {.policy = __vector_to_json_uint16_policy},
+    [ENTRY_TYPE_INT32_T]        = {.policy = __vector_to_json_int32_policy},
+    [ENTRY_TYPE_UINT32_T]       = {.policy = __vector_to_json_uint32_policy},
+    [VALUE_TYPE_FLOAT_T]        = {.policy = __vector_to_json_float_policy},
+    [VALUE_TYPE_STRING_POINTER] = {.policy = __vector_to_json_string_policy},
+    [VALUE_TYPE_OBJ_POINTER]    = {.policy = __vector_to_json_object_pointer_policy},
 };

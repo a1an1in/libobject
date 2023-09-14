@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
+#include <libobject/core/Interval_Tree.h>
 #include <libobject/stub/stub.h>
 #include <libobject/attacher/dynamic_lib.h>
 
@@ -50,6 +51,7 @@ struct Attacher_s {
     
     int pid;
     Map *map;
+    Interval_Tree *tree;
 };
 
 #endif

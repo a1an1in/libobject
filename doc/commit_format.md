@@ -1,10 +1,9 @@
-[update:core] add interval tree.
+[update:NA] update.
 
 Description:
-attacher require a new structure to search dynamic
-lib name from function address. so need add a new
-interval tree to support it.
+update.
 
 Major Changes:
-1. add interval tree.
+1. change VALUE_TYPE_STRING to VALUE_TYPE_STRING_POINTER.
+2. code format.
 

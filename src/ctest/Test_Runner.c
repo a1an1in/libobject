@@ -45,7 +45,7 @@ static int __set_white_list(Test_Runner *runner, char *list)
     if (strlen(list) == 0) { return -1; }
 
     if (runner->white_list == NULL) {
-        int value_type = VALUE_TYPE_STRING;
+        int value_type = VALUE_TYPE_STRING_POINTER;
         uint8_t trustee_flag = 1;
         white_list = object_new(allocator, "Vector", NULL);
         white_list->set(white_list, "/Vector/value_type", &value_type);

@@ -76,7 +76,7 @@ static int __construct(Vector *vector, char *init_str)
             value_type = ENTRY_TYPE_INT32_T;
             vector->add(vector, c->valueint);
         } else if (c->type & OBJECT_STRING) {
-            value_type = VALUE_TYPE_STRING;
+            value_type = VALUE_TYPE_STRING_POINTER;
             dbg_str(DBG_DETAIL, "vector element:%s", c->valuestring);
             s = object_new(allocator, "String", NULL);
             s->assign(s, c->valuestring);
@@ -165,7 +165,7 @@ static int __add_vector(Vector *vector, Vector *src)
                 pos = next, vector_pos_next(&pos, &next), index++) {
             src->peek_at(src, index, (void **)&element);
 
-            if (src->value_type == VALUE_TYPE_OBJ_POINTER || src->value_type  == VALUE_TYPE_STRING) {
+            if (src->value_type == VALUE_TYPE_OBJ_POINTER || src->value_type  == VALUE_TYPE_STRING_POINTER) {
                 CONTINUE_IF(element == NULL);
             }
             EXEC(src->remove(src, index, (void **)&element));
@@ -271,7 +271,7 @@ static int __reset(Vector *vector)
 
         if (vector->value_type == VALUE_TYPE_OBJ_POINTER) {
             object_destroy(element);
-        } else if (vector->value_type  == VALUE_TYPE_STRING) {
+        } else if (vector->value_type  == VALUE_TYPE_STRING_POINTER) {
             object_destroy(element);
         } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER) {
             allocator_mem_free(vector->obj.allocator, element);
@@ -320,7 +320,7 @@ static char *__to_json(Obj *obj)
         element = NULL;
         vector->peek_at(vector, index++, (void **)&element);
         
-        if (vector->value_type == VALUE_TYPE_OBJ_POINTER || vector->value_type  == VALUE_TYPE_STRING) {
+        if (vector->value_type == VALUE_TYPE_OBJ_POINTER || vector->value_type  == VALUE_TYPE_STRING_POINTER) {
             CONTINUE_IF(element == NULL);
         }
         if (g_vector_to_json_policy[vector->value_type].policy == NULL) {
@@ -379,7 +379,7 @@ static int __assign(Vector *vector, char *value)
                 vector->add(vector, c->valueint);
             } else if (c->type & OBJECT_STRING) {
                 dbg_str(DBG_DETAIL, "vector element:%s", c->valuestring);
-                value_type = VALUE_TYPE_STRING;
+                value_type = VALUE_TYPE_STRING_POINTER;
                 s = object_new(allocator, "String", NULL);
                 s->assign(s, c->valuestring);
                 vector->add(vector, s);
@@ -513,7 +513,7 @@ static int __reset_from(Vector *vector, int index)
 
         if (vector->value_type == VALUE_TYPE_OBJ_POINTER) {
             object_destroy(element);
-        } else if (vector->value_type  == VALUE_TYPE_STRING) {
+        } else if (vector->value_type  == VALUE_TYPE_STRING_POINTER) {
             object_destroy(element);
         } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER) {
             allocator_mem_free(vector->obj.allocator, element);
@@ -544,7 +544,7 @@ static int __filter(Vector *vector, int (*condition)(void *element, void *cond),
              pos = next, vector_pos_next(&pos, &next), index++) {
             vector->peek_at(vector, index, (void **)&element);
 
-            if (vector->value_type == VALUE_TYPE_OBJ_POINTER || vector->value_type  == VALUE_TYPE_STRING) {
+            if (vector->value_type == VALUE_TYPE_OBJ_POINTER || vector->value_type  == VALUE_TYPE_STRING_POINTER) {
                 CONTINUE_IF(element == NULL);
             }
             THROW_IF((ret = condition(element, cond)) < 0, -1);
@@ -568,7 +568,7 @@ static int __copy(Vector *vector, Vector *out)
     TRY {
         THROW_IF(vector == NULL || out == NULL, -1);
 
-        if (vector->value_type == VALUE_TYPE_OBJ_POINTER || vector->value_type  == VALUE_TYPE_STRING) {
+        if (vector->value_type == VALUE_TYPE_OBJ_POINTER || vector->value_type  == VALUE_TYPE_STRING_POINTER) {
             sp2_1 = vector->get(vector, "class_name");
             sp2_2 = out->get(out, "class_name");
             THROW_IF(sp2_1 == NULL || sp2_2 == NULL || *sp2_1 == NULL || *sp2_2 == NULL, -1);

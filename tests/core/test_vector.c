@@ -130,7 +130,7 @@ static int test_vector_to_json_case2()
 {
     Vector *vector;
     allocator_t *allocator = allocator_get_default_instance();
-    int capacity = 19, value_type = VALUE_TYPE_STRING;
+    int capacity = 19, value_type = VALUE_TYPE_STRING_POINTER;
     String *t0, *t1, *t2, *t3, *t4, *t5;
     int ret;
     uint8_t trustee_flag = 1;
@@ -264,7 +264,7 @@ static int test_vector_assign_case2()
 {
     Vector *vector;
     allocator_t *allocator = allocator_get_default_instance();
-    int capacity = 19, value_type = VALUE_TYPE_STRING;
+    int capacity = 19, value_type = VALUE_TYPE_STRING_POINTER;
     uint8_t trustee_flag = 1;
     int ret;
     char *init_data = "[\"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\"]";

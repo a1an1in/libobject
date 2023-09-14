@@ -60,18 +60,14 @@ static int __reset(List *list)
         }
 
         if (list->value_type == VALUE_TYPE_OBJ_POINTER && element != NULL) {
-            dbg_str(OBJ_DETAIL, "reset list obj element, class name:%s",
-                    ((Obj *)element)->name);
+            dbg_str(OBJ_DETAIL, "reset list obj element, class name:%s", ((Obj *)element)->name);
             object_destroy(element);
-        } else if (list->value_type  == VALUE_TYPE_STRING &&
-                   element != NULL) {
+        } else if (list->value_type  == VALUE_TYPE_STRING_POINTER && element != NULL) {
             dbg_str(OBJ_DETAIL, "reset list string element");
             object_destroy(element);
-        } else if (list->value_type  == VALUE_TYPE_ALLOC_POINTER &&
-                   element != NULL) {
+        } else if (list->value_type  == VALUE_TYPE_ALLOC_POINTER && element != NULL) {
             allocator_mem_free(list->obj.allocator, element);
-        } else if (list->value_type  == VALUE_TYPE_UNKNOWN_POINTER &&
-                   element != NULL) {
+        } else if (list->value_type  == VALUE_TYPE_UNKNOWN_POINTER && element != NULL) {
             dbg_str(OBJ_WARNNING, "not support reset unkown pointer");
         } else {
         }

@@ -152,14 +152,14 @@ int dl_get_dynamic_name(pid_t pid, void *func_addr, char *module_name, int len)
     int i = 0, ret;
 
     TRY {
-        printf("addr raw:%lx\n", func_addr);
+        printf("addr raw:%lx\n", (long unsigned int)func_addr);
         if (pid < 0) {
             /* self process */
             snprintf(filename, sizeof(filename), "/proc/self/maps", pid);
         } else {
             snprintf(filename, sizeof(filename), "/proc/%d/maps", pid);
         }
-        sprintf(addr_str, "%lx", func_addr);
+        sprintf(addr_str, "%lx", (long unsigned int)func_addr);
 
         fp = fopen(filename, "r");
         THROW_IF(fp == NULL, -1);
@@ -172,7 +172,7 @@ int dl_get_dynamic_name(pid_t pid, void *func_addr, char *module_name, int len)
                 // printf("tok:%s, i:%d, *(addr + i):%lx\n", p, i, *(addr + i));
             }
 
-            if (func_addr < addr[0]  || func_addr > addr[1]) continue;
+            if (func_addr < (void *)addr[0]  || func_addr > (void *)addr[1]) continue;
 
             printf("find line:%s", temp);
             p1 = strrchr(temp, '/');
@@ -188,5 +188,11 @@ int dl_get_dynamic_name(pid_t pid, void *func_addr, char *module_name, int len)
     
     return ret;
 }
+
+int dl_parse_dynamic_table(pid_t pid, Interval_Tree *tree)
+{
+
+}
+
 #endif
 
