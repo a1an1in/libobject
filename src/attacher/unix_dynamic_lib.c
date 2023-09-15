@@ -168,7 +168,7 @@ int dl_get_dynamic_name(pid_t pid, void *func_addr, char *module_name, int len)
             p = line;
             for (p = strtok_r(p, "- ", &temp), i = 0; i < 2 && p != NULL;
                 p = strtok_r(NULL, "- ", &temp), i++) {
-                *(addr + i) = str_hex_to_int(p);;
+                *(addr + i) = str_hex_to_int(p);
                 // printf("tok:%s, i:%d, *(addr + i):%lx\n", p, i, *(addr + i));
             }
 
@@ -191,7 +191,69 @@ int dl_get_dynamic_name(pid_t pid, void *func_addr, char *module_name, int len)
 
 int dl_parse_dynamic_table(pid_t pid, Interval_Tree *tree)
 {
+    FILE *fp;
+    char *p1, *p2, *temp = NULL, *p;
+    char filename[32];
+    char line[1024] = {0};
+    long *addr[2];
+    int i = 0, ret;
+    allocator_t *allocator;
+    char *module_name;
+    interval_tree_node_t *node;
 
+    TRY {
+        if (pid < 0) {
+            /* self process */
+            snprintf(filename, sizeof(filename), "/proc/self/maps", pid);
+        } else {
+            snprintf(filename, sizeof(filename), "/proc/%d/maps", pid);
+        }
+        allocator = tree->obj.allocator;
+
+        fp = fopen(filename, "r");
+        THROW_IF(fp == NULL, -1);
+
+        while (fgets(line, sizeof(line), fp)) {
+            p = line;
+            for (p = strtok_r(p, "- ", &temp), i = 0; i < 2 && p != NULL;
+                p = strtok_r(NULL, "- ", &temp), i++) {
+                *(addr + i) = str_hex_to_int(p);
+                // printf("tok:%s, i:%d, *(addr + i):%lx\n", p, i, *(addr + i));
+            }
+
+            p1 = strrchr(temp, '/');
+            if (p1 == NULL) continue;
+            p2 = strstr(p1, ".so");
+            if (p2 == NULL) continue;
+            p2[3] = '\0';
+            module_name = allocator_mem_zalloc(allocator, strlen(p1 + 1) + 1);
+            memcpy(module_name, p1 + 1, strlen(p1 + 1));
+            printf("dl_parse_dynamic_table, addr1:%p, addr2:%p, moudle name:%s\n", addr[0], addr[1], module_name);
+            
+            node = allocator_mem_zalloc(allocator, sizeof(interval_tree_node_t));
+            node->value = module_name;
+            node->end = addr[1];
+            tree->add(tree, addr[0], node);
+        }   
+    } CATCH (ret) {} FINALLY {
+        fclose(fp);
+    }
+    
+    return ret;
+}
+
+int dl_get_dynamic_lib_name_from_interval_tree(Interval_Tree *tree, void *func_addr, char *module_name, int len)
+{
+    int ret;
+    interval_tree_node_t *t = NULL;
+
+    TRY {
+        EXEC(tree->search(tree, func_addr, (void **)&t));
+        THROW_IF(len < strlen(t->value) || t == NULL, -1);
+        memcpy(module_name, t->value, strlen(t->value));
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
 }
 
 #endif

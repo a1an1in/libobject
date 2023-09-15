@@ -19,5 +19,6 @@ void *dl_get_remote_function_adress(pid_t target_pid, const char* module_name, v
 int dl_get_dynamic_lib_path(pid_t pid, const char *module_name, char *path, int len);
 int dl_get_dynamic_name(pid_t pid, void *func_addr, char *module_name, int len);
 int dl_parse_dynamic_table(pid_t pid, Interval_Tree *tree);
+int dl_get_dynamic_lib_name_from_interval_tree(Interval_Tree *tree, void *func_addr, char *module_name, int len);
 
 #endif

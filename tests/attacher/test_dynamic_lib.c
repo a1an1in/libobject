@@ -94,5 +94,42 @@ int test_dl_get_remote_function_adress(TEST_ENTRY *entry, int argc, void **argv)
 }
 REGISTER_TEST_CMD(test_dl_get_remote_function_adress);
 
+
+static int tree_node_free_callback(allocator_t *allocator, void *value)
+{
+    dbg_str(DBG_VIP, "tree_node_free_callback");
+    interval_tree_node_t *t = (interval_tree_node_t *)value;
+    allocator_mem_free(allocator, t->value);
+    allocator_mem_free(allocator, t);
+    return 0;
+}
+
+static int test_dl_get_dynamic_name(TEST_ENTRY *entry, int argc, void **argv)
+{
+    Interval_Tree *tree;
+    allocator_t *allocator = allocator_get_default_instance();
+    char module_name[64] = {0};
+    void *addr;
+    pid_t pid;
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "argc:%d", argc);
+        tree = object_new(allocator, "Interval_Tree", NULL);
+        tree->set_trustee(tree, VALUE_TYPE_STRUCT_POINTER, tree_node_free_callback);
+
+        EXEC(dl_parse_dynamic_table(-1, tree));
+        EXEC(dl_get_dynamic_lib_name_from_interval_tree(tree, test_lib_hello_world, module_name, 64));
+
+        THROW_IF(strcmp(module_name, "libobject-testlib.so") != 0, -1);
+        dbg_str(DBG_VIP, "module_name:%s", module_name);
+    } CATCH (ret) { } FINALLY {
+        object_destroy(tree);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_dl_get_dynamic_name);
+
 #endif
 

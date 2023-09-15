@@ -38,10 +38,8 @@ long str_hex_to_int(char *str)
         if (c == 'x' || c == 'X') break;
 
         t += ex(16, count++) * d;
-
-        // printf("len = %d count=%d e=%d d=%d\n",len,  count, ex(16, count), d);
     }
-    printf("str_hex_to_int, str:%s, value:%lx\n", str, t);
+    // printf("str_hex_to_int, str:%s, value:%lx\n", str, t);
 
     return t;
 }

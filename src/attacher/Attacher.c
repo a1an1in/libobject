@@ -11,12 +11,25 @@
 extern void *my_malloc(int size);
 extern int my_free(void *addr);
 
+static int tree_node_free_callback(allocator_t *allocator, void *value)
+{
+    interval_tree_node_t *t = (interval_tree_node_t *)value;
+    allocator_mem_free(allocator, t->value);
+    allocator_mem_free(allocator, t);
+    return 0;
+}
+
 static int __construct(Attacher *attacher, char *init_str)
 {
+    Interval_Tree *tree;
+
     attacher->map = object_new(attacher->parent.allocator, "RBTree_Map", NULL);
     attacher->map->set_cmp_func(attacher->map, string_key_cmp_func);
 
     attacher->tree = object_new(attacher->parent.allocator, "Interval_Tree", NULL);
+    tree = attacher->tree;
+    tree->set_trustee(tree, VALUE_TYPE_STRUCT_POINTER, tree_node_free_callback);
+
     return 0;
 }
 
@@ -180,10 +193,8 @@ static long __call(Attacher *attacher, void *addr, attacher_paramater_t pars[], 
     TRY {
         /* 1.get module name */
         dbg_str(DBG_VIP, "call addr:%p", addr);
-        /* the can be optimized by searching data base, which contain
-         * function address space parsed from dl maps
-         */
-        dl_get_dynamic_name(-1, addr, module_name, 64);
+        // dl_get_dynamic_name(-1, addr, module_name, 64);  //old func for get dynamic lib name. it'll do searching every time.
+        EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
         dbg_str(DBG_VIP, "module name:%s", module_name);
 
         /* 2. get funtion name */
@@ -226,32 +237,47 @@ static stub_t *__alloc_stub(Attacher *attacher)
     return attacher->call_from_lib(attacher, "stub_alloc", NULL, 0, "libobject-stub.so");
 }
 
-static int __add_stub_hooks(Attacher *attacher, stub_t *stub, void *func, void *pre, void *new_fn, void *post, int para_count)
+static int 
+__add_stub_hooks(Attacher *attacher, stub_t *stub, void *func, void *pre, void *new_fn, 
+                 void *post, int para_count)
 {
     void *addr;
+    char module_name[64] = {0};
+    int ret;
     attacher_paramater_t pars[6] = {{stub, 0}, {NULL, 0},
                                     {NULL, 0}, {NULL, 0},
                                     {NULL, 0}, {para_count, 0}};
 
-    if (func != NULL) {
-        func = attacher->get_function_address(attacher, func, "libobject-testlib.so");
-        printf("stub func addr:%p\n", func);
-        pars[1].value = func;
-    }
-    if (pre != NULL) {
-        pre = attacher->get_function_address(attacher, pre, "libobject-testlib.so");
-        pars[2].value = pre;
-    }
-    if (new_fn != NULL) {
-        new_fn = attacher->get_function_address(attacher, new_fn, "libobject-testlib.so");
-        pars[3].value = new_fn;
-    }
-    if (post != NULL) {
-        post = attacher->get_function_address(attacher, post, "libobject-testlib.so");
-        pars[4].value = post;
-    }
+    TRY {
+        if (func != NULL) {
+            EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, func, module_name, 64));
+            func = attacher->get_function_address(attacher, func, module_name);
+            printf("stub func addr:%p\n", func);
+            pars[1].value = func;
+        }
+        if (pre != NULL) {
+            memset(module_name, 0, 64);
+            EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, pre, module_name, 64));
+            pre = attacher->get_function_address(attacher, pre, module_name);
+            pars[2].value = pre;
+        }
+        if (new_fn != NULL) {
+            memset(module_name, 0, 64);
+            EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, new_fn, module_name, 64));
+            new_fn = attacher->get_function_address(attacher, new_fn, module_name);
+            pars[3].value = new_fn;
+        }
+        if (post != NULL) {
+            memset(module_name, 0, 64);
+            EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, post, module_name, 64));
+            post = attacher->get_function_address(attacher, post, module_name);
+            pars[4].value = post;
+        }
+        
+        EXEC(attacher->call_from_lib(attacher, "stub_add_hooks", pars, 6, "libobject-stub.so"));
+    } CATCH (ret) {} FINALLY {}
     
-    return attacher->call_from_lib(attacher, "stub_add_hooks", pars, 6, "libobject-stub.so");
+    return ret;
 }
 
 static int __remove_stub_hooks(Attacher *attacher, stub_t *stub)
@@ -284,6 +310,7 @@ static int __init(Attacher *attacher)
        
         EXEC(attacher->call_from_lib(attacher, "execute_ctor_funcs", NULL, 0, "libobject-core.so"));
         EXEC(attacher->call_from_lib(attacher, "stub_admin_init_default_instance", NULL, 0, "libobject-stub.so"));
+        EXEC(dl_parse_dynamic_table(-1, attacher->tree));
     } CATCH (ret) {} FINALLY {}
 
     return ret;
