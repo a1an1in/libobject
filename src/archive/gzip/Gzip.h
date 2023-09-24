@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 #include <libobject/archive/Archive.h>
+#include <libobject/compress/Compress.h>
 
 typedef struct Gzip_s Gzip;
 
@@ -17,6 +18,10 @@ struct Gzip_s {
     int (*set)(Gzip *, char *attrib, void *value);
     void *(*get)(Gzip *, char *attrib);
     char *(*to_json)(Gzip *); 
+    int (*compress)(Gzip *c, char *file_in, char *file_out);
+    int (*uncompress)(Gzip *c, char *file_in, char *file_out);
+
+    Compress *c;
 };
 
 #endif

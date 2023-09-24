@@ -8,19 +8,19 @@
 
 static int test_gzip(TEST_ENTRY *entry, int argc, void **argv)
 {
-    int ret;
+    int fd, ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
+    char buf[65536];
+    char *src_file = "/home/alan/workspace/libobject/res/test.txt.gz";
+    char *dst_file = "/home/alan/workspace/libobject/res/test.txt";
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
-        dbg_str(DBG_VIP, "argc:%d", argc);
-        for (int i = 0; i < argc; i++) {
-            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
-        }
-        THROW_IF(argc != 2, -1);
+        dbg_str(DBG_SUC, "test_gzip start ...");
 
         archive = object_new(allocator, "Gzip", NULL);
+        THROW_IF(archive == NULL, -1);
+        EXEC(archive->uncompress(archive, src_file, dst_file));
 
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);

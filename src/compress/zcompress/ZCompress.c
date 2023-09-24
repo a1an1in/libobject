@@ -5,7 +5,10 @@
  * @version 
  * @date 2023-01-09
  */
-
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <libobject/core/io/File.h>
 #include "ZCompress.h"
 
  static int __deflate_buf(ZCompress *c, char *in, int in_len, char *out, int *out_len)
@@ -34,9 +37,37 @@
     return -1;
  }
 
- static int __inflate_file(ZCompress *c, char *file_in, char *file_out)
+ static int __inflate_file(ZCompress *c, char *file_name_in, char *file_name_out)
  {
-    return -1;
+    int ret, in_size, out_size;
+    File *in_file, *out_file;
+    allocator_t *allocator = c->parent.parent.allocator;
+    char *in_buffer, *out_buffer;
+
+    TRY {
+      in_file = object_new(allocator, "File", NULL);
+      out_file = object_new(allocator, "File", NULL);
+
+      in_file->open(in_file, file_name_in, "r+");
+      in_size = in_file->get_size(in_file);
+      dbg_str(DBG_VIP, "inflate_file, file size:%d", in_size);
+
+      in_buffer = allocator_mem_alloc(allocator, in_size);
+      out_buffer = allocator_mem_alloc(allocator, in_size * 2);
+
+      in_file->read(in_file, in_buffer, in_size);
+      c->inflate_buf(c, in_buffer, in_size, out_buffer, &out_size);
+      
+      out_file->open(out_file, file_name_out, "w+");
+      out_file->write(out_file, out_buffer, out_size);
+    } CATCH (ret) {} FINALLY {
+      allocator_mem_free(allocator, in_buffer);
+      allocator_mem_free(allocator, out_buffer);
+      object_destroy(in_file);
+      object_destroy(out_file);
+    }
+
+    return ret;
  }
 
 static class_info_entry_t zcompress_class_info[] = {

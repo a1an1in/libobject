@@ -21,6 +21,7 @@ macro (set_cmake_evironment_variable)
         -Wl,--whole-archive
             object-tests
             object-cmds
+            object-archive 
             object-compress 
             object-scripts 
             object-attacher 

@@ -1,8 +1,8 @@
-[update:archive] initiate archive.
+[update:archive] update, but haven't debugged.
 
 Description:
 update.
 
 Major Changes:
-1. add archive template
+1. update codes
 

@@ -16,6 +16,8 @@ struct Archive_s{
     int (*set)(Archive *archive, char *attrib, void *value);
     void *(*get)(Archive *, char *attrib);
     char *(*to_json)(Archive *); 
+    int (*compress)(Archive *c, char *file_in, char *file_out);
+    int (*uncompress)(Archive *c, char *file_in, char *file_out);
 };
 
 #endif

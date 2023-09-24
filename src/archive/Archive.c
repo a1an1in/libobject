@@ -22,7 +22,9 @@ static class_info_entry_t archive_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
     Init_Nfunc_Entry(1, Archive, construct, __construct),
     Init_Nfunc_Entry(2, Archive, deconstruct, __deconstruct),
-    Init_End___Entry(3, Archive),
+    Init_Vfunc_Entry(3, Archive, compress, NULL),
+    Init_Vfunc_Entry(4, Archive, uncompress, NULL),
+    Init_End___Entry(5, Archive),
 };
 REGISTER_CLASS("Archive", archive_class_info);
 
