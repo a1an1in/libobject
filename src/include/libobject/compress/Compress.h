@@ -13,10 +13,10 @@ struct Compress_s{
     int (*deconstruct)(Compress *);
 
     /*virtual methods reimplement*/
-    int (*deflate_buf)(Compress *c, char *in, int in_len, char *out, int *out_len);
-    int (*inflate_buf)(Compress *c, char *in, int in_len, char *out, int *out_len);
-    int (*deflate_file)(Compress *c, char *file_in, char *file_out);
-    int (*inflate_file)(Compress *c, char *file_in, char *file_out);
+    int (*compress_buf)(Compress *c, char *in, int in_len, char *out, int *out_len);
+    int (*uncompress_buf)(Compress *c, char *in, int in_len, char *out, int *out_len);
+    int (*compress_file)(Compress *c, char *file_in, char *file_out);
+    int (*uncompress_file)(Compress *c, char *file_in, char *file_out);
 };
 
 #endif

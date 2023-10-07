@@ -14,10 +14,10 @@ struct ZCompress_s{
     int (*deconstruct)(ZCompress *);
 
     /*virtual methods reimplement*/
-    int (*deflate_buf)(ZCompress *c, char *in, int in_len, char *out, int *out_len);
-    int (*inflate_buf)(ZCompress *c, char *in, int in_len, char *out, int *out_len);
-    int (*deflate_file)(ZCompress *c, char *file_in, char *file_out);
-    int (*inflate_file)(ZCompress *c, char *file_in, char *file_out);
+    int (*compress_buf)(ZCompress *c, char *in, int in_len, char *out, int *out_len);
+    int (*uncompress_buf)(ZCompress *c, char *in, int in_len, char *out, int *out_len);
+    int (*compress_file)(ZCompress *c, char *file_in, char *file_out);
+    int (*uncompress_file)(ZCompress *c, char *file_in, char *file_out);
 };
 
 #endif

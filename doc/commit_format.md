@@ -1,8 +1,8 @@
-[update:archive] update, but haven't debugged.
+[update:compress] add gz compress.
 
 Description:
-update.
+gz inflate test has passed.
 
 Major Changes:
-1. update codes
+1. add gz compress
 

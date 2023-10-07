@@ -12,7 +12,7 @@ static int __construct(Gzip *gzip, char *init_str)
     allocator_t *allocator = gzip->parent.parent.allocator;
 
     dbg_str(DBG_VIP, "run at here");
-    gzip->c = object_new(allocator, "ZCompress", NULL);
+    gzip->c = object_new(allocator, "GZCompress", NULL);
     if (gzip->c == NULL) return -1;
 
     return 1;
@@ -32,7 +32,7 @@ static int __deconstruct(Gzip *gzip)
     TRY {
         dbg_str(DBG_VIP, "run at here");
         THROW_IF((c = gzip->c), -1);
-        EXEC(c->deflate_file(c, file_in, file_out));
+        EXEC(c->compress_file(c, file_in, file_out));
     } CATCH(ret) { } FINALLY {};
 
     return ret;
@@ -46,7 +46,7 @@ static int __deconstruct(Gzip *gzip)
     TRY {
         dbg_str(DBG_VIP, "run at here");
         THROW_IF((c = gzip->c), -1);
-        EXEC(c->inflate_file(c, file_in, file_out));
+        EXEC(c->uncompress_file(c, file_in, file_out));
     } CATCH(ret) { } FINALLY {};
 
     return ret;
