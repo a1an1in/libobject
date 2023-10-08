@@ -17,23 +17,43 @@
 
 /* ref to https://blog.csdn.net/chary8088/article/details/48047835/ */
 
- static int __compress_buf(GZCompress *c, char *in, int in_len, char *out, int *out_len)
- {
-    int ret;
+int __compress_buf(GZCompress *c, Bytef *in, uLong in_len, Bytef *out, uLong *out_len)
+{
+  int err = 0, ret;
+  z_stream c_stream = {0};
 
-    TRY {
-      THROW_IF(compressBound(in_len) > *out_len, -1);
-      EXEC(compress(out, out_len, in, in_len));
+  TRY {
+    THROW_IF(in == NULL || in_len <= 0, -1);
+    c_stream.next_in = in;
+    c_stream.avail_in = in_len;
+    c_stream.next_out = out;
+    c_stream.avail_out = *out_len;
 
-    } CATCH (ret) {
-       dbg_str(DBG_ERROR, "in_len:%d, out_len:%d, compressBound(in_len):%d", 
-               in_len, *out_len, compressBound(in_len));
+    // use parm 'MAX_WBITS+16' so that gzip headers are contained
+    THROW_IF(deflateInit2(&c_stream, Z_DEFAULT_COMPRESSION, 
+                          Z_DEFLATED, MAX_WBITS + 16, 8, 
+                          Z_DEFAULT_STRATEGY) != Z_OK, -1);
+    
+    while (c_stream.avail_in != 0 && c_stream.total_out < *out_len) {
+      THROW_IF(deflate(&c_stream, Z_NO_FLUSH) != Z_OK, -1);
     }
 
-    return ret;
- }
+    THROW_IF(c_stream.avail_in != 0, -1);
 
-int __uncompress_buf(GZCompress *c, char *in, int in_len, char *out, int *out_len)
+    for (; ;) {
+      if ((err = deflate(&c_stream, Z_FINISH)) == Z_STREAM_END) break;
+      THROW_IF(err != Z_OK, -1);
+    }
+
+    THROW_IF(deflateEnd(&c_stream) != Z_OK, -1);
+
+    *out_len = c_stream.total_out;
+  } CATCH(ret) {} FINALLY {}
+
+  return ret;
+}
+
+static int __uncompress_buf(GZCompress *c, char *in, int in_len, char *out, int *out_len)
 {
     int err = 0;
     z_stream d_stream = {0}; /* decompression stream */
@@ -66,12 +86,42 @@ int __uncompress_buf(GZCompress *c, char *in, int in_len, char *out, int *out_le
 
     if (inflateEnd(&d_stream) != Z_OK) return -1;
     *out_len = d_stream.total_out;
-    return 0;
+    return 1;
 }
 
  static int __compress_file(GZCompress *c, char *file_in, char *file_out)
  {
-    return -1;
+    int ret, in_size, out_size;
+    File *in_file, *out_file;
+    allocator_t *allocator = c->parent.parent.allocator;
+    char *in_buffer, *out_buffer;
+
+    TRY {
+      in_file = object_new(allocator, "File", NULL);
+      out_file = object_new(allocator, "File", NULL);
+
+      in_file->open(in_file, file_in, "r+");
+      in_size = in_file->get_size(in_file);
+      out_size = 4 * in_size;
+      dbg_str(DBG_VIP, "compress_file, file size:%d", in_size);
+
+      in_buffer = allocator_mem_zalloc(allocator, in_size);
+      out_buffer = allocator_mem_zalloc(allocator, out_size);
+
+      in_file->read(in_file, in_buffer, in_size);
+      c->compress_buf(c, in_buffer, in_size, out_buffer, &out_size);
+      dbg_str(DBG_VIP, "compress_file, out file size:%d", out_size);
+      
+      out_file->open(out_file, file_out, "w+");
+      out_file->write(out_file, out_buffer, out_size);
+    } CATCH (ret) {} FINALLY {
+      allocator_mem_free(allocator, in_buffer);
+      allocator_mem_free(allocator, out_buffer);
+      object_destroy(in_file);
+      object_destroy(out_file);
+    }
+
+    return ret;
  }
 
  static int __uncompress_file(GZCompress *c, char *file_name_in, char *file_name_out)
