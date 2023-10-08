@@ -15,9 +15,11 @@
 #include "zlib.h"
 #include "GZCompress.h"
 
-/* ref to https://blog.csdn.net/chary8088/article/details/48047835/ */
+extern int gz_compress(FILE *source, FILE *dest);
+extern int gz_uncompress(FILE *source, FILE *dest);
 
-int __compress_buf(GZCompress *c, Bytef *in, uLong in_len, Bytef *out, uLong *out_len)
+/* ref to https://blog.csdn.net/chary8088/article/details/48047835/ */
+static int __compress_buf(GZCompress *c, char *in, int in_len, char *out, int *out_len)
 {
   int err = 0, ret;
   z_stream c_stream = {0};
@@ -99,24 +101,10 @@ static int __uncompress_buf(GZCompress *c, char *in, int in_len, char *out, int 
     TRY {
       in_file = object_new(allocator, "File", NULL);
       out_file = object_new(allocator, "File", NULL);
-
       in_file->open(in_file, file_in, "r+");
-      in_size = in_file->get_size(in_file);
-      out_size = 4 * in_size;
-      dbg_str(DBG_VIP, "compress_file, file size:%d", in_size);
-
-      in_buffer = allocator_mem_zalloc(allocator, in_size);
-      out_buffer = allocator_mem_zalloc(allocator, out_size);
-
-      in_file->read(in_file, in_buffer, in_size);
-      c->compress_buf(c, in_buffer, in_size, out_buffer, &out_size);
-      dbg_str(DBG_VIP, "compress_file, out file size:%d", out_size);
-      
       out_file->open(out_file, file_out, "w+");
-      out_file->write(out_file, out_buffer, out_size);
+      EXEC(gz_compress(in_file->f, out_file->f));
     } CATCH (ret) {} FINALLY {
-      allocator_mem_free(allocator, in_buffer);
-      allocator_mem_free(allocator, out_buffer);
       object_destroy(in_file);
       object_destroy(out_file);
     }
@@ -136,20 +124,9 @@ static int __uncompress_buf(GZCompress *c, char *in, int in_len, char *out, int 
       out_file = object_new(allocator, "File", NULL);
 
       in_file->open(in_file, file_name_in, "r+");
-      in_size = in_file->get_size(in_file);
-      dbg_str(DBG_VIP, "uncompress_file, file size:%d", in_size);
-
-      in_buffer = allocator_mem_alloc(allocator, in_size);
-      out_buffer = allocator_mem_alloc(allocator, in_size * 2);
-
-      in_file->read(in_file, in_buffer, in_size);
-      c->uncompress_buf(c, in_buffer, in_size, out_buffer, &out_size);
-      
       out_file->open(out_file, file_name_out, "w+");
-      out_file->write(out_file, out_buffer, out_size);
+      EXEC(gz_uncompress(in_file->f, out_file->f));
     } CATCH (ret) {} FINALLY {
-      allocator_mem_free(allocator, in_buffer);
-      allocator_mem_free(allocator, out_buffer);
       object_destroy(in_file);
       object_destroy(out_file);
     }

@@ -1,8 +1,8 @@
-[update:compress] add gz compress.
+[update:compress] gzip is ok.
 
 Description:
-compress is passed..
+i imported gz_compress from zpipe.c of zlib and
+gzip test have passed.
 
 Major Changes:
-1. add gz compress
-
+1. add gzip.c
