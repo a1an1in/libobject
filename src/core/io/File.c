@@ -45,6 +45,9 @@ static int __deconstruct(File *file)
     if (file->name) {
         object_destroy(file->name);
     }
+    if (file->f != NULL) {
+        file->close(file);
+    }
 
     return 0;
 }
@@ -109,7 +112,12 @@ static int __mkdir(File *file, char *path, mode_t mode)
 
 static int __close(File *file)
 {
-    return fclose(file->f);
+    if (file->f == NULL) return ;
+
+    fclose(file->f);
+    file->f = NULL;
+
+    return 0;
 }
 
 static int __get_size(File *file)

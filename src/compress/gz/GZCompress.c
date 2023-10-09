@@ -19,6 +19,10 @@ extern int gz_compress(FILE *source, FILE *dest);
 extern int gz_uncompress(FILE *source, FILE *dest);
 
 /* ref to https://blog.csdn.net/chary8088/article/details/48047835/ */
+/* 因为不能把文件分段压缩， 所以这个buf压缩接口其实就是压缩整个文件了， 这个
+ * 函数内部有没有对buffer大小做分片除了， 所以就不使用这个接口， 保留下来以供
+ * 后面学习使用， 接口使用是没有问题的， 但是不建议使用，请直接使用compress_file。
+ **/
 static int __compress_buf(GZCompress *c, char *in, int in_len, char *out, int *out_len)
 {
   int err = 0, ret;
@@ -93,16 +97,16 @@ static int __uncompress_buf(GZCompress *c, char *in, int in_len, char *out, int 
 
  static int __compress_file(GZCompress *c, char *file_in, char *file_out)
  {
-    int ret, in_size, out_size;
     File *in_file, *out_file;
     allocator_t *allocator = c->parent.parent.allocator;
-    char *in_buffer, *out_buffer;
+    int ret;
 
     TRY {
       in_file = object_new(allocator, "File", NULL);
       out_file = object_new(allocator, "File", NULL);
       in_file->open(in_file, file_in, "r+");
       out_file->open(out_file, file_out, "w+");
+
       EXEC(gz_compress(in_file->f, out_file->f));
     } CATCH (ret) {} FINALLY {
       object_destroy(in_file);
@@ -112,19 +116,18 @@ static int __uncompress_buf(GZCompress *c, char *in, int in_len, char *out, int 
     return ret;
  }
 
- static int __uncompress_file(GZCompress *c, char *file_name_in, char *file_name_out)
+ static int __uncompress_file(GZCompress *c, char *file_in, char *file_out)
  {
-    int ret, in_size, out_size;
     File *in_file, *out_file;
     allocator_t *allocator = c->parent.parent.allocator;
-    char *in_buffer, *out_buffer;
+    int ret;
 
     TRY {
       in_file = object_new(allocator, "File", NULL);
       out_file = object_new(allocator, "File", NULL);
-
-      in_file->open(in_file, file_name_in, "r+");
-      out_file->open(out_file, file_name_out, "w+");
+      in_file->open(in_file, file_in, "r+");
+      out_file->open(out_file, file_out, "w+");
+    
       EXEC(gz_uncompress(in_file->f, out_file->f));
     } CATCH (ret) {} FINALLY {
       object_destroy(in_file);
