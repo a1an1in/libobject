@@ -266,7 +266,7 @@ static String * __insert(String *self, int offset, char *cstr)
     memmove(self->value + offset, cstr, strlen(cstr));
 
     self->value_len += len;
-    self->value[self->value_len] = '\0';     
+    self->value[self->value_len] = '\0';
 
 end:
     return self;

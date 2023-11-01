@@ -1,7 +1,7 @@
-[update:compress] initiate zip.
+[update:tar] support extract one file for tar.
 
 Description:
 update
 
 Major Changes:
-1. update
+1. implement extract, but havn't finished completely.

@@ -11,8 +11,8 @@ static int test_fs_list(TEST_ENTRY *entry)
 
     TRY {
         count = fs_count_list(test_path);
-        THROW_IF(count < 0, -1);
-
+        THROW_IF(count <= 0, -1);
+        
         list = allocator_mem_alloc(allocator, count * 20);
         count = fs_list(test_path, (char **)list, count, 20);
         THROW_IF(count < 0, -1);
@@ -22,7 +22,7 @@ static int test_fs_list(TEST_ENTRY *entry)
         }
 
         SET_CATCH_INT_PARS(count, 0);
-        THROW_IF(count != 9, -1);
+        THROW_IF(count != 12, -1);
     } CATCH (ret) {} FINALLY {
         allocator_mem_free(allocator, list);
     }

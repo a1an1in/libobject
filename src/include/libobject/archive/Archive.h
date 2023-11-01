@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
+#include <libobject/core/String.h>
+#include <libobject/core/io/File.h>
 
 typedef struct Archive_s Archive;
 
@@ -18,6 +20,19 @@ struct Archive_s{
     char *(*to_json)(Archive *); 
     int (*compress)(Archive *c, char *file_in, char *file_out);
     int (*uncompress)(Archive *c, char *file_in, char *file_out);
+    int (*open)(Archive *a, char *archive_name);
+	int (*close)(Archive *a);
+    int (*extract)(Archive *a);
+    int (*add_file)(Archive *a, char *file_name);
+    int (*put)(Archive *a);
+    int (*set_path)(Archive *a, char *path);
+    int (*set_wildchard)(Archive *archive, char *wildchard);
+
+    String *path;
+    String *wildchard; 
+    File *file;
+    char **file_list;
+    int file_count;
 };
 
 #endif
