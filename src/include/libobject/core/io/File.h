@@ -27,6 +27,7 @@ struct file_s{
     int (*is_exist)(File *file, char *path);
     int (*mkdir)(File *file, char *path, mode_t mode);
     int (*get_size)(File *file);
+    int (*seek)(File *file, long offset, int from);
 
     /*attribs*/
     String *name;

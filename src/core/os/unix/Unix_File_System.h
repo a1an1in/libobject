@@ -22,6 +22,7 @@ struct unix_file_system_s{
     int (*is_directory)(Unix_File_System *fs, char *name);
     int (*get_mtime)(Unix_File_System *fs, char *path, char *time, int time_max_len);
     int (*get_size)(Unix_File_System *fs, char *path);
+    int (*mkdir)(Unix_File_System *fs, char *path, mode_t mode);
 };
 
 #endif

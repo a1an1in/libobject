@@ -57,3 +57,8 @@ int fs_get_size(char *path)
 {
     return TRY_EXEC(globle_file_system->get_size(globle_file_system, path));
 }
+
+int fs_mkdir(char *path, mode_t mode)
+{
+    return TRY_EXEC(globle_file_system->mkdir(globle_file_system, path, mode));
+}

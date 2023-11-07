@@ -22,6 +22,7 @@ struct windows_file_system_s{
     int (*is_directory)(Windows_File_System *fs, char *name);
     int (*get_mtime)(Windows_File_System *fs, char *path, char *time, int time_max_len);
     int (*get_size)(Windows_File_System *fs, char *path);
+    int (*mkdir)(Windows_File_System *fs, char *path, mode_t mode);
 };
 
 #endif

@@ -58,6 +58,7 @@ static int __extract(Tar *tar)
 
             dbg_str(DBG_VIP, "filename:%s, len:%d", header->name, len);
             if(header->typeflag == '5') {
+                fs_mkdir(header->name, 0777);
                 continue;
             }
             // name->assign(name, path->get_cstr(path));
@@ -69,8 +70,12 @@ static int __extract(Tar *tar)
             while (len) {
                 read_len = min(512, len);
                 EXEC(a->read(a, buf, read_len));
-                EXEC(file->write(file, buf, read_len));
+                EXEC(ret = file->write(file, buf, read_len));
+                THROW_IF(ret != read_len, -1);  // TODO: need optimize later
                 len -= read_len;
+                if (read_len < 512) {
+                    a->seek(a, 512 - read_len, SEEK_CUR);
+                }
             }
             EXEC(file->close(file));
         }

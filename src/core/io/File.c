@@ -61,7 +61,12 @@ static int __open(File *file, char *path, char *mode)
         file->f = fopen(path, mode);
         THROW_IF(file->f == NULL, -1);
 
-        file->name = (String *)object_new(allocator, (char *)"String", NULL);
+        if (file->name == NULL) {
+            file->name = (String *)object_new(allocator, (char *)"String", NULL);
+        } else {
+            file->name->reset(file->name);
+        }
+        
         THROW_IF(file->name == NULL, -1);
         file->name->assign(file->name, path);
     } CATCH (ret) {
@@ -135,6 +140,11 @@ static int __get_size(File *file)
     return ret;
 }
 
+int __seek(File *file, long offset, int from)
+{
+    return fseek(file->f, offset, from);
+}
+
 static class_info_entry_t file_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , File, construct, __construct),
@@ -149,7 +159,8 @@ static class_info_entry_t file_class_info[] = {
     Init_Vfunc_Entry(10, File, mkdir, __mkdir),
     Init_Vfunc_Entry(11, File, close, __close),
     Init_Vfunc_Entry(12, File, get_size, __get_size),
-    Init_End___Entry(13, File),
+    Init_Vfunc_Entry(13, File, seek, __seek),
+    Init_End___Entry(14, File),
 };
 REGISTER_CLASS("File", file_class_info);
 
