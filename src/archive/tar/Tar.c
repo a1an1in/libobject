@@ -28,9 +28,68 @@ static int __deconstruct(Tar *tar)
     return 0;
 }
 
+static int add_check_sum(struct posix_tar_header *header) 
+{
+	int n, u = 0;
+
+    memcpy(header->chksum, "        ", 8);
+
+	for (n = 0; n < 512; ++n) {
+		if (n < 148 || n > 155)
+			/* Standard tar checksum adds unsigned bytes. */
+			u += ((unsigned char*)header)[n];
+		else
+			u += 0x20;
+	}
+	sprintf(header->chksum, "%06o", u);
+
+    return 0;
+}
+
 static int __add_file(Tar *tar, char *file_name)
 {
+    int ret, size;
+    Archive *archive = (Archive *)&tar->parent;
+    File *a = archive->file, *file = tar->file;
+    struct posix_tar_header *header;
+    char buffer[1024] = {0};
 
+    TRY {
+        dbg_str(DBG_VIP, "add_file, name:%s", file_name);
+        dbg_str(DBG_VIP, "tar name:%s", a->name->get_cstr(a->name));
+        EXEC(size = a->get_size(a));
+        dbg_str(DBG_VIP, "tar file size:%d", size);
+        if (size == 0) {
+            EXEC(a->write(a, buffer, sizeof(buffer))); //write tail.
+        }
+
+        memset(buffer, 0, sizeof(buffer));
+        header = buffer;
+        /* add file name*/
+        snprintf(header->name, sizeof(header->name), "%s", file_name);
+        dbg_buf(DBG_VIP, "file name:", header->name, 50);
+
+        /* add file size*/
+        size = fs_get_size(file_name);
+        snprintf(header->size, sizeof(header->size), "%011o", size);
+        dbg_buf(DBG_VIP, "file size:", header->size, 12);
+
+        /* add magic*/
+        memcpy(header->magic, "ustar  ", 8);
+
+        /* add mode */
+        sprintf(header->mode, "%07d", 777);
+
+        /* add checksum */
+        add_check_sum(header);
+
+        a->seek(a, 1024, SEEK_END);
+        EXEC(a->write(a, header, 512)); 
+
+        // EXEC(file->open(file, name->get_cstr(name), "w+"));
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static int __extract(Tar *tar)

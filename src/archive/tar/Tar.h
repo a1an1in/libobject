@@ -19,8 +19,7 @@ struct posix_tar_header
 	char chksum[8];
 	char typeflag;
 	char linkname[100];
-	char magic[6];
-	char version[2];
+	char magic[8];
 	char uname[32];
 	char gname[32];
 	char devmajor[8];

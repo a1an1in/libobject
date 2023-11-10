@@ -1,9 +1,7 @@
-[update:tar] support extract one file and subdir for tar.
+[update:tar] update code for add file to tar.
 
 Description:
 update
 
 Major Changes:
-1. add fs_mkdir.
-2. add File::seek.
-3. support extract subdir for tar.
+1. update.
