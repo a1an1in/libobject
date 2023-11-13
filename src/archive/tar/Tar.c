@@ -28,39 +28,40 @@ static int __deconstruct(Tar *tar)
     return 0;
 }
 
-static int add_check_sum(struct posix_tar_header *header) 
+static int add_check_sum(struct posix_tar_header *header)
 {
-	int n, u = 0;
+    int n, u = 0;
 
     memcpy(header->chksum, "        ", 8);
 
-	for (n = 0; n < 512; ++n) {
-		if (n < 148 || n > 155)
-			/* Standard tar checksum adds unsigned bytes. */
-			u += ((unsigned char*)header)[n];
-		else
-			u += 0x20;
-	}
-	sprintf(header->chksum, "%06o", u);
+    for (n = 0; n < 512; ++n) {
+        if (n < 148 || n > 155)
+            /* Standard tar checksum adds unsigned bytes. */
+            u += ((unsigned char*)header)[n];
+        else
+            u += 0x20;
+    }
+    sprintf(header->chksum, "%06o", u);
 
     return 0;
 }
 
 static int __add_file(Tar *tar, char *file_name)
 {
-    int ret, size;
+    int ret, size, read_size;
     Archive *archive = (Archive *)&tar->parent;
     File *a = archive->file, *file = tar->file;
     struct posix_tar_header *header;
     char buffer[1024] = {0};
 
     TRY {
+        memset(buffer, 0, sizeof(buffer));
         dbg_str(DBG_VIP, "add_file, name:%s", file_name);
         dbg_str(DBG_VIP, "tar name:%s", a->name->get_cstr(a->name));
         EXEC(size = a->get_size(a));
         dbg_str(DBG_VIP, "tar file size:%d", size);
-        if (size == 0) {
-            EXEC(a->write(a, buffer, sizeof(buffer))); //write tail.
+        if (size != 0) {
+            a->seek(a, -1024, SEEK_END);
         }
 
         memset(buffer, 0, sizeof(buffer));
@@ -82,11 +83,21 @@ static int __add_file(Tar *tar, char *file_name)
 
         /* add checksum */
         add_check_sum(header);
+        
+        EXEC(a->write(a, header, 512));
 
-        a->seek(a, 1024, SEEK_END);
-        EXEC(a->write(a, header, 512)); 
+        /* write file */
+        EXEC(file->open(file, file_name, "r+"));
+        while (size > 0) {
+            memset(buffer, 0, 512);
+            read_size = size >= 512 ? 512 : size;
+            file->read(file, buffer, read_size);
+            a->write(a, buffer, 512);
+            size -= read_size;
+        }
 
-        // EXEC(file->open(file, name->get_cstr(name), "w+"));
+        memset(buffer, 0, sizeof(buffer));
+        EXEC(a->write(a, buffer, sizeof(buffer))); //write tail.
     } CATCH (ret) {}
 
     return ret;

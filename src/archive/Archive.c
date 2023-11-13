@@ -30,7 +30,7 @@ static int __open(Archive *archive, char *archive_name)
 {
     File *file = archive->file;
 
-    return TRY_EXEC(file->open(file, archive_name, "wb+"));
+    return TRY_EXEC(file->open(file, archive_name, "w+"));
 }
 
 static int __close(Archive *archive)

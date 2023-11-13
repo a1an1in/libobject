@@ -1,4 +1,4 @@
-[update:tar] update code for add file to tar.
+[update:tar] support add a file to tar.
 
 Description:
 update
