@@ -31,8 +31,8 @@ static int test_zip_uncompress_file(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Compress *c;
     char buf[65536];
-    char *src_file = "/home/alan/workspace/libobject/res/test_zip.zip";
-    char *dst_file = "/home/alan/workspace/libobject/res/test_zip.txt";
+    char *src_file = "./tests/res/test_zip.zip";
+    char *dst_file = "./tesst/res/test_zip.txt";
 
     TRY {
         dbg_str(DBG_SUC, "test_unzip start ...");

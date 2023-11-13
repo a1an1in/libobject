@@ -33,7 +33,7 @@ static int test_tar_extract(TEST_ENTRY *entry, int argc, void **argv)
 }
 REGISTER_TEST_CMD(test_tar_extract);
 
-static int test_tar_create(TEST_ENTRY *entry, int argc, void **argv)
+static int test_tar_add_files(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
@@ -50,10 +50,11 @@ static int test_tar_create(TEST_ENTRY *entry, int argc, void **argv)
         archive->set_path(archive, "./test/res/");
 
 		archive->add_file(archive, file1);
+        archive->add_file(archive, file2);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
     }
 
     return ret;
 }
-REGISTER_TEST_CMD(test_tar_create);
+REGISTER_TEST_CMD(test_tar_add_files);
