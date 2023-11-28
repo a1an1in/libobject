@@ -26,11 +26,11 @@ static int __deconstruct(Archive *archive)
     return 0;
 }
 
-static int __open(Archive *archive, char *archive_name)
+static int __open(Archive *archive, char *archive_name, char *mode)
 {
     File *file = archive->file;
 
-    return TRY_EXEC(file->open(file, archive_name, "w+"));
+    return TRY_EXEC(file->open(file, archive_name, mode));
 }
 
 static int __close(Archive *archive)
@@ -61,7 +61,12 @@ static int __get_file_list(Archive *archive, char *file_list, int num)
     String *p = archive->path;
 }
 
-static int __put(Archive *a)
+static int __add_files(Archive *a, char *file_list, int num)
+{
+
+}
+
+static int __add(Archive *a)
 {
 
 }
@@ -74,10 +79,13 @@ static class_info_entry_t archive_class_info[] = {
     Init_Vfunc_Entry(4 , Archive, close, __close),
     Init_Vfunc_Entry(5 , Archive, set_wildchard, __set_wildchard),
     Init_Vfunc_Entry(6 , Archive, set_path, __set_path),
-    Init_Vfunc_Entry(7 , Archive, extract, NULL),
-    Init_Vfunc_Entry(8 , Archive, add_file, NULL),
-    Init_Vfunc_Entry(9 , Archive, put, __put),
-    Init_End___Entry(10, Archive),
+    Init_Vfunc_Entry(7 , Archive, extract_file, NULL),
+    Init_Vfunc_Entry(8 , Archive, extract_files, NULL),
+    Init_Vfunc_Entry(9 , Archive, extract, NULL),
+    Init_Vfunc_Entry(10, Archive, add_file, NULL),
+    Init_Vfunc_Entry(11, Archive, add_files, __add_files),
+    Init_Vfunc_Entry(12, Archive, add, __add),
+    Init_End___Entry(13, Archive),
 };
 REGISTER_CLASS("Archive", archive_class_info);
 

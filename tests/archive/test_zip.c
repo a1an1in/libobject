@@ -10,51 +10,47 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/archive/Archive.h>
 
-static int test_zip_extract(TEST_ENTRY *entry, int argc, void **argv)
+static int test_zip_extract_file(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
-	char *src_file = "./tests/res/test_zip.zip";
-    char *dst_file = "./tests/res/test_zip.txt";
+	char *zip_file = "./tests/res/test_zip.zip";
+    char *file = "./tests/res/test_zip.txt";
 
     TRY {
         dbg_str(DBG_SUC, "test extract zip");
 
         archive = object_new(allocator, "Zip", NULL);
-		archive->open(archive, src_file);
-		archive->set_path(archive, "./test/res/");
-		archive->extract(archive);
+		archive->open(archive, zip_file, "r+");
+		archive->extract_file(archive, file);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
     }
 
     return ret;
 }
-REGISTER_TEST_CMD(test_zip_extract);
+REGISTER_TEST_CMD(test_zip_extract_file);
 
-static int test_zip_add_files(TEST_ENTRY *entry, int argc, void **argv)
+static int test_zip_add_file(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
-    char *file1 = "./tests/res/test_zip.txt";
-    char *file2 = "./tests/res/subdir/test.txt";
+    char *file = "./tests/res/test_zip.txt";
     char *tar_name = "./tests/res/test_zip.zip";
 
     TRY {
         dbg_str(DBG_SUC, "test add files to zip");
 
         archive = object_new(allocator, "Zip", NULL);
-		archive->open(archive, tar_name);
-        archive->set_path(archive, "./test/res/");
+		archive->open(archive, tar_name, "w+");
 
-		archive->add_file(archive, file1);
-        archive->add_file(archive, file2);
+		archive->add_file(archive, file);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
     }
 
     return ret;
 }
-REGISTER_TEST_CMD(test_zip_add_files);
+REGISTER_TEST_CMD(test_zip_add_file);

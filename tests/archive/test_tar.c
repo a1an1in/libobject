@@ -15,14 +15,14 @@ static int test_tar_extract(TEST_ENTRY *entry, int argc, void **argv)
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
-	char *src_file = "./tests/res/test.tar";
-    char *dst_file = "./tests/res/test_gzip.txt";
+	char *src_file = "./tests/res/test_extract.tar";
+    char *dst_file = "./tests/res/test_extract.txt";
 
     TRY {
         dbg_str(DBG_SUC, "test_tar");
 
         archive = object_new(allocator, "Tar", NULL);
-		archive->open(archive, src_file);
+		archive->open(archive, src_file, "r+");
 		archive->set_path(archive, "./test/res/");
 		archive->extract(archive);
     } CATCH (ret) { } FINALLY {
@@ -46,7 +46,7 @@ static int test_tar_add_files(TEST_ENTRY *entry, int argc, void **argv)
         dbg_str(DBG_SUC, "test_tar");
 
         archive = object_new(allocator, "Tar", NULL);
-		archive->open(archive, tar_name);
+		archive->open(archive, tar_name, "w+");
         archive->set_path(archive, "./test/res/");
 
 		archive->add_file(archive, file1);

@@ -20,11 +20,14 @@ struct Archive_s{
     char *(*to_json)(Archive *); 
     int (*compress)(Archive *c, char *file_in, char *file_out);
     int (*uncompress)(Archive *c, char *file_in, char *file_out);
-    int (*open)(Archive *a, char *archive_name);
+    int (*open)(Archive *a, char *archive_name, char *mode);
 	int (*close)(Archive *a);
+    int (*extract_file)(Archive *a, char *file_name);
+    int (*extract_files)(Archive *a, char *file_list, int num);
     int (*extract)(Archive *a);
     int (*add_file)(Archive *a, char *file_name);
-    int (*put)(Archive *a);
+    int (*add_files)(Archive *a, char *file_list, int num);
+    int (*add)(Archive *a);
     int (*set_path)(Archive *a, char *path);
     int (*set_wildchard)(Archive *archive, char *wildchard);
 

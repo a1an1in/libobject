@@ -17,6 +17,13 @@ struct Zip_s {
     int (*set)(Zip *, char *attrib, void *value);
     void *(*get)(Zip *, char *attrib);
     char *(*to_json)(Zip *); 
+    int (*extract_file)(Zip *, char *file_name);
+    int (*add_file)(Zip *, char *file_name);
+
+    File *file;
+	String *file_name;
+    uint64_t end_of_central_dir_position;
+    uint64_t central_dir_position;
 };
 
 #endif
