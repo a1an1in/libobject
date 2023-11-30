@@ -29,8 +29,19 @@ static int __deconstruct(Archive *archive)
 static int __open(Archive *archive, char *archive_name, char *mode)
 {
     File *file = archive->file;
+    int (*func)(Archive *archive, char *archive_name, char *mode);
+    int ret;
 
-    return TRY_EXEC(file->open(file, archive_name, mode));
+    TRY {
+        dbg_str(DBG_VIP, "Archive open file %s", archive_name);
+        EXEC(file->open(file, archive_name, mode));
+        func = object_get_progeny_first_normal_func(((Obj *)archive)->target_name, "Archive", "open");
+        if (func != NULL) {
+            EXEC(func(archive, archive_name, mode));
+        }
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static int __close(Archive *archive)
@@ -75,8 +86,8 @@ static class_info_entry_t archive_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Archive, construct, __construct),
     Init_Nfunc_Entry(2 , Archive, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3 , Archive, open, __open),
-    Init_Vfunc_Entry(4 , Archive, close, __close),
+    Init_Nfunc_Entry(3 , Archive, open, __open),
+    Init_Nfunc_Entry(4 , Archive, close, __close),
     Init_Vfunc_Entry(5 , Archive, set_wildchard, __set_wildchard),
     Init_Vfunc_Entry(6 , Archive, set_path, __set_path),
     Init_Vfunc_Entry(7 , Archive, extract_file, NULL),

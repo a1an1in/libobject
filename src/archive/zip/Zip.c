@@ -17,7 +17,7 @@ static int __construct(Zip *zip, char *init_str)
     zip->buffer = object_new(allocator, "Buffer", NULL);
 
     zip->central_dir_position = 0;
-    zip->end_of_central_dir_position = 0;
+    zip->central_dir_end_header_position = 0;
 
     return 0;
 }
@@ -35,7 +35,7 @@ static int __search_central_directory_end_header_position(Zip *zip, uint64_t *of
 {
     Archive *archive = (Archive *)&zip->parent;
     File *a = archive->file;
-    uint8_t buf[512]; // we assume the comment is less than 512 bytes.
+    uint8_t buf[512]; // TODO: we assume the comment is less than 512 bytes.
     Buffer *buffer = zip->buffer;
     uint8_t needle[4] = {0x50, 0x4b, 0x5, 0x6};
     uint8_t *addr;
@@ -72,16 +72,31 @@ static int __get_central_directory_end_header(Zip *zip)
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "end_of_central_dir_position:%lld", zip->end_of_central_dir_position);
-        a->seek(a, zip->end_of_central_dir_position, SEEK_SET);
+        dbg_str(DBG_VIP, "central_dir_end_header_position:%lld", zip->central_dir_end_header_position);
+        a->seek(a, zip->central_dir_end_header_position, SEEK_SET);
         a->read(a, (uint8_t *)header, sizeof(zip->central_directory_end_header));
         dbg_buf(DBG_VIP, "offset:", header, 22);
+
+        LE32_TO_CPU(header->central_directory_total_number);
+        LE32_TO_CPU(header->central_directory_size);
         LE32_TO_CPU(header->central_directory_start_offset);
         dbg_str(DBG_VIP, "central_directory_start_offset:%ld", header->central_directory_start_offset);
-        // a->read(a, (uint8_t *)buf, sizeof(zip->central_directory_end_header));
-        // dbg_buf(DBG_VIP, "offset:", buf, 22);
     } CATCH (ret) {}
     
+    return ret;
+}
+
+static int __open(Zip *zip, char *archive_name, char *mode)
+{
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "Zip open archive %s", archive_name);
+
+        EXEC(__search_central_directory_end_header_position(zip, &zip->central_dir_end_header_position));
+        EXEC(__get_central_directory_end_header(zip));
+    } CATCH (ret) {}
+
     return ret;
 }
 
@@ -94,10 +109,6 @@ static int __extract_file(Zip *zip, char *file_name)
 
     TRY {
         dbg_str(DBG_VIP, "zip extract_file, name:%s", file_name);
-        if (zip->end_of_central_dir_position == 0) {
-            EXEC(__search_central_directory_end_header_position(zip, &zip->end_of_central_dir_position));
-            EXEC(__get_central_directory_end_header(zip));
-        }
         
     } CATCH (ret) {}
 
@@ -113,9 +124,10 @@ static class_info_entry_t zip_class_info[] = {
     Init_Obj___Entry(0, Archive, parent),
     Init_Nfunc_Entry(1, Zip, construct, __construct),
     Init_Nfunc_Entry(2, Zip, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Zip, extract_file, __extract_file),
-    Init_Vfunc_Entry(4, Zip, add_file, __add_file),
-    Init_End___Entry(5, Zip),
+    Init_Nfunc_Entry(3, Zip, open, __open),
+    Init_Vfunc_Entry(4, Zip, extract_file, __extract_file),
+    Init_Vfunc_Entry(5, Zip, add_file, __add_file),
+    Init_End___Entry(6, Zip),
 };
 REGISTER_CLASS("Zip", zip_class_info);
 

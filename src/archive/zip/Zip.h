@@ -44,6 +44,7 @@ struct Zip_s {
 
     int (*construct)(Zip *, char *);
     int (*deconstruct)(Zip *);
+    int (*open)(Zip *zip, char *archive_name, char *mode);
 
     /*virtual methods reimplement*/
     int (*set)(Zip *, char *attrib, void *value);
@@ -55,7 +56,7 @@ struct Zip_s {
     File *file;
 	String *file_name;
     Buffer *buffer;
-    uint64_t end_of_central_dir_position;
+    uint64_t central_dir_end_header_position;
     uint64_t central_dir_position;
 
     zip_central_directory_end_header_t central_directory_end_header;

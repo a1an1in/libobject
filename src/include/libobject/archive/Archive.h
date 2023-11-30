@@ -13,6 +13,8 @@ struct Archive_s{
 
     int (*construct)(Archive *, char *);
     int (*deconstruct)(Archive *);
+    int (*open)(Archive *a, char *archive_name, char *mode);
+	int (*close)(Archive *a);
 
     /*virtual methods reimplement*/
     int (*set)(Archive *archive, char *attrib, void *value);
@@ -20,8 +22,6 @@ struct Archive_s{
     char *(*to_json)(Archive *); 
     int (*compress)(Archive *c, char *file_in, char *file_out);
     int (*uncompress)(Archive *c, char *file_in, char *file_out);
-    int (*open)(Archive *a, char *archive_name, char *mode);
-	int (*close)(Archive *a);
     int (*extract_file)(Archive *a, char *file_name);
     int (*extract_files)(Archive *a, char *file_list, int num);
     int (*extract)(Archive *a);
