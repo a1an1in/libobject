@@ -35,50 +35,58 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <libobject/core/utils/byteorder.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 
-
-int check_endian( )
-{
-    union w {  
-        int a;
-        char b;
-    } c;
-    c.a = 1;
-    return(c.b ==1);
-}
-
 static int test_check_endian(TEST_ENTRY *entry, void *argc, void *argv)
 {
-    if(check_endian()) {
-        dbg_str(DBG_DETAIL,"little endian");
+    if(byteorder_is_cpu_little_endian()) {
+        dbg_str(DBG_VIP,"little endian");
     } else {
-        dbg_str(DBG_DETAIL,"big endian");
+        dbg_str(DBG_VIP,"big endian");
     }
 
     return 1;
 }
 REGISTER_TEST_CMD(test_check_endian);
 
-static int test_rand(TEST_ENTRY *entry)
+static int test_byteorder_be32_to_cpu(TEST_ENTRY *entry, void *argc, void *argv)
 {
+    uint32_t test_data = 0x11223344;
+    uint32_t result;
     int ret;
 
-    ret = rand();
-    printf("rand:%d\n", ret);
+    TRY {
+        result = byteorder_be32_to_cpu(&test_data);
+        if(byteorder_is_cpu_little_endian()) {
+            THROW_IF(result != 0x44332211, -1);
+        } else {
+            THROW_IF(result != test_data, -1);
+        }
+
+    } CATCH (ret) {} 
 
     return 1;
 }
-REGISTER_TEST_CMD(test_rand);
+REGISTER_TEST_FUNC(test_byteorder_be32_to_cpu);
 
-//#define cgs_lambda( return_type, function_body) \
-//    ({return_type cgs_lambda_func function_body cgs_lambda_func;})
-//
-//static int test_lambda(TEST_ENTRY *entry)
-//{
-//    printf( "Sum = %d\n", cgs_lambda(int, (int x, int y){return x + y;})(3, 4));
-//
-//    return 0;
-//}
-//REGISTER_TEST_CMD(test_lambda);
+static int test_byteorder_cpu_to_be32(TEST_ENTRY *entry, void *argc, void *argv)
+{
+    uint32_t test_data = 0x11223344;
+    uint32_t result;
+    int ret;
+
+    TRY {
+        result = byteorder_cpu_to_be32(&test_data);
+        if(byteorder_is_cpu_little_endian()) {
+            THROW_IF(result != 0x44332211, -1);
+        } else {
+            THROW_IF(result != test_data, -1);
+        }
+
+    } CATCH (ret) {} 
+
+    return 1;
+}
+REGISTER_TEST_FUNC(test_byteorder_cpu_to_be32);

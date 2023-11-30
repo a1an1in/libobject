@@ -1,7 +1,7 @@
-[update:tar] support add a file to tar.
+[update:zip] add byteorder.
 
 Description:
-update
+zip need byteorder convertion.
 
 Major Changes:
-1. update.
+1. implement byteorder and it's test cases.
