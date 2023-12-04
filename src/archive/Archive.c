@@ -35,7 +35,7 @@ static int __open(Archive *archive, char *archive_name, char *mode)
     TRY {
         dbg_str(DBG_VIP, "Archive open file %s", archive_name);
         EXEC(file->open(file, archive_name, mode));
-        func = object_get_progeny_first_normal_func(((Obj *)archive)->target_name, "Archive", "open");
+        func = object_get_progeny_class_first_normal_func(((Obj *)archive)->target_name, "Archive", "open");
         if (func != NULL) {
             EXEC(func(archive, archive_name, mode));
         }

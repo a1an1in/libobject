@@ -61,9 +61,8 @@ __object_get_normal_func_of_class(void *class_info_addr,
     return NULL;
 }
 
-void * 
-__object_get_func_of_class_recursively(void *class_info_addr,
-                                       char *func_name)
+void * __object_get_ancestor_class_func(void *class_info_addr,
+                                        char *func_name)
 {
     class_info_entry_t *entry = (class_info_entry_t *)class_info_addr;
     char *parent_class_name = NULL;
@@ -86,7 +85,7 @@ __object_get_func_of_class_recursively(void *class_info_addr,
             entry_of_parent_class  = (class_info_entry_t *) 
                                      class_deamon_search_class(deamon, (char *)parent_class_name);
 
-            return __object_get_func_of_class_recursively(entry_of_parent_class, func_name);
+            return __object_get_ancestor_class_func(entry_of_parent_class, func_name);
         }
     } CATCH (ret) {
         dbg_str(OBJ_ERROR, "object_get_func_of_class_recursively, func_name:%s", func_name);
@@ -167,7 +166,7 @@ int __object_init_funcs(void *obj, void *class_info_addr)
     int (*set)(void *obj, char *attrib, void *value);
 
     TRY {
-        set = __object_get_func_of_class_recursively(class_info_addr, "set");
+        set = __object_get_ancestor_class_func(class_info_addr, "set");
         THROW_IF(set == NULL, -1);
 
         for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
@@ -195,7 +194,7 @@ __object_inherit_funcs(void *obj, void *class_info)
     char *current_class_name;
 
     TRY {
-        set = __object_get_func_of_class_recursively(class_info, "set");
+        set = __object_get_ancestor_class_func(class_info, "set");
         THROW_IF(set == NULL, -1);
 
         for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
@@ -203,7 +202,7 @@ __object_inherit_funcs(void *obj, void *class_info)
                                            entry[i].type == ENTRY_TYPE_FUNC_POINTER  || 
                                            entry[i].type == ENTRY_TYPE_VFUNC_POINTER)) 
             {
-                method = __object_get_func_of_class_recursively(class_info, entry[i].value_name);
+                method = __object_get_ancestor_class_func(class_info, entry[i].value_name);
                 if (method != NULL)
                     set(obj, (char *)entry[i].value_name, method);
             }
@@ -232,12 +231,12 @@ int __object_override_virtual_func(void *obj,
         entry  = (class_info_entry_t *)
             class_deamon_search_class(deamon, (char *)cur_type_name);
 
-        set = __object_get_func_of_class_recursively(entry, "set");
+        set = __object_get_ancestor_class_func(entry, "set");
         THROW_IF(set == NULL, -1);
 
         for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
             if (entry[i].type == ENTRY_TYPE_VFUNC_POINTER){
-                reimplement_func = object_get_progeny_last_reimplement_func(type_name, cur_type_name, entry[i].value_name);
+                reimplement_func = object_get_progeny_class_last_reimplement_func(type_name, cur_type_name, entry[i].value_name);
                 if (reimplement_func != NULL)
                     set(obj, (char *)entry[i].value_name, reimplement_func);
             }
@@ -247,208 +246,6 @@ int __object_override_virtual_func(void *obj,
 
     return ret;
 }
-
-static int 
-__object_set(void *obj, char *type_name,
-             cjson_t *c, int (*set)(void *obj, char *attrib, void *value)) 
-{
-    class_deamon_t *deamon;
-    void *class_info_addr;
-    cjson_t *next;
-    cjson_t *object;
-    Obj *o = (Obj *)obj;
-    int (*super_class_set)(void *obj, char *attrib, void *value); 
-    int cnt = 0;
-
-    while (c) {
-        if (c->type & CJSON_OBJECT) {
-            object = c;
-            if (object->string) {
-                dbg_str(OBJ_DETAIL, "set object name:%s", object->string);
-                deamon          = class_deamon_get_global_class_deamon();
-                class_info_addr = class_deamon_search_class(deamon, object->string);
-                super_class_set = __object_get_func_of_class_recursively(class_info_addr, "set");
-                dbg_str(OBJ_DETAIL, "set addr:%p", super_class_set);
-            }
-
-            if (c->child) {
-                __object_set(obj,object->string, c->child, super_class_set);
-            }
-        } else {
-            if (cnt == 0) {
-                strcpy(o->target_name, type_name);
-            }
-
-            if (set) {
-                if (c->type & CJSON_NUMBER) {
-                    dbg_str(OBJ_DETAIL, "set number: %s value \"%d\"", c->string, c->valueint);
-                    set(obj, c->string, &(c->valueint));
-                    /*
-                     *set(obj, c->string, &(c->valuedouble));
-                     */
-                } else if (c->type & CJSON_STRING) {
-                    /*
-                     * 这里只是识别到json 字符串， 具体到属性类型在set()判断，如果属性以字符串的形式赋值，就会走这个分支。
-                     * 数组和数字目前不支持字符串形式赋值.
-                     * */
-                    dbg_str(OBJ_DETAIL, "set string: %s value \"%s\"", c->string, c->valuestring);
-                    set(obj, c->string, c->valuestring);
-                } else if (c->type & CJSON_ARRAY) {
-                    char *out;
-                    out = cjson_print(c);
-                    set(obj, c->string, out);
-                    free(out);
-                }
-            }
-            cnt++;
-        }
-
-        c = c->next;
-    }
-
-    return 0;
-}
-
-int __object_init(void *obj, char *cur_type_name, char *type_name) 
-{
-    class_deamon_t *deamon;
-    void *class_info;
-    class_info_entry_t * entry_of_parent_class; //class info entry of parent class
-    int (*construct)(void *obj, char *init_str);
-    Obj *o = (Obj *)obj;
-    int ret = 1;
-
-    TRY {
-        deamon = class_deamon_get_global_class_deamon();
-        THROW_IF(deamon == NULL, -1);
-
-        class_info = class_deamon_search_class(deamon, (char *)cur_type_name);
-        THROW_IF(class_info == NULL, -1);
-
-        construct = __object_get_normal_func_of_class(class_info, "construct");
-        entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
-
-        dbg_str(OBJ_DETAIL, "obj_class addr:%p", class_info);
-        if (entry_of_parent_class != NULL) {
-            EXEC(__object_init(obj, entry_of_parent_class->type_name, type_name));
-        }
-
-        strcpy(o->target_name, cur_type_name);
-        EXEC(__object_init_funcs(obj, class_info));
-
-        if (entry_of_parent_class != NULL) {
-            EXEC(__object_inherit_funcs(obj, class_info));
-        }
-
-        EXEC(__object_override_virtual_func(obj, cur_type_name, type_name));
-
-        dbg_str(OBJ_DETAIL, "obj addr:%p", obj);
-        /* 先执行父构造， 再执行子构造函数， 因为先从子函数开始找构造函数， 所以递归
-         * 执行时要放在递归函数后面执行construct. 析构的过程与构造正好相反。*/
-        if (construct != NULL) {
-            EXEC(construct(obj, NULL));
-        }
-    } CATCH (ret) {
-        dbg_str(OBJ_ERROR, "__object_init error, obj:%p, cur_type_name:%s, type_name:%s",
-                obj, cur_type_name, type_name);
-    }
-
-    return ret;
-}
-
-int __object_dump(void *obj, char *type_name, cjson_t *object) 
-{
-    class_deamon_t *deamon;
-    class_info_entry_t *entry;
-    void *(*get)(void *obj, char *attrib);
-    int len, i;
-    cjson_t *item;
-    void *value;
-    char *name;
-    Obj *o = (Obj *)obj;
-
-    deamon = class_deamon_get_global_class_deamon();
-    entry  = (class_info_entry_t *)
-             class_deamon_search_class(deamon,
-                                       (char *)type_name);
-
-    get = __object_get_func_of_class_recursively(entry, (char *)"get");
-
-    if (get == NULL) {
-        dbg_str(OBJ_WARNNING, "get func pointer is NULL");
-        return -1;
-    }
-
-    for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-        if (entry[i].type == ENTRY_TYPE_OBJ){
-            item = cjson_create_object();
-            cjson_add_item_to_object(object, entry[i].type_name, item);
-            __object_dump(obj, entry[i].type_name, item);
-        } else if (entry[i].type == ENTRY_TYPE_FUNC_POINTER  || 
-                   entry[i].type == ENTRY_TYPE_VFUNC_POINTER || 
-                   entry[i].type == ENTRY_TYPE_IFUNC_POINTER) {
-        } else {
-            strcpy(o->target_name, type_name);
-            dbg_str(OBJ_WARNNING, "get:%p, __get:%p", get, o->get);
-            value = get(obj, entry[i].value_name);
-            name = entry[i].value_name;
-            if (entry[i].type == ENTRY_TYPE_INT8_T || 
-                entry[i].type == ENTRY_TYPE_UINT8_T) {
-                cjson_add_number_to_object(object, name, *((char *)value));
-            } else if (entry[i].type == ENTRY_TYPE_INT16_T || 
-                       entry[i].type == ENTRY_TYPE_UINT16_T) {
-                cjson_add_number_to_object(object, name, *((short *)value));
-            } else if (entry[i].type == ENTRY_TYPE_INT32_T ||
-                       entry[i].type == ENTRY_TYPE_UINT32_T) {
-                cjson_add_number_to_object(object, name, *((int *)value));
-            } else if (entry[i].type == ENTRY_TYPE_INT64_T || 
-                       entry[i].type == ENTRY_TYPE_UINT64_T) {
-            } else if (entry[i].type == ENTRY_TYPE_FLOAT_T) {
-                cjson_add_number_to_object(object, name, *((float *)value));
-            } else if (entry[i].type == ENTRY_TYPE_STRING) {
-                String *s = *(String **)value;
-                if (s != NULL)
-                    cjson_add_string_to_object(object, name, s->value);
-            /*
-             *} else if (entry[i].type == ENTRY_TYPE_NORMAL_POINTER ||
-             *           entry[i].type == ENTRY_TYPE_OBJ_POINTER) {
-             *    unsigned long long d = (unsigned long long) value;
-             *    cjson_add_number_to_object(object, name, d);
-             */
-            } else {
-                dbg_str(OBJ_WARNNING, "type error, please check, type name :%s, entry name :%s, type =%d", 
-                        type_name, entry[i].type_name, entry[i].type);
-            }
-        }
-    }   
-
-    return 0;
-}
-
-int __object_destroy(void *obj, char *type_name) 
-{
-    class_deamon_t *deamon;
-    void *class_info, *parent_class_info;
-    class_info_entry_t * entry_of_parent_class;
-    int (*deconstruct)(void *obj);
-
-    deamon      = class_deamon_get_global_class_deamon();
-    class_info  = class_deamon_search_class(deamon, (char *)type_name);
-    deconstruct = __object_get_normal_func_of_class(class_info, "deconstruct");
-    entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
-
-    if (deconstruct != NULL) 
-        deconstruct(obj);
-
-    if (entry_of_parent_class == NULL) {
-        return 0;
-    } else {
-        __object_destroy(obj, entry_of_parent_class->type_name);
-    }
-
-    return 0;
-}
-
 
 class_info_entry_t *object_get_entry_of_class(char *class_name, char *entry_name)
 {
@@ -517,6 +314,67 @@ void * object_new(allocator_t *allocator, const char *type, char *config)
     return o;
 }
 
+static int 
+__object_set(void *obj, char *type_name,
+             cjson_t *c, int (*set)(void *obj, char *attrib, void *value)) 
+{
+    class_deamon_t *deamon;
+    void *class_info_addr;
+    cjson_t *next;
+    cjson_t *object;
+    Obj *o = (Obj *)obj;
+    int (*super_class_set)(void *obj, char *attrib, void *value); 
+    int cnt = 0;
+
+    while (c) {
+        if (c->type & CJSON_OBJECT) {
+            object = c;
+            if (object->string) {
+                dbg_str(OBJ_DETAIL, "set object name:%s", object->string);
+                deamon          = class_deamon_get_global_class_deamon();
+                class_info_addr = class_deamon_search_class(deamon, object->string);
+                super_class_set = __object_get_ancestor_class_func(class_info_addr, "set");
+                dbg_str(OBJ_DETAIL, "set addr:%p", super_class_set);
+            }
+
+            if (c->child) {
+                __object_set(obj,object->string, c->child, super_class_set);
+            }
+        } else {
+            if (cnt == 0) {
+                strcpy(o->target_name, type_name);
+            }
+
+            if (set) {
+                if (c->type & CJSON_NUMBER) {
+                    dbg_str(OBJ_DETAIL, "set number: %s value \"%d\"", c->string, c->valueint);
+                    set(obj, c->string, &(c->valueint));
+                    /*
+                     *set(obj, c->string, &(c->valuedouble));
+                     */
+                } else if (c->type & CJSON_STRING) {
+                    /*
+                     * 这里只是识别到json 字符串， 具体到属性类型在set()判断，如果属性以字符串的形式赋值，就会走这个分支。
+                     * 数组和数字目前不支持字符串形式赋值.
+                     * */
+                    dbg_str(OBJ_DETAIL, "set string: %s value \"%s\"", c->string, c->valuestring);
+                    set(obj, c->string, c->valuestring);
+                } else if (c->type & CJSON_ARRAY) {
+                    char *out;
+                    out = cjson_print(c);
+                    set(obj, c->string, out);
+                    free(out);
+                }
+            }
+            cnt++;
+        }
+
+        c = c->next;
+    }
+
+    return 0;
+}
+
 int object_set(void *obj, char *type_name, char *set_str) 
 {
     cjson_t *root;
@@ -544,9 +402,125 @@ int object_set(void *obj, char *type_name, char *set_str)
     return ret;
 }
 
+int __object_init(void *obj, char *cur_type_name, char *type_name) 
+{
+    class_deamon_t *deamon;
+    void *class_info;
+    class_info_entry_t * entry_of_parent_class; //class info entry of parent class
+    int (*construct)(void *obj, char *init_str);
+    Obj *o = (Obj *)obj;
+    int ret = 1;
+
+    TRY {
+        deamon = class_deamon_get_global_class_deamon();
+        THROW_IF(deamon == NULL, -1);
+
+        class_info = class_deamon_search_class(deamon, (char *)cur_type_name);
+        THROW_IF(class_info == NULL, -1);
+
+        construct = __object_get_normal_func_of_class(class_info, "construct");
+        entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
+
+        dbg_str(OBJ_DETAIL, "obj_class addr:%p", class_info);
+        if (entry_of_parent_class != NULL) {
+            EXEC(__object_init(obj, entry_of_parent_class->type_name, type_name));
+        }
+
+        strcpy(o->target_name, cur_type_name);
+        EXEC(__object_init_funcs(obj, class_info));
+
+        if (entry_of_parent_class != NULL) {
+            EXEC(__object_inherit_funcs(obj, class_info));
+        }
+
+        EXEC(__object_override_virtual_func(obj, cur_type_name, type_name));
+
+        dbg_str(OBJ_DETAIL, "obj addr:%p", obj);
+        /* 先执行父构造， 再执行子构造函数， 因为先从子函数开始找构造函数， 所以递归
+         * 执行时要放在递归函数后面执行construct. 析构的过程与构造正好相反。*/
+        if (construct != NULL) {
+            EXEC(construct(obj, NULL));
+        }
+    } CATCH (ret) {
+        dbg_str(OBJ_ERROR, "__object_init error, obj:%p, cur_type_name:%s, type_name:%s",
+                obj, cur_type_name, type_name);
+    }
+
+    return ret;
+}
+
 int object_init(void *obj, char *type_name) 
 {
     return __object_init(obj, type_name, type_name);
+}
+
+int __object_dump(void *obj, char *type_name, cjson_t *object) 
+{
+    class_deamon_t *deamon;
+    class_info_entry_t *entry;
+    void *(*get)(void *obj, char *attrib);
+    int len, i;
+    cjson_t *item;
+    void *value;
+    char *name;
+    Obj *o = (Obj *)obj;
+
+    deamon = class_deamon_get_global_class_deamon();
+    entry  = (class_info_entry_t *)
+             class_deamon_search_class(deamon,
+                                       (char *)type_name);
+
+    get = __object_get_ancestor_class_func(entry, (char *)"get");
+
+    if (get == NULL) {
+        dbg_str(OBJ_WARNNING, "get func pointer is NULL");
+        return -1;
+    }
+
+    for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
+        if (entry[i].type == ENTRY_TYPE_OBJ){
+            item = cjson_create_object();
+            cjson_add_item_to_object(object, entry[i].type_name, item);
+            __object_dump(obj, entry[i].type_name, item);
+        } else if (entry[i].type == ENTRY_TYPE_FUNC_POINTER  || 
+                   entry[i].type == ENTRY_TYPE_VFUNC_POINTER || 
+                   entry[i].type == ENTRY_TYPE_IFUNC_POINTER) {
+        } else {
+            strcpy(o->target_name, type_name);
+            dbg_str(OBJ_WARNNING, "get:%p, __get:%p", get, o->get);
+            value = get(obj, entry[i].value_name);
+            name = entry[i].value_name;
+            if (entry[i].type == ENTRY_TYPE_INT8_T || 
+                entry[i].type == ENTRY_TYPE_UINT8_T) {
+                cjson_add_number_to_object(object, name, *((char *)value));
+            } else if (entry[i].type == ENTRY_TYPE_INT16_T || 
+                       entry[i].type == ENTRY_TYPE_UINT16_T) {
+                cjson_add_number_to_object(object, name, *((short *)value));
+            } else if (entry[i].type == ENTRY_TYPE_INT32_T ||
+                       entry[i].type == ENTRY_TYPE_UINT32_T) {
+                cjson_add_number_to_object(object, name, *((int *)value));
+            } else if (entry[i].type == ENTRY_TYPE_INT64_T || 
+                       entry[i].type == ENTRY_TYPE_UINT64_T) {
+            } else if (entry[i].type == ENTRY_TYPE_FLOAT_T) {
+                cjson_add_number_to_object(object, name, *((float *)value));
+            } else if (entry[i].type == ENTRY_TYPE_STRING) {
+                String *s = *(String **)value;
+                if (s != NULL)
+                    cjson_add_string_to_object(object, name, s->value);
+            /*
+             *} else if (entry[i].type == ENTRY_TYPE_NORMAL_POINTER ||
+             *           entry[i].type == ENTRY_TYPE_OBJ_POINTER) {
+             *    unsigned long long d = (unsigned long long) value;
+             *    cjson_add_number_to_object(object, name, d);
+             */
+            } else {
+                dbg_str(OBJ_WARNNING, "type error, please check, type name :%s, entry name :%s, type =%d", 
+                        type_name, entry[i].type_name, entry[i].type);
+            }
+        }
+    }   
+
+    return 0;
 }
 
 int object_dump(void *obj, char *type_name, char *buf, int max_len) 
@@ -572,34 +546,6 @@ int object_dump(void *obj, char *type_name, char *buf, int max_len)
     free(out);
 }
 
-int object_destroy(void *obj) 
-{
-    Obj *o = (Obj *)obj;
-    Object_Cache *cache;
-    List *list = NULL;
-    int ret = 0;
-    
-    TRY {
-        THROW_IF(obj == NULL, 0);
-
-        cache = (Object_Cache *)o->cache;
-        if (cache) {
-            Map *map = cache->class_map;
-
-            ret = map->search(map, o->name, (void **)&list);
-            THROW_IF(ret != 1, -1);
-
-            o->reset(o);
-            list->add(list, o);
-        } else {
-            __object_destroy(o, o->name);
-        }
-    } CATCH (ret) {
-    }
-
-    return ret;
-}
-
 static int 
 __object_override_virtual_funcs(void *obj, char *cur_class_name, char *func_name, void *value)
 {
@@ -617,7 +563,7 @@ __object_override_virtual_funcs(void *obj, char *cur_class_name, char *func_name
         class_info = class_deamon_search_class(deamon, (char *)cur_class_name);
         THROW_IF(class_info == NULL, -1);
 
-        set = __object_get_func_of_class_recursively(class_info, "set");
+        set = __object_get_ancestor_class_func(class_info, "set");
         THROW_IF(set == NULL, -1);
 
         entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
@@ -638,7 +584,7 @@ int object_override(void *obj, char *func_name, void *value)
     return __object_override_virtual_funcs(obj, ((Obj *)obj)->name, func_name, value); 
 }
 
-void *object_get_progeny_last_reimplement_func(char *start_type_name, char *end_type_name, char *method_name)
+void *object_get_progeny_class_last_reimplement_func(char *start_type_name, char *end_type_name, char *method_name)
 {
     class_info_entry_t *entry;
     class_deamon_t *deamon;
@@ -667,7 +613,7 @@ void *object_get_progeny_last_reimplement_func(char *start_type_name, char *end_
             }
         }   
 
-        return object_get_progeny_last_reimplement_func(super_class_name, end_type_name, method_name);
+        return object_get_progeny_class_last_reimplement_func(super_class_name, end_type_name, method_name);
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "method_name:%s, start_type_name:%s, end_type_name:%s",
                 method_name, start_type_name, end_type_name);
@@ -676,7 +622,7 @@ void *object_get_progeny_last_reimplement_func(char *start_type_name, char *end_
     return NULL;
 }
 
-void *object_get_progeny_first_normal_func(char *sub_class_name, char *root_class_name, char *func_name)
+void *object_get_progeny_class_first_normal_func(char *sub_class_name, char *root_class_name, char *func_name)
 {
     class_info_entry_t *entry = NULL;
     class_deamon_t *deamon;
@@ -693,7 +639,7 @@ void *object_get_progeny_first_normal_func(char *sub_class_name, char *root_clas
         }
 
         if (entry[0].type == ENTRY_TYPE_OBJ) {
-            func = object_get_progeny_first_normal_func(entry[0].type_name, root_class_name, func_name);
+            func = object_get_progeny_class_first_normal_func(entry[0].type_name, root_class_name, func_name);
             if (func != NULL) {
                 return func;
             }
@@ -707,7 +653,7 @@ void *object_get_progeny_first_normal_func(char *sub_class_name, char *root_clas
             }
         }  
     } CATCH (ret) {
-        dbg_str(OBJ_ERROR, "object_get_progeny_first_normal_func, func_name:%s", func_name);
+        dbg_str(OBJ_ERROR, "object_get_progeny_class_first_normal_func, func_name:%s", func_name);
     }
 
     return NULL;
@@ -738,4 +684,56 @@ void *object_get_func_of_class(char *class_name, char *func_name)
     }
 
     return NULL;
+}
+
+int __object_destroy(void *obj, char *type_name) 
+{
+    class_deamon_t *deamon;
+    void *class_info, *parent_class_info;
+    class_info_entry_t * entry_of_parent_class;
+    int (*deconstruct)(void *obj);
+
+    deamon      = class_deamon_get_global_class_deamon();
+    class_info  = class_deamon_search_class(deamon, (char *)type_name);
+    deconstruct = __object_get_normal_func_of_class(class_info, "deconstruct");
+    entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
+
+    if (deconstruct != NULL) 
+        deconstruct(obj);
+
+    if (entry_of_parent_class == NULL) {
+        return 0;
+    } else {
+        __object_destroy(obj, entry_of_parent_class->type_name);
+    }
+
+    return 0;
+}
+
+int object_destroy(void *obj) 
+{
+    Obj *o = (Obj *)obj;
+    Object_Cache *cache;
+    List *list = NULL;
+    int ret = 0;
+    
+    TRY {
+        THROW_IF(obj == NULL, 0);
+
+        cache = (Object_Cache *)o->cache;
+        if (cache) {
+            Map *map = cache->class_map;
+
+            ret = map->search(map, o->name, (void **)&list);
+            THROW_IF(ret != 1, -1);
+
+            o->reset(o);
+            list->add(list, o);
+        } else {
+            __object_destroy(o, o->name);
+        }
+    } CATCH (ret) {
+    }
+
+    return ret;
 }
