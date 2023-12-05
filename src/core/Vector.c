@@ -275,6 +275,10 @@ static int __reset(Vector *vector)
             object_destroy(element);
         } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER) {
             allocator_mem_free(vector->obj.allocator, element);
+        } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER && vector->value_free_callback != NULL && element != NULL) {
+            vector->value_free_callback(vector->obj.allocator, element);   
+        } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER && vector->value_free_callback == NULL && element != NULL) {
+            allocator_mem_free(vector->obj.allocator, element);
         } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER) {
             dbg_str(DBG_WARNNING, "not support reset unkown pointer");
         } else {
@@ -517,6 +521,10 @@ static int __reset_from(Vector *vector, int index)
             object_destroy(element);
         } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER) {
             allocator_mem_free(vector->obj.allocator, element);
+        } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER && vector->value_free_callback != NULL && element != NULL) {
+            vector->value_free_callback(vector->obj.allocator, element);   
+        } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER && vector->value_free_callback == NULL && element != NULL) {
+            allocator_mem_free(vector->obj.allocator, element);
         } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER) {
             dbg_str(DBG_WARNNING, "not support reset unkown pointer");
         } else {
@@ -583,6 +591,17 @@ static int __copy(Vector *vector, Vector *out)
     return ret;
 }
 
+static int __set_trustee(Vector *vector, int value_type, int (*free_callback)(allocator_t *allocator, void *value))
+{
+    int trustee_flag = 1;
+
+    vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
+    vector->set(vector, "/Vector/value_type", &value_type);
+    vector->set(vector, "/Vector/value_free_callback", free_callback);
+
+    return 1;
+}
+
 static class_info_entry_t vector_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Vector, construct, __construct),
@@ -610,12 +629,14 @@ static class_info_entry_t vector_class_info[] = {
     Init_Vfunc_Entry(23, Vector, filter, __filter),
     Init_Vfunc_Entry(24, Vector, add_vector, __add_vector),
     Init_Vfunc_Entry(25, Vector, copy, __copy),
-    Init_U32___Entry(26, Vector, value_size, NULL),
-    Init_U8____Entry(27, Vector, value_type, NULL),
-    Init_U32___Entry(28, Vector, capacity, NULL),
-    Init_Str___Entry(29, Vector, init_data, NULL),
-    Init_Str___Entry(30, Vector, class_name, NULL),
-    Init_U8____Entry(31, Vector, trustee_flag, 0),
-    Init_End___Entry(32, Vector),
+    Init_Vfunc_Entry(26, Vector, set_trustee, __set_trustee),
+    Init_U32___Entry(27, Vector, value_size, NULL),
+    Init_U8____Entry(28, Vector, value_type, NULL),
+    Init_U32___Entry(29, Vector, capacity, NULL),
+    Init_Str___Entry(30, Vector, init_data, NULL),
+    Init_Str___Entry(31, Vector, class_name, NULL),
+    Init_U8____Entry(32, Vector, trustee_flag, 0),
+    Init_Point_Entry(33, Vector, value_free_callback, NULL),
+    Init_End___Entry(34, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);

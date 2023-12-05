@@ -1,8 +1,9 @@
-[update:object] optimize object funtions.
+[update:zip] continue to implement zip.
 
 Description:
-change function name and modulate function posistions.
+expand vector to support trustee VALUE_TYPE_STRUCT_POINTER.
 
 Major Changes:
-1. rename __object_get_ancestor_class_func from __object_get_func_of_class_recursively.
-2. modulate object function position in the file.
+1. support get zip file headers.
+2. support trustee VALUE_TYPE_STRUCT_POINTER for vector.
+3. test_zip_uncompress_buf  has passed.

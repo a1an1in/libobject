@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
+#include <libobject/core/Vector.h>
 #include <libobject/core/utils/byteorder.h>
 #include <libobject/core/io/Buffer.h>
 #include <libobject/archive/Archive.h>
@@ -39,6 +40,91 @@ typedef struct zip_the_end_of_central_directory_header_s {
     uint8_t comment[];
 } zip_central_directory_end_header_t;
 
+/*
+ *  Central directory structure:
+ *    [central directory header 1]
+ *    ...
+ *    [central directory header n]
+ *    [digital signature] 
+ *  File header:
+ *    central file header signature   4 bytes  (0x02014b50)
+ *    version made by                 2 bytes
+ *    version needed to extract       2 bytes
+ *    general purpose bit flag        2 bytes
+ *    compression method              2 bytes
+ *    last mod file time              2 bytes
+ *    last mod file date              2 bytes
+ *    crc-32                          4 bytes
+ *    compressed size                 4 bytes
+ *    uncompressed size               4 bytes
+ *    file name length                2 bytes
+ *    extra field length              2 bytes
+ *    file comment length             2 bytes
+ *    disk number start               2 bytes
+ *    internal file attributes        2 bytes
+ *    external file attributes        4 bytes
+ *    relative offset of local header 4 bytes
+ *
+ *    file name (variable size)
+ *    extra field (variable size)
+ *    file comment (variable size)
+ */
+
+typedef struct zip_central_directory_header_s {
+    uint32_t signature;
+    uint16_t create_version;
+    uint16_t extract_version;
+    uint16_t general_purpose_bit_flag;
+    uint16_t compression_method;
+    uint16_t last_mode_time;
+    uint16_t last_mode_date;
+    uint32_t crc32;
+    uint32_t compressed_size;
+    uint32_t uncompressed_size;
+    uint16_t file_name_length;
+    uint16_t extra_field_length;
+    uint16_t file_comment_length;
+    uint16_t start_disk_number;
+    uint16_t internal_file_attributes;
+    uint32_t external_file_attributes;
+    uint32_t offset;
+    uint8_t *file_name;
+    uint8_t *extra_field;
+    uint8_t *comment;
+} __attribute__ ((packed)) zip_central_directory_header_t;
+
+/*
+ * file header
+ * local file header signature     4 bytes  (0x04034b50)
+ * version needed to extract       2 bytes
+ * general purpose bit flag        2 bytes
+ * compression method              2 bytes
+ * last mod file time              2 bytes
+ * last mod file date              2 bytes
+ * crc-32                          4 bytes
+ * compressed size                 4 bytes
+ * uncompressed size               4 bytes
+ * file name length                2 bytes
+ * extra field length              2 bytes
+ * file name (variable size)
+ * extra field (variable size)
+ */
+typedef struct zip_file_header_s {
+    uint32_t signature;
+    uint16_t extract_version;
+    uint16_t general_purpose_bit_flag;
+    uint16_t compression_method;
+    uint16_t last_mode_time;
+    uint16_t last_mode_date;
+    uint32_t crc32;
+    uint32_t compressed_size;
+    uint32_t uncompressed_size;
+    uint16_t file_name_length;
+    uint16_t extra_field_length;
+    uint8_t *file_name;
+    uint8_t *extra_field;
+} __attribute__ ((packed)) zip_file_header_t;
+
 struct Zip_s {
     Archive parent;
 
@@ -60,6 +146,7 @@ struct Zip_s {
     uint64_t central_dir_position;
 
     zip_central_directory_end_header_t central_directory_end_header;
+    Vector *headers;
 };
 
 

@@ -16,7 +16,7 @@ static int test_zip_extract_file(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
 	char *zip_file = "./tests/res/test_zip.zip";
-    char *file = "./tests/res/test_zip.txt";
+    char *file = "test_extract.txt";
 
     TRY {
         dbg_str(DBG_SUC, "test extract zip");

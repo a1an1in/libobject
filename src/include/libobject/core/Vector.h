@@ -44,6 +44,7 @@ struct _vector_s{
     int (*reset_from)(Vector *vector, int index);
     int (*filter)(Vector *vector, int (*condition)(void *element, void *cond), void *cond, Vector *out);
     int (*copy)(Vector *vector, Vector *out);
+    int (*set_trustee)(Vector *tree, int value_type, int (*value_free_callback)(allocator_t *allocator, void *value));
 
     /*attribs*/
     vector_t *vector;
@@ -53,6 +54,7 @@ struct _vector_s{
     String *init_data;
     String *class_name;
     uint8_t trustee_flag;
+    int (*value_free_callback)(allocator_t *allocator, void *value);
 };
 
 #endif
