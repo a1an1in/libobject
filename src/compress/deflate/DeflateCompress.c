@@ -1,5 +1,5 @@
 /**
- * @file ZipCompress.c
+ * @file DeflateCompress.c
  * @Synopsis  
  * @author alan lin
  * @version 
@@ -10,12 +10,12 @@
 #include <sys/stat.h>
 #include <libobject/core/io/File.h>
 #include "zlib.h"
-#include "ZipCompress.h"
+#include "DeflateCompress.h"
 
-extern int zip_uncompress(FILE *source, long in_len, FILE *dest, long *out_len);
-extern int zip_compress(FILE *source, long in_len, FILE *dest, long *out_len);
+extern int deflate_uncompress(FILE *source, long in_len, FILE *dest, long *out_len);
+extern int deflate_compress(FILE *source, long in_len, FILE *dest, long *out_len);
 
-static int __compress_buf(ZipCompress *c, char *in, int in_len, char *out, int *out_len)
+static int __compress_buf(DeflateCompress *c, char *in, int in_len, char *out, int *out_len)
 {
   int err = 0, ret;
   z_stream c_stream = {0};
@@ -51,7 +51,7 @@ static int __compress_buf(ZipCompress *c, char *in, int in_len, char *out, int *
   return ret;
 }
 
-static int __uncompress_buf(ZipCompress *c, char *in, int in_len, char *out, int *out_len)
+static int __uncompress_buf(DeflateCompress *c, char *in, int in_len, char *out, int *out_len)
 {
     int err = 0;
     z_stream d_stream = {0}; /* decompression stream */
@@ -87,24 +87,25 @@ static int __uncompress_buf(ZipCompress *c, char *in, int in_len, char *out, int
     return 1;
 }
 
- static int __compress(ZipCompress *c, File *in, long in_len, File *out, long *out_len)
+ static int __compress(DeflateCompress *c, File *in, long in_len, File *out, long *out_len)
  {
-    return -1;
+    dbg_str(DBG_SUC, "zip compress");
+    return TRY_EXEC(deflate_compress(in->f, in_len, out->f, out_len));
  }
 
- static int __uncompress(ZipCompress *c, File *in, long in_len, File *out, long *out_len)
+ static int __uncompress(DeflateCompress *c, File *in, long in_len, File *out, long *out_len)
  {
-    return TRY_EXEC(zip_uncompress(in->f, in_len, out->f, out_len));
+    return TRY_EXEC(deflate_uncompress(in->f, in_len, out->f, out_len));
  }
 
 static class_info_entry_t zcompress_class_info[] = {
     Init_Obj___Entry(0, Compress, parent),
-    Init_Nfunc_Entry(1, ZipCompress, construct, NULL),
-    Init_Nfunc_Entry(2, ZipCompress, deconstruct, NULL),
-    Init_Vfunc_Entry(3, ZipCompress, compress_buf, __compress_buf),
-    Init_Vfunc_Entry(4, ZipCompress, uncompress_buf, __uncompress_buf),
-    Init_Vfunc_Entry(5, ZipCompress, compress, __compress),
-    Init_Vfunc_Entry(6, ZipCompress, uncompress, __uncompress),
-    Init_End___Entry(7, ZipCompress),
+    Init_Nfunc_Entry(1, DeflateCompress, construct, NULL),
+    Init_Nfunc_Entry(2, DeflateCompress, deconstruct, NULL),
+    Init_Vfunc_Entry(3, DeflateCompress, compress_buf, __compress_buf),
+    Init_Vfunc_Entry(4, DeflateCompress, uncompress_buf, __uncompress_buf),
+    Init_Vfunc_Entry(5, DeflateCompress, compress, __compress),
+    Init_Vfunc_Entry(6, DeflateCompress, uncompress, __uncompress),
+    Init_End___Entry(7, DeflateCompress),
 };
-REGISTER_CLASS("ZipCompress", zcompress_class_info);
+REGISTER_CLASS("DeflateCompress", zcompress_class_info);

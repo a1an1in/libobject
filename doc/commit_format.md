@@ -1,8 +1,9 @@
 [update:zip] continue to implement zip.
 
 Description:
-zip_uncompress is ok.
+deflate_compress is ok.
 
 Major Changes:
-1. add zip_uncompress.
+1. add deflate_compress.
 2. add zip compress test res files;
+3. rename ZipCompress to DeflateCompress.

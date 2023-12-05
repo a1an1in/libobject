@@ -6,14 +6,14 @@
 #define CHUNK 16384
 
 /* Compress from file source to file dest until EOF on source.
-   zip_compress() returns Z_OK on success, Z_MEM_ERROR if memory could not be
+   deflate_compress() returns Z_OK on success, Z_MEM_ERROR if memory could not be
    allocated for processing, Z_STREAM_ERROR if an invalid compression
    level is supplied, Z_VERSION_ERROR if the version of zlib.h and the
    version of the library linked do not match, or Z_ERRNO if there is
    an error reading or writing the files. */
-int zip_compress(FILE *source, long in_len, FILE *dest, long *out_len)
+int deflate_compress(FILE *source, long in_len, FILE *dest, long *out_len)
 {
-    int ret, flush;
+    int ret, flush, read_len = 0;
     unsigned have;
     z_stream strm;
     unsigned char in[CHUNK];
@@ -29,13 +29,15 @@ int zip_compress(FILE *source, long in_len, FILE *dest, long *out_len)
 
     /* compress until end of file */
     do {
-        strm.avail_in = fread(in, 1, CHUNK, source);
+        read_len = in_len > CHUNK ? CHUNK : in_len;
+        strm.avail_in = fread(in, 1, read_len, source);
         if (ferror(source)) {
             (void)deflateEnd(&strm);
             return Z_ERRNO;
         }
         flush = feof(source) ? Z_FINISH : Z_NO_FLUSH;
         strm.next_in = in;
+        in_len -= in_len;
 
         /* run deflate() on input until output buffer not full, finish
            compression if all of source has been read in */
@@ -49,6 +51,7 @@ int zip_compress(FILE *source, long in_len, FILE *dest, long *out_len)
                 (void)deflateEnd(&strm);
                 return Z_ERRNO;
             }
+            *out_len += have;
         } while (strm.avail_out == 0);
         assert(strm.avail_in == 0);     /* all input will be used */
 
@@ -62,12 +65,12 @@ int zip_compress(FILE *source, long in_len, FILE *dest, long *out_len)
 }
 
 /* Decompress from file source to file dest until stream ends or EOF.
-   zip_uncompress() returns Z_OK on success, Z_MEM_ERROR if memory could not be
+   deflate_uncompress() returns Z_OK on success, Z_MEM_ERROR if memory could not be
    allocated for processing, Z_DATA_ERROR if the deflate data is
    invalid or incomplete, Z_VERSION_ERROR if the version of zlib.h and
    the version of the library linked do not match, or Z_ERRNO if there
    is an error reading or writing the files. */
-int zip_uncompress(FILE *source, long in_len, FILE *dest, long *out_len)
+int deflate_uncompress(FILE *source, long in_len, FILE *dest, long *out_len)
 {
     int ret, read_len;
     unsigned have;
