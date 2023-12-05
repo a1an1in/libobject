@@ -1,9 +1,8 @@
 [update:zip] continue to implement zip.
 
 Description:
-expand vector to support trustee VALUE_TYPE_STRUCT_POINTER.
+zip_uncompress is ok.
 
 Major Changes:
-1. support get zip file headers.
-2. support trustee VALUE_TYPE_STRUCT_POINTER for vector.
-3. test_zip_uncompress_buf  has passed.
+1. add zip_uncompress.
+2. add zip compress test res files;

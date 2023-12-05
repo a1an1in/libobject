@@ -12,6 +12,9 @@
 #include "zlib.h"
 #include "ZipCompress.h"
 
+extern int zip_uncompress(FILE *source, long in_len, FILE *dest, long *out_len);
+extern int zip_compress(FILE *source, long in_len, FILE *dest, long *out_len);
+
 static int __compress_buf(ZipCompress *c, char *in, int in_len, char *out, int *out_len)
 {
   int err = 0, ret;
@@ -84,42 +87,14 @@ static int __uncompress_buf(ZipCompress *c, char *in, int in_len, char *out, int
     return 1;
 }
 
- static int __compress_file(ZipCompress *c, char *file_in, char *file_out)
+ static int __compress(ZipCompress *c, File *in, long in_len, File *out, long *out_len)
  {
     return -1;
  }
 
- static int __uncompress_file(ZipCompress *c, char *file_name_in, char *file_name_out)
+ static int __uncompress(ZipCompress *c, File *in, long in_len, File *out, long *out_len)
  {
-    int ret, in_size, out_size;
-    File *in_file, *out_file;
-    allocator_t *allocator = c->parent.parent.allocator;
-    char *in_buffer, *out_buffer;
-
-    TRY {
-      in_file = object_new(allocator, "File", NULL);
-      out_file = object_new(allocator, "File", NULL);
-
-      in_file->open(in_file, file_name_in, "r+");
-      in_size = in_file->get_size(in_file);
-      dbg_str(DBG_VIP, "uncompress_file, file size:%d", in_size);
-
-      in_buffer = allocator_mem_alloc(allocator, in_size);
-      out_buffer = allocator_mem_alloc(allocator, in_size * 2);
-
-      in_file->read(in_file, in_buffer, in_size);
-      c->uncompress_buf(c, in_buffer, in_size, out_buffer, &out_size);
-      
-      out_file->open(out_file, file_name_out, "w+");
-      out_file->write(out_file, out_buffer, out_size);
-    } CATCH (ret) {} FINALLY {
-      allocator_mem_free(allocator, in_buffer);
-      allocator_mem_free(allocator, out_buffer);
-      object_destroy(in_file);
-      object_destroy(out_file);
-    }
-
-    return ret;
+    return TRY_EXEC(zip_uncompress(in->f, in_len, out->f, out_len));
  }
 
 static class_info_entry_t zcompress_class_info[] = {
@@ -128,9 +103,8 @@ static class_info_entry_t zcompress_class_info[] = {
     Init_Nfunc_Entry(2, ZipCompress, deconstruct, NULL),
     Init_Vfunc_Entry(3, ZipCompress, compress_buf, __compress_buf),
     Init_Vfunc_Entry(4, ZipCompress, uncompress_buf, __uncompress_buf),
-    Init_Vfunc_Entry(5, ZipCompress, compress_file, __compress_file),
-    Init_Vfunc_Entry(6, ZipCompress, uncompress_file, __uncompress_file),
+    Init_Vfunc_Entry(5, ZipCompress, compress, __compress),
+    Init_Vfunc_Entry(6, ZipCompress, uncompress, __uncompress),
     Init_End___Entry(7, ZipCompress),
 };
 REGISTER_CLASS("ZipCompress", zcompress_class_info);
-

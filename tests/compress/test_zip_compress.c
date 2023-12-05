@@ -27,33 +27,51 @@ REGISTER_TEST_CMD(test_zip_compress_file);
 
 static int test_zip_uncompress_file(TEST_ENTRY *entry, int argc, void **argv)
 {
-    int fd, ret;
+    int fd, ret, out_len = 0;
     allocator_t *allocator = allocator_get_default_instance();
+    File *in_file, *out_file;
     Compress *c;
     char buf[65536];
-    char *src_file = "./tests/res/test_zip.zip";
-    char *dst_file = "./tesst/res/test_zip.txt";
+    char *src_file = "./tests/res/test_zip_compress.txt";
+    char *dst_file = "./tests/res/test_zip_uncompress.txt";
+    char expect_plaintext[512] = "hello world, hello world2, hello world, hello world2, hello world, "
+                                 "hello world2, hello world, hello world2, hello world, hello world2, "
+                                 "hello world, hello world2";
 
     TRY {
         dbg_str(DBG_SUC, "test_unzip start ...");
+        in_file = object_new(allocator, "File", NULL);
+        out_file = object_new(allocator, "File", NULL);
+        in_file->open(in_file, src_file, "r+");
+        out_file->open(out_file, dst_file, "w+");
 
         c = object_new(allocator, "ZipCompress", NULL);
         THROW_IF(c == NULL, -1);
-        EXEC(c->uncompress_file(c, src_file, dst_file));
+        EXEC(c->uncompress(c, in_file, 23, out_file, &out_len));
 
+        out_file->seek(out_file, 0, SEEK_SET);
+        out_file->read(out_file, (uint8_t *)buf, out_len);
+        dbg_str(DBG_VIP, "out_len:%d", out_len);
+        dbg_str(DBG_VIP, "expect plaintext:%s", expect_plaintext);
+        dbg_str(DBG_VIP, "uncompressed plaintext:%s", buf);
+        THROW_IF(strcmp(expect_plaintext, buf) != 0, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(c);
+        object_destroy(in_file);
+        object_destroy(out_file);
     }
 
     return ret;
 }
-REGISTER_TEST_CMD(test_zip_uncompress_file);
+REGISTER_TEST_FUNC(test_zip_uncompress_file);
 
 static int test_zip_uncompress_buf(TEST_ENTRY *entry)
 {
     Compress *c;
     allocator_t *allocator = allocator_get_default_instance();
-    char plaintext[512] = "hello world, hello world2, hello world, hello world2, hello world, hello world2, hello world, hello world2, hello world, hello world2, hello world, hello world2";
+    char plaintext[512] = "hello world, hello world2, hello world, hello world2, hello world, "
+                          "hello world2, hello world, hello world2, hello world, hello world2, "
+                          "hello world, hello world2";
     char compress_out[25] = {0xcb, 0x48, 0xcd, 0xc9, 0xc9, 0x57, 0x28, 0xcf, 0x2f, 0xca, 
                              0x49, 0xd1, 0x51, 0xc8, 0x40, 0x70, 0x8c, 0x50, 0x78, 0x03,
                              0x27, 0x05, 0x00};

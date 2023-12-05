@@ -18,6 +18,8 @@ struct ZipCompress_s{
     int (*uncompress_buf)(ZipCompress *c, char *in, int in_len, char *out, int *out_len);
     int (*compress_file)(ZipCompress *c, char *file_in, char *file_out);
     int (*uncompress_file)(ZipCompress *c, char *file_in, char *file_out);
+    int (*compress)(ZipCompress *c, File *in, long in_len, File *out, long *out_len);
+    int (*uncompress)(ZipCompress *c, File *in, long in_len, File *out, long *out_len);
 };
 
 #endif

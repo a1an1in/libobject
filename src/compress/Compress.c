@@ -16,7 +16,9 @@ static class_info_entry_t compress_class_info[] = {
     Init_Vfunc_Entry(4, Compress, uncompress_buf, NULL),
     Init_Vfunc_Entry(5, Compress, compress_file, NULL),
     Init_Vfunc_Entry(6, Compress, uncompress_file, NULL),
-    Init_End___Entry(7, Compress),
+    Init_Vfunc_Entry(7, Compress, compress, NULL),
+    Init_Vfunc_Entry(8, Compress, uncompress, NULL),
+    Init_End___Entry(9, Compress),
 };
 REGISTER_CLASS("Compress", compress_class_info);
 
