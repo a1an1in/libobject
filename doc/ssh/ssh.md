@@ -22,8 +22,6 @@ do_exec_pty
 
 [重新认识SSH（一）](https://zhuanlan.zhihu.com/p/66058045)
 
-
-
 ## Q & As
 
 * 加密和签名的区别？
