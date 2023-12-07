@@ -7,8 +7,17 @@
 #include <libobject/core/utils/byteorder.h>
 #include <libobject/core/io/Buffer.h>
 #include <libobject/archive/Archive.h>
+#include <libobject/compress/Compress.h>
 
 typedef struct Zip_s Zip;
+
+#define ZIP_FILE_HEADER_SIZE 30
+
+typedef enum zip_compression_method_enum {
+    ZIP_COMPRESSION_METHOD_STORED = 0,
+    ZIP_COMPRESSION_METHOD_DEFLATED = 8,
+    ZIP_COMPRESSION_METHOD_MAX
+} zip_compression_method_e;
 
 /*
  * The End of Central Directory Structure header has following format :
@@ -123,6 +132,7 @@ typedef struct zip_file_header_s {
     uint16_t extra_field_length;
     uint8_t *file_name;
     uint8_t *extra_field;
+    uint32_t data_offset;
 } __attribute__ ((packed)) zip_file_header_t;
 
 struct Zip_s {
@@ -147,7 +157,7 @@ struct Zip_s {
 
     zip_central_directory_end_header_t central_directory_end_header;
     Vector *headers;
+    Vector *compressors;
 };
-
 
 #endif

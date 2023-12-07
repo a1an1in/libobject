@@ -78,6 +78,7 @@ int deflate_uncompress(FILE *source, long in_len, FILE *dest, long *out_len)
     unsigned char in[CHUNK];
     unsigned char out[CHUNK];
 
+    if (out_len) { *out_len = 0; }
     /* allocate inflate state */
     strm.zalloc = Z_NULL;
     strm.zfree = Z_NULL;

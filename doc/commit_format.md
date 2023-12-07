@@ -1,9 +1,7 @@
 [update:zip] continue to implement zip.
 
 Description:
-deflate_compress is ok.
+zip can uncompress deflate file now.
 
 Major Changes:
-1. add deflate_compress.
-2. add zip compress test res files;
-3. rename ZipCompress to DeflateCompress.
+1. extract deflate file.
