@@ -222,8 +222,7 @@ static int __vector_cstr_element_cmp(zip_central_directory_header_t *element, vo
     return 0;
 }
 
-static zip_central_directory_header_t *
-__search_central_directory_header(Zip *zip, char *file_name)
+static zip_central_directory_header_t *__search_central_directory_header(Zip *zip, char *file_name)
 {
     Vector *headers = zip->headers;
     void *element = NULL;
@@ -286,7 +285,7 @@ static int __decompress_file(Zip *zip, zip_file_header_t *header)
         dbg_str(DBG_VIP, "decompress file data_offset:%d", header->data_offset);
         
         a->seek(a, header->data_offset, SEEK_SET);
-        out->open(out, header->file_name, "w+");
+        out->open(out, header->file_name, "wb+");
         if (header->compression_method == ZIP_COMPRESSION_METHOD_STORED) {
         } else {
             headers->peek_at(headers, header->compression_method, &c);
@@ -311,6 +310,7 @@ static int __extract_file(Zip *zip, char *file_name)
     char buf[512] = {0};
 
     TRY {
+        dbg_str(DBG_VIP, "zip extract_file, name:%s", file_name);
         element = __search_central_directory_header(zip, file_name);
         THROW_IF(element == NULL, -1);
 

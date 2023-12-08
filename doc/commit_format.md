@@ -1,7 +1,7 @@
 [update:zip] continue to implement zip.
 
 Description:
-zip can uncompress deflate file now.
+update.
 
 Major Changes:
-1. extract deflate file.
+1. add new test case.
