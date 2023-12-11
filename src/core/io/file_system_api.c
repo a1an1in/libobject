@@ -115,15 +115,19 @@ int fs_mkfile(char *path, mode_t mode)
     int ret;
 
     TRY {
+        SET_CATCH_STR_PARS(path, 0);
         string = object_new(allocator, "String", NULL);
         string->assign(string, path);
         EXEC(fs_get_path_and_name(string->get_cstr(string), &parent_dir, &name));
-        dbg_str(DBG_VIP, "fs_mkfile dir:%s , name:%s ", parent_dir, name);
+        dbg_str(DBG_VIP, "fs_mkfile dir:%s, name:%s", parent_dir, name);
         EXEC(fs_mkdir(parent_dir, mode));
         f = fopen(path, "w+");
-    } CATCH (ret) {} FINALLY {
+        THROW_IF(f == NULL, -1);
+    } CATCH (ret) {
+        TRY_SHOW_STR_PARS(DBG_ERROR);
+    } FINALLY {
         object_destroy(string);
-        fclose(f);
+        if (f) fclose(f);
     }
 
     return ret;

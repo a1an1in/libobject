@@ -229,6 +229,31 @@ int assert_int_equal(int peer1, int peer2)
     return peer1 == peer2;
 }
 
+int assert_file_equal(const char *file1, const char *file2)
+{
+    FILE *fp1, *fp2;
+    int word1, word2;
+    int ret;
+
+    TRY {
+        fp1 = fopen(file1, "r");
+        fp2 = fopen(file2, "r");
+        word1 = getc(fp1);
+        word2 = getc(fp2);
+
+        // A loop until the end of the files(EOF)
+        while (word1 != EOF && word2 != EOF && word1 == word2) {
+            word1 = getc(fp1);
+            word2 = getc(fp2);
+        }
+    } FINALLY {
+        fclose(fp1);
+        fclose(fp2);
+    }
+   
+    return (word1 == word2);
+}
+
 static int add(int a, int b)
 {
     return a + b;

@@ -20,6 +20,8 @@ static int __free_centrol_header_callback(allocator_t *allocator, zip_central_di
 
 static int __free_file_header_callback(allocator_t *allocator, zip_file_header_t *header)
 {
+    if (header == NULL) return 0;
+
     allocator_mem_free(allocator, header->file_name);
     allocator_mem_free(allocator, header->extra_field);
     allocator_mem_free(allocator, header);
@@ -269,6 +271,24 @@ static int __get_file_header(Zip *zip, zip_central_directory_header_t *record, z
     return ret;
 }
 
+static int __store_file(Zip *zip, File *a, long size, File *out, long *out_size)
+{
+    int ret, read_len;
+    unsigned char buffer[1024];
+
+    TRY {
+        while (size > 0) {
+            read_len = size > 1024 ? 1024 : size;
+            EXEC(a->read(a, buffer, read_len));
+            EXEC(out->write(out, buffer, read_len));
+            size -= read_len;
+        }
+        *out_size = size;
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 static int __decompress_file(Zip *zip, zip_file_header_t *header)
 {
     Compress *c = NULL;
@@ -276,6 +296,7 @@ static int __decompress_file(Zip *zip, zip_file_header_t *header)
     Archive *archive = (Archive *)&zip->parent;
     allocator_t *allocator = zip->parent.parent.allocator;
     File *a = archive->file, *out = zip->file;
+    char file_name[1024];
     int ret, out_len;
 
     TRY {
@@ -284,17 +305,22 @@ static int __decompress_file(Zip *zip, zip_file_header_t *header)
         dbg_str(DBG_VIP, "decompress method:%d", header->compression_method);
         dbg_str(DBG_VIP, "decompress file data_offset:%d", header->data_offset);
         
-        a->seek(a, header->data_offset, SEEK_SET);
-        out->open(out, header->file_name, "wb+");
+        strcpy(file_name, STR2A(archive->path));
+        strcat(file_name, header->file_name);
+        EXEC(fs_mkfile(file_name, 0777));
+        EXEC(a->seek(a, header->data_offset, SEEK_SET));
+        EXEC(out->open(out, file_name, "wb+"));
         if (header->compression_method == ZIP_COMPRESSION_METHOD_STORED) {
+            EXEC(__store_file(zip, a, header->compressed_size, out, &out_len));
         } else {
             headers->peek_at(headers, header->compression_method, &c);
             dbg_str(DBG_VIP, "decompress compressor:%p", c);
             EXEC(c->uncompress(c, a, header->compressed_size, out, &out_len));
             dbg_str(DBG_VIP, "decompress out len:%d", out_len);
         }
-        
-    } CATCH (ret) {}
+    } CATCH (ret) {} FINALLY {
+        out->close(out);
+    }
 
     return ret;
 }
@@ -324,9 +350,9 @@ static int __extract_file(Zip *zip, char *file_name)
         header = allocator_mem_zalloc(allocator, sizeof(zip_file_header_t));
         EXEC(__get_file_header(zip, element, header));
         EXEC(__decompress_file(zip, header));
-        EXEC(__free_file_header_callback(allocator, header));
-        
-    } CATCH (ret) {}
+    } CATCH (ret) {} FINALLY {
+        __free_file_header_callback(allocator, header);
+    }
 
     return ret;
 }

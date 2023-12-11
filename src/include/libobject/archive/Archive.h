@@ -23,6 +23,7 @@ struct Archive_s{
     int (*compress)(Archive *c, char *file_in, char *file_out);
     int (*uncompress)(Archive *c, char *file_in, char *file_out);
     int (*extract_file)(Archive *a, char *file_name);
+    /* extract designated files */
     int (*extract_files)(Archive *a, char *file_list, int num);
     int (*extract)(Archive *a);
     int (*add_file)(Archive *a, char *file_name);

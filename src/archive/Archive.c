@@ -15,6 +15,7 @@ static int __construct(Archive *archive, char *init_str)
     archive->file = object_new(allocator, "File", NULL);
     archive->wildchard = object_new(allocator, "String", NULL);
     archive->path = object_new(allocator, "String", NULL);
+    archive->path->assign(archive->path, "./");
     return 0;
 }
 

@@ -32,6 +32,7 @@ int execute_dtor_funcs();
 int execute_test_funcs();
 int execute_designated_func(char *func_name, int arg1, char **arg2);
 int assert_equal(void *peer1, void *peer2, unsigned int count);
+int assert_file_equal(const char *file1, const char *file2);
 
 #define INIT_LIBOBJECT execute_ctor_funcs
 
