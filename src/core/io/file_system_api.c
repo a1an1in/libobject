@@ -1,5 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/core/String.h>
 #include <libobject/core/io/file_system_api.h>
 
 File_System *globle_file_system;
@@ -61,4 +64,72 @@ int fs_get_size(char *path)
 int fs_mkdir(char *path, mode_t mode)
 {
     return TRY_EXEC(globle_file_system->mkdir(globle_file_system, path, mode));
+}
+
+int fs_rmdir(char *path)
+{
+    return TRY_EXEC(globle_file_system->rmdir(globle_file_system, path));
+}
+
+int fs_is_exist(char *path)
+{
+    if (access(path, 0) < 0) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+int fs_get_path_and_name(char *path, char **parent_dir, char **name)
+{
+    char *index;
+    int len;
+
+    if (parent_dir) *parent_dir = path;
+    len = strlen(path);
+    if (path[len] == '\\' || path[len] == '/') {
+        path[len] = '\0';
+    }
+
+    if ((index = strrchr(path, '/')) != NULL) {
+        *index = '\0';
+        *name = index + 1;
+        return 1;
+    }
+
+    if ((index = strrchr(path, '\\')) != NULL) {
+        *index = '\0';
+        *name = index + 1;
+        return 1;
+    } 
+
+    return 0;
+}
+
+int fs_mkfile(char *path, mode_t mode)
+{
+    String *string;
+    allocator_t *allocator = globle_file_system->obj.allocator;
+    char *parent_dir, *name;
+    FILE *f = NULL;
+    int ret;
+
+    TRY {
+        string = object_new(allocator, "String", NULL);
+        string->assign(string, path);
+        EXEC(fs_get_path_and_name(string->get_cstr(string), &parent_dir, &name));
+        dbg_str(DBG_VIP, "fs_mkfile dir:%s , name:%s ", parent_dir, name);
+        EXEC(fs_mkdir(parent_dir, mode));
+        f = fopen(path, "w+");
+    } CATCH (ret) {} FINALLY {
+        object_destroy(string);
+        fclose(f);
+    }
+
+    return ret;
+}
+
+int fs_rmfile(char *path)
+{
+    return remove(path);
 }

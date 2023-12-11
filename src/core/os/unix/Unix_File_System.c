@@ -41,6 +41,7 @@
 #include <sys/stat.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
+#include <libobject/core/String.h>
 #include "Unix_File_System.h"
 
 static int __list(Unix_File_System *fs, char *path, char **list, int count, int max_name_len)
@@ -139,7 +140,86 @@ static int __get_mtime(Unix_File_System *fs, char *path, char *time, int time_ma
 
 static int __mkdir(Unix_File_System *fs, char *path, mode_t mode)
 {
-    return TRY_EXEC(mkdir(path, mode));
+    String *string;
+    allocator_t *allocator = fs->parent.obj.allocator;
+    char *p, *tmp;
+    int ret, cnt, i;
+
+    TRY {
+        string = object_new(allocator, "String", NULL);
+        string->assign(string, path);  
+        tmp = allocator_mem_alloc(allocator, strlen(path));
+
+        cnt = string->split(string, "/", -1);
+
+        for (i = 0; i < cnt; i++) {
+            p = string->get_splited_cstr(string, i);
+            THROW_IF(p == NULL, -1);
+            if (i == 0) {
+                strcpy(tmp, p);
+            } else{
+                strcat(tmp, "/");
+                strcat(tmp, p);
+            }
+            
+            if (fs_is_exist(tmp)) {
+                continue;
+            }
+            dbg_str(DBG_VIP, "mkdir %d:%s", i, tmp);
+            EXEC(mkdir(tmp, mode));
+        }
+    } CATCH (ret) {} FINALLY {
+        object_destroy(string);
+        allocator_mem_free(allocator, tmp);
+    }
+
+    return ret;
+}
+
+/**
+* 递归删除目录(删除该目录以及该目录包含的文件和目录)
+*/
+static int __rmdir(Unix_File_System *fs, char *dir)
+{
+    char cur_dir[] = ".";
+	char up_dir[] = "..";
+	char dir_name[1024];
+	DIR *dirp;
+	struct dirent *dp;
+	struct stat dir_stat;
+ 
+	// 参数传递进来的目录不存在，直接返回
+	if ( 0 != access(dir, F_OK) ) {
+		return 0;
+	}
+ 
+	// 获取目录属性失败，返回错误
+	if (stat(dir, &dir_stat) < 0) {
+		perror("get directory stat error");
+		return -1;
+	}
+ 
+	if (S_ISREG(dir_stat.st_mode)) {	//普通文件直接删除
+		remove(dir);
+	} else if (S_ISDIR(dir_stat.st_mode)) {	//目录文件，递归删除目录中内容
+		dirp = opendir(dir);
+		while ((dp=readdir(dirp)) != NULL) {
+			// 忽略 . 和 ..
+			if ((0 == strcmp(cur_dir, dp->d_name)) || (0 == strcmp(up_dir, dp->d_name))) {
+				continue;
+			}
+			
+			snprintf(dir_name, sizeof(dir_name), "%s/%s", dir, dp->d_name);
+			__rmdir(fs, dir_name);   // 递归调用
+		}
+		closedir(dirp);
+        dbg_str(DBG_VIP, "rmdir %s", dir);
+		rmdir(dir);		// 删除空目录
+	} else {
+		perror("unknow file type!");	
+	}
+	
+	return 0;
 }
 
 static class_info_entry_t file_system_class_info[] = {
@@ -150,7 +230,8 @@ static class_info_entry_t file_system_class_info[] = {
     Init_Vfunc_Entry(4 , Unix_File_System, get_size, __get_size),
     Init_Vfunc_Entry(5 , Unix_File_System, get_mtime, __get_mtime),
     Init_Vfunc_Entry(6 , Unix_File_System, mkdir, __mkdir),
-    Init_End___Entry(7 , Unix_File_System),
+    Init_Vfunc_Entry(7 , Unix_File_System, rmdir, __rmdir),
+    Init_End___Entry(8 , Unix_File_System),
 };
 REGISTER_CLASS("Unix_File_System", file_system_class_info);
 #endif

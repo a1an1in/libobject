@@ -42,6 +42,7 @@ static class_info_entry_t file_system_class_info[] = {
     Init_Vfunc_Entry(4 , File_System, get_size, NULL),
     Init_Vfunc_Entry(5 , File_System, get_mtime, NULL),
     Init_Vfunc_Entry(6 , File_System, mkdir, NULL),
-    Init_End___Entry(7 , File_System),
+    Init_Vfunc_Entry(7 , File_System, rmdir, NULL),
+    Init_End___Entry(8 , File_System),
 };
 REGISTER_CLASS("File_System", file_system_class_info);

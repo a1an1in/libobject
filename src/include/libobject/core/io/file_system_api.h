@@ -12,5 +12,11 @@ extern int fs_get_size(char *path);
 extern int fs_get_mtime(char *path, char *time, int time_max_len);
 extern int fs_init();
 extern int fs_destroy();
+extern int fs_is_exist(char *path);
+extern int fs_get_path_and_name(char *path, char **parent_dir, char **name);
+extern int fs_mkfile(char *path, mode_t mode);
+extern int fs_rmfile(char *path);
+extern int fs_mkdir(char *path, mode_t mode);
+extern int fs_rmdir(char *path);
 
 #endif

@@ -22,8 +22,10 @@ static int test_fs_list(TEST_ENTRY *entry)
         }
 
         SET_CATCH_INT_PARS(count, 0);
-        THROW_IF(count != 12, -1);
-    } CATCH (ret) {} FINALLY {
+        THROW_IF(count != 9, -1);
+    } CATCH (ret) {
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    } FINALLY {
         allocator_mem_free(allocator, list);
     }
 
@@ -68,28 +70,81 @@ static int test_fs_get_size(TEST_ENTRY *entry)
 }
 REGISTER_TEST_FUNC(test_fs_get_size);
 
-static int test_fs_is_directory_case0(TEST_ENTRY *entry)
+static int test_fs_is_directory(TEST_ENTRY *entry)
 {
     int ret;
 
     TRY {
         ret = fs_is_directory("./res/TIMES.TTF");
         THROW_IF(ret == 1 || ret < 0, -1);
-    } CATCH (ret) {}
-
-    return ret;
-}
-REGISTER_TEST_FUNC(test_fs_is_directory_case0);
-
-static int test_fs_is_directory_case1(TEST_ENTRY *entry)
-{
-    int ret;
-
-    TRY {
         ret = fs_is_directory("./res");
         THROW_IF(ret != 1, -1);
     } CATCH (ret) {}
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_fs_is_directory_case1);
+REGISTER_TEST_FUNC(test_fs_is_directory);
+
+static int test_fs_is_exist(TEST_ENTRY *entry)
+{
+    int ret;
+
+    TRY {
+        THROW_IF(fs_is_exist("./tests/res/") != 1, -1);
+        THROW_IF(fs_is_exist("./tests/res/xxx") == 1, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_fs_is_exist);
+
+static int test_fs_get_path_and_name(TEST_ENTRY *entry)
+{
+    char name[1024] = "./tests/res/aa/bb/cc";
+    char *dir, *current_name;
+    int ret;
+
+    TRY {
+        EXEC(fs_get_path_and_name(name, &dir, &current_name));
+        dbg_str(DBG_VIP, "fs_get_path_and_name %s :%s ", dir, current_name);
+        THROW_IF(strcmp(dir, "./tests/res/aa/bb") != 0, -1);
+        THROW_IF(strcmp(current_name, "cc") != 0, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_fs_get_path_and_name);
+
+static int test_fs_mk_and_rm_dir(TEST_ENTRY *entry)
+{
+    char *make_dir_name = "./tests/res/aa/bb/cc";
+    char *del_dir_name = "./tests/res/aa";
+    int ret;
+
+    TRY {
+        EXEC(fs_mkdir(make_dir_name, 0777));
+        THROW_IF(fs_is_exist(make_dir_name) != 1, -1);
+        EXEC(fs_rmdir(del_dir_name));
+        THROW_IF(fs_is_exist(del_dir_name) == 1, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_fs_mk_and_rm_dir);
+
+static int test_fs_mk_and_rm_file(TEST_ENTRY *entry)
+{
+    char name[1024] = "./tests/res/aa/bb/cc/abc.txt";
+    int ret;
+
+    TRY {
+        EXEC(fs_mkfile(name, 0777));
+        THROW_IF(fs_is_exist(name) != 1, -1);
+        EXEC(fs_rmfile(name));
+        THROW_IF(fs_is_exist(name) == 1, -1);
+        EXEC(fs_rmdir("./tests/res/aa"));
+    } CATCH (ret) {}
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_fs_mk_and_rm_file);

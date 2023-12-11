@@ -102,11 +102,11 @@ extern pthread_key_t try_key;
 
 #define TRY_SHOW_INT_PARS(level)                                                                 \
     dbg_str(level, "ERROR_FUNC:%s, ERROR_INT_PAR1=%d, ERROR_INT_PAR2=%d",                        \
-            ERROR_FUNC(), ERROR_INT_PAR1(), ERROR_INT_PAR2());
+            __func__, ERROR_INT_PAR1(), ERROR_INT_PAR2());
 
 #define TRY_SHOW_ERROR_PARS()                                                                    \
         dbg_str(DBG_ERROR, "ERROR_FUNC:%s, ERROR_LINE:%d, ERROR_CODE:%d",                        \
-                ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());                                       \
+                __func__, ERROR_LINE(), ERROR_CODE());                                       \
 
 #define THROW(error_code)                                                                        \
     do {                                                                                         \
