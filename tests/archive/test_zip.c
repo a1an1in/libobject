@@ -75,20 +75,41 @@ static int test_zip_add_file(TEST_ENTRY *entry, int argc, void **argv)
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
-    char *file = "./tests/res/test_zip.txt";
-    char *tar_name = "./tests/res/test_zip.zip";
+    char *file = "./tests/res/zip/test_zip_deflate.txt";
+    char *tar_name = "./tests/output/zip/test_zip.zip";
 
     TRY {
         dbg_str(DBG_SUC, "test add files to zip");
-
+        fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
 		archive->open(archive, tar_name, "w+");
 
 		archive->add_file(archive, file);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
+        fs_rmdir("./tests/output/zip/");
     }
 
     return ret;
 }
 REGISTER_TEST_CMD(test_zip_add_file);
+
+static int test_zip_crc32(TEST_ENTRY *entry, int argc, void **argv)
+{
+    char expect_plaintext[512] = "hello world, hello world2, hello world, hello world2, hello world, "
+                                 "hello world2, hello world, hello world2, hello world, hello world2, "
+                                 "hello world, hello world2";
+    int ret;
+    unsigned int result, expect_result = 0xa8e65b40;
+
+    TRY {
+        result = (unsigned int)crc32(0, expect_plaintext, strlen(expect_plaintext));
+        SET_CATCH_INT_PARS(result, expect_result);
+        THROW_IF(result != expect_result, -1);
+    } CATCH (ret) { 
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_zip_crc32);

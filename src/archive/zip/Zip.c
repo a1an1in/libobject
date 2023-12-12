@@ -202,10 +202,12 @@ static int __get_central_directory_headers(Zip *zip)
 
 static int __open(Zip *zip, char *archive_name, char *mode)
 {
-    int ret;
+    int ret, size;
 
     TRY {
         dbg_str(DBG_VIP, "Zip open archive %s", archive_name);
+        size = fs_get_size(archive_name);
+        if (size == 0) return 0;
 
         EXEC(__search_central_directory_end_header_position(zip, &zip->central_dir_end_header_position));
         EXEC(__get_central_directory_end_header(zip));
