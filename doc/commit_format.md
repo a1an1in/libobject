@@ -1,8 +1,7 @@
-[update:zip] continue to implement zip.
+[update:zip] update test cases.
 
 Description:
 update.
 
 Major Changes:
-1. fix open for adding file.
-2. add crc32 test case.
+1. change test resource file position.

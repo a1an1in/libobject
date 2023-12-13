@@ -9,8 +9,8 @@ static int test_deflate_compress_file(TEST_ENTRY *entry, int argc, void **argv)
     Compress *c;
     File *in_file, *out_file;
     char buf[65536];
-    char *src_file = "./tests/res/test_deflate_uncompress.txt";
-    char *dst_file = "./tests/res/test_deflate_compress.txt";
+    char *src_file = "./tests/res/deflate/plain_text.txt";
+    char *dst_file = "./tests/res/deflate/deflated_text.txt";
     char expect_out[25] = {0xcb, 0x48, 0xcd, 0xc9, 0xc9, 0x57, 0x28, 0xcf, 0x2f, 0xca, 
                            0x49, 0xd1, 0x51, 0xc8, 0x40, 0x70, 0x8c, 0x50, 0x78, 0x03,
                            0x27, 0x05, 0x00};
@@ -50,8 +50,8 @@ static int test_deflate_uncompress_file(TEST_ENTRY *entry, int argc, void **argv
     File *in_file, *out_file;
     Compress *c;
     char buf[65536];
-    char *src_file = "./tests/res/test_deflate_compress.txt";
-    char *dst_file = "./tests/res/test_deflate_uncompress.txt";
+    char *src_file = "./tests/res/deflate/deflated_text.txt";
+    char *dst_file = "./tests/res/deflate/plain_text.txt";
     char expect_plaintext[512] = "hello world, hello world2, hello world, hello world2, hello world, "
                                  "hello world2, hello world, hello world2, hello world, hello world2, "
                                  "hello world, hello world2";

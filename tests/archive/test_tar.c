@@ -15,15 +15,15 @@ static int test_tar_extract(TEST_ENTRY *entry, int argc, void **argv)
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
-	char *src_file = "./tests/res/test_extract.tar";
-    char *dst_file = "./tests/res/test_extract.txt";
+	char *src_file = "./tests/res/tar/test_extract.tar";
+    char *dst_file = "./tests/res/tar/test_extract.txt";
 
     TRY {
         dbg_str(DBG_SUC, "test_tar");
 
         archive = object_new(allocator, "Tar", NULL);
 		archive->open(archive, src_file, "r+");
-		archive->set_path(archive, "./test/res/");
+		archive->set_path(archive, "./test/res/tar/");
 		archive->extract(archive);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
@@ -38,16 +38,16 @@ static int test_tar_add_files(TEST_ENTRY *entry, int argc, void **argv)
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
-    char *file1 = "./tests/res/test_gzip.txt";
-    char *file2 = "./tests/res/subdir/test.txt";
-    char *tar_name = "./tests/res/test_create.tar";
+    char *file1 = "./tests/res/tar/test_gzip.txt";
+    char *file2 = "./tests/res/tar/subdir/test.txt";
+    char *tar_name = "./tests/res/tar/test_create.tar";
 
     TRY {
         dbg_str(DBG_SUC, "test_tar");
 
         archive = object_new(allocator, "Tar", NULL);
 		archive->open(archive, tar_name, "w+");
-        archive->set_path(archive, "./test/res/");
+        archive->set_path(archive, "./test/res/tar/");
 
 		archive->add_file(archive, file1);
         archive->add_file(archive, file2);
