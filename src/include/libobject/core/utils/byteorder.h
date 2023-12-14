@@ -30,6 +30,8 @@
 
 #define LE32_TO_CPU(value) ((value) = byteorder_le32_to_cpu(&(value)))
 #define LE16_TO_CPU(value) ((value) = byteorder_le16_to_cpu(&(value)))
+#define CPU_TO_LE32(value) ((value) = byteorder_cpu_to_le32(&(value)))
+#define CPU_TO_LE16(value) ((value) = byteorder_cpu_to_le16(&(value)))
 
 static inline int byteorder_is_cpu_little_endian()
 {

@@ -34,4 +34,7 @@ struct file_s{
     FILE *f;
 };
 
+
+int file_compute_crc32(char *file_name, uint32_t *crc);
+
 #endif

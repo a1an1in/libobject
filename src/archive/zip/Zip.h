@@ -154,6 +154,7 @@ struct Zip_s {
     Buffer *buffer;
     uint64_t central_dir_end_header_position;
     uint64_t central_dir_position;
+    uint64_t last_file_position;
 
     zip_central_directory_end_header_t central_directory_end_header;
     Vector *headers;
