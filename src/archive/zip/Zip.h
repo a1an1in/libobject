@@ -12,6 +12,8 @@
 typedef struct Zip_s Zip;
 
 #define ZIP_FILE_HEADER_SIZE 30
+#define ZIP_CENTROL_DIR_HEADER_SIZE 46
+#define ZIP_CENTROL_DIR_END_HEADER_SIZE 22
 
 typedef enum zip_compression_method_enum {
     ZIP_COMPRESSION_METHOD_STORED = 0,
@@ -100,6 +102,7 @@ typedef struct zip_central_directory_header_s {
     uint8_t *file_name;
     uint8_t *extra_field;
     uint8_t *comment;
+    void *opaque;
 } __attribute__ ((packed)) zip_central_directory_header_t;
 
 /*
@@ -155,6 +158,7 @@ struct Zip_s {
     uint64_t central_dir_end_header_position;
     uint64_t central_dir_position;
     uint64_t last_file_position;
+    uint8_t write_central_dir_flag;
 
     zip_central_directory_end_header_t central_directory_end_header;
     Vector *headers;

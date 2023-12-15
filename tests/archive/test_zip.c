@@ -107,7 +107,7 @@ static int test_zip_add_file(TEST_ENTRY *entry, int argc, void **argv)
 		archive->add_file(archive, file);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        fs_rmdir("./tests/output/zip/");
+        // fs_rmdir("./tests/output/zip/");
     }
 
     return ret;

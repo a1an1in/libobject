@@ -8,7 +8,7 @@
 
 #include "Zip.h"
 
-static int __free_centrol_header_callback(allocator_t *allocator, zip_central_directory_header_t *header)
+static int __free_centrol_dir_header_callback(allocator_t *allocator, zip_central_directory_header_t *header)
 {
     allocator_mem_free(allocator, header->file_name);
     allocator_mem_free(allocator, header->extra_field);
@@ -56,7 +56,7 @@ static int __construct(Zip *zip, char *init_str)
 
     zip->headers = object_new(allocator, "Vector", NULL);
     headers = zip->headers;
-    headers->set_trustee(headers, VALUE_TYPE_STRUCT_POINTER, __free_centrol_header_callback);
+    headers->set_trustee(headers, VALUE_TYPE_STRUCT_POINTER, __free_centrol_dir_header_callback);
 
     zip->compressors = object_new(allocator, "Vector", NULL);
     headers = zip->compressors;
@@ -65,6 +65,7 @@ static int __construct(Zip *zip, char *init_str)
 
     zip->central_dir_position = 0;
     zip->central_dir_end_header_position = 0;
+    zip->write_central_dir_flag = 0;
 
     return 0;
 }
@@ -367,11 +368,15 @@ static int __extract_file(Zip *zip, char *file_name)
 
 static int __write_file_header(Zip *zip, char *file_name, zip_file_header_t *header)
 {
+    Archive *archive = (Archive *)&zip->parent;
+    File *a = archive->file;
     zip_central_directory_end_header_t *end_header = &zip->central_directory_end_header;
+    allocator_t *allocator = zip->parent.parent.allocator;
     uint32_t uncompressed_size;
     int ret;
 
     TRY {
+        THROW_IF(header == NULL, -1);
         header->signature = 0x04034b50;
         header->extract_version = 0x14;
         header->general_purpose_bit_flag = 0;
@@ -380,21 +385,38 @@ static int __write_file_header(Zip *zip, char *file_name, zip_file_header_t *hea
         header->last_mode_date = 0;
         header->file_name_length = strlen(file_name);
         header->extra_field_length = 0;
-        header->data_offset = zip->central_dir_position 
-                              + header->file_name_length 
-                              + header->extra_field_length;
+        THROW_IF(header->file_name_length <= 0, -1);
+        /*
+         * the compressed_size, uncompressed_size, and crc32 was configed 
+         * at __write_file.
+         */ 
 
-        header->signature = CPU_TO_LE32(header->signature);
-        header->extract_version = CPU_TO_LE16(header->extract_version);
-        header->general_purpose_bit_flag = CPU_TO_LE16(header->general_purpose_bit_flag);
-        header->compression_method = CPU_TO_LE16(header->compression_method);
-        header->last_mode_time = CPU_TO_LE16(header->last_mode_time);
-        header->last_mode_date = CPU_TO_LE16(header->last_mode_date);
-        header->crc32 = CPU_TO_LE32(header->crc32);
-        header->compressed_size = CPU_TO_LE32(header->compressed_size);
-        header->uncompressed_size = CPU_TO_LE32(header->uncompressed_size);
-        header->file_name_length = CPU_TO_LE16(header->file_name_length);
-        header->extra_field_length = CPU_TO_LE16(header->extra_field_length);
+        /* set file name for file header */
+        header->file_name = allocator_mem_zalloc(allocator, strlen(file_name) + 1);
+        THROW_IF(header->file_name == NULL, -1);
+        strcpy(header->file_name, file_name);
+
+        CPU_TO_LE32(header->signature);
+        CPU_TO_LE16(header->extract_version);
+        CPU_TO_LE16(header->general_purpose_bit_flag);
+        CPU_TO_LE16(header->compression_method);
+        CPU_TO_LE16(header->last_mode_time);
+        CPU_TO_LE16(header->last_mode_date);
+        CPU_TO_LE32(header->crc32);
+        CPU_TO_LE32(header->compressed_size);
+        CPU_TO_LE32(header->uncompressed_size);
+        CPU_TO_LE16(header->file_name_length);
+        CPU_TO_LE16(header->extra_field_length);
+
+        // write file header to archive
+        EXEC(a->seek(a, zip->central_dir_position, SEEK_SET));
+        EXEC(a->write(a, header, ZIP_FILE_HEADER_SIZE));
+        EXEC(a->seek(a, zip->central_dir_position + ZIP_FILE_HEADER_SIZE, SEEK_SET));
+        EXEC(a->write(a, file_name, strlen(file_name)));
+        // todo: add extra_field
+        if (LE16_TO_CPU(header->extra_field_length)) {
+            dbg_str(DBG_VIP, "not support extra_field now");
+        }
     } CATCH (ret) {}
     
     return ret;
@@ -426,6 +448,7 @@ static int __write_file(Zip *zip, char *file_name, zip_file_header_t *header)
             header->compressed_size = write_len;
             THROW_IF(write_len != header->uncompressed_size, -1);
         } else {
+            dbg_str(DBG_VIP, "compress compression_method:%x", header->compression_method);
             headers->peek_at(headers, header->compression_method, &c);
             THROW_IF(c == NULL, -1);
             EXEC(c->compress(c, file, header->uncompressed_size, a, &write_len));
@@ -437,7 +460,7 @@ static int __write_file(Zip *zip, char *file_name, zip_file_header_t *header)
     return ret;
 }
 
-static int __write_central_directory_header(Zip *zip, zip_file_header_t *file_header)
+static int __add_central_directory_header(Zip *zip, zip_file_header_t *file_header)
 {
     zip_central_directory_header_t *dir_header;
     allocator_t *allocator = zip->parent.parent.allocator;
@@ -449,7 +472,7 @@ static int __write_central_directory_header(Zip *zip, zip_file_header_t *file_he
         dir_header = allocator_mem_zalloc(allocator, sizeof(zip_central_directory_header_t));
         dir_header->signature = CPU_TO_LE32(signature);
         dir_header->create_version = 2;
-        dir_header->extract_version = 2;
+        dir_header->extract_version = file_header->extract_version;
         dir_header->general_purpose_bit_flag = file_header->general_purpose_bit_flag;
         dir_header->compression_method = file_header->compression_method;
         dir_header->last_mode_time = file_header->last_mode_time;
@@ -464,11 +487,61 @@ static int __write_central_directory_header(Zip *zip, zip_file_header_t *file_he
         dir_header->internal_file_attributes = 0;
         dir_header->external_file_attributes = 0;
         dir_header->offset = CPU_TO_LE32(zip->central_dir_position);
+
+        /* set file name for dir */
+        dir_header->file_name = allocator_mem_zalloc(allocator, LE32_TO_CPU(file_header->file_name_length) + 1);
+        THROW_IF(dir_header->file_name == NULL, -1);
+        strcpy(dir_header->file_name, file_header->file_name);
+
+        /* extra_field not support now */
+        THROW_IF(LE32_TO_CPU(file_header->extra_field_length) != 0, -1);
+
+        /* set opaque for for each func */
+        dir_header->opaque = zip;
+
+        /* set central_dir_position */
         zip->central_dir_position += (ZIP_FILE_HEADER_SIZE + 
                                       LE32_TO_CPU(file_header->file_name_length) + 
                                       LE32_TO_CPU(file_header->extra_field_length) +
                                       LE32_TO_CPU(file_header->compressed_size));
+        zip->central_dir_end_header_position = zip->central_dir_position;
         dir_headers->add(dir_headers, dir_header);
+    } CATCH (ret) {}
+    
+    return ret;
+}
+
+static int __write_central_directory_header_callback(int index, void *element)
+{
+    zip_central_directory_header_t *header = (zip_central_directory_header_t *)element;
+    Zip *zip = (Zip *)header->opaque;
+    Archive *archive = (Archive *)&zip->parent;
+    File *a = archive->file;
+    int ret;
+
+    TRY {
+        EXEC(a->seek(a, zip->central_dir_end_header_position, SEEK_SET));
+        EXEC(a->write(a, header, ZIP_CENTROL_DIR_HEADER_SIZE));
+        zip->central_dir_end_header_position += ZIP_CENTROL_DIR_HEADER_SIZE;
+        EXEC(a->write(a, header->file_name, header->file_name_length));
+        zip->central_dir_end_header_position += header->file_name_length;
+        THROW_IF(header->extra_field_length != 0, -1);
+        THROW_IF(header->file_comment_length != 0, -1);
+
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static int __write_central_directory_headers(Zip *zip)
+{ 
+    Vector *headers = zip->headers;
+    int ret;
+
+    TRY {
+        THROW_IF(zip->write_central_dir_flag == 0, 1);
+        EXEC(headers->for_each(headers, __write_central_directory_header_callback));
+
     } CATCH (ret) {}
     
     return ret;
@@ -476,13 +549,32 @@ static int __write_central_directory_header(Zip *zip, zip_file_header_t *file_he
 
 static int __write_central_directory_end_header(Zip *zip)
 {
-    uint32_t signature = 0x06054b50;
+    uint32_t signature = 0x06054b50, count;
     zip_central_directory_end_header_t *end_header = &zip->central_directory_end_header;
+    Archive *archive = (Archive *)&zip->parent;
+    File *a = archive->file;
+    Vector *headers = zip->headers;
     int ret;
 
     TRY {
-        end_header->signature = CPU_TO_LE32(signature);
+        THROW_IF(zip->write_central_dir_flag == 0, 1);
+        count = headers->count(headers);
 
+        end_header->signature = signature;
+        end_header->central_directory_total_number = count;
+        end_header->central_directory_size = zip->central_dir_end_header_position - zip->central_dir_position;
+        end_header->central_directory_start_offset = zip->central_dir_position;
+        end_header->comment_length = 0;
+        THROW_IF(end_header->comment_length != 0, -1);
+
+        CPU_TO_LE32(end_header->signature);
+        CPU_TO_LE16(end_header->central_directory_total_number);
+        CPU_TO_LE32(end_header->central_directory_size);
+        CPU_TO_LE32(end_header->central_directory_start_offset);
+        CPU_TO_LE32(end_header->comment_length);
+
+        EXEC(a->seek(a, zip->central_dir_end_header_position, SEEK_SET));
+        EXEC(a->write(a, end_header, ZIP_CENTROL_DIR_END_HEADER_SIZE));
     } CATCH (ret) {}
 
     return ret;
@@ -490,21 +582,27 @@ static int __write_central_directory_end_header(Zip *zip)
 
 static int __add_file(Zip *zip, char *file_name)
 {
-    zip_file_header_t file_header;
+    zip_file_header_t *file_header;
     uint32_t extra_field_length = 0;
+    allocator_t *allocator = zip->parent.parent.allocator;
     int ret;
 
     TRY {
-        file_header.data_offset = zip->central_dir_position 
-                                  + strlen(file_name)
-                                  + extra_field_length;
+        file_header = allocator_mem_zalloc(allocator, sizeof(zip_file_header_t));
+        THROW_IF(file_header == NULL, -1);
+        file_header->data_offset = zip->central_dir_position 
+                                   + strlen(file_name)
+                                   + extra_field_length;
+        file_header->compression_method = ZIP_COMPRESSION_METHOD_DEFLATED;
 
-        EXEC(__write_file(zip, file_name, &file_header));
-        EXEC(__write_file_header(zip, file_name, &file_header));
-        EXEC(__write_central_directory_header(zip, &file_header));
-        if (zip->central_dir_end_header_position == 0) {
-        }
-    } CATCH (ret) {}
+        EXEC(__write_file(zip, file_name, file_header));
+        EXEC(__write_file_header(zip, file_name, file_header));
+        EXEC(__add_central_directory_header(zip, file_header));
+        EXEC(__write_central_directory_headers(zip));
+        EXEC(__write_central_directory_end_header(zip));
+    } CATCH (ret) {} FINALLY {
+        __free_file_header_callback(allocator, file_header);
+    }
 
     return ret;
 }

@@ -1,7 +1,7 @@
-[update:zip] update test cases.
+[update:zip] continue to implement zip.
 
 Description:
-update.
+finished add file for zip, but haven't tested.
 
 Major Changes:
-1. change test resource file position.
+1. update.
