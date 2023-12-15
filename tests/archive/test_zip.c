@@ -114,3 +114,30 @@ static int test_zip_add_file(TEST_ENTRY *entry, int argc, void **argv)
 }
 REGISTER_TEST_CMD(test_zip_add_file);
 
+static int test_zip_add_files(TEST_ENTRY *entry, int argc, void **argv)
+{
+    int ret;
+    allocator_t *allocator = allocator_get_default_instance();
+    Archive *archive;
+    char *file1 = "./tests/res/zip/test_zip_deflate.txt";
+    char *file2 = "./tests/res/zip/test_zip_extract2.txt";
+    char *tar_name = "./tests/output/zip/test_zip.zip";
+
+    TRY {
+        dbg_str(DBG_SUC, "test add files to zip");
+        fs_mkdir("./tests/output/zip", 0777);
+        archive = object_new(allocator, "Zip", NULL);
+		archive->open(archive, tar_name, "w+");
+
+		archive->add_file(archive, file1);
+        archive->add_file(archive, file2);
+    } CATCH (ret) { } FINALLY {
+        object_destroy(archive);
+        // fs_rmdir("./tests/output/zip/");
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_zip_add_files);
+
+

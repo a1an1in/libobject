@@ -448,7 +448,7 @@ static int __write_file(Zip *zip, char *file_name, zip_file_header_t *header)
             header->compressed_size = write_len;
             THROW_IF(write_len != header->uncompressed_size, -1);
         } else {
-            dbg_str(DBG_VIP, "compress compression_method:%x", header->compression_method);
+            dbg_str(DBG_VIP, "compress compression_method:%x, date_ofsset:0x%x", header->compression_method, header->data_offset);
             headers->peek_at(headers, header->compression_method, &c);
             THROW_IF(c == NULL, -1);
             EXEC(c->compress(c, file, header->uncompressed_size, a, &write_len));
@@ -506,6 +506,8 @@ static int __add_central_directory_header(Zip *zip, zip_file_header_t *file_head
                                       LE32_TO_CPU(file_header->compressed_size));
         zip->central_dir_end_header_position = zip->central_dir_position;
         dir_headers->add(dir_headers, dir_header);
+
+        dbg_str(DBG_VIP, "add_central_directory_header, central_dir_position:0d%d", zip->central_dir_end_header_position);
     } CATCH (ret) {}
     
     return ret;
@@ -520,6 +522,7 @@ static int __write_central_directory_header_callback(int index, void *element)
     int ret;
 
     TRY {
+        dbg_str(DBG_VIP, "write_central_directory_header, central_dir_end_header_position:%x", zip->central_dir_end_header_position);
         EXEC(a->seek(a, zip->central_dir_end_header_position, SEEK_SET));
         EXEC(a->write(a, header, ZIP_CENTROL_DIR_HEADER_SIZE));
         zip->central_dir_end_header_position += ZIP_CENTROL_DIR_HEADER_SIZE;
@@ -573,6 +576,7 @@ static int __write_central_directory_end_header(Zip *zip)
         CPU_TO_LE32(end_header->central_directory_start_offset);
         CPU_TO_LE32(end_header->comment_length);
 
+        dbg_str(DBG_VIP, "write_central_directory_end_header, central_dir_end_header_position:%x", zip->central_dir_end_header_position);
         EXEC(a->seek(a, zip->central_dir_end_header_position, SEEK_SET));
         EXEC(a->write(a, end_header, ZIP_CENTROL_DIR_END_HEADER_SIZE));
     } CATCH (ret) {}
@@ -588,11 +592,17 @@ static int __add_file(Zip *zip, char *file_name)
     int ret;
 
     TRY {
+        zip->write_central_dir_flag = 1;
         file_header = allocator_mem_zalloc(allocator, sizeof(zip_file_header_t));
         THROW_IF(file_header == NULL, -1);
         file_header->data_offset = zip->central_dir_position 
+                                   + ZIP_FILE_HEADER_SIZE
                                    + strlen(file_name)
                                    + extra_field_length;
+        dbg_str(DBG_VIP, "data_offset:%x, central_dir_position:%x, fileheadsize:%x, filelen:%x, exfl:%x",
+             file_header->data_offset, zip->central_dir_position,
+             ZIP_FILE_HEADER_SIZE, strlen(file_name), extra_field_length);
+        dbg_str(DBG_VIP, "file name:%s", file_name);
         file_header->compression_method = ZIP_COMPRESSION_METHOD_DEFLATED;
 
         EXEC(__write_file(zip, file_name, file_header));
