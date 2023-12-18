@@ -35,7 +35,7 @@ int deflate_compress(FILE *source, long in_len, FILE *dest, long *out_len)
             (void)deflateEnd(&strm);
             return Z_ERRNO;
         }
-        flush = feof(source) ? Z_FINISH : Z_NO_FLUSH;
+        flush = (in_len == 0 || feof(source)) ? Z_FINISH : Z_NO_FLUSH;
         strm.next_in = in;
         in_len -= in_len;
 

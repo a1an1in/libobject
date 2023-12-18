@@ -130,6 +130,7 @@ static int __read_central_directory_end_header(Zip *zip)
         LE32_TO_CPU(header->central_directory_total_number);
         LE32_TO_CPU(header->central_directory_size);
         LE32_TO_CPU(header->central_directory_start_offset);
+
         dbg_str(DBG_VIP, "central_directory_start_offset:%ld", header->central_directory_start_offset);
     } CATCH (ret) {}
     
@@ -152,7 +153,8 @@ static int __read_central_directory_headers(Zip *zip)
         for (i = 0; i < end_header->central_directory_total_number; i++) {
             header = allocator_mem_zalloc(allocator, sizeof(zip_central_directory_header_t));
             a->seek(a, end_header->central_directory_start_offset + read_size, SEEK_SET);
-            a->read(a, (uint8_t *)header, sizeof(zip_central_directory_header_t) - 3 * sizeof(void *));
+            a->read(a, (uint8_t *)header, ZIP_CENTROL_DIR_HEADER_SIZE);
+
             LE32_TO_CPU(header->signature);
             LE16_TO_CPU(header->create_version);
             LE16_TO_CPU(header->extract_version);
@@ -173,7 +175,7 @@ static int __read_central_directory_headers(Zip *zip)
 
             if (header->file_name_length) {
                 header->file_name = allocator_mem_zalloc(allocator, header->file_name_length + 1);
-                a->seek(a, end_header->central_directory_start_offset + read_size + sizeof(zip_central_directory_header_t) - 3 * sizeof(void *), SEEK_SET);
+                a->seek(a, end_header->central_directory_start_offset + read_size + ZIP_CENTROL_DIR_HEADER_SIZE, SEEK_SET);
                 a->read(a, (uint8_t *)header->file_name, header->file_name_length);
             }
             printf("\n");
@@ -186,7 +188,7 @@ static int __read_central_directory_headers(Zip *zip)
             dbg_str(DBG_VIP, "central dir, extract_version:%x", header->extract_version);
     
             EXEC(headers->add(headers, header));
-            read_size += sizeof(zip_central_directory_header_t) - 3 * sizeof(void *)
+            read_size += ZIP_CENTROL_DIR_HEADER_SIZE
                          + header->file_name_length
                          + header->extra_field_length + header->file_comment_length;
         }
@@ -247,6 +249,19 @@ static int __read_file_header(Zip *zip, zip_central_directory_header_t *record, 
         dbg_str(DBG_VIP, "get_file_header, offset:%d", record->offset);
         a->seek(a, record->offset, SEEK_SET);
         a->read(a, (uint8_t *)header, ZIP_FILE_HEADER_SIZE);
+
+        LE32_TO_CPU(header->signature);
+        LE16_TO_CPU(header->extract_version);
+        LE16_TO_CPU(header->general_purpose_bit_flag);
+        LE16_TO_CPU(header->compression_method);
+        LE16_TO_CPU(header->last_mode_time);
+        LE16_TO_CPU(header->last_mode_date);
+        LE32_TO_CPU(header->crc32);
+        LE32_TO_CPU(header->compressed_size);
+        LE32_TO_CPU(header->uncompressed_size);
+        LE16_TO_CPU(header->file_name_length);
+        LE16_TO_CPU(header->extra_field_length);
+
         if (header->file_name_length) {
             header->file_name = allocator_mem_zalloc(allocator, header->file_name_length + 1);
             a->seek(a, record->offset + ZIP_FILE_HEADER_SIZE, SEEK_SET);
@@ -267,6 +282,7 @@ static int __read_file_header(Zip *zip, zip_central_directory_header_t *record, 
         dbg_str(DBG_VIP, "file_header, uncompressed_size:%x", header->uncompressed_size);
         dbg_str(DBG_VIP, "file_header, extract_version:%x", header->extract_version);
         dbg_str(DBG_VIP, "file_header, general_purpose_bit_flag:%x", header->general_purpose_bit_flag);
+
         THROW_IF(header->crc32 != record->crc32, -1);
         THROW_IF(header->last_mode_time != record->last_mode_time, -1);
         THROW_IF(header->last_mode_date != record->last_mode_date, -1);
@@ -439,6 +455,7 @@ static int __write_file(Zip *zip, char *file_name, zip_file_header_t *header)
 
         /* compute crc32 */
         EXEC(file_compute_crc32(file_name, &header->crc32));
+        dbg_str(DBG_VIP, "compress file header->crc32:%x", header->crc32);
 
         /* write file */
         EXEC(a->seek(a, header->data_offset, SEEK_SET));
