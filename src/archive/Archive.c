@@ -11,11 +11,13 @@
 static int __construct(Archive *archive, char *init_str)
 {
     allocator_t *allocator = archive->parent.allocator;
-
+    
     archive->file = object_new(allocator, "File", NULL);
     archive->wildchard = object_new(allocator, "String", NULL);
-    archive->path = object_new(allocator, "String", NULL);
-    archive->path->assign(archive->path, "./");
+    archive->extracting_path = object_new(allocator, "String", NULL);
+    archive->extracting_path->assign(archive->extracting_path, "./");
+    archive->adding_path = object_new(allocator, "String", NULL);
+
     return 0;
 }
 
@@ -23,7 +25,8 @@ static int __deconstruct(Archive *archive)
 {
     object_destroy(archive->file);
     object_destroy(archive->wildchard);
-    object_destroy(archive->path);
+    object_destroy(archive->extracting_path);
+    object_destroy(archive->adding_path);
     return 0;
 }
 
@@ -59,9 +62,18 @@ static int __set_wildchard(Archive *archive, char *wildchard)
     return TRY_EXEC(w->assign(w, wildchard));
 }
 
-static int __set_path(Archive *archive, char *path)
+static int __set_extracting_path(Archive *archive, char *path)
 {
-    String *p = archive->path;
+    String *p = archive->extracting_path;
+
+    p->assign(p, path);
+
+    return 0;
+}
+
+static int __set_adding_path(Archive *archive, char *path)
+{
+    String *p = archive->adding_path;
 
     p->assign(p, path);
 
@@ -70,10 +82,20 @@ static int __set_path(Archive *archive, char *path)
 
 static int __get_file_list(Archive *archive, char *file_list, int num)
 {
-    String *p = archive->path;
+    String *p = archive->adding_path;
 }
 
-static int __add_files(Archive *a, char *file_list, int num)
+static int __extract_files(Archive *a, String *files)
+{
+
+}
+
+static int __extract(Archive *a)
+{
+
+}
+
+static int __add_files(Archive *a, String *files)
 {
 
 }
@@ -90,14 +112,15 @@ static class_info_entry_t archive_class_info[] = {
     Init_Nfunc_Entry(3 , Archive, open, __open),
     Init_Nfunc_Entry(4 , Archive, close, __close),
     Init_Vfunc_Entry(5 , Archive, set_wildchard, __set_wildchard),
-    Init_Vfunc_Entry(6 , Archive, set_path, __set_path),
-    Init_Vfunc_Entry(7 , Archive, extract_file, NULL),
-    Init_Vfunc_Entry(8 , Archive, extract_files, NULL),
-    Init_Vfunc_Entry(9 , Archive, extract, NULL),
-    Init_Vfunc_Entry(10, Archive, add_file, NULL),
-    Init_Vfunc_Entry(11, Archive, add_files, __add_files),
-    Init_Vfunc_Entry(12, Archive, add, __add),
-    Init_End___Entry(13, Archive),
+    Init_Vfunc_Entry(6 , Archive, set_extracting_path, __set_extracting_path),
+    Init_Vfunc_Entry(7 , Archive, set_adding_path, __set_adding_path),
+    Init_Vfunc_Entry(8 , Archive, extract_file, NULL),
+    Init_Vfunc_Entry(9 , Archive, extract_files, __extract_files),
+    Init_Vfunc_Entry(10, Archive, extract, __extract),
+    Init_Vfunc_Entry(11, Archive, add_file, NULL),
+    Init_Vfunc_Entry(12, Archive, add_files, __add_files),
+    Init_Vfunc_Entry(13, Archive, add, __add),
+    Init_End___Entry(14, Archive),
 };
 REGISTER_CLASS("Archive", archive_class_info);
 

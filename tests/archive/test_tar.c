@@ -23,7 +23,7 @@ static int test_tar_extract(TEST_ENTRY *entry, int argc, void **argv)
 
         archive = object_new(allocator, "Tar", NULL);
 		archive->open(archive, src_file, "r+");
-		archive->set_path(archive, "./test/res/tar/");
+		archive->set_extracting_path(archive, "./test/res/tar/");
 		archive->extract(archive);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
@@ -47,7 +47,7 @@ static int test_tar_add_files(TEST_ENTRY *entry, int argc, void **argv)
 
         archive = object_new(allocator, "Tar", NULL);
 		archive->open(archive, tar_name, "w+");
-        archive->set_path(archive, "./test/res/tar/");
+        // archive->set_adding_path(archive, "./test/res/tar/");
 
 		archive->add_file(archive, file1);
         archive->add_file(archive, file2);

@@ -24,7 +24,7 @@ static int test_zip_extract_deflate_file(TEST_ENTRY *entry, int argc, void **arg
         dbg_str(DBG_SUC, "test extract zip");
 
         archive = object_new(allocator, "Zip", NULL);
-        archive->set_path(archive, "./tests/output/zip/");
+        archive->set_extracting_path(archive, "./tests/output/zip/");
 		archive->open(archive, zip_file, "r+");
 		archive->extract_file(archive, file);
         ret = assert_file_equal("./tests/output/zip/test_zip_extract.txt", reference_file1);
@@ -54,7 +54,7 @@ static int test_zip_extract_store_file(TEST_ENTRY *entry, int argc, void **argv)
         dbg_str(DBG_SUC, "test extract zip");
 
         archive = object_new(allocator, "Zip", NULL);
-        archive->set_path(archive, "./tests/output/zip/");
+        archive->set_extracting_path(archive, "./tests/output/zip/");
 		archive->open(archive, zip_file, "r+");
 		archive->extract_file(archive, file);
         ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", reference_file1);

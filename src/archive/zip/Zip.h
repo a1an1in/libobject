@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
-#include <libobject/core/Vector.h>
 #include <libobject/core/utils/byteorder.h>
 #include <libobject/core/io/Buffer.h>
 #include <libobject/archive/Archive.h>

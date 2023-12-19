@@ -330,7 +330,7 @@ static int __decompress_file(Zip *zip, zip_file_header_t *header)
         dbg_str(DBG_VIP, "decompress method:%x", header->compression_method);
         dbg_str(DBG_VIP, "decompress file data_offset:%x", header->data_offset);
         
-        strcpy(file_name, STR2A(archive->path));
+        strcpy(file_name, STR2A(archive->extracting_path));
         strcat(file_name, header->file_name);
         EXEC(fs_mkfile(file_name, 0777));
         EXEC(a->seek(a, header->data_offset, SEEK_SET));

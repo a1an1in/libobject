@@ -106,7 +106,7 @@ static int __add_file(Tar *tar, char *file_name)
 static int __extract(Tar *tar)
 {
     Archive *archive = (Archive *)&tar->parent;
-    String *path = archive->path;
+    String *path = archive->extracting_path;
     File *a = archive->file, *file = tar->file;
     struct posix_tar_header *header;
     String *name = tar->file_name;
