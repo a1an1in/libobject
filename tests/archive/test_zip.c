@@ -141,3 +141,32 @@ static int test_zip_add_files(TEST_ENTRY *entry, int argc, void **argv)
 REGISTER_TEST_CMD(test_zip_add_files);
 
 
+static int test_zip_get_file_infos(TEST_ENTRY *entry, int argc, void **argv)
+{
+    int ret;
+    allocator_t *allocator = allocator_get_default_instance();
+    Archive *archive;
+    Vector *infos;
+	char *zip_file = "./tests/res/zip/test_zip.zip";
+
+    TRY {
+        dbg_str(DBG_SUC, "test extract zip");
+        archive = object_new(allocator, "Zip", NULL);
+        archive->set_extracting_path(archive, "./tests/output/zip/");
+		archive->open(archive, zip_file, "r+");
+		archive->get_file_infos(archive);
+        infos = archive->extracting_file_infos;
+        SET_CATCH_INT_PARS(infos->count(infos), 0) 
+        THROW_IF(infos->count(infos) != 2, -1);
+    } CATCH (ret) { 
+        TRY_SHOW_INT_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(archive);
+        fs_rmdir("./tests/output/zip/");
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_zip_get_file_infos);
+
+

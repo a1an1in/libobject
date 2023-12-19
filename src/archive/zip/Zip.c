@@ -634,6 +634,44 @@ static int __add_file(Zip *zip, char *file_name)
     return ret;
 }
 
+static int __convert_central_dir_header_to_file_info_callback(int index, void *element, void *arg)
+{
+    Vector *files = (Vector *)arg;
+    allocator_t *allocator = files->obj.allocator;
+    zip_central_directory_header_t *dir_header;
+    file_info_t *info;
+    int ret;
+
+    TRY {
+        dir_header = (zip_central_directory_header_t *)element;
+        info = allocator_mem_alloc(allocator, sizeof(file_info_t));
+        info->file_name = allocator_mem_zalloc(allocator, dir_header->file_name_length + 1);
+        THROW_IF(info == NULL || info->file_name == NULL, -1);
+        strcpy(info->file_name, dir_header->file_name);
+        info->compression_method = dir_header->compression_method;
+        dbg_str(DBG_VIP, "convert_central_dir_header_to_file_info, file name:%s", dir_header->file_name);
+        EXEC(files->add(files, info));
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static int __get_file_infos(Zip *zip)
+{
+    Archive *archive = (Archive *)&zip->parent;
+    Vector *files = archive->extracting_file_infos;
+    Vector *dir_headers = zip->headers;
+    int ret;
+
+    TRY {
+        THROW_IF(files == NULL, -1);
+        files->reset(files);
+        EXEC(dir_headers->for_each_arg(dir_headers, __convert_central_dir_header_to_file_info_callback, files));
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 static class_info_entry_t zip_class_info[] = {
     Init_Obj___Entry(0, Archive, parent),
     Init_Nfunc_Entry(1, Zip, construct, __construct),
@@ -641,7 +679,8 @@ static class_info_entry_t zip_class_info[] = {
     Init_Nfunc_Entry(3, Zip, open, __open),
     Init_Vfunc_Entry(4, Zip, extract_file, __extract_file),
     Init_Vfunc_Entry(5, Zip, add_file, __add_file),
-    Init_End___Entry(6, Zip),
+    Init_Vfunc_Entry(6, Zip, get_file_infos, __get_file_infos),
+    Init_End___Entry(7, Zip),
 };
 REGISTER_CLASS("Zip", zip_class_info);
 

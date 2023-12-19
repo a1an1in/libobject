@@ -28,6 +28,3 @@ static int test_z_compress_buf(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_FUNC(test_z_compress_buf);
-
-
-

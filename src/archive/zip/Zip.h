@@ -150,6 +150,7 @@ struct Zip_s {
     char *(*to_json)(Zip *); 
     int (*extract_file)(Zip *, char *file_name);
     int (*add_file)(Zip *, char *file_name);
+    int (*get_file_infos)(Zip *zip);
 
     File *file;
 	String *file_name;

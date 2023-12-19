@@ -39,10 +39,11 @@ struct Tar_s {
     char *(*to_json)(Tar *);
 	int (*add_file)(Tar *, char *file_name);
 	int (*extract)(Tar *tar);
+	int (*compress)(Tar *tar, char *file_in, char *file_out);
+	int (*uncompress)(Tar *tar, char *file_in, char *file_out);
 
     File *file;
 	String *file_name;
-    
 };
 
 #endif

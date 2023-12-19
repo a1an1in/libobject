@@ -8,15 +8,28 @@
 
 #include <libobject/archive/Archive.h>
 
+static int __free_extracting_file_info_callback(allocator_t *allocator, file_info_t *info)
+{
+    allocator_mem_free(allocator, info->file_name);
+    allocator_mem_free(allocator, info);
+
+    return 1;
+}
+
 static int __construct(Archive *archive, char *init_str)
 {
     allocator_t *allocator = archive->parent.allocator;
+    Vector *headers;
     
     archive->file = object_new(allocator, "File", NULL);
     archive->wildchard = object_new(allocator, "String", NULL);
     archive->extracting_path = object_new(allocator, "String", NULL);
     archive->extracting_path->assign(archive->extracting_path, "./");
     archive->adding_path = object_new(allocator, "String", NULL);
+
+    archive->extracting_file_infos = object_new(allocator, "Vector", NULL);
+    headers = archive->extracting_file_infos;
+    headers->set_trustee(headers, VALUE_TYPE_STRUCT_POINTER, __free_extracting_file_info_callback);
 
     return 0;
 }
@@ -27,6 +40,8 @@ static int __deconstruct(Archive *archive)
     object_destroy(archive->wildchard);
     object_destroy(archive->extracting_path);
     object_destroy(archive->adding_path);
+    object_destroy(archive->extracting_file_infos);
+
     return 0;
 }
 
@@ -39,6 +54,7 @@ static int __open(Archive *archive, char *archive_name, char *mode)
     TRY {
         dbg_str(DBG_VIP, "Archive open file %s", archive_name);
         EXEC(file->open(file, archive_name, mode));
+        
         func = object_get_progeny_class_first_normal_func(((Obj *)archive)->target_name, "Archive", "open");
         if (func != NULL) {
             EXEC(func(archive, archive_name, mode));
@@ -85,7 +101,7 @@ static int __get_file_list(Archive *archive, char *file_list, int num)
     String *p = archive->adding_path;
 }
 
-static int __extract_files(Archive *a, String *files)
+static int __extract_files(Archive *a, Vector *files)
 {
 
 }
@@ -95,7 +111,7 @@ static int __extract(Archive *a)
 
 }
 
-static int __add_files(Archive *a, String *files)
+static int __add_files(Archive *a, Vector *files)
 {
 
 }
@@ -120,7 +136,10 @@ static class_info_entry_t archive_class_info[] = {
     Init_Vfunc_Entry(11, Archive, add_file, NULL),
     Init_Vfunc_Entry(12, Archive, add_files, __add_files),
     Init_Vfunc_Entry(13, Archive, add, __add),
-    Init_End___Entry(14, Archive),
+    Init_Vfunc_Entry(14, Archive, get_file_infos, NULL),
+    Init_Vfunc_Entry(15, Archive, compress, NULL),
+    Init_Vfunc_Entry(16, Archive, uncompress, NULL),
+    Init_End___Entry(17, Archive),
 };
 REGISTER_CLASS("Archive", archive_class_info);
 
