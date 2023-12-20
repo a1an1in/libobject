@@ -6,7 +6,7 @@
  * @date 2020-04-25
  */
 
-#include <libobject/crypto/Digest.h>
+#include <libobject/encoding/Digest.h>
 
 static int __construct(Digest *digest, char *init_str)
 {

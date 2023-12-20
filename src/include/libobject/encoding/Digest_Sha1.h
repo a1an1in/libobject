@@ -1,14 +1,13 @@
-#ifndef __DIDEST_HMAC_SHA1_V1_H__
-#define __DIDEST_HMAC_SHA1_V1_H__
+#ifndef __DIDEST_SHA1_H__
+#define __DIDEST_SHA1_H__
 
 #include <stdio.h>
 #include <libobject/core/Obj.h>
-#include <libobject/crypto/Digest.h>
-#include <openssl/hmac.h>
+#include <libobject/encoding/Digest.h>
 
-typedef struct Digest_HmacSha1_s Digest_HmacSha1;
+typedef struct Digest_Sha1_s Digest_Sha1;
 
-struct Digest_HmacSha1_s{
+struct Digest_Sha1_s{
     Digest parent;
 
     int (*construct)(Digest *,char *);
@@ -18,11 +17,10 @@ struct Digest_HmacSha1_s{
     int (*set)(Digest *digest, char *attrib, void *value);
     void *(*get)(Digest *, char *attrib);
     int (*init)(Digest *digest);
-    int (*init_with_key)(Digest *digest, char *key, int len);
     int (*update)(Digest *digest, const void *data, unsigned int size);
     int (*final)(Digest *digest, uint8_t *result, unsigned int size);
 
-    HMAC_CTX *context;
+    void *context;
 };
 
 #endif

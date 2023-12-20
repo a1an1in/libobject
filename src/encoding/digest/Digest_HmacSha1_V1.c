@@ -6,7 +6,7 @@
  * @date 2022-1-17
  */
 
-#include <libobject/crypto/Digest_HmacSha1_V1.h>
+#include <libobject/encoding/Digest_HmacSha1_V1.h>
 #include "sha1.h"
 
 static int __construct(Digest_HmacSha1 *digest, char *init_str)

@@ -6,7 +6,7 @@
  * @date 2020-04-25
  */
 
-#include <libobject/crypto/Digest_Sha1.h>
+#include <libobject/encoding/Digest_Sha1.h>
 #include "sha1.h"
 
 static int __construct(Digest_Sha1 *digest, char *init_str)

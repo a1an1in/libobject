@@ -7,7 +7,7 @@
  * @date 2022-1-17
  */
 
-#include <libobject/crypto/md5.h>
+#include <libobject/encoding/md5.h>
 #include <libobject/net/turn/Turn_Client.h>
 
 enum {

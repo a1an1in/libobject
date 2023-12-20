@@ -12,7 +12,7 @@
 #endif
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
-#include <libobject/crypto/Digest.h>
+#include <libobject/encoding/Digest.h>
 #include "Request.h"
 #include "Response.h"
 
