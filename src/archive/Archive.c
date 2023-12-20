@@ -103,12 +103,42 @@ static int __get_file_list(Archive *archive, char *file_list, int num)
 
 static int __extract_files(Archive *a, Vector *files)
 {
+    int ret, count, i;
+    file_info_t *info;
 
+    TRY {
+        THROW_IF(files == 0, -1);
+
+        count = files->count(files);
+        
+        for (i = 0; count > 0; i++) {
+            info == NULL;
+            EXEC(files->peek_at(files, i, &info));
+            CONTINUE_IF(info == NULL);
+            
+            dbg_str(DBG_VIP, "extract_files, info addr:%p", info);
+            dbg_str(DBG_VIP, "extract_files, file %s", info->file_name);
+            EXEC(a->extract_file(a, info->file_name));
+            count--;
+        }
+
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static int __extract(Archive *a)
 {
+    Vector *infos;
+    int ret;
 
+    TRY {
+        //todo: process wildchard
+        EXEC(a->get_file_infos(a, &infos));
+        EXEC(a->extract_files(a, infos));
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static int __add_files(Archive *a, Vector *files)

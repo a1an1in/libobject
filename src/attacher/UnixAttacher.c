@@ -185,6 +185,11 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
     return ret;
 }
 
+/* 
+ * we can see from add_lib implementation, the attacher depends on
+ * the dl library, if the exe not link dl, the attacher may not useable,
+ * but we can solve this problem by inject lib to the exe file.
+ **/
 static int __add_lib(UnixAttacher *attacher, char *name)
 {
     int ret;

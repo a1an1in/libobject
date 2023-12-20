@@ -23,7 +23,7 @@ struct Squashfs_s {
     char *(*to_json)(Squashfs *); 
     int (*extract_file)(Squashfs *, char *file_name);
     int (*add_file)(Squashfs *, char *file_name);
-    int (*get_file_infos)(Squashfs *zip);
+    int (*get_file_infos)(Squashfs *zip, Vector **infos);
 
     File *file;
 	String *file_name;

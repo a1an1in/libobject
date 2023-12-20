@@ -37,8 +37,7 @@ struct Archive_s {
     int (*set_extracting_path)(Archive *a, char *path);
     int (*set_adding_path)(Archive *a, char *path);
     int (*set_wildchard)(Archive *archive, char *wildchard);
-    int (*get_file_infos)(Archive *a);
-    int (*search_file_infos)(Archive *a, String *key);
+    int (*get_file_infos)(Archive *a, Vector **infos);
     int (*print_file_infos)(Archive *a);
 
     /* compress and uncompress are used by tar, which may need copress

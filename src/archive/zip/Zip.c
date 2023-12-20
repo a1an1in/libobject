@@ -650,13 +650,14 @@ static int __convert_central_dir_header_to_file_info_callback(int index, void *e
         strcpy(info->file_name, dir_header->file_name);
         info->compression_method = dir_header->compression_method;
         dbg_str(DBG_VIP, "convert_central_dir_header_to_file_info, file name:%s", dir_header->file_name);
+        dbg_str(DBG_VIP, "convert_central_dir_header_to_file_info, info addr:%p", info);
         EXEC(files->add(files, info));
     } CATCH (ret) {}
 
     return ret;
 }
 
-static int __get_file_infos(Zip *zip)
+static int __get_file_infos(Zip *zip, Vector **infos)
 {
     Archive *archive = (Archive *)&zip->parent;
     Vector *files = archive->extracting_file_infos;
@@ -666,7 +667,8 @@ static int __get_file_infos(Zip *zip)
     TRY {
         THROW_IF(files == NULL, -1);
         files->reset(files);
-        EXEC(dir_headers->for_each_arg(dir_headers, __convert_central_dir_header_to_file_info_callback, files));
+        EXEC(dir_headers->for_each_arg(dir_headers, __convert_central_dir_header_to_file_info_callback, archive->extracting_file_infos));
+        *infos = archive->extracting_file_infos;
     } CATCH (ret) {}
 
     return ret;

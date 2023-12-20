@@ -1,14 +1,14 @@
 /**
- * @file X_7Z.c
+ * @file SevenZip.c
  * @Synopsis  
  * @author alan lin
  * @version 
  * @date 2023-12-19
  */
 
-#include "X_7Z.h"
+#include "SevenZip.h"
 
-static int __construct(X_7Z *fs, char *init_str)
+static int __construct(SevenZip *fs, char *init_str)
 {
     allocator_t *allocator = fs->parent.parent.allocator;
     Vector *headers;
@@ -16,23 +16,23 @@ static int __construct(X_7Z *fs, char *init_str)
     return 0;
 }
 
-static int __deconstruct(X_7Z *fs)
+static int __deconstruct(SevenZip *fs)
 {
     return 0;
 }
 
-static int __open(X_7Z *fs, char *archive_name, char *mode)
+static int __open(SevenZip *fs, char *archive_name, char *mode)
 {
     int ret, size;
 
     TRY {
-        dbg_str(DBG_VIP, "X_7Z open archive %s", archive_name);
+        dbg_str(DBG_VIP, "SevenZip open archive %s", archive_name);
     } CATCH (ret) {}
 
     return ret;
 }
 
-static int __extract_file(X_7Z *fs, char *file_name)
+static int __extract_file(SevenZip *fs, char *file_name)
 {
     Archive *archive = (Archive *)&fs->parent;
     File *a = archive->file, *file = fs->file;
@@ -49,7 +49,7 @@ static int __extract_file(X_7Z *fs, char *file_name)
     return ret;
 }
 
-static int __add_file(X_7Z *fs, char *file_name)
+static int __add_file(SevenZip *fs, char *file_name)
 {
     uint32_t extra_field_length = 0;
     allocator_t *allocator = fs->parent.parent.allocator;
@@ -63,7 +63,7 @@ static int __add_file(X_7Z *fs, char *file_name)
     return ret;
 }
 
-static int __get_file_infos(X_7Z *fs)
+static int __get_file_infos(SevenZip *fs)
 {
     Archive *archive = (Archive *)&fs->parent;
     Vector *files = archive->extracting_file_infos;
@@ -79,13 +79,13 @@ static int __get_file_infos(X_7Z *fs)
 
 static class_info_entry_t fs_class_info[] = {
     Init_Obj___Entry(0, Archive, parent),
-    Init_Nfunc_Entry(1, X_7Z, construct, __construct),
-    Init_Nfunc_Entry(2, X_7Z, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, X_7Z, open, __open),
-    Init_Vfunc_Entry(4, X_7Z, extract_file, __extract_file),
-    Init_Vfunc_Entry(5, X_7Z, add_file, __add_file),
-    Init_Vfunc_Entry(6, X_7Z, get_file_infos, __get_file_infos),
-    Init_End___Entry(7, X_7Z),
+    Init_Nfunc_Entry(1, SevenZip, construct, __construct),
+    Init_Nfunc_Entry(2, SevenZip, deconstruct, __deconstruct),
+    Init_Nfunc_Entry(3, SevenZip, open, __open),
+    Init_Vfunc_Entry(4, SevenZip, extract_file, __extract_file),
+    Init_Vfunc_Entry(5, SevenZip, add_file, __add_file),
+    Init_Vfunc_Entry(6, SevenZip, get_file_infos, __get_file_infos),
+    Init_End___Entry(7, SevenZip),
 };
-REGISTER_CLASS("X_7Z", fs_class_info);
+REGISTER_CLASS("SevenZip", fs_class_info);
 
