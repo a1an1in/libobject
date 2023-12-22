@@ -1,8 +1,7 @@
-[update:Zip] continue to implement Zip.
+[update:Node] initiate node module.
 
 Description:
-update.
+startup node task, all service should base on node afterwards.
 
 Major Changes:
-1. change 7z name to ServenZip.
-2. implemented __extract_files and its test cases.
+1. mv node module to root path.
