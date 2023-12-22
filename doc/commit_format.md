@@ -1,7 +1,7 @@
-[update:Node] initiate node module.
+[update:Zip] continue to implement zip.
 
 Description:
-startup node task, all service should base on node afterwards.
+haven't passed test.
 
 Major Changes:
-1. mv node module to root path.
+1. add wildchard implementation.

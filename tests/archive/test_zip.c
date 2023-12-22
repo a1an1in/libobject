@@ -34,14 +34,15 @@ static int test_zip_regex(TEST_ENTRY *entry, int argc, void **argv)
 {
     allocator_t *allocator = allocator_get_default_instance();
     String *str;
-    char *test_str = "./tests/res/zip/test_zip_extract.txt";
+    char *test_str = "./tests/output/zip/subdir/test_zip_extract2.txt";
     int ret, count;
 
     TRY {
         dbg_str(DBG_SUC, "test_zip_regex");
         str = object_new(allocator, "String", NULL);
         str->assign(str, test_str);
-        count = str->find(str, "z(.*)ct", 0, -1);
+        // count = str->find(str, "z(.*)ct", 0, -1);
+        count = str->find(str, "subdir(.*)", 0, -1);
         SET_CATCH_INT_PARS(count, 0);
         THROW_IF(count != 1, -1);
     } CATCH (ret) { 
@@ -177,6 +178,39 @@ static int test_zip_extract_all(TEST_ENTRY *entry, int argc, void **argv)
 }
 REGISTER_TEST_FUNC(test_zip_extract_all);
 
+static int test_zip_extract_with_regex(TEST_ENTRY *entry, int argc, void **argv)
+{
+    int ret;
+    allocator_t *allocator = allocator_get_default_instance();
+    Archive *archive;
+    Vector *infos;
+    char *ref_file1 = "./tests/res/zip/test_zip_extract.txt";
+    char *ref_file2 = "./tests/res/zip/test_zip_extract2.txt";
+    char *tar_name = "./tests/res/zip/test_zip.zip";
+
+    TRY {
+        dbg_str(DBG_SUC, "test add files to zip");
+
+        fs_mkdir("./tests/output/zip", 0777);
+        archive = object_new(allocator, "Zip", NULL);
+		EXEC(archive->open(archive, tar_name, "r"));
+        EXEC(archive->set_extracting_path(archive, "./tests/output/zip/"));
+        EXEC(archive->set_wildchard(archive, SET_INCLUSIVE_WILDCHARD_TYPE, "subdir(.*)"));
+		EXEC(archive->extract(archive));
+
+        THROW_IF(fs_is_exist("./tests/output/zip/test_zip_extract.txt"), -1);
+        ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", ref_file2);
+        THROW_IF(ret != 1, -1);
+
+    } CATCH (ret) { } FINALLY {
+        object_destroy(archive);
+        fs_rmdir("./tests/output/zip/");
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_zip_extract_with_regex);
+
 static int test_zip_add_file(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
@@ -241,7 +275,7 @@ static int test_zip_get_file_infos(TEST_ENTRY *entry, int argc, void **argv)
         archive->set_extracting_path(archive, "./tests/output/zip/");
 		archive->open(archive, zip_file, "r+");
 		archive->get_file_infos(archive, &infos);
-        SET_CATCH_INT_PARS(infos->count(infos), 0) 
+        SET_CATCH_INT_PARS(infos->count(infos), 0);
         THROW_IF(infos->count(infos) != 2, -1);
     } CATCH (ret) { 
         TRY_SHOW_INT_PARS(DBG_ERROR);

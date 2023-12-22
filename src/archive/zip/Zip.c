@@ -636,7 +636,8 @@ static int __add_file(Zip *zip, char *file_name)
 
 static int __convert_central_dir_header_to_file_info_callback(int index, void *element, void *arg)
 {
-    Vector *files = (Vector *)arg;
+    Archive *archive = (Archive *)arg;
+    Vector *files = archive->extracting_file_infos;
     allocator_t *allocator = files->obj.allocator;
     zip_central_directory_header_t *dir_header;
     file_info_t *info;
@@ -644,6 +645,8 @@ static int __convert_central_dir_header_to_file_info_callback(int index, void *e
 
     TRY {
         dir_header = (zip_central_directory_header_t *)element;
+        THROW_IF(archive->is_unfiltered_out(archive, dir_header->file_name) != 1, 0);
+
         info = allocator_mem_alloc(allocator, sizeof(file_info_t));
         info->file_name = allocator_mem_zalloc(allocator, dir_header->file_name_length + 1);
         THROW_IF(info == NULL || info->file_name == NULL, -1);
@@ -667,7 +670,7 @@ static int __get_file_infos(Zip *zip, Vector **infos)
     TRY {
         THROW_IF(files == NULL, -1);
         files->reset(files);
-        EXEC(dir_headers->for_each_arg(dir_headers, __convert_central_dir_header_to_file_info_callback, archive->extracting_file_infos));
+        EXEC(dir_headers->for_each_arg(dir_headers, __convert_central_dir_header_to_file_info_callback, archive));
         *infos = archive->extracting_file_infos;
     } CATCH (ret) {}
 

@@ -14,6 +14,14 @@ typedef struct file_info_s {
     uint16_t compression_method;
 } file_info_t;
 
+typedef enum wildchard_type_enum {
+    SET_INCLUSIVE_WILDCHARD_TYPE = 0,
+    CLEAR_INCLUSIVE_WILDCHARD_TYPE,
+    SET_EXCLUSIVE_WILDCHARD_TYPE,
+    CLEAR_EXCLUSIVE_WILDCHARD_TYPE,
+    MAX_WILDCHARD_TYPE,
+} wildchard_type_e;
+
 struct Archive_s {
     Obj parent;
 
@@ -36,7 +44,8 @@ struct Archive_s {
     int (*add)(Archive *a);
     int (*set_extracting_path)(Archive *a, char *path);
     int (*set_adding_path)(Archive *a, char *path);
-    int (*set_wildchard)(Archive *archive, char *wildchard);
+    int (*set_wildchard)(Archive *archive, wildchard_type_e, char *wildchard);
+    int (*is_unfiltered_out)(Archive *archive, char *file);
     int (*get_file_infos)(Archive *a, Vector **infos);
     int (*print_file_infos)(Archive *a);
 
@@ -49,8 +58,9 @@ struct Archive_s {
     /* adding and extracting use different path, then we don't have to swith the path */
     String *extracting_path;
     String *adding_path;
-    /* extracting and adding share same wildchard */
-    String *wildchard; 
+    /* wildchard */
+    Vector *inclusive_wildchards;
+    Vector *exclusive_wildchards; 
     /* archive file object */
     File *file; 
     /* stored extracting file infos */       
