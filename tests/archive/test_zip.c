@@ -35,16 +35,18 @@ static int test_zip_regex(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     String *str;
     char *test_str = "./tests/output/zip/subdir/test_zip_extract2.txt";
+    char *value;
     int ret, count;
 
     TRY {
         dbg_str(DBG_SUC, "test_zip_regex");
         str = object_new(allocator, "String", NULL);
         str->assign(str, test_str);
-        // count = str->find(str, "z(.*)ct", 0, -1);
         count = str->find(str, "subdir(.*)", 0, -1);
         SET_CATCH_INT_PARS(count, 0);
         THROW_IF(count != 1, -1);
+        value = str->get_found_cstr(str, 0);
+        dbg_str(DBG_VIP, "find cstr:%s", value);
     } CATCH (ret) { 
         TRY_SHOW_INT_PARS(DBG_ERROR);
     } FINALLY {
@@ -195,7 +197,7 @@ static int test_zip_extract_with_regex(TEST_ENTRY *entry, int argc, void **argv)
         archive = object_new(allocator, "Zip", NULL);
 		EXEC(archive->open(archive, tar_name, "r"));
         EXEC(archive->set_extracting_path(archive, "./tests/output/zip/"));
-        EXEC(archive->set_wildchard(archive, SET_INCLUSIVE_WILDCHARD_TYPE, "subdir(.*)"));
+        EXEC(archive->set_wildchard(archive, SET_INCLUSIVE_WILDCHARD_TYPE, "subdir.*"));
 		EXEC(archive->extract(archive));
 
         THROW_IF(fs_is_exist("./tests/output/zip/test_zip_extract.txt"), -1);

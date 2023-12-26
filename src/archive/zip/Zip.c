@@ -645,7 +645,7 @@ static int __convert_central_dir_header_to_file_info_callback(int index, void *e
 
     TRY {
         dir_header = (zip_central_directory_header_t *)element;
-        THROW_IF(archive->is_unfiltered_out(archive, dir_header->file_name) != 1, 0);
+        THROW_IF(archive->is_filtered_out(archive, dir_header->file_name) != 1, 0);
 
         info = allocator_mem_alloc(allocator, sizeof(file_info_t));
         info->file_name = allocator_mem_zalloc(allocator, dir_header->file_name_length + 1);

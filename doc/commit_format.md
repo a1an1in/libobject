@@ -1,7 +1,7 @@
 [update:Zip] continue to implement zip.
 
 Description:
-haven't passed test.
+extracting with regex has tested ok.
 
 Major Changes:
-1. add wildchard implementation.
+1. support extract wiht regex.

@@ -45,7 +45,7 @@ struct Archive_s {
     int (*set_extracting_path)(Archive *a, char *path);
     int (*set_adding_path)(Archive *a, char *path);
     int (*set_wildchard)(Archive *archive, wildchard_type_e, char *wildchard);
-    int (*is_unfiltered_out)(Archive *archive, char *file);
+    int (*is_filtered_out)(Archive *archive, char *file);
     int (*get_file_infos)(Archive *a, Vector **infos);
     int (*print_file_infos)(Archive *a);
 
@@ -67,6 +67,8 @@ struct Archive_s {
     Vector *extracting_file_infos;
     /* we can specify compression_method for each file by this configure */
     Vector *adding_file_configs;
+    /* this is used by string operation */
+    String *tmp;
 };
 
 #endif

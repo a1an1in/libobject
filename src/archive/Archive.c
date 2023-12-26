@@ -26,6 +26,7 @@ static int __construct(Archive *archive, char *init_str)
     archive->extracting_path = object_new(allocator, "String", NULL);
     archive->extracting_path->assign(archive->extracting_path, "./");
     archive->adding_path = object_new(allocator, "String", NULL);
+    archive->tmp = object_new(allocator, "String", NULL);
 
     archive->extracting_file_infos = object_new(allocator, "Vector", NULL);
     headers = archive->extracting_file_infos;
@@ -49,6 +50,7 @@ static int __deconstruct(Archive *archive)
     object_destroy(archive->exclusive_wildchards);
     object_destroy(archive->extracting_path);
     object_destroy(archive->adding_path);
+    object_destroy(archive->tmp);
     object_destroy(archive->extracting_file_infos);
 
     return 0;
@@ -86,7 +88,7 @@ static int __set_wildchard(Archive *archive, wildchard_type_e type, char *wildch
     Vector *wildchards;
     String *str = NULL;
     allocator_t *allocator = archive->parent.allocator;
-    char *value;
+    char *value, *split_str;
     int ret, i, count, len;
 
     TRY {
@@ -108,9 +110,10 @@ static int __set_wildchard(Archive *archive, wildchard_type_e type, char *wildch
         count = str->split(str, ",", -1);
 
         for (i = 0; i < count; i++) {
-            len = str->get_splited_cstr(str, i);
+            split_str = str->get_splited_cstr(str, i);
+            len = strlen(split_str);
             value = allocator_mem_zalloc(allocator, len + 1);
-            strcpy(value, str->get_splited_cstr(str, i));
+            strcpy(value, split_str);
             wildchards->add(wildchards, value);
         }
     } CATCH (ret) {} FINALLY {
@@ -138,10 +141,11 @@ static int __set_adding_path(Archive *archive, char *path)
     return 0;
 }
 
-static int __is_unfiltered_out(Archive *archive, char *file)
+static int __is_filtered_out(Archive *archive, char *file)
 {
     Vector *inclusive = archive->inclusive_wildchards;
     Vector *exclusive = archive->exclusive_wildchards;
+    String *tmp = archive->tmp;
     char *wildchard;
     int ret, cnt, i;
 
@@ -150,11 +154,15 @@ static int __is_unfiltered_out(Archive *archive, char *file)
 
         cnt = inclusive->count(inclusive);
         for (i = 0; i < cnt; i++) {
+            tmp->reset(tmp);
             EXEC(inclusive->peek_at(inclusive, i, &wildchard));
-            dbg_str(DBG_VIP, "filter check inclusive wildchard:%s", wildchard);
-            // count = str->find(str, "subdir(.*)", 0, -1);
+            tmp->assign(tmp, file);
+            cnt = tmp->find(tmp, wildchard, 0, -1);
+            dbg_str(DBG_VIP, "filter check file %s, inclusive wildchard:%s, cnt:%d", file, wildchard, cnt);
+            THROW_IF(cnt >= 1, 1);
         }
-    } CATCH (ret) {}
+        THROW(0);
+    } CATCH (ret) { } 
 
     return ret;
 }
@@ -224,7 +232,7 @@ static class_info_entry_t archive_class_info[] = {
     Init_Vfunc_Entry(12, Archive, add_files, __add_files),
     Init_Vfunc_Entry(13, Archive, add, __add),
     Init_Vfunc_Entry(14, Archive, get_file_infos, NULL),
-    Init_Vfunc_Entry(15, Archive, is_unfiltered_out, __is_unfiltered_out),
+    Init_Vfunc_Entry(15, Archive, is_filtered_out, __is_filtered_out),
     Init_Vfunc_Entry(16, Archive, compress, NULL),
     Init_Vfunc_Entry(17, Archive, uncompress, NULL),
     Init_End___Entry(18, Archive),
