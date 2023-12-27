@@ -36,13 +36,14 @@
 
 static class_info_entry_t file_system_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
-    Init_Vfunc_Entry(1 , File_System, list, NULL),
+    Init_Vfunc_Entry(1 , File_System, list_fixed, NULL),
     Init_Vfunc_Entry(2 , File_System, count_list, NULL),
-    Init_Vfunc_Entry(3 , File_System, is_directory, NULL),
-    Init_Vfunc_Entry(4 , File_System, get_size, NULL),
-    Init_Vfunc_Entry(5 , File_System, get_mtime, NULL),
-    Init_Vfunc_Entry(6 , File_System, mkdir, NULL),
-    Init_Vfunc_Entry(7 , File_System, rmdir, NULL),
-    Init_End___Entry(8 , File_System),
+    Init_Vfunc_Entry(3 , File_System, list, NULL),
+    Init_Vfunc_Entry(4 , File_System, is_directory, NULL),
+    Init_Vfunc_Entry(5 , File_System, get_size, NULL),
+    Init_Vfunc_Entry(6 , File_System, get_mtime, NULL),
+    Init_Vfunc_Entry(7 , File_System, mkdir, NULL),
+    Init_Vfunc_Entry(8 , File_System, rmdir, NULL),
+    Init_End___Entry(9 , File_System),
 };
 REGISTER_CLASS("File_System", file_system_class_info);

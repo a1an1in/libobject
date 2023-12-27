@@ -8,7 +8,7 @@
 
 #include <libobject/archive/Archive.h>
 
-static int __free_extracting_file_info_callback(allocator_t *allocator, file_info_t *info)
+static int __free_file_info_callback(allocator_t *allocator, archive_file_info_t *info)
 {
     allocator_mem_free(allocator, info->file_name);
     allocator_mem_free(allocator, info);
@@ -30,7 +30,11 @@ static int __construct(Archive *archive, char *init_str)
 
     archive->extracting_file_infos = object_new(allocator, "Vector", NULL);
     headers = archive->extracting_file_infos;
-    headers->set_trustee(headers, VALUE_TYPE_STRUCT_POINTER, __free_extracting_file_info_callback);
+    headers->set_trustee(headers, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback);
+
+    archive->adding_file_infos = object_new(allocator, "Vector", NULL);
+    headers = archive->adding_file_infos;
+    headers->set_trustee(headers, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback);
 
     archive->inclusive_wildchards = object_new(allocator, "Vector", NULL);
     headers = archive->inclusive_wildchards;
@@ -49,6 +53,7 @@ static int __deconstruct(Archive *archive)
     object_destroy(archive->inclusive_wildchards);
     object_destroy(archive->exclusive_wildchards);
     object_destroy(archive->extracting_path);
+    object_destroy(archive->adding_file_infos);
     object_destroy(archive->adding_path);
     object_destroy(archive->tmp);
     object_destroy(archive->extracting_file_infos);
@@ -141,7 +146,7 @@ static int __set_adding_path(Archive *archive, char *path)
     return 0;
 }
 
-static int __is_filtered_out(Archive *archive, char *file)
+static int __can_filter_out(Archive *archive, char *file)
 {
     Vector *inclusive = archive->inclusive_wildchards;
     Vector *exclusive = archive->exclusive_wildchards;
@@ -170,7 +175,7 @@ static int __is_filtered_out(Archive *archive, char *file)
 static int __extract_files(Archive *a, Vector *files)
 {
     int ret, count, i;
-    file_info_t *info;
+    archive_file_info_t *info;
 
     TRY {
         THROW_IF(files == 0, -1);
@@ -199,7 +204,7 @@ static int __extract(Archive *a)
     int ret;
 
     TRY {
-        EXEC(a->get_file_infos(a, &infos));
+        EXEC(a->get_extracting_file_infos(a, &infos));
         EXEC(a->extract_files(a, infos));
     } CATCH (ret) {}
 
@@ -208,12 +213,51 @@ static int __extract(Archive *a)
 
 static int __add_files(Archive *a, Vector *files)
 {
+    int ret;
 
+    TRY {} CATCH (ret) {}
+
+    return ret;
 }
 
 static int __add(Archive *a)
 {
 
+}
+
+static int __add_adding_file_info(Archive *a, archive_file_info_t *info)
+{
+    allocator_t *allocator = a->parent.allocator;
+    Vector *infos = a->adding_file_infos;
+    archive_file_info_t *member;
+    int ret;
+
+    TRY {
+        member = allocator_mem_alloc(allocator, sizeof(archive_file_info_t));
+        THROW_IF(member == NULL, -1);
+        memcpy(member, info, sizeof(archive_file_info_t));
+
+        if (info->file_name) {
+            member->file_name = allocator_mem_alloc(allocator, strlen(info->file_name));
+            strcpy(member->file_name, info->file_name);
+        }
+        EXEC(infos->add(infos, member));
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static int __get_adding_file_infos(Archive *archive, Vector **infos)
+{
+    String *adding_path = archive->adding_path;
+    allocator_t *allocator = archive->parent.allocator;
+    int ret;
+
+    TRY {
+
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static class_info_entry_t archive_class_info[] = {
@@ -231,11 +275,13 @@ static class_info_entry_t archive_class_info[] = {
     Init_Vfunc_Entry(11, Archive, add_file, NULL),
     Init_Vfunc_Entry(12, Archive, add_files, __add_files),
     Init_Vfunc_Entry(13, Archive, add, __add),
-    Init_Vfunc_Entry(14, Archive, get_file_infos, NULL),
-    Init_Vfunc_Entry(15, Archive, is_filtered_out, __is_filtered_out),
-    Init_Vfunc_Entry(16, Archive, compress, NULL),
-    Init_Vfunc_Entry(17, Archive, uncompress, NULL),
-    Init_End___Entry(18, Archive),
+    Init_Vfunc_Entry(14, Archive, get_extracting_file_infos, NULL),
+    Init_Vfunc_Entry(15, Archive, add_adding_file_info, __add_adding_file_info),
+    Init_Vfunc_Entry(16, Archive, get_adding_file_infos, __get_adding_file_infos),
+    Init_Vfunc_Entry(17, Archive, can_filter_out, __can_filter_out),
+    Init_Vfunc_Entry(18, Archive, compress, NULL),
+    Init_Vfunc_Entry(19, Archive, uncompress, NULL),
+    Init_End___Entry(20, Archive),
 };
 REGISTER_CLASS("Archive", archive_class_info);
 

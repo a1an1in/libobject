@@ -65,7 +65,7 @@ int __handler_get_directory_list(Request *req, Response *res, void *opaque)
     if (count < 0) return -1;
 
     list = allocator_mem_alloc(allocator, count * MAX_FILE_NAME_LEN);
-    ret = fs_list(path, (char **)list, count, MAX_FILE_NAME_LEN);
+    ret = fs_list_fixed(path, (char **)list, count, MAX_FILE_NAME_LEN);
     if (ret < 0) {
         goto end;
     }

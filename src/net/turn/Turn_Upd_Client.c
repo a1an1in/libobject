@@ -105,7 +105,7 @@ __allocate_address(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
         turn->send(turn);
 
     } CATCH (ret) {
-        TRY_SHOW_INT_PARS(DBG_ERROR);
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
     }
 
     return ret;
@@ -142,7 +142,7 @@ __create_permission(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
 
         turn->send(turn);
     } CATCH (ret) {
-        TRY_SHOW_INT_PARS(DBG_ERROR);
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
     }
 
     return ret;
@@ -176,7 +176,7 @@ __send_indication(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg, uin
 
         turn->send(turn);
     } CATCH (ret) {
-        TRY_SHOW_INT_PARS(DBG_ERROR);
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
     }
 
     return ret;

@@ -63,7 +63,7 @@ static int __add_file(SevenZip *fs, char *file_name)
     return ret;
 }
 
-static int __get_file_infos(SevenZip *fs)
+static int __get_extracting_file_infos(SevenZip *fs)
 {
     Archive *archive = (Archive *)&fs->parent;
     Vector *files = archive->extracting_file_infos;
@@ -84,7 +84,7 @@ static class_info_entry_t fs_class_info[] = {
     Init_Nfunc_Entry(3, SevenZip, open, __open),
     Init_Vfunc_Entry(4, SevenZip, extract_file, __extract_file),
     Init_Vfunc_Entry(5, SevenZip, add_file, __add_file),
-    Init_Vfunc_Entry(6, SevenZip, get_file_infos, __get_file_infos),
+    Init_Vfunc_Entry(6, SevenZip, get_extracting_file_infos, __get_extracting_file_infos),
     Init_End___Entry(7, SevenZip),
 };
 REGISTER_CLASS("SevenZip", fs_class_info);

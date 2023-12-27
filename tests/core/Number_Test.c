@@ -112,7 +112,7 @@ static int __test_obj_signed_int_add_obj_signed_int(Number_Test *test)
         THROW_IF(sum != expect_d, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-        TRY_SHOW_INT_PARS(DBG_ERROR);
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
     } FINALLY {
         object_destroy(add);
     }
@@ -206,7 +206,7 @@ static int __test_obj_signed_int_add_signed_int(Number_Test *test)
         THROW_IF(sum != expect_d, -1);
     } CATCH (ret) {
         TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-        TRY_SHOW_INT_PARS(DBG_ERROR);
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
     }
 
     return ret;

@@ -347,7 +347,7 @@ static int test_datetime_start_of_day(TEST_ENTRY *entry)
         dbg_str(DBG_DETAIL, "test start of day:%s", str);
         THROW_IF(strcmp(str, expect) != 0, -1);
     } CATCH (ret) {
-        TRY_SHOW_STR_PARS(DBG_ERROR);
+        CATCH_SHOW_STR_PARS(DBG_ERROR);
     } FINALLY {
         object_destroy(date);
     }
@@ -380,7 +380,7 @@ static int test_datetime_now(TEST_ENTRY *entry)
         SET_CATCH_STR_PARS(time1, str);
    
     } CATCH (ret) {
-        TRY_SHOW_STR_PARS(DBG_ERROR);
+        CATCH_SHOW_STR_PARS(DBG_ERROR);
     } FINALLY {
         object_destroy(date);
     }

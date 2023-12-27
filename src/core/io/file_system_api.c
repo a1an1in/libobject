@@ -33,17 +33,38 @@ int fs_is_directory(char *name)
 }
 
 /*
- * fs_list
- * to list the directory
+ * fs_list_fixed
+ * to list the directory with max file name len
  * 
  * name: dir name
  * list: output buffer
  * count: list count
  * name_max_len: max file name len for the content.
  */
-int fs_list(char *name, char **list, int count, int name_max_len)
+int fs_list_fixed(char *name, char **list, int count, int name_max_len)
 {
-    return TRY_EXEC(globle_file_system->list(globle_file_system, name, list, count, name_max_len));
+    return TRY_EXEC(globle_file_system->list_fixed(globle_file_system, name, list, count, name_max_len));
+}
+
+static int __free_file_info_callback(allocator_t *allocator, fs_file_info_t *info)
+{
+    allocator_mem_free(allocator, info->file_name);
+    allocator_mem_free(allocator, info);
+
+    return 1;
+}
+
+int fs_list(char *name, Vector *vector)
+{
+    int ret;
+
+    TRY {
+        EXEC(vector->set_trustee(vector, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback));
+        EXEC(ret = globle_file_system->list(globle_file_system, name, vector));
+        THROW(ret);
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 int fs_count_list(char *name)
@@ -124,7 +145,7 @@ int fs_mkfile(char *path, mode_t mode)
         f = fopen(path, "w+");
         THROW_IF(f == NULL, -1);
     } CATCH (ret) {
-        TRY_SHOW_STR_PARS(DBG_ERROR);
+        CATCH_SHOW_STR_PARS(DBG_ERROR);
     } FINALLY {
         object_destroy(string);
         if (f) fclose(f);

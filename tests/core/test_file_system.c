@@ -2,7 +2,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/io/file_system_api.h>
 
-static int test_fs_list(TEST_ENTRY *entry)
+static int test_fs_list_fixed(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     char **list;
@@ -14,7 +14,7 @@ static int test_fs_list(TEST_ENTRY *entry)
         THROW_IF(count <= 0, -1);
         
         list = allocator_mem_alloc(allocator, count * 20);
-        count = fs_list(test_path, (char **)list, count, 20);
+        count = fs_list_fixed(test_path, (char **)list, count, 20);
         THROW_IF(count < 0, -1);
         
         for (i = 0; i < count; i++) {
@@ -22,16 +22,41 @@ static int test_fs_list(TEST_ENTRY *entry)
         }
 
         SET_CATCH_INT_PARS(count, 0);
-        THROW_IF(count != 9, -1);
+        THROW_IF(count != 10, -1);
     } CATCH (ret) {
-        TRY_SHOW_INT_PARS(DBG_ERROR);
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
     } FINALLY {
         allocator_mem_free(allocator, list);
     }
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_fs_list);
+REGISTER_TEST_FUNC(test_fs_list_fixed);
+
+static int test_fs_list_dynamic(TEST_ENTRY *entry)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    Vector *list;
+    char *test_path = "./res";
+    int count = 0, i, ret;
+
+    TRY {
+        list = object_new(allocator, "Vector", NULL);
+        
+        count = fs_list(test_path, list);
+        THROW_IF(count < 0, -1);
+
+        SET_CATCH_INT_PARS(count, 0);
+        THROW_IF(count != 10, -1);
+    } CATCH (ret) {
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(list);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_fs_list_dynamic);
 
 /* test modified time */
 static int test_fs_get_mtime(TEST_ENTRY *entry)
@@ -44,10 +69,10 @@ static int test_fs_get_mtime(TEST_ENTRY *entry)
         ret = fs_get_mtime("./res/TIMES.TTF", time, 1024 );
         THROW_IF(ret < 0, -1);
         SET_CATCH_STR_PARS(time, expect);
-        THROW_IF(strcmp(time, expect) != 0, -1);
+        THROW(strcmp(time, expect) == 0);
         dbg_str(DBG_SUC, "time:%s", time);
     } CATCH (ret) {
-        TRY_SHOW_STR_PARS(DBG_ERROR);  
+        CATCH_SHOW_STR_PARS(DBG_ERROR);  
     }
 
     return ret;

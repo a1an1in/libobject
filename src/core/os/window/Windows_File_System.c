@@ -38,7 +38,7 @@
 #include <sys/time.h>
 #include "Windows_File_System.h"
 
-static int __list(Windows_File_System *fs, char *path, char **list, int count, int max_name_len)
+static int __list_fixed(Windows_File_System *fs, char *path, char **list, int count, int max_name_len)
 {
     DIR *dir;
     struct dirent *ptr;
@@ -89,6 +89,11 @@ static int __count_list(Windows_File_System *fs, char *path)
     closedir(dir);
 
     return ret;
+}
+
+static int __list(Windows_File_System *fs, char *path, Vector *vector)
+{
+
 }
 
 static int __is_directory(Windows_File_System *fs, char *path)
@@ -146,14 +151,15 @@ static int __rmdir(Unix_File_System *fs, char *path)
 
 static class_info_entry_t file_system_class_info[] = {
     Init_Obj___Entry(0 , File_System, parent),
-    Init_Vfunc_Entry(1 , Windows_File_System, list, __list),
+    Init_Vfunc_Entry(1 , Windows_File_System, list_fixed, __list_fixed),
     Init_Vfunc_Entry(2 , Windows_File_System, count_list, __count_list),
-    Init_Vfunc_Entry(3 , Windows_File_System, is_directory, __is_directory),
-    Init_Vfunc_Entry(4 , Windows_File_System, get_size, __get_size),
-    Init_Vfunc_Entry(5 , Windows_File_System, get_mtime, __get_mtime),
-    Init_Vfunc_Entry(6 , Windows_File_System, mkdir, __mkdir),
-    Init_Vfunc_Entry(7 , Windows_File_System, rmdir, __rmdir),
-    Init_End___Entry(8 , Windows_File_System),
+    Init_Vfunc_Entry(3 , Windows_File_System, list, __list),
+    Init_Vfunc_Entry(4 , Windows_File_System, is_directory, __is_directory),
+    Init_Vfunc_Entry(5 , Windows_File_System, get_size, __get_size),
+    Init_Vfunc_Entry(6 , Windows_File_System, get_mtime, __get_mtime),
+    Init_Vfunc_Entry(7 , Windows_File_System, mkdir, __mkdir),
+    Init_Vfunc_Entry(8 , Windows_File_System, rmdir, __rmdir),
+    Init_End___Entry(9 , Windows_File_System),
 };
 REGISTER_CLASS("Windows_File_System", file_system_class_info);
 #endif

@@ -17,8 +17,9 @@ struct windows_file_system_s{
     void *(*get)(void *, char *attrib);
 
 	/*virtual methods reimplement*/
-    int (*list)(Windows_File_System *fs, char *name, char **list, int count, int max_name_len);
+    int (*list_fixed)(Windows_File_System *fs, char *name, char **list, int count, int max_name_len);
     int (*count_list)(Windows_File_System *fs, char *name);
+    int (*list)(Windows_File_System *fs, char *path, Vector *vector);
     int (*is_directory)(Windows_File_System *fs, char *name);
     int (*get_mtime)(Windows_File_System *fs, char *path, char *time, int time_max_len);
     int (*get_size)(Windows_File_System *fs, char *path);

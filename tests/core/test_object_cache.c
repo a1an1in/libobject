@@ -89,7 +89,7 @@ static int test_object_cache_memery_leak(TEST_ENTRY *entry)
         SET_CATCH_INT_PARS(after_count, pre_count);
         THROW_IF(after_count != pre_count, -1);
     } CATCH (ret) {
-        TRY_SHOW_INT_PARS(DBG_VIP); 
+        CATCH_SHOW_INT_PARS(DBG_VIP); 
     } FINALLY {}
     
     return ret;

@@ -23,7 +23,7 @@ struct X_7Z_s {
     char *(*to_json)(SevenZip *); 
     int (*extract_file)(SevenZip *, char *file_name);
     int (*add_file)(SevenZip *, char *file_name);
-    int (*get_file_infos)(SevenZip *zip, Vector **infos);
+    int (*get_extracting_file_infos)(SevenZip *zip, Vector **infos);
 
     File *file;
 	String *file_name;

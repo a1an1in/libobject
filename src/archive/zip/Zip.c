@@ -640,14 +640,14 @@ static int __convert_central_dir_header_to_file_info_callback(int index, void *e
     Vector *files = archive->extracting_file_infos;
     allocator_t *allocator = files->obj.allocator;
     zip_central_directory_header_t *dir_header;
-    file_info_t *info;
+    archive_file_info_t *info;
     int ret;
 
     TRY {
         dir_header = (zip_central_directory_header_t *)element;
-        THROW_IF(archive->is_filtered_out(archive, dir_header->file_name) != 1, 0);
+        THROW_IF(archive->can_filter_out(archive, dir_header->file_name) != 1, 0);
 
-        info = allocator_mem_alloc(allocator, sizeof(file_info_t));
+        info = allocator_mem_alloc(allocator, sizeof(archive_file_info_t));
         info->file_name = allocator_mem_zalloc(allocator, dir_header->file_name_length + 1);
         THROW_IF(info == NULL || info->file_name == NULL, -1);
         strcpy(info->file_name, dir_header->file_name);
@@ -660,7 +660,7 @@ static int __convert_central_dir_header_to_file_info_callback(int index, void *e
     return ret;
 }
 
-static int __get_file_infos(Zip *zip, Vector **infos)
+static int __get_extracting_file_infos(Zip *zip, Vector **infos)
 {
     Archive *archive = (Archive *)&zip->parent;
     Vector *files = archive->extracting_file_infos;
@@ -684,7 +684,7 @@ static class_info_entry_t zip_class_info[] = {
     Init_Nfunc_Entry(3, Zip, open, __open),
     Init_Vfunc_Entry(4, Zip, extract_file, __extract_file),
     Init_Vfunc_Entry(5, Zip, add_file, __add_file),
-    Init_Vfunc_Entry(6, Zip, get_file_infos, __get_file_infos),
+    Init_Vfunc_Entry(6, Zip, get_extracting_file_infos, __get_extracting_file_infos),
     Init_End___Entry(7, Zip),
 };
 REGISTER_CLASS("Zip", zip_class_info);

@@ -44,7 +44,7 @@
 #include <libobject/core/String.h>
 #include "Unix_File_System.h"
 
-static int __list(Unix_File_System *fs, char *path, char **list, int count, int max_name_len)
+static int __list_fixed(Unix_File_System *fs, char *path, char **list, int count, int max_name_len)
 {
     DIR *dir;
     struct dirent *ptr;
@@ -95,6 +95,12 @@ static int __count_list(Unix_File_System *fs, char *path)
     closedir(dir);
 
     return ret;
+}
+
+static int __list(Unix_File_System *fs, char *path, Vector *vector)
+{
+    dbg_str(DBG_VIP, "list %s", path);
+    return 10;
 }
 
 static int __is_directory(Unix_File_System *fs, char *path)
@@ -223,15 +229,16 @@ static int __rmdir(Unix_File_System *fs, char *dir)
 }
 
 static class_info_entry_t file_system_class_info[] = {
-    Init_Obj___Entry(0 , File_System, parent),
-    Init_Vfunc_Entry(1 , Unix_File_System, list, __list),
-    Init_Vfunc_Entry(2 , Unix_File_System, count_list, __count_list),
-    Init_Vfunc_Entry(3 , Unix_File_System, is_directory, __is_directory),
-    Init_Vfunc_Entry(4 , Unix_File_System, get_size, __get_size),
-    Init_Vfunc_Entry(5 , Unix_File_System, get_mtime, __get_mtime),
-    Init_Vfunc_Entry(6 , Unix_File_System, mkdir, __mkdir),
-    Init_Vfunc_Entry(7 , Unix_File_System, rmdir, __rmdir),
-    Init_End___Entry(8 , Unix_File_System),
+    Init_Obj___Entry(0, File_System, parent),
+    Init_Vfunc_Entry(1, Unix_File_System, list_fixed, __list_fixed),
+    Init_Vfunc_Entry(2, Unix_File_System, count_list, __count_list),
+    Init_Vfunc_Entry(3, Unix_File_System, list, __list),
+    Init_Vfunc_Entry(4, Unix_File_System, is_directory, __is_directory),
+    Init_Vfunc_Entry(5, Unix_File_System, get_size, __get_size),
+    Init_Vfunc_Entry(6, Unix_File_System, get_mtime, __get_mtime),
+    Init_Vfunc_Entry(7, Unix_File_System, mkdir, __mkdir),
+    Init_Vfunc_Entry(8, Unix_File_System, rmdir, __rmdir),
+    Init_End___Entry(9, Unix_File_System),
 };
 REGISTER_CLASS("Unix_File_System", file_system_class_info);
 #endif

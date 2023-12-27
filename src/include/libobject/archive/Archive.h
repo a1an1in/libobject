@@ -9,10 +9,10 @@
 
 typedef struct Archive_s Archive;
 
-typedef struct file_info_s {
+typedef struct archive_file_info_s {
     char *file_name;
     uint16_t compression_method;
-} file_info_t;
+} archive_file_info_t;
 
 typedef enum wildchard_type_enum {
     SET_INCLUSIVE_WILDCHARD_TYPE = 0,
@@ -45,8 +45,10 @@ struct Archive_s {
     int (*set_extracting_path)(Archive *a, char *path);
     int (*set_adding_path)(Archive *a, char *path);
     int (*set_wildchard)(Archive *archive, wildchard_type_e, char *wildchard);
-    int (*is_filtered_out)(Archive *archive, char *file);
-    int (*get_file_infos)(Archive *a, Vector **infos);
+    int (*can_filter_out)(Archive *archive, char *file);
+    int (*get_extracting_file_infos)(Archive *a, Vector **infos);
+    int (*add_adding_file_info)(Archive *a, archive_file_info_t *info);
+    int (*get_adding_file_infos)(Archive *a, Vector **infos);
     int (*print_file_infos)(Archive *a);
 
     /* compress and uncompress are used by tar, which may need copress
@@ -66,7 +68,7 @@ struct Archive_s {
     /* stored extracting file infos */       
     Vector *extracting_file_infos;
     /* we can specify compression_method for each file by this configure */
-    Vector *adding_file_configs;
+    Vector *adding_file_infos;
     /* this is used by string operation */
     String *tmp;
 };

@@ -623,7 +623,7 @@ static int __insert_or_update_table(Orm_Conn *conn, Table *table)
             model = NULL;
         }
     } CATCH (ret) {
-        TRY_SHOW_INT_PARS(DB_ERROR);
+        CATCH_SHOW_INT_PARS(DB_ERROR);
     }
 
     return ret;

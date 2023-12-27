@@ -73,7 +73,7 @@ static int __parse_attrib_mapped_addr(stun_attrib_t *raw, stun_attrib_t *out)
         dbg_str(DBG_DETAIL, "parse maped addr, host:%s, server:%s",
                 out->u.mapped_address.host, out->u.mapped_address.service);
     } CATCH (ret) {
-        TRY_SHOW_INT_PARS(DBG_ERROR);
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
     }
 
     return ret;
@@ -100,7 +100,7 @@ static int __parse_attrib_changed_addr(stun_attrib_t *raw, stun_attrib_t *out)
         dbg_str(DBG_DETAIL, "parse changed addr, host:%s, server:%s",
                 out->u.changed_address.host, out->u.changed_address.service);
     } CATCH (ret) {
-        TRY_SHOW_INT_PARS(DBG_ERROR);
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
     }
 
     return ret;

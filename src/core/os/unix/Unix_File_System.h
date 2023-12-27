@@ -17,8 +17,9 @@ struct unix_file_system_s{
     void *(*get)(void *, char *attrib);
 
 	/*virtual methods reimplement*/
-    int (*list)(Unix_File_System *fs, char *name, char **list, int count, int max_name_len);
+    int (*list_fixed)(Unix_File_System *fs, char *name, char **list, int count, int max_name_len);
     int (*count_list)(Unix_File_System *fs, char *name);
+    int (*list)(Unix_File_System *fs, char *path, Vector *vector);
     int (*is_directory)(Unix_File_System *fs, char *name);
     int (*get_mtime)(Unix_File_System *fs, char *path, char *time, int time_max_len);
     int (*get_size)(Unix_File_System *fs, char *path);

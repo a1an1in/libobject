@@ -244,7 +244,7 @@ static int __process_request_cookie(Http_Server *server, Request *r, Response *r
         THROW_IF(value == NULL, 0);
         r->cookies = chain->new(chain, "String", value);
     } CATCH (ret) {
-        TRY_SHOW_INT_PARS(DBG_ERROR);
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
     }
 
     return ret;
@@ -282,7 +282,7 @@ static int __process_request(Http_Server *server, Request *r)
 
         r->response = (void *)resp; //response 的任务处理完，托管给request；
     } CATCH (ret) {
-        TRY_SHOW_INT_PARS(DBG_ERROR);
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
     }
 
     return ret;

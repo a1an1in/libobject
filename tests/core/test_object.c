@@ -91,7 +91,7 @@ static int test_object_marshal(TEST_ENTRY *entry)
 
         SET_CATCH_STR_PARS(string->get_cstr(string), expect);
         ret = strncmp(string->get_cstr(string), expect, strlen(expect));
-        THROW_IF(ret != 0, -1);
+        THROW(ret == 0);
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "int_number error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
     } FINALLY {

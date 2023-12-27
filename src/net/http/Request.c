@@ -599,7 +599,7 @@ static int __get_cookie(Request *request, char *key, char *value, int value_len)
 
         return ret;
     } CATCH (ret) {
-        TRY_SHOW_STR_PARS(DBG_ERROR);
+        CATCH_SHOW_STR_PARS(DBG_ERROR);
     }
 }
 
