@@ -90,7 +90,7 @@ type Header struct {
 
 byte_before_the_zipfile 做什么用的？
 
-
+file header
 
 refs:
 
@@ -129,3 +129,6 @@ https://blog.csdn.net/chary8088/article/details/48047835/
 [文件格式](https://www.fileformat.info/format/all.htm)
 
 https://blog.csdn.net/m0_63593710/article/details/13001939
+
+[无损数据压缩算法的历史](https://blog.csdn.net/kimylrong/article/details/39405981)
+

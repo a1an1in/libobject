@@ -28,7 +28,7 @@ macro (set_cmake_evironment_variable)
             # object-net
             object-concurrent
             # object-crypto
-            # object-encoding
+            object-encoding
             # object-ctest
             object-argument
             object-core

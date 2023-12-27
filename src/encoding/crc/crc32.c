@@ -69,7 +69,7 @@ static const unsigned int crc32tab[] = {
     0xb40bbe37L, 0xc30c8ea1L, 0x5a05df1bL, 0x2d02ef8dL
 };
 
-static unsigned int 
+unsigned int 
 crc32(unsigned int crc, const char *buf, unsigned int size)
 {
     unsigned int i;

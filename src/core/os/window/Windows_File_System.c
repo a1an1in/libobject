@@ -141,10 +141,10 @@ static int __get_mtime(Windows_File_System *fs, char *path, char *time, int time
 
 static int __mkdir(Windows_File_System *fs, char *path, mode_t mode)
 {
-    return TRY_EXEC(mkdir(path, mode));
+    return TRY_EXEC(mkdir(path));
 }
 
-static int __rmdir(Unix_File_System *fs, char *path)
+static int __rmdir(Windows_File_System *fs, char *path)
 {
     return 0;
 }
