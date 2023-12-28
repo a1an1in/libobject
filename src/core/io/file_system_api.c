@@ -77,9 +77,24 @@ int fs_get_mtime(char *path, char *time, int time_max_len)
     return TRY_EXEC(globle_file_system->get_mtime(globle_file_system, path, time, time_max_len));
 }
 
+int fs_get_atime(char *path, char *time, int time_max_len)
+{
+    return TRY_EXEC(globle_file_system->get_atime(globle_file_system, path, time, time_max_len));
+}
+
+int fs_get_ctime(char *path, char *time, int time_max_len)
+{
+    return TRY_EXEC(globle_file_system->get_ctime(globle_file_system, path, time, time_max_len));
+}
+
 int fs_get_size(char *path)
 {
     return TRY_EXEC(globle_file_system->get_size(globle_file_system, path));
+}
+
+int fs_get_stat(char *path, fs_file_info_t *stat)
+{
+    return TRY_EXEC(globle_file_system->get_stat(globle_file_system, path, stat));
 }
 
 int fs_mkdir(char *path, mode_t mode)

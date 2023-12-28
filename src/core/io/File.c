@@ -163,32 +163,3 @@ static class_info_entry_t file_class_info[] = {
     Init_End___Entry(14, File),
 };
 REGISTER_CLASS("File", file_class_info);
-
-int file_compute_crc32(char *file_name, uint32_t *crc)
-{
-    File *file;
-    allocator_t *allocator = allocator_get_default_instance();
-    unsigned char buffer[1024];
-    uint32_t value = 0, size, read_len;
-    int ret;
-
-    TRY {
-        file = OBJECT_NEW(allocator, File, NULL);
-        EXEC(file->open(file, file_name, "r"));
-        size = fs_get_size(file_name);
-        THROW_IF(size < 0, -1);
-
-        while (size > 0) {
-            read_len = size > 1024 ? 1024 : size;
-            EXEC(file->read(file, buffer, read_len));
-            value = (unsigned int)crc32(value, buffer, read_len);
-            size -= read_len;
-            
-        }
-        *crc = value;
-    } CATCH (ret) {} FINALLY {
-        object_destroy(file);
-    }
-
-    return ret;
-}

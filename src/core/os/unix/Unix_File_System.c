@@ -118,32 +118,6 @@ static int __is_directory(Unix_File_System *fs, char *path)
     } else return 0;
 }
 
-static int __get_size(Unix_File_System *fs, char *path)
-{
-    struct stat st;
-
-    if (fs == NULL) return -1;
-
-    if (stat(path, &st) == -1) {
-        return -1;
-    }
-
-    return st.st_size;
-}
-
-static int __get_mtime(Unix_File_System *fs, char *path, char *time, int time_max_len)
-{
-    struct stat st;
-    struct tm t;
-
-    if (fs == NULL) return -1;
-    if (stat(path, &st) == -1) return -1;
-    
-    strftime(time, time_max_len, "%Y-%m-%d %H:%M:%S", localtime_r(&st.st_mtime, &t));
-
-    return 0;
-}
-
 static int __mkdir(Unix_File_System *fs, char *path, mode_t mode)
 {
     String *string;
@@ -234,11 +208,9 @@ static class_info_entry_t file_system_class_info[] = {
     Init_Vfunc_Entry(2, Unix_File_System, count_list, __count_list),
     Init_Vfunc_Entry(3, Unix_File_System, list, __list),
     Init_Vfunc_Entry(4, Unix_File_System, is_directory, __is_directory),
-    Init_Vfunc_Entry(5, Unix_File_System, get_size, __get_size),
-    Init_Vfunc_Entry(6, Unix_File_System, get_mtime, __get_mtime),
-    Init_Vfunc_Entry(7, Unix_File_System, mkdir, __mkdir),
-    Init_Vfunc_Entry(8, Unix_File_System, rmdir, __rmdir),
-    Init_End___Entry(9, Unix_File_System),
+    Init_Vfunc_Entry(5, Unix_File_System, mkdir, __mkdir),
+    Init_Vfunc_Entry(6, Unix_File_System, rmdir, __rmdir),
+    Init_End___Entry(7, Unix_File_System),
 };
 REGISTER_CLASS("Unix_File_System", file_system_class_info);
 #endif

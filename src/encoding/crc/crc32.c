@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/core/io/File.h>
 
 static const unsigned int crc32tab[] = {
     0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL,
@@ -82,6 +83,35 @@ crc32(unsigned int crc, const char *buf, unsigned int size)
     return crc ^ 0xFFFFFFFF;
 }
 
+int file_compute_crc32(char *file_name, uint32_t *crc)
+{
+    File *file;
+    allocator_t *allocator = allocator_get_default_instance();
+    unsigned char buffer[1024];
+    uint32_t value = 0, size, read_len;
+    int ret;
+
+    TRY {
+        file = OBJECT_NEW(allocator, File, NULL);
+        EXEC(file->open(file, file_name, "r"));
+        size = fs_get_size(file_name);
+        THROW_IF(size < 0, -1);
+
+        while (size > 0) {
+            read_len = size > 1024 ? 1024 : size;
+            EXEC(file->read(file, buffer, read_len));
+            value = (unsigned int)crc32(value, buffer, read_len);
+            size -= read_len;
+            
+        }
+        *crc = value;
+    } CATCH (ret) {} FINALLY {
+        object_destroy(file);
+    }
+
+    return ret;
+}
+
 static int
 test_crc32(TEST_ENTRY *entry, void *argc, void *argv)
 {
@@ -99,3 +129,19 @@ test_crc32(TEST_ENTRY *entry, void *argc, void *argv)
     return ret;
 }
 REGISTER_TEST_FUNC(test_crc32);
+
+static int teset_file_compute_crc32()
+{
+    char *file_name = "./tests/res/zip/test_zip_extract.txt";
+    uint32_t crc, expect_crc = 0xa8e65b40;
+    int ret;
+
+    TRY {
+        EXEC(file_compute_crc32(file_name, &crc));
+        dbg_str(DBG_VIP, "file crc32:%x, expect:%x", crc, expect_crc);
+        THROW_IF(crc != expect_crc, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+REGISTER_TEST_FUNC(teset_file_compute_crc32);

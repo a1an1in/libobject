@@ -79,6 +79,48 @@ static int test_fs_get_mtime(TEST_ENTRY *entry)
 }
 REGISTER_TEST_FUNC(test_fs_get_mtime);
 
+/* test change time */
+static int test_fs_get_ctime(TEST_ENTRY *entry)
+{
+    char time[1024];
+    char *expect = "2023-05-06 04:34:12";
+    int ret;
+
+    TRY {
+        ret = fs_get_ctime("./res/TIMES.TTF", time, 1024 );
+        THROW_IF(ret < 0, -1);
+        SET_CATCH_STR_PARS(time, expect);
+        THROW(strcmp(time, expect) == 0);
+        dbg_str(DBG_SUC, "time:%s", time);
+    } CATCH (ret) {
+        CATCH_SHOW_STR_PARS(DBG_ERROR);  
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_fs_get_ctime);
+
+static int test_fs_get_stat(TEST_ENTRY *entry)
+{
+    char time[1024];
+    char *expect = "2023-05-06 04:34:12";
+    fs_file_info_t stat;
+    int ret;
+
+    TRY {
+        EXEC(fs_get_stat("./res/TIMES.TTF", &stat));
+        // THROW_IF(ret < 0, -1);
+        // SET_CATCH_STR_PARS(time, expect);
+        // THROW(strcmp(time, expect) == 0);
+        // dbg_str(DBG_SUC, "time:%s", time);
+    } CATCH (ret) {
+        // CATCH_SHOW_STR_PARS(DBG_ERROR);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_fs_get_stat);
+
 static int test_fs_get_size(TEST_ENTRY *entry)
 {
     int ret;

@@ -155,11 +155,9 @@ static class_info_entry_t file_system_class_info[] = {
     Init_Vfunc_Entry(2 , Windows_File_System, count_list, __count_list),
     Init_Vfunc_Entry(3 , Windows_File_System, list, __list),
     Init_Vfunc_Entry(4 , Windows_File_System, is_directory, __is_directory),
-    Init_Vfunc_Entry(5 , Windows_File_System, get_size, __get_size),
-    Init_Vfunc_Entry(6 , Windows_File_System, get_mtime, __get_mtime),
-    Init_Vfunc_Entry(7 , Windows_File_System, mkdir, __mkdir),
-    Init_Vfunc_Entry(8 , Windows_File_System, rmdir, __rmdir),
-    Init_End___Entry(9 , Windows_File_System),
+    Init_Vfunc_Entry(5 , Windows_File_System, mkdir, __mkdir),
+    Init_Vfunc_Entry(6 , Windows_File_System, rmdir, __rmdir),
+    Init_End___Entry(7 , Windows_File_System),
 };
 REGISTER_CLASS("Windows_File_System", file_system_class_info);
 #endif
