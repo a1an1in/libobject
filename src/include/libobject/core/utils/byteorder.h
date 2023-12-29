@@ -6,6 +6,11 @@
 #include <stdlib.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/basic_types.h>
+
+#if (defined(WINDOWS_USER_MODE))
+typedef unsigned long long uint64_t;
+#endif
 
 #define ___constant_swab16(x) ((uint16_t)(				             \
 	(((uint16_t)(x) & (uint16_t)0x00ffU) << 8) |			         \

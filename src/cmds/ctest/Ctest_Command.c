@@ -127,4 +127,4 @@ static class_info_entry_t test_command_class_info[] = {
     Init_Vfunc_Entry(3, Ctest_Command, run_command, __action),
     Init_End___Entry(4, Ctest_Command),
 };
-REGISTER_APP_CMD("Ctest_Command", test_command_class_info);
+// REGISTER_APP_CMD("Ctest_Command", test_command_class_info);

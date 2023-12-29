@@ -7,6 +7,10 @@
 
 typedef struct file_system_s File_System;
 
+#if (defined(WINDOWS_USER_MODE))
+typedef unsigned long long uint64_t;
+#endif
+
 typedef struct fs_file_info_s {
     char *file_name;
     uint16_t compression_method;

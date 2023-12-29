@@ -1,8 +1,7 @@
-[update:fs] add new fs new interfaces.
+[update:windows] fix windows building issue.
 
 Description:
-update.
+xtools's ok on windows now.
 
 Major Changes:
-1. add new interfaces to fs.
-2. move file_compute_crc32 to encoding module.
+1. change to adapt windows build requirement.
