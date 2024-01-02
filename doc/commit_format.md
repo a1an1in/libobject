@@ -1,7 +1,8 @@
-[update:windows] fix windows building issue.
+[update:fs] change test fs cases.
 
 Description:
-xtools's ok on windows now.
+it seem can't verify fs time cases, since the times
+are different at different computer.
 
 Major Changes:
-1. change to adapt windows build requirement.
+1. change func test to cmd test.
