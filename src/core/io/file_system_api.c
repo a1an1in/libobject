@@ -92,7 +92,7 @@ int fs_get_size(char *path)
     return TRY_EXEC(globle_file_system->get_size(globle_file_system, path));
 }
 
-int fs_get_stat(char *path, fs_file_info_t *stat)
+int fs_get_stat(char *path, struct stat *stat)
 {
     return TRY_EXEC(globle_file_system->get_stat(globle_file_system, path, stat));
 }

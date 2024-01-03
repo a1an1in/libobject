@@ -14,7 +14,7 @@ extern int fs_get_size(char *path);
 extern int fs_get_mtime(char *path, char *time, int time_max_len);
 extern int fs_get_atime(char *path, char *time, int time_max_len);
 extern int fs_get_ctime(char *path, char *time, int time_max_len);
-extern int fs_get_stat(char *path, fs_file_info_t *stat);
+extern int fs_get_stat(char *path, struct stat *stat);
 extern int fs_is_exist(char *path);
 extern int fs_get_path_and_name(char *path, char **parent_dir, char **name);
 extern int fs_mkfile(char *path, mode_t mode);

@@ -30,10 +30,6 @@
  * 
  */
 #include <stdio.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <sys/time.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/io/File_System.h>
 
@@ -89,9 +85,15 @@ static int __get_size(File_System *fs, char *path)
     return st.st_size;
 }
 
-static int __get_stat(File_System *fs, fs_file_info_t *stat)
+static int __get_stat(File_System *fs, char *path, struct stat *st)
 {
+    if (fs == NULL) return -1;
     dbg_str(DBG_VIP, "get_stat");
+
+    if (stat(path, st) == -1) {
+        return -1;
+    }
+
     return 1;
 }
 

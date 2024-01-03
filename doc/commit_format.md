@@ -1,8 +1,6 @@
-[update:fs] change test fs cases.
+[update:fs] change fs_get_stat api paramater.
 
 Description:
-it seem can't verify fs time cases, since the times
-are different at different computer.
-
+update
 Major Changes:
-1. change func test to cmd test.
+1. update.

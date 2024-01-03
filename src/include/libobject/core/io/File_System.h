@@ -2,6 +2,10 @@
 #define __FILE_SYSTEM_H__
 
 #include <stdio.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/Vector.h>
 
@@ -13,11 +17,8 @@ typedef unsigned long long uint64_t;
 
 typedef struct fs_file_info_s {
     char *file_name;
+    struct stat st;
     uint16_t compression_method;
-    uint64_t size;
-    uint16_t modify_time;
-    uint16_t access_time;
-    uint16_t create_time;
 } fs_file_info_t;
 
 struct file_system_s {
@@ -35,7 +36,7 @@ struct file_system_s {
     int (*get_atime)(File_System *fs, char *path, char *time, int time_max_len);
     int (*get_ctime)(File_System *fs, char *path, char *time, int time_max_len);
     int (*get_size)(File_System *fs, char *path);
-    int (*get_stat)(File_System *fs, char *path, fs_file_info_t *stat);
+    int (*get_stat)(File_System *fs, char *path, struct stat *stat);
     int (*mkdir)(File_System *fs, char *path, mode_t mode);
     int (*rmdir)(File_System *fs, char *path);
 };

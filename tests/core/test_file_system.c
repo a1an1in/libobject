@@ -93,13 +93,13 @@ REGISTER_TEST_CMD(test_fs_get_ctime);
 static int test_fs_get_stat(TEST_ENTRY *entry)
 {
     char time[1024];
-    fs_file_info_t stat;
+    struct stat stat;
     int ret;
 
     TRY {
         EXEC(fs_get_stat("./res/TIMES.TTF", &stat));
         THROW_IF(ret < 0, -1);
-        dbg_str(DBG_VIP, "fs_get_stat, modify_time:%d", stat.modify_time);
+        dbg_str(DBG_VIP, "fs_get_stat, modify_time:%d", stat.st_mtime);
     } CATCH (ret) { }
 
     return ret;
