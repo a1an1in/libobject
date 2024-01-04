@@ -37,7 +37,7 @@ static int test_fs_list_dynamic(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Vector *list;
-    char *test_path = "./res";
+    char *test_path = "./res/";
     int count = 0, i, ret;
 
     TRY {
@@ -45,6 +45,7 @@ static int test_fs_list_dynamic(TEST_ENTRY *entry)
         
         count = fs_list(test_path, list);
         THROW_IF(count < 0, -1);
+        fs_print_file_info_list(list);
 
         SET_CATCH_INT_PARS(count, 0);
         THROW_IF(count != 10, -1);

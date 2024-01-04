@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <sys/stat.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/String.h>
@@ -44,27 +47,6 @@ int fs_is_directory(char *name)
 int fs_list_fixed(char *name, char **list, int count, int name_max_len)
 {
     return TRY_EXEC(globle_file_system->list_fixed(globle_file_system, name, list, count, name_max_len));
-}
-
-static int __free_file_info_callback(allocator_t *allocator, fs_file_info_t *info)
-{
-    allocator_mem_free(allocator, info->file_name);
-    allocator_mem_free(allocator, info);
-
-    return 1;
-}
-
-int fs_list(char *name, Vector *vector)
-{
-    int ret;
-
-    TRY {
-        EXEC(vector->set_trustee(vector, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback));
-        EXEC(ret = globle_file_system->list(globle_file_system, name, vector));
-        THROW(ret);
-    } CATCH (ret) {}
-
-    return ret;
 }
 
 int fs_count_list(char *name)
@@ -172,4 +154,45 @@ int fs_mkfile(char *path, mode_t mode)
 int fs_rmfile(char *path)
 {
     return remove(path);
+}
+
+static int __free_file_info_callback(allocator_t *allocator, fs_file_info_t *info)
+{
+    allocator_mem_free(allocator, info->file_name);
+    allocator_mem_free(allocator, info);
+
+    return 1;
+}
+
+static int __get_file_info_stat_callback(int index, fs_file_info_t *info)
+{
+    return fs_get_stat(info->file_name, &info->st);
+}
+
+int fs_list(char *path, Vector *vector)
+{
+    int ret;
+
+    TRY {
+        EXEC(vector->set_trustee(vector, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback));
+        EXEC(ret = globle_file_system->list(globle_file_system, path, vector));
+        EXEC(vector->for_each(vector, __get_file_info_stat_callback));
+        THROW(ret);
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static int __print_file_info_callback(int index, fs_file_info_t *info)
+{
+    printf("index:%d file name:%s atime:%x, ctime:%x, mtime:%x size:%d\n", 
+            index, info->file_name, info->st.st_atime, info->st.st_ctime,
+            info->st.st_mtime, info->st.st_size);
+
+    return 1;
+}
+
+int fs_print_file_info_list(Vector *vector)
+{
+    return vector->for_each(vector, __print_file_info_callback);
 }

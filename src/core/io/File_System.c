@@ -97,11 +97,37 @@ static int __get_stat(File_System *fs, char *path, struct stat *st)
     return 1;
 }
 
+static int __list(File_System *fs, char *path, Vector *vector)
+{
+    DIR *dir;
+    struct dirent *ptr;
+    allocator_t *allocator = fs->obj.allocator;
+    int i = 0, ret = 0, count = 0;
+    fs_file_info_t *info;
+
+    TRY {
+        THROW_IF(fs == NULL, -1);
+        THROW_IF((dir = opendir(path)) == NULL, -1);
+
+        while ((ptr = readdir(dir)) != NULL) {
+            count++;
+            info = allocator_mem_alloc(allocator, sizeof(fs_file_info_t));
+            info->file_name = allocator_mem_zalloc(allocator, strlen(ptr->d_name) + strlen(path) + 2);
+            strcpy(info->file_name, path);
+            strcat(info->file_name, ptr->d_name);
+            vector->add(vector, info);
+        }
+        closedir(dir);
+    } CATCH (ret) {}
+
+    return count;
+}
+
 static class_info_entry_t file_system_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Vfunc_Entry(1 , File_System, list_fixed, NULL),
     Init_Vfunc_Entry(2 , File_System, count_list, NULL),
-    Init_Vfunc_Entry(3 , File_System, list, NULL),
+    Init_Vfunc_Entry(3 , File_System, list, __list),
     Init_Vfunc_Entry(4 , File_System, is_directory, NULL),
     Init_Vfunc_Entry(5 , File_System, get_size, __get_size),
     Init_Vfunc_Entry(6 , File_System, get_mtime, __get_mtime),

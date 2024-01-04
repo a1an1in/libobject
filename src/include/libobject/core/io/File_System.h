@@ -17,8 +17,8 @@ typedef unsigned long long uint64_t;
 
 typedef struct fs_file_info_s {
     char *file_name;
-    struct stat st;
     uint16_t compression_method;
+    struct stat st;
 } fs_file_info_t;
 
 struct file_system_s {

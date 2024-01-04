@@ -1,6 +1,7 @@
-[update:fs] change fs_get_stat api paramater.
+[update:fs] implement fs_list.
 
 Description:
-update
+have tested under windows.
+
 Major Changes:
 1. update.

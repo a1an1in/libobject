@@ -91,11 +91,6 @@ static int __count_list(Windows_File_System *fs, char *path)
     return ret;
 }
 
-static int __list(Windows_File_System *fs, char *path, Vector *vector)
-{
-
-}
-
 static int __is_directory(Windows_File_System *fs, char *path)
 {
     struct stat st;
@@ -153,7 +148,7 @@ static class_info_entry_t file_system_class_info[] = {
     Init_Obj___Entry(0 , File_System, parent),
     Init_Vfunc_Entry(1 , Windows_File_System, list_fixed, __list_fixed),
     Init_Vfunc_Entry(2 , Windows_File_System, count_list, __count_list),
-    Init_Vfunc_Entry(3 , Windows_File_System, list, __list),
+    Init_Vfunc_Entry(3 , Windows_File_System, list, NULL),
     Init_Vfunc_Entry(4 , Windows_File_System, is_directory, __is_directory),
     Init_Vfunc_Entry(5 , Windows_File_System, mkdir, __mkdir),
     Init_Vfunc_Entry(6 , Windows_File_System, rmdir, __rmdir),
