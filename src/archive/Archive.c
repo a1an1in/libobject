@@ -172,6 +172,7 @@ static int __can_filter_out(Archive *archive, char *file)
     return ret;
 }
 
+/* extract specified files */
 static int __extract_files(Archive *a, Vector *files)
 {
     int ret, count, i;
@@ -222,7 +223,8 @@ static int __add_files(Archive *a, Vector *files)
 
 static int __add(Archive *a)
 {
-
+    dbg_str(DBG_VIP, "archive add");
+    return 0;
 }
 
 static int __add_adding_file_info(Archive *a, archive_file_info_t *info)

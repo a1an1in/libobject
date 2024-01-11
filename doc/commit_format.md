@@ -1,7 +1,8 @@
-[update:fs] implement fs_list.
+[update:fs] implement fs_tree.
 
 Description:
-have tested under windows.
+have tested on linux.
 
 Major Changes:
-1. move same implementaion on linux and windows to File_System class.
+1. add fs_tree.
+2. add test_zip_add_all case, but havn't tested.

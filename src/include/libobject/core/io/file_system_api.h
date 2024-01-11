@@ -21,5 +21,6 @@ extern int fs_mkfile(char *path, mode_t mode);
 extern int fs_rmfile(char *path);
 extern int fs_mkdir(char *path, mode_t mode);
 extern int fs_rmdir(char *path);
+extern int fs_tree(char *path, Vector *vector, int depth);
 
 #endif

@@ -295,6 +295,31 @@ static int test_zip_add_files(TEST_ENTRY *entry, int argc, void **argv)
 }
 REGISTER_TEST_CMD(test_zip_add_files);
 
+// not verified ...
+static int test_zip_add_all(TEST_ENTRY *entry, int argc, void **argv)
+{
+    int ret;
+    allocator_t *allocator = allocator_get_default_instance();
+    Archive *archive;
+    char *tar_name = "./tests/output/zip/test_zip.zip";
+
+    TRY {
+        dbg_str(DBG_SUC, "test add files to zip");
+        fs_mkdir("./tests/output/zip", 0777);
+        archive = object_new(allocator, "Zip", NULL);
+		archive->open(archive, tar_name, "w+");
+        archive->set_adding_path(archive, "./res/zip");
+
+        EXEC(archive->add(archive));
+    } CATCH (ret) { } FINALLY {
+        object_destroy(archive);
+        fs_rmdir("./tests/output/zip/");
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_zip_add_all);
+
 static int test_zip_get_extracting_file_infos(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;

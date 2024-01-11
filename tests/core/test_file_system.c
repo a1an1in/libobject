@@ -59,6 +59,58 @@ static int test_fs_list_dynamic(TEST_ENTRY *entry)
 }
 REGISTER_TEST_FUNC(test_fs_list_dynamic);
 
+static int test_fs_tree(TEST_ENTRY *entry)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    Vector *list;
+    char *test_path = "./mk/";
+    int count = 0, i, ret;
+
+    TRY {
+        list = object_new(allocator, "Vector", NULL);
+        
+        count = fs_tree(test_path, list, -1);
+        THROW_IF(count < 0, -1);
+        fs_print_file_info_list(list);
+
+        SET_CATCH_INT_PARS(count, 0);
+        THROW_IF(count != 14, -1);
+    } CATCH (ret) {
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(list);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_fs_tree);
+
+static int test_fs_tree_with_depth(TEST_ENTRY *entry)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    Vector *list;
+    char *test_path = "./mk/";
+    int count = 0, i, ret;
+
+    TRY {
+        list = object_new(allocator, "Vector", NULL);
+        
+        count = fs_tree(test_path, list, 1);
+        THROW_IF(count < 0, -1);
+        fs_print_file_info_list(list);
+
+        SET_CATCH_INT_PARS(count, 0);
+        THROW_IF(count != 11, -1);
+    } CATCH (ret) {
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(list);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_fs_tree_with_depth);
+
 /* test modified time */
 static int test_fs_get_mtime(TEST_ENTRY *entry)
 {

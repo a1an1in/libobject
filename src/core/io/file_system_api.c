@@ -10,6 +10,28 @@
 
 File_System *globle_file_system;
 
+static int __free_file_info_callback(allocator_t *allocator, fs_file_info_t *info)
+{
+    allocator_mem_free(allocator, info->file_name);
+    allocator_mem_free(allocator, info);
+
+    return 1;
+}
+
+static int __get_file_info_stat_callback(int index, fs_file_info_t *info)
+{
+    return fs_get_stat(info->file_name, &info->st);
+}
+
+static int __print_file_info_callback(int index, fs_file_info_t *info)
+{
+    printf("index:%d file name:%s atime:%x, ctime:%x, mtime:%x size:%d\n", 
+            index, info->file_name, info->st.st_atime, info->st.st_ctime,
+            info->st.st_mtime, info->st.st_size);
+
+    return 1;
+}
+
 int fs_init()
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -156,26 +178,23 @@ int fs_rmfile(char *path)
     return remove(path);
 }
 
-static int __free_file_info_callback(allocator_t *allocator, fs_file_info_t *info)
-{
-    allocator_mem_free(allocator, info->file_name);
-    allocator_mem_free(allocator, info);
-
-    return 1;
-}
-
-static int __get_file_info_stat_callback(int index, fs_file_info_t *info)
-{
-    return fs_get_stat(info->file_name, &info->st);
-}
-
 int fs_list(char *path, Vector *vector)
 {
-    int ret;
+    int ret, len;
+    char tmp[1024] = {0};
 
     TRY {
+        strcpy(tmp, path);
+        len = strlen(tmp);
+        THROW_IF((fs_is_directory(path) == 0), 0);
+
+        if (path[len - 1] != '/') {
+            strcat(tmp, "/");
+            dbg_str(DBG_VIP, "path:%s", tmp);
+        }
+
         EXEC(vector->set_trustee(vector, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback));
-        EXEC(ret = globle_file_system->list(globle_file_system, path, vector));
+        EXEC(ret = globle_file_system->list(globle_file_system, tmp, vector));
         EXEC(vector->for_each(vector, __get_file_info_stat_callback));
         THROW(ret);
     } CATCH (ret) {}
@@ -183,16 +202,42 @@ int fs_list(char *path, Vector *vector)
     return ret;
 }
 
-static int __print_file_info_callback(int index, fs_file_info_t *info)
-{
-    printf("index:%d file name:%s atime:%x, ctime:%x, mtime:%x size:%d\n", 
-            index, info->file_name, info->st.st_atime, info->st.st_ctime,
-            info->st.st_mtime, info->st.st_size);
-
-    return 1;
-}
-
 int fs_print_file_info_list(Vector *vector)
 {
     return vector->for_each(vector, __print_file_info_callback);
+}
+
+int fs_tree(char *path, Vector *vector, int depth)
+{
+    allocator_t *allocator = globle_file_system->obj.allocator;
+    Vector *list = NULL;
+    fs_file_info_t *info;
+    int ret, count, i, len;
+
+    TRY {
+        THROW_IF(depth == 0, 0);
+        if (depth > 0) depth--;
+        EXEC(vector->set_trustee(vector, VALUE_TYPE_STRUCT_POINTER, 
+                                 __free_file_info_callback));
+
+        list = object_new(allocator, "Vector", NULL);
+        EXEC(fs_list(path, list));
+        count = list->count(list);
+        THROW_IF(count == 2, 0);
+        
+        for (i = 0; i < count; i++) {
+            EXEC(list->peek_at(list, i, &info));
+            if (!S_ISDIR(info->st.st_mode)) continue;
+            len = strlen(info->file_name);
+            if (info->file_name[len - 1] == '.') continue;
+            dbg_str(DBG_VIP, "filename:%s", info->file_name);
+            EXEC(fs_tree(info->file_name, vector, depth));
+        }
+        EXEC(vector->add_vector(vector, list));
+        THROW(vector->count(vector));
+    } CATCH (ret) {} FINALLY {
+        object_destroy(list);
+    }
+
+    return ret;
 }
