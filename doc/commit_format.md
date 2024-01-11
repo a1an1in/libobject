@@ -1,8 +1,7 @@
-[update:fs] implement fs_tree.
+[update:archive] bugfix can_filter_out.
 
 Description:
-have tested on linux.
+update.
 
 Major Changes:
-1. add fs_tree.
-2. add test_zip_add_all case, but havn't tested.
+1. can_filter_out is bugged and not implemented fully.

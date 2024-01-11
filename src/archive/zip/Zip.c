@@ -668,6 +668,8 @@ static int __get_extracting_file_infos(Zip *zip, Vector **infos)
     int ret;
 
     TRY {
+        printf("\n");
+        dbg_str(DBG_VIP, "Zip get_extracting_file_infos");
         THROW_IF(files == NULL, -1);
         files->reset(files);
         EXEC(dir_headers->for_each_arg(dir_headers, __convert_central_dir_header_to_file_info_callback, archive));

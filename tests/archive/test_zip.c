@@ -166,7 +166,7 @@ static int test_zip_extract_all(TEST_ENTRY *entry, int argc, void **argv)
         archive = object_new(allocator, "Zip", NULL);
 		archive->open(archive, tar_name, "r");
         archive->set_extracting_path(archive, "./tests/output/zip/");
-		archive->extract(archive);
+		EXEC(archive->extract(archive));
         ret = assert_file_equal("./tests/output/zip/test_zip_extract.txt", ref_file1);
         THROW_IF(ret != 1, -1);
         ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", ref_file2);
@@ -295,7 +295,7 @@ static int test_zip_add_files(TEST_ENTRY *entry, int argc, void **argv)
 }
 REGISTER_TEST_CMD(test_zip_add_files);
 
-// not verified ...
+// not tested ...
 static int test_zip_add_all(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
@@ -320,6 +320,7 @@ static int test_zip_add_all(TEST_ENTRY *entry, int argc, void **argv)
 }
 REGISTER_TEST_CMD(test_zip_add_all);
 
+// not tested ...
 static int test_zip_get_extracting_file_infos(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;

@@ -146,28 +146,45 @@ static int __set_adding_path(Archive *archive, char *path)
     return 0;
 }
 
+/* 
+ * can the specifed file be filtered out by inclusive and 
+ * exclusive wildchards.
+ **/
 static int __can_filter_out(Archive *archive, char *file)
 {
     Vector *inclusive = archive->inclusive_wildchards;
     Vector *exclusive = archive->exclusive_wildchards;
     String *tmp = archive->tmp;
     char *wildchard;
-    int ret, cnt, i;
+    int ret, inclusive_cnt, exclusive_cnt, i;
 
     TRY {
         THROW_IF(file == NULL, -1);
 
-        cnt = inclusive->count(inclusive);
-        for (i = 0; i < cnt; i++) {
+        inclusive_cnt = inclusive->count(inclusive);
+        exclusive_cnt = inclusive->count(exclusive);
+        THROW_IF((inclusive_cnt == 0 && exclusive_cnt == 0), 1);
+
+        for (i = 0; i < exclusive_cnt; i++) {
+            tmp->reset(tmp);
+            EXEC(exclusive->peek_at(exclusive, i, &wildchard));
+            tmp->assign(tmp, file);
+            ret = tmp->find(tmp, wildchard, 0, -1);
+            dbg_str(DBG_VIP, "filter check file %s, exclusive wildchard:%s, cnt:%d", file, wildchard, inclusive_cnt);
+            THROW_IF(ret >= 1, 0);
+        }
+
+        for (i = 0; i < inclusive_cnt; i++) {
             tmp->reset(tmp);
             EXEC(inclusive->peek_at(inclusive, i, &wildchard));
             tmp->assign(tmp, file);
-            cnt = tmp->find(tmp, wildchard, 0, -1);
-            dbg_str(DBG_VIP, "filter check file %s, inclusive wildchard:%s, cnt:%d", file, wildchard, cnt);
-            THROW_IF(cnt >= 1, 1);
+            ret = tmp->find(tmp, wildchard, 0, -1);
+            dbg_str(DBG_VIP, "filter check file %s, inclusive wildchard:%s, cnt:%d", file, wildchard, inclusive_cnt);
+            THROW_IF(ret >= 1, 1);
         }
+
         THROW(0);
-    } CATCH (ret) { } 
+    } CATCH (ret) { }
 
     return ret;
 }
@@ -286,4 +303,3 @@ static class_info_entry_t archive_class_info[] = {
     Init_End___Entry(20, Archive),
 };
 REGISTER_CLASS("Archive", archive_class_info);
-
