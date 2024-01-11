@@ -44,80 +44,6 @@
 #include <libobject/core/String.h>
 #include "Unix_File_System.h"
 
-static int __list_fixed(Unix_File_System *fs, char *path, char **list, int count, int max_name_len)
-{
-    DIR *dir;
-    struct dirent *ptr;
-    allocator_t *allocator = fs->parent.obj.allocator;
-    int i = 0, ret = 0;
-
-    if (fs == NULL) return -1;
-    if ((dir = opendir(path)) == NULL) {
-        dbg_str(DBG_ERROR, "opendir error:%s!", strerror(errno));
-        return -1;
-    }
-
-    while ((ptr = readdir(dir)) != NULL && i < count) {
-        if (strlen(ptr->d_name) >= max_name_len) {
-            dbg_str(DBG_ERROR, "file name is longer than the given buffer, file name:%s, max_name_len:%d, file_name_len:%d", 
-                    ptr->d_name, max_name_len, strlen(ptr->d_name));
-            return -1;
-        }
-        if (i >= count) {
-            dbg_str(DBG_ERROR, "file count is more than the given buufer!");
-            return -1;
-        }
-        strcpy(((char *)list + i * max_name_len), ptr->d_name);
-        i++;
-    }
-    ret = i;
-    closedir(dir);
-
-    return ret;
-}
-
-static int __count_list(Unix_File_System *fs, char *path)
-{
-    DIR *dir;
-    struct dirent *ptr;
-    int i = 0, ret = 0;
-
-    if (fs == NULL) return -1;
-    if ((dir = opendir(path)) == NULL) {
-        dbg_str(DBG_ERROR, "opendir error:%s!", strerror(errno));
-        return -1;
-    }
-
-    while ((ptr = readdir(dir)) != NULL) {
-        i++;
-    }
-    ret = i;
-    closedir(dir);
-
-    return ret;
-}
-
-static int __list(Unix_File_System *fs, char *path, Vector *vector)
-{
-    dbg_str(DBG_VIP, "list %s", path);
-    return 10;
-}
-
-static int __is_directory(Unix_File_System *fs, char *path)
-{
-    struct stat st;
-
-    if (fs == NULL) return -1;
-
-    if (stat(path, &st) == -1) {
-        return -1;
-    }
-
-    if ((st.st_mode & S_IFMT) == S_IFDIR) {
-        return 1;
-    } else return 0;
-}
-
 static int __mkdir(Unix_File_System *fs, char *path, mode_t mode)
 {
     String *string;
@@ -156,61 +82,10 @@ static int __mkdir(Unix_File_System *fs, char *path, mode_t mode)
     return ret;
 }
 
-/**
-* 递归删除目录(删除该目录以及该目录包含的文件和目录)
-*/
-static int __rmdir(Unix_File_System *fs, char *dir)
-{
-    char cur_dir[] = ".";
-	char up_dir[] = "..";
-	char dir_name[1024];
-	DIR *dirp;
-	struct dirent *dp;
-	struct stat dir_stat;
- 
-	// 参数传递进来的目录不存在，直接返回
-	if ( 0 != access(dir, F_OK) ) {
-		return 0;
-	}
- 
-	// 获取目录属性失败，返回错误
-	if (stat(dir, &dir_stat) < 0) {
-		perror("get directory stat error");
-		return -1;
-	}
- 
-	if (S_ISREG(dir_stat.st_mode)) {	//普通文件直接删除
-		remove(dir);
-	} else if (S_ISDIR(dir_stat.st_mode)) {	//目录文件，递归删除目录中内容
-		dirp = opendir(dir);
-		while ((dp=readdir(dirp)) != NULL) {
-			// 忽略 . 和 ..
-			if ((0 == strcmp(cur_dir, dp->d_name)) || (0 == strcmp(up_dir, dp->d_name))) {
-				continue;
-			}
-			
-			snprintf(dir_name, sizeof(dir_name), "%s/%s", dir, dp->d_name);
-			__rmdir(fs, dir_name);   // 递归调用
-		}
-		closedir(dirp);
-        dbg_str(DBG_VIP, "rmdir %s", dir);
-		rmdir(dir);		// 删除空目录
-	} else {
-		perror("unknow file type!");	
-	}
-	
-	return 0;
-}
-
 static class_info_entry_t file_system_class_info[] = {
     Init_Obj___Entry(0, File_System, parent),
-    Init_Vfunc_Entry(1, Unix_File_System, list_fixed, __list_fixed),
-    Init_Vfunc_Entry(2, Unix_File_System, count_list, __count_list),
-    Init_Vfunc_Entry(3, Unix_File_System, list, __list),
-    Init_Vfunc_Entry(4, Unix_File_System, is_directory, __is_directory),
-    Init_Vfunc_Entry(5, Unix_File_System, mkdir, __mkdir),
-    Init_Vfunc_Entry(6, Unix_File_System, rmdir, __rmdir),
-    Init_End___Entry(7, Unix_File_System),
+    Init_Vfunc_Entry(1, Unix_File_System, mkdir, __mkdir),
+    Init_End___Entry(2, Unix_File_System),
 };
 REGISTER_CLASS("Unix_File_System", file_system_class_info);
 #endif

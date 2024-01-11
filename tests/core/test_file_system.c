@@ -170,7 +170,8 @@ REGISTER_TEST_FUNC(test_fs_get_path_and_name);
 
 static int test_fs_mk_and_rm_dir(TEST_ENTRY *entry)
 {
-    char *make_dir_name = "./tests/res/aa/bb/cc";
+    // char *make_dir_name = "./tests/res/aa/bb/cc";
+    char *make_dir_name = "./tests/res/aa";
     char *del_dir_name = "./tests/res/aa";
     int ret;
 
