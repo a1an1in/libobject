@@ -1,7 +1,7 @@
-[update:archive] bugfix can_filter_out.
+[update:archive] add add_files.
 
 Description:
 update.
 
 Major Changes:
-1. can_filter_out is bugged and not implemented fully.
+1. update.

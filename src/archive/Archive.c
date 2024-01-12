@@ -162,7 +162,7 @@ static int __can_filter_out(Archive *archive, char *file)
         THROW_IF(file == NULL, -1);
 
         inclusive_cnt = inclusive->count(inclusive);
-        exclusive_cnt = inclusive->count(exclusive);
+        exclusive_cnt = exclusive->count(exclusive);
         THROW_IF((inclusive_cnt == 0 && exclusive_cnt == 0), 1);
 
         for (i = 0; i < exclusive_cnt; i++) {
@@ -231,9 +231,23 @@ static int __extract(Archive *a)
 
 static int __add_files(Archive *a, Vector *files)
 {
-    int ret;
+    int ret, i, cnt;
+    archive_file_info_t *info;
 
-    TRY {} CATCH (ret) {}
+    TRY {
+        cnt = files->count(files);
+        THROW_IF(cnt == 0, 0);
+
+        for (i = 0; i < cnt; i++) {
+            info = NULL;
+            EXEC(files->peek_at(files, i, &info));
+            CONTINUE_IF(info == NULL);
+            
+            dbg_str(DBG_VIP, "add_files, info addr:%p", info);
+            dbg_str(DBG_VIP, "add_files, file %s", info->file_name);
+            a->add_file(a, info->file_name);
+        }
+    } CATCH (ret) {}
 
     return ret;
 }
