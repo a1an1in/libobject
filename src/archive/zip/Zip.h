@@ -150,7 +150,8 @@ struct Zip_s {
     char *(*to_json)(Zip *); 
     int (*extract_file)(Zip *, char *file_name);
     int (*add_file)(Zip *, char *file_name);
-    int (*get_extracting_file_infos)(Zip *zip, Vector **infos);
+    int (*list)(Zip *zip, Vector **infos);
+    int (*save)(Zip *a);
 
     File *file;
 	String *file_name;
@@ -158,7 +159,7 @@ struct Zip_s {
     uint64_t central_dir_end_header_position;
     uint64_t central_dir_position;
     uint64_t last_file_position;
-    uint8_t write_central_dir_flag;
+    uint8_t add_flag;
 
     zip_central_directory_end_header_t central_directory_end_header;
     Vector *headers;

@@ -65,7 +65,7 @@ static int __add_file(Squashfs *fs, char *file_name)
     return ret;
 }
 
-static int __get_extracting_file_infos(Squashfs *fs)
+static int __list(Squashfs *fs)
 {
     Archive *archive = (Archive *)&fs->parent;
     Vector *files = archive->extracting_file_infos;
@@ -86,7 +86,7 @@ static class_info_entry_t fs_class_info[] = {
     Init_Nfunc_Entry(3, Squashfs, open, __open),
     Init_Vfunc_Entry(4, Squashfs, extract_file, __extract_file),
     Init_Vfunc_Entry(5, Squashfs, add_file, __add_file),
-    Init_Vfunc_Entry(6, Squashfs, get_extracting_file_infos, __get_extracting_file_infos),
+    Init_Vfunc_Entry(6, Squashfs, list, __list),
     Init_End___Entry(7, Squashfs),
 };
 REGISTER_CLASS("Squashfs", fs_class_info);

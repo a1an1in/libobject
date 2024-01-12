@@ -219,14 +219,11 @@ static int __extract_files(Archive *a, Vector *files)
 static int __extract(Archive *a)
 {
     Vector *infos;
-    int ret;
 
-    TRY {
-        EXEC(a->get_extracting_file_infos(a, &infos));
-        EXEC(a->extract_files(a, infos));
-    } CATCH (ret) {}
+    TRY_EXEC(a->list(a, &infos));
+    TRY_EXEC(a->extract_files(a, infos));
 
-    return ret;
+    return 1;
 }
 
 static int __add_files(Archive *a, Vector *files)
@@ -308,12 +305,13 @@ static class_info_entry_t archive_class_info[] = {
     Init_Vfunc_Entry(11, Archive, add_file, NULL),
     Init_Vfunc_Entry(12, Archive, add_files, __add_files),
     Init_Vfunc_Entry(13, Archive, add, __add),
-    Init_Vfunc_Entry(14, Archive, get_extracting_file_infos, NULL),
+    Init_Vfunc_Entry(14, Archive, list, NULL),
     Init_Vfunc_Entry(15, Archive, add_adding_file_info, __add_adding_file_info),
     Init_Vfunc_Entry(16, Archive, get_adding_file_infos, __get_adding_file_infos),
     Init_Vfunc_Entry(17, Archive, can_filter_out, __can_filter_out),
     Init_Vfunc_Entry(18, Archive, compress, NULL),
     Init_Vfunc_Entry(19, Archive, uncompress, NULL),
-    Init_End___Entry(20, Archive),
+    Init_Vfunc_Entry(20, Archive, save, NULL),
+    Init_End___Entry(21, Archive),
 };
 REGISTER_CLASS("Archive", archive_class_info);

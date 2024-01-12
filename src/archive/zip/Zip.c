@@ -65,7 +65,7 @@ static int __construct(Zip *zip, char *init_str)
 
     zip->central_dir_position = 0;
     zip->central_dir_end_header_position = 0;
-    zip->write_central_dir_flag = 0;
+    zip->add_flag = 0;
 
     return 0;
 }
@@ -559,7 +559,7 @@ static int __write_central_directory_headers(Zip *zip)
     int ret;
 
     TRY {
-        THROW_IF(zip->write_central_dir_flag == 0, 1);
+        THROW_IF(zip->add_flag == 0, 1);
         EXEC(headers->for_each(headers, __write_central_directory_header_callback));
 
     } CATCH (ret) {}
@@ -577,7 +577,7 @@ static int __write_central_directory_end_header(Zip *zip)
     int ret;
 
     TRY {
-        THROW_IF(zip->write_central_dir_flag == 0, 1);
+        THROW_IF(zip->add_flag == 0, 1);
         count = headers->count(headers);
 
         end_header->signature = signature;
@@ -609,7 +609,7 @@ static int __add_file(Zip *zip, char *file_name)
     int ret;
 
     TRY {
-        zip->write_central_dir_flag = 1;
+        zip->add_flag = 1;
         file_header = allocator_mem_zalloc(allocator, sizeof(zip_file_header_t));
         THROW_IF(file_header == NULL, -1);
         file_header->data_offset = zip->central_dir_position 
@@ -625,8 +625,8 @@ static int __add_file(Zip *zip, char *file_name)
         EXEC(__write_file(zip, file_name, file_header));
         EXEC(__write_file_header(zip, file_name, file_header));
         EXEC(__add_central_directory_header(zip, file_header));
-        EXEC(__write_central_directory_headers(zip));
-        EXEC(__write_central_directory_end_header(zip));
+        // EXEC(__write_central_directory_headers(zip));
+        // EXEC(__write_central_directory_end_header(zip));
     } CATCH (ret) {} FINALLY {
         __free_file_header_callback(allocator, file_header);
     }
@@ -660,7 +660,7 @@ static int __convert_central_dir_header_to_file_info_callback(int index, void *e
     return ret;
 }
 
-static int __get_extracting_file_infos(Zip *zip, Vector **infos)
+static int __list(Zip *zip, Vector **infos)
 {
     Archive *archive = (Archive *)&zip->parent;
     Vector *files = archive->extracting_file_infos;
@@ -669,7 +669,7 @@ static int __get_extracting_file_infos(Zip *zip, Vector **infos)
 
     TRY {
         printf("\n");
-        dbg_str(DBG_VIP, "Zip get_extracting_file_infos");
+        dbg_str(DBG_VIP, "Zip list");
         THROW_IF(files == NULL, -1);
         files->reset(files);
         EXEC(dir_headers->for_each_arg(dir_headers, __convert_central_dir_header_to_file_info_callback, archive));
@@ -679,6 +679,18 @@ static int __get_extracting_file_infos(Zip *zip, Vector **infos)
     return ret;
 }
 
+static int __save(Zip *zip)
+{
+    if (zip->add_flag == 1) {
+        TRY_EXEC(__write_central_directory_headers(zip));
+        TRY_EXEC(__write_central_directory_end_header(zip));
+    }
+
+    zip->add_flag = 0;
+
+    return 1;
+}
+
 static class_info_entry_t zip_class_info[] = {
     Init_Obj___Entry(0, Archive, parent),
     Init_Nfunc_Entry(1, Zip, construct, __construct),
@@ -686,8 +698,9 @@ static class_info_entry_t zip_class_info[] = {
     Init_Nfunc_Entry(3, Zip, open, __open),
     Init_Vfunc_Entry(4, Zip, extract_file, __extract_file),
     Init_Vfunc_Entry(5, Zip, add_file, __add_file),
-    Init_Vfunc_Entry(6, Zip, get_extracting_file_infos, __get_extracting_file_infos),
-    Init_End___Entry(7, Zip),
+    Init_Vfunc_Entry(6, Zip, list, __list),
+    Init_Vfunc_Entry(7, Zip, save, __save),
+    Init_End___Entry(8, Zip),
 };
 REGISTER_CLASS("Zip", zip_class_info);
 

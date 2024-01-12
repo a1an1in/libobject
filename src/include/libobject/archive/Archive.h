@@ -46,10 +46,11 @@ struct Archive_s {
     int (*set_adding_path)(Archive *a, char *path);
     int (*set_wildchard)(Archive *archive, wildchard_type_e, char *wildchard);
     int (*can_filter_out)(Archive *archive, char *file);
-    int (*get_extracting_file_infos)(Archive *a, Vector **infos);
+    int (*list)(Archive *a, Vector **infos);
     int (*add_adding_file_info)(Archive *a, archive_file_info_t *info);
     int (*get_adding_file_infos)(Archive *a, Vector **infos);
     int (*print_file_infos)(Archive *a);
+    int (*save)(Archive *a);
 
     /* compress and uncompress are used by tar, which may need copress
      * archive firstly, zip don't need those interfaces
