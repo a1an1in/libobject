@@ -21,7 +21,7 @@ struct X_7Z_s {
     int (*set)(SevenZip *, char *attrib, void *value);
     void *(*get)(SevenZip *, char *attrib);
     char *(*to_json)(SevenZip *); 
-    int (*extract_file)(SevenZip *, char *file_name);
+    int (*extract_file)(SevenZip *, archive_file_info_t *info);
     int (*add_file)(SevenZip *, char *file_name);
     int (*list)(SevenZip *zip, Vector **infos);
 

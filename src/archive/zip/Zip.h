@@ -148,7 +148,7 @@ struct Zip_s {
     int (*set)(Zip *, char *attrib, void *value);
     void *(*get)(Zip *, char *attrib);
     char *(*to_json)(Zip *); 
-    int (*extract_file)(Zip *, char *file_name);
+    int (*extract_file)(Zip *, archive_file_info_t *info);
     int (*add_file)(Zip *, char *file_name);
     int (*list)(Zip *zip, Vector **infos);
     int (*save)(Zip *a);

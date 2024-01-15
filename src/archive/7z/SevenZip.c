@@ -32,7 +32,7 @@ static int __open(SevenZip *fs, char *archive_name, char *mode)
     return ret;
 }
 
-static int __extract_file(SevenZip *fs, char *file_name)
+static int __extract_file(SevenZip *fs, archive_file_info_t *info)
 {
     Archive *archive = (Archive *)&fs->parent;
     File *a = archive->file, *file = fs->file;
@@ -41,7 +41,7 @@ static int __extract_file(SevenZip *fs, char *file_name)
     char buf[512] = {0};
 
     TRY {
-        dbg_str(DBG_VIP, "fs extract_file, name:%s", file_name);
+        dbg_str(DBG_VIP, "fs extract_file, name:%s", info->file_name);
 
     } CATCH (ret) {} FINALLY {
     }

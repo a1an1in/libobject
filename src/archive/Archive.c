@@ -150,7 +150,7 @@ static int __set_adding_path(Archive *archive, char *path)
  * can the specifed file be filtered out by inclusive and 
  * exclusive wildchards.
  **/
-static int __can_filter_out(Archive *archive, char *file)
+static int __filter(Archive *archive, char *file)
 {
     Vector *inclusive = archive->inclusive_wildchards;
     Vector *exclusive = archive->exclusive_wildchards;
@@ -207,7 +207,7 @@ static int __extract_files(Archive *a, Vector *files)
             
             dbg_str(DBG_VIP, "extract_files, info addr:%p", info);
             dbg_str(DBG_VIP, "extract_files, file %s", info->file_name);
-            EXEC(a->extract_file(a, info->file_name));
+            EXEC(a->extract_file(a, info));
             count--;
         }
 
@@ -339,7 +339,7 @@ static class_info_entry_t archive_class_info[] = {
     Init_Vfunc_Entry(14, Archive, list, NULL),
     Init_Vfunc_Entry(15, Archive, add_adding_file_info, __add_adding_file_info),
     Init_Vfunc_Entry(16, Archive, get_adding_file_infos, __get_adding_file_infos),
-    Init_Vfunc_Entry(17, Archive, can_filter_out, __can_filter_out),
+    Init_Vfunc_Entry(17, Archive, filter, __filter),
     Init_Vfunc_Entry(18, Archive, compress, NULL),
     Init_Vfunc_Entry(19, Archive, uncompress, NULL),
     Init_Vfunc_Entry(20, Archive, save, NULL),

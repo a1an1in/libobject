@@ -46,6 +46,112 @@ static int add_check_sum(struct posix_tar_header *header)
     return 0;
 }
 
+static int __open(Tar *tar, char *archive_name, char *mode)
+{
+    Vector *infos;
+
+    // return tar->list(tar, &infos);
+}
+
+static int __list(Tar *tar, Vector **infos)
+{
+    Archive *archive = (Archive *)&tar->parent;
+    allocator_t *allocator = tar->parent.parent.allocator;
+    Vector *files = archive->extracting_file_infos;
+    File *a = archive->file;
+    struct posix_tar_header *header;
+    archive_file_info_t *info;
+    char buf[512] = {0};
+    char *p;
+    int ret, size, offset = 0, len = 0;
+
+    TRY {
+        printf("\n");
+        dbg_str(DBG_VIP, "tar list:%s", STR2A(a->name));
+        *infos = archive->extracting_file_infos;
+        (*infos)->reset(*infos);
+        
+        while (1) {
+            a->seek(a, offset, SEEK_SET);
+            ret = a->read(a, buf, sizeof(buf));
+            if (buf[0] == 0)
+                break;
+            header = (struct posix_tar_header*)buf;
+            p = header->size;
+            size = 0;
+            while(*p) size = (size * 8) + (*p++ - '0'); //8进制->10进制
+            a->seek(a, size, SEEK_CUR);
+
+            info = allocator_mem_alloc(allocator, sizeof(archive_file_info_t));
+            THROW_IF(info == NULL, -1);
+            info->offset = offset;
+            info->file_name = allocator_mem_zalloc(allocator, strlen(header->name) + 1);
+            THROW_IF(info->file_name == NULL, -1);
+            strcpy(info->file_name, header->name);
+            info->size = size;
+            offset += (512 + ((size + 512) / 512) * 512);
+            dbg_str(DBG_VIP, "filename:%s, size:%d", header->name, size);
+            EXEC(files->add(files, info));
+            dbg_str(DBG_VIP, "count:%d", files->count(files));
+        }
+    } CATCH (ret) {}
+    
+    return ret;
+}
+
+static int __extract_file(Tar *tar, archive_file_info_t *info)
+{
+    Archive *archive = (Archive *)&tar->parent;
+    File *a = archive->file, *file = tar->file;
+    struct posix_tar_header *header;
+    String *name = tar->file_name;
+    char buf[512] = {0};
+    char *p;
+    int ret, len, read_len;
+
+    TRY {
+        printf("\n");
+        THROW_IF(info == NULL, -1);
+        dbg_str(DBG_VIP, "tar extract file:%s, offset:%d", info->file_name, info->offset);
+
+        /* 1.read file header */
+        a->seek(a, 0, SEEK_SET);
+        a->seek(a, info->offset, SEEK_CUR);
+        ret = a->read(a, buf, sizeof(buf));
+
+        header = (struct posix_tar_header*)buf;
+        p = header->size;
+        len = 0;
+        while(*p) len = (len * 8) + (*p++ - '0'); //8进制->10进制
+
+        /* 2.if is dir, mkdir */
+        if(header->typeflag == '5') {
+            fs_mkdir(header->name, 0777);
+            THROW(1);
+        }
+
+        /* 3.read file data */
+        name->assign(name, STR2A(archive->extracting_path));
+        name->append(name, header->name, strlen(header->name));
+        dbg_str(DBG_VIP, "filename:%s", STR2A(name));
+        EXEC(file->open(file, name->get_cstr(name), "w+"));
+        while (len) {
+            read_len = min(512, len);
+            EXEC(a->read(a, buf, read_len));
+            EXEC(ret = file->write(file, buf, read_len));
+            THROW_IF(ret != read_len, -1);  // TODO: need optimize later
+            len -= read_len;
+            if (read_len < 512) {
+                a->seek(a, 512 - read_len, SEEK_CUR);
+            }
+        }
+        EXEC(file->close(file));
+
+    } CATCH (ret) {}
+    
+    return ret;
+}
+
 static int __add_file(Tar *tar, char *file_name)
 {
     int ret, size, read_size;
@@ -103,6 +209,24 @@ static int __add_file(Tar *tar, char *file_name)
     return ret;
 }
 
+static int __save(Tar *a)
+{
+
+}
+
+static class_info_entry_t tar_class_info[] = {
+    Init_Obj___Entry(0, Archive, parent),
+    Init_Nfunc_Entry(1, Tar, construct, __construct),
+    Init_Nfunc_Entry(2, Tar, deconstruct, __deconstruct),
+    Init_Nfunc_Entry(3, Tar, open, __open),
+    Init_Vfunc_Entry(4, Tar, list, __list),
+    Init_Vfunc_Entry(5, Tar, extract_file, __extract_file),
+    Init_Vfunc_Entry(6, Tar, add_file, __add_file),
+    Init_Vfunc_Entry(7, Tar, save, __save),
+    Init_End___Entry(8, Tar),
+};
+REGISTER_CLASS("Tar", tar_class_info);
+
 static int __extract(Tar *tar)
 {
     Archive *archive = (Archive *)&tar->parent;
@@ -153,14 +277,3 @@ static int __extract(Tar *tar)
     
     return ret;
 }
-
-static class_info_entry_t tar_class_info[] = {
-    Init_Obj___Entry(0, Archive, parent),
-    Init_Nfunc_Entry(1, Tar, construct, __construct),
-    Init_Nfunc_Entry(2, Tar, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Tar, add_file, __add_file),
-    Init_Vfunc_Entry(4, Tar, extract, __extract),
-    Init_End___Entry(7, Tar),
-};
-REGISTER_CLASS("Tar", tar_class_info);
-

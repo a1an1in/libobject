@@ -12,6 +12,8 @@ typedef struct Archive_s Archive;
 
 typedef struct archive_file_info_s {
     char *file_name;
+    uint32_t size;
+    uint32_t offset;
     uint16_t compression_method;
 } archive_file_info_t;
 
@@ -36,7 +38,7 @@ struct Archive_s {
     void *(*get)(Archive *, char *attrib);
     char *(*to_json)(Archive *); 
 
-    int (*extract_file)(Archive *a, char *file_name);
+    int (*extract_file)(Archive *a, archive_file_info_t *info);
     /* extract designated files */
     int (*extract_files)(Archive *a, Vector *files);
     int (*extract)(Archive *a);
@@ -46,7 +48,7 @@ struct Archive_s {
     int (*set_extracting_path)(Archive *a, char *path);
     int (*set_adding_path)(Archive *a, char *path);
     int (*set_wildchard)(Archive *archive, wildchard_type_e, char *wildchard);
-    int (*can_filter_out)(Archive *archive, char *file);
+    int (*filter)(Archive *archive, char *file);
     int (*list)(Archive *a, Vector **infos);
     int (*add_adding_file_info)(Archive *a, archive_file_info_t *info);
     int (*get_adding_file_infos)(Archive *a, Vector **infos);

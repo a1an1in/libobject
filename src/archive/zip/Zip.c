@@ -350,7 +350,7 @@ static int __decompress_file(Zip *zip, zip_file_header_t *header)
     return ret;
 }
 
-static int __extract_file(Zip *zip, char *file_name)
+static int __extract_file(Zip *zip, archive_file_info_t *info)
 {
     Archive *archive = (Archive *)&zip->parent;
     File *a = archive->file, *file = zip->file;
@@ -362,8 +362,8 @@ static int __extract_file(Zip *zip, char *file_name)
 
     TRY {
         printf("\n");
-        dbg_str(DBG_VIP, "zip extract_file, name:%s", file_name);
-        element = __search_central_directory_header(zip, file_name);
+        dbg_str(DBG_VIP, "zip extract_file, name:%s", info->file_name);
+        element = __search_central_directory_header(zip, info->file_name);
         THROW_IF(element == NULL, -1);
 
         dbg_str(DBG_VIP, "zip extract_file, offset:%x", element->offset);
@@ -595,7 +595,7 @@ static int __convert_central_dir_header_to_file_info_callback(int index, void *e
 
     TRY {
         dir_header = (zip_central_directory_header_t *)element;
-        THROW_IF(archive->can_filter_out(archive, dir_header->file_name) != 1, 0);
+        THROW_IF(archive->filter(archive, dir_header->file_name) != 1, 0);
 
         info = allocator_mem_alloc(allocator, sizeof(archive_file_info_t));
         info->file_name = allocator_mem_zalloc(allocator, dir_header->file_name_length + 1);
@@ -690,11 +690,10 @@ static class_info_entry_t zip_class_info[] = {
     Init_Nfunc_Entry(1, Zip, construct, __construct),
     Init_Nfunc_Entry(2, Zip, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3, Zip, open, __open),
-    Init_Vfunc_Entry(4, Zip, extract_file, __extract_file),
-    Init_Vfunc_Entry(5, Zip, add_file, __add_file),
-    Init_Vfunc_Entry(6, Zip, list, __list),
+    Init_Vfunc_Entry(4, Zip, list, __list),
+    Init_Vfunc_Entry(5, Zip, extract_file, __extract_file),
+    Init_Vfunc_Entry(6, Zip, add_file, __add_file),
     Init_Vfunc_Entry(7, Zip, save, __save),
     Init_End___Entry(8, Zip),
 };
 REGISTER_CLASS("Zip", zip_class_info);
-

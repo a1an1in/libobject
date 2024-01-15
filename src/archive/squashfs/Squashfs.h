@@ -21,7 +21,7 @@ struct Squashfs_s {
     int (*set)(Squashfs *, char *attrib, void *value);
     void *(*get)(Squashfs *, char *attrib);
     char *(*to_json)(Squashfs *); 
-    int (*extract_file)(Squashfs *, char *file_name);
+    int (*extract_file)(Squashfs *, archive_file_info_t *info);
     int (*add_file)(Squashfs *, char *file_name);
     int (*list)(Squashfs *zip, Vector **infos);
 

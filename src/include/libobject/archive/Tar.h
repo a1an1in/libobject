@@ -32,13 +32,17 @@ struct Tar_s {
 
     int (*construct)(Tar *, char *);
     int (*deconstruct)(Tar *);
+	int (*open)(Tar *zip, char *archive_name, char *mode);
 
     /*virtual methods reimplement*/
     int (*set)(Tar *tar, char *attrib, void *value);
     void *(*get)(Tar *, char *attrib);
     char *(*to_json)(Tar *);
 	int (*add_file)(Tar *, char *file_name);
+	int (*extract_file)(Tar *, archive_file_info_t *info);
 	int (*extract)(Tar *tar);
+	int (*list)(Tar *Tar, Vector **infos);
+	int (*save)(Tar *a);
 
     File *file;
 	String *file_name;
