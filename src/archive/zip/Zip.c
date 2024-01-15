@@ -553,54 +553,6 @@ static int __write_central_directory_header_callback(int index, void *element)
     return ret;
 }
 
-static int __write_central_directory_headers(Zip *zip)
-{ 
-    Vector *headers = zip->headers;
-    int ret;
-
-    TRY {
-        THROW_IF(zip->add_flag == 0, 1);
-        EXEC(headers->for_each(headers, __write_central_directory_header_callback));
-
-    } CATCH (ret) {}
-    
-    return ret;
-}
-
-static int __write_central_directory_end_header(Zip *zip)
-{
-    uint32_t signature = 0x06054b50, count;
-    zip_central_directory_end_header_t *end_header = &zip->central_directory_end_header;
-    Archive *archive = (Archive *)&zip->parent;
-    File *a = archive->file;
-    Vector *headers = zip->headers;
-    int ret;
-
-    TRY {
-        THROW_IF(zip->add_flag == 0, 1);
-        count = headers->count(headers);
-
-        end_header->signature = signature;
-        end_header->central_directory_total_number = count;
-        end_header->central_directory_size = zip->central_dir_end_header_position - zip->central_dir_position;
-        end_header->central_directory_start_offset = zip->central_dir_position;
-        end_header->comment_length = 0;
-        THROW_IF(end_header->comment_length != 0, -1);
-
-        CPU_TO_LE32(end_header->signature);
-        CPU_TO_LE16(end_header->central_directory_total_number);
-        CPU_TO_LE32(end_header->central_directory_size);
-        CPU_TO_LE32(end_header->central_directory_start_offset);
-        CPU_TO_LE32(end_header->comment_length);
-
-        dbg_str(DBG_VIP, "write_central_directory_end_header, central_dir_end_header_position:%x", zip->central_dir_end_header_position);
-        EXEC(a->seek(a, zip->central_dir_end_header_position, SEEK_SET));
-        EXEC(a->write(a, end_header, ZIP_CENTROL_DIR_END_HEADER_SIZE));
-    } CATCH (ret) {}
-
-    return ret;
-}
-
 static int __add_file(Zip *zip, char *file_name)
 {
     zip_file_header_t *file_header;
@@ -625,8 +577,6 @@ static int __add_file(Zip *zip, char *file_name)
         EXEC(__write_file(zip, file_name, file_header));
         EXEC(__write_file_header(zip, file_name, file_header));
         EXEC(__add_central_directory_header(zip, file_header));
-        // EXEC(__write_central_directory_headers(zip));
-        // EXEC(__write_central_directory_end_header(zip));
     } CATCH (ret) {} FINALLY {
         __free_file_header_callback(allocator, file_header);
     }
@@ -674,6 +624,50 @@ static int __list(Zip *zip, Vector **infos)
         files->reset(files);
         EXEC(dir_headers->for_each_arg(dir_headers, __convert_central_dir_header_to_file_info_callback, archive));
         *infos = archive->extracting_file_infos;
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static int __write_central_directory_headers(Zip *zip)
+{ 
+    Vector *headers = zip->headers;
+
+    TRY_THROW_IF(zip->add_flag == 0, 1);
+    TRY_EXEC(headers->for_each(headers, __write_central_directory_header_callback));
+
+    return 1;
+}
+
+static int __write_central_directory_end_header(Zip *zip)
+{
+    uint32_t signature = 0x06054b50, count;
+    zip_central_directory_end_header_t *end_header = &zip->central_directory_end_header;
+    Archive *archive = (Archive *)&zip->parent;
+    File *a = archive->file;
+    Vector *headers = zip->headers;
+    int ret;
+
+    TRY {
+        THROW_IF(zip->add_flag == 0, 1);
+        count = headers->count(headers);
+
+        end_header->signature = signature;
+        end_header->central_directory_total_number = count;
+        end_header->central_directory_size = zip->central_dir_end_header_position - zip->central_dir_position;
+        end_header->central_directory_start_offset = zip->central_dir_position;
+        end_header->comment_length = 0;
+        THROW_IF(end_header->comment_length != 0, -1);
+
+        CPU_TO_LE32(end_header->signature);
+        CPU_TO_LE16(end_header->central_directory_total_number);
+        CPU_TO_LE32(end_header->central_directory_size);
+        CPU_TO_LE32(end_header->central_directory_start_offset);
+        CPU_TO_LE32(end_header->comment_length);
+
+        dbg_str(DBG_VIP, "write_central_directory_end_header, central_dir_end_header_position:%x", zip->central_dir_end_header_position);
+        EXEC(a->seek(a, zip->central_dir_end_header_position, SEEK_SET));
+        EXEC(a->write(a, end_header, ZIP_CENTROL_DIR_END_HEADER_SIZE));
     } CATCH (ret) {}
 
     return ret;

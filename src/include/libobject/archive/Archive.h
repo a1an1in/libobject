@@ -5,6 +5,7 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/String.h>
 #include <libobject/core/io/File.h>
+#include <libobject/core/io/file_system_api.h>
 #include <libobject/core/Vector.h>
 
 typedef struct Archive_s Archive;

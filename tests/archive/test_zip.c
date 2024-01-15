@@ -213,7 +213,7 @@ static int test_zip_extract_with_regex(TEST_ENTRY *entry, int argc, void **argv)
 }
 REGISTER_TEST_FUNC(test_zip_extract_with_regex);
 
-static int test_zip_add_file(TEST_ENTRY *entry, int argc, void **argv)
+static int test_zip_add_1_file(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
@@ -231,12 +231,12 @@ static int test_zip_add_file(TEST_ENTRY *entry, int argc, void **argv)
         EXEC(archive->save(archive));
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        fs_rmdir("./tests/output/zip/");
+        fs_rmdir("./tests/output");
     }
 
     return ret;
 }
-REGISTER_TEST_CMD(test_zip_add_file);
+REGISTER_TEST_CMD(test_zip_add_1_file);
 
 static int test_zip_add_2_files(TEST_ENTRY *entry, int argc, void **argv)
 {
@@ -258,14 +258,13 @@ static int test_zip_add_2_files(TEST_ENTRY *entry, int argc, void **argv)
         EXEC(archive->save(archive));
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        fs_rmdir("./tests/output/zip/");
+        fs_rmdir("./tests/output");
     }
 
     return ret;
 }
 REGISTER_TEST_CMD(test_zip_add_2_files);
 
-// not tested ...
 static int test_zip_add_files(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
@@ -292,14 +291,13 @@ static int test_zip_add_files(TEST_ENTRY *entry, int argc, void **argv)
         EXEC(archive->save(archive));
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        // fs_rmdir("./tests/output/zip/");
+        // fs_rmdir("./tests/output");
     }
 
     return ret;
 }
 REGISTER_TEST_CMD(test_zip_add_files);
 
-// not tested ...
 static int test_zip_add_all(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
@@ -312,13 +310,13 @@ static int test_zip_add_all(TEST_ENTRY *entry, int argc, void **argv)
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
 		archive->open(archive, tar_name, "w+");
-        archive->set_adding_path(archive, "./res/zip");
+        archive->set_adding_path(archive, "./tests/res/zip");
 
         EXEC(archive->add(archive));
         EXEC(archive->save(archive));
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        fs_rmdir("./tests/output/zip/");
+        // fs_rmdir("./tests/output/zip/");
     }
 
     return ret;

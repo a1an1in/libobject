@@ -151,7 +151,9 @@ static int __list(File_System *fs, char *path, Vector *vector)
             vector->add(vector, info);
         }
         closedir(dir);
-    } CATCH (ret) {}
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "fs list:%s error", path);
+    }
 
     return count;
 }

@@ -251,8 +251,39 @@ static int __add_files(Archive *a, Vector *files)
 
 static int __add(Archive *a)
 {
-    dbg_str(DBG_VIP, "archive add");
-    return 0;
+    allocator_t *allocator = a->parent.allocator;
+    Vector *list;
+    archive_file_info_t archive_file_info = {0};
+    fs_file_info_t *fs_file_info;
+    int ret, count, i, len;
+
+    TRY {
+        dbg_str(DBG_VIP, "archive add path: %s", STR2A(a->adding_path));
+        list = object_new(allocator, "Vector", NULL);
+        
+        count = fs_tree(STR2A(a->adding_path), list, -1);
+        THROW_IF(count < 0, -1);
+        fs_print_file_info_list(list);
+
+        for (i = 0; i < count; i++) {
+            fs_file_info = NULL;
+            memset(&archive_file_info, 0, sizeof(archive_file_info_t));
+            EXEC(list->peek_at(list, i, &fs_file_info));
+            THROW_IF(fs_file_info == NULL, -1);
+
+            len = strlen(fs_file_info->file_name);
+            if (fs_file_info->file_name[len - 1] == '.') continue;
+            archive_file_info.file_name = fs_file_info->file_name;
+            a->add_adding_file_info(a, &archive_file_info);
+        }
+
+        EXEC(a->add_files(a, a->adding_file_infos));
+        EXEC(a->save(a));
+    } CATCH (ret) {} FINALLY {
+        object_destroy(list);
+    }
+
+    return ret;
 }
 
 static int __add_adding_file_info(Archive *a, archive_file_info_t *info)

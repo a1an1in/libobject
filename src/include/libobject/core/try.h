@@ -203,6 +203,13 @@ extern pthread_key_t try_key;
     (__ret__);                                                                                   \
 });
 
-#endif //end of USE_JMP_TRY_CATCH
+#define TRY_THROW_IF(condition, error_code)                                                      \
+    do {                                                                                         \
+        if (((int)((condition))) == 1) {                                                         \
+            return (error_code);                                                                 \
+        }                                                                                        \
+    } while (0);
+
+#endif
 
 #endif

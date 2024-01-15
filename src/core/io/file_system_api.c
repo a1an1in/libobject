@@ -25,7 +25,7 @@ static int __get_file_info_stat_callback(int index, fs_file_info_t *info)
 
 static int __print_file_info_callback(int index, fs_file_info_t *info)
 {
-    printf("index:%d file name:%s atime:%x, ctime:%x, mtime:%x size:%d\n", 
+    printf("index:%d file name:%s atime:%lx, ctime:%lx, mtime:%lx size:%ld\n", 
             index, info->file_name, info->st.st_atime, info->st.st_ctime,
             info->st.st_mtime, info->st.st_size);
 
