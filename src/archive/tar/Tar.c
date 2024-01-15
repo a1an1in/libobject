@@ -6,7 +6,7 @@
  * @date 2023-09-21
  */
 #include <unistd.h>
-#include "Tar.h"
+#include <libobject/archive/Tar.h>
 
 #define min(a,b) (((a) < (b)) ? a : b)
 
@@ -154,24 +154,12 @@ static int __extract(Tar *tar)
     return ret;
 }
 
-static int __compress(Tar *tar, char *file_in, char *file_out)
-{
-
-}
-
-static int __uncompress(Tar *tar, char *file_in, char *file_out)
-{
-
-}
-
 static class_info_entry_t tar_class_info[] = {
     Init_Obj___Entry(0, Archive, parent),
     Init_Nfunc_Entry(1, Tar, construct, __construct),
     Init_Nfunc_Entry(2, Tar, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3, Tar, add_file, __add_file),
     Init_Vfunc_Entry(4, Tar, extract, __extract),
-    Init_Vfunc_Entry(5, Tar, compress, __compress),
-    Init_Vfunc_Entry(6, Tar, uncompress, __uncompress),
     Init_End___Entry(7, Tar),
 };
 REGISTER_CLASS("Tar", tar_class_info);

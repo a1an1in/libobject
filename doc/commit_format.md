@@ -1,8 +1,8 @@
-[update:archive] continue to implement zip.
+[update:archive] continue to implement archive.
 
 Description:
-zip can extract and add path now.
+add template files for tgz and tbz.
 
 Major Changes:
-1. add TRY_THROW_IF.
-2. implement archive::add.
+1. initiate tgz.
+2. initiate tgz.
