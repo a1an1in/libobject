@@ -51,6 +51,7 @@ static int __open(Tar *tar, char *archive_name, char *mode)
     Vector *infos;
 
     // return tar->list(tar, &infos);
+    return 1;
 }
 
 static int __list(Tar *tar, Vector **infos)
@@ -226,54 +227,3 @@ static class_info_entry_t tar_class_info[] = {
     Init_End___Entry(8, Tar),
 };
 REGISTER_CLASS("Tar", tar_class_info);
-
-static int __extract(Tar *tar)
-{
-    Archive *archive = (Archive *)&tar->parent;
-    String *path = archive->extracting_path;
-    File *a = archive->file, *file = tar->file;
-    struct posix_tar_header *header;
-    String *name = tar->file_name;
-    char buf[512] = {0};
-    char *p;
-    int ret, len, read_len;
-
-    TRY {
-        dbg_str(DBG_VIP, "extract file:%s, dest path:%s", a->name->get_cstr(a->name), path->get_cstr(path));
-        while (1) {
-            ret = a->read(a, buf, sizeof(buf));
-            dbg_str(DBG_VIP, "buf[0]:%x, ret=%x", buf[0], ret);
-            if (buf[0] == 0)
-                break;
-            header = (struct posix_tar_header*)buf;
-            p = header->size;
-            len = 0;
-            while(*p) len = (len * 8) + (*p++ - '0'); //8进制->10进制
-
-            dbg_str(DBG_VIP, "filename:%s, len:%d", header->name, len);
-            if(header->typeflag == '5') {
-                fs_mkdir(header->name, 0777);
-                continue;
-            }
-            // name->assign(name, path->get_cstr(path));
-            // name->append(name, header->name, strlen(header->name));
-            name->assign(name, header->name);
-            dbg_str(DBG_VIP, "filename:%s", name->get_cstr(name));
-            EXEC(file->open(file, name->get_cstr(name), "w+"));
-
-            while (len) {
-                read_len = min(512, len);
-                EXEC(a->read(a, buf, read_len));
-                EXEC(ret = file->write(file, buf, read_len));
-                THROW_IF(ret != read_len, -1);  // TODO: need optimize later
-                len -= read_len;
-                if (read_len < 512) {
-                    a->seek(a, 512 - read_len, SEEK_CUR);
-                }
-            }
-            EXEC(file->close(file));
-        }
-    } CATCH (ret) {}
-    
-    return ret;
-}

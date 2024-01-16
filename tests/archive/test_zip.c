@@ -97,6 +97,8 @@ static int test_zip_extract_deflate_file(TEST_ENTRY *entry, int argc, void **arg
 
     TRY {
         dbg_str(DBG_SUC, "test extract zip");
+        // zip extract file only need file_name,  so we don't have to search 
+        // archive_file_info
         info.file_name = file;
 
         archive = object_new(allocator, "Zip", NULL);

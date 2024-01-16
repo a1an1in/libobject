@@ -299,7 +299,7 @@ static int __add_adding_file_info(Archive *a, archive_file_info_t *info)
         memcpy(member, info, sizeof(archive_file_info_t));
 
         if (info->file_name) {
-            member->file_name = allocator_mem_alloc(allocator, strlen(info->file_name));
+            member->file_name = allocator_mem_zalloc(allocator, strlen(info->file_name) + 1);
             strcpy(member->file_name, info->file_name);
         }
         EXEC(infos->add(infos, member));

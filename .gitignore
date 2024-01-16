@@ -42,6 +42,7 @@ lib/
 sysroot/
 .idea
 cmake-build-debug/
+tests/output/
 
 *.swn
 *.swo
