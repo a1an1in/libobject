@@ -80,7 +80,7 @@ static int test_tar_extract_all(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
 	char *src_file = "./tests/res/tar/test_extract.tar";
-    char *dst_file = "./tests/res/tar/test_extract.txt";
+    char *ref_file = "./tests/res/tar/test_extract.txt";
 
     TRY {
         dbg_str(DBG_SUC, "test_tar_extract_all");
@@ -90,6 +90,8 @@ static int test_tar_extract_all(TEST_ENTRY *entry, int argc, void **argv)
 		EXEC(archive->open(archive, src_file, "r+"));
         EXEC(archive->set_extracting_path(archive, "./tests/output/tar/"));
 		EXEC(archive->extract(archive));
+        ret = assert_file_equal("./tests/output/tar/test_extract.txt", ref_file);
+        THROW_IF(ret != 1, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
         fs_rmdir("./tests/output/tar/");
@@ -97,16 +99,16 @@ static int test_tar_extract_all(TEST_ENTRY *entry, int argc, void **argv)
 
     return ret;
 }
-REGISTER_TEST_CMD(test_tar_extract_all);
+REGISTER_TEST_FUNC(test_tar_extract_all);
 
 static int test_tar_add_file(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
-    char *file1 = "./tests/res/tar/test_gzip.txt";
-    char *file2 = "./tests/res/tar/subdir/test.txt";
-    char *tar_name = "./tests/res/tar/test_create.tar";
+    char *file1 = "test_gzip.txt";
+    char *file2 = "subdir/test.txt";
+    char *tar_name = "./tests/output/tar/test_create.tar";
 
     TRY {
         dbg_str(DBG_SUC, "test_tar_add_file");
@@ -115,9 +117,14 @@ static int test_tar_add_file(TEST_ENTRY *entry, int argc, void **argv)
         archive = object_new(allocator, "Tar", NULL);
 		EXEC(archive->open(archive, tar_name, "w+"));
         EXEC(archive->set_extracting_path(archive, "./tests/output/tar/"));
+        EXEC(archive->set_adding_path(archive, "./tests/res/tar/"));
 		EXEC(archive->add_file(archive, file1));
         EXEC(archive->add_file(archive, file2));
         EXEC(archive->save(archive));
+
+        EXEC(archive->extract(archive));
+        ret = assert_file_equal("./tests/output/tar/test_gzip.txt", "./tests/res/tar/test_gzip.txt");
+        THROW_IF(ret != 1, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
         fs_rmdir("./tests/output/tar/");
@@ -125,7 +132,7 @@ static int test_tar_add_file(TEST_ENTRY *entry, int argc, void **argv)
 
     return ret;
 }
-REGISTER_TEST_CMD(test_tar_add_file);
+REGISTER_TEST_FUNC(test_tar_add_file);
 
 static int test_tar_add_all(TEST_ENTRY *entry, int argc, void **argv)
 {

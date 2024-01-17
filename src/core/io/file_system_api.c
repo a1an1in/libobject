@@ -133,12 +133,14 @@ int fs_get_path_and_name(char *path, char **parent_dir, char **name)
 
     if ((index = strrchr(path, '/')) != NULL) {
         *index = '\0';
+        if (name == NULL) return 1;
         *name = index + 1;
         return 1;
     }
 
     if ((index = strrchr(path, '\\')) != NULL) {
         *index = '\0';
+        if (name == NULL) return 1;
         *name = index + 1;
         return 1;
     } 

@@ -106,8 +106,8 @@ static int __extract_file(Tar *tar, archive_file_info_t *info)
     File *a = archive->file, *file = tar->file;
     struct posix_tar_header *header;
     String *name = tar->file_name;
-    char buf[512] = {0};
-    char *p;
+    char buf[512] = {0}, tmp[512] = {0};
+    char *p, *root;
     int ret, len, read_len;
 
     TRY {
@@ -135,6 +135,13 @@ static int __extract_file(Tar *tar, archive_file_info_t *info)
         name->assign(name, STR2A(archive->extracting_path));
         name->append(name, header->name, strlen(header->name));
         dbg_str(DBG_VIP, "filename:%s", STR2A(name));
+        strcpy(tmp, STR2A(name));
+        fs_get_path_and_name(tmp, &root, NULL);
+        dbg_str(DBG_VIP, "root:%s", root);
+        if (!fs_is_exist(root)) {
+            fs_mkdir(root, 0777);
+        }
+
         EXEC(file->open(file, name->get_cstr(name), "w+"));
         while (len) {
             read_len = min(512, len);
@@ -155,15 +162,15 @@ static int __extract_file(Tar *tar, archive_file_info_t *info)
 
 static int __add_file(Tar *tar, char *file_name)
 {
-    int ret, size, read_size;
+    int ret, size, read_size, len;
     Archive *archive = (Archive *)&tar->parent;
     File *a = archive->file, *file = tar->file;
     struct posix_tar_header *header;
     char buffer[1024] = {0};
+    String *path = archive->tmp;
 
     TRY {
         memset(buffer, 0, sizeof(buffer));
-        dbg_str(DBG_VIP, "add_file, name:%s", file_name);
         dbg_str(DBG_VIP, "tar name:%s", a->name->get_cstr(a->name));
         EXEC(size = a->get_size(a));
         dbg_str(DBG_VIP, "tar file size:%d", size);
@@ -177,8 +184,18 @@ static int __add_file(Tar *tar, char *file_name)
         snprintf(header->name, sizeof(header->name), "%s", file_name);
         dbg_buf(DBG_VIP, "file name:", header->name, 50);
 
+        /* path */
+        path->reset(path);
+        path->assign(path, STR2A(archive->adding_path));
+        len = strlen(STR2A(path));
+        if (path->value[len - 1] != '/') {
+            path->append_char(path, '/');
+        }
+        path->append(path, file_name, strlen(file_name));
+        dbg_str(DBG_VIP, "add_file, name:%s", STR2A(path));
+
         /* add file size*/
-        size = fs_get_size(file_name);
+        size = fs_get_size(STR2A(path));
         snprintf(header->size, sizeof(header->size), "%011o", size);
         dbg_buf(DBG_VIP, "file size:", header->size, 12);
 
@@ -194,7 +211,7 @@ static int __add_file(Tar *tar, char *file_name)
         EXEC(a->write(a, header, 512));
 
         /* write file */
-        EXEC(file->open(file, file_name, "r+"));
+        EXEC(file->open(file, STR2A(path), "r+"));
         while (size > 0) {
             memset(buffer, 0, 512);
             read_size = size >= 512 ? 512 : size;
@@ -212,7 +229,7 @@ static int __add_file(Tar *tar, char *file_name)
 
 static int __save(Tar *a)
 {
-
+    return 1;
 }
 
 static class_info_entry_t tar_class_info[] = {

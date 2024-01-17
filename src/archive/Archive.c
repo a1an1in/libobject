@@ -26,6 +26,7 @@ static int __construct(Archive *archive, char *init_str)
     archive->extracting_path = object_new(allocator, "String", NULL);
     archive->extracting_path->assign(archive->extracting_path, "./");
     archive->adding_path = object_new(allocator, "String", NULL);
+    archive->adding_path->assign(archive->adding_path, "./");
     archive->tmp = object_new(allocator, "String", NULL);
 
     archive->extracting_file_infos = object_new(allocator, "Vector", NULL);
@@ -86,7 +87,6 @@ static int __close(Archive *archive)
 
     return TRY_EXEC(file->close(file));
 }
-
 
 static int __set_wildchard(Archive *archive, wildchard_type_e type, char *wildchard)
 {
