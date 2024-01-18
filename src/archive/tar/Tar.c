@@ -90,7 +90,12 @@ static int __list(Tar *tar, Vector **infos)
             THROW_IF(info->file_name == NULL, -1);
             strcpy(info->file_name, header->name);
             info->size = size;
-            offset += (512 + ((size + 512) / 512) * 512);
+            if (size == 0) {
+                offset += 512;
+            } else {
+               offset += (512 + ((size + 512) / 512) * 512);  
+            }
+            
             dbg_str(DBG_VIP, "filename:%s, size:%d", header->name, size);
             EXEC(files->add(files, info));
             dbg_str(DBG_VIP, "count:%d", files->count(files));
@@ -125,16 +130,17 @@ static int __extract_file(Tar *tar, archive_file_info_t *info)
         len = 0;
         while(*p) len = (len * 8) + (*p++ - '0'); //8进制->10进制
 
-        /* 2.if is dir, mkdir */
-        if(header->typeflag == '5') {
-            fs_mkdir(header->name, 0777);
-            THROW(1);
-        }
 
         /* 3.read file data */
         name->assign(name, STR2A(archive->extracting_path));
         name->append(name, header->name, strlen(header->name));
         dbg_str(DBG_VIP, "filename:%s", STR2A(name));
+        
+        if(header->typeflag == '5') {
+            fs_mkdir(header->name, 0777);
+            THROW(1);
+        }
+
         strcpy(tmp, STR2A(name));
         fs_get_path_and_name(tmp, &root, NULL);
         dbg_str(DBG_VIP, "root:%s", root);
@@ -168,6 +174,7 @@ static int __add_file(Tar *tar, char *file_name)
     struct posix_tar_header *header;
     char buffer[1024] = {0};
     String *path = archive->tmp;
+    char *relative_path;
 
     TRY {
         memset(buffer, 0, sizeof(buffer));
@@ -178,21 +185,20 @@ static int __add_file(Tar *tar, char *file_name)
             a->seek(a, -1024, SEEK_END);
         }
 
+        if(fs_is_directory(file_name)) {
+            fs_mkdir(file_name, 0777);
+            THROW(1);
+        }
+
+        /* add file name*/
         memset(buffer, 0, sizeof(buffer));
         header = buffer;
-        /* add file name*/
-        snprintf(header->name, sizeof(header->name), "%s", file_name);
-        dbg_buf(DBG_VIP, "file name:", header->name, 50);
-
-        /* path */
         path->reset(path);
-        path->assign(path, STR2A(archive->adding_path));
-        len = strlen(STR2A(path));
-        if (path->value[len - 1] != '/') {
-            path->append_char(path, '/');
-        }
-        path->append(path, file_name, strlen(file_name));
+        path->assign(path, file_name);
         dbg_str(DBG_VIP, "add_file, name:%s", STR2A(path));
+        EXEC(fs_get_relative_path(STR2A(path), STR2A(archive->adding_path), &relative_path));
+        snprintf(header->name, sizeof(header->name), "%s", relative_path);
+        dbg_str(DBG_VIP, "file name:%s", header->name);
 
         /* add file size*/
         size = fs_get_size(STR2A(path));

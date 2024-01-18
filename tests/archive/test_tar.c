@@ -106,8 +106,8 @@ static int test_tar_add_file(TEST_ENTRY *entry, int argc, void **argv)
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
-    char *file1 = "test_gzip.txt";
-    char *file2 = "subdir/test.txt";
+    char *file1 = "./tests/res/tar/test_gzip.txt";
+    char *file2 = "./tests/res/tar/subdir/test.txt";
     char *tar_name = "./tests/output/tar/test_create.tar";
 
     TRY {
@@ -146,13 +146,17 @@ static int test_tar_add_all(TEST_ENTRY *entry, int argc, void **argv)
         fs_mkdir("./tests/output/tar", 0777);
         archive = object_new(allocator, "Tar", NULL);
 		EXEC(archive->open(archive, tar_name, "w+"));
-        EXEC(archive->set_adding_path(archive, "./tests/res/tar"));
+        EXEC(archive->set_adding_path(archive, "./tests/res/tar/"));
+        EXEC(archive->set_extracting_path(archive, "./tests/output/tar/"));
 
         EXEC(archive->add(archive));
         EXEC(archive->save(archive));
+        EXEC(archive->extract(archive));
+        ret = assert_file_equal("./tests/output/tar/test_extract.txt", "./tests/res/tar/test_extract.txt");
+        THROW_IF(ret != 1, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        // fs_rmdir("./tests/output/tar/");
+        fs_rmdir("./tests/output/tar/");
     }
 
     return ret;

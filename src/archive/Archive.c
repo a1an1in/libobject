@@ -242,7 +242,7 @@ static int __add_files(Archive *a, Vector *files)
             
             dbg_str(DBG_VIP, "add_files, info addr:%p", info);
             dbg_str(DBG_VIP, "add_files, file %s", info->file_name);
-            a->add_file(a, info->file_name);
+            EXEC(a->add_file(a, info->file_name));
         }
     } CATCH (ret) {}
 

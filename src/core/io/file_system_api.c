@@ -148,6 +148,23 @@ int fs_get_path_and_name(char *path, char **parent_dir, char **name)
     return 0;
 }
 
+int fs_get_relative_path(char *path, char *root, char **relative_path)
+{
+    int root_len;
+    int ret;
+
+    TRY {
+        root_len = strlen(root);
+        if (strncmp(path, root, root_len) != 0, -1);
+        if (root[root_len -1] != '/') {
+            THROW(-1);
+        }
+        *relative_path = path + root_len;
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 int fs_mkfile(char *path, mode_t mode)
 {
     String *string;

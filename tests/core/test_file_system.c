@@ -220,6 +220,23 @@ static int test_fs_get_path_and_name(TEST_ENTRY *entry)
 }
 REGISTER_TEST_FUNC(test_fs_get_path_and_name);
 
+static int test_fs_get_relative_path(TEST_ENTRY *entry)
+{
+    char name[1024] = "./tests/res/aa/bb/cc";
+    char *root = "./tests/res/";
+    char *relative_path;
+    int ret;
+
+    TRY {
+        EXEC(fs_get_relative_path(name, root, &relative_path));
+        dbg_str(DBG_VIP, "fs_get_relative_path %s :%s", name, relative_path);
+        THROW_IF(strcmp(relative_path, "aa/bb/cc") != 0, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_fs_get_relative_path);
+
 static int test_fs_mk_and_rm_dir(TEST_ENTRY *entry)
 {
     // char *make_dir_name = "./tests/res/aa/bb/cc";
