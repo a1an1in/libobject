@@ -4,5 +4,4 @@ Description:
 update.
 
 Major Changes:
-1. modify add_file file name par to archive_file_info_t.
-2. fix subdir issue in tar.
+1. add lzma template.

@@ -90,4 +90,3 @@ static class_info_entry_t fs_class_info[] = {
     Init_End___Entry(7, Squashfs),
 };
 REGISTER_CLASS("Squashfs", fs_class_info);
-

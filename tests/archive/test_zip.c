@@ -63,14 +63,14 @@ static int test_zip_list(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
     Vector *infos;
-	char *zip_file = "./tests/res/zip/test_zip.zip";
+    char *zip_file = "./tests/res/zip/test_zip.zip";
 
     TRY {
         dbg_str(DBG_SUC, "test extract zip");
         archive = object_new(allocator, "Zip", NULL);
         archive->set_extracting_path(archive, "./tests/output/zip/");
-		archive->open(archive, zip_file, "r+");
-		archive->list(archive, &infos);
+        archive->open(archive, zip_file, "r+");
+        archive->list(archive, &infos);
         SET_CATCH_INT_PARS(infos->count(infos), 0);
         THROW_IF(infos->count(infos) != 2, -1);
     } CATCH (ret) { 
@@ -103,8 +103,8 @@ static int test_zip_extract_deflate_file(TEST_ENTRY *entry, int argc, void **arg
 
         archive = object_new(allocator, "Zip", NULL);
         archive->set_extracting_path(archive, "./tests/output/zip/");
-		archive->open(archive, zip_file, "r+");
-		archive->extract_file(archive, &info);
+        archive->open(archive, zip_file, "r+");
+        archive->extract_file(archive, &info);
         ret = assert_file_equal("./tests/output/zip/test_zip_extract.txt", reference_file1);
         THROW_IF(ret != 1, -1);
         ret = assert_file_equal("./tests/output/zip/test_zip_extract.txt", reference_file2);
@@ -135,8 +135,8 @@ static int test_zip_extract_store_file(TEST_ENTRY *entry, int argc, void **argv)
 
         archive = object_new(allocator, "Zip", NULL);
         archive->set_extracting_path(archive, "./tests/output/zip/");
-		archive->open(archive, zip_file, "r+");
-		archive->extract_file(archive, &info);
+        archive->open(archive, zip_file, "r+");
+        archive->extract_file(archive, &info);
         ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", reference_file1);
         THROW_IF(ret != 1, -1);
         ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", reference_file2);
@@ -165,10 +165,10 @@ static int test_zip_extract_files(TEST_ENTRY *entry, int argc, void **argv)
 
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
-		archive->open(archive, tar_name, "r");
+        archive->open(archive, tar_name, "r");
         archive->set_extracting_path(archive, "./tests/output/zip/");
         archive->list(archive, &infos);
-		archive->extract_files(archive, infos);
+        archive->extract_files(archive, infos);
         ret = assert_file_equal("./tests/output/zip/test_zip_extract.txt", ref_file1);
         THROW_IF(ret != 1, -1);
         ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", ref_file2);
@@ -197,9 +197,9 @@ static int test_zip_extract_all(TEST_ENTRY *entry, int argc, void **argv)
 
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
-		archive->open(archive, tar_name, "r");
+        archive->open(archive, tar_name, "r");
         archive->set_extracting_path(archive, "./tests/output/zip/");
-		EXEC(archive->extract(archive));
+        EXEC(archive->extract(archive));
         ret = assert_file_equal("./tests/output/zip/test_zip_extract.txt", ref_file1);
         THROW_IF(ret != 1, -1);
         ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", ref_file2);
@@ -228,10 +228,10 @@ static int test_zip_extract_with_regex(TEST_ENTRY *entry, int argc, void **argv)
 
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
-		EXEC(archive->open(archive, tar_name, "r"));
+        EXEC(archive->open(archive, tar_name, "r"));
         EXEC(archive->set_extracting_path(archive, "./tests/output/zip/"));
         EXEC(archive->set_wildchard(archive, SET_INCLUSIVE_WILDCHARD_TYPE, "subdir.*"));
-		EXEC(archive->extract(archive));
+        EXEC(archive->extract(archive));
 
         THROW_IF(fs_is_exist("./tests/output/zip/test_zip_extract.txt"), -1);
         ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", ref_file2);
@@ -259,10 +259,10 @@ static int test_zip_add_1_file(TEST_ENTRY *entry, int argc, void **argv)
         dbg_str(DBG_SUC, "test add files to zip");
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
-		archive->open(archive, tar_name, "w+");
+        archive->open(archive, tar_name, "w+");
 
         info.file_name = file;
-		archive->add_file(archive, &info);
+        archive->add_file(archive, &info);
         EXEC(archive->save(archive));
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
@@ -287,10 +287,10 @@ static int test_zip_add_2_files(TEST_ENTRY *entry, int argc, void **argv)
         dbg_str(DBG_SUC, "test add files to zip");
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
-		EXEC(archive->open(archive, tar_name, "w+"));
+        EXEC(archive->open(archive, tar_name, "w+"));
 
         info.file_name = file1;
-		EXEC(archive->add_file(archive, &info));
+        EXEC(archive->add_file(archive, &info));
         info.file_name = file2;
         EXEC(archive->add_file(archive, &info));
         EXEC(archive->save(archive));
@@ -317,7 +317,7 @@ static int test_zip_add_files(TEST_ENTRY *entry, int argc, void **argv)
         dbg_str(DBG_SUC, "test add files to zip");
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
-		archive->open(archive, tar_name, "w+");
+        archive->open(archive, tar_name, "w+");
 
         info.file_name = file1;
         archive->add_adding_file_info(archive, &info);
@@ -347,7 +347,7 @@ static int test_zip_add_all(TEST_ENTRY *entry, int argc, void **argv)
         dbg_str(DBG_SUC, "test add files to zip");
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
-		EXEC(archive->open(archive, tar_name, "w+"));
+        EXEC(archive->open(archive, tar_name, "w+"));
         EXEC(archive->set_adding_path(archive, "./tests/res/zip"));
 
         EXEC(archive->add(archive));

@@ -199,7 +199,6 @@ static int __extract_files(Archive *a, Vector *files)
         THROW_IF(files == 0, -1);
 
         count = files->count(files);
-        
         for (i = 0; count > 0; i++) {
             info = NULL;
             EXEC(files->peek_at(files, i, &info));
