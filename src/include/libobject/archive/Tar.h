@@ -38,7 +38,7 @@ struct Tar_s {
     int (*set)(Tar *tar, char *attrib, void *value);
     void *(*get)(Tar *, char *attrib);
     char *(*to_json)(Tar *);
-	int (*add_file)(Tar *, char *file_name);
+	int (*add_file)(Tar *, archive_file_info_t *info);
 	int (*extract_file)(Tar *, archive_file_info_t *info);
 	int (*list)(Tar *Tar, Vector **infos);
 	int (*save)(Tar *a);

@@ -49,7 +49,7 @@ static int __extract_file(SevenZip *fs, archive_file_info_t *info)
     return ret;
 }
 
-static int __add_file(SevenZip *fs, char *file_name)
+static int __add_file(SevenZip *fs, archive_file_info_t *info)
 {
     uint32_t extra_field_length = 0;
     allocator_t *allocator = fs->parent.parent.allocator;

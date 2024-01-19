@@ -42,7 +42,7 @@ struct Archive_s {
     /* extract designated files */
     int (*extract_files)(Archive *a, Vector *files);
     int (*extract)(Archive *a);
-    int (*add_file)(Archive *a, char *file_name);
+    int (*add_file)(Archive *a, archive_file_info_t *info);
     int (*add_files)(Archive *a, Vector *files);
     int (*add)(Archive *a);
     int (*set_extracting_path)(Archive *a, char *path);

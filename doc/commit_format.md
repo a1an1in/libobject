@@ -4,5 +4,5 @@ Description:
 update.
 
 Major Changes:
-1. add fs_get_relative_path and it's test code.
-2. fix add_file for tar.
+1. modify add_file file name par to archive_file_info_t.
+2. fix subdir issue in tar.

@@ -251,6 +251,7 @@ static int test_zip_add_1_file(TEST_ENTRY *entry, int argc, void **argv)
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
+    archive_file_info_t info;
     char *file = "./tests/res/zip/test_zip_deflate.txt";
     char *tar_name = "./tests/output/zip/test_zip.zip";
 
@@ -260,7 +261,8 @@ static int test_zip_add_1_file(TEST_ENTRY *entry, int argc, void **argv)
         archive = object_new(allocator, "Zip", NULL);
 		archive->open(archive, tar_name, "w+");
 
-		archive->add_file(archive, file);
+        info.file_name = file;
+		archive->add_file(archive, &info);
         EXEC(archive->save(archive));
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
@@ -276,6 +278,7 @@ static int test_zip_add_2_files(TEST_ENTRY *entry, int argc, void **argv)
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
+    archive_file_info_t info;
     char *file1 = "./tests/res/zip/test_zip_deflate.txt";
     char *file2 = "./tests/res/zip/test_zip_extract2.txt";
     char *tar_name = "./tests/output/zip/test_zip.zip";
@@ -286,8 +289,10 @@ static int test_zip_add_2_files(TEST_ENTRY *entry, int argc, void **argv)
         archive = object_new(allocator, "Zip", NULL);
 		EXEC(archive->open(archive, tar_name, "w+"));
 
-		EXEC(archive->add_file(archive, file1));
-        EXEC(archive->add_file(archive, file2));
+        info.file_name = file1;
+		EXEC(archive->add_file(archive, &info));
+        info.file_name = file2;
+        EXEC(archive->add_file(archive, &info));
         EXEC(archive->save(archive));
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);

@@ -106,6 +106,7 @@ static int test_tar_add_file(TEST_ENTRY *entry, int argc, void **argv)
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
+    archive_file_info_t info;
     char *file1 = "./tests/res/tar/test_gzip.txt";
     char *file2 = "./tests/res/tar/subdir/test.txt";
     char *tar_name = "./tests/output/tar/test_create.tar";
@@ -118,8 +119,10 @@ static int test_tar_add_file(TEST_ENTRY *entry, int argc, void **argv)
 		EXEC(archive->open(archive, tar_name, "w+"));
         EXEC(archive->set_extracting_path(archive, "./tests/output/tar/"));
         EXEC(archive->set_adding_path(archive, "./tests/res/tar/"));
-		EXEC(archive->add_file(archive, file1));
-        EXEC(archive->add_file(archive, file2));
+        info.file_name = file1;
+		EXEC(archive->add_file(archive, &info));
+        info.file_name = file2;
+        EXEC(archive->add_file(archive, &info));
         EXEC(archive->save(archive));
 
         EXEC(archive->extract(archive));

@@ -553,14 +553,18 @@ static int __write_central_directory_header_callback(int index, void *element)
     return ret;
 }
 
-static int __add_file(Zip *zip, char *file_name)
+static int __add_file(Zip *zip, archive_file_info_t *info)
 {
     zip_file_header_t *file_header;
     uint32_t extra_field_length = 0;
     allocator_t *allocator = zip->parent.parent.allocator;
+    char *file_name;
     int ret;
 
     TRY {
+        THROW_IF(info == NULL, -1);
+        file_name = info->file_name;
+
         zip->add_flag = 1;
         file_header = allocator_mem_zalloc(allocator, sizeof(zip_file_header_t));
         THROW_IF(file_header == NULL, -1);

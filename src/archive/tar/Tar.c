@@ -50,7 +50,6 @@ static int __open(Tar *tar, char *archive_name, char *mode)
 {
     Vector *infos;
 
-    // return tar->list(tar, &infos);
     return 1;
 }
 
@@ -75,8 +74,8 @@ static int __list(Tar *tar, Vector **infos)
         while (1) {
             a->seek(a, offset, SEEK_SET);
             ret = a->read(a, buf, sizeof(buf));
-            if (buf[0] == 0)
-                break;
+            if (buf[0] == 0) break;
+
             header = (struct posix_tar_header*)buf;
             p = header->size;
             size = 0;
@@ -90,13 +89,9 @@ static int __list(Tar *tar, Vector **infos)
             THROW_IF(info->file_name == NULL, -1);
             strcpy(info->file_name, header->name);
             info->size = size;
-            if (size == 0) {
-                offset += 512;
-            } else {
-               offset += (512 + ((size + 512) / 512) * 512);  
-            }
+            offset += ((header->typeflag == '5')? 512 : (512 + ((size + 511) / 512) * 512));
             
-            dbg_str(DBG_VIP, "filename:%s, size:%d", header->name, size);
+            dbg_str(DBG_VIP, "filename:%s, size:%d, typeflag:%d", header->name, size, header->typeflag);
             EXEC(files->add(files, info));
             dbg_str(DBG_VIP, "count:%d", files->count(files));
         }
@@ -130,17 +125,18 @@ static int __extract_file(Tar *tar, archive_file_info_t *info)
         len = 0;
         while(*p) len = (len * 8) + (*p++ - '0'); //8进制->10进制
 
-
-        /* 3.read file data */
+        /* 2.read file data */
         name->assign(name, STR2A(archive->extracting_path));
         name->append(name, header->name, strlen(header->name));
         dbg_str(DBG_VIP, "filename:%s", STR2A(name));
         
+        /* 3.如果文件是目录， 则需要创建后退出 */
         if(header->typeflag == '5') {
             fs_mkdir(header->name, 0777);
             THROW(1);
         }
 
+        /* 4.创建父目录，如果父目录不存在 */
         strcpy(tmp, STR2A(name));
         fs_get_path_and_name(tmp, &root, NULL);
         dbg_str(DBG_VIP, "root:%s", root);
@@ -148,6 +144,7 @@ static int __extract_file(Tar *tar, archive_file_info_t *info)
             fs_mkdir(root, 0777);
         }
 
+        /* 5.保存文件内容 */
         EXEC(file->open(file, name->get_cstr(name), "w+"));
         while (len) {
             read_len = min(512, len);
@@ -166,28 +163,27 @@ static int __extract_file(Tar *tar, archive_file_info_t *info)
     return ret;
 }
 
-static int __add_file(Tar *tar, char *file_name)
+static int __add_file(Tar *tar, archive_file_info_t *info)
 {
     int ret, size, read_size, len;
     Archive *archive = (Archive *)&tar->parent;
     File *a = archive->file, *file = tar->file;
     struct posix_tar_header *header;
+    char *file_name;
     char buffer[1024] = {0};
     String *path = archive->tmp;
     char *relative_path;
 
     TRY {
+        THROW_IF(info == NULL, -1);
+        file_name = info->file_name;
+
         memset(buffer, 0, sizeof(buffer));
         dbg_str(DBG_VIP, "tar name:%s", a->name->get_cstr(a->name));
         EXEC(size = a->get_size(a));
         dbg_str(DBG_VIP, "tar file size:%d", size);
         if (size != 0) {
             a->seek(a, -1024, SEEK_END);
-        }
-
-        if(fs_is_directory(file_name)) {
-            fs_mkdir(file_name, 0777);
-            THROW(1);
         }
 
         /* add file name*/
@@ -201,23 +197,28 @@ static int __add_file(Tar *tar, char *file_name)
         dbg_str(DBG_VIP, "file name:%s", header->name);
 
         /* add file size*/
-        size = fs_get_size(STR2A(path));
+        size = fs_get_size(file_name);
         snprintf(header->size, sizeof(header->size), "%011o", size);
         dbg_buf(DBG_VIP, "file size:", header->size, 12);
-
         /* add magic*/
         memcpy(header->magic, "ustar  ", 8);
-
         /* add mode */
         sprintf(header->mode, "%07d", 777);
-
         /* add checksum */
         add_check_sum(header);
-        
-        EXEC(a->write(a, header, 512));
+
+        if(fs_is_directory(file_name)) {
+            header->typeflag = '5';
+            EXEC(a->write(a, header, 512));
+            memset(buffer, 0, sizeof(buffer));
+            EXEC(a->write(a, buffer, sizeof(buffer))); //write tail.
+            THROW(1);
+        } else {
+            EXEC(a->write(a, header, 512));
+        }
 
         /* write file */
-        EXEC(file->open(file, STR2A(path), "r+"));
+        EXEC(file->open(file, file_name, "r+"));
         while (size > 0) {
             memset(buffer, 0, 512);
             read_size = size >= 512 ? 512 : size;
@@ -233,7 +234,7 @@ static int __add_file(Tar *tar, char *file_name)
     return ret;
 }
 
-static int __save(Tar *a)
+static int __save(Tar *tar)
 {
     return 1;
 }

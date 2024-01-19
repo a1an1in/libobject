@@ -19,8 +19,8 @@ struct Tgz_s {
     int (*set)(Tgz *, char *attrib, void *value);
     void *(*get)(Tgz *, char *attrib);
     char *(*to_json)(Tgz *);
-	int (*add_file)(Tgz *, char *file_name);
-	int (*extract)(Tgz *);
+	int (*add_file)(Tgz *, archive_file_info_t *info);
+	int (*extract_file)(Tgz *, archive_file_info_t *info);
 	int (*compress)(Tgz *, char *file_in, char *file_out);
 	int (*uncompress)(Tgz *, char *file_in, char *file_out);
 
