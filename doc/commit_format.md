@@ -1,7 +1,7 @@
-[update:archive] continue to implement archive.
+[update:doc] change modules dir to templates.
 
 Description:
 update.
 
 Major Changes:
-1. add lzma template.
+1. update.
