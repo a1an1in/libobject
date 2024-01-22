@@ -244,6 +244,11 @@ static int __add_file(Tar *tar, archive_file_info_t *info)
 
 static int __save(Tar *tar)
 {
+    Archive *archive = (Archive *)&tar->parent;
+    File *a = archive->file;
+    
+    fflush(a->f);
+
     return 1;
 }
 
