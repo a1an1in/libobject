@@ -21,8 +21,8 @@ struct Tbz_s {
     char *(*to_json)(Tbz *);
 	int (*add_file)(Tbz *, archive_file_info_t *info);
 	int (*extract_file)(Tbz *, archive_file_info_t *info);
-	int (*compress)(Tbz *, char *file_in, char *file_out);
-	int (*uncompress)(Tbz *, char *file_in, char *file_out);
+	int (*compress)(Tbz *, char *file_in, char *file_out, int out_len);
+	int (*uncompress)(Tbz *, char *file_in, char *file_out, int out_len);
 
     File *file;
 	String *file_name;

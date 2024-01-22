@@ -58,8 +58,8 @@ struct Archive_s {
     /* compress and uncompress are used by tar, which may need copress
      * archive firstly, zip don't need those interfaces
      */
-    int (*compress)(Archive *c, char *file_in, char *file_out);
-    int (*uncompress)(Archive *c, char *file_in, char *file_out);
+    int (*compress)(Archive *c, char *file_in, char **file_out);
+    int (*uncompress)(Archive *c, char *file_in, char **file_out);
 
     /* adding and extracting use different path, then we don't have to swith the path */
     String *extracting_path;

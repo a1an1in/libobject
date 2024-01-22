@@ -158,6 +158,8 @@ static int __extract_file(Tar *tar, archive_file_info_t *info)
         }
         EXEC(file->close(file));
 
+        /* 6.设置文件属性 */
+
     } CATCH (ret) {}
     
     return ret;
@@ -170,6 +172,7 @@ static int __add_file(Tar *tar, archive_file_info_t *info)
     File *a = archive->file, *file = tar->file;
     struct posix_tar_header *header;
     char *file_name;
+    struct stat stat;
     char buffer[1024] = {0};
     String *path = archive->tmp;
     char *relative_path;
@@ -204,6 +207,11 @@ static int __add_file(Tar *tar, archive_file_info_t *info)
         memcpy(header->magic, "ustar  ", 8);
         /* add mode */
         sprintf(header->mode, "%07d", 777);
+        /* add mtime */
+        EXEC(fs_get_stat(file_name, &stat));
+        snprintf(header->mtime, sizeof(header->mtime), "%011lo", stat.st_mtime);
+        dbg_str(DBG_VIP, "file st_mtime:%d, mtime:%s", stat.st_mtime, header->mtime);
+
         /* add checksum */
         add_check_sum(header);
 
