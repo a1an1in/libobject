@@ -1,8 +1,10 @@
-[update:archive] implement tgz.
+[update:archive] implement archive.
 
 Description:
-tgz has supported extracing and adding.
+update.
 
 Major Changes:
-1. implemented compress of tgz.
-4. add tgz add case.
+1. add tbz2 archive template.
+2. add bz2 compress template.
+3. add lzma compress template.
+4. change z compress name to zlib compress.
