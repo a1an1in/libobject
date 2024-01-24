@@ -42,8 +42,10 @@ struct event_base_s{
     Iterator *map_iter;
     struct evsig_s evsig;
     int break_flag;
-    event_t break_event;
     String *signal_service;
+
+    event_t quit_event;
+    event_t coredump_event;
 };
 
 int evsig_add(Event_Base *eb, event_t *event);

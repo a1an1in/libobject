@@ -122,4 +122,14 @@ static int test_del_signal(TEST_ENTRY *entry, void *argc, void *argv)
     return (1);
 }
 REGISTER_TEST_CMD(test_del_signal);
+
+static int test_coredump_signal(TEST_ENTRY *entry, void *argc, void *argv)
+{
+    char *addr = NULL;
+
+    *addr = 1;
+
+    return (1);
+}
+REGISTER_TEST_CMD(test_coredump_signal);
 #endif

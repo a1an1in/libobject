@@ -29,16 +29,13 @@ timeout_cb(int fd, short event, void *arg)
             (int)newtime.tv_sec, elapsed);
 }
 
-int test_timer(TEST_ENTRY *entry)
+static int test_timer(TEST_ENTRY *entry)
 {
     struct event timeout;
     struct timeval tv;
-    struct event_base *base;
+    struct event_base* base = event_base_get_default_instance();
 
-    dbg_str(DBG_DETAIL,"size event=%d",sizeof(timeout));
-
-    /* Initalize the event library */
-    base = event_base_new();
+    dbg_str(DBG_VIP,"test timer start");
 
     /* Initalize one event */
     event_assign(&timeout, base, -1, EV_PERSIST, timeout_cb, (void*) &timeout);
@@ -47,14 +44,9 @@ int test_timer(TEST_ENTRY *entry)
     tv.tv_sec = 1;
     event_add(&timeout, &tv);
 
-    gettimeofday(&lasttime, NULL);
+    pause();
+    dbg_str(DBG_VIP,"test timer end");
 
-    event_base_dispatch(base);
-
-    dbg_str(DBG_DETAIL,"run at here");
-    event_base_free(base);
-
-    dbg_str(DBG_DETAIL,"test time end");
     return (1);
 }
 REGISTER_TEST_CMD(test_timer);

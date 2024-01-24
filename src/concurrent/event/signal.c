@@ -113,6 +113,9 @@ int evsig_init(Event_Base *eb)
     evsig->map  = OBJECT_NEW(allocator, RBTree_Map, NULL);
     evsig->list = OBJECT_NEW(allocator, Linked_List, NULL);
 
+    set_quit_signal(eb);
+    set_segment_signal(eb);
+
     return 0;
 }
 
@@ -165,14 +168,15 @@ quit_signal_cb(int fd, short event_res, void *arg)
 
 int set_quit_signal(Event_Base* eb)
 {
-    struct event *ev = &eb->break_event;
+    struct event *ev = &eb->quit_event;
 
-#if (!defined(WINDOWS_USER_MODE))
+#if (defined(WINDOWS_USER_MODE))
     ev->ev_fd              = SIGQUIT;
 #else
     ev->ev_fd              = SIGINT;
 #endif
-    ev->ev_events          = EV_SIGNAL|EV_PERSIST;
+
+    ev->ev_events          = EV_SIGNAL;
     ev->ev_timeout.tv_sec  = 0;
     ev->ev_timeout.tv_usec = 0;
     ev->ev_callback        = quit_signal_cb;
@@ -190,12 +194,18 @@ int set_quit_signal(Event_Base* eb)
 static void
 segment_signal_cb(int fd, short event_res, void *arg)
 {
+    struct event *event = (struct event *)arg;
+    Event_Base* eb = (Event_Base*)event->ev_base;
+
     //print_backtrace();
+    dbg_str(DBG_FATAL, "segment_signal_cb, signal no:%d", event->ev_fd);
+    eb->break_flag = 1;
+    exit(0);
 }
 
 int set_segment_signal(Event_Base* eb)
 {
-    struct event *ev = &eb->break_event;
+    struct event *ev = &eb->coredump_event;
 
     ev->ev_fd              = SIGSEGV;
     ev->ev_events          = EV_SIGNAL;
