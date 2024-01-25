@@ -1,9 +1,7 @@
-[update:EventBase] fix bug eventbase bug.
+[update:EventBase] support printing backtrace when segment.
 
-Description:
-previously, eventbase seem can't process SIGINT,
-it was fixed now.
+Description:.
+The eventbase is more useable now.
 
 Major Changes:
-1. add set_quit_signal for eventbase.
-2. fix test_timer test case.
+1. support print backtrace when coredump.

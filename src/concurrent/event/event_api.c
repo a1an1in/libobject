@@ -56,6 +56,10 @@ int event_add(event_t *ev, const struct timeval *tv)
         ev->ev_timeout.tv_usec = tv->tv_usec;
     }
 
+    //todo: 这里有个bug， 如果使用的producer的base， 有可能base loop
+    //已经在阻塞select了,这里add没有唤醒select，所以需要去获取event thread
+    //的sender。但是这个只是兼容接口, 推荐直接使用producer就没有问题。 直接
+    //new event_base_new 然后再使用这个接口也没有这个问题。后期可以加上sender。
     eb->add(eb, ev);
 
     return 0;

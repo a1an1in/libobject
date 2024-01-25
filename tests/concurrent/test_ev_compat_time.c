@@ -33,9 +33,13 @@ static int test_timer(TEST_ENTRY *entry)
 {
     struct event timeout;
     struct timeval tv;
-    struct event_base* base = event_base_get_default_instance();
+    struct event_base* base;
 
     dbg_str(DBG_VIP,"test timer start");
+
+    /* 如果改成event_base_get_default_instance
+     * 这里会有问题， 没有唤醒机智， 添加event前可能base已经在loop了*/
+    base = event_base_new();
 
     /* Initalize one event */
     event_assign(&timeout, base, -1, EV_PERSIST, timeout_cb, (void*) &timeout);
@@ -44,7 +48,9 @@ static int test_timer(TEST_ENTRY *entry)
     tv.tv_sec = 1;
     event_add(&timeout, &tv);
 
-    pause();
+    event_base_dispatch(base);
+    event_base_free(base);
+
     dbg_str(DBG_VIP,"test timer end");
 
     return (1);

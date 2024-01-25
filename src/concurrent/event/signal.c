@@ -64,13 +64,20 @@ static void __evsig_send(void *element, void *c)
 static void signal_handler(int sig)
 {
     char msg = (char) sig;
+    List *list = global_event_base_list;;
     pthread_t tid = pthread_self();
 
-    List *list = global_event_base_list;
     dbg_str(EV_VIP, "signal_handler receive signal=%d, event base count=%d, thread id:%d", 
             sig, list->count(list), tid);
-
+    
     list->for_each_arg(list, __evsig_send, (void *)&msg);
+
+    if (sig == SIGSEGV) {
+        print_backtrace();
+        sleep(1);
+    }
+
+    return ;
 }
 
 int evsig_init(Event_Base *eb)
@@ -197,9 +204,9 @@ segment_signal_cb(int fd, short event_res, void *arg)
     struct event *event = (struct event *)arg;
     Event_Base* eb = (Event_Base*)event->ev_base;
 
-    //print_backtrace();
     dbg_str(DBG_FATAL, "segment_signal_cb, signal no:%d", event->ev_fd);
     eb->break_flag = 1;
+
     exit(0);
 }
 

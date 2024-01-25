@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <libobject/core/utils/alloc/allocator.h>
+#include <libobject/core/utils/dbg/debug.h>
 
 #if (!defined(WINDOWS_USER_MODE) && !defined(ANDROID_USER_MODE))
 #include <execinfo.h>
@@ -22,7 +23,7 @@ int print_backtrace(void)
     }
 
     for (j = 0; j < nptrs; j++)
-        printf("%s\n", strings[j]);
+        dbg_str(DBG_PANIC, "%s", strings[j]);
 
     free(strings);
 

@@ -30,3 +30,13 @@ timedatectl set-timezone Asia/Shanghai # setting
 timedatectl                 # view current
 timedatectl list-timezones  # list all
 ```
+
+## coredump test
+```
+/* backtrace 可以打印出调用栈地址， 然后使用addr2line可以把地址转换从文件对应行
+ * 使用方法如下：addr2line -e ./sysroot/linux/bin/xtools 0x253dc
+ * 注意： 使用的是offset， 不是[]号里面的绝对地址
+ **/
+./sysroot/linux/bin/xtools mockery --log-level=6 test_coredump_signal
+addr2line -e ./sysroot/linux/bin/xtools 0x253dc
+```
