@@ -1,22 +1,22 @@
-#ifndef __NODE_COMMAND_H__
-#define __NODE_COMMAND_H__
+#ifndef __Node_H__
+#define __Node_H__
 
 #include <stdio.h>
 #include <libobject/argument/Command.h>
 #include <libobject/core/String.h>
 
-typedef struct Node_Command_s Node_Command;
+typedef struct Node_s Node;
 
-struct Node_Command_s{
-	Command parent;
+struct Node_s {
+	Obj parent;
 
-	int (*construct)(Node_Command *command,char *init_str);
-	int (*deconstruct)(Node_Command *command);
-	int (*set)(Node_Command *command, char *attrib, void *value);
-    void *(*get)(Node_Command *command, char *attrib);
-    char *(*to_json)(Node_Command *command); 
+	int (*construct)(Node *command,char *init_str);
+	int (*deconstruct)(Node *command);
+	int (*set)(Node *command, char *attrib, void *value);
+    void *(*get)(Node *command, char *attrib);
+    char *(*to_json)(Node *command); 
 
-	int (*run_command)(Node_Command *command);
+	int (*run_command)(Node *command);
 };
 
 #endif

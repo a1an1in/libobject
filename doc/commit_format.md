@@ -1,7 +1,7 @@
-[update:EventBase] support printing backtrace when segment.
+[update:node] initiate node.
 
 Description:.
-The eventbase is more useable now.
+update.
 
 Major Changes:
-1. support print backtrace when coredump.
+1. start node proj.
