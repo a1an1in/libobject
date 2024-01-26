@@ -6,7 +6,7 @@
 
 typedef struct Module_s Module;
 
-struct Module_s{
+struct Module_s {
     Obj parent;
 
     int (*construct)(Module *,char *);
