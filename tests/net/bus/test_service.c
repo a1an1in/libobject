@@ -25,7 +25,7 @@ static int test_hello(struct bus_s *bus,
 
     dbg_str(DBG_DETAIL,"test hello,rcv args id=%d,content=%s",id,content);
 
-    memcpy(out_data,buffer,sizeof(buffer));
+    memcpy(out_data, buffer, sizeof(buffer));
     *out_data_len = sizeof(buffer);
 
 	return 1;
@@ -74,14 +74,14 @@ void test_bus_server()
 	char buf[1024]    = "hello world!";
 	int buf_len       = strlen(buf);
     
-    dbg_str(DBG_DETAIL,"hello policy addr:%p",hello_policy);
+    dbg_str(DBG_DETAIL, "hello policy addr:%p",hello_policy);
     bus = bus_create(allocator,
                      deamon_host,
                      deamon_srv, 
                      CLIENT_TYPE_INET_TCP);
 
-    dbg_str(BUS_DETAIL,"bus add object");
-	bus_add_object(bus,&test_object);
+    dbg_str(BUS_DETAIL, "bus add object");
+	bus_add_object(bus, &test_object);
 
     /*
 	 *while(1) sleep(1);

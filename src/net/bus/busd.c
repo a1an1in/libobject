@@ -139,7 +139,6 @@ int busd_init(busd_t *busd,
     busd->obj_map = object_new(busd->allocator, "RBTree_Map", NULL);
     map = busd->obj_map;
     map->set_cmp_func(map, string_key_cmp_func);
-    dbg_str(BUS_ERROR, "busd_init, string_key_cmp_func:%p", string_key_cmp_func);
 
     return 1;
 }

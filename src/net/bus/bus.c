@@ -312,7 +312,7 @@ int bus_lookup_sync(bus_t *bus, char *object, char *out_buf, char *out_len)
 
     read(req->read, &c, 1); 
 
-    dbg_str(BUS_DETAIL, "lookup result:%s", req->opaque);
+    dbg_str(BUS_VIP, "lookup result:%s", req->opaque);
 
     memcpy(out_buf, req->opaque, req->opaque_len);
     *out_len = req->opaque_len;

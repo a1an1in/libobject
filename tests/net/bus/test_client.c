@@ -3,8 +3,7 @@
 #include <libobject/net/bus/bus.h>
 #include <libobject/core/utils/registry/registry.h>
 
-#if 1
-void test_bus_client()
+int test_bus_client_invoke_sync()
 {
     allocator_t *allocator = allocator_get_default_instance();
     bus_t *bus;
@@ -38,10 +37,11 @@ void test_bus_client()
     pause();
     bus_destroy(bus);
 	
+    return 1;
 }
-REGISTER_TEST_CMD(test_bus_client);
-#else
-void test_bus_client()
+REGISTER_TEST_CMD(test_bus_client_invoke_sync);
+
+int test_bus_client_lookup_sync()
 {
     allocator_t *allocator = allocator_get_default_instance();
     bus_t *bus;
@@ -73,7 +73,7 @@ void test_bus_client()
 
     bus_destroy(bus);
 	
+    return 1;
 }
-REGISTER_TEST_CMD(test_bus_client);
-#endif
+REGISTER_TEST_CMD(test_bus_client_lookup_sync);
 #endif
