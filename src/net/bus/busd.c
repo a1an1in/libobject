@@ -114,11 +114,11 @@ int busd_init(busd_t *busd,
               char *server_srv, 
               int (*process_server_task_cb)(void *task))
 {
-    configurator_t * c;
+    Map *map;
     int ret; 
 
     if (busd->server_sk_type == NULL) {
-        busd->server_sk_type = (char *)(&(SERVER_TYPE_INET_TCP));
+        busd->server_sk_type = (char *)((SERVER_TYPE_INET_TCP));
     }
     busd->server_host = server_host;
     busd->server_srv  = server_srv;
@@ -136,12 +136,10 @@ int busd_init(busd_t *busd,
     }
 
     /*create object hash map*/
-    c = cfg_alloc(busd->allocator); 
-    cfg_config_num(c, "/Hash_Map", "key_size", 40) ;  
-    cfg_config_num(c, "/Hash_Map", "value_size", 8) ;
-    cfg_config_num(c, "/Hash_Map", "bucket_size", 10) ;
-    busd->obj_map = OBJECT_NEW(busd->allocator, Hash_Map, c->buf);
-    cfg_destroy(c);
+    busd->obj_map = object_new(busd->allocator, "RBTree_Map", NULL);
+    map = busd->obj_map;
+    map->set_cmp_func(map, string_key_cmp_func);
+    dbg_str(BUS_ERROR, "busd_init, string_key_cmp_func:%p", string_key_cmp_func);
 
     return 1;
 }
@@ -166,10 +164,10 @@ busd_create_bus_object(busd_t *busd, char *name, blob_attr_t *attr, int fd)
     object_infos   = blob_get_string(attr);
     obj->fd        = fd;
     obj->allocator = allocator;
-    obj->name      = (char *)allocator_mem_alloc(allocator, strlen(name));
+    obj->name      = (char *)allocator_mem_zalloc(allocator, strlen(name) + 1);
     strncpy(obj->name, name, strlen(name));
 
-    obj->infos = (char *)allocator_mem_alloc(allocator, strlen(object_infos));
+    obj->infos = (char *)allocator_mem_zalloc(allocator, strlen(object_infos));
     strncpy(obj->infos, object_infos, strlen(object_infos));
 
     busd_dump_object(obj);
@@ -187,7 +185,7 @@ int busd_reply_add_object(busd_t *busd, int state, char *obj_name, int fd)
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_SUC, "busd_reply_lookup_object");
+    dbg_str(BUS_SUC, "busd_reply_add_object");
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUSD_REPLY_ADD_OBJECT;
@@ -218,7 +216,7 @@ int busd_handle_add_object(busd_t *busd, blob_attr_t **attr, int fd)
     Map *map = busd->obj_map;
     char *obj_name;
     int state = -1;
-    dbg_str(BUS_DETAIL, "ubusd_handle_add_object");
+    dbg_str(BUS_DETAIL, "ubusd_handle_add_object, fd:%d", fd);
 
     if (attr[BUSD_ID]) {
         dbg_str(BUS_DETAIL, "add object id:%d", blob_get_u32(attr[BUSD_ID]));
@@ -232,8 +230,8 @@ int busd_handle_add_object(busd_t *busd, blob_attr_t **attr, int fd)
         obj = busd_create_bus_object(busd, blob_get_string(attr[BUSD_OBJNAME]), 
                                      attr[BUSD_OBJINFOS], fd);
         if (obj != NULL) {
-            dbg_str(BUS_DETAIL, "insert obj:%p", obj);
-            map->add(map, blob_get_string(attr[BUSD_OBJNAME]), obj);
+            dbg_str(BUS_DETAIL, "insert obj:%s:%p", obj->name, obj);
+            map->add(map, obj->name, obj);
             state = 1;
         }
     }
@@ -361,15 +359,18 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
 
     if (attr[BUSD_INVOKE_KEY]) {
         obj_name = blob_get_string(attr[BUSD_INVOKE_KEY]);
-        dbg_str(BUS_DETAIL, "invoke key:%s", obj_name);
-        key = blob_get_string(attr[BUSD_INVOKE_KEY]);
-        if (key != NULL) {
-            ret = map->search(map, key, (void **)&obj);
+        dbg_str(BUS_DETAIL, "invoke obj_name:%s", obj_name);
+        if (obj_name != NULL) {
+            ret = map->search(map, obj_name, (void **)&obj);
             if (ret > 0) {
                 dbg_str(BUS_DETAIL, "obj addr:%p", obj);
                 busd_dump_object(obj);
+            } else {
+                int cnt = map->count(map);
+                dbg_str(BUS_DETAIL, "not found object :%s, ret:%d, cnt:%d", obj_name, ret, cnt);
+                return -1;
             }
-        }
+        } 
     }
 
     if (attr[BUSD_INVOKE_METHORD]) {

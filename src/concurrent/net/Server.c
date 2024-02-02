@@ -101,6 +101,7 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
 
     task->opaque = server->opaque;
     task->socket = socket;
+    task->fd     = fd;
     task->event  = event;
     len_bak      = task->buf_len;
 

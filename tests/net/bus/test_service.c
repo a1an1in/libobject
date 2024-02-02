@@ -1,6 +1,7 @@
 #if (!defined(WINDOWS_USER_MODE))
 #include <unistd.h>
 #include <libobject/net/bus/bus.h>
+#include <libobject/core/utils/registry/registry.h>
 
 static const struct blob_policy_s hello_policy[] = {
 	[0] = { .name = "id", .type = BLOB_TYPE_INT32 },
@@ -55,6 +56,7 @@ static struct bus_object test_object = {
 	.methods   = (struct bus_method *)test_methods,
 	.n_methods = ARRAY_SIZE(test_methods),
 };
+
 void test_bus_server()
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -91,4 +93,5 @@ void test_bus_server()
 #endif
     bus_destroy(bus);
 }
+REGISTER_TEST_CMD(test_bus_server);
 #endif

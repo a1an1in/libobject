@@ -39,7 +39,7 @@ timedatectl list-timezones  # list all
  **/
 ./sysroot/linux/bin/xtools mockery --log-level=6 test_coredump_signal
 addr2line -e ./sysroot/linux/bin/xtools 0x253dc
-addr2line -e ./sysroot/linux/bin/xtools  0x2d6
+addr2line -e ./sysroot/linux/bin/xtools 0x99012
 ```
 
 ## bus test

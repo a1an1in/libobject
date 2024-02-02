@@ -36,6 +36,7 @@
 #include <libobject/core/utils/miscellany/buffer.h>
 #include <libobject/net/bus/busd.h>
 #include <libobject/net/bus/bus.h>
+#include <libobject/core/utils/registry/registry.h>
 
 void test_bus_daemon()
 {
@@ -68,4 +69,5 @@ void test_bus_daemon()
     busd_destroy(busd);
     dbg_str(DBG_DETAIL,"run at here");
 }
+REGISTER_TEST_CMD(test_bus_daemon);
 #endif

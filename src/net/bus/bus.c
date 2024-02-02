@@ -84,10 +84,9 @@ int bus_init(bus_t *bus,
              char *server_srv, 
              int (*process_client_task_cb)(void *task))
 {
-    configurator_t * c;
-
+    Map *map;
     if (bus->client_sk_type == NULL) {
-        bus->client_sk_type = (char *)(&(CLIENT_TYPE_INET_TCP));
+        bus->client_sk_type = (char *)((CLIENT_TYPE_INET_TCP));
     }
 
     bus->server_host = server_host;
@@ -110,14 +109,13 @@ int bus_init(bus_t *bus,
     blob_init(bus->blob);
 
     /*create object hash map*/
-    c = cfg_alloc(bus->allocator); 
-    cfg_config_num(c, "/Hash_Map", "key_size", 40) ;  
-    cfg_config_num(c, "/Hash_Map", "value_size", 8) ;
-    cfg_config_num(c, "/Hash_Map", "bucket_size", 10) ;
-    bus->obj_map = OBJECT_NEW(bus->allocator, Hash_Map, c->buf);
-    bus->req_map = OBJECT_NEW(bus->allocator, Hash_Map, c->buf);
+    bus->obj_map = object_new(bus->allocator, "RBTree_Map", NULL);
+    map = bus->obj_map;
+    map->set_cmp_func(map, string_key_cmp_func);
+    bus->req_map = object_new(bus->allocator, "RBTree_Map", NULL);
+    map = bus->req_map;
+    map->set_cmp_func(map, string_key_cmp_func);
 
-    cfg_destroy(c);
     return 1;
 }
 

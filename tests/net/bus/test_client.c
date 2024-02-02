@@ -1,6 +1,7 @@
 #if (!defined(WINDOWS_USER_MODE))
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/net/bus/bus.h>
+#include <libobject/core/utils/registry/registry.h>
 
 #if 1
 void test_bus_client()
@@ -23,8 +24,8 @@ void test_bus_client()
         [0] = {ARG_TYPE_INT32,"id", "123"},
         [1] = {ARG_TYPE_STRING,"content", "hello_world"},
     };
-    
-    dbg_str(DBG_DETAIL,"test_bus_client");
+
+    dbg_str(DBG_VIP,"test_bus_client");
 
     bus = bus_create(allocator,
                      deamon_host,
@@ -32,11 +33,13 @@ void test_bus_client()
                      CLIENT_TYPE_INET_TCP);
 
     bus_invoke_sync(bus,"test", "hello",2, args,out,&out_len);
-    dbg_buf(DBG_DETAIL,"return buffer:",(uint8_t *)out, out_len);
+    dbg_buf(DBG_VIP,"return buffer:",(uint8_t *)out, out_len);
 
+    pause();
     bus_destroy(bus);
 	
 }
+REGISTER_TEST_CMD(test_bus_client);
 #else
 void test_bus_client()
 {
@@ -59,7 +62,7 @@ void test_bus_client()
         [1] = {ARG_TYPE_STRING,"content", "hello_world"},
     };
     
-    dbg_str(DBG_DETAIL,"test_bus_client");
+    dbg_str(DBG_VIP,"test_bus_client");
 
     bus = bus_create(allocator,
                      deamon_host,
@@ -71,5 +74,6 @@ void test_bus_client()
     bus_destroy(bus);
 	
 }
+REGISTER_TEST_CMD(test_bus_client);
 #endif
 #endif
