@@ -481,6 +481,8 @@ static int busd_process_receiving_data_callback(void *task)
     busd_t *busd = (busd_t *)t->opaque;
     int len;
 
+    if (t->buf_len == 0) return 0;
+
     hdr = (bus_reqhdr_t *)t->buf;
     blob_attr = (blob_attr_t *)(t->buf + sizeof(bus_reqhdr_t));
 
@@ -511,17 +513,22 @@ busd_t *busd_create(allocator_t *allocator,
                     char *server_srv, 
                     char *socket_type)
 {
-    busd_t *busd;
+    busd_t *busd = NULL;
+    int ret;
     
-    dbg_str(BUS_DETAIL, "bus_daemon_create");
-    busd = busd_alloc(allocator);
+    TRY {
+        dbg_str(BUS_DETAIL, "bus_daemon_create");
+        busd = busd_alloc(allocator);
 
-    busd_set(busd, (char *)"server_sk_type", socket_type, 0);
+        busd_set(busd, (char *)"server_sk_type", socket_type, 0);
 
-    busd_init(busd, //busd_t *busd, 
-              server_host, //char *server_host, 
-              server_srv, //char *server_srv, 
-              busd_process_receiving_data_callback);
+        busd_init(busd, //busd_t *busd, 
+                server_host, //char *server_host, 
+                server_srv, //char *server_srv, 
+                busd_process_receiving_data_callback);
+    } CATCH (ret) {
+        busd = NULL;
+    }
 
     return busd;
 }

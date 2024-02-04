@@ -7,37 +7,30 @@ int test_bus_client_invoke_sync()
 {
     allocator_t *allocator = allocator_get_default_instance();
     bus_t *bus;
-#if 0
-    char *deamon_host = "bus_server_path";
-    char *deamon_srv = NULL;
-#else
     char *deamon_host = "127.0.0.1";
     char *deamon_srv  = "12345";
-#endif
 	char out[1024] = {0};
     char out_len;
-    /*
-     *char *args[2] = {"abc","hello world!"};
-     */
     bus_method_args_t args[2] = {
         [0] = {ARG_TYPE_INT32,"id", "123"},
         [1] = {ARG_TYPE_STRING,"content", "hello_world"},
     };
+    int ret;
 
-    dbg_str(DBG_VIP,"test_bus_client");
+    TRY {
+        dbg_str(DBG_VIP,"test_bus_client");
+        bus = bus_create(allocator,
+                        deamon_host,
+                        deamon_srv,
+                        CLIENT_TYPE_INET_TCP);
 
-    bus = bus_create(allocator,
-                     deamon_host,
-                     deamon_srv,
-                     CLIENT_TYPE_INET_TCP);
+        bus_invoke_sync(bus,"test", "hello",2, args,out,&out_len);
+        dbg_buf(DBG_VIP,"return buffer:",(uint8_t *)out, out_len);
+    } CATCH (ret) {} FINALLY {
+        bus_destroy(bus);
+    }
 
-    bus_invoke_sync(bus,"test", "hello",2, args,out,&out_len);
-    dbg_buf(DBG_VIP,"return buffer:",(uint8_t *)out, out_len);
-
-    pause();
-    bus_destroy(bus);
-	
-    return 1;
+    return ret;
 }
 REGISTER_TEST_CMD(test_bus_client_invoke_sync);
 

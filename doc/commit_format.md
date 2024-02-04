@@ -4,5 +4,5 @@ Description:.
 update.
 
 Major Changes:
-1. fix socket::accept.
-2. add some logs.
+1. fix call bus funtion twice error.
+2. add try catch for bus tests.

@@ -38,36 +38,36 @@
 #include <libobject/net/bus/bus.h>
 #include <libobject/core/utils/registry/registry.h>
 
-void test_bus_daemon()
+int test_bus_daemon()
 {
     allocator_t *allocator = allocator_get_default_instance();
     busd_t *busd;
-#if 0
-    char *deamon_host = "bus_server_path";
-    char *deamon_srv = NULL;
-#else
     char *deamon_host = "127.0.0.1";
     char *deamon_srv  = "12345";
-#endif
-    
-    dbg_str(BUS_DETAIL,"test_busd_daemon");
+    int ret;
 
-    busd = busd_create(allocator,
-                       deamon_host,
-                       deamon_srv, 
-                       SERVER_TYPE_INET_TCP);
+    TRY {
+        dbg_str(BUS_DETAIL,"test_busd_daemon");
 
-    /*
-	 *while(1) sleep(1);
-     */
+        busd = busd_create(allocator,
+                        deamon_host,
+                        deamon_srv, 
+                        SERVER_TYPE_INET_TCP);
+    } CATCH (ret) {} FINALLY {
+        /*
+        *while(1) sleep(1);
+        */
 #if (defined(WINDOWS_USER_MODE))
-    system("pause");
+        system("pause");
 #else
-    pause();
+        pause();
 #endif
-    dbg_str(DBG_DETAIL,"run at here");
-    busd_destroy(busd);
-    dbg_str(DBG_DETAIL,"run at here");
+        dbg_str(DBG_DETAIL,"run at here");
+        busd_destroy(busd);
+        dbg_str(DBG_DETAIL,"run at here");
+    }
+
+    return ret;
 }
 REGISTER_TEST_CMD(test_bus_daemon);
 #endif

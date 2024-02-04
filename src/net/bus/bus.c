@@ -598,7 +598,7 @@ bus_reply_forward_invoke(bus_t *bus, char *obj_name,
     uint32_t buffer_len, tmp_len;
     allocator_t *allocator = bus->allocator;
 
-    dbg_str(BUS_SUC, "bus_reply_forward_invoke");
+    dbg_str(BUS_DETAIL, "bus_reply_forward_invoke");
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUS_REPLY_FORWARD_INVOKE;
@@ -654,7 +654,7 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
     char buffer[MAX_BUFFER_LEN];
     int ret, buffer_len = 9;
 
-    dbg_str(BUS_SUC, "bus_handle_forward_invoke");
+    dbg_str(BUS_DETAIL, "bus_handle_forward_invoke");
 
     if (attr[BUS_INVOKE_SRC_FD]) {
         src_fd = blob_get_u32(attr[BUS_INVOKE_SRC_FD]);
