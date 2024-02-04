@@ -445,7 +445,7 @@ int bus_invoke_async(bus_t *bus, char *key, char *method, int argc, char **args)
 int
 bus_invoke_sync(bus_t *bus, char *object, char *method,
                 int argc, bus_method_args_t *args, 
-                char *out_buf, char *out_len)
+                char *out_buf, uint32_t *out_len)
 {
     bus_req_t *req;
     Map *map = bus->req_map;
@@ -769,10 +769,14 @@ int bus_destroy(bus_t *bus)
 {
     allocator_t *allocator = bus->allocator;
 
+    if (bus == NULL) return 0;
+
     object_destroy(bus->obj_map);
     object_destroy(bus->req_map);
     blob_destroy(bus->blob);
     client_destroy(bus->client);
     allocator_mem_free(allocator, bus);
+
+    return 1;
 }
 #endif

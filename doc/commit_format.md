@@ -1,8 +1,7 @@
-[update:bus] fix bugs in bus.
+[update:xtool] del useless files.
 
 Description:.
 update.
 
 Major Changes:
-1. fix call bus funtion twice error.
-2. add try catch for bus tests.
+1. update.
