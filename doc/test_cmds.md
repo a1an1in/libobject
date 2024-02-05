@@ -48,3 +48,8 @@ addr2line -e ./sysroot/linux/bin/xtools 0x98c00
 ./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=6 test_bus_client_invoke_sync
 
 ```
+
+## net
+```
+ping6 2409:8c20:1833:1000::ad5:2cb5
+```

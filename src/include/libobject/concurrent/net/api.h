@@ -9,13 +9,19 @@
 #include <libobject/concurrent/net/Client.h>
 #include <libobject/concurrent/net/Server.h>
 
-#define SERVER_TYPE_INET_TCP "inet_tcp_server_type"
-#define SERVER_TYPE_UNIX_TCP "tcp_userver_type"
+#define SERVER_TYPE_INET_TCP    "inet_tcp_server_type"
+#define SERVER_TYPE_UNIX_TCP    "tcp_userver_type"
+#define CLIENT_TYPE_UNIX_TCP    "unix_tcp_client_type"
+#define CLIENT_TYPE_INET_TCP    "inet_tcp_client_type"
+#define CLIENT_TYPE_INET_UDP    "inet_udp_client_type"
+#define CLIENT_TYPE_UNIX_UDP    "unix_udp_client_type"
 
-#define CLIENT_TYPE_INET_TCP "inet_tcp_client_type"
-#define CLIENT_TYPE_INET_UDP "inet_udp_client_type"
-#define CLIENT_TYPE_UNIX_TCP "unix_tcp_client_type"
-#define CLIENT_TYPE_UNIX_UDP "unix_udp_client_type"
+#define SERVER_TYPE_INET_TCP_V6 "inet_tcp_v6_server_type"
+#define SERVER_TYPE_UNIX_TCP_V6 "tcp_v6_userver_type"
+#define CLIENT_TYPE_UNIX_TCP_V6 "unix_tcp_v6_client_type"
+#define CLIENT_TYPE_INET_TCP_V6 "inet_tcp_v6_client_type"
+#define CLIENT_TYPE_INET_UDP_V6 "inet_udp_v6_client_type"
+#define CLIENT_TYPE_UNIX_UDP_V6 "unix_udp_v6_client_type"
 
 void *client(allocator_t *allocator, char *type,
              char *host, char *service);

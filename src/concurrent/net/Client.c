@@ -143,25 +143,3 @@ static class_info_entry_t client_class_info[] = {
     Init_End___Entry(10, Client),
 };
 REGISTER_CLASS("Client", client_class_info);
-
-void test_obj_client()
-{
-    Client *client;
-    allocator_t *allocator = allocator_get_default_instance();
-    char buf[2048];
-
-    dbg_str(NET_DETAIL, "test_obj_client");
-    client = OBJECT_NEW(allocator, Client, NULL);
-
-    /*
-     *object_dump(client, "Client", buf, 2048);
-     *dbg_str(NET_DETAIL, "Client dump: %s", buf);
-     */
-#if (defined(WINDOWS_USER_MODE))
-    system("pause"); 
-#else
-    pause();
-#endif
-
-    object_destroy(client);
-}

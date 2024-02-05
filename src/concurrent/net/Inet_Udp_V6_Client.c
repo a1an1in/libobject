@@ -1,9 +1,9 @@
 /**
- * @file Inet_Tcp_Server.c
- * @Synopsis  
- * @author alan lin
+ * @file Inet_Udp_V6_Client.c
+ * @synopsis 
+ * @author a1an1in@sina.com
  * @version 
- * @date 2017-10-24
+ * @date 2024-02-05
  */
 /* Copyright (c) 2015-2020 alan lin <a1an1in@sina.com>
  * Redistribution and use in source and binary forms, with or without
@@ -33,46 +33,49 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/concurrent/net/Inet_Tcp_Server.h>
+#include <libobject/concurrent/net/Inet_Udp_V6_Client.h>
 
-static int __construct(Inet_Tcp_Server *server, char *init_str)
+static int __construct(Inet_Udp_V6_Client *client, char *init_str)
 {
-    allocator_t *allocator = server->parent.obj.allocator;
-    int opt = 1;
+    allocator_t *allocator = client->parent.obj.allocator;
 
-    dbg_str(NET_DETAIL, "Inet_Tcp_Server construct, server addr:%p", server);
-    server->parent.socket = object_new(allocator, "Inet_Tcp_Socket", NULL);
-    if (server->parent.socket == NULL) {
-        dbg_str(NET_ERROR, "new Inet_Udp_Socket error");
+    dbg_str(NET_DETAIL, "Inet_Udp_V6_Client construct, client addr:%p", client);
+    client->parent.socket = object_new(allocator, "Inet_Udp_V6_Socket", NULL);
+    if (client->parent.socket == NULL) {
+        dbg_str(NET_ERROR, "OBJECT_NEW Inet_Udp_V6_Socket");
         return -1;
     }
 
-    server->parent.worker = object_new(allocator, "Worker", NULL);
-    if (server->parent.worker == NULL) {
-        dbg_str(NET_ERROR, "new Worker error");
+    client->parent.worker = object_new(allocator, "Worker", NULL);
+    if (client->parent.worker == NULL) {
+        dbg_str(NET_ERROR, "OBJECT_NEW Worker");
         return -1;
     }
 
     return 0;
 }
 
-static int __deconstrcut(Inet_Tcp_Server *server)
+static int __deconstrcut(Inet_Udp_V6_Client *client)
 {
-    dbg_str(NET_DETAIL, "server deconstruct, server addr:%p", server);
-    object_destroy(server->parent.socket);
-    object_destroy(server->parent.worker);
+    dbg_str(NET_DETAIL, "Inet_Udp_V6_Client deconstruct, client addr:%p", client);
+    object_destroy(client->parent.socket);
+    object_destroy(client->parent.worker);
 
     return 0;
 }
 
-static class_info_entry_t concurent_class_info[] = {
-    Init_Obj___Entry(0 , Server, parent),
-    Init_Nfunc_Entry(1 , Inet_Tcp_Server, construct, __construct),
-    Init_Nfunc_Entry(2 , Inet_Tcp_Server, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Inet_Tcp_Server, set, NULL),
-    Init_Vfunc_Entry(4 , Inet_Tcp_Server, get, NULL),
-    Init_Vfunc_Entry(5 , Inet_Tcp_Server, bind, NULL),
-    Init_Vfunc_Entry(6 , Inet_Tcp_Server, trustee, NULL),
-    Init_End___Entry(7 , Inet_Tcp_Server),
+static class_info_entry_t inet_udp_v6_client_class_info[] = {
+    Init_Obj___Entry(0 , Client, parent),
+    Init_Nfunc_Entry(1 , Inet_Udp_V6_Client, construct, __construct),
+    Init_Nfunc_Entry(2 , Inet_Udp_V6_Client, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Inet_Udp_V6_Client, set, NULL),
+    Init_Vfunc_Entry(4 , Inet_Udp_V6_Client, get, NULL),
+    Init_Vfunc_Entry(5 , Inet_Udp_V6_Client, bind, NULL),
+    Init_Vfunc_Entry(6 , Inet_Udp_V6_Client, connect, NULL),
+    Init_Vfunc_Entry(7 , Inet_Udp_V6_Client, send, NULL),
+    Init_Vfunc_Entry(8 , Inet_Udp_V6_Client, recv, NULL),
+    Init_Vfunc_Entry(9 , Inet_Udp_V6_Client, trustee, NULL),
+    Init_End___Entry(10, Inet_Udp_V6_Client),
 };
-REGISTER_CLASS("Inet_Tcp_Server", concurent_class_info);
+REGISTER_CLASS("Inet_Udp_V6_Client", inet_udp_v6_client_class_info);
+

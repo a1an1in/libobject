@@ -1,7 +1,8 @@
-[update:bus] merge bus deamon and server to one case.
+[update:net] support udp ipv6.
 
 Description:.
-update.
+udp ipv6 has passed recieve and send tests.
 
 Major Changes:
-1. update.
+1. add Udp v6 classes.
+2. add Udp v6 test cases.
