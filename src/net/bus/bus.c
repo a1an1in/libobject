@@ -233,9 +233,9 @@ int bus_handle_add_object_reply(bus_t *bus, blob_attr_t **attr)
     }
 
     if ( state == 1) {
-        dbg_str(BUS_SUC, "add obj success");
+        dbg_str(BUS_SUC, "bus add obj success");
     } else {
-        dbg_str(BUS_ERROR, "add obj failed");
+        dbg_str(BUS_ERROR, "bus add obj failed");
         //..... del the obj
     }
 

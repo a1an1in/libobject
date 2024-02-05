@@ -1,6 +1,7 @@
 #if (!defined(WINDOWS_USER_MODE))
 #include <unistd.h>
 #include <libobject/net/bus/bus.h>
+#include <libobject/net/bus/busd.h>
 #include <libobject/core/utils/registry/registry.h>
 
 static const struct blob_policy_s hello_policy[] = {
@@ -57,41 +58,43 @@ static struct bus_object test_object = {
 	.n_methods = ARRAY_SIZE(test_methods),
 };
 
-void test_bus_server()
+static int test_bus_server()
 {
     allocator_t *allocator = allocator_get_default_instance();
-    bus_t *bus;
-#if 0
-    char *deamon_host = "bus_server_path";
-    char *deamon_srv = NULL;
-#else
-	/*
-     *char *deamon_host = "192.168.20.49";
-	 */
+    bus_t *bus = NULL;
+    busd_t *busd = NULL;
     char *deamon_host = "127.0.0.1";
     char *deamon_srv  = "12345";
-#endif
 	char buf[1024]    = "hello world!";
 	int buf_len       = strlen(buf);
+    int ret;
     
-    dbg_str(DBG_DETAIL, "hello policy addr:%p",hello_policy);
-    bus = bus_create(allocator,
-                     deamon_host,
-                     deamon_srv, 
-                     CLIENT_TYPE_INET_TCP);
+    TRY {
+        dbg_str(DBG_VIP,"test create busd_daemon");
+        busd = busd_create(allocator, deamon_host,
+                           deamon_srv, SERVER_TYPE_INET_TCP);
+        THROW_IF(busd == NULL, -1);
 
-    dbg_str(BUS_DETAIL, "bus add object");
-	bus_add_object(bus, &test_object);
+        dbg_str(DBG_VIP,"test create bus service");
+        bus = bus_create(allocator, deamon_host,
+                         deamon_srv, CLIENT_TYPE_INET_TCP);
+        THROW_IF(bus == NULL, -1);
 
-    /*
-	 *while(1) sleep(1);
-     */
-#if (defined(WINDOWS_USER_MODE))
-    system("pause");
-#else
-    pause();
-#endif
-    bus_destroy(bus);
+        dbg_str(DBG_VIP, "bus add object");
+        bus_add_object(bus, &test_object);
+
+    #if (defined(WINDOWS_USER_MODE))
+        system("pause");
+    #else
+        pause();
+    #endif
+        
+    } CATCH (ret) {} FINALLY {
+        bus_destroy(bus);
+        busd_destroy(busd);
+    }
+
+    return ret;
 }
 REGISTER_TEST_CMD(test_bus_server);
 #endif

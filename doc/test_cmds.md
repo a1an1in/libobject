@@ -44,8 +44,7 @@ addr2line -e ./sysroot/linux/bin/xtools 0x98c00
 
 ## bus test
 ```
-./sysroot/linux/bin/xtools --event-thread-service=11121 --event-signal-service=11122 mockery --log-level=6 test_bus_daemon
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 mockery --log-level=6 test_bus_server
-./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=6 test_bus_client
+./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=6 test_bus_client_invoke_sync
 
 ```

@@ -25,4 +25,3 @@ static class_info_entry_t module_class_info[] = {
     Init_End___Entry(3, Module),
 };
 REGISTER_CLASS("Module", module_class_info);
-

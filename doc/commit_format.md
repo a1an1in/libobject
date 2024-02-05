@@ -1,4 +1,4 @@
-[update:xtool] del useless files.
+[update:bus] merge bus deamon and server to one case.
 
 Description:.
 update.
