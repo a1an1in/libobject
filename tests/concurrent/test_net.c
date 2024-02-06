@@ -11,7 +11,7 @@ static int test_work_callback(void *task)
     work_task_t *t = (work_task_t *)task;
 
     if (t->buf_len == 0) { return 0; }
-    dbg_str(NET_SUC,"task len:%d %s", t->buf_len, t->buf);
+    dbg_str(NET_SUC,"task len:%d content:%s", t->buf_len, t->buf);
     
     return 1;
 }

@@ -68,14 +68,7 @@ static class_info_entry_t inet_udp_v6_client_class_info[] = {
     Init_Obj___Entry(0 , Client, parent),
     Init_Nfunc_Entry(1 , Inet_Udp_V6_Client, construct, __construct),
     Init_Nfunc_Entry(2 , Inet_Udp_V6_Client, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3 , Inet_Udp_V6_Client, set, NULL),
-    Init_Vfunc_Entry(4 , Inet_Udp_V6_Client, get, NULL),
-    Init_Vfunc_Entry(5 , Inet_Udp_V6_Client, bind, NULL),
-    Init_Vfunc_Entry(6 , Inet_Udp_V6_Client, connect, NULL),
-    Init_Vfunc_Entry(7 , Inet_Udp_V6_Client, send, NULL),
-    Init_Vfunc_Entry(8 , Inet_Udp_V6_Client, recv, NULL),
-    Init_Vfunc_Entry(9 , Inet_Udp_V6_Client, trustee, NULL),
-    Init_End___Entry(10, Inet_Udp_V6_Client),
+    Init_End___Entry(3 , Inet_Udp_V6_Client),
 };
 REGISTER_CLASS("Inet_Udp_V6_Client", inet_udp_v6_client_class_info);
 
