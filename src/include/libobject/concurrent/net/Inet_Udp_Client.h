@@ -8,7 +8,7 @@
 
 typedef struct inet_udp_client_s Inet_Udp_Client;
 
-struct inet_udp_client_s{
+struct inet_udp_client_s {
     Client parent;
 
     int (*construct)(Inet_Udp_Client *,char *init_str);

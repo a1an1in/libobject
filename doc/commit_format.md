@@ -1,8 +1,7 @@
-[update:net] support udp ipv6.
+[update:test] change hash map ctest to mockery.
 
-Description:.
-udp ipv6 has passed recieve and send tests.
+Description:
+update.
 
 Major Changes:
-1. add Udp v6 classes.
-2. add Udp v6 test cases.
+1. update.

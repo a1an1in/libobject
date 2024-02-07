@@ -9,7 +9,7 @@
 
 typedef struct client_s Client;
 
-struct client_s{
+struct client_s {
     Obj obj;
 
     int (*construct)(Client *,char *init_str);

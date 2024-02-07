@@ -9,7 +9,7 @@
 #define MAX_CLASS_NAME_LEN 25
 
 typedef struct obj_s Obj;
-struct obj_s{
+struct obj_s {
     allocator_t *allocator;
 
     int (*construct)(Obj *obj,char *init_str);

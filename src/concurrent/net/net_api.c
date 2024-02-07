@@ -101,7 +101,7 @@ void *server(allocator_t *allocator, char *type,
     int ret;
 
     TRY {
-        if(!strcmp(type, SERVER_TYPE_INET_TCP)){
+        if (!strcmp(type, SERVER_TYPE_INET_TCP)) {
             THROW_IF(work_callback == NULL, -1);
             server = OBJECT_NEW(allocator, Inet_Tcp_Server, NULL);
             EXEC(server->bind(server, host, service)); 
