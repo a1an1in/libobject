@@ -39,8 +39,8 @@
 #include <libobject/net/bus/bus.h>
 
 static const blob_policy_t bus_policy[] = {
-    [BUS_ID]            = { .name = "id",             .type = BLOB_TYPE_INT32 }, 
-    [BUS_OBJNAME]       = { .name = "object_name",    .type = BLOB_TYPE_STRING }, 
+    [BUS_OBJID]         = { .name = "object_id",      .type = BLOB_TYPE_STRING }, 
+    // [BUS_OBJNAME]       = { .name = "object_name",    .type = BLOB_TYPE_STRING }, 
     [BUS_OBJINFOS]      = { .name = "object_infos",   .type = BLOB_TYPE_STRING }, 
     [BUS_STATE]         = { .name = "state",          .type = BLOB_TYPE_INT32 }, 
     [BUS_OPAQUE]        = { .name = "opaque",         .type = BLOB_TYPE_BUFFER }, 
@@ -137,7 +137,7 @@ int __bus_add_obj(bus_t *bus, struct bus_object *obj)
 {
     Map *map = bus->obj_map;
 
-    return map->add(map, obj->name, obj);
+    return map->add(map, obj->id, obj);
 }
 
 int bus_convert_object_to_json(bus_t *bus, struct bus_object *obj, char *out)
@@ -148,7 +148,7 @@ int bus_convert_object_to_json(bus_t *bus, struct bus_object *obj, char *out)
     char *tmp;
 
     root = cjson_create_object();
-    cjson_add_item_to_object(root, "object name", cjson_create_string(obj->name));
+    cjson_add_item_to_object(root, "object_id", cjson_create_string(obj->id));
     methods = cjson_create_object();
     cjson_add_item_to_object(root, "methods", methods);
 
@@ -194,8 +194,8 @@ int bus_add_object(bus_t *bus, struct bus_object *obj)
     bus_convert_object_to_json(bus, obj, object_infos);
 
     blob_add_table_start(blob, (char *)"object"); {
-        blob_add_string(blob, (char *)"object_name", obj->name);
-        blob_add_u32(blob, (char *)"id", 1);
+        blob_add_string(blob, (char *)"object_id", obj->id);
+        // blob_add_u32(blob, (char *)"id", 1);
         blob_add_string(blob, (char *)"object_infos", object_infos);
     }
     blob_add_table_end(blob);
@@ -228,8 +228,8 @@ int bus_handle_add_object_reply(bus_t *bus, blob_attr_t **attr)
         dbg_str(BUS_DETAIL, "state=%d", state);
     }
 
-    if (attr[BUS_OBJNAME]) {
-        dbg_str(BUS_DETAIL, "object name:%s", blob_get_string(attr[BUS_OBJNAME]));
+    if (attr[BUS_OBJID]) {
+        dbg_str(BUS_DETAIL, "object_id:%s", blob_get_string(attr[BUS_OBJID]));
     }
 
     if ( state == 1) {
@@ -256,7 +256,7 @@ int bus_lookup(bus_t *bus, char *key)
     hdr.type = BUS_REQ_LOOKUP;
 
     blob_add_table_start(blob, (char *)"lookup"); {
-        blob_add_string(blob, (char *)"object_name", key);
+        blob_add_string(blob, (char *)"object_id", key);
     }
     blob_add_table_end(blob);
 
@@ -330,7 +330,7 @@ int bus_handle_lookup_object_reply(bus_t *bus, blob_attr_t **attr)
     struct bus_object *obj;
     blob_attr_t *attrib, *head;
     Map *map = bus->req_map;
-    char *obj_name, *infos = NULL;
+    char *object_id, *infos = NULL;
     bus_req_t *req;
     uint32_t len;
 #define MAX_BUFFER_LEN 2048
@@ -340,12 +340,9 @@ int bus_handle_lookup_object_reply(bus_t *bus, blob_attr_t **attr)
 
     dbg_str(BUS_DETAIL, "bus_handle_lookup_object_reply");
 
-    if (attr[BUS_ID]) {
-        dbg_str(BUS_DETAIL, "object id:%d", blob_get_u32(attr[BUS_ID]));
-    }
-    if (attr[BUS_OBJNAME]) {
-        obj_name = blob_get_string(attr[BUS_OBJNAME]);
-        dbg_str(BUS_DETAIL, "object name:%s", obj_name);
+    if (attr[BUS_OBJID]) {
+        object_id = blob_get_string(attr[BUS_OBJID]);
+        dbg_str(BUS_DETAIL, "object_id:%s", object_id);
     }
     if (attr[BUS_OBJINFOS]) {
         infos = blob_get_string(attr[BUS_OBJINFOS]);
@@ -354,7 +351,7 @@ int bus_handle_lookup_object_reply(bus_t *bus, blob_attr_t **attr)
          */
     }
 
-    sprintf(key, "%s@lookup", obj_name);
+    sprintf(key, "%s@lookup", object_id);
     ret = map->search(map, key, (void **)&req);
     if (ret > 0) {
         char c =  1;
@@ -495,7 +492,7 @@ bus_invoke_sync(bus_t *bus, char *object, char *method,
 
 int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
 {
-    char *obj_name, *method_name;
+    char *object_id, *method_name;
     Map *map = bus->req_map;
     bus_req_t *req;
     int state;
@@ -512,9 +509,9 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
         state = blob_get_u32(attr[BUS_STATE]);
         dbg_str(BUS_DETAIL, "state:%d", state);
     }
-    if (attr[BUS_OBJNAME]) {
-        obj_name = blob_get_string(attr[BUS_OBJNAME]);
-        dbg_str(BUS_DETAIL, "object name:%s", obj_name);
+    if (attr[BUS_OBJID]) {
+        object_id = blob_get_string(attr[BUS_OBJID]);
+        dbg_str(BUS_DETAIL, "object_id:%s", object_id);
     }
     if (attr[BUS_INVOKE_METHOD]) {
         method_name = blob_get_string(attr[BUS_INVOKE_METHOD]);
@@ -526,7 +523,7 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
     }
 
     if (method_name != NULL) {
-        sprintf(key, "%s@%s", obj_name, method_name);
+        sprintf(key, "%s@%s", object_id, method_name);
         ret = map->search(map, key, (void **)&req);
         if (ret > 0) {
             char c =  1;
@@ -587,7 +584,7 @@ bus_get_n_policy(bus_object_t *obj, char *method)
 }
 
 int 
-bus_reply_forward_invoke(bus_t *bus, char *obj_name,
+bus_reply_forward_invoke(bus_t *bus, char *object_id,
                          char *method_name, int ret, char *buf,
                          int buf_len, int src_fd)
 {
@@ -605,7 +602,7 @@ bus_reply_forward_invoke(bus_t *bus, char *obj_name,
 
     blob_reset(blob);
     blob_add_table_start(blob, (char *)"reply_forward_invoke"); {
-        blob_add_string(blob, (char *)"object_name", obj_name);
+        blob_add_string(blob, (char *)"object_id", object_id);
         blob_add_string(blob, (char *)"invoke_method", method_name);
         blob_add_u32(blob, (char *)"state", ret);
         blob_add_buffer(blob, (char *)"opaque", (uint8_t *)buf, buf_len);
@@ -642,7 +639,7 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
     blob_attr_t *args = NULL;
     int argc = 0;
     char *method_name = NULL;
-    char *obj_name;
+    char *object_id;
     int src_fd = -1;
     hash_map_pos_t pos;
     bus_handler_t method;
@@ -672,13 +669,13 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
         dbg_str(BUS_DETAIL, "invoke args");
         args = attr[BUS_INVOKE_ARGS];
     }
-    if (attr[BUS_OBJNAME]) {
-        obj_name = blob_get_string(attr[BUS_OBJNAME]);
-        dbg_str(BUS_DETAIL, "object name:%s", obj_name);
+    if (attr[BUS_OBJID]) {
+        object_id = blob_get_string(attr[BUS_OBJID]);
+        dbg_str(BUS_DETAIL, "object_id:%s", object_id);
     }
 
     if (method_name != NULL) {
-        ret = map->search(map, obj_name, (void **)&obj);
+        ret = map->search(map, object_id, (void **)&obj);
         if (ret > 0) {
             method = bus_get_method_handler(obj, method_name);
             policy = bus_get_policy(obj, method_name);
@@ -691,7 +688,7 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
             if (buffer_len > MAX_BUFFER_LEN) {
                 dbg_str(BUS_WARNNING, "buffer is too small, please check");
             } 
-            bus_reply_forward_invoke(bus, obj_name, method_name, ret,
+            bus_reply_forward_invoke(bus, object_id, method_name, ret,
                                      buffer, buffer_len, src_fd);
         }
     }
@@ -732,6 +729,8 @@ static int bus_process_receiving_data_callback(void *task)
 
     len = blob_get_data_len(blob_attr);
     blob_attr =(blob_attr_t*) blob_get_data(blob_attr);
+
+    dbg_str(BUS_DETAIL, "bus_policy size:%d", ARRAY_SIZE(bus_policy));
 
     blob_parse_to_attr(bus_policy, 
                        ARRAY_SIZE(bus_policy), 

@@ -8,8 +8,7 @@
 #include <libobject/concurrent/net/Server.h>
 
 enum {
-	BUSD_ID,
-	BUSD_OBJNAME,
+	BUSD_OBJID,
 	BUSD_OBJINFOS,
     BUSD_INVOKE_KEY,
 	BUSD_INVOKE_METHORD,
@@ -39,8 +38,8 @@ typedef struct busd_s{
 }busd_t;
 
 typedef struct busd_object {
-	char *name;
-	uint32_t id;
+    // char *name;
+	char *id;
 	char  *infos;
     uint8_t fd;
     allocator_t *allocator;

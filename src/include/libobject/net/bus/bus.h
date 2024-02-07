@@ -7,8 +7,7 @@
 #include <libobject/concurrent/net/api.h>
 
 enum {
-	BUS_ID,
-	BUS_OBJNAME,
+	BUS_OBJID,
 	BUS_OBJINFOS,
 	BUS_STATE,
 	BUS_OPAQUE,
@@ -112,8 +111,8 @@ struct bus_method {
 };
 
 typedef struct bus_object {
-	char *name;
-	uint32_t id;
+	// char *name;
+	char *id;
 	char *path;
 	struct bus_method *methods;
 	int n_methods;

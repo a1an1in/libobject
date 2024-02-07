@@ -53,7 +53,8 @@ static const struct bus_method test_methods[] = {
 };
 
 static struct bus_object test_object = {
-	.name      = (char *)"test",
+	.id        = (char *)"test",
+    // .name      = (char *)"test_object", 
 	.methods   = (struct bus_method *)test_methods,
 	.n_methods = ARRAY_SIZE(test_methods),
 };

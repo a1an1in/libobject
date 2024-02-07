@@ -40,8 +40,8 @@
 #include <libobject/core/Hash_Map.h>
 
 static const struct blob_policy_s busd_policy[] = {
-    [BUSD_ID]             = { .name = "id",             .type = BLOB_TYPE_INT32 }, 
-    [BUSD_OBJNAME]        = { .name = "object_name",    .type = BLOB_TYPE_STRING }, 
+    [BUSD_OBJID]          = { .name = "object_id",      .type = BLOB_TYPE_STRING },
+    // [BUSD_OBJNAME]        = { .name = "object_name",    .type = BLOB_TYPE_STRING },  
     [BUSD_OBJINFOS]       = { .name = "object_infos",   .type = BLOB_TYPE_STRING }, 
     [BUSD_INVOKE_KEY]     = { .name = "invoke_key",     .type = BLOB_TYPE_STRING }, 
     [BUSD_INVOKE_METHORD] = { .name = "invoke_method",  .type = BLOB_TYPE_STRING }, 
@@ -64,7 +64,7 @@ void busd_release_object(void *key, void *element)
     struct busd_object *obj = (struct busd_object *)element;
     allocator_t *allocator = obj->allocator;
 
-    allocator_mem_free(allocator, obj->name);
+    allocator_mem_free(allocator, obj->id);
     allocator_mem_free(allocator, obj->infos);
     allocator_mem_free(allocator, obj);
 }
@@ -144,7 +144,7 @@ int busd_init(busd_t *busd,
 }
 
 struct busd_object *
-busd_create_bus_object(busd_t *busd, char *name, blob_attr_t *attr, int fd)
+busd_create_bus_object(busd_t *busd, char *object_id, blob_attr_t *attr, int fd)
 {
     struct busd_object *obj;
     blob_attr_t *attrib, *head;
@@ -163,8 +163,8 @@ busd_create_bus_object(busd_t *busd, char *name, blob_attr_t *attr, int fd)
     object_infos   = blob_get_string(attr);
     obj->fd        = fd;
     obj->allocator = allocator;
-    obj->name      = (char *)allocator_mem_zalloc(allocator, strlen(name) + 1);
-    strncpy(obj->name, name, strlen(name));
+    obj->id        = (char *)allocator_mem_zalloc(allocator, strlen(object_id) + 1);
+    strncpy(obj->id, object_id, strlen(object_id));
 
     obj->infos = (char *)allocator_mem_zalloc(allocator, strlen(object_infos));
     strncpy(obj->infos, object_infos, strlen(object_infos));
@@ -174,7 +174,7 @@ busd_create_bus_object(busd_t *busd, char *name, blob_attr_t *attr, int fd)
     return obj;
 }
 
-int busd_reply_add_object(busd_t *busd, int state, char *obj_name, int fd)
+int busd_reply_add_object(busd_t *busd, int state, char *object_id, int fd)
 {
     bus_reqhdr_t hdr;
     blob_t *blob = busd->blob;
@@ -192,7 +192,7 @@ int busd_reply_add_object(busd_t *busd, int state, char *obj_name, int fd)
     blob_reset(blob);
     blob_add_table_start(blob, (char *)"add_obj_reply"); {
         blob_add_u32(blob, (char *)"state", state);
-        blob_add_string(blob, (char *)"object_name", obj_name);
+        blob_add_string(blob, (char *)"object_id", object_id);
     }
     blob_add_table_end(blob);
 
@@ -213,29 +213,26 @@ int busd_handle_add_object(busd_t *busd, blob_attr_t **attr, int fd)
 {
     struct busd_object *obj;
     Map *map = busd->obj_map;
-    char *obj_name;
+    char *object_id;
     int state = -1;
     dbg_str(BUS_DETAIL, "ubusd_handle_add_object, fd:%d", fd);
 
-    if (attr[BUSD_ID]) {
-        dbg_str(BUS_DETAIL, "add object id:%d", blob_get_u32(attr[BUSD_ID]));
-    }
-    if (attr[BUSD_OBJNAME]) {
-        obj_name = blob_get_string(attr[BUSD_OBJNAME]);
-        dbg_str(BUS_DETAIL, "add object name:%s", blob_get_string(attr[BUSD_OBJNAME]));
+    if (attr[BUSD_OBJID]) {
+        object_id = blob_get_string(attr[BUSD_OBJID]);
+        dbg_str(BUS_DETAIL, "add object_id:%s", blob_get_string(attr[BUSD_OBJID]));
     }
     if (attr[BUSD_OBJINFOS]) {
         dbg_str(BUS_DETAIL, "add object infos");
-        obj = busd_create_bus_object(busd, blob_get_string(attr[BUSD_OBJNAME]), 
+        obj = busd_create_bus_object(busd, blob_get_string(attr[BUSD_OBJID]), 
                                      attr[BUSD_OBJINFOS], fd);
         if (obj != NULL) {
-            dbg_str(BUS_DETAIL, "insert obj:%s:%p", obj->name, obj);
-            map->add(map, obj->name, obj);
+            dbg_str(BUS_DETAIL, "insert obj:%s:%p", obj->id, obj);
+            map->add(map, obj->id, obj);
             state = 1;
         }
     }
 
-    busd_reply_add_object(busd, state, obj_name, fd);
+    busd_reply_add_object(busd, state, object_id, fd);
 
     return 0;
 }
@@ -257,9 +254,9 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
 
     blob_reset(blob);
     blob_add_table_start(blob, (char *)"lookup_reply"); {
-        dbg_str(BUS_DETAIL, "obj_name:%s", obj->name);
-        blob_add_string(blob, (char *)"object_name", obj->name);
-        blob_add_u32(blob, (char *)"id", 1);
+        dbg_str(BUS_DETAIL, "object_id:%s", obj->id);
+        blob_add_string(blob, (char *)"object_id", obj->id);
+        // blob_add_u32(blob, (char *)"id", 1);
         blob_add_string(blob, (char *)"object_infos", obj->infos);
     }
     blob_add_table_end(blob);
@@ -284,9 +281,9 @@ int busd_handle_lookup_object(busd_t *busd, blob_attr_t **attr, int fd)
     int ret;
 
     dbg_str(BUS_DETAIL, "busd_handle_lookup_object");
-    if (attr[BUSD_OBJNAME]) {
-        char *key = blob_get_string(attr[BUSD_OBJNAME]);
-        dbg_str(BUS_DETAIL, "lookup object name:%s", key);
+    if (attr[BUSD_OBJID]) {
+        char *key = blob_get_string(attr[BUSD_OBJID]);
+        dbg_str(BUS_DETAIL, "lookup object_id:%s", key);
         if (key != NULL) {
             ret = map->search(map, key, (void **)&obj);
             if (ret > 0) {
@@ -302,7 +299,7 @@ int busd_handle_lookup_object(busd_t *busd, blob_attr_t **attr, int fd)
 
 int 
 busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd,
-                    char *obj_name, char *method, 
+                    char *object_id, char *method, 
                     int argc, blob_attr_t *args)
 {
     bus_reqhdr_t hdr;
@@ -322,7 +319,7 @@ busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd,
     blob_add_table_start(blob, (char *)"forword_invoke"); {
         blob_add_u32(blob, (char *)"source_fd", src_fd);
         blob_add_u32(blob, (char *)"destination_fd", dest_fd);
-        blob_add_string(blob, (char *)"object_name", obj_name);
+        blob_add_string(blob, (char *)"object_id", object_id);
         blob_add_string(blob, (char *)"invoke_method", method);
         blob_add_u8(blob, (char *)"invoke_argc", argc);
         blob_catenate(blob, args);
@@ -350,23 +347,23 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
     int ret;
     uint8_t *p = NULL;
     char *method;
-    char *obj_name = NULL;
+    char *object_id = NULL;
     blob_attr_t *args = NULL;
     int argc = 0; 
 
     dbg_str(BUS_SUC, "busd_handle_invoke_method");
 
     if (attr[BUSD_INVOKE_KEY]) {
-        obj_name = blob_get_string(attr[BUSD_INVOKE_KEY]);
-        dbg_str(BUS_DETAIL, "invoke obj_name:%s", obj_name);
-        if (obj_name != NULL) {
-            ret = map->search(map, obj_name, (void **)&obj);
+        object_id = blob_get_string(attr[BUSD_INVOKE_KEY]);
+        dbg_str(BUS_DETAIL, "invoke object_id:%s", object_id);
+        if (object_id != NULL) {
+            ret = map->search(map, object_id, (void **)&obj);
             if (ret > 0) {
                 dbg_str(BUS_DETAIL, "obj addr:%p", obj);
                 busd_dump_object(obj);
             } else {
                 int cnt = map->count(map);
-                dbg_str(BUS_DETAIL, "not found object :%s, ret:%d, cnt:%d", obj_name, ret, cnt);
+                dbg_str(BUS_DETAIL, "not found object :%s, ret:%d, cnt:%d", object_id, ret, cnt);
                 return -1;
             }
         } 
@@ -385,12 +382,12 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
         args = attr[BUSD_INVOKE_ARGS];
     }
 
-    busd_forward_invoke(busd, fd, obj->fd, obj_name, method, argc, args);
+    busd_forward_invoke(busd, fd, obj->fd, object_id, method, argc, args);
 
     return 0;
 }
 
-int busd_reply_invoke(busd_t *busd, char *obj_name, char *method, int state, uint8_t *opaque, int opaque_len, int source_fd)
+int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, uint8_t *opaque, int opaque_len, int source_fd)
 {
     bus_reqhdr_t hdr;
     blob_t *blob = busd->blob;
@@ -409,7 +406,7 @@ int busd_reply_invoke(busd_t *busd, char *obj_name, char *method, int state, uin
     blob_add_table_start(blob, (char *)"invoke_reply"); {
         blob_add_u32(blob, (char *)"state", state);
         blob_add_buffer(blob, (char *)"opaque", opaque, opaque_len);
-        blob_add_string(blob, (char *)"object_name", obj_name);
+        blob_add_string(blob, (char *)"object_id", object_id);
         blob_add_string(blob, (char *)"invoke_method", method);
     }
     blob_add_table_end(blob);
@@ -431,7 +428,7 @@ int busd_handle_forward_invoke_reply(busd_t *busd, blob_attr_t **attr, int fd)
 {
     int state;
     char *method;
-    char *obj_name;
+    char *object_id;
     int src_fd;
     uint8_t *buffer = NULL;
     int buffer_len = 0;
@@ -446,9 +443,9 @@ int busd_handle_forward_invoke_reply(busd_t *busd, blob_attr_t **attr, int fd)
         method = blob_get_string(attr[BUSD_INVOKE_METHORD]); 
         dbg_str(BUS_DETAIL, "method:%s", method);
     }
-    if (attr[BUSD_OBJNAME]) {
-        obj_name = blob_get_string(attr[BUSD_OBJNAME]); 
-        dbg_str(BUS_DETAIL, "obj_name:%s", obj_name);
+    if (attr[BUSD_OBJID]) {
+        object_id = blob_get_string(attr[BUSD_OBJID]); 
+        dbg_str(BUS_DETAIL, "object_id:%s", object_id);
     }
     if (attr[BUSD_INVOKE_SRC_FD]) {
         src_fd = blob_get_u32(attr[BUSD_INVOKE_SRC_FD]); 
@@ -459,7 +456,7 @@ int busd_handle_forward_invoke_reply(busd_t *busd, blob_attr_t **attr, int fd)
         dbg_buf(BUS_DETAIL, "busd_handle_forward_invoke_reply, buffer:", buffer, buffer_len);
     }
 
-    busd_reply_invoke(busd, obj_name, method, state, buffer, buffer_len, src_fd);
+    busd_reply_invoke(busd, object_id, method, state, buffer, buffer_len, src_fd);
 
     return 0;
 }
