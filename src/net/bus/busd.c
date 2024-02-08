@@ -42,7 +42,6 @@
 static const struct blob_policy_s busd_attribs[] = {
     [BUSD_OBJID]          = { .name = "object_id",      .type = BLOB_TYPE_STRING },
     [BUSD_OBJINFOS]       = { .name = "object_infos",   .type = BLOB_TYPE_STRING }, 
-    [BUSD_INVOKE_KEY]     = { .name = "invoke_key",     .type = BLOB_TYPE_STRING }, 
     [BUSD_INVOKE_METHORD] = { .name = "invoke_method",  .type = BLOB_TYPE_STRING }, 
     [BUSD_INVOKE_ARGC]    = { .name = "invoke_argc",    .type = BLOB_TYPE_INT32 }, 
     [BUSD_INVOKE_ARGS]    = { .name = "invoke_args",    .type = BLOB_TYPE_STRING }, 
@@ -347,8 +346,8 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
     blob_attr_t *args = NULL;
     int argc = 0; 
 
-    if (attr[BUSD_INVOKE_KEY]) {
-        object_id = blob_get_string(attr[BUSD_INVOKE_KEY]);
+    if (attr[BUSD_OBJID]) {
+        object_id = blob_get_string(attr[BUSD_OBJID]);
         dbg_str(BUS_DETAIL, "invoke object_id:%s", object_id);
         if (object_id != NULL) {
             ret = map->search(map, object_id, (void **)&obj);

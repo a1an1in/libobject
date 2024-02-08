@@ -386,7 +386,7 @@ bus_invoke(bus_t *bus, char *key, char *method,
     hdr.type = BUS_REQ_INVOKE;
 
     blob_add_table_start(blob, (char *)"invoke"); {
-        blob_add_string(blob, (char *)"invoke_key", key);
+        blob_add_string(blob, (char *)"object_id", key);
         blob_add_string(blob, (char *)"invoke_method", method);
         blob_add_u8(blob, (char *)"invoke_argc", argc);
         blob_add_table_start(blob, (char *)"invoke_args"); {
