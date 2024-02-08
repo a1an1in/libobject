@@ -39,9 +39,8 @@
 #include <libobject/core/utils/config.h>
 #include <libobject/core/Hash_Map.h>
 
-static const struct blob_policy_s busd_policy[] = {
+static const struct blob_policy_s busd_attribs[] = {
     [BUSD_OBJID]          = { .name = "object_id",      .type = BLOB_TYPE_STRING },
-    // [BUSD_OBJNAME]        = { .name = "object_name",    .type = BLOB_TYPE_STRING },  
     [BUSD_OBJINFOS]       = { .name = "object_infos",   .type = BLOB_TYPE_STRING }, 
     [BUSD_INVOKE_KEY]     = { .name = "invoke_key",     .type = BLOB_TYPE_STRING }, 
     [BUSD_INVOKE_METHORD] = { .name = "invoke_method",  .type = BLOB_TYPE_STRING }, 
@@ -247,16 +246,14 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_DETAIL, "busd_reply_lookup_object");
+    dbg_str(BUS_VIP, "busd_reply_lookup_object, object_id:%s", obj->id);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUSD_REPLY_LOOKUP;
 
     blob_reset(blob);
     blob_add_table_start(blob, (char *)"lookup_reply"); {
-        dbg_str(BUS_DETAIL, "object_id:%s", obj->id);
         blob_add_string(blob, (char *)"object_id", obj->id);
-        // blob_add_u32(blob, (char *)"id", 1);
         blob_add_string(blob, (char *)"object_infos", obj->infos);
     }
     blob_add_table_end(blob);
@@ -280,10 +277,9 @@ int busd_handle_lookup_object(busd_t *busd, blob_attr_t **attr, int fd)
     Map *map = busd->obj_map;
     int ret;
 
-    dbg_str(BUS_DETAIL, "busd_handle_lookup_object");
     if (attr[BUSD_OBJID]) {
         char *key = blob_get_string(attr[BUSD_OBJID]);
-        dbg_str(BUS_DETAIL, "lookup object_id:%s", key);
+        dbg_str(BUS_VIP, "busd_handle_lookup_object object_id:%s", key);
         if (key != NULL) {
             ret = map->search(map, key, (void **)&obj);
             if (ret > 0) {
@@ -310,7 +306,7 @@ busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd,
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_SUC, "busd_forward_invoke, argc=%d", argc);
+    dbg_str(BUS_SUC, "busd_forward_invoke, object_id:%s, method:%s", object_id, method);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUSD_FORWARD_INVOKE;
@@ -351,8 +347,6 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
     blob_attr_t *args = NULL;
     int argc = 0; 
 
-    dbg_str(BUS_SUC, "busd_handle_invoke_method");
-
     if (attr[BUSD_INVOKE_KEY]) {
         object_id = blob_get_string(attr[BUSD_INVOKE_KEY]);
         dbg_str(BUS_DETAIL, "invoke object_id:%s", object_id);
@@ -381,7 +375,7 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
         dbg_str(BUS_DETAIL, "invoke args");
         args = attr[BUSD_INVOKE_ARGS];
     }
-
+    dbg_str(BUS_SUC, "busd_handle_invoke_method, object_id:%s, method:%s", object_id, method);
     busd_forward_invoke(busd, fd, obj->fd, object_id, method, argc, args);
 
     return 0;
@@ -397,7 +391,7 @@ int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, ui
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_SUC, "busd_reply_invoke");
+    dbg_str(BUS_SUC, "busd_reply_invoke, object_id:%s, method:%s", object_id, method);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUSD_REPLY_INVOKE;
@@ -433,8 +427,6 @@ int busd_handle_forward_invoke_reply(busd_t *busd, blob_attr_t **attr, int fd)
     uint8_t *buffer = NULL;
     int buffer_len = 0;
 
-    dbg_str(BUS_SUC, "busd_handle_forward_invoke_reply");
-
     if (attr[BUSD_STATE]) {
         state = blob_get_u32(attr[BUSD_STATE]); 
         dbg_str(BUS_DETAIL, "forward invoke reply state=%d", state);
@@ -455,7 +447,7 @@ int busd_handle_forward_invoke_reply(busd_t *busd, blob_attr_t **attr, int fd)
         buffer_len = blob_get_buffer(attr[BUSD_OPAQUE], &buffer);
         dbg_buf(BUS_DETAIL, "busd_handle_forward_invoke_reply, buffer:", buffer, buffer_len);
     }
-
+    dbg_str(BUS_SUC, "busd_handle_forward_invoke_reply, object_id:%s, method:%s", object_id, method);
     busd_reply_invoke(busd, object_id, method, state, buffer, buffer_len, src_fd);
 
     return 0;
@@ -494,8 +486,8 @@ static int busd_process_receiving_data_callback(void *task)
     blob_attr =(blob_attr_t*) blob_get_data(blob_attr);
     dbg_buf(BUS_DETAIL, "rcv oject:", (uint8_t *)blob_attr, len);
 
-    blob_parse_to_attr(busd_policy, 
-                       ARRAY_SIZE(busd_policy), 
+    blob_parse_to_attr(busd_attribs, 
+                       ARRAY_SIZE(busd_attribs), 
                        tb, 
                        blob_attr, 
                        len);

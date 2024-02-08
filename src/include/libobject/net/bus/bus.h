@@ -53,7 +53,7 @@ enum bus_method_arg_type_e {
     ARG_TYPE_INT8,
     ARG_TYPE_LAST,
 }; 
-typedef struct bus_method_args_s{
+typedef struct bus_method_args_s {
     uint8_t type;
     char *name;
     char *value;
@@ -111,25 +111,24 @@ struct bus_method {
 };
 
 typedef struct bus_object {
-	// char *name;
+	char *cname;
 	char *id;
 	char *path;
 	struct bus_method *methods;
 	int n_methods;
-}bus_object_t;
+} bus_object_t;
 
-typedef struct bus_req_s{
+typedef struct bus_req_s {
     char *method;
-    short state;
+    int state;
 #define BUS_REQ_MAX_OPAQUE_LEN 1024
     uint8_t *opaque;
 #undef BUS_REQ_MAX_OPAQUE_LEN
-    uint16_t opaque_len;
-    uint16_t opaque_buffer_len;
-    int read, write;
-}bus_req_t;
+    int opaque_len;
+    int opaque_buffer_len;
+} bus_req_t;
 
-struct bus_s{
+struct bus_s {
     allocator_t *allocator;
     Client *client;
     char *client_sk_type;

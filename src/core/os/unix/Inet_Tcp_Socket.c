@@ -103,41 +103,35 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
     int skfd, ret;
     char *h, *s;
 
-    bzero(&hint, sizeof(hint));
-    hint.ai_family   = AF_INET;
-    hint.ai_socktype = SOCK_STREAM;
+    TRY {
+        bzero(&hint, sizeof(hint));
+        hint.ai_family   = AF_INET;
+        hint.ai_socktype = SOCK_STREAM;
 
-    if (host == NULL && service == NULL) {
-        h = socket->parent.local_host;
-        s = socket->parent.local_service;
-    } else {
-        h = host;
-        s = service;
-    }
+        if (host == NULL && service == NULL) {
+            h = socket->parent.local_host;
+            s = socket->parent.local_service;
+        } else {
+            h = host;
+            s = service;
+        }
 
-    if ((ret = getaddrinfo(h, s, &hint, &addr)) != 0){
-        dbg_str(DBG_ERROR, "getaddrinfo error: %s", gai_strerror(ret));
-        return -1;
-    }
-    addrsave = addr;
+        THROW_IF(getaddrinfo(h, s, &hint, &addr) != 0, -1);
+        addrsave = addr;
+        THROW_IF(addr == NULL, -1);
+        dbg_str(NET_DETAIL, "ai_family=%d type=%d", addr->ai_family, addr->ai_socktype);                    
 
-    if (addr != NULL) {
-        dbg_str(NET_DETAIL, "ai_family=%d type=%d", addr->ai_family, addr->ai_socktype);
-    } else {
-        dbg_str(DBG_ERROR, "getaddrinfo err");
-        return -1;
-    }                      
+        do {
+            if ((ret = bind(socket->parent.fd, addr->ai_addr, addr->ai_addrlen)) == 0)
+                break;
+        } while ((addr = addr->ai_next) != NULL);
 
-    do {
-        if ((ret = bind(socket->parent.fd, addr->ai_addr, addr->ai_addrlen)) == 0)
-            break;
-    } while ((addr = addr->ai_next) != NULL);
+        if (addr == NULL) {
+            dbg_str(NET_WARNNING, "bind error for %s %s", host, service);
+        }
 
-    if (addr == NULL) {
-        dbg_str(NET_WARNNING, "bind error for %s %s", host, service);
-    }
-
-    freeaddrinfo(addrsave);
+        freeaddrinfo(addrsave); 
+    } CATCH (ret) {}
 
     return ret;
 }

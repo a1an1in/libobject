@@ -20,11 +20,11 @@ enum {
 	__BUSD_MAX
 };
 
-typedef struct busd_task_s{
+typedef struct busd_task_s {
     int fd;
-}busd_task_t;
+} busd_task_t;
 
-typedef struct busd_s{
+typedef struct busd_s {
     allocator_t *allocator;
     Server *server;
     char *server_sk_type;
@@ -35,15 +35,14 @@ typedef struct busd_s{
 	Map *obj_map;
     uint8_t key_size;
     uint8_t bucket_size;
-}busd_t;
+} busd_t;
 
 typedef struct busd_object {
-    // char *name;
 	char *id;
 	char  *infos;
     uint8_t fd;
     allocator_t *allocator;
-}busd_object_t;
+} busd_object_t;
 
 typedef int (*busd_cmd_callback)(busd_t *busd,  struct blob_attr_s **attr,int fd);
 busd_t *busd_create(allocator_t *allocator,

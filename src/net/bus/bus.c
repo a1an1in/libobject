@@ -38,9 +38,8 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/net/bus/bus.h>
 
-static const blob_policy_t bus_policy[] = {
+static const blob_policy_t bus_attribs[] = {
     [BUS_OBJID]         = { .name = "object_id",      .type = BLOB_TYPE_STRING }, 
-    // [BUS_OBJNAME]       = { .name = "object_name",    .type = BLOB_TYPE_STRING }, 
     [BUS_OBJINFOS]      = { .name = "object_infos",   .type = BLOB_TYPE_STRING }, 
     [BUS_STATE]         = { .name = "state",          .type = BLOB_TYPE_INT32 }, 
     [BUS_OPAQUE]        = { .name = "opaque",         .type = BLOB_TYPE_BUFFER }, 
@@ -149,6 +148,10 @@ int bus_convert_object_to_json(bus_t *bus, struct bus_object *obj, char *out)
 
     root = cjson_create_object();
     cjson_add_item_to_object(root, "object_id", cjson_create_string(obj->id));
+
+    if (obj->cname != NULL)
+        cjson_add_item_to_object(root, "object_cname", cjson_create_string(obj->cname));
+
     methods = cjson_create_object();
     cjson_add_item_to_object(root, "methods", methods);
 
@@ -195,16 +198,13 @@ int bus_add_object(bus_t *bus, struct bus_object *obj)
 
     blob_add_table_start(blob, (char *)"object"); {
         blob_add_string(blob, (char *)"object_id", obj->id);
-        // blob_add_u32(blob, (char *)"id", 1);
         blob_add_string(blob, (char *)"object_infos", object_infos);
     }
     blob_add_table_end(blob);
 
     memcpy(buffer, &hdr, sizeof(hdr));
     buffer_len = sizeof(hdr);
-    /*
-     *dbg_buf(BUS_DETAIL, "object:", blob->head, blob_get_len(blob->head));
-     */
+
     memcpy(buffer + buffer_len, (uint8_t *)blob->head, 
            blob_get_len((blob_attr_t *)blob->head));
     buffer_len += blob_get_len((blob_attr_t *)blob->head);
@@ -278,52 +278,35 @@ int bus_lookup(bus_t *bus, char *key)
     return 0;
 }
 
-#if 1
-int bus_lookup_sync(bus_t *bus, char *object, char *out_buf, char *out_len)
+int bus_lookup_sync(bus_t *bus, char *object_id, char *buffer, int *buffer_len)
 {
     bus_req_t *req;
     Map *map = bus->req_map;
     int ret;
-    int count = 0;
-    int state = 0;
-#define MAX_BUFFER_LEN 2048
-    char buffer[MAX_BUFFER_LEN];
-#undef MAX_BUFFER_LEN
-    int fds[2];
-    char c;
 
-    req = (bus_req_t *)allocator_mem_alloc(bus->allocator, sizeof(bus_req_t));
-    req->state             = 0xffff;
+    if (buffer_len == NULL || buffer == NULL) return -1;
+
+    req = (bus_req_t *)allocator_mem_zalloc(bus->allocator, sizeof(bus_req_t));
+    req->state             = 0xfffe;
     req->opaque_len        = 0;
     req->opaque            = (uint8_t *)buffer;
-    req->opaque_buffer_len = sizeof(buffer);
+    req->opaque_buffer_len = *buffer_len;
 
-    if (pipe(fds)) {
-        dbg_str(SM_ERROR,"cannot create pipe");
-        return -1;
-    }
-    req->read  = fds[0];
-    req->write = fds[1];
-
-    sprintf(buffer, "%s@lookup", object);
+    sprintf(buffer, "%s@lookup", object_id);
     map->add(map, buffer, req);
 
-    bus_lookup(bus, object);
+    bus_lookup(bus, object_id);
 
-    read(req->read, &c, 1); 
+    while(req->state == 0xfffe) usleep(100);
 
     dbg_str(BUS_VIP, "lookup result:%s", req->opaque);
 
-    memcpy(out_buf, req->opaque, req->opaque_len);
-    *out_len = req->opaque_len;
+    *buffer_len = req->opaque_len;
 
     allocator_mem_free(bus->allocator, req);
-    close(req->read);
-    close(req->write);
     
     return ret;
 }
-#endif
 
 int bus_handle_lookup_object_reply(bus_t *bus, blob_attr_t **attr)
 {
@@ -338,28 +321,32 @@ int bus_handle_lookup_object_reply(bus_t *bus, blob_attr_t **attr)
 #undef MAX_BUFFER_LEN
     int ret;
 
-    dbg_str(BUS_DETAIL, "bus_handle_lookup_object_reply");
+    TRY {
+        dbg_str(BUS_DETAIL, "bus_handle_lookup_object_reply");
 
-    if (attr[BUS_OBJID]) {
-        object_id = blob_get_string(attr[BUS_OBJID]);
-        dbg_str(BUS_DETAIL, "object_id:%s", object_id);
-    }
-    if (attr[BUS_OBJINFOS]) {
-        infos = blob_get_string(attr[BUS_OBJINFOS]);
-        /*
-         *dbg_str(BUS_DETAIL, "object infos:%s", infos);
-         */
-    }
-
-    sprintf(key, "%s@lookup", object_id);
-    ret = map->search(map, key, (void **)&req);
-    if (ret > 0) {
-        char c =  1;
-        if (infos != NULL) {
-            memcpy(req->opaque, infos, strlen(infos));
+        if (attr[BUS_OBJID]) {
+            object_id = blob_get_string(attr[BUS_OBJID]);
+            dbg_str(BUS_DETAIL, "object_id:%s", object_id);
         }
-        write(req->write, &c, 1);
-    }
+        if (attr[BUS_OBJINFOS]) {
+            infos = blob_get_string(attr[BUS_OBJINFOS]);
+        }
+
+        sprintf(key, "%s@lookup", object_id);
+        ret = map->search(map, key, (void **)&req);
+        THROW_IF(ret <= 0, -1);
+        THROW_IF(strlen(infos) > req->opaque_buffer_len, -1);
+
+        if (infos != NULL) {
+            memset(req->opaque, 0, req->opaque_buffer_len);
+            memcpy(req->opaque, infos, strlen(infos));
+            req->opaque_len = strlen(infos);
+            req->state = 1;
+        }
+  
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 int bus_blob_add_args(blob_t *blob, int argc, bus_method_args_t *args)
@@ -392,7 +379,7 @@ bus_invoke(bus_t *bus, char *key, char *method,
 #undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
     uint32_t buffer_len;
 
-    dbg_str(BUS_SUC, "bus_invoke");
+    dbg_str(BUS_SUC, "bus_invoke, object_id:%s, method:%s", key, method);
     /*compose req proto*/
     memset(&hdr, 0, sizeof(hdr));
 
@@ -452,31 +439,22 @@ bus_invoke_sync(bus_t *bus, char *object, char *method,
 #define MAX_BUFFER_LEN 2048
     char buffer[MAX_BUFFER_LEN] = {0};
 #undef MAX_BUFFER_LEN
-    int fds[2];
-    char c;
 
-    req = (bus_req_t *)allocator_mem_alloc(bus->allocator, sizeof(bus_req_t));
+    req = (bus_req_t *)allocator_mem_zalloc(bus->allocator, sizeof(bus_req_t));
     req->method            = method;
-    req->state             = 0xffff;
+    req->state             = 0xfffe;
     req->opaque_len        = 0;
     req->opaque            = (uint8_t *)buffer;
-    req->opaque_buffer_len = sizeof(buffer);
-
-    if (pipe(fds)) {
-        dbg_str(SM_ERROR,"cannot create pipe");
-        return -1;
-    }
-    req->read  = fds[0];
-    req->write = fds[1];
+    req->opaque_buffer_len = *out_len;
 
     sprintf(buffer, "%s@%s", object, method);
     map->add(map, buffer, req);
 
     bus_invoke(bus, object, method, argc, args);
 
-    read(req->read, &c, 1); 
+    while(req->state == 0xfffe) usleep(100);
 
-    dbg_str(BUS_SUC, "bus_invoke_sync, rev return state =%d", req->state);
+    dbg_str(BUS_SUC, "bus_invoke_sync, rev return state=%d", req->state);
     dbg_buf(BUS_SUC, "opaque:", req->opaque, req->opaque_len);
 
     memcpy(out_buf, req->opaque, req->opaque_len);
@@ -484,8 +462,6 @@ bus_invoke_sync(bus_t *bus, char *object, char *method,
 
     ret = req->state;
     allocator_mem_free(bus->allocator, req);
-    close(req->read);
-    close(req->write);
     
     return ret;
 }
@@ -502,8 +478,6 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
 #define MAX_BUFFER_LEN 2048
     char key[MAX_BUFFER_LEN] = {0};
 #undef MAX_BUFFER_LEN
-
-    dbg_str(BUS_SUC, "bus_handle_invoke_reply");
 
     if (attr[BUS_STATE]) {
         state = blob_get_u32(attr[BUS_STATE]);
@@ -522,11 +496,12 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
         dbg_buf(BUS_DETAIL, "bus_handle_invoke_reply, buffer:", (uint8_t *)buffer, buffer_len);
     }
 
+    dbg_str(BUS_SUC, "bus_handle_invoke_reply, object_id:%s, method:%s", object_id, method_name);
+
     if (method_name != NULL) {
         sprintf(key, "%s@%s", object_id, method_name);
         ret = map->search(map, key, (void **)&req);
         if (ret > 0) {
-            char c =  1;
             req->state = state;
             if (req->opaque_buffer_len < buffer_len) {
                 dbg_str(BUS_WARNNING, "opaque buffer is too small , please check");
@@ -534,7 +509,6 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
             req->opaque_len = buffer_len;
             memcpy(req->opaque, buffer, buffer_len);
             dbg_str(BUS_DETAIL, "method_name:%s, state:%d", req->method, req->state);
-            write(req->write, &c, 1);
         }
     }
 
@@ -730,10 +704,10 @@ static int bus_process_receiving_data_callback(void *task)
     len = blob_get_data_len(blob_attr);
     blob_attr =(blob_attr_t*) blob_get_data(blob_attr);
 
-    dbg_str(BUS_DETAIL, "bus_policy size:%d", ARRAY_SIZE(bus_policy));
+    dbg_str(BUS_DETAIL, "bus_attribs size:%d", ARRAY_SIZE(bus_attribs));
 
-    blob_parse_to_attr(bus_policy, 
-                       ARRAY_SIZE(bus_policy), 
+    blob_parse_to_attr(bus_attribs, 
+                       ARRAY_SIZE(bus_attribs), 
                        tb, 
                        blob_attr, 
                        len);
@@ -749,17 +723,17 @@ bus_t * bus_create(allocator_t *allocator,
                    char *server_srv, 
                    char *socket_type)
 {
-    bus_t *bus;
+    bus_t *bus = NULL;
+    int ret;
     
-    dbg_str(BUS_DETAIL, "bus_create");
-    bus = bus_alloc(allocator);
+    TRY {
+        dbg_str(BUS_DETAIL, "bus_create");
+        bus = bus_alloc(allocator);
 
-    bus_set(bus, "client_sk_type", socket_type, 0);
+        bus_set(bus, "client_sk_type", socket_type, 0);
 
-    bus_init(bus, //bus_t *bus, 
-             server_host, //char *server_host, 
-             server_srv, //char *server_srv, 
-             bus_process_receiving_data_callback);
+        EXEC(bus_init(bus, server_host, server_srv, bus_process_receiving_data_callback));
+    } CATCH (ret) { bus = NULL; }
 
     return bus;
 }

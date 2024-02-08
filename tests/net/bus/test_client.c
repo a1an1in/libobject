@@ -10,10 +10,10 @@ int test_bus_client_invoke_sync()
     char *deamon_host = "127.0.0.1";
     char *deamon_srv  = "12345";
 	char out[1024] = {0};
-    int out_len = 0;
+    int out_len = sizeof(out);
     bus_method_args_t args[2] = {
-        [0] = {ARG_TYPE_INT32,"id", "123"},
-        [1] = {ARG_TYPE_STRING,"content", "hello_world"},
+        [0] = {ARG_TYPE_INT32, "id", "123"},
+        [1] = {ARG_TYPE_STRING, "content", "hello_world"},
     };
     int ret;
 
@@ -23,7 +23,7 @@ int test_bus_client_invoke_sync()
         THROW_IF(bus == NULL, -1);
 
         bus_invoke_sync(bus, "test", "hello", 2, args, out, &out_len);
-        dbg_buf(DBG_VIP,"return buffer:", (uint8_t *)out, out_len);
+        dbg_buf(DBG_VIP, "return buffer:", (uint8_t *)out, out_len);
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);
     }
@@ -39,11 +39,7 @@ int test_bus_client_lookup_sync()
     char *deamon_host = "127.0.0.1";
     char *deamon_srv  = "12345";
 	char out[1024];
-    uint8_t out_len;
-    bus_method_args_t args[2] = {
-        [0] = {ARG_TYPE_INT32, "id", "123"},
-        [1] = {ARG_TYPE_STRING,"content", "hello_world"},
-    };
+    int out_len = 1024;
     int ret;
 
     TRY {
@@ -52,7 +48,7 @@ int test_bus_client_lookup_sync()
         bus = bus_create(allocator, deamon_host, deamon_srv, CLIENT_TYPE_INET_TCP);
         THROW_IF(bus == NULL, -1);
 
-        bus_lookup_sync(bus, "test");
+        bus_lookup_sync(bus, "test", out, &out_len);
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);
     }
