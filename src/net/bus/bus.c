@@ -369,7 +369,7 @@ int bus_blob_add_args(blob_t *blob, int argc, bus_method_args_t *args)
 }
 
 int 
-bus_invoke(bus_t *bus, char *key, char *method, 
+bus_invoke(bus_t *bus, char *object_id, char *method, 
            int argc, bus_method_args_t *args)
 {
     bus_reqhdr_t hdr;
@@ -379,14 +379,14 @@ bus_invoke(bus_t *bus, char *key, char *method,
 #undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
     uint32_t buffer_len;
 
-    dbg_str(BUS_SUC, "bus_invoke, object_id:%s, method:%s", key, method);
+    dbg_str(BUS_SUC, "bus_invoke, object_id:%s, method:%s", object_id, method);
     /*compose req proto*/
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUS_REQ_INVOKE;
 
     blob_add_table_start(blob, (char *)"invoke"); {
-        blob_add_string(blob, (char *)"object_id", key);
+        blob_add_string(blob, (char *)"object_id", object_id);
         blob_add_string(blob, (char *)"invoke_method", method);
         blob_add_u8(blob, (char *)"invoke_argc", argc);
         blob_add_table_start(blob, (char *)"invoke_args"); {
@@ -427,7 +427,7 @@ int bus_invoke_async(bus_t *bus, char *key, char *method, int argc, char **args)
 }
 
 int
-bus_invoke_sync(bus_t *bus, char *object, char *method,
+bus_invoke_sync(bus_t *bus, char *object_id, char *method,
                 int argc, bus_method_args_t *args, 
                 char *out_buf, uint32_t *out_len)
 {
@@ -447,10 +447,10 @@ bus_invoke_sync(bus_t *bus, char *object, char *method,
     req->opaque            = (uint8_t *)buffer;
     req->opaque_buffer_len = *out_len;
 
-    sprintf(buffer, "%s@%s", object, method);
+    sprintf(buffer, "%s@%s", object_id, method);
     map->add(map, buffer, req);
 
-    bus_invoke(bus, object, method, argc, args);
+    bus_invoke(bus, object_id, method, argc, args);
 
     while(req->state == 0xfffe) usleep(100);
 
