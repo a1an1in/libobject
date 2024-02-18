@@ -7,7 +7,7 @@
 
 typedef struct Module_Command_s Module_Command;
 
-struct Module_Command_s{
+struct Module_Command_s {
     Command parent;
 
     int (*construct)(Module_Command *command,char *init_str);

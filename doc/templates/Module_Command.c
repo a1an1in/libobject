@@ -6,7 +6,7 @@
  * @date 2019-05-19
  */
 #include <libobject/argument/Application.h>
-#include <libobject/argument/Module_Command.h>
+#include "Module_Command.h"
 
 static int __run_command(Module_Command *command)
 {
@@ -14,16 +14,16 @@ static int __run_command(Module_Command *command)
     char **argv;
     Command *c = (Command *)command;
 
-    dbg_str(ARG_DETAIL, "module command");
+    dbg_str(DBG_VIP, "module command");
 
     argc = c->argc;
     argv = c->argv;
 
     for (i = 0; i < argc; i++) {
-        dbg_str(ARG_DETAIL, "argv[%d]: %s", i, argv[i]);
+        dbg_str(DBG_VIP, "argv[%d]: %s", i, argv[i]);
     }
 
-    dbg_str(ARG_DETAIL, "module command end");
+    dbg_str(DBG_VIP, "module command end");
 
     return 1;
 }

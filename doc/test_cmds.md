@@ -5,7 +5,7 @@
 ## log 
 ```
 ./sysroot/linux/bin/xtools --log-level=0x6      open all business at 6 level
-./sysroot/linux/bin/xtools --log-level=0x20006  open bus log at 6 level
+./sysroot/linux/bin/xtools --log-level=0x20006  open bus log at 6 level,  4 bits are debug level, higher bits are bussiness num.
 ```
 
 ## Test Iterfaces
@@ -61,4 +61,10 @@ addr2line -e ./sysroot/linux/bin/xtools 0x98c00
 ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 mockery --log-level=0x6 test_client_udp_v6_recv
 ./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x6 test_client_udp_v6_send
+```
+
+## node
+```
+./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 node_cli --log-level=0x16 --host="127.0.0.1" --service="12345"
+./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 node --log-level=0x16 --host="127.0.0.1" --service="12345"
 ```
