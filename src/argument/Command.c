@@ -36,8 +36,8 @@ static int __option_log_level_callback(Option *option, void *opaque)
         bussiness_num = (value >> 4) & 0xffffff;
         level = value & 0xf;
 
-        dbg_str(DBG_VIP, "xtools value:%s, bussiness_num:%x, log level:%x", 
-                STR2A(option->value), bussiness_num, level);
+        dbg_str(DBG_VIP, "%s command set log level, value:%s, bussiness_num:%x, log level:%x", 
+                STR2A(app->name), STR2A(option->value), bussiness_num, level);
 
         if (bussiness_num == 0) {
             debugger_set_all_businesses_level(debugger_gp, 1, atoi(STR2A(option->value)));

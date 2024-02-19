@@ -46,6 +46,7 @@ timedatectl list-timezones  # list all
 ./sysroot/linux/bin/xtools mockery --log-level=0x6 test_coredump_signal
 addr2line -e ./sysroot/linux/bin/xtools 0x253dc
 addr2line -e ./sysroot/linux/bin/xtools 0x98c00
+addr2line -f -e ./sysroot/linux/bin/xtools  libobject-core.so 0x152
 ```
 
 ## bus test
@@ -67,4 +68,6 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ```
 ./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 node_cli --log-level=0x16 --host="127.0.0.1" --service="12345"
 ./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 node --log-level=0x16 --host="127.0.0.1" --service="12345"
+./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x16 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
+./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x20016 test_bus_client_invoke_sync
 ```

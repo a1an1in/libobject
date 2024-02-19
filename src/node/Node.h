@@ -16,8 +16,6 @@ struct Node_s {
 	int (*set)(Node *node, char *attrib, void *value);
     void *(*get)(Node *node, char *attrib);
     char *(*to_json)(Node *node); 
-
-	int (*run_command)(Node *node);
 };
 
 #endif

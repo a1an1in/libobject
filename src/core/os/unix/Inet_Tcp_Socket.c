@@ -128,10 +128,12 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
 
         if (addr == NULL) {
             dbg_str(NET_WARNNING, "bind error for %s %s", host, service);
+            THROW(-1);
         }
-
+        
+    } CATCH (ret) {} FINALLY {
         freeaddrinfo(addrsave); 
-    } CATCH (ret) {}
+    }
 
     return ret;
 }

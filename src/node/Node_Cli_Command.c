@@ -5,7 +5,7 @@
  * @version 
  * @date 2022-02-18
  */
-#include <libobject/argument/Application.h>
+
 #include "Node_Cli_Command.h"
 
 static int __run_command(Node_Cli_Command *command)
@@ -13,14 +13,19 @@ static int __run_command(Node_Cli_Command *command)
     int argc, i;
     char **argv;
     Command *c = (Command *)command;
+    allocator_t *allocator = c->parent.allocator;
+    bus_t *bus;
+    int ret;
 
-    dbg_str(DBG_VIP, "Node cli command in");
+    TRY {
+        dbg_str(DBG_VIP,"node cli host:%s, service:%s", command->host, command->service);
+        bus = bus_create(allocator, command->host, command->service, CLIENT_TYPE_INET_TCP);
+        command->bus = bus;
 
-    dbg_str(DBG_VIP,"node cli host:%s, service:%s", command->host, command->service);
+        dbg_str(DBG_VIP, "Node cli command out");
+    } CATCH (ret) {} FINALLY {}
 
-    dbg_str(DBG_VIP, "Node cli command out");
-
-    return 1;
+    return ret;
 }
 
 static int __option_host_callback(Option *option, void *opaque)
@@ -56,10 +61,11 @@ static int __construct(Node_Cli_Command *command, char *init_str)
 
 static int __deconstruct(Node_Cli_Command *command)
 {
+    bus_destroy(command->bus);
     return 0;
 }
 
-static class_info_entry_t module_command_class_info[] = {
+static class_info_entry_t node_cli_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Node_Cli_Command, construct, __construct),
     Init_Nfunc_Entry(2, Node_Cli_Command, deconstruct, __deconstruct),
@@ -68,4 +74,4 @@ static class_info_entry_t module_command_class_info[] = {
     Init_Vfunc_Entry(5, Node_Cli_Command, run_command, __run_command),
     Init_End___Entry(6, Node_Cli_Command),
 };
-REGISTER_APP_CMD("Node_Cli_Command", module_command_class_info);
+REGISTER_APP_CMD("Node_Cli_Command", node_cli_command_class_info);

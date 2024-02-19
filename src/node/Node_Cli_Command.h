@@ -2,8 +2,10 @@
 #define __NODE_CLI_COMMAND_H__
 
 #include <stdio.h>
+#include <libobject/argument/Application.h>
 #include <libobject/argument/Command.h>
 #include <libobject/core/String.h>
+#include <libobject/net/bus/bus.h>
 
 typedef struct Node_Cli_Command_s Node_Cli_Command;
 
@@ -19,6 +21,7 @@ struct Node_Cli_Command_s {
     int (*run_command)(Node_Cli_Command *command);
 
     char *host, *service;
+    bus_t *bus;
 };
 
 #endif

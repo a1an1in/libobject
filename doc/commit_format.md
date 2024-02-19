@@ -1,8 +1,9 @@
-[update:node] add node template.
+[update:node] continue to implement node.
 
 Description:
 update.
 
 Major Changes:
-1. add node template.
-2. add host and service options for node commands.
+1. add businness log control for appliaction.
+2. implement __run_command for node.
+3. optimzie codes.

@@ -60,19 +60,32 @@ static int __option_help_callback(Option *option, void *opaque)
 static int __option_log_level_callback(Option *option, void *opaque)
 {
     Application *app = (Application *)opaque;
-    int ret;
+    uint32_t value, bussiness_num, level;
+    int i, ret;
 
     TRY {
         RETURN_IF(option->set_flag != 1, 0);
         THROW_IF(option->value == NULL, -1);
 
-        dbg_str(DBG_SUC,"xtools log level:%s, digtal value:%d", 
-                STR2A(option->value), atoi(STR2A(option->value)));
-        debugger_set_all_businesses_level(debugger_gp, 1, atoi(STR2A(option->value)));
-    } CATCH (ret) {
-    }
+        // value = atoi(STR2A(option->value));
+        value = str_hex_to_int(STR2A(option->value));
+        bussiness_num = (value >> 4) & 0xffffff;
+        level = value & 0xf;
+
+        dbg_str(DBG_VIP, "application set log level, value:%s, bussiness_num:%x, log level:%x", 
+                STR2A(option->value), bussiness_num, level);
+
+        if (bussiness_num == 0) {
+            debugger_set_all_businesses_level(debugger_gp, 1, atoi(STR2A(option->value)));
+            THROW(1);
+        }
+
+        for(i = 0; i < MAX_DEBUG_BUSINESS_NUM; i++) {
+            if ((bussiness_num >> i) & 1) debugger_set_business(debugger_gp, i, 1, level);
+        }
+    } CATCH (ret) { }
     
-    return 1;
+    return ret;
 }
 
 static int __construct(Application *app, char *init_str)

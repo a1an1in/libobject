@@ -97,7 +97,7 @@ void *server(allocator_t *allocator, char *type,
              int (*work_callback)(void *arg),
              void *opaque)
 {
-    Server *server;
+    Server *server = NULL;
     int ret;
 
     TRY {

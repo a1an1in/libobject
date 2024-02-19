@@ -510,10 +510,10 @@ busd_t *busd_create(allocator_t *allocator,
 
         busd_set(busd, (char *)"server_sk_type", socket_type, 0);
 
-        busd_init(busd, //busd_t *busd, 
-                server_host, //char *server_host, 
-                server_srv, //char *server_srv, 
-                busd_process_receiving_data_callback);
+        EXEC(busd_init(busd, //busd_t *busd, 
+                       server_host, //char *server_host, 
+                       server_srv, //char *server_srv, 
+                       busd_process_receiving_data_callback));
     } CATCH (ret) {
         busd = NULL;
     }
@@ -523,6 +523,8 @@ busd_t *busd_create(allocator_t *allocator,
 
 int busd_destroy(busd_t *busd)
 {
+    if (busd == NULL) return 0;
+    
     allocator_t *allocator = busd->allocator;
     Map *map = busd->obj_map;
 

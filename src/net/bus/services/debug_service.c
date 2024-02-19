@@ -43,7 +43,7 @@ static struct bus_object debug_object = {
 	.n_methods = ARRAY_SIZE(test_methods), 
 };
 
-void bus_debug_service()
+static void bus_debug_service()
 {
     allocator_t *allocator = allocator_get_default_instance();
     bus_t *bus;

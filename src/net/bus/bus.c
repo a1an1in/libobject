@@ -194,8 +194,10 @@ int bus_add_object(bus_t *bus, struct bus_object *obj)
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUS_REQ_ADD_OBJECT;
-    bus_convert_object_to_json(bus, obj, object_infos);
 
+    bus_convert_object_to_json(bus, obj, object_infos);
+    
+    blob_reset(blob);
     blob_add_table_start(blob, (char *)"object"); {
         blob_add_string(blob, (char *)"object_id", obj->id);
         blob_add_string(blob, (char *)"object_infos", object_infos);
@@ -740,15 +742,13 @@ bus_t * bus_create(allocator_t *allocator,
 
 int bus_destroy(bus_t *bus)
 {
-    allocator_t *allocator = bus->allocator;
-
     if (bus == NULL) return 0;
 
     object_destroy(bus->obj_map);
     object_destroy(bus->req_map);
     blob_destroy(bus->blob);
     client_destroy(bus->client);
-    allocator_mem_free(allocator, bus);
+    allocator_mem_free(bus->allocator, bus);
 
     return 1;
 }
