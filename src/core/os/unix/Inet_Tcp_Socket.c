@@ -124,6 +124,7 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
         do {
             if ((ret = bind(socket->parent.fd, addr->ai_addr, addr->ai_addrlen)) == 0)
                 break;
+            perror("bind error:");
         } while ((addr = addr->ai_next) != NULL);
 
         if (addr == NULL) {
@@ -140,16 +141,20 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
 
 static int __listen(Inet_Tcp_Socket *socket, int backlog)
 {
-    int opt = 1;
+    int opt = 1, ret;
 
-    setsockopt(socket->parent.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    ret = setsockopt(socket->parent.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    if (ret == -1) {
+        perror("setsockopt error");
+        return -1;
+    }
 
     if (listen(socket->parent.fd, backlog) == -1) {
         perror("listen error");
         return -1;
     }
 
-    return 0;
+    return 1;
 }
 
 static int __connect(Inet_Tcp_Socket *socket, char *host, char *service)

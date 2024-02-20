@@ -150,10 +150,7 @@ static int __run(Application *app, int argc, char *argv[])
         if (subcmd->run_command != NULL) {
             EXEC(subcmd->run_command(subcmd));
         }
-    } CATCH (ret) {
-        dbg_str(DBG_ERROR, "Application catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
-                ERROR_FUNC(), __func__, ERROR_LINE(), ERROR_CODE());
-    }
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -253,10 +250,7 @@ int app(int argc, char *argv[])
         EXEC(libobject_init());
         app = object_new(NULL, "Application", NULL);
         EXEC(app->run(app, argc, argv));
-    } CATCH (ret) {
-        dbg_str(DBG_ERROR, "main catch error: func:%s, error_file: %s, error_line:%d, error_code:%d",
-                ERROR_FUNC(), ERROR_FILE(), ERROR_LINE(), ERROR_CODE());
-    } FINALLY {
+    } CATCH (ret) {} FINALLY {
         object_destroy(app);
         libobject_destroy();
         dbg_str(DBG_VIP, "exit app!");

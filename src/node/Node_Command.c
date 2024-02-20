@@ -26,14 +26,12 @@ static int __run_command(Node_Command *command)
                                command->service, SERVER_TYPE_INET_TCP);
             THROW_IF(busd == NULL, -1);
             command->busd = busd;
-
         }
 
         bus = bus_create(allocator, command->host,
                          command->service, CLIENT_TYPE_INET_TCP);
         THROW_IF(bus == NULL, -1);
         command->bus = bus;
-
         
         bus_add_object(bus, &test_object);
         // bus_add_object(bus, &debug_object);

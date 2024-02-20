@@ -115,30 +115,30 @@ int busd_init(busd_t *busd,
     Map *map;
     int ret; 
 
-    if (busd->server_sk_type == NULL) {
-        busd->server_sk_type = (char *)((SERVER_TYPE_INET_TCP));
-    }
-    busd->server_host = server_host;
-    busd->server_srv  = server_srv;
-    dbg_str(BUS_DETAIL, "busd:%p", busd);
+    TRY {
+        if (busd->server_sk_type == NULL) {
+            busd->server_sk_type = (char *)((SERVER_TYPE_INET_TCP));
+        }
+        busd->server_host = server_host;
+        busd->server_srv  = server_srv;
+        dbg_str(BUS_DETAIL, "busd:%p", busd);
 
-    busd->server= server(busd->allocator, 
-                         busd->server_sk_type, 
-                         busd->server_host, 
-                         busd->server_srv, 
-                         process_server_task_cb, 
-                         busd);
-    if (busd->server == NULL) {
-        dbg_str(BUS_ERROR, "busd_init, create server");
-        return -1;
-    }
+        busd->server= server(busd->allocator, 
+                            busd->server_sk_type, 
+                            busd->server_host, 
+                            busd->server_srv, 
+                            process_server_task_cb, 
+                            busd);
+        THROW_IF(busd->server == NULL, -1);
 
-    /*create object hash map*/
-    busd->obj_map = object_new(busd->allocator, "RBTree_Map", NULL);
-    map = busd->obj_map;
-    map->set_cmp_func(map, string_key_cmp_func);
+        /*create object hash map*/
+        busd->obj_map = object_new(busd->allocator, "RBTree_Map", NULL);
+        THROW_IF(busd->obj_map == NULL, -1);
+        map = busd->obj_map;
+        map->set_cmp_func(map, string_key_cmp_func);
+    } CATCH (ret) {}
 
-    return 1;
+    return ret;
 }
 
 struct busd_object *
@@ -508,13 +508,13 @@ busd_t *busd_create(allocator_t *allocator,
         dbg_str(BUS_DETAIL, "bus_daemon_create");
         busd = busd_alloc(allocator);
 
-        busd_set(busd, (char *)"server_sk_type", socket_type, 0);
-
+        EXEC(busd_set(busd, (char *)"server_sk_type", socket_type, 0));
         EXEC(busd_init(busd, //busd_t *busd, 
                        server_host, //char *server_host, 
                        server_srv, //char *server_srv, 
                        busd_process_receiving_data_callback));
     } CATCH (ret) {
+        busd_destroy(busd);
         busd = NULL;
     }
 
@@ -523,17 +523,26 @@ busd_t *busd_create(allocator_t *allocator,
 
 int busd_destroy(busd_t *busd)
 {
-    if (busd == NULL) return 0;
-    
-    allocator_t *allocator = busd->allocator;
-    Map *map = busd->obj_map;
+    allocator_t *allocator;
+    Map *map;
+    int ret;
 
-    server_destroy(busd->server);
-    blob_destroy(busd->blob);
-    map->for_each(map, busd_release_object);
-    object_destroy(busd->obj_map);
-    allocator_mem_free(allocator, busd);
+    TRY {
+        THROW_IF(busd == NULL, 0);
+        allocator = busd->allocator;
+        map = busd->obj_map;
 
-    return 0;
+        if (busd->server) server_destroy(busd->server);
+        blob_destroy(busd->blob);
+
+        if (map != NULL) {
+            map->for_each(map, busd_release_object);
+            object_destroy(busd->obj_map);
+        }
+        
+        allocator_mem_free(allocator, busd);
+    } CATCH (ret) {}
+
+    return ret;
 }
 #endif
