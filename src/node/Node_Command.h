@@ -5,8 +5,7 @@
 #include <libobject/argument/Application.h>
 #include <libobject/argument/Command.h>
 #include <libobject/core/String.h>
-#include <libobject/net/bus/bus.h>
-#include <libobject/net/bus/busd.h>
+#include "Node.h"
 
 typedef struct Node_Command_s Node_Command;
 
@@ -21,15 +20,7 @@ struct Node_Command_s {
 
     int (*run_command)(Node_Command *command);
 
-    char *host, *service;
-    int bus_deamon_flag; /* 1表示要运行bus deamon */
-    int node_flag; /* flag == 1 表示退出node */
-    bus_t *bus;
-    busd_t *busd;
+    Node *node;
 };
-
-
-extern struct bus_object debug_object;
-extern struct bus_object test_object;
 
 #endif

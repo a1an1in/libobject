@@ -4,6 +4,4 @@ Description:
 update.
 
 Major Changes:
-1. add businness log control for appliaction.
-2. implement __run_command for node.
-3. optimzie codes.
+1. create bus at node rather Node_Command.

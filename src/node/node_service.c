@@ -51,9 +51,9 @@ static const struct bus_method test_methods[] = {
 	BUS_METHOD("set", test_set, set_policy),
 };
 
-struct bus_object test_object = {
+struct bus_object node_object = {
 	.id        = (char *)"test",
-    .cname     = (char *)"node_test_service", 
+    .cname     = (char *)"node_service", 
 	.methods   = (struct bus_method *)test_methods,
 	.n_methods = ARRAY_SIZE(test_methods),
 };
