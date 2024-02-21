@@ -9,7 +9,7 @@ static const struct blob_policy_s hello_policy[] = {
 	[1] = { .name = "content", .type = BLOB_TYPE_STRING },
 };
 
-static int test_hello(struct bus_s *bus,
+static int test_hello(bus_object_t *obj,
                       int argc,
 		      		  struct blob_attr_s **args,
                       void *out_data,
@@ -37,7 +37,7 @@ static const struct blob_policy_s set_policy[] = {
 	[1] = { .name = "opqrst", .type = BLOB_TYPE_STRING },
 };
 
-static int test_set(struct bus_s *bus,
+static int test_set(bus_object_t *obj,
                     int argc,
 		      		struct blob_attr_s **args,
                     void *out_data,

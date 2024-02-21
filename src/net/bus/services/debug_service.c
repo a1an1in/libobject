@@ -9,11 +9,11 @@ static const struct blob_policy_s debug_policy[] = {
 	[2] = { .name = "level", .type = BLOB_TYPE_INT32 }, 
 };
 
-static int set_debug(struct bus_s *bus, 
-                      int argc, 
-		      		  struct blob_attr_s **args, 
-                      void *out_data, 
-                      int *out_data_len)
+static int set_debug(bus_object_t *obj, 
+                     int argc, 
+		      		 struct blob_attr_s **args, 
+                     void *out_data, 
+                     int *out_data_len)
 {
     char buffer[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     int db_bussiness, db_switch, db_level;

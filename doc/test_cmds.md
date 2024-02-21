@@ -66,8 +66,12 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 
 ## node
 ```
-./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 node_cli --log-level=0x16 --host="127.0.0.1" --service="12345"
-./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 node --log-level=0x16 --host="127.0.0.1" --service="12345"
+/* test exit */
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x16 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x20016 test_bus_client_invoke_sync
+./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x20016 test_node_invoke_exit
+
+/* test loglevel */
+./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --host=127.0.0.1 --service=12345 --deamon=t
+./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery test_node_invoke_setloglevel
+./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x20016 test_node_invoke_exit
 ```

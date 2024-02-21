@@ -96,15 +96,15 @@ extern pthread_key_t try_key;
 #define ERROR_PTR_PAR1() __error_ptr_par1
 #define ERROR_PTR_PAR2() __error_ptr_par2
 
-#define CATCH_SHOW_STR_PARS(level)                                                                 \
+#define CATCH_SHOW_STR_PARS(level)                                                               \
     dbg_str(level, "ERROR_FUNC:%s, ERROR_PTR_PAR1=%s, ERROR_PTR_PAR2=%s",                        \
             ERROR_FUNC(), ERROR_PTR_PAR1(), ERROR_PTR_PAR2() == NULL ? "" : ERROR_PTR_PAR2());
 
-#define CATCH_SHOW_INT_PARS(level)                                                                 \
+#define CATCH_SHOW_INT_PARS(level)                                                               \
     dbg_str(level, "ERROR_FUNC:%s, ERROR_INT_PAR1=%d, ERROR_INT_PAR2=%d",                        \
             __func__, ERROR_INT_PAR1(), ERROR_INT_PAR2());
 
-#define CATCH_SHOW_ERROR_PARS()                                                                    \
+#define CATCH_SHOW_ERROR_PARS()                                                                  \
         dbg_str(DBG_ERROR, "ERROR_FUNC:%s, ERROR_LINE:%d, ERROR_CODE:%d",                        \
                 __func__, ERROR_LINE(), ERROR_CODE());                                           \
 
@@ -112,7 +112,7 @@ extern pthread_key_t try_key;
     do {                                                                                         \
         __error_line = __LINE__;                                                                 \
         __error_func = (char *)__func__;                                                         \
-        __error_file = (char *)extract_filename_from_path(__FILE__);                              \
+        __error_file = (char *)extract_filename_from_path(__FILE__);                             \
         __error_code = error_code;                                                               \
         goto __error_tab;                                                                        \
     } while (0);
@@ -169,7 +169,7 @@ extern pthread_key_t try_key;
     __error_tab:                                                                                 \
     ret = __error_code;                                                                          \
     if (__error_code < 0) {                                                                      \
-        CATCH_SHOW_ERROR_PARS();                                                                   \
+        CATCH_SHOW_ERROR_PARS();                                                                 \
     }                                                                                            \
     if (__error_code < 0)                                                                        \
 

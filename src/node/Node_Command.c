@@ -87,9 +87,7 @@ static class_info_entry_t node_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Node_Command, construct, __construct),
     Init_Nfunc_Entry(2, Node_Command, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, Node_Command, set, NULL),
-    Init_Nfunc_Entry(4, Node_Command, get, NULL),
-    Init_Vfunc_Entry(5, Node_Command, run_command, __run_command),
-    Init_End___Entry(6, Node_Command),
+    Init_Vfunc_Entry(3, Node_Command, run_command, __run_command),
+    Init_End___Entry(4, Node_Command),
 };
 REGISTER_APP_CMD("Node_Command", node_command_class_info);

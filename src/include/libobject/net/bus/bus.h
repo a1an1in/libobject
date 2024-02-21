@@ -21,8 +21,9 @@ enum {
 
 struct bus_s;
 typedef struct bus_s bus_t;
+typedef struct bus_object bus_object_t;
 
-typedef int (*bus_handler_t)(struct bus_s *bus,
+typedef int (*bus_handler_t)(bus_object_t *obj,
                              int argc,
 		      		         struct blob_attr_s **args,
                              void *out_data,
@@ -39,6 +40,14 @@ typedef int (*bus_cmd_callback)(bus_t *bus,  blob_attr_t **attr);
 	.handler = _handler,\
 	.policy = (struct blob_policy_s *)_policy,\
 	.n_policy = ARRAY_SIZE(_policy),\
+}
+
+#define BUS_METHOD_WITHOUT_ARG(_name, _handler, _policy)\
+{\
+	.name = _name,\
+	.handler = _handler,\
+	.policy = NULL,\
+	.n_policy = 0,\
 }
 
 enum bus_method_arg_type_e {       
@@ -110,13 +119,14 @@ struct bus_method {
 	int n_policy;
 };
 
-typedef struct bus_object {
+struct bus_object {
 	char *cname;
 	char *id;
 	char *path;
 	struct bus_method *methods;
 	int n_methods;
-} bus_object_t;
+	void *bus;
+};
 
 typedef struct bus_req_s {
     char *method;
@@ -143,6 +153,7 @@ struct bus_s {
 	Map *req_map;
     uint8_t req_key_size;
     uint8_t req_bucket_size;
+	void *opaque;
 };
 
 

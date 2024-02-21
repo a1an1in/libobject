@@ -215,6 +215,7 @@ int bus_add_object(bus_t *bus, struct bus_object *obj)
     bus_send(bus, buffer, buffer_len);
 
     __bus_add_obj(bus, obj);
+    obj->bus = bus;
 
     return 0;
 }
@@ -660,7 +661,7 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
             //dbg_str(BUS_DETAIL, "policy addr:%p, size=%d", policy, ARRAY_SIZE(policy));
             blob_parse_to_attr(policy, n_policy, tb, blob_get_data(args),
                                blob_get_data_len(args));
-            ret = method(bus, argc, tb, buffer, &buffer_len);
+            ret = method(obj, argc, tb, buffer, &buffer_len);
             if (buffer_len > MAX_BUFFER_LEN) {
                 dbg_str(BUS_WARNNING, "buffer is too small, please check");
             } 
