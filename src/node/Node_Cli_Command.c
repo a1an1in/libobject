@@ -47,14 +47,26 @@ static int __option_service_callback(Option *option, void *opaque)
     return 1;
 }
 
+static int __option_code_callback(Option *option, void *opaque)
+{
+    Node_Cli_Command *c = (Node_Cli_Command *)opaque;
+    dbg_str(DBG_SUC,"option_code_action_callback:%s", STR2A(option->value));
+    c->code = STR2A(option->value);
+
+    return 1;
+}
+
 static int __construct(Node_Cli_Command *command, char *init_str)
 {
     Command *c = (Command *)command;
 
     c->set(c, "/Command/name", "node_cli");
 
-    c->add_option(c, "--host", "-h", "", "set node center ip address", __option_host_callback, command);
+    c->add_option(c, "--host", "", "", "set node center ip address", __option_host_callback, command);
     c->add_option(c, "--service", "-s", "", "set node center port", __option_service_callback, command);
+    c->add_option(c, "--call", "-c", "", "set the executing code of bus, eg, --call=nodeid@set_loglevel(1,2,3)", __option_code_callback, command);
+
+    c->set(c, "/Command/description", "node client command.");
 
     return 0;
 }

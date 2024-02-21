@@ -4,6 +4,4 @@ Description:
 update.
 
 Major Changes:
-1. add node_exit and node_setloglevel bus method for node.
-2. change bus_handler_t.
-2. add opaque to bus_t;
+1. add node_write_file, but havn't finished.

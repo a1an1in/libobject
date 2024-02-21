@@ -20,7 +20,7 @@ struct Node_Cli_Command_s {
 
     int (*run_command)(Node_Cli_Command *command);
 
-    char *host, *service;
+    char *host, *service, *code;
     bus_t *bus;
 };
 

@@ -43,10 +43,8 @@ int test_node_invoke_setloglevel()
     int ret;
     
     TRY {
-        bus = bus_create(allocator, 
-                        deamon_host, 
-                        deamon_srv, 
-                        CLIENT_TYPE_INET_TCP);
+        bus = bus_create(allocator, deamon_host, deamon_srv, CLIENT_TYPE_INET_TCP);
+        THROW_IF(bus == NULL, -1);
 
         bus_invoke_sync(bus, "node", "set_loglevel", 3, args, out, &out_len);
         dbg_buf(DBG_DETAIL, "return buffer:", (uint8_t *)out, out_len);
