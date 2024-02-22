@@ -66,6 +66,7 @@ typedef struct bus_method_args_s {
     uint8_t type;
     char *name;
     char *value;
+	int len;
 }bus_method_args_t;
 
 typedef struct bus_reqhdr {

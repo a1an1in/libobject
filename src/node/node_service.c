@@ -46,23 +46,28 @@ static int node_set_loglevel(bus_object_t *obj, int argc,
 }
 
 static const struct blob_policy_s write_file_policy[] = {
-	[0] = { .name = "filename",   .type = BLOB_TYPE_STRING }, 
-    [1] = { .name = "crc32",      .type = BLOB_TYPE_INT32 }, 
-	[2] = { .name = "filelength", .type = BLOB_TYPE_INT32 },
-	[3] = { .name = "content",    .type = BLOB_TYPE_BUFFER }, 
+	[0] = { .name = "filename",  .type = BLOB_TYPE_STRING }, 
+	[1] = { .name = "buffer",    .type = BLOB_TYPE_BUFFER }, 
+    [2] = { .name = "length",    .type = BLOB_TYPE_INT32 },
+    [3] = { .name = "crc32",     .type = BLOB_TYPE_INT32 }, 
 };
 
 static int node_write_file(bus_object_t *obj, int argc, 
 		      		       struct blob_attr_s **args, 
                            void *out_data, int *out_data_len)
 {
+    char *filename;
+
+    filename = blob_get_string(args[0]);
+    dbg_str(DBG_VIP, "file name:%s", filename);
+
 	return 1;
 }
 
 static const struct bus_method node_service_methods[] = {
 	BUS_METHOD_WITHOUT_ARG("exit", node_exit, NULL),
     BUS_METHOD("set_loglevel", node_set_loglevel, set_loglevel_policy),
-    BUS_METHOD("write_file", node_write_file, write_file_policy),
+    // BUS_METHOD("write_file", node_write_file, write_file_policy),
 };
 
 struct bus_object node_object = {

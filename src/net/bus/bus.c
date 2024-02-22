@@ -196,6 +196,7 @@ int bus_add_object(bus_t *bus, struct bus_object *obj)
     hdr.type = BUS_REQ_ADD_OBJECT;
 
     bus_convert_object_to_json(bus, obj, object_infos);
+    dbg_str(BUS_DETAIL, "object_infos:%s", object_infos);
     
     blob_reset(blob);
     blob_add_table_start(blob, (char *)"object"); {
@@ -361,6 +362,8 @@ int bus_blob_add_args(blob_t *blob, int argc, bus_method_args_t *args)
             blob_add_string(blob, (char *)args[i].name, args[i].value);
         } else if (args[i].type == ARG_TYPE_INT32) {
             blob_add_u32(blob, (char *)args[i].name, atoi(args[i].value));
+        } else if (args[i].type == ARG_TYPE_BUFFER) {
+            blob_add_buffer(blob, (char *)args[i].name, (uint8_t *)args[i].value, args[i].len);
         } else {
             dbg_str(BUS_WARNNING, "bus_blob_add_args, not support type = %d", args[i].type);
         }
@@ -449,6 +452,7 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
     req->opaque_len        = 0;
     req->opaque            = (uint8_t *)buffer;
     req->opaque_buffer_len = *out_len;
+    dbg_str(BUS_SUC, "bus_invoke_sync, opaque_buffer_len=%d", req->opaque_buffer_len);
 
     sprintf(buffer, "%s@%s", object_id, method);
     map->add(map, buffer, req);
@@ -507,7 +511,7 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
         if (ret > 0) {
             req->state = state;
             if (req->opaque_buffer_len < buffer_len) {
-                dbg_str(BUS_WARNNING, "opaque buffer is too small , please check");
+                dbg_str(BUS_WARNNING, "opaque buffer is too small, please check, opaque_buffer_len:%d, buffer_len:%d", req->opaque_buffer_len, buffer_len);
             }
             req->opaque_len = buffer_len;
             memcpy(req->opaque, buffer, buffer_len);

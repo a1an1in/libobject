@@ -34,7 +34,7 @@ int test_node_invoke_setloglevel()
     char *deamon_host = "127.0.0.1";
     char *deamon_srv  = "12345";
 	char out[1024];
-    char out_len;
+    int out_len = 1024;
     bus_method_args_t args[3] = {
         [0] = {ARG_TYPE_INT32, "bussiness", "0"}, 
         [1] = {ARG_TYPE_INT32, "switch", "1"}, 
@@ -56,4 +56,35 @@ int test_node_invoke_setloglevel()
     return ret;
 }
 REGISTER_TEST_CMD(test_node_invoke_setloglevel);
+
+int test_node_invoke_write_file()
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    bus_t *bus;
+    char *deamon_host = "127.0.0.1";
+    char *deamon_srv  = "12345";
+	char buffer[1024];
+    char buffer_len;
+    bus_method_args_t args[4] = {
+        [0] = {BLOB_TYPE_STRING, "filename", "abc"}, 
+        [1] = {BLOB_TYPE_BUFFER, "buffer", buffer, buffer_len}, 
+        [2] = {ARG_TYPE_INT32, "length", "6"}, 
+        [3] = {ARG_TYPE_INT32, "crc32", "0x123"}, 
+    };
+    int ret;
+    
+    TRY {
+        bus = bus_create(allocator, deamon_host, deamon_srv, CLIENT_TYPE_INET_TCP);
+        THROW_IF(bus == NULL, -1);
+
+        bus_invoke_sync(bus, "node", "write_file", 4, args, buffer, &buffer_len);
+        dbg_buf(DBG_DETAIL, "return buffer:", (uint8_t *)buffer, buffer_len);
+    } CATCH (ret) {} FINALLY {
+        bus_destroy(bus);
+    }
+    dbg_str(DBG_DETAIL, "test_bus_client");
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_node_invoke_write_file);
 #endif
