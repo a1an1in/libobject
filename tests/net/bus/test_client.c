@@ -12,7 +12,7 @@ int test_bus_client_invoke_sync()
 	char out[1024] = {0};
     int out_len = sizeof(out);
     bus_method_args_t args[2] = {
-        [0] = {ARG_TYPE_INT32, "id", "123"},
+        [0] = {ARG_TYPE_UINT32, "id", 123},
         [1] = {ARG_TYPE_STRING, "content", "hello_world"},
     };
     int ret;

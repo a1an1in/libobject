@@ -36,9 +36,9 @@ int test_node_invoke_setloglevel()
 	char out[1024];
     int out_len = 1024;
     bus_method_args_t args[3] = {
-        [0] = {ARG_TYPE_INT32, "bussiness", "0"}, 
-        [1] = {ARG_TYPE_INT32, "switch", "1"}, 
-        [2] = {ARG_TYPE_INT32, "level", "6"}, 
+        [0] = {ARG_TYPE_UINT32, "bussiness", 0}, 
+        [1] = {ARG_TYPE_UINT32, "switch", 1}, 
+        [2] = {ARG_TYPE_UINT32, "level", 6}, 
     };
     int ret;
     
@@ -68,7 +68,7 @@ int test_node_invoke_write_file()
     bus_method_args_t args[3] = {
         [0] = {BLOB_TYPE_STRING, "filename", "abc"}, 
         [1] = {BLOB_TYPE_BUFFER, "buffer", buffer, buffer_len}, 
-        [2] = {ARG_TYPE_INT32, "crc32", "0x123"}, 
+        [2] = {ARG_TYPE_UINT32, "crc32", 0x123}, 
     };
     int ret;
     

@@ -56,10 +56,10 @@ enum bus_method_arg_type_e {
     ARG_TYPE_TABLE,
     ARG_TYPE_STRING,
     ARG_TYPE_BUFFER,
-    ARG_TYPE_INT64,
-    ARG_TYPE_INT32,
-    ARG_TYPE_INT16,
-    ARG_TYPE_INT8,
+    ARG_TYPE_UINT64,
+    ARG_TYPE_UINT32,
+    ARG_TYPE_UINT16,
+    ARG_TYPE_UINT8,
     ARG_TYPE_LAST,
 }; 
 typedef struct bus_method_args_s {

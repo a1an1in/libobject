@@ -41,12 +41,12 @@
 static const blob_policy_t bus_attribs[] = {
     [BUS_OBJID]         = { .name = "object_id",      .type = BLOB_TYPE_STRING }, 
     [BUS_OBJINFOS]      = { .name = "object_infos",   .type = BLOB_TYPE_STRING }, 
-    [BUS_STATE]         = { .name = "state",          .type = BLOB_TYPE_INT32 }, 
+    [BUS_STATE]         = { .name = "state",          .type = BLOB_TYPE_UINT32 }, 
     [BUS_OPAQUE]        = { .name = "opaque",         .type = BLOB_TYPE_BUFFER }, 
-    [BUS_INVOKE_SRC_FD] = { .name = "source_fd",      .type = BLOB_TYPE_INT32 }, 
-    [BUS_INVOKE_DST_FD] = { .name = "destination_fd", .type = BLOB_TYPE_INT32 }, 
+    [BUS_INVOKE_SRC_FD] = { .name = "source_fd",      .type = BLOB_TYPE_UINT32 }, 
+    [BUS_INVOKE_DST_FD] = { .name = "destination_fd", .type = BLOB_TYPE_UINT32 }, 
     [BUS_INVOKE_METHOD] = { .name = "invoke_method",  .type = BLOB_TYPE_STRING }, 
-    [BUS_INVOKE_ARGC]   = { .name = "invoke_argc",    .type = BLOB_TYPE_INT32 }, 
+    [BUS_INVOKE_ARGC]   = { .name = "invoke_argc",    .type = BLOB_TYPE_UINT32 }, 
     [BUS_INVOKE_ARGS]   = { .name = "invoke_args",    .type = BLOB_TYPE_TABLE }, 
 };
 
@@ -163,9 +163,9 @@ int bus_convert_object_to_json(bus_t *bus, struct bus_object *obj, char *out)
             char t[50];
             sprintf(t, "arg%d", j);
             cjson_add_item_to_object(method, t, arg);
-            if (obj->methods[i].policy[j].type == BLOB_TYPE_INT32) {
+            if (obj->methods[i].policy[j].type == BLOB_TYPE_UINT32) {
                 cjson_add_string_to_object(arg, "name", obj->methods[i].policy[j].name);
-                cjson_add_string_to_object(arg, "type", "BLOB_TYPE_INT32");
+                cjson_add_string_to_object(arg, "type", "BLOB_TYPE_UINT32");
             } else if (obj->methods[i].policy[j].type == BLOB_TYPE_STRING) {
                 cjson_add_string_to_object(arg, "name", obj->methods[i].policy[j].name);
                 cjson_add_string_to_object(arg, "type", "BLOB_TYPE_STRING");
@@ -231,7 +231,7 @@ int bus_handle_add_object_reply(bus_t *bus, blob_attr_t **attr)
     dbg_str(BUS_DETAIL, "bus_handle_add_object_reply");
 
     if (attr[BUS_STATE]) {
-        state = blob_get_u32(attr[BUS_STATE]);
+        state = blob_get_uint32(attr[BUS_STATE]);
         dbg_str(BUS_DETAIL, "state=%d", state);
     }
 
@@ -363,8 +363,8 @@ int bus_blob_add_args(blob_t *blob, int argc, bus_method_args_t *args)
     for (i = 0; i < argc; i++) {
         if (args[i].type == ARG_TYPE_STRING) {
             blob_add_string(blob, (char *)args[i].name, args[i].value);
-        } else if (args[i].type == ARG_TYPE_INT32) {
-            blob_add_u32(blob, (char *)args[i].name, atoi(args[i].value));
+        } else if (args[i].type == ARG_TYPE_UINT32) {
+            blob_add_uint32(blob, (char *)args[i].name, (uint32_t)args[i].value);
         } else if (args[i].type == ARG_TYPE_BUFFER) {
             blob_add_buffer(blob, (char *)args[i].name, (uint8_t *)args[i].value, args[i].len);
         } else {
@@ -397,7 +397,7 @@ bus_invoke(bus_t *bus, char *object_id, char *method,
     blob_add_table_start(blob, (char *)"invoke"); {
         blob_add_string(blob, (char *)"object_id", object_id);
         blob_add_string(blob, (char *)"invoke_method", method);
-        blob_add_u8(blob, (char *)"invoke_argc", argc);
+        blob_add_uint8(blob, (char *)"invoke_argc", argc);
         blob_add_table_start(blob, (char *)"invoke_args"); {
             bus_blob_add_args(blob, argc, args);
         }
@@ -490,7 +490,7 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
 #undef MAX_BUFFER_LEN
 
     if (attr[BUS_STATE]) {
-        state = blob_get_u32(attr[BUS_STATE]);
+        state = blob_get_uint32(attr[BUS_STATE]);
         dbg_str(BUS_DETAIL, "state:%d", state);
     }
     if (attr[BUS_OBJID]) {
@@ -588,9 +588,9 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
     blob_add_table_start(blob, (char *)"reply_forward_invoke"); {
         blob_add_string(blob, (char *)"object_id", object_id);
         blob_add_string(blob, (char *)"invoke_method", method_name);
-        blob_add_u32(blob, (char *)"state", ret);
+        blob_add_uint32(blob, (char *)"state", ret);
         blob_add_buffer(blob, (char *)"opaque", (uint8_t *)buf, buf_len);
-        blob_add_u32(blob, (char *)"source_fd", src_fd);
+        blob_add_uint32(blob, (char *)"source_fd", src_fd);
     }
     blob_add_table_end(blob);
 
@@ -638,7 +638,7 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
     dbg_str(BUS_DETAIL, "bus_handle_forward_invoke");
 
     if (attr[BUS_INVOKE_SRC_FD]) {
-        src_fd = blob_get_u32(attr[BUS_INVOKE_SRC_FD]);
+        src_fd = blob_get_uint32(attr[BUS_INVOKE_SRC_FD]);
         dbg_str(BUS_DETAIL, "invoke src fd:%d", src_fd);
     }
     if (attr[BUS_INVOKE_METHOD]) {
@@ -646,7 +646,7 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
         dbg_str(BUS_DETAIL, "invoke method_name:%s", method_name);
     }
     if (attr[BUS_INVOKE_ARGC]) {
-        argc = blob_get_u8(attr[BUS_INVOKE_ARGC]);
+        argc = blob_get_uint8(attr[BUS_INVOKE_ARGC]);
         dbg_str(BUS_DETAIL, "invoke argc=%d", argc);
     }
     if (attr[BUS_INVOKE_ARGS]) {

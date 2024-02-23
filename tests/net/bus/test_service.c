@@ -5,7 +5,7 @@
 #include <libobject/core/utils/registry/registry.h>
 
 static const struct blob_policy_s hello_policy[] = {
-	[0] = { .name = "id", .type = BLOB_TYPE_INT32 },
+	[0] = { .name = "id", .type = BLOB_TYPE_UINT32 },
 	[1] = { .name = "content", .type = BLOB_TYPE_STRING },
 };
 
@@ -21,7 +21,7 @@ static int test_hello(bus_object_t *obj,
 
     dbg_str(DBG_SUC,"run test hello");
 
-    id = blob_get_u32(args[0]);
+    id = blob_get_uint32(args[0]);
     content = blob_get_string(args[1]);
 
     dbg_str(DBG_DETAIL,"test hello,rcv args id=%d,content=%s",id,content);
@@ -33,7 +33,7 @@ static int test_hello(bus_object_t *obj,
 }
 
 static const struct blob_policy_s set_policy[] = {
-	[0] = { .name = "hijklmn", .type = BLOB_TYPE_INT32 },
+	[0] = { .name = "hijklmn", .type = BLOB_TYPE_UINT32 },
 	[1] = { .name = "opqrst", .type = BLOB_TYPE_STRING },
 };
 

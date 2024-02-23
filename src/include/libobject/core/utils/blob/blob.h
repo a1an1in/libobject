@@ -29,10 +29,10 @@ enum msgblob_type {
     BLOB_TYPE_TABLE,
     BLOB_TYPE_STRING,
     BLOB_TYPE_BUFFER,
-    BLOB_TYPE_INT64,
-    BLOB_TYPE_INT32,
-    BLOB_TYPE_INT16,
-    BLOB_TYPE_INT8,
+    BLOB_TYPE_UINT64,
+    BLOB_TYPE_UINT32,
+    BLOB_TYPE_UINT16,
+    BLOB_TYPE_UINT8,
     BLOB_TYPE_LAST,
 }; 
 
@@ -46,11 +46,11 @@ int blob_init(blob_t *blob);
 int blob_reset(blob_t *blob);
 int blob_destroy(blob_t *blob);
 int blob_add(blob_t *blob, uint8_t type, char *name, void *value, uint16_t value_len);
-int blob_add_u8(blob_t *blob, char *name, uint8_t val);
-int blob_add_u16(blob_t *blob, char *name, uint16_t val);
-int blob_add_u32(blob_t *blob, char *name, uint32_t val);
+int blob_add_uint8(blob_t *blob, char *name, uint8_t val);
+int blob_add_uint16(blob_t *blob, char *name, uint16_t val);
+int blob_add_uint32(blob_t *blob, char *name, uint32_t val);
 /*
- *int blob_add_u64(blob_t *blob, char *name, uint64_t val);
+ *int blob_add_uint64(blob_t *blob, char *name, uint64_t val);
  */
 int blob_add_string(blob_t *blob, char *name, char *str);
 int blob_add_buffer(blob_t *blob, char *name, uint8_t *buf, int len);
@@ -61,9 +61,9 @@ blob_attr_t *blob_next(blob_attr_t *attr);
 char *blob_get_name(blob_attr_t *attr);
 uint8_t *blob_get_data(blob_attr_t *attr);
 uint32_t blob_get_data_len(blob_attr_t *attr);
-uint8_t blob_get_u8(blob_attr_t *attr);
-uint16_t blob_get_u16(blob_attr_t *attr);
-uint32_t blob_get_u32(blob_attr_t *attr);
+uint8_t blob_get_uint8(blob_attr_t *attr);
+uint16_t blob_get_uint16(blob_attr_t *attr);
+uint32_t blob_get_uint32(blob_attr_t *attr);
 int blob_get_buffer(blob_attr_t *attr,uint8_t **out);
 char * blob_get_string(blob_attr_t *attr);
 uint16_t blob_get_len(blob_attr_t *attr);

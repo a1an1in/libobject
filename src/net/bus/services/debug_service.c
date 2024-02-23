@@ -4,9 +4,9 @@
 #include <libobject/net/bus/bus.h>
 
 static const struct blob_policy_s debug_policy[] = {
-	[0] = { .name = "bussiness", .type = BLOB_TYPE_INT32 }, 
-	[1] = { .name = "switch", .type = BLOB_TYPE_INT32 }, 
-	[2] = { .name = "level", .type = BLOB_TYPE_INT32 }, 
+	[0] = { .name = "bussiness", .type = BLOB_TYPE_UINT32 }, 
+	[1] = { .name = "switch", .type = BLOB_TYPE_UINT32 }, 
+	[2] = { .name = "level", .type = BLOB_TYPE_UINT32 }, 
 };
 
 static int set_debug(bus_object_t *obj, 
@@ -18,9 +18,9 @@ static int set_debug(bus_object_t *obj,
     char buffer[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     int db_bussiness, db_switch, db_level;
 
-    db_bussiness = blob_get_u32(args[0]);
-    db_switch    = blob_get_u32(args[1]);
-    db_level     = blob_get_u32(args[2]);
+    db_bussiness = blob_get_uint32(args[0]);
+    db_switch    = blob_get_uint32(args[1]);
+    db_level     = blob_get_uint32(args[2]);
 
     dbg_str(DBG_SUC, "set debug, bussiness=%d, switch=%d, level=%d", 
             db_bussiness, db_switch, db_level);

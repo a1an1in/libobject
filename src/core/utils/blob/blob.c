@@ -119,27 +119,27 @@ int blob_add(blob_t *blob, uint8_t type, char *name, void *value, uint16_t value
     return attr_len;
 }
 
-int blob_add_u8(blob_t *blob, char *name, uint8_t val)
+int blob_add_uint8(blob_t *blob, char *name, uint8_t val)
 {
-    return blob_add(blob, BLOB_TYPE_INT8, name, &val, sizeof(val));
+    return blob_add(blob, BLOB_TYPE_UINT8, name, &val, sizeof(val));
 }
 
-int blob_add_u16(blob_t *blob, char *name, uint16_t val)
+int blob_add_uint16(blob_t *blob, char *name, uint16_t val)
 {
     val = cpu_to_be16(val);
-    return blob_add(blob, BLOB_TYPE_INT16, name, &val, sizeof(val));
+    return blob_add(blob, BLOB_TYPE_UINT16, name, &val, sizeof(val));
 }
 
-int blob_add_u32(blob_t *blob, char *name, uint32_t val)
+int blob_add_uint32(blob_t *blob, char *name, uint32_t val)
 {
     val = cpu_to_be32(val);
-    return blob_add(blob, BLOB_TYPE_INT32, name, &val, sizeof(val));
+    return blob_add(blob, BLOB_TYPE_UINT32, name, &val, sizeof(val));
 }
 
-int blob_add_u64(blob_t *blob, char *name, uint64_t val)
+int blob_add_uint64(blob_t *blob, char *name, uint64_t val)
 {
     val = cpu_to_be64(val);
-    return blob_add(blob, BLOB_TYPE_INT64, name, &val, sizeof(val));
+    return blob_add(blob, BLOB_TYPE_UINT64, name, &val, sizeof(val));
 }
 
 int blob_add_string(blob_t *blob, char *name, char *str)
@@ -219,21 +219,21 @@ uint32_t blob_get_data_len(blob_attr_t *attr)
     return be16_to_cpu(attr->len) - (uint8_t)(data_addr - (uint8_t *)attr); 
 }
 
-uint8_t blob_get_u8(blob_attr_t *attr)
+uint8_t blob_get_uint8(blob_attr_t *attr)
 {
     uint8_t *body_addr = blob_get_data(attr);
 
     return body_addr[0];
 }
 
-uint16_t blob_get_u16(blob_attr_t *attr)
+uint16_t blob_get_uint16(blob_attr_t *attr)
 {
     uint16_t *body_addr = (uint16_t*)blob_get_data(attr);
 
     return be16_to_cpu(*body_addr);
 }
 
-uint32_t blob_get_u32(blob_attr_t *attr)
+uint32_t blob_get_uint32(blob_attr_t *attr)
 {
     uint32_t *body_addr = (uint32_t*)blob_get_data(attr);
 
@@ -313,7 +313,7 @@ static const struct blob_policy_s pol[] = {
     }, 
     [FOO_U32] = {     
         .name = (char *)"u32", 
-        .type = BLOB_TYPE_INT32, 
+        .type = BLOB_TYPE_UINT32, 
     }, 
 };
 
@@ -326,15 +326,15 @@ enum {
 static const struct blob_policy_s table[] = {
     [TBL_U8] = {     
         .name = (char *)"u8", 
-        .type = BLOB_TYPE_INT8, 
+        .type = BLOB_TYPE_UINT8, 
     }, 
     [TBL_U16] = {     
         .name = (char *)"u16", 
-        .type = BLOB_TYPE_INT16, 
+        .type = BLOB_TYPE_UINT16, 
     }, 
     [TBL_U32] = {     
         .name = (char *)"u32", 
-        .type = BLOB_TYPE_INT32, 
+        .type = BLOB_TYPE_UINT32, 
     }, 
     [TBL_TABLE2] = {
         .name = (char *)"table2", 
@@ -351,24 +351,24 @@ void test_blob()
     blob = blob_create(allocator);
     blob_init(blob);
 
-    blob_add_u8(blob, (char *)"u8", 8);
+    blob_add_uint8(blob, (char *)"u8", 8);
     blob_add_string(blob, (char *)"value", (char *)"hello world!");
 
     blob_add_table_start(blob, (char *)"table1");{
-        blob_add_u8(blob, (char *)"u8", 8);
-        blob_add_u16(blob, (char *)"u16", 16);
-        blob_add_u32(blob, (char *)"u32", 32);
+        blob_add_uint8(blob, (char *)"u8", 8);
+        blob_add_uint16(blob, (char *)"u16", 16);
+        blob_add_uint32(blob, (char *)"u32", 32);
 
         blob_add_table_start(blob, (char *)"table2");{
-            blob_add_u8(blob, (char *)"u8", 8);
-            blob_add_u16(blob, (char *)"u16", 16);
-            blob_add_u32(blob, (char *)"u32", 32);
+            blob_add_uint8(blob, (char *)"u8", 8);
+            blob_add_uint16(blob, (char *)"u16", 16);
+            blob_add_uint32(blob, (char *)"u32", 32);
         }
         blob_add_table_end(blob);
     }
     blob_add_table_end(blob);
 
-    blob_add_u32(blob, (char *)"u32", 32);
+    blob_add_uint32(blob, (char *)"u32", 32);
 
     blob_add_buffer(blob, (char *)"buffer", (uint8_t *)buffer, sizeof(buffer));
 

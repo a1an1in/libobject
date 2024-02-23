@@ -43,11 +43,11 @@ static const struct blob_policy_s busd_attribs[] = {
     [BUSD_OBJID]          = { .name = "object_id",      .type = BLOB_TYPE_STRING },
     [BUSD_OBJINFOS]       = { .name = "object_infos",   .type = BLOB_TYPE_STRING }, 
     [BUSD_INVOKE_METHORD] = { .name = "invoke_method",  .type = BLOB_TYPE_STRING }, 
-    [BUSD_INVOKE_ARGC]    = { .name = "invoke_argc",    .type = BLOB_TYPE_INT32 }, 
+    [BUSD_INVOKE_ARGC]    = { .name = "invoke_argc",    .type = BLOB_TYPE_UINT32 }, 
     [BUSD_INVOKE_ARGS]    = { .name = "invoke_args",    .type = BLOB_TYPE_STRING }, 
-    [BUSD_STATE]          = { .name = "state",          .type = BLOB_TYPE_INT32 }, 
-    [BUSD_OPAQUE]         = { .name = "opaque",         .type = BLOB_TYPE_INT32 }, 
-    [BUSD_INVOKE_SRC_FD]  = { .name = "source_fd",      .type = BLOB_TYPE_INT32 }, 
+    [BUSD_STATE]          = { .name = "state",          .type = BLOB_TYPE_UINT32 }, 
+    [BUSD_OPAQUE]         = { .name = "opaque",         .type = BLOB_TYPE_UINT32 }, 
+    [BUSD_INVOKE_SRC_FD]  = { .name = "source_fd",      .type = BLOB_TYPE_UINT32 }, 
 };
 
 int busd_dump_object(struct busd_object *obj)
@@ -189,7 +189,7 @@ int busd_reply_add_object(busd_t *busd, int state, char *object_id, int fd)
 
     blob_reset(blob);
     blob_add_table_start(blob, (char *)"add_obj_reply"); {
-        blob_add_u32(blob, (char *)"state", state);
+        blob_add_uint32(blob, (char *)"state", state);
         blob_add_string(blob, (char *)"object_id", object_id);
     }
     blob_add_table_end(blob);
@@ -312,11 +312,11 @@ busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd,
 
     blob_reset(blob);
     blob_add_table_start(blob, (char *)"forword_invoke"); {
-        blob_add_u32(blob, (char *)"source_fd", src_fd);
-        blob_add_u32(blob, (char *)"destination_fd", dest_fd);
+        blob_add_uint32(blob, (char *)"source_fd", src_fd);
+        blob_add_uint32(blob, (char *)"destination_fd", dest_fd);
         blob_add_string(blob, (char *)"object_id", object_id);
         blob_add_string(blob, (char *)"invoke_method", method);
-        blob_add_u8(blob, (char *)"invoke_argc", argc);
+        blob_add_uint8(blob, (char *)"invoke_argc", argc);
         blob_catenate(blob, args);
     }
     blob_add_table_end(blob);
@@ -367,7 +367,7 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
         method = blob_get_string(attr[BUSD_INVOKE_METHORD]);
     }
     if (attr[BUSD_INVOKE_ARGC]) {
-        argc = blob_get_u8(attr[BUSD_INVOKE_ARGC]); 
+        argc = blob_get_uint8(attr[BUSD_INVOKE_ARGC]); 
         dbg_str(BUS_DETAIL, "invoke argc:%d", argc);
     }
     if (attr[BUSD_INVOKE_ARGS]) {
@@ -397,7 +397,7 @@ int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, ui
 
     blob_reset(blob);
     blob_add_table_start(blob, (char *)"invoke_reply"); {
-        blob_add_u32(blob, (char *)"state", state);
+        blob_add_uint32(blob, (char *)"state", state);
         blob_add_buffer(blob, (char *)"opaque", opaque, opaque_len);
         blob_add_string(blob, (char *)"object_id", object_id);
         blob_add_string(blob, (char *)"invoke_method", method);
@@ -427,7 +427,7 @@ int busd_handle_forward_invoke_reply(busd_t *busd, blob_attr_t **attr, int fd)
     int buffer_len = 0;
 
     if (attr[BUSD_STATE]) {
-        state = blob_get_u32(attr[BUSD_STATE]); 
+        state = blob_get_uint32(attr[BUSD_STATE]); 
         dbg_str(BUS_DETAIL, "forward invoke reply state=%d", state);
     }
     if (attr[BUSD_INVOKE_METHORD]) {
@@ -439,7 +439,7 @@ int busd_handle_forward_invoke_reply(busd_t *busd, blob_attr_t **attr, int fd)
         dbg_str(BUS_DETAIL, "object_id:%s", object_id);
     }
     if (attr[BUSD_INVOKE_SRC_FD]) {
-        src_fd = blob_get_u32(attr[BUSD_INVOKE_SRC_FD]); 
+        src_fd = blob_get_uint32(attr[BUSD_INVOKE_SRC_FD]); 
         dbg_str(BUS_DETAIL, "source fd=%d", src_fd);
     }
     if (attr[BUSD_OPAQUE]) {
