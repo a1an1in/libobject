@@ -142,6 +142,12 @@ int blob_add_uint64(blob_t *blob, char *name, uint64_t val)
     return blob_add(blob, BLOB_TYPE_UINT64, name, &val, sizeof(val));
 }
 
+int blob_add_int32(blob_t *blob, char *name, int32_t val)
+{
+    val = cpu_to_be32(val);
+    return blob_add(blob, BLOB_TYPE_INT32, name, &val, sizeof(val));
+}
+
 int blob_add_string(blob_t *blob, char *name, char *str)
 {
     return blob_add(blob, BLOB_TYPE_STRING, name, str, strlen(str) + 1);
@@ -236,6 +242,13 @@ uint16_t blob_get_uint16(blob_attr_t *attr)
 uint32_t blob_get_uint32(blob_attr_t *attr)
 {
     uint32_t *body_addr = (uint32_t*)blob_get_data(attr);
+
+    return be32_to_cpu(*body_addr);
+}
+
+int32_t blob_get_int32(blob_attr_t *attr)
+{
+    int32_t *body_addr = (int32_t*)blob_get_data(attr);
 
     return be32_to_cpu(*body_addr);
 }

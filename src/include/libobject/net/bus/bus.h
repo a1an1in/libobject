@@ -60,6 +60,7 @@ enum bus_method_arg_type_e {
     ARG_TYPE_UINT32,
     ARG_TYPE_UINT16,
     ARG_TYPE_UINT8,
+	ARG_TYPE_INT32,
     ARG_TYPE_LAST,
 }; 
 typedef struct bus_method_args_s {

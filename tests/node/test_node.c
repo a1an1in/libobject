@@ -3,6 +3,32 @@
 #include <libobject/net/bus/bus.h>
 #include <libobject/core/utils/registry/registry.h>
 
+int test_node_int32_paramater()
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    bus_t *bus;
+    char *deamon_host = "127.0.0.1";
+    char *deamon_srv  = "12345";
+	char out[1024];
+    int out_len = 1024;
+    bus_method_args_t args[1] = {
+        [0] = {ARG_TYPE_INT32, "par1", -1}, 
+    };
+    int ret;
+    
+    TRY {
+        bus = bus_create(allocator, deamon_host, deamon_srv, CLIENT_TYPE_INET_TCP);
+        THROW_IF(bus == NULL, -1);
+
+        bus_invoke_sync(bus, "node", "test", 1, args, out, &out_len);
+    } CATCH (ret) {} FINALLY {
+        bus_destroy(bus);
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_node_int32_paramater);
+
 int test_node_invoke_exit()
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -66,8 +92,8 @@ int test_node_invoke_write_file()
 	char buffer[1024] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
     char buffer_len = 10;
     bus_method_args_t args[3] = {
-        [0] = {BLOB_TYPE_STRING, "filename", "abc"}, 
-        [1] = {BLOB_TYPE_BUFFER, "buffer", buffer, buffer_len}, 
+        [0] = {ARG_TYPE_STRING, "filename", "abc"}, 
+        [1] = {ARG_TYPE_BUFFER, "buffer", buffer, buffer_len}, 
         [2] = {ARG_TYPE_UINT32, "crc32", 0x123}, 
     };
     int ret;

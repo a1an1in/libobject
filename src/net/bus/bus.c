@@ -365,6 +365,8 @@ int bus_blob_add_args(blob_t *blob, int argc, bus_method_args_t *args)
             blob_add_string(blob, (char *)args[i].name, args[i].value);
         } else if (args[i].type == ARG_TYPE_UINT32) {
             blob_add_uint32(blob, (char *)args[i].name, (uint32_t)args[i].value);
+        } else if (args[i].type == ARG_TYPE_INT32) {
+            blob_add_int32(blob, (char *)args[i].name, (int32_t)args[i].value);
         } else if (args[i].type == ARG_TYPE_BUFFER) {
             blob_add_buffer(blob, (char *)args[i].name, (uint8_t *)args[i].value, args[i].len);
         } else {

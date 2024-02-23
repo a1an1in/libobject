@@ -1,8 +1,7 @@
 [update:node] continue to implement node.
 
 Description:
-change bus TYPE_INTxxxx to TYPE_UINTxxxx, since i haven't
-supported int type, it's a miswriting.
+update.
 
 Major Changes:
-1. change BLOB_TYPE_INTxxx to BLOB_TYPE_UINTxxx.
+1. bus support ARG_TYPE_INT32 type argument.
