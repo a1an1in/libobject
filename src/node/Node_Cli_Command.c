@@ -10,30 +10,24 @@
 
 static int __run_command(Node_Cli_Command *command)
 {
-    int argc, i;
-    char **argv;
-    Command *c = (Command *)command;
-    allocator_t *allocator = c->parent.allocator;
-    bus_t *bus;
+    Node *node = command->node;
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP,"node cli host:%s, service:%s", command->host, command->service);
-        bus = bus_create(allocator, command->host, command->service, CLIENT_TYPE_INET_TCP);
-        command->bus = bus;
+        EXEC(node->init(node));
+        EXEC(node->call(node, command->code, NULL, 0));
+    } CATCH (ret) {}
 
-        dbg_str(DBG_VIP, "Node cli command out");
-    } CATCH (ret) {} FINALLY {}
-
-    return ret;
+    return ret; 
 }
 
 static int __option_host_callback(Option *option, void *opaque)
 {
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
+    Node *n = c->node;
 
     dbg_str(DBG_SUC,"option_host_action_callback:%s", STR2A(option->value));
-    c->host = STR2A(option->value);
+    n->host = STR2A(option->value);
 
     return 1;
 }
@@ -41,8 +35,10 @@ static int __option_host_callback(Option *option, void *opaque)
 static int __option_service_callback(Option *option, void *opaque)
 {
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
+    Node *n = c->node;
+
     dbg_str(DBG_SUC,"option_service_action_callback:%s", STR2A(option->value));
-    c->service = STR2A(option->value);
+    n->service = STR2A(option->value);
 
     return 1;
 }
@@ -56,16 +52,36 @@ static int __option_code_callback(Option *option, void *opaque)
     return 1;
 }
 
+static int __option_disable_node_service_callback(Option *option, void *opaque)
+{
+    Node_Cli_Command *c = (Node_Cli_Command *)opaque;
+    Node *n = c->node;
+
+    dbg_str(DBG_SUC,"disable_node_service: %s", STR2A(option->value));
+    if ((strcmp(STR2A(option->value), "true") == 0) ||
+        (strcmp(STR2A(option->value), "True") == 0) ||
+        (strcmp(STR2A(option->value), "T") == 0) ||
+        (strcmp(STR2A(option->value), "t") == 0)) {
+        n->disable_node_service_flag = 1;
+    } else {
+        n->disable_node_service_flag = 0;
+    }
+
+    return 1;
+}
+
 static int __construct(Node_Cli_Command *command, char *init_str)
 {
     Command *c = (Command *)command;
+    allocator_t *allocator = c->parent.allocator;
+
+    command->node = object_new(allocator, "Node", NULL);
 
     c->set(c, "/Command/name", "node_cli");
-
     c->add_option(c, "--host", "", "", "set node center ip address", __option_host_callback, command);
     c->add_option(c, "--service", "-s", "", "set node center port", __option_service_callback, command);
     c->add_option(c, "--call", "-c", "", "set the executing code of bus, eg, --call=nodeid@set_loglevel(1,2,3)", __option_code_callback, command);
-
+    c->add_option(c, "--disable-node-service", "", "true", "disable node service for node cli", __option_disable_node_service_callback, command);
     c->set(c, "/Command/description", "node client command.");
 
     return 0;
@@ -73,7 +89,8 @@ static int __construct(Node_Cli_Command *command, char *init_str)
 
 static int __deconstruct(Node_Cli_Command *command)
 {
-    bus_destroy(command->bus);
+    object_destroy(command->node);
+
     return 0;
 }
 

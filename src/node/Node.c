@@ -28,7 +28,7 @@ static int __init(Node *node)
         THROW_IF(node->host == NULL || node->service == NULL, -1);
 
         dbg_str(DBG_VIP,"node host:%s, service:%s", node->host, node->service);
-        if (node->bus_deamon_flag == 1) {
+        if (node->run_bus_deamon_flag == 1) {
             busd = busd_create(allocator, node->host,
                                node->service, SERVER_TYPE_INET_TCP);
             THROW_IF(busd == NULL, -1);
@@ -41,11 +41,28 @@ static int __init(Node *node)
         node->bus = bus;
         bus->opaque = node;
         
-        bus_add_object(bus, &node_object);
-        
-        do { sleep(1); } while (node->node_flag != 1);
+        if (node->disable_node_service_flag != 1)
+            bus_add_object(bus, &node_object);
 
-        dbg_str(DBG_VIP, "node node out");
+        dbg_str(DBG_VIP, "node init out");
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static int __loop(Node *node)
+{
+    do { sleep(1); } while (node->node_flag != 1);
+    dbg_str(DBG_VIP, "node loop out");
+    return 0;
+}
+
+static int __call(Node *node, char *code, void *out, uint32_t *out_len)
+{
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "call in, code:%s", code);
     } CATCH (ret) {}
 
     return ret;
@@ -56,6 +73,8 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(1, Node, construct, NULL),
     Init_Nfunc_Entry(2, Node, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3, Node, init, __init),
-    Init_End___Entry(4, Node),
+    Init_Nfunc_Entry(4, Node, loop, __loop),
+    Init_Nfunc_Entry(5, Node, call, __call),
+    Init_End___Entry(6, Node),
 };
 REGISTER_CLASS("Node", node_class_info);

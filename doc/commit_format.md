@@ -4,4 +4,5 @@ Description:
 update.
 
 Major Changes:
-1. bus support ARG_TYPE_INT32 type argument.
+1. add node::call.
+2. modify node_cli

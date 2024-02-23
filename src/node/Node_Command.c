@@ -16,6 +16,7 @@ static int __run_command(Node_Command *command)
 
     TRY {
         EXEC(node->init(node));
+        EXEC(node->loop(node));
     } CATCH (ret) {}
 
     return ret; 
@@ -52,11 +53,11 @@ static int __option_deamon_callback(Option *option, void *opaque)
         (strcmp(STR2A(option->value), "True") == 0) ||
         (strcmp(STR2A(option->value), "T") == 0) ||
         (strcmp(STR2A(option->value), "t") == 0)) {
-        n->bus_deamon_flag = 1;
+        n->run_bus_deamon_flag = 1;
     } else {
-        n->bus_deamon_flag = 0;
+        n->run_bus_deamon_flag = 0;
     }
-    dbg_str(DBG_SUC, "set bus_deamon_flag:%d, option:%s", n->bus_deamon_flag, STR2A(option->value));
+    dbg_str(DBG_SUC, "set run_bus_deamon_flag:%d, option:%s", n->run_bus_deamon_flag, STR2A(option->value));
     
     return 1;
 }

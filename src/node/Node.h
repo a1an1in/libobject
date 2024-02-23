@@ -18,11 +18,14 @@ struct Node_s {
     void *(*get)(Node *node, char *attrib);
     char *(*to_json)(Node *node);
 	int (*init)(Node *node);
+	int (*loop)(Node *node);
+	int (*call)(Node *node, char *code, void *out, uint32_t *out_len);
 
 	bus_t *bus;
     busd_t *busd;
 	char *host, *service;
-    int bus_deamon_flag; /* 1表示要运行bus deamon */
+    int run_bus_deamon_flag; /* 1表示要运行bus deamon */
+	int disable_node_service_flag;
     int node_flag; /* flag == 1 表示退出node */
 };
 

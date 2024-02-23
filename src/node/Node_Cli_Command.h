@@ -5,7 +5,7 @@
 #include <libobject/argument/Application.h>
 #include <libobject/argument/Command.h>
 #include <libobject/core/String.h>
-#include <libobject/net/bus/bus.h>
+#include "Node.h"
 
 typedef struct Node_Cli_Command_s Node_Cli_Command;
 
@@ -21,7 +21,7 @@ struct Node_Cli_Command_s {
     int (*run_command)(Node_Cli_Command *command);
 
     char *host, *service, *code;
-    bus_t *bus;
+    Node *node;
 };
 
 #endif
