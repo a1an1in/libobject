@@ -63,13 +63,12 @@ int test_node_invoke_write_file()
     bus_t *bus;
     char *deamon_host = "127.0.0.1";
     char *deamon_srv  = "12345";
-	char buffer[1024];
-    char buffer_len;
-    bus_method_args_t args[4] = {
+	char buffer[1024] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    char buffer_len = 10;
+    bus_method_args_t args[3] = {
         [0] = {BLOB_TYPE_STRING, "filename", "abc"}, 
         [1] = {BLOB_TYPE_BUFFER, "buffer", buffer, buffer_len}, 
-        [2] = {ARG_TYPE_INT32, "length", "6"}, 
-        [3] = {ARG_TYPE_INT32, "crc32", "0x123"}, 
+        [2] = {ARG_TYPE_INT32, "crc32", "0x123"}, 
     };
     int ret;
     
@@ -77,7 +76,7 @@ int test_node_invoke_write_file()
         bus = bus_create(allocator, deamon_host, deamon_srv, CLIENT_TYPE_INET_TCP);
         THROW_IF(bus == NULL, -1);
 
-        bus_invoke_sync(bus, "node", "write_file", 4, args, buffer, &buffer_len);
+        bus_invoke_sync(bus, "node", "write_file", 3, args, buffer, &buffer_len);
         dbg_buf(DBG_DETAIL, "return buffer:", (uint8_t *)buffer, buffer_len);
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);

@@ -55,7 +55,7 @@ int blob_init(blob_t *blob)
     allocator_t *allocator = blob->allocator;
 
     if(blob->len == 0) {
-        blob->len = 512;
+        blob->len = 1024 * 4;
         blob->head = (uint8_t *) allocator_mem_alloc(allocator, blob->len);
         if(blob->head == NULL) {
             dbg_str(DBG_WARNNING, "allocator_mem_alloc");

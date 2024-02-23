@@ -169,6 +169,9 @@ int bus_convert_object_to_json(bus_t *bus, struct bus_object *obj, char *out)
             } else if (obj->methods[i].policy[j].type == BLOB_TYPE_STRING) {
                 cjson_add_string_to_object(arg, "name", obj->methods[i].policy[j].name);
                 cjson_add_string_to_object(arg, "type", "BLOB_TYPE_STRING");
+            } else if (obj->methods[i].policy[j].type == BLOB_TYPE_BUFFER) {
+                cjson_add_string_to_object(arg, "name", obj->methods[i].policy[j].name);
+                cjson_add_string_to_object(arg, "type", "BLOB_TYPE_BUFFER");
             } else {
             }
         }
