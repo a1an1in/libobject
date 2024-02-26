@@ -4,6 +4,22 @@
 #include <libobject/core/utils/registry/registry.h>
 #include "Node.h"
 
+static const struct blob_policy_s test_policy[] = { 
+    [0] = { .name = "par1",  .type = BLOB_TYPE_INT32 }, 
+};
+
+static int node_test(bus_object_t *obj, int argc, 
+		      	     struct blob_attr_s **args, 
+                     void *out_data, int *out_data_len)
+{
+    int32_t value;
+
+    value = blob_get_int32(args[0]);
+    dbg_str(DBG_VIP, "node_test int32 paramater, vaule:%d", value);
+
+	return 1;
+}
+
 static int node_exit(bus_object_t *obj, int argc,
 		             struct blob_attr_s **args,
                      void *out_data, int *out_data_len)
@@ -47,8 +63,9 @@ static int node_set_loglevel(bus_object_t *obj, int argc,
 
 static const struct blob_policy_s write_file_policy[] = {
 	[0] = { .name = "filename",  .type = BLOB_TYPE_STRING }, 
-	[1] = { .name = "buffer",    .type = BLOB_TYPE_BUFFER }, 
-    [2] = { .name = "crc32",     .type = BLOB_TYPE_UINT32 }, 
+    [1] = { .name = "offset",    .type = BLOB_TYPE_UINT32 }, 
+	[2] = { .name = "buffer",    .type = BLOB_TYPE_BUFFER }, 
+    [3] = { .name = "crc32",     .type = BLOB_TYPE_UINT32 }, 
 };
 
 static int node_write_file(bus_object_t *obj, int argc, 
@@ -57,41 +74,49 @@ static int node_write_file(bus_object_t *obj, int argc,
 {
     char *filename;
     uint8_t *buffer;
-    uint32_t len, crc32;
+    uint32_t len, crc32, offset;
 
     filename = blob_get_string(args[0]);
-    len = blob_get_buffer(args[1], &buffer);
-    crc32 = blob_get_uint32(args[2]);
-    dbg_str(DBG_VIP, "file name:%s, data len:%d, crc32:%d", filename, len, crc32);
+    offset = blob_get_uint32(args[1]);
+    len = blob_get_buffer(args[2], &buffer);
+    crc32 = blob_get_uint32(args[3]);
+    dbg_str(DBG_VIP, "file name:%s, data offset:%d, len:%d, crc32:%x", filename, offset, len, crc32);
     dbg_buf(DBG_VIP, "buffer:", buffer, len);
 
 	return 1;
 }
 
-static const struct blob_policy_s test_policy[] = { 
-    [0] = { .name = "par1",  .type = BLOB_TYPE_INT32 }, 
+static const struct blob_policy_s read_file_policy[] = {
+	[0] = { .name = "filename",  .type = BLOB_TYPE_STRING }, 
+    [1] = { .name = "offset",    .type = BLOB_TYPE_UINT32 }, 
+    [2] = { .name = "length",    .type = BLOB_TYPE_UINT32 }, 
 };
 
-static int node_test(bus_object_t *obj, int argc, 
-		      	     struct blob_attr_s **args, 
-                     void *out_data, int *out_data_len)
+static int node_read_file(bus_object_t *obj, int argc, 
+		      		      struct blob_attr_s **args, 
+                          void *out_data, int *out_data_len)
 {
-    int32_t value;
+    char *filename;
+    uint32_t len, offset;
 
-    value = blob_get_int32(args[0]);
-    dbg_str(DBG_VIP, "node_test int32 paramater, vaule:%d", value);
+    filename = blob_get_string(args[0]);
+    offset = blob_get_uint32(args[1]);
+    len = blob_get_uint32(args[2]);
+
+    dbg_str(DBG_VIP, "file name:%s, data len:%d, offset:%d", filename, len, offset);
 
 	return 1;
 }
 
 static const struct bus_method node_service_methods[] = {
 	BUS_METHOD_WITHOUT_ARG("exit", node_exit, NULL),
+    BUS_METHOD("test", node_test, test_policy),
     BUS_METHOD("set_loglevel", node_set_loglevel, set_loglevel_policy),
     BUS_METHOD("write_file", node_write_file, write_file_policy),
-    BUS_METHOD("test", node_test, test_policy),
+    BUS_METHOD("read_file", node_read_file, read_file_policy),
 };
 
-struct bus_object node_object = {
+bus_object_t node_object = {
 	.id        = (char *)"node",
     .cname     = (char *)"node_service", 
 	.methods   = (struct bus_method *)node_service_methods,

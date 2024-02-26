@@ -52,7 +52,7 @@ static const struct bus_method test_methods[] = {
 	BUS_METHOD("set", test_set, set_policy),
 };
 
-static struct bus_object test_object = {
+static bus_object_t test_object = {
 	.id        = (char *)"test",
     .cname     = (char *)"bus_test_class", 
 	.methods   = (struct bus_method *)test_methods,

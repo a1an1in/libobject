@@ -21,7 +21,7 @@ enum {
 
 struct bus_s;
 typedef struct bus_s bus_t;
-typedef struct bus_object bus_object_t;
+typedef struct bus_object_s bus_object_t;
 
 typedef int (*bus_handler_t)(bus_object_t *obj,
                              int argc,
@@ -121,7 +121,7 @@ struct bus_method {
 	int n_policy;
 };
 
-struct bus_object {
+struct bus_object_s {
 	char *cname;
 	char *id;
 	char *path;
@@ -168,7 +168,7 @@ int bus_send(bus_t *bus,
 			 void *buf,
 			 size_t buf_len);
 
-int bus_add_object(bus_t *bus,struct bus_object *obj);
+int bus_add_object(bus_t *bus, bus_object_t *obj);
 
 int bus_invoke_sync(bus_t *bus, char *key, char *method, int argc, bus_method_args_t *args, char *out_buf, uint32_t *out_len);
 

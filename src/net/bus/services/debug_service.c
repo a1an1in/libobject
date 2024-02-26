@@ -37,7 +37,7 @@ static const struct bus_method test_methods[] = {
 	BUS_METHOD("set_debug", set_debug, debug_policy), 
 };
 
-static struct bus_object debug_object = {
+static bus_object_t debug_object = {
 	.id        = (char *)"debug", 
 	.methods   = (struct bus_method *)test_methods, 
 	.n_methods = ARRAY_SIZE(test_methods), 

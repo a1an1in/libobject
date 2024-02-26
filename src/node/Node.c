@@ -59,10 +59,16 @@ static int __loop(Node *node)
 
 static int __call(Node *node, char *code, void *out, uint32_t *out_len)
 {
-    int ret;
+    allocator_t *allocator = node->parent.allocator;
+    char *method_name = NULL;
+    char *node_id = NULL;
+    bus_method_args_t *args;
+    int ret, count;
 
     TRY {
         dbg_str(DBG_VIP, "call in, code:%s", code);
+        EXEC(node_find_method_argument_template(&node_object, allocator, method_name, &args, &count));
+        EXEC(bus_invoke_sync(node->bus, node_id, method_name, count, args, out, &out_len));
     } CATCH (ret) {}
 
     return ret;
@@ -78,3 +84,38 @@ static class_info_entry_t node_class_info[] = {
     Init_End___Entry(6, Node),
 };
 REGISTER_CLASS("Node", node_class_info);
+
+int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator, char *method_name, 
+                                       bus_method_args_t **args, int *cnt)
+{
+    int i, ret, n_methods, n_policy;
+    struct bus_method *method;
+    struct blob_policy_s *policy = NULL;
+
+    TRY {
+        THROW_IF(obj == NULL || method_name == NULL || args == NULL, -1);
+
+        method = obj->methods;
+        n_methods = obj->n_methods;
+
+        for (i = 0; i < n_methods; i++) {
+            method = obj->methods + i;
+            if (strcmp(method->name, method_name) == 0) {
+                policy = method->policy;
+                n_policy = method->n_policy;
+                break;
+            }
+        }
+
+        THROW_IF(policy == NULL, 0);
+        *args = allocator_mem_alloc(allocator, n_policy * sizeof(bus_method_args_t));
+        THROW_IF(*args == NULL, -1);
+        for (i = 0; i < n_policy; i++) {
+            (*args)->type = policy->type;
+            strcpy((*args)->name, policy->name);
+        }
+        *cnt = n_policy;
+     } CATCH (ret) {}
+
+    return ret;
+}

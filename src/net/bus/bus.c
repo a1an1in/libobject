@@ -132,14 +132,14 @@ int bus_send(bus_t *bus,
     return ret;
 }
 
-int __bus_add_obj(bus_t *bus, struct bus_object *obj)
+int __bus_add_obj(bus_t *bus, bus_object_t *obj)
 {
     Map *map = bus->obj_map;
 
     return map->add(map, obj->id, obj);
 }
 
-int bus_convert_object_to_json(bus_t *bus, struct bus_object *obj, char *out)
+int bus_convert_object_to_json(bus_t *bus, bus_object_t *obj, char *out)
 {
     cjson_t *root, *methods, *method, *arg;
     allocator_t *allocator = bus->allocator; 
@@ -183,7 +183,7 @@ int bus_convert_object_to_json(bus_t *bus, struct bus_object *obj, char *out)
     free(tmp);
 }
 
-int bus_add_object(bus_t *bus, struct bus_object *obj)
+int bus_add_object(bus_t *bus, bus_object_t *obj)
 {
     bus_reqhdr_t hdr;
     blob_t *blob = bus->blob;
@@ -317,7 +317,7 @@ int bus_lookup_sync(bus_t *bus, char *object_id, char *buffer, int *buffer_len)
 
 int bus_handle_lookup_object_reply(bus_t *bus, blob_attr_t **attr)
 {
-    struct bus_object *obj;
+    bus_object_t *obj;
     blob_attr_t *attrib, *head;
     Map *map = bus->req_map;
     char *object_id, *infos = NULL;
