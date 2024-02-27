@@ -554,6 +554,26 @@ static int __help_head_option_for_each_callback(int index, void *element, void *
     return 0;
 }
 
+static int __help_head_argument_for_each_callback(int index, void *element, void *arg)
+{
+    Argument *argument = (Argument *)element;
+    Buffer *buffer = (Buffer *)arg;
+    void *addr;
+
+    if (argument == NULL) {
+        return 0;
+    }
+
+    addr = buffer->rfind(buffer, "\n", 1);
+    if (addr != NULL && (buffer->w_offset - (addr - buffer->addr) + strlen("argx") > 80)) {
+        buffer->printf(buffer, 512, "%s", "\n\t");
+    }
+
+    buffer->printf(buffer, 512, "<%s%d> ", "arg", index);
+
+    return 0;
+}
+
 static int __help_details_option_for_each_callback(int index, void *element, void *arg)
 {
     Option *option = (Option *)element;
@@ -594,6 +614,28 @@ static int __help_details_subcommand_for_each_callback(int index, void *element,
     return 0;
 }
 
+static int __help_details_argument_for_each_callback(int index, void *element, void *arg)
+{
+    Argument *argument = (Argument *)element;
+    Buffer *buffer = (Buffer *)arg;
+    char *desc;
+    char tmp[10] = {0};
+
+    if (argument == NULL) {
+        return 0;
+    }
+
+    if (argument->usage) {
+        desc = STR2A(argument->usage);
+    } else {
+        desc = "n/a";
+    }
+    snprintf(tmp, 10, "%s%d", "arg", index);
+    buffer->printf(buffer, 1024, "%-30s\t%s\n", tmp, desc);
+
+    return 0;
+}
+
 static int __help(Command *command)
 {
     allocator_t *allocator = command->parent.allocator;
@@ -616,6 +658,8 @@ static int __help(Command *command)
             if (subcommands->count(subcommands) > 0) {
                 buffer->w_offset -= 3;
             }
+        } else if (args->count(args) != 0) {
+            args->for_each_arg(args, __help_head_argument_for_each_callback, buffer);
         }
 
         if (options != NULL) {
@@ -626,6 +670,9 @@ static int __help(Command *command)
         if (subcommands != NULL) {
             buffer->printf(buffer, 512, "\nsubcommands details:\n");
             subcommands->for_each_arg(subcommands, __help_details_subcommand_for_each_callback, buffer);
+        } else if (args->count(args) != 0) {
+            buffer->printf(buffer, 512, "\nargument details:\n");
+            args->for_each_arg(args, __help_details_argument_for_each_callback, buffer);
         }
         
         printf("%s\n", (char *)buffer->addr);

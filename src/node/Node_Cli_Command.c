@@ -43,10 +43,19 @@ static int __option_service_callback(Option *option, void *opaque)
     return 1;
 }
 
-static int __option_code_callback(Option *option, void *opaque)
+static int __option_bus_cmd_callback(Option *option, void *opaque)
 {
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
-    dbg_str(DBG_SUC,"option_code_action_callback:%s", STR2A(option->value));
+    dbg_str(DBG_SUC,"option_bus_cmd_action_callback:%s", STR2A(option->value));
+    c->code = STR2A(option->value);
+
+    return 1;
+}
+
+static int __option_fshell_cmd_callback(Option *option, void *opaque)
+{
+    Node_Cli_Command *c = (Node_Cli_Command *)opaque;
+    dbg_str(DBG_SUC,"option_fshell_cmd_action_callback:%s", STR2A(option->value));
     c->code = STR2A(option->value);
 
     return 1;
@@ -78,10 +87,16 @@ static int __construct(Node_Cli_Command *command, char *init_str)
     command->node = object_new(allocator, "Node", NULL);
 
     c->set(c, "/Command/name", "node_cli");
-    c->add_option(c, "--host", "", "", "set node center ip address", __option_host_callback, command);
-    c->add_option(c, "--service", "-s", "", "set node center port", __option_service_callback, command);
-    c->add_option(c, "--call", "-c", "", "set the executing code of bus, eg, --call=nodeid@set_loglevel(1,2,3)", __option_code_callback, command);
-    c->add_option(c, "--disable-node-service", "", "true", "disable node service for node cli", __option_disable_node_service_callback, command);
+    c->add_option(c, "--host", "", "", "set node center ip address.", __option_host_callback, command);
+    c->add_option(c, "--service", "-s", "", "set node center port.", __option_service_callback, command);
+    c->add_option(c, "--bus-cmd", "-b", "", 
+                  "set the executing code of bus, \n"
+                  "                                ""eg: --bus-cmd=nodeid@set_loglevel(1,2,3).", 
+                  __option_bus_cmd_callback, command);
+    c->add_option(c, "--fshell-cmd", "-f", "", "set the executing code of fshell, eg, --fshell-cmd=fsh_add(1,2).", __option_fshell_cmd_callback, command);
+    c->add_option(c, "--disable-node-service", "", "true", "disable node service for node cli.", __option_disable_node_service_callback, command);
+    c->add_argument(c, "", "command line type, support bus and fshell, it's optional, we can excute cmd by option.", NULL, NULL);
+    c->add_argument(c, "", "comand line. if without arg0, no need arg1. it's optional. ", NULL, NULL);
     c->set(c, "/Command/description", "node client command.");
 
     return 0;
