@@ -38,7 +38,7 @@ struct string_s{
     int (*get_substring)(String *string, char *pattern, int offset, int *start, int *len);
     char *(*get_cstr)(String *);
     size_t (*get_len)(String *);
-    void (*reset)(String *);
+    int (*reset)(String *);
     int (*is_empty)(String *);
     int (*replace)(String *,char *oldstr,char * newstr, int max);
     String *(*insert)(String * dest,size_t index,char * src);

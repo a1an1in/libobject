@@ -66,7 +66,7 @@ enum bus_method_arg_type_e {
 typedef struct bus_method_args_s {
     uint8_t type;
     char *name;
-    char *value;
+    void *value;
 	int len;
 }bus_method_args_t;
 

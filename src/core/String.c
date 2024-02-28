@@ -145,7 +145,7 @@ static size_t __is_empty(String *string)
     return string->get_len(string) ? 0 : 1;
 }
 
-static void __reset(String *string)
+static int __reset(String *string)
 {   
     Vector *v;
 
@@ -157,6 +157,8 @@ static void __reset(String *string)
         v = (Vector *)string->pieces;
         v->reset(v);
     }
+
+    return 1;
 }
 
 static char __at(String *string, int index)

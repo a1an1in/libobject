@@ -469,8 +469,10 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
     dbg_str(BUS_SUC, "bus_invoke_sync, rev return state=%d", req->state);
     dbg_buf(BUS_SUC, "opaque:", req->opaque, req->opaque_len);
 
-    memcpy(out_buf, req->opaque, req->opaque_len);
-    *out_len = req->opaque_len;
+    if (out_buf != NULL) {
+        memcpy(out_buf, req->opaque, req->opaque_len);
+        *out_len = req->opaque_len;
+    }
 
     ret = req->state;
     allocator_mem_free(bus->allocator, req);

@@ -8,8 +8,18 @@
 
 #include "Node.h"
 
+static int __construct(Node *node, char *init_str)
+{
+    allocator_t *allocator = node->parent.allocator;
+
+    node->str = object_new(allocator, "String", NULL);
+    
+    return 0;
+}
+
 static int __deconstruct(Node *node)
 {
+    object_destroy(node->str);
     bus_destroy(node->bus);
     busd_destroy(node->busd);
 
@@ -57,18 +67,44 @@ static int __loop(Node *node)
     return 0;
 }
 
+/* 
+ * 这个地方约束了call对客户只支持node_object(默认调用的就是这个), 原因有下：
+ * 1.如果有多个不同的object，客户端不知道客户使用的是哪个类型的object， 如果去
+ *   bus查询，会比较麻烦， 还要把json转换成struct， 目前不支持这种转换， 如果
+ *   要转Oject倒是容易，但是bus设计是在设计Object之前。 
+ * 2.如果要提过多种不同的bus object class, 起始开发也有很大工作量， node 提供
+ *   fshell的接口， 就不需要做额外的开发了， 直接就可以调用函数， 不用再对各种不同
+ *   应用写不同bus接口了。
+ */
 static int __call(Node *node, char *code, void *out, uint32_t *out_len)
 {
     allocator_t *allocator = node->parent.allocator;
     char *method_name = NULL;
-    char *node_id = NULL;
+    char *node_id = NULL, *tmp;
     bus_method_args_t *args;
-    int ret, count;
+    String *str = node->str;
+    int ret, argc, i, count;
 
     TRY {
         dbg_str(DBG_VIP, "call in, code:%s", code);
-        EXEC(node_find_method_argument_template(&node_object, allocator, method_name, &args, &count));
-        EXEC(bus_invoke_sync(node->bus, node_id, method_name, count, args, out, &out_len));
+        EXEC(str->reset(str));
+        str->assign(str, code);
+        count = str->split(str, "[,@ \t\n();]", -1);
+        THROW_IF(count < 2, -1);
+
+        node_id = str->get_splited_cstr(str, 0);
+        method_name = str->get_splited_cstr(str, 1);
+        EXEC(node_find_method_argument_template(&node_object, allocator, method_name, &args, &argc));
+        THROW_IF(count - 2 != argc, -1); /* 除去node 和 方法名 */
+        for (i = 0; i < argc; i++) {
+            if (args[i].type == ARG_TYPE_UINT32) {
+                args[i].value = atoi(str->get_splited_cstr(str, 2 + i));
+            } else {
+                args[i].value = str->get_splited_cstr(str, 2 + i);
+            }
+        }
+        EXEC(bus_invoke_sync(node->bus, node_id, method_name, argc, args, out, &out_len));
+        node_free_argument_template(allocator, args, argc);
     } CATCH (ret) {}
 
     return ret;
@@ -76,7 +112,7 @@ static int __call(Node *node, char *code, void *out, uint32_t *out_len)
 
 static class_info_entry_t node_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
-    Init_Nfunc_Entry(1, Node, construct, NULL),
+    Init_Nfunc_Entry(1, Node, construct, __construct),
     Init_Nfunc_Entry(2, Node, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3, Node, init, __init),
     Init_Nfunc_Entry(4, Node, loop, __loop),
@@ -95,6 +131,7 @@ int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator
     TRY {
         THROW_IF(obj == NULL || method_name == NULL || args == NULL, -1);
 
+        dbg_str(DBG_VIP, "node_find_method_argument_template, method_name:%s", method_name);
         method = obj->methods;
         n_methods = obj->n_methods;
 
@@ -111,11 +148,26 @@ int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator
         *args = allocator_mem_alloc(allocator, n_policy * sizeof(bus_method_args_t));
         THROW_IF(*args == NULL, -1);
         for (i = 0; i < n_policy; i++) {
-            (*args)->type = policy->type;
-            strcpy((*args)->name, policy->name);
+            (*args + i)->type = (policy + i)->type;
+            (*args + i)->name = allocator_mem_alloc(allocator, strlen((policy + i)->name) + 1);
+            strcpy((*args + i)->name, (policy + i)->name);
+            dbg_str(DBG_VIP, "method %s:%d", (policy + i)->name, (policy + i)->type);
         }
         *cnt = n_policy;
+        
      } CATCH (ret) {}
 
     return ret;
+}
+
+int node_free_argument_template(allocator_t *allocator, bus_method_args_t *args, int count)
+{
+    int i;
+
+    for (i = 0; i < count; i++) {
+        allocator_mem_free(allocator, (args + i)->name);
+    }
+    allocator_mem_free(allocator, args);
+
+    return 1;
 }

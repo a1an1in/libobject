@@ -28,8 +28,10 @@ struct Node_s {
     int run_bus_deamon_flag; /* 1表示要运行bus deamon */
 	int disable_node_service_flag;
     int node_flag; /* flag == 1 表示退出node */
+	String *str;
 };
 
 int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator, char *method_name, 
                                        bus_method_args_t **args, int *cnt);
+int node_free_argument_template(allocator_t *allocator, bus_method_args_t *args, int count);
 #endif

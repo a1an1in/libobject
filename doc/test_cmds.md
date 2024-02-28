@@ -46,6 +46,7 @@ timedatectl list-timezones  # list all
 ./sysroot/linux/bin/xtools mockery --log-level=0x6 test_coredump_signal
 addr2line -e ./sysroot/linux/bin/xtools 0x253dc
 addr2line -e ./sysroot/linux/bin/xtools 0x98c00
+addr2line -e ./sysroot/linux/bin/xtools 0x53ccc
 addr2line -f -e ./sysroot/linux/bin/xtools  libobject-core.so 0x152
 ```
 
@@ -79,7 +80,6 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
 ./sysroot/linux/bin/xtools mockery --log-level=0x20016 test_node_invoke_write_file
 ./sysroot/linux/bin/xtools mockery --log-level=0x20016 test_node_invoke_exit
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345
 ./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 --bus-cmd="node@set_loglevel(1,2,3)"
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 --fshell-cmd="fs_add(1,2)"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 --fshell-cmd="node@fs_add(1,2)"
 ```
