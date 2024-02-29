@@ -151,7 +151,7 @@ int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator
             (*args + i)->type = (policy + i)->type;
             (*args + i)->name = allocator_mem_alloc(allocator, strlen((policy + i)->name) + 1);
             strcpy((*args + i)->name, (policy + i)->name);
-            dbg_str(DBG_VIP, "method %s:%d", (policy + i)->name, (policy + i)->type);
+            dbg_str(DBG_VIP, "method name:%s, type:%d", (policy + i)->name, (policy + i)->type);
         }
         *cnt = n_policy;
         

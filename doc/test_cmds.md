@@ -80,6 +80,8 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
 ./sysroot/linux/bin/xtools mockery --log-level=0x20016 test_node_invoke_write_file
 ./sysroot/linux/bin/xtools mockery --log-level=0x20016 test_node_invoke_exit
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 --bus-cmd="node@set_loglevel(1,2,3)"
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 --fshell-cmd="node@fs_add(1,2)"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 --bus_call="node@set_loglevel(1,2,3)"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 --fshell_call="node@fs_add(1,2)"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 bus_call "node@set_loglevel(1,2,3)"
+
 ```

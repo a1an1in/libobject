@@ -8,7 +8,6 @@
 #include <libobject/core/io/Buffer.h>
 #include <libobject/argument/Command.h>
 
-
 static int __option_help_callback(Option *option, void *opaque)
 {
     Command *command = (Command *)opaque;
@@ -96,7 +95,7 @@ __add_subcommand(Command *command, void *command_name)
     } else {
         ret = -1;
     }
-    snprintf(tmp,128, "%s help option", STR2A(c->name));
+    snprintf(tmp,128, "%s help option.", STR2A(c->name));
     c->add_option(c, "--help", "-h", NULL, tmp, __option_help_callback, c);
     c->add_option(c, "--log-level", "", "6", "setting log display level, the default value is 6.",
                       __option_log_level_callback, c);

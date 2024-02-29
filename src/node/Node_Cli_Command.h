@@ -9,6 +9,13 @@
 
 typedef struct Node_Cli_Command_s Node_Cli_Command;
 
+enum command_type_e {
+    COMMAND_TYPE_BUS_CALL = 1,
+    COMMAND_TYPE_FSHELL_CALL,
+    COMMAND_TYPE_COPY,
+    COMMAND_TYPE_UNKNOWN
+};
+
 struct Node_Cli_Command_s {
     Command parent;
 
@@ -21,7 +28,9 @@ struct Node_Cli_Command_s {
     int (*run_command)(Node_Cli_Command *command);
 
     char *host, *service, *code;
+    char *arg1, *arg2;
     Node *node;
+    int command_type;
 };
 
 #endif

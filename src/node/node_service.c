@@ -52,7 +52,7 @@ static int node_set_loglevel(bus_object_t *obj, int argc,
     db_level     = blob_get_uint32(args[2]);
 
     debugger_set_business(debugger_gp, db_bussiness, db_switch, db_level);
-    dbg_str(DBG_SUC, "set debug, bussiness=%d, switch=%d, level=%d", 
+    dbg_str(DBG_VIP, "set debug, bussiness=%d, switch=%d, level=%d", 
             db_bussiness, db_switch, db_level);
 
     memcpy(out_data, buffer, sizeof(buffer));
