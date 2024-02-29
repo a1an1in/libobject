@@ -18,6 +18,8 @@ static int __run_command(Node_Cli_Command *command)
         if (command->command_type == COMMAND_TYPE_BUS_CALL) {
             EXEC(node->call(node, command->arg1, NULL, 0));
         } else if (command->command_type == COMMAND_TYPE_FSHELL_CALL) {
+        } else if (command->command_type == COMMAND_TYPE_COPY) {
+            EXEC(node->copy(node, command->arg1, command->arg2));
         }
         
     } CATCH (ret) {}
@@ -95,6 +97,8 @@ static int __argument_arg0_action_callback(Argument *arg, void *opaque)
         c->command_type = COMMAND_TYPE_BUS_CALL;
     } else if (strcmp(STR2A(arg->value), "fshell_call") == 0) {
         c->command_type = COMMAND_TYPE_FSHELL_CALL;
+    } else if (strcmp(STR2A(arg->value), "copy") == 0) {
+        c->command_type = COMMAND_TYPE_COPY;
     }
 
     return 0;
@@ -106,6 +110,16 @@ static int __argument_arg1_action_callback(Argument *arg, void *opaque)
 
     dbg_str(DBG_SUC,"argument arg1:%s", STR2A(arg->value));
     c->arg1 = STR2A(arg->value);
+
+    return 0;
+}
+
+static int __argument_arg2_action_callback(Argument *arg, void *opaque)
+{
+    Node_Cli_Command *c = (Node_Cli_Command *)opaque;
+
+    dbg_str(DBG_SUC,"argument arg2:%s", STR2A(arg->value));
+    c->arg2 = STR2A(arg->value);
 
     return 0;
 }
@@ -138,7 +152,8 @@ static int __construct(Node_Cli_Command *command, char *init_str)
                     "                                ""if arg0 is copy command, it should set the source file to copy.\n"
                     "                                ""if arg0 is upgrade command, it should set install package URL.",
                     __argument_arg1_action_callback, command);
-    c->add_argument(c, "", "only copy command need arg2, which represent where the file to copy to.\n", NULL, NULL);
+    c->add_argument(c, "", "only copy command need arg2, which represent where the file to copy to.\n",
+                    __argument_arg2_action_callback, command);
     c->set(c, "/Command/description", "node client command.");
 
     return 0;

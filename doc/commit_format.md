@@ -4,4 +4,4 @@ Description:
 update.
 
 Major Changes:
-1. support executing bus-call by args.
+1. change Node_Command class to Node_Sever_Command.

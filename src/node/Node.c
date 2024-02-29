@@ -110,6 +110,13 @@ static int __call(Node *node, char *code, void *out, uint32_t *out_len)
     return ret;
 }
 
+static int __copy(Node *node, char *from, char *to)
+{
+    dbg_str(DBG_VIP,"node copy, from:%s, to:%s", from, to);
+
+    return 1;
+}
+
 static class_info_entry_t node_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
     Init_Nfunc_Entry(1, Node, construct, __construct),
@@ -117,7 +124,8 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(3, Node, init, __init),
     Init_Nfunc_Entry(4, Node, loop, __loop),
     Init_Nfunc_Entry(5, Node, call, __call),
-    Init_End___Entry(6, Node),
+    Init_Nfunc_Entry(6, Node, copy, __copy),
+    Init_End___Entry(7, Node),
 };
 REGISTER_CLASS("Node", node_class_info);
 
