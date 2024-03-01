@@ -7,6 +7,8 @@
  */
 
 #include "Node.h"
+#include <libobject/core/io/file_system_api.h>
+#include <libobject/core/io/File.h>
 
 static int __construct(Node *node, char *init_str)
 {
@@ -112,12 +114,61 @@ static int __call(Node *node, char *code, void *out, uint32_t *out_len)
 
 static int __write(Node *node, char *from, char *node_id, char *to)
 {
+    bus_t *bus;
+    File *file = NULL;
+    allocator_t *allocator;
+	char buffer[1024] = {0};
+    uint32_t buffer_size = sizeof(buffer);
+    uint32_t size, i, read_len, offset = 0;
+    bus_method_args_t args[4] = {
+        [0] = {ARG_TYPE_STRING, "filename", to}, 
+        [1] = {ARG_TYPE_UINT32, "offset", offset}, 
+        [2] = {ARG_TYPE_BUFFER, "buffer", buffer, read_len}, 
+        [3] = {ARG_TYPE_UINT32, "crc32", 0x123}, 
+    };
+    int ret;
 
+    TRY {
+        dbg_str(DBG_VIP, "node write in");
+        THROW_IF(node == NULL || node_id == NULL, -1);
+        THROW_IF(from == NULL || to == NULL, -1);
+
+        allocator = node->parent.allocator;
+        bus = node->bus;
+        if (fs_is_directory(from)) {
+            dbg_str(DBG_VIP, "run at here");
+        } else {
+            dbg_str(DBG_VIP, "run at here, open file:%s", from);
+            file = object_new(allocator, "File", NULL);
+            EXEC(file->open(file, from, "r+"));
+            size = fs_get_size(from);
+            dbg_str(DBG_VIP, "run at here, size=%d, num:%d", size, size / buffer_size);
+            for (i = 0; i <= (size / buffer_size); i++) {
+                read_len = file->read(file, buffer, buffer_size);
+                args[1].value = offset;
+                args[2].len = read_len;
+                dbg_str(DBG_VIP, "read %s, read size:%d, read len:%d", from, buffer_size, read_len);
+                EXEC(bus_invoke_sync(bus, "node", "write_file", ARRAY_SIZE(args), args, NULL, NULL));
+                offset += read_len;
+            }
+            file->close(file);
+        }
+    } CATCH (ret) {} FINALLY {
+        object_destroy(file);
+    }
+
+    return ret;
 }
 
 static int __read(Node *node, char *node_id, char *from, char *to)
 {
+    int ret;
 
+    TRY {
+        dbg_str(DBG_VIP, "node read in");
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static int __copy(Node *node, char *from, char *to)
@@ -145,6 +196,13 @@ static int __copy(Node *node, char *from, char *to)
         THROW_IF(p1 != NULL && p2 != NULL, -1);
         dbg_str(DBG_VIP, "node copy, node:%s, from:%s, to:%s", node_id, from, to);
 
+        if (read_flag == 1) {
+            EXEC(node->read(node, node_id, from , to));
+        } else if (write_flag == 1) {
+            EXEC(node->write(node, from, node_id, to));
+        } else {
+            THROW(-1);
+        }
     } CATCH (ret) {}
 
     return ret;

@@ -83,6 +83,8 @@ static int node_write_file(bus_object_t *obj, int argc,
     dbg_str(DBG_VIP, "file name:%s, data offset:%d, len:%d, crc32:%x", filename, offset, len, crc32);
     dbg_buf(DBG_VIP, "buffer:", buffer, len);
 
+    *out_data_len = 0;
+
 	return 1;
 }
 

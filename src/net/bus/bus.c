@@ -455,12 +455,13 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
     req->method            = method;
     req->state             = 0xfffe;
     req->opaque_len        = 0;
-    req->opaque            = (uint8_t *)buffer;
-    req->opaque_buffer_len = *out_len;
+    req->opaque            = (uint8_t *)out_buf;
+    req->opaque_buffer_len = out_len == NULL ? 0 : *out_len;
     dbg_str(BUS_SUC, "bus_invoke_sync, opaque_buffer_len=%d", req->opaque_buffer_len);
 
     sprintf(buffer, "%s@%s", object_id, method);
     map->add(map, buffer, req);
+    dbg_str(BUS_VIP, "bus_invoke_sync, req count=%d", map->count(map));
 
     bus_invoke(bus, object_id, method, argc, args);
 
@@ -470,11 +471,11 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
     dbg_buf(BUS_SUC, "opaque:", req->opaque, req->opaque_len);
 
     if (out_buf != NULL) {
-        memcpy(out_buf, req->opaque, req->opaque_len);
         *out_len = req->opaque_len;
     }
 
     ret = req->state;
+    //todo: need del req, same issue with other req.
     allocator_mem_free(bus->allocator, req);
     
     return ret;
@@ -518,10 +519,16 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
         if (ret > 0) {
             req->state = state;
             if (req->opaque_buffer_len < buffer_len) {
+                req->opaque_len = req->opaque_buffer_len;
                 dbg_str(BUS_WARNNING, "opaque buffer is too small, please check, opaque_buffer_len:%d, buffer_len:%d", req->opaque_buffer_len, buffer_len);
+            } else {
+                req->opaque_len = buffer_len;
             }
-            req->opaque_len = buffer_len;
-            memcpy(req->opaque, buffer, buffer_len);
+            
+            if (req->opaque) {
+                memcpy(req->opaque, buffer, req->opaque_len);
+            }
+            
             dbg_str(BUS_DETAIL, "method_name:%s, state:%d", req->method, req->state);
         }
     }
@@ -583,7 +590,7 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
     uint32_t buffer_len, tmp_len;
     allocator_t *allocator = bus->allocator;
 
-    dbg_str(BUS_DETAIL, "bus_reply_forward_invoke");
+    dbg_str(DBG_VIP, "bus_reply_forward_invoke, buf_len:%d", buf_len);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUS_REPLY_FORWARD_INVOKE;

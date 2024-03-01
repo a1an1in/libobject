@@ -4,6 +4,5 @@ Description:
 update.
 
 Major Changes:
-1. add read/write/copy api for node, but hanv't completed.
-2. change Node_Server_Command back to Node_Command, it just node,
-   not node server.
+1. node write file has ok.
+2. fix bug of opaque_len at two ends.
