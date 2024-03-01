@@ -6,10 +6,10 @@
  * @date 2022-02-18
  */
 
-#include "Node_Server_Command.h"
+#include "Node_Command.h"
 #include "Node.h"
 
-static int __run_command(Node_Server_Command *command)
+static int __run_command(Node_Command *command)
 {
     Node *node = command->node;
     int ret;
@@ -24,7 +24,7 @@ static int __run_command(Node_Server_Command *command)
 
 static int __option_host_callback(Option *option, void *opaque)
 {
-    Node_Server_Command *c = (Node_Server_Command *)opaque;
+    Node_Command *c = (Node_Command *)opaque;
     Node *n = c->node;
 
     dbg_str(DBG_SUC,"option_host_action_callback:%s", STR2A(option->value));
@@ -35,7 +35,7 @@ static int __option_host_callback(Option *option, void *opaque)
 
 static int __option_service_callback(Option *option, void *opaque)
 {
-    Node_Server_Command *c = (Node_Server_Command *)opaque;
+    Node_Command *c = (Node_Command *)opaque;
     Node *n = c->node;
 
     dbg_str(DBG_SUC,"option_service_action_callback:%s", STR2A(option->value));
@@ -46,7 +46,7 @@ static int __option_service_callback(Option *option, void *opaque)
 
 static int __option_deamon_callback(Option *option, void *opaque)
 {
-    Node_Server_Command *c = (Node_Server_Command *)opaque;
+    Node_Command *c = (Node_Command *)opaque;
     Node *n = c->node;
 
     if ((strcmp(STR2A(option->value), "true") == 0) ||
@@ -62,7 +62,7 @@ static int __option_deamon_callback(Option *option, void *opaque)
     return 1;
 }
 
-static int __construct(Node_Server_Command *command, char *init_str)
+static int __construct(Node_Command *command, char *init_str)
 {
     Command *c = (Command *)command;
     allocator_t *allocator = c->parent.allocator;
@@ -77,18 +77,18 @@ static int __construct(Node_Server_Command *command, char *init_str)
     return 0;
 }
 
-static int __deconstruct(Node_Server_Command *command)
+static int __deconstruct(Node_Command *command)
 {
     object_destroy(command->node);
 
     return 0;
 }
 
-static class_info_entry_t Node_Server_Command_class_info[] = {
+static class_info_entry_t Node_Command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
-    Init_Nfunc_Entry(1, Node_Server_Command, construct, __construct),
-    Init_Nfunc_Entry(2, Node_Server_Command, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Node_Server_Command, run_command, __run_command),
-    Init_End___Entry(4, Node_Server_Command),
+    Init_Nfunc_Entry(1, Node_Command, construct, __construct),
+    Init_Nfunc_Entry(2, Node_Command, deconstruct, __deconstruct),
+    Init_Vfunc_Entry(3, Node_Command, run_command, __run_command),
+    Init_End___Entry(4, Node_Command),
 };
-REGISTER_APP_CMD("Node_Server_Command", Node_Server_Command_class_info);
+REGISTER_APP_CMD("Node_Command", Node_Command_class_info);

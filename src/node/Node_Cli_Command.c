@@ -143,8 +143,9 @@ static int __construct(Node_Cli_Command *command, char *init_str)
     c->add_option(c, "--disable-node-service", "", "true", "disable node service for node cli.", 
                   __option_disable_node_service_callback, command);
     c->add_argument(c, "",
-                                                      "command type, it's optional if you want to call bus or fshell, we can excute cmd by option.\n"
-                    "                                ""now we support bus_call, fshell_call and copy commands.",
+                                                      "command type, it's optional if you want to call bus or fshell, \n"
+                    "                                ""we can excute cmd by option. now we support bus_call, fshell_call \n"
+                    "                                ""and copy commands.",
                     __argument_arg0_action_callback, command);
     c->add_argument(c, "",
                                                       "if arg0 is bus_call or fshell_call, it should set call method here, \n"

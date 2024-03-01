@@ -37,7 +37,7 @@ static int __init(Node *node)
         dbg_str(DBG_VIP, "node init in, obj addr:%p", &node_object);
         THROW_IF(node->host == NULL || node->service == NULL, -1);
 
-        dbg_str(DBG_VIP,"node host:%s, service:%s", node->host, node->service);
+        dbg_str(DBG_VIP, "node host:%s, service:%s", node->host, node->service);
         if (node->run_bus_deamon_flag == 1) {
             busd = busd_create(allocator, node->host,
                                node->service, SERVER_TYPE_INET_TCP);
@@ -110,11 +110,44 @@ static int __call(Node *node, char *code, void *out, uint32_t *out_len)
     return ret;
 }
 
+static int __write(Node *node, char *from, char *node_id, char *to)
+{
+
+}
+
+static int __read(Node *node, char *node_id, char *from, char *to)
+{
+
+}
+
 static int __copy(Node *node, char *from, char *to)
 {
-    dbg_str(DBG_VIP,"node copy, from:%s, to:%s", from, to);
+    char *p1, *p2, *node_id;
+    int read_flag = 0, write_flag = 0;
+    int ret;
 
-    return 1;
+    TRY {
+        p1 = strchr(from, ':');
+        if (p1 != NULL) {
+            read_flag = 1;
+            node_id = from;
+            *p1 = '\0';
+            from = p1 + 1;
+        }
+        p2 = strchr(to, ':');
+        if (p2 != NULL) {
+            write_flag = 1;
+            node_id = to;
+            *p2 = '\0';
+            to = p2 + 1;
+        }
+        THROW_IF(p1 == NULL && p2 == NULL, -1);
+        THROW_IF(p1 != NULL && p2 != NULL, -1);
+        dbg_str(DBG_VIP, "node copy, node:%s, from:%s, to:%s", node_id, from, to);
+
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static class_info_entry_t node_class_info[] = {
@@ -124,8 +157,10 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(3, Node, init, __init),
     Init_Nfunc_Entry(4, Node, loop, __loop),
     Init_Nfunc_Entry(5, Node, call, __call),
-    Init_Nfunc_Entry(6, Node, copy, __copy),
-    Init_End___Entry(7, Node),
+    Init_Nfunc_Entry(6, Node, write, __write),
+    Init_Nfunc_Entry(7, Node, read, __read),
+    Init_Nfunc_Entry(8, Node, copy, __copy),
+    Init_End___Entry(9, Node),
 };
 REGISTER_CLASS("Node", node_class_info);
 

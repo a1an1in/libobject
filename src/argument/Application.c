@@ -163,7 +163,7 @@ static int __run_command(Application *app)
     int ret;
 
     TRY {
-        dbg_str(DBG_SUC, "run Application command");
+        dbg_str(DBG_VIP, "run Application command");
         option = command->get_option(command, "--event-thread-service");
         event_thread_service = STR2A(option->value);
         option = command->get_option(command, "--event-signal-service");

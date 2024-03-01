@@ -27,7 +27,7 @@ int stub_admin_init_default_instance()
         stub_admin->free_stub_list = list;
 
         EXEC(stub_admin_add_placeholder(stub_admin, stub_placeholder, stub_placeholder_size));
-        dbg_str(DBG_VIP, "xxxxxx stub_placeholder:%p", stub_placeholder);
+        dbg_str(DBG_DETAIL, "xxxxxx stub_placeholder:%p", stub_placeholder);
     } CATCH (ret) {}
 
     return ret;

@@ -21,6 +21,8 @@ struct Node_s {
 	int (*init)(Node *node);
 	int (*loop)(Node *node);
 	int (*call)(Node *node, char *code, void *out, uint32_t *out_len);
+	int (*write)(Node *node, char *from, char *node_id, char *to);
+	int (*read)(Node *node, char *node_id, char *from, char *to);
 	int (*copy)(Node *node, char *from, char *to);
 
 	bus_t *bus;

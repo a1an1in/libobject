@@ -4,4 +4,6 @@ Description:
 update.
 
 Major Changes:
-1. change Node_Command class to Node_Sever_Command.
+1. add read/write/copy api for node, but hanv't completed.
+2. change Node_Server_Command back to Node_Command, it just node,
+   not node server.
