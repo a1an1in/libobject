@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <libobject/net/bus/bus.h>
 #include <libobject/net/bus/busd.h>
+#include <libobject/core/io/File.h>
 #include <libobject/core/utils/registry/registry.h>
 #include "Node.h"
 
@@ -72,20 +73,41 @@ static int node_write_file(bus_object_t *obj, int argc,
 		      		       struct blob_attr_s **args, 
                            void *out_data, int *out_data_len)
 {
+    allocator_t *allocator;
     char *filename;
     uint8_t *buffer;
     uint32_t len, crc32, offset;
+    bus_t *bus;
+    File *file = NULL;
+    int ret;
 
-    filename = blob_get_string(args[0]);
-    offset = blob_get_uint32(args[1]);
-    len = blob_get_buffer(args[2], &buffer);
-    crc32 = blob_get_uint32(args[3]);
-    dbg_str(DBG_VIP, "file name:%s, data offset:%d, len:%d, crc32:%x", filename, offset, len, crc32);
-    dbg_buf(DBG_VIP, "buffer:", buffer, len);
+    TRY {
+        THROW_IF(obj->bus == NULL, -1);
+        bus = obj->bus;
+        allocator = bus->allocator;
 
-    *out_data_len = 0;
+        filename = blob_get_string(args[0]);
+        offset = blob_get_uint32(args[1]);
+        len = blob_get_buffer(args[2], &buffer);
+        crc32 = blob_get_uint32(args[3]);
 
-	return 1;
+        dbg_str(DBG_VIP, "file name:%s, data offset:%d, len:%d, crc32:%x", filename, offset, len, crc32);
+        dbg_buf(DBG_VIP, "buffer:", buffer, len);
+
+        if(!fs_is_exist(filename)) {
+            EXEC(fs_mkfile(filename, 0777));
+        }
+
+        // file = object_new(allocator, "File", NULL);
+        // file->open(file, filename, "w+");
+        // file->write(file, buffer, len);
+        // file->close(file);
+    } CATCH (ret) {} FINALLY {
+        *out_data_len = 0;
+        object_destroy(file);
+    }
+
+	return ret;
 }
 
 static const struct blob_policy_s read_file_policy[] = {

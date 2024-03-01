@@ -128,7 +128,7 @@ struct bus_object_s {
 	struct bus_method *methods;
 	int n_methods;
 	void *bus;
-};
+	};
 
 typedef struct bus_req_s {
     char *method;

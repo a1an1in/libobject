@@ -55,7 +55,7 @@ static int __init(Node *node)
         
         if (node->disable_node_service_flag != 1)
             bus_add_object(bus, &node_object);
-
+        
         dbg_str(DBG_VIP, "node init out");
     } CATCH (ret) {}
 
