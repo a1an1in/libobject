@@ -358,25 +358,28 @@ int bus_handle_lookup_object_reply(bus_t *bus, blob_attr_t **attr)
 
 int bus_blob_add_args(blob_t *blob, int argc, bus_method_args_t *args)
 {
-    int i;
+    int i, ret;
 
-    for (i = 0; i < argc; i++) {
-        if (args[i].type == ARG_TYPE_STRING) {
-            blob_add_string(blob, (char *)args[i].name, args[i].value);
-        } else if (args[i].type == ARG_TYPE_UINT32) {
-            blob_add_uint32(blob, (char *)args[i].name, (uint32_t)args[i].value);
-        } else if (args[i].type == ARG_TYPE_INT32) {
-            blob_add_int32(blob, (char *)args[i].name, (int32_t)args[i].value);
-        } else if (args[i].type == ARG_TYPE_BUFFER) {
-            blob_add_buffer(blob, (char *)args[i].name, (uint8_t *)args[i].value, args[i].len);
-        } else {
-            dbg_str(BUS_WARNNING, "bus_blob_add_args, not support type = %d", args[i].type);
+    TRY {
+        for (i = 0; i < argc; i++) {
+            if (args[i].type == ARG_TYPE_STRING) {
+                blob_add_string(blob, (char *)args[i].name, args[i].value);
+            } else if (args[i].type == ARG_TYPE_UINT32) {
+                blob_add_uint32(blob, (char *)args[i].name, (uint32_t)args[i].value);
+            } else if (args[i].type == ARG_TYPE_INT32) {
+                blob_add_int32(blob, (char *)args[i].name, (int32_t)args[i].value);
+            } else if (args[i].type == ARG_TYPE_BUFFER) {
+                THROW_IF(args[i].len > BUS_MAX_BUFFER_LEN, -1);
+                blob_add_buffer(blob, (char *)args[i].name, (uint8_t *)args[i].value, args[i].len);
+            } else {
+                dbg_str(BUS_WARNNING, "bus_blob_add_args, not support type = %d", args[i].type);
+            }
+            // dbg_str(BUS_DETAIL, "bus_blob_add_arg:name \"%s\" value \"%s\"",
+            //         args[i].name, args[i].value);
         }
-        dbg_str(BUS_DETAIL, "bus_blob_add_arg:name \"%s\" value \"%s\"",
-                args[i].name, args[i].value);
-    }
+    } CATCH (ret) {}
 
-    return 0;
+    return ret;
 }
 
 int 
@@ -389,35 +392,39 @@ bus_invoke(bus_t *bus, char *object_id, char *method,
     uint8_t buffer[BUS_ADD_OBJECT_MAX_BUFFER_LEN];
 #undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
     uint32_t buffer_len;
+    int ret;
 
-    dbg_str(BUS_SUC, "bus_invoke, object_id:%s, method:%s", object_id, method);
-    /*compose req proto*/
-    memset(&hdr, 0, sizeof(hdr));
+    TRY {
+        dbg_str(BUS_SUC, "bus_invoke, object_id:%s, method:%s", object_id, method);
+        /*compose req proto*/
+        memset(&hdr, 0, sizeof(hdr));
 
-    hdr.type = BUS_REQ_INVOKE;
+        hdr.type = BUS_REQ_INVOKE;
+        blob_reset(blob);
 
-    blob_add_table_start(blob, (char *)"invoke"); {
-        blob_add_string(blob, (char *)"object_id", object_id);
-        blob_add_string(blob, (char *)"invoke_method", method);
-        blob_add_uint8(blob, (char *)"invoke_argc", argc);
-        blob_add_table_start(blob, (char *)"invoke_args"); {
-            bus_blob_add_args(blob, argc, args);
+        blob_add_table_start(blob, (char *)"invoke"); {
+            blob_add_string(blob, (char *)"object_id", object_id);
+            blob_add_string(blob, (char *)"invoke_method", method);
+            blob_add_uint8(blob, (char *)"invoke_argc", argc);
+            blob_add_table_start(blob, (char *)"invoke_args"); {
+                EXEC(bus_blob_add_args(blob, argc, args));
+            }
+            blob_add_table_end(blob);
         }
         blob_add_table_end(blob);
-    }
-    blob_add_table_end(blob);
 
-    memcpy(buffer, &hdr, sizeof(hdr));
-    buffer_len = sizeof(hdr);
-    memcpy(buffer + buffer_len, (uint8_t *)blob->head, 
-           blob_get_len((blob_attr_t *)blob->head));
-    buffer_len += blob_get_len((blob_attr_t *)blob->head);
+        memcpy(buffer, &hdr, sizeof(hdr));
+        buffer_len = sizeof(hdr);
+        memcpy(buffer + buffer_len, (uint8_t *)blob->head, 
+            blob_get_len((blob_attr_t *)blob->head));
+        buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
-    /*send req proto*/
-    dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
-    bus_send(bus, buffer, buffer_len);
+        /*send req proto*/
+        dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
+        EXEC(bus_send(bus, buffer, buffer_len));
+    } CATCH (ret) {}
 
-    return 0;
+    return ret;
 }
 
 int bus_invoke_async(bus_t *bus, char *key, char *method, int argc, char **args)
@@ -461,7 +468,7 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
 
     sprintf(buffer, "%s@%s", object_id, method);
     map->add(map, buffer, req);
-    dbg_str(BUS_VIP, "bus_invoke_sync, req count=%d", map->count(map));
+    dbg_str(BUS_SUC, "bus_invoke_sync, req count=%d", map->count(map));
 
     bus_invoke(bus, object_id, method, argc, args);
 

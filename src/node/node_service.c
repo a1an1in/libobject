@@ -90,18 +90,23 @@ static int node_write_file(bus_object_t *obj, int argc,
         offset = blob_get_uint32(args[1]);
         len = blob_get_buffer(args[2], &buffer);
         crc32 = blob_get_uint32(args[3]);
-
         dbg_str(DBG_VIP, "file name:%s, data offset:%d, len:%d, crc32:%x", filename, offset, len, crc32);
-        dbg_buf(DBG_VIP, "buffer:", buffer, len);
-
-        if(!fs_is_exist(filename)) {
+        
+        /* 如果写的offset 为0 需要先判断一下文件是否存在， 如果存在
+         * 需要先删除，因为文件是分片追加的，刚开始写的时候不清零
+         *会有问题。
+         **/
+        if(fs_is_exist(filename) && offset == 0) {
+            EXEC(fs_rmfile(filename));
+        } else if(!fs_is_exist(filename)) {
             EXEC(fs_mkfile(filename, 0777));
         }
 
-        // file = object_new(allocator, "File", NULL);
-        // file->open(file, filename, "w+");
-        // file->write(file, buffer, len);
-        // file->close(file);
+        file = object_new(allocator, "File", NULL);
+        EXEC(file->open(file, filename, "a+"));
+        EXEC(file->seek(file, offset, SEEK_SET));
+        EXEC(file->write(file, buffer, len));
+        EXEC(file->close(file));
     } CATCH (ret) {} FINALLY {
         *out_data_len = 0;
         object_destroy(file);

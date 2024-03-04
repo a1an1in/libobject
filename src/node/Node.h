@@ -6,7 +6,6 @@
 #include <libobject/core/String.h>
 #include <libobject/net/bus/bus.h>
 #include <libobject/net/bus/busd.h>
-#include "node_services.h"
 
 typedef struct Node_s Node;
 
@@ -33,6 +32,8 @@ struct Node_s {
     int node_flag; /* flag == 1 表示退出node */
 	String *str;
 };
+
+extern bus_object_t node_object;
 
 int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator, char *method_name, 
                                        bus_method_args_t **args, int *cnt);

@@ -117,13 +117,17 @@ static int __write(Node *node, char *from, char *node_id, char *to)
     bus_t *bus;
     File *file = NULL;
     allocator_t *allocator;
-	char buffer[1024] = {0};
+	char buffer[1024] = {0}, file_name;
     uint32_t buffer_size = sizeof(buffer);
-    uint32_t size, i, read_len, offset = 0;
+    uint32_t size, i, read_len = 0, offset = 0, count = 0;
+    uint32_t file_name_len;
+    Vector *list = NULL;
+    fs_file_info_t *fs_file_info;
+    char *relative_path;
     bus_method_args_t args[4] = {
         [0] = {ARG_TYPE_STRING, "filename", to}, 
         [1] = {ARG_TYPE_UINT32, "offset", offset}, 
-        [2] = {ARG_TYPE_BUFFER, "buffer", buffer, read_len}, 
+        [2] = {ARG_TYPE_BUFFER, "buffer", buffer, 0}, 
         [3] = {ARG_TYPE_UINT32, "crc32", 0x123}, 
     };
     int ret;
@@ -132,11 +136,31 @@ static int __write(Node *node, char *from, char *node_id, char *to)
         dbg_str(DBG_VIP, "node write in");
         THROW_IF(node == NULL || node_id == NULL, -1);
         THROW_IF(from == NULL || to == NULL, -1);
+        THROW_IF(!fs_is_exist(from), -1);
 
         allocator = node->parent.allocator;
         bus = node->bus;
         if (fs_is_directory(from)) {
             dbg_str(DBG_VIP, "run at here");
+            list = object_new(allocator, "Vector", NULL);
+            count = fs_tree(from, list, -1);
+            THROW_IF(count < 0, -1);
+            // fs_print_file_info_list(list);
+
+            for (i = 0; i < count; i++) {
+                EXEC(list->peek_at(list, i, &fs_file_info));
+                THROW_IF(fs_file_info == NULL, -1);
+
+                file_name_len = strlen(fs_file_info->file_name);
+                if (fs_file_info->file_name[file_name_len - 1] == '.') continue;
+                
+                EXEC(fs_get_relative_path(fs_file_info->file_name, from, &relative_path));
+                
+                strcpy(buffer, to);
+                strcat(buffer, relative_path);
+                dbg_str(DBG_VIP, "dest file name:%s", buffer);
+                EXEC(node->write(node, fs_file_info->file_name, node_id, buffer))
+            }
         } else {
             dbg_str(DBG_VIP, "run at here, open file:%s", from);
             file = object_new(allocator, "File", NULL);
@@ -147,7 +171,8 @@ static int __write(Node *node, char *from, char *node_id, char *to)
                 read_len = file->read(file, buffer, buffer_size);
                 args[1].value = offset;
                 args[2].len = read_len;
-                dbg_str(DBG_VIP, "read %s, read size:%d, read len:%d", from, buffer_size, read_len);
+                dbg_str(DBG_VIP, "read %s, offset:%d, read size:%d, read len:%d", 
+                        from, offset, buffer_size, read_len);
                 EXEC(bus_invoke_sync(bus, "node", "write_file", ARRAY_SIZE(args), args, NULL, NULL));
                 offset += read_len;
             }
@@ -155,6 +180,7 @@ static int __write(Node *node, char *from, char *node_id, char *to)
         }
     } CATCH (ret) {} FINALLY {
         object_destroy(file);
+        object_destroy(list);
     }
 
     return ret;
@@ -178,15 +204,14 @@ static int __copy(Node *node, char *from, char *to)
     int ret;
 
     TRY {
-        p1 = strchr(from, ':');
-        if (p1 != NULL) {
+        if ((p1 = strchr(from, ':')) != NULL) {
             read_flag = 1;
             node_id = from;
             *p1 = '\0';
             from = p1 + 1;
         }
-        p2 = strchr(to, ':');
-        if (p2 != NULL) {
+
+        if ((p2 = strchr(to, ':')) != NULL) {
             write_flag = 1;
             node_id = to;
             *p2 = '\0';

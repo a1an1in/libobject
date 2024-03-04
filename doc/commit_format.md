@@ -1,8 +1,7 @@
 [update:Node] continue to implement node.
 
 Description:
-update.
+can support node write recursivly.
 
 Major Changes:
-1. node write file has ok.
-2. fix bug of opaque_len at two ends.
+1. add node::write.
