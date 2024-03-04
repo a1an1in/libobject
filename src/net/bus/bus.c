@@ -287,30 +287,31 @@ int bus_lookup(bus_t *bus, char *key)
 
 int bus_lookup_sync(bus_t *bus, char *object_id, char *buffer, int *buffer_len)
 {
-    bus_req_t *req;
+    bus_req_t *req = NULL;
     Map *map = bus->req_map;
     int ret;
 
-    if (buffer_len == NULL || buffer == NULL) return -1;
+    TRY {
+        THROW_IF(buffer_len == NULL || buffer == NULL, -1);
 
-    req = (bus_req_t *)allocator_mem_zalloc(bus->allocator, sizeof(bus_req_t));
-    req->state             = 0xfffe;
-    req->opaque_len        = 0;
-    req->opaque            = (uint8_t *)buffer;
-    req->opaque_buffer_len = *buffer_len;
+        req = (bus_req_t *)allocator_mem_zalloc(bus->allocator, sizeof(bus_req_t));
+        req->state             = 0xfffe;
+        req->opaque_len        = 0;
+        req->opaque            = (uint8_t *)buffer;
+        req->opaque_buffer_len = *buffer_len;
 
-    sprintf(buffer, "%s@lookup", object_id);
-    map->add(map, buffer, req);
+        sprintf(buffer, "%s@lookup", object_id);
+        EXEC(map->add(map, buffer, req));
+        EXEC(bus_lookup(bus, object_id));
 
-    bus_lookup(bus, object_id);
+        while(req->state == 0xfffe) usleep(100);
 
-    while(req->state == 0xfffe) usleep(100);
-
-    dbg_str(BUS_VIP, "lookup result:%s", req->opaque);
-
-    *buffer_len = req->opaque_len;
-
-    allocator_mem_free(bus->allocator, req);
+        dbg_str(BUS_VIP, "lookup result:%s", req->opaque);
+        *buffer_len = req->opaque_len;
+        EXEC(map->del(map, buffer));
+    } CATCH (ret) {} FINALLY {
+        allocator_mem_free(bus->allocator, req);
+    }
     
     return ret;
 }
@@ -369,7 +370,7 @@ int bus_blob_add_args(blob_t *blob, int argc, bus_method_args_t *args)
             } else if (args[i].type == ARG_TYPE_INT32) {
                 blob_add_int32(blob, (char *)args[i].name, (int32_t)args[i].value);
             } else if (args[i].type == ARG_TYPE_BUFFER) {
-                THROW_IF(args[i].len > BUS_MAX_BUFFER_LEN, -1);
+                THROW_IF(args[i].len > BLOB_BUFFER_MAX_SIZE, -1);
                 blob_add_buffer(blob, (char *)args[i].name, (uint8_t *)args[i].value, args[i].len);
             } else {
                 dbg_str(BUS_WARNNING, "bus_blob_add_args, not support type = %d", args[i].type);
@@ -388,9 +389,7 @@ bus_invoke(bus_t *bus, char *object_id, char *method,
 {
     bus_reqhdr_t hdr;
     blob_t *blob = bus->blob;
-#define BUS_ADD_OBJECT_MAX_BUFFER_LEN 1024
-    uint8_t buffer[BUS_ADD_OBJECT_MAX_BUFFER_LEN];
-#undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
+    uint8_t buffer[BLOB_MAX_SIZE];
     uint32_t buffer_len;
     int ret;
 
@@ -449,42 +448,44 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
                 int argc, bus_method_args_t *args, 
                 char *out_buf, uint32_t *out_len)
 {
-    bus_req_t *req;
+    bus_req_t *req = NULL;
     Map *map = bus->req_map;
-    int ret;
-    int count = 0;
-    int state = 0;
+    int count = 0, state = 0;
 #define MAX_BUFFER_LEN 2048
     char buffer[MAX_BUFFER_LEN] = {0};
 #undef MAX_BUFFER_LEN
+    int ret;
 
-    req = (bus_req_t *)allocator_mem_zalloc(bus->allocator, sizeof(bus_req_t));
-    req->method            = method;
-    req->state             = 0xfffe;
-    req->opaque_len        = 0;
-    req->opaque            = (uint8_t *)out_buf;
-    req->opaque_buffer_len = out_len == NULL ? 0 : *out_len;
-    dbg_str(BUS_SUC, "bus_invoke_sync, opaque_buffer_len=%d", req->opaque_buffer_len);
+    TRY {
+        req = (bus_req_t *)allocator_mem_zalloc(bus->allocator, sizeof(bus_req_t));
+        req->method            = method;
+        req->state             = 0xfffe;
+        req->opaque_len        = 0;
+        req->opaque            = (uint8_t *)out_buf;
+        req->opaque_buffer_len = out_len == NULL ? 0 : *out_len;
+        dbg_str(BUS_SUC, "bus_invoke_sync, opaque_buffer_len=%d", req->opaque_buffer_len);
 
-    sprintf(buffer, "%s@%s", object_id, method);
-    map->add(map, buffer, req);
-    dbg_str(BUS_SUC, "bus_invoke_sync, req count=%d", map->count(map));
+        sprintf(buffer, "%s@%s", object_id, method);
+        EXEC(map->add(map, buffer, req));
+        dbg_str(BUS_SUC, "bus_invoke_sync, req count=%d", map->count(map));
 
-    bus_invoke(bus, object_id, method, argc, args);
+        EXEC(bus_invoke(bus, object_id, method, argc, args));
 
-    while(req->state == 0xfffe) usleep(100);
+        while(req->state == 0xfffe) usleep(100);
 
-    dbg_str(BUS_VIP, "bus_invoke_sync, return state=%d", req->state);
-    dbg_buf(BUS_SUC, "opaque:", req->opaque, req->opaque_len);
+        dbg_str(BUS_VIP, "bus_invoke_sync, return state=%d", req->state);
+        dbg_buf(BUS_SUC, "opaque:", req->opaque, req->opaque_len);
 
-    if (out_buf != NULL) {
-        *out_len = req->opaque_len;
+        if (out_buf != NULL) {
+            *out_len = req->opaque_len;
+        }
+
+        ret = req->state;
+        EXEC(map->del(map, buffer));
+    } CATCH (ret) {} FINALLY {
+        allocator_mem_free(bus->allocator, req);
     }
-
-    ret = req->state;
-    //todo: need del req, same issue with other req.
-    allocator_mem_free(bus->allocator, req);
-    
+ 
     return ret;
 }
 

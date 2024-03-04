@@ -50,7 +50,6 @@ typedef int (*bus_cmd_callback)(bus_t *bus,  blob_attr_t **attr);
 	.n_policy = 0,\
 }
 
-#define BUS_MAX_BUFFER_LEN 2048
 
 enum bus_method_arg_type_e {       
     ARG_TYPE_UNSPEC,  

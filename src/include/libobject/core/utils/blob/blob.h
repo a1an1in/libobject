@@ -8,6 +8,9 @@
 #define blob_for_each_attr(pos, head, len) \
     for(pos = head; (uint8_t *)pos < (uint8_t *)head + len; pos = blob_next((blob_attr_t *)pos))
 
+#define BLOB_MAX_SIZE 1024 * 10
+#define BLOB_BUFFER_MAX_SIZE 2048
+
 typedef struct blob_s{
     allocator_t *allocator;
     uint8_t *head;

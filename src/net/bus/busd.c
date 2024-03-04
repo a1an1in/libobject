@@ -299,9 +299,7 @@ busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd,
 {
     bus_reqhdr_t hdr;
     blob_t *blob = busd->blob;
-#define BUS_ADD_OBJECT_MAX_BUFFER_LEN 1024
-    uint8_t buffer[BUS_ADD_OBJECT_MAX_BUFFER_LEN];
-#undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
+    uint8_t buffer[BLOB_MAX_SIZE];
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
