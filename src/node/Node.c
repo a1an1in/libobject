@@ -213,6 +213,7 @@ static int __copy(Node *node, char *from, char *to)
         }
 
         if ((p2 = strchr(to, ':')) != NULL) {
+            THROW_IF(read_flag == 1, -1);
             write_flag = 1;
             node_id = to;
             *p2 = '\0';
@@ -234,17 +235,30 @@ static int __copy(Node *node, char *from, char *to)
     return ret;
 }
 
+static int __list(Node *node, char *path)
+{
+    char *p1, *p2, *node_id;
+    int read_flag = 0, write_flag = 0;
+    int ret;
+
+    TRY {
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 static class_info_entry_t node_class_info[] = {
-    Init_Obj___Entry(0, Obj, parent),
-    Init_Nfunc_Entry(1, Node, construct, __construct),
-    Init_Nfunc_Entry(2, Node, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, Node, init, __init),
-    Init_Nfunc_Entry(4, Node, loop, __loop),
-    Init_Nfunc_Entry(5, Node, call, __call),
-    Init_Nfunc_Entry(6, Node, write, __write),
-    Init_Nfunc_Entry(7, Node, read, __read),
-    Init_Nfunc_Entry(8, Node, copy, __copy),
-    Init_End___Entry(9, Node),
+    Init_Obj___Entry(0 , Obj, parent),
+    Init_Nfunc_Entry(1 , Node, construct, __construct),
+    Init_Nfunc_Entry(2 , Node, deconstruct, __deconstruct),
+    Init_Nfunc_Entry(3 , Node, init, __init),
+    Init_Nfunc_Entry(4 , Node, loop, __loop),
+    Init_Nfunc_Entry(5 , Node, call, __call),
+    Init_Nfunc_Entry(6 , Node, write, __write),
+    Init_Nfunc_Entry(7 , Node, read, __read),
+    Init_Nfunc_Entry(8 , Node, copy, __copy),
+    Init_Nfunc_Entry(9 , Node, list, __list),
+    Init_End___Entry(10, Node),
 };
 REGISTER_CLASS("Node", node_class_info);
 

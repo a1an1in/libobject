@@ -23,6 +23,7 @@ struct Node_s {
 	int (*write)(Node *node, char *from, char *node_id, char *to);
 	int (*read)(Node *node, char *node_id, char *from, char *to);
 	int (*copy)(Node *node, char *from, char *to);
+	int (*list)(Node *node, char *path);
 
 	bus_t *bus;
     busd_t *busd;

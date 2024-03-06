@@ -137,11 +137,46 @@ static int node_read_file(bus_object_t *obj, int argc,
 	return 1;
 }
 
+static const struct blob_policy_s list_policy[] = {
+	[0] = { .name = "path",  .type = BLOB_TYPE_STRING }, 
+};
+
+static int node_list(bus_object_t *obj, int argc, 
+		      		 struct blob_attr_s **args, 
+                     void *out_data, int *out_data_len)
+{
+    bus_t *bus;
+    char *path;
+    uint32_t len, offset;
+    Vector *list = NULL;
+    allocator_t *allocator;
+    int ret, count;
+
+    TRY {
+        path = blob_get_string(args[0]);
+        THROW_IF(!fs_is_exist(path), -1);
+        bus = obj->bus;
+        allocator = bus->allocator;
+        dbg_str(DBG_VIP, "node_list path:%s", path);
+
+        list = object_new(allocator, "Vector", NULL);
+        count = fs_tree(path, list, -1);
+        THROW_IF(count < 0, -1);
+
+        fs_print_file_info_list(list);
+    } CATCH (ret) {} FINALLY {
+        object_destroy(list);
+    }
+
+	return ret;
+}
+
 static const struct bus_method node_service_methods[] = {
 	BUS_METHOD_WITHOUT_ARG("exit", node_exit, NULL),
     BUS_METHOD("test", node_test, test_policy),
     BUS_METHOD("set_loglevel", node_set_loglevel, set_loglevel_policy),
     BUS_METHOD("write_file", node_write_file, write_file_policy),
+    BUS_METHOD("list", node_list, list_policy),
     BUS_METHOD("read_file", node_read_file, read_file_policy),
 };
 
