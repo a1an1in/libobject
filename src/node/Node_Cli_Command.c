@@ -8,20 +8,44 @@
 
 #include "Node_Cli_Command.h"
 
+static int __bus_call_command_action(Node *node, char *arg1, char *arg2)
+{
+    return TRY_EXEC(node->call(node, arg1, NULL, 0));
+}
+
+static int __copy_command_action(Node *node, char *arg1, char *arg2)
+{
+    return TRY_EXEC(node->copy(node, arg1, arg2));
+}
+
+static int __list_command_action(Node *node, char *arg1, char *arg2)
+{
+    return TRY_EXEC(node->list(node, arg1));;
+}
+
+struct node_command_s {
+    int type;
+    char *command_name;
+    int (*action)(Node *node, char *arg1, char *arg2);
+} node_command_table[COMMAND_TYPE_MAX] = {
+    [COMMAND_TYPE_BUS_CALL] = {COMMAND_TYPE_BUS_CALL, "bus_call", __bus_call_command_action},
+    [COMMAND_TYPE_FSHELL_CALL] = {COMMAND_TYPE_FSHELL_CALL, "fshell_call", NULL},
+    [COMMAND_TYPE_COPY] = {COMMAND_TYPE_COPY, "copy", __copy_command_action},
+    [COMMAND_TYPE_LIST] = {COMMAND_TYPE_LIST, "list", __list_command_action},
+    [COMMAND_TYPE_EXIT] = {COMMAND_TYPE_EXIT, "exit", NULL},
+};
+
 static int __run_command(Node_Cli_Command *command)
 {
     Node *node = command->node;
+    int (*action)(Node *node, char *arg1, char *arg2);
     int ret;
 
     TRY {
         EXEC(node->init(node));
-        if (command->command_type == COMMAND_TYPE_BUS_CALL) {
-            EXEC(node->call(node, command->arg1, NULL, 0));
-        } else if (command->command_type == COMMAND_TYPE_FSHELL_CALL) {
-        } else if (command->command_type == COMMAND_TYPE_COPY) {
-            EXEC(node->copy(node, command->arg1, command->arg2));
-        }
-        
+        action = node_command_table[command->command_type].action;
+        THROW_IF(action == NULL, -1);
+        EXEC(action(node, command->arg1, command->arg2));
     } CATCH (ret) {}
 
     return ret; 
@@ -90,15 +114,16 @@ static int __option_disable_node_service_callback(Option *option, void *opaque)
 static int __argument_arg0_action_callback(Argument *arg, void *opaque)
 {
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
+    int i, ret;
 
     dbg_str(DBG_SUC,"argument arg0:%s", STR2A(arg->value));
 
-    if (strcmp(STR2A(arg->value), "bus_call") == 0) {
-        c->command_type = COMMAND_TYPE_BUS_CALL;
-    } else if (strcmp(STR2A(arg->value), "fshell_call") == 0) {
-        c->command_type = COMMAND_TYPE_FSHELL_CALL;
-    } else if (strcmp(STR2A(arg->value), "copy") == 0) {
-        c->command_type = COMMAND_TYPE_COPY;
+    for (i = 0; i < COMMAND_TYPE_MAX; i++) {
+        if (node_command_table[i].command_name == NULL) continue;
+        if (strcmp(STR2A(arg->value), node_command_table[i].command_name) == 0) {
+            c->command_type = node_command_table[i].type;
+            break;
+        }
     }
 
     return 0;

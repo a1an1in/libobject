@@ -105,9 +105,11 @@ static int __call(Node *node, char *code, void *out, uint32_t *out_len)
                 args[i].value = str->get_splited_cstr(str, 2 + i);
             }
         }
-        EXEC(bus_invoke_sync(node->bus, node_id, method_name, argc, args, out, &out_len));
+        EXEC(bus_invoke_sync(node->bus, node_id, method_name, argc, args, out, out_len));
         node_free_argument_template(allocator, args, argc);
-    } CATCH (ret) {}
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "call argc:%d, count:%d", argc, count);
+    }
 
     return ret;
 }
@@ -235,13 +237,26 @@ static int __copy(Node *node, char *from, char *to)
     return ret;
 }
 
-static int __list(Node *node, char *path)
+static int __list(Node *node, char *str)
 {
-    char *p1, *p2, *node_id;
+    char *path, *node_id;
     int read_flag = 0, write_flag = 0;
+    char buffer[BLOB_BUFFER_MAX_SIZE];
+    int len = sizeof(buffer);
     int ret;
 
     TRY {
+        dbg_str(DBG_VIP, "node list path:%s", str);
+        if ((path = strchr(str, ':')) != NULL) {
+            read_flag = 1;
+            node_id = str;
+            *path = '\0';
+            path = path + 1;
+        }
+
+        THROW_IF(path == NULL, -1);
+        snprintf(buffer, sizeof(buffer), "%s@list(%s)", node_id, path);
+        EXEC(node->call(node, buffer, buffer, &len));
     } CATCH (ret) {}
 
     return ret;
@@ -285,6 +300,7 @@ int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator
             }
         }
 
+        *cnt = n_policy;
         THROW_IF(policy == NULL, 0);
         *args = allocator_mem_alloc(allocator, n_policy * sizeof(bus_method_args_t));
         THROW_IF(*args == NULL, -1);
@@ -294,7 +310,6 @@ int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator
             strcpy((*args + i)->name, (policy + i)->name);
             dbg_str(DBG_VIP, "method name:%s, type:%d", (policy + i)->name, (policy + i)->type);
         }
-        *cnt = n_policy;
         
      } CATCH (ret) {}
 

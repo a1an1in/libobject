@@ -451,9 +451,7 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
     bus_req_t *req = NULL;
     Map *map = bus->req_map;
     int count = 0, state = 0;
-#define MAX_BUFFER_LEN 2048
-    char buffer[MAX_BUFFER_LEN] = {0};
-#undef MAX_BUFFER_LEN
+    char buffer[BLOB_BUFFER_MAX_SIZE] = {0};
     int ret;
 
     TRY {
@@ -462,7 +460,7 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
         req->state             = 0xfffe;
         req->opaque_len        = 0;
         req->opaque            = (uint8_t *)out_buf;
-        req->opaque_buffer_len = out_len == NULL ? 0 : *out_len;
+        req->opaque_buffer_len = (out_len == NULL) ? 0 : *out_len;
         dbg_str(BUS_SUC, "bus_invoke_sync, opaque_buffer_len=%d", req->opaque_buffer_len);
 
         sprintf(buffer, "%s@%s", object_id, method);
@@ -591,10 +589,9 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
                          char *method_name, int ret, char *buf,
                          int buf_len, int src_fd)
 {
-#define BUS_ADD_OBJECT_MAX_BUFFER_LEN 2048
     bus_reqhdr_t hdr;
     blob_t *blob = bus->blob;
-    uint8_t buffer[BUS_ADD_OBJECT_MAX_BUFFER_LEN];
+    uint8_t buffer[BLOB_BUFFER_MAX_SIZE];
     uint32_t buffer_len, tmp_len;
     allocator_t *allocator = bus->allocator;
 
@@ -618,7 +615,7 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
 
     tmp_len = buffer_len + blob_get_len((blob_attr_t *)blob->head);
 
-    if (tmp_len > BUS_ADD_OBJECT_MAX_BUFFER_LEN) {
+    if (tmp_len > BLOB_BUFFER_MAX_SIZE) {
         dbg_str(BUS_WARNNING, "buffer is too small, please check");
         return -1;
     }
@@ -632,7 +629,6 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
     bus_send(bus, buffer, buffer_len);
 
     return 0;
-#undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
 }
 
 int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
@@ -650,8 +646,7 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
     blob_policy_t *policy;
     int n_policy;
     struct blob_attr_s *tb[10];
-#define MAX_BUFFER_LEN 2048
-    char buffer[MAX_BUFFER_LEN];
+    char buffer[BLOB_BUFFER_MAX_SIZE];
     int ret, buffer_len = 9;
 
     dbg_str(BUS_DETAIL, "bus_handle_forward_invoke");
@@ -688,7 +683,7 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
             blob_parse_to_attr(policy, n_policy, tb, blob_get_data(args),
                                blob_get_data_len(args));
             ret = method(obj, argc, tb, buffer, &buffer_len);
-            if (buffer_len > MAX_BUFFER_LEN) {
+            if (buffer_len > BLOB_BUFFER_MAX_SIZE) {
                 dbg_str(BUS_WARNNING, "buffer is too small, please check");
             } 
             bus_reply_forward_invoke(bus, object_id, method_name, ret,
@@ -697,7 +692,6 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
     }
 
     return 0;
-#undef MAX_BUFFER_LEN 
 }
 
 static bus_cmd_callback handlers[__BUS_REQ_LAST] = {

@@ -11,7 +11,7 @@ static const struct blob_policy_s test_policy[] = {
 
 static int node_test(bus_object_t *obj, int argc, 
 		      	     struct blob_attr_s **args, 
-                     void *out_data, int *out_data_len)
+                     void *out, int *out_len)
 {
     int32_t value;
 
@@ -23,12 +23,12 @@ static int node_test(bus_object_t *obj, int argc,
 
 static int node_exit(bus_object_t *obj, int argc,
 		             struct blob_attr_s **args,
-                     void *out_data, int *out_data_len)
+                     void *out, int *out_len)
 {
     bus_t *bus = obj->bus;
     Node *node = bus->opaque;
 
-    *out_data_len = 0;
+    *out_len = 0;
     node->node_flag = 1;
     dbg_str(DBG_VIP, "exit node!");
     
@@ -43,7 +43,7 @@ static const struct blob_policy_s set_loglevel_policy[] = {
 
 static int node_set_loglevel(bus_object_t *obj, int argc, 
 		      		         struct blob_attr_s **args, 
-                             void *out_data, int *out_data_len)
+                             void *out, int *out_len)
 {
     char buffer[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     int db_bussiness, db_switch, db_level;
@@ -56,8 +56,8 @@ static int node_set_loglevel(bus_object_t *obj, int argc,
     dbg_str(DBG_VIP, "set debug, bussiness=%d, switch=%d, level=%d", 
             db_bussiness, db_switch, db_level);
 
-    memcpy(out_data, buffer, sizeof(buffer));
-    *out_data_len = sizeof(buffer);
+    memcpy(out, buffer, sizeof(buffer));
+    *out_len = sizeof(buffer);
 
 	return 1;
 }
@@ -71,7 +71,7 @@ static const struct blob_policy_s write_file_policy[] = {
 
 static int node_write_file(bus_object_t *obj, int argc, 
 		      		       struct blob_attr_s **args, 
-                           void *out_data, int *out_data_len)
+                           void *out, int *out_len)
 {
     allocator_t *allocator;
     char *filename;
@@ -108,7 +108,7 @@ static int node_write_file(bus_object_t *obj, int argc,
         EXEC(file->write(file, buffer, len));
         EXEC(file->close(file));
     } CATCH (ret) {} FINALLY {
-        *out_data_len = 0;
+        *out_len = 0;
         object_destroy(file);
     }
 
@@ -123,7 +123,7 @@ static const struct blob_policy_s read_file_policy[] = {
 
 static int node_read_file(bus_object_t *obj, int argc, 
 		      		      struct blob_attr_s **args, 
-                          void *out_data, int *out_data_len)
+                          void *out, int *out_len)
 {
     char *filename;
     uint32_t len, offset;
@@ -143,7 +143,7 @@ static const struct blob_policy_s list_policy[] = {
 
 static int node_list(bus_object_t *obj, int argc, 
 		      		 struct blob_attr_s **args, 
-                     void *out_data, int *out_data_len)
+                     void *out, int *out_len)
 {
     bus_t *bus;
     char *path;
@@ -165,6 +165,7 @@ static int node_list(bus_object_t *obj, int argc,
 
         fs_print_file_info_list(list);
     } CATCH (ret) {} FINALLY {
+        *out_len = 0;
         object_destroy(list);
     }
 
