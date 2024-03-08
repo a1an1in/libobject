@@ -51,7 +51,6 @@ struct _vector_s{
     uint32_t value_size;
     uint8_t value_type;
     uint32_t capacity;
-    String *init_data;
     String *class_name;
     uint8_t trustee_flag;
     int (*value_free_callback)(allocator_t *allocator, void *value);

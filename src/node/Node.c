@@ -83,7 +83,7 @@ static int __call(Node *node, char *code, void *out, uint32_t *out_len)
     allocator_t *allocator = node->parent.allocator;
     char *method_name = NULL;
     char *node_id = NULL, *tmp;
-    bus_method_args_t *args;
+    bus_method_args_t *args = NULL;
     String *str = node->str;
     int ret, argc, i, count;
 
@@ -300,7 +300,7 @@ int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator
             }
         }
 
-        *cnt = n_policy;
+        if (cnt != NULL) *cnt = n_policy;
         THROW_IF(policy == NULL, 0);
         *args = allocator_mem_alloc(allocator, n_policy * sizeof(bus_method_args_t));
         THROW_IF(*args == NULL, -1);

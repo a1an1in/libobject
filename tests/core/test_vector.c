@@ -15,6 +15,7 @@
 #include <libobject/core/utils/data_structure/vector.h>
 #include <libobject/core/try.h>
 #include <libobject/core/Vector.h>
+#include "simplest_struct.h"
 
 static int test_vector_add(TEST_ENTRY *entry)
 {

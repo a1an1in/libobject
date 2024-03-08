@@ -1,9 +1,8 @@
-[update:Node] continue to implement node.
+[update:Vector] optimize vector.
 
 Description:
-can support node write recursivly.
+update.
 
 Major Changes:
-1. refact node_command_table.
-2. fix bug in bus about BLOB_BUFFER_MAX_SIZE.
-3. rename some variable name.
+1. del useless code for vector.
+2. try to support assign to struct type of vector.

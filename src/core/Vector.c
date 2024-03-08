@@ -59,61 +59,12 @@ static int __construct(Vector *vector, char *init_str)
     }
     vector_init(vector->vector, vector->value_size, vector->capacity);
 
-    if (vector->init_data == NULL) {
-        return 0;
-    }
-
-    dbg_str(DBG_DETAIL, "vector init data:%s", STR2A(vector->init_data));
-    c = cjson_parse(vector->init_data->get_cstr(vector->init_data));
-    bak = c;
-    if (c->type & OBJECT_ARRAY) {
-        c = c->child;
-        dbg_str(DBG_DETAIL, "array name:%s", c->string);
-    }
-
-    while (c) {
-        if (c->type & CJSON_NUMBER) {
-            value_type = ENTRY_TYPE_INT32_T;
-            vector->add(vector, c->valueint);
-        } else if (c->type & OBJECT_STRING) {
-            value_type = VALUE_TYPE_STRING_POINTER;
-            dbg_str(DBG_DETAIL, "vector element:%s", c->valuestring);
-            s = object_new(allocator, "String", NULL);
-            s->assign(s, c->valuestring);
-            vector->add(vector, s);
-        } else if (c->type & OBJECT_ARRAY) {
-            dbg_str(DBG_DETAIL, "vector element, not supported now!");
-        } else if (c->type & CJSON_OBJECT) {
-            value_type = VALUE_TYPE_OBJ_POINTER;
-            char *class_name = STR2A(vector->class_name);
-            out = cjson_print(c);
-            o = object_new(allocator, class_name, out);
-            vector->add(vector, o);
-
-            dbg_str(DBG_DETAIL, "o: %s", o->to_json(o));
-            free(out);
-        } else {
-            dbg_str(DBG_DETAIL, "vector element, not supported now!");
-        }
-
-        c = c->next;
-    }
-
-    if (value_type != -1)
-        vector->set(vector, "/Vector/value_type", &value_type);
-
-    cjson_delete(bak);
-
     return 1;
 }
 
 static int __deconstrcut(Vector *vector)
 {
     dbg_str(OBJ_DETAIL, "vector deconstruct, vector addr:%p", vector);
-
-    if (vector->init_data != NULL) {
-        object_destroy(vector->init_data);
-    }
 
     if (vector->class_name != NULL) {
         object_destroy(vector->class_name);
@@ -298,6 +249,7 @@ static char *__to_json(Obj *obj)
     Vector *vector = (Vector *)obj;
     vector_pos_t pos, next;
     vector_t *v = vector->vector;
+    int (*policy)(cjson_t *root, void *element);
     cjson_t *root;
     String *json = (String *)obj->json;
     void *element = NULL;
@@ -312,9 +264,7 @@ static char *__to_json(Obj *obj)
         json->reset(json);
     }
 
-    if (vector->value_type > ENTRY_TYPE_MAX_TYPE) {
-        return NULL;
-    }
+    if (vector->value_type > ENTRY_TYPE_MAX_TYPE) { return NULL; }
 
     root = cjson_create_array();
 
@@ -324,16 +274,14 @@ static char *__to_json(Obj *obj)
         element = NULL;
         vector->peek_at(vector, index++, (void **)&element);
         
-        if (vector->value_type == VALUE_TYPE_OBJ_POINTER || vector->value_type  == VALUE_TYPE_STRING_POINTER) {
-            CONTINUE_IF(element == NULL);
-        }
-        if (g_vector_to_json_policy[vector->value_type].policy == NULL) {
-            continue;
-        }
-        ret = g_vector_to_json_policy[vector->value_type].policy(root, element);
-        if (ret < 0) {
-            return NULL;
-        }
+        if ((vector->value_type == VALUE_TYPE_OBJ_POINTER || 
+             vector->value_type  == VALUE_TYPE_STRING_POINTER) &&
+            (element == NULL)) {continue;}
+
+        policy = g_vector_to_json_policy[vector->value_type].policy;
+        if (policy == NULL) { continue; }
+        ret = policy(root, element);
+        if (ret < 0) { return NULL; }
     }
 
     out = cjson_print(root);
@@ -344,6 +292,12 @@ static char *__to_json(Obj *obj)
     return json->get_cstr(json);
 }
 
+/* 
+ * 如果new的时候传入了init_data, object会调用这个assign函数，但是如果数据类型是object，
+ * 则assign只能默认是VALUE_TYPE_OBJ_POINTERT类型， 因为这时对象刚建好，还没配置value类型。
+ * 这个限制导致vector 不支持自定义结构体、ctring在new vector的时候传入初始值。
+ * 如果是自定义结构体需要指定value_type，value_new后才可以使用assign。
+ */
 static int __assign(Vector *vector, char *value)
 {
     allocator_t *allocator = vector->obj.allocator;
@@ -397,10 +351,6 @@ static int __assign(Vector *vector, char *value)
                 THROW_IF(sp2 == NULL || *sp2 == NULL, -1);
                 o = object_new(allocator, STR2A(*sp2), out);
                 vector->add(vector, o);
-
-                /*
-                 *dbg_str(DBG_DETAIL, "o: %s", o->to_json(o));
-                 */
                 free(out);
             } else {
                 dbg_str(DBG_DETAIL, "vector assign, not supported %d now!", c->type);
@@ -633,10 +583,9 @@ static class_info_entry_t vector_class_info[] = {
     Init_U32___Entry(27, Vector, value_size, NULL),
     Init_U8____Entry(28, Vector, value_type, NULL),
     Init_U32___Entry(29, Vector, capacity, NULL),
-    Init_Str___Entry(30, Vector, init_data, NULL),
-    Init_Str___Entry(31, Vector, class_name, NULL),
-    Init_U8____Entry(32, Vector, trustee_flag, 0),
-    Init_Point_Entry(33, Vector, value_free_callback, NULL),
-    Init_End___Entry(34, Vector),
+    Init_Str___Entry(30, Vector, class_name, NULL),
+    Init_U8____Entry(31, Vector, trustee_flag, 0),
+    Init_Point_Entry(32, Vector, value_free_callback, NULL),
+    Init_End___Entry(33, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);
