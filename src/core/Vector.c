@@ -39,6 +39,11 @@
 #include <libobject/core/policy.h>
 #include <libobject/argument/Command.h>
 
+/* 
+ * 如果value类型如果是struct，则不能使用object_new 直接传入初始值初始化vector，
+ * 因为vector没法知道struct具体怎么构造， 如果是对象vector默认当作object类型来
+ * 处理。
+ */
 static int __construct(Vector *vector, char *init_str)
 {
     allocator_t *allocator = vector->obj.allocator;
@@ -275,10 +280,15 @@ static char *__to_json(Obj *obj)
         vector->peek_at(vector, index++, (void **)&element);
         
         if ((vector->value_type == VALUE_TYPE_OBJ_POINTER || 
-             vector->value_type  == VALUE_TYPE_STRING_POINTER) &&
+             vector->value_type == VALUE_TYPE_STRING_POINTER) &&
             (element == NULL)) {continue;}
 
-        policy = g_vector_to_json_policy[vector->value_type].policy;
+        if (vector->value_type == VALUE_TYPE_STRUCT_POINTER) {
+            policy = vector->value_to_json_callback;
+        } else {
+            policy = g_vector_to_json_policy[vector->value_type].policy;
+        }
+        
         if (policy == NULL) { continue; }
         ret = policy(root, element);
         if (ret < 0) { return NULL; }
@@ -301,15 +311,16 @@ static char *__to_json(Obj *obj)
 static int __assign(Vector *vector, char *value)
 {
     allocator_t *allocator = vector->obj.allocator;
+    int (*new_value)(allocator_t *allocator, void *json, void **value);
     cjson_t *c, *bak = NULL;
-    Obj *o;
+    void *o;
     char *out;
     String *s, **sp2;
     char object_name[20] = {0};
     char *json;
     int ret = 1;
     uint8_t trustee_flag = 1;
-    int value_type = VALUE_TYPE_OBJ_POINTER;
+    int value_type = VALUE_TYPE_UNDEFINED;
 
     TRY {
         if (value[0] != '[' && value[0] == '(') {
@@ -322,14 +333,10 @@ static int __assign(Vector *vector, char *value)
             json += 1;
         } else if (value[0] == '[') {
             json = value;
-        } else {
-            THROW(-1);
-        }
+        } else { THROW(-1); }
 
         bak = c = cjson_parse(json);
-        if (c->type & OBJECT_ARRAY) {
-            c = c->child;
-        }
+        if (c->type & OBJECT_ARRAY) { c = c->child; }
 
         while (c) {
             if (c->type & CJSON_NUMBER) {
@@ -343,22 +350,26 @@ static int __assign(Vector *vector, char *value)
                 vector->add(vector, s);
             } else if (c->type & OBJECT_ARRAY) {
                 dbg_str(DBG_DETAIL, "vector element, not supported now!");
-            } else if (c->type & CJSON_OBJECT) {
+            } else if ((c->type & CJSON_OBJECT) && (vector->value_type != VALUE_TYPE_STRUCT_POINTER)) {
                 value_type = VALUE_TYPE_OBJ_POINTER;
                 out = cjson_print(c);
-
                 sp2 = vector->get(vector, "/Vector/class_name");
                 THROW_IF(sp2 == NULL || *sp2 == NULL, -1);
                 o = object_new(allocator, STR2A(*sp2), out);
-                vector->add(vector, o);
+                EXEC(vector->add(vector, o));
                 free(out);
+            } else if ((c->type & CJSON_OBJECT) && (vector->value_type == VALUE_TYPE_STRUCT_POINTER)) {
+                value_type = VALUE_TYPE_STRUCT_POINTER;
+                new_value = vector->value_new_callback;
+                THROW_IF(new_value == NULL, -1);
+                EXEC(new_value(allocator, c->child, &o));
+                vector->add(vector, o);
             } else {
                 dbg_str(DBG_DETAIL, "vector assign, not supported %d now!", c->type);
             }
 
             c = c->next;
         }
-
         vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
         vector->set(vector, "/Vector/value_type", &value_type);
 
@@ -586,6 +597,8 @@ static class_info_entry_t vector_class_info[] = {
     Init_Str___Entry(30, Vector, class_name, NULL),
     Init_U8____Entry(31, Vector, trustee_flag, 0),
     Init_Point_Entry(32, Vector, value_free_callback, NULL),
-    Init_End___Entry(33, Vector),
+    Init_Point_Entry(33, Vector, value_to_json_callback, NULL),
+    Init_Point_Entry(34, Vector, value_new_callback, NULL),
+    Init_End___Entry(35, Vector),
 };
 REGISTER_CLASS("Vector", vector_class_info);

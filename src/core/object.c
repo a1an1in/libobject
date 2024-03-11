@@ -293,6 +293,13 @@ void * object_new(allocator_t *allocator, const char *type, char *config)
         o->allocator = allocator;
         strcpy(o->name, type);
 
+        /* 因为String和Vector没有太多配置， 为了简化传入的配置，这里直接把config作为init data， 这样
+         * 可以直接传入对应类型的init数据就可以得到初始化的vector了， 但是这里需要注意， 如果json传入的
+         * 是对象， vector会把它当作object来处理。 如果你期望当作struct来处理， 只有后面传入了定制struct
+         * 方法后才能实现。 因为如果这里你希望当作struct，但是vector更不不知道struct怎么来构造。vector知道
+         * object怎么构造是因为init data传入了对象类型，可以根据对象类型名去查询相应的class_info_entry_t，
+         * 但是struct没有相应的实现。
+         **/
         if (config != NULL && (strcmp(type, "String") == 0 || strcmp(type, "Vector") == 0)) {
             init_data = config;
             config = NULL;

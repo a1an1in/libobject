@@ -1,8 +1,8 @@
 [update:Vector] optimize vector.
 
 Description:
-update.
+now Vector support assign with json and to json for struct type.
 
 Major Changes:
-1. del useless code for vector.
-2. try to support assign to struct type of vector.
+1. add some annotation for vector and object.
+2. add test case for changes.

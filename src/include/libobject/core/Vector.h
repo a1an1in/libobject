@@ -53,7 +53,11 @@ struct _vector_s{
     uint32_t capacity;
     String *class_name;
     uint8_t trustee_flag;
+
+    /* custom methods for struct */
     int (*value_free_callback)(allocator_t *allocator, void *value);
+    int (*value_to_json_callback)(cjson_t *root, void *element);
+    int (*value_new_callback)(allocator_t *allocator, void *json, void **value);
 };
 
 #endif

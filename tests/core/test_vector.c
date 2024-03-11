@@ -17,6 +17,62 @@
 #include <libobject/core/Vector.h>
 #include "simplest_struct.h"
 
+
+static int simplest_struct_custom_to_json(cjson_t *root, void *element)
+{
+    cjson_t *item = NULL;
+    simplest_struct *o = (simplest_struct *)element;
+
+    item = cjson_create_object();
+    cjson_add_number_to_object(item, "type", o->type);
+    cjson_add_number_to_object(item, "len", o->len);
+    cjson_add_string_to_object(item, "name", o->name);
+    if (item != NULL) {
+        cjson_add_item_to_array(root, item);
+    }
+
+    return 1;
+}
+
+static int simplest_struct_cumtom_new(allocator_t *allocator, cjson_t *c, void **value)
+{
+    simplest_struct *v;
+    int ret;
+
+    TRY {
+        v = allocator_mem_alloc(allocator, sizeof(simplest_struct));
+        *value = v;
+        while (c) {
+            // char *out;
+            // out = cjson_print(c);
+            // dbg_str(DBG_VIP, "json:%s", out);
+            // free(out);
+            if (strcmp(c->string, "type") == 0) {
+                v->type = c->valueint;
+            } else if (strcmp(c->string, "len") == 0) {
+                v->len = c->valueint;
+            } else if (strcmp(c->string, "name") == 0) {
+                v->name = allocator_mem_alloc(allocator, strlen(c->string) + 1);
+                strcpy(v->name, c->valuestring);
+            } else {
+                dbg_str(DBG_VIP, "wrong value name:%s", c->string);
+            }
+
+            c = c->next;
+        }
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static int simplest_struct_cumtom_free(allocator_t *allocator, simplest_struct *value)
+{
+    allocator_mem_free(allocator, value->name);
+    allocator_mem_free(allocator, value);
+
+    return 1;
+}
+
 static int test_vector_add(TEST_ENTRY *entry)
 {
     Vector *vector;
@@ -225,6 +281,48 @@ static int test_vector_to_json_case3()
     return ret;
 }
 
+static int test_vector_to_json_case4()
+{
+    int ret = 0, help = 0;
+    allocator_t *allocator = allocator_get_default_instance();
+    int value_type = VALUE_TYPE_STRUCT_POINTER;
+    Vector *vector;
+    uint8_t trustee_flag = 1;
+    simplest_struct t1, t2;
+    String *string = NULL;
+    char *init_data = "[{\"type\":1,\"len\":2,\"name\":\"abc\"}, {\"type\":3,\"len\":4,\"name\":\"def\"}]";
+
+    TRY {
+        vector = object_new(allocator, "Vector", NULL);
+        vector->reset(vector);
+
+        vector->set(vector, "/Vector/value_type", &value_type);
+        vector->set(vector, "/Vector/value_to_json_callback", simplest_struct_custom_to_json);
+
+        vector->add(vector, &t1);
+        vector->add(vector, &t2);
+
+        t1.type = 1, t1.len = 2, t1.name = "abc";
+        t2.type = 3, t2.len = 4, t2.name = "def";
+
+        string = object_new(allocator, "String", NULL);
+        string->assign(string, vector->to_json(vector));
+        string->replace(string, "\t", "", -1);
+        string->replace(string, "\r", "", -1);
+        string->replace(string, "\n", "", -1);
+
+        SET_CATCH_STR_PARS(string->get_cstr(string), init_data);
+        THROW_IF(strcmp(string->get_cstr(string), init_data) != 0, -1);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "test_vector_to_json_case3 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(string);
+        object_destroy(vector);
+    }
+
+    return ret;
+}
+
 static int test_vector_to_json(TEST_ENTRY *entry)
 {
     int ret;
@@ -233,6 +331,7 @@ static int test_vector_to_json(TEST_ENTRY *entry)
         EXEC(test_vector_to_json_case1());
         EXEC(test_vector_to_json_case2());
         EXEC(test_vector_to_json_case3());
+        EXEC(test_vector_to_json_case4());
     } CATCH (ret) { }
 
     return ret;
@@ -317,6 +416,39 @@ static int test_vector_assign_case3()
     return ret;
 }
 
+static int test_vector_assign_case4()
+{
+    int ret;
+    Vector *vector;
+    allocator_t *allocator = allocator_get_default_instance();
+    int capacity = 19, value_type = VALUE_TYPE_STRUCT_POINTER;
+    char *init_data = "[{\"type\":1,\"len\":2,\"name\":\"abc\"}, {\"type\":3,\"len\":4,\"name\":\"def\"}]";
+    String *string, **addr;
+
+    TRY {
+        vector = object_new(allocator, "Vector", NULL);
+        vector->reset(vector);
+        vector->set(vector, "/Vector/value_type", &value_type);
+        vector->set(vector, "/Vector/value_new_callback", simplest_struct_cumtom_new);
+        vector->set(vector, "/Vector/value_free_callback", simplest_struct_cumtom_free);
+        vector->set(vector, "/Vector/value_to_json_callback", simplest_struct_custom_to_json);
+        vector->assign(vector, init_data);
+
+        string = object_new(allocator, "String", NULL);
+        string->assign(string, vector->to_json(vector));
+        string->replace(string, "\t", "", -1);
+        string->replace(string, "\r", "", -1);
+        string->replace(string, "\n", "", -1);
+
+        THROW_IF(strcmp(string->get_cstr(string), init_data) != 0, -1);
+    } CATCH (ret) {} FINALLY {
+        object_destroy(string);
+        object_destroy(vector);
+    }
+
+    return ret;
+}
+
 static int test_vector_assign(TEST_ENTRY *entry)
 {
     int ret;
@@ -325,6 +457,7 @@ static int test_vector_assign(TEST_ENTRY *entry)
         EXEC(test_vector_assign_case1());
         EXEC(test_vector_assign_case2());
         EXEC(test_vector_assign_case3());
+        EXEC(test_vector_assign_case4());
     } CATCH (ret) {}
 
     return ret;
@@ -632,7 +765,7 @@ static int test_vector_copy_case2()
         json->replace(json, "\r", "" , -1);
         json->replace(json, "\n", "" , -1);
         json->replace(json, ", ", ",", -1);
-        dbg_str(DBG_WARNNING, "json:%s", STR2A(json));
+        // dbg_str(DBG_WARNNING, "json:%s", STR2A(json));
 
         SET_CATCH_STR_PARS(expect, STR2A(json));
         THROW_IF(strcmp(STR2A(json), expect) != 0, -1);
