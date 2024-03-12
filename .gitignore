@@ -59,3 +59,4 @@ Makefile
 CMakeCache.txt
 install_manifest.txt
 *.vscode
+3rd/test_python/hello.log

@@ -2,6 +2,11 @@
 
 [TOC]
 
+## mockery
+```
+./sysroot/linux/bin/xtools mockery --log-level=0x20016 -f all
+```
+
 ## log 
 ```
 ./sysroot/linux/bin/xtools --log-level=0x6      open all business at 6 level

@@ -97,7 +97,6 @@ REGISTER_TEST_CMD(test_dl_get_remote_function_adress);
 
 static int tree_node_free_callback(allocator_t *allocator, void *value)
 {
-    dbg_str(DBG_VIP, "tree_node_free_callback");
     interval_tree_node_t *t = (interval_tree_node_t *)value;
     allocator_mem_free(allocator, t->value);
     allocator_mem_free(allocator, t);

@@ -3,7 +3,7 @@
 
 enum func_entry_type_e {
     FUNC_ENTRY_TYPE_NORMAL, 
-    FUNC_ENTRY_TYPE_STANDALONE, 
+    FUNC_ENTRY_TYPE_CMD, 
 };
 
 typedef struct reg_heap_s {

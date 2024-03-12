@@ -1,7 +1,7 @@
-[update:Vector] optimize codes.
+[update:mockery] 拓展mockery功能.
 
 Description:
-update.
+mockery 支持运行指定函数和命令， 如果批量测试支持错误case统计.
 
 Major Changes:
 1. change set_trustee() to customize().

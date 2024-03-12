@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/argument/Command.h>
 #include <libobject/core/String.h>
+#include <libobject/core/Vector.h>
 
 typedef struct Mockery_Command_s Mockery_Command;
 
@@ -23,6 +24,10 @@ struct Mockery_Command_s{
 	char *argv[20];
 	int argc;
 	int argument_flag;
+	int function_flag;
+
+	Vector *failed_cases;
+	Vector *success_cases;
 };
 
 #endif

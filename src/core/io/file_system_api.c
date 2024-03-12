@@ -155,7 +155,7 @@ int fs_get_relative_path(char *path, char *root, char **relative_path)
 
     TRY {
         root_len = strlen(root);
-        if (strncmp(path, root, root_len) != 0, -1);
+        if ((strncmp(path, root, root_len) != 0), -1);
         if (root[root_len -1] != '/') {
             THROW(-1);
         }

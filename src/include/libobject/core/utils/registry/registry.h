@@ -25,14 +25,13 @@ int __register_ctor_func1(int level, int (*func)(void *arg), void *arg);
 int __register_ctor_func2(int level, int (*func)(void *arg1, void *arg2), void *arg1, void *arg2);
 int __register_ctor_func3(int level, int (*func)(void *arg1, void *arg2, void *arg3), void *arg1, void *arg2, void *arg3);
 int __register_dtor_func(int level, int (*func)());
-int __register_standalone_test_func(int (*func)(void *, void *, void *), const char *func_name, const char *file, int line); 
-int __register_test_func(int (*func)(void *), const char *func_name, const char *file, int line); 
+int __register_mockery_cmd(int (*func)(void *, void *, void *), const char *func_name, const char *file, int line); 
+int __register_mockery_func(int (*func)(void *), const char *func_name, const char *file, int line); 
 int execute_ctor_funcs(); 
 int execute_dtor_funcs();
-int execute_test_funcs();
-int execute_designated_func(char *func_name, int arg1, char **arg2);
 int assert_equal(void *peer1, void *peer2, unsigned int count);
 int assert_file_equal(const char *file1, const char *file2);
+reg_heap_t * get_global_testfunc_reg_heap();
 
 #define INIT_LIBOBJECT execute_ctor_funcs
 
@@ -58,12 +57,12 @@ int assert_file_equal(const char *file1, const char *file2);
 
 #define REGISTER_TEST_FUNC(func) \
     __attribute__((constructor)) static void register_test_##func() {\
-        __register_test_func((int (*)(void *))func, #func, extract_filename_from_path(__FILE__), __LINE__);\
+        __register_mockery_func((int (*)(void *))func, #func, extract_filename_from_path(__FILE__), __LINE__);\
     }
 
 #define REGISTER_TEST_CMD(func) \
     __attribute__((constructor)) static void register_test_cmd_##func() {\
-        __register_standalone_test_func((int (*)(void *, void *, void *))func, #func, extract_filename_from_path(__FILE__), __LINE__);\
+        __register_mockery_cmd((int (*)(void *, void *, void *))func, #func, extract_filename_from_path(__FILE__), __LINE__);\
     } 
 
 #endif 
