@@ -29,7 +29,6 @@ macro (set_cmake_evironment_variable)
             object-concurrent
             # object-crypto
             object-encoding
-            # object-ctest
             object-argument
             object-core
         -Wl,--no-whole-archive

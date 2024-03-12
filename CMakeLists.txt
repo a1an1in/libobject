@@ -5,7 +5,7 @@ init_platform()
 if (POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
-project (libobject VERSION 2.12.1.24)
+project (libobject VERSION 2.12.1.28)
 
 #version format "[VERSION <major>[.<minor>[.<patch>[.<tweak>]]]]"
 configure_file(
@@ -37,7 +37,6 @@ if ("${PLATFORM}" STREQUAL "windows")
 else()
     list(APPEND module_lists "src/compress")
     list(APPEND module_lists "src/crypto")
-    list(APPEND module_lists "src/ctest")
     list(APPEND module_lists "src/database")
     
     list(APPEND module_lists "src/attacher")
