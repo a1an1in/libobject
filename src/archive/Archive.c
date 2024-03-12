@@ -31,19 +31,19 @@ static int __construct(Archive *archive, char *init_str)
 
     archive->extracting_file_infos = object_new(allocator, "Vector", NULL);
     headers = archive->extracting_file_infos;
-    headers->set_trustee(headers, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback);
+    headers->customize(headers, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback);
 
     archive->adding_file_infos = object_new(allocator, "Vector", NULL);
     headers = archive->adding_file_infos;
-    headers->set_trustee(headers, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback);
+    headers->customize(headers, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback);
 
     archive->inclusive_wildchards = object_new(allocator, "Vector", NULL);
     headers = archive->inclusive_wildchards;
-    headers->set_trustee(headers, VALUE_TYPE_ALLOC_POINTER, NULL);
+    headers->customize(headers, VALUE_TYPE_ALLOC_POINTER, NULL);
 
     archive->exclusive_wildchards = object_new(allocator, "Vector", NULL);
     headers = archive->exclusive_wildchards;
-    headers->set_trustee(headers, VALUE_TYPE_ALLOC_POINTER, NULL);
+    headers->customize(headers, VALUE_TYPE_ALLOC_POINTER, NULL);
 
     return 0;
 }

@@ -650,7 +650,7 @@ static int __help(Command *command)
         buffer->printf(buffer, 512, "usage:\n");
         buffer->printf(buffer, 512, "%s ", STR2A(command->name));
 
-        options != NULL && options->for_each_arg(options, __help_head_option_for_each_callback, buffer);
+        (options != NULL) && (options->for_each_arg(options, __help_head_option_for_each_callback, buffer));
 
         if (subcommands != NULL) {
             subcommands->for_each_arg(subcommands, __help_head_subcommand_for_each_callback, buffer);
@@ -675,13 +675,11 @@ static int __help(Command *command)
         }
         
         printf("%s\n", (char *)buffer->addr);
-
-    } CATCH (ret) {
-    } FINALLY {
+    } CATCH (ret) { } FINALLY {
         object_destroy(buffer);
     }
 
-    return 0;
+    return ret;
 }
 
 static class_info_entry_t command_class_info[] = {

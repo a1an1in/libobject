@@ -28,7 +28,7 @@ static int __construct(Attacher *attacher, char *init_str)
 
     attacher->tree = object_new(attacher->parent.allocator, "Interval_Tree", NULL);
     tree = attacher->tree;
-    tree->set_trustee(tree, VALUE_TYPE_STRUCT_POINTER, tree_node_free_callback);
+    tree->customize(tree, VALUE_TYPE_STRUCT_POINTER, tree_node_free_callback);
 
     return 0;
 }

@@ -183,9 +183,8 @@ static void __reset(Queue *queue)
             object_destroy(element);
         } else if (queue->value_type  == VALUE_TYPE_ALLOC_POINTER && element != NULL) {
             allocator_mem_free(queue->obj.allocator, element);
-        } else if (queue->value_type  == VALUE_TYPE_UNKNOWN_POINTER && element != NULL) {
+        } else if (queue->value_type >= VALUE_TYPE_MAX_TYPE) {
             dbg_str(DBG_WARNNING, "not support reset unkown pointer");
-        } else {
         }
 
         element = NULL;

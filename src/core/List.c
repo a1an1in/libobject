@@ -67,9 +67,8 @@ static int __reset(List *list)
             object_destroy(element);
         } else if (list->value_type  == VALUE_TYPE_ALLOC_POINTER && element != NULL) {
             allocator_mem_free(list->obj.allocator, element);
-        } else if (list->value_type  == VALUE_TYPE_UNKNOWN_POINTER && element != NULL) {
+        } else if (list->value_type >= VALUE_TYPE_MAX_TYPE) {
             dbg_str(OBJ_WARNNING, "not support reset unkown pointer");
-        } else {
         }
 
         element = NULL;

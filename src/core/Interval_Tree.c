@@ -111,8 +111,8 @@ static int __search(Interval_Tree *tree, void *key, interval_tree_node_t **eleme
 }
 
 //not trustee key here, key is interger by default
-static int __set_trustee(Interval_Tree *tree, int value_type, 
-                         int (*value_free_callback)(allocator_t *allocator, void *value))
+static int __customize(Interval_Tree *tree, int value_type, 
+                       int (*value_free_callback)(allocator_t *allocator, void *value))
 {
     Map *map;
     int trustee_flag = 1;
@@ -132,7 +132,7 @@ static class_info_entry_t interval_tree_class_info[] = {
     Init_Vfunc_Entry(3 , Interval_Tree, add, __add),
     Init_Vfunc_Entry(4 , Interval_Tree, search, __search),
     Init_Vfunc_Entry(5 , Interval_Tree, remove, __remove),
-    Init_Vfunc_Entry(6 , Interval_Tree, set_trustee, __set_trustee),
+    Init_Vfunc_Entry(6 , Interval_Tree, customize, __customize),
     Init_End___Entry(7 , Interval_Tree),
 };
 REGISTER_CLASS("Interval_Tree", interval_tree_class_info);

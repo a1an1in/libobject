@@ -26,6 +26,7 @@ static int __run_command(Command *command)
 
     return 1;
 }
+
 static int __construct(Command *command, char *init_str)
 {
     command->set(command, "/Command/name", "help");

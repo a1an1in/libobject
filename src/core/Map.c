@@ -131,9 +131,8 @@ static int __reset(Map *map)
             map->value_free_callback(map->obj.allocator, element);   
         } else if (map->value_type == VALUE_TYPE_STRUCT_POINTER && map->value_free_callback == NULL && element != NULL) {
             allocator_mem_free(map->obj.allocator, element);
-        } else if (map->value_type  == VALUE_TYPE_UNKNOWN_POINTER && element != NULL) {
+        } else if (map->value_type >= VALUE_TYPE_MAX_TYPE) {
             dbg_str(DBG_WARNNING, "not support reset unkown pointer");
-        } else {
         }
 
         element = NULL;

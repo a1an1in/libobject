@@ -1,8 +1,9 @@
-[update:Vector] optimize vector.
+[update:Vector] optimize codes.
 
 Description:
-now Vector support assign with json and to json for struct type.
+update.
 
 Major Changes:
-1. add some annotation for vector and object.
-2. add test case for changes.
+1. change set_trustee() to customize().
+2. fix xtool -v option bug.
+3. del useless value type.

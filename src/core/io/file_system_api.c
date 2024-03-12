@@ -212,7 +212,7 @@ int fs_list(char *path, Vector *vector)
             dbg_str(DBG_VIP, "path:%s", tmp);
         }
 
-        EXEC(vector->set_trustee(vector, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback));
+        EXEC(vector->customize(vector, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback));
         EXEC(ret = globle_file_system->list(globle_file_system, tmp, vector));
         EXEC(vector->for_each(vector, __get_file_info_stat_callback));
         THROW(ret);
@@ -236,8 +236,8 @@ int fs_tree(char *path, Vector *vector, int depth)
     TRY {
         THROW_IF(depth == 0, 0);
         if (depth > 0) depth--;
-        EXEC(vector->set_trustee(vector, VALUE_TYPE_STRUCT_POINTER, 
-                                 __free_file_info_callback));
+        EXEC(vector->customize(vector, VALUE_TYPE_STRUCT_POINTER, 
+                               __free_file_info_callback));
 
         list = object_new(allocator, "Vector", NULL);
         EXEC(fs_list(path, list));

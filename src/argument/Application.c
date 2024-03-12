@@ -38,7 +38,8 @@ static int __option_set_event_signal_service_callback(Option *option, void *opaq
 static int __option_version_callback(Option *option, void *opaque)
 {
     if (option->set_flag == 1) {
-        printf("libobject version:%s\n", PROJECT_VERSION);
+        printf("version:%s\n", PROJECT_VERSION);
+        exit(0);
     }
     return 1;
 }

@@ -44,14 +44,14 @@ struct _vector_s{
     int (*reset_from)(Vector *vector, int index);
     int (*filter)(Vector *vector, int (*condition)(void *element, void *cond), void *cond, Vector *out);
     int (*copy)(Vector *vector, Vector *out);
-    int (*set_trustee)(Vector *tree, int value_type, int (*value_free_callback)(allocator_t *allocator, void *value));
+    int (*customize)(Vector *tree, int value_type, int (*value_free_callback)(allocator_t *allocator, void *value));
 
     /*attribs*/
     vector_t *vector;
     uint32_t value_size;
     uint8_t value_type;
     uint32_t capacity;
-    String *class_name;
+    String *class_name; //只有object类型时使用。
     uint8_t trustee_flag;
 
     /* custom methods for struct */

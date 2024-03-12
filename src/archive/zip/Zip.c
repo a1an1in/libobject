@@ -56,11 +56,11 @@ static int __construct(Zip *zip, char *init_str)
 
     zip->headers = object_new(allocator, "Vector", NULL);
     headers = zip->headers;
-    headers->set_trustee(headers, VALUE_TYPE_STRUCT_POINTER, __free_centrol_dir_header_callback);
+    headers->customize(headers, VALUE_TYPE_STRUCT_POINTER, __free_centrol_dir_header_callback);
 
     zip->compressors = object_new(allocator, "Vector", NULL);
     headers = zip->compressors;
-    headers->set_trustee(headers, VALUE_TYPE_OBJ_POINTER, NULL);
+    headers->customize(headers, VALUE_TYPE_OBJ_POINTER, NULL);
     __config_default_compressors(zip);
 
     zip->central_dir_position = 0;

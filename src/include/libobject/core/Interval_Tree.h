@@ -27,7 +27,7 @@ struct Interval_Tree_s {
     int (*add)(Interval_Tree *tree, void *key, void *value);
     int (*search)(Interval_Tree *tree, void *key, void **element);
     int (*remove)(Interval_Tree *tree, void *key, void **element);
-    int (*set_trustee)(Interval_Tree *tree, int value_type, int (*value_free_callback)(allocator_t *allocator, void *value));
+    int (*customize)(Interval_Tree *tree, int value_type, int (*value_free_callback)(allocator_t *allocator, void *value));
 
     /*attribs*/
     Map *map;

@@ -235,9 +235,8 @@ static int __reset(Vector *vector)
             vector->value_free_callback(vector->obj.allocator, element);   
         } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER && vector->value_free_callback == NULL && element != NULL) {
             allocator_mem_free(vector->obj.allocator, element);
-        } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER) {
-            dbg_str(DBG_WARNNING, "not support reset unkown pointer");
-        } else {
+        } else if (vector->value_type >= VALUE_TYPE_MAX_TYPE) {
+            dbg_str(DBG_WARNNING, "not support reset unkown pointer:%d", vector->value_type);
         }
         element = NULL;
     }
@@ -284,6 +283,7 @@ static char *__to_json(Obj *obj)
             (element == NULL)) {continue;}
 
         if (vector->value_type == VALUE_TYPE_STRUCT_POINTER) {
+            //因为这个是定制化的、多变的， 没法加入g_vector_to_json_policy。
             policy = vector->value_to_json_callback;
         } else {
             policy = g_vector_to_json_policy[vector->value_type].policy;
@@ -356,6 +356,7 @@ static int __assign(Vector *vector, char *value)
                 sp2 = vector->get(vector, "/Vector/class_name");
                 THROW_IF(sp2 == NULL || *sp2 == NULL, -1);
                 o = object_new(allocator, STR2A(*sp2), out);
+                THROW_IF(o == NULL, -1);
                 EXEC(vector->add(vector, o));
                 free(out);
             } else if ((c->type & CJSON_OBJECT) && (vector->value_type == VALUE_TYPE_STRUCT_POINTER)) {
@@ -486,9 +487,8 @@ static int __reset_from(Vector *vector, int index)
             vector->value_free_callback(vector->obj.allocator, element);   
         } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER && vector->value_free_callback == NULL && element != NULL) {
             allocator_mem_free(vector->obj.allocator, element);
-        } else if (vector->value_type  == VALUE_TYPE_UNKNOWN_POINTER) {
-            dbg_str(DBG_WARNNING, "not support reset unkown pointer");
         } else {
+            dbg_str(DBG_WARNNING, "not support reset unkown pointer");
         }
         element = NULL;
     }
@@ -552,7 +552,8 @@ static int __copy(Vector *vector, Vector *out)
     return ret;
 }
 
-static int __set_trustee(Vector *vector, int value_type, int (*free_callback)(allocator_t *allocator, void *value))
+/* vector value类型如果是struct类型， 可以使用这个函数统一配置， 也可以通过set单独配置。*/
+static int __customize(Vector *vector, int value_type, int (*free_callback)(allocator_t *allocator, void *value))
 {
     int trustee_flag = 1;
 
@@ -590,7 +591,7 @@ static class_info_entry_t vector_class_info[] = {
     Init_Vfunc_Entry(23, Vector, filter, __filter),
     Init_Vfunc_Entry(24, Vector, add_vector, __add_vector),
     Init_Vfunc_Entry(25, Vector, copy, __copy),
-    Init_Vfunc_Entry(26, Vector, set_trustee, __set_trustee),
+    Init_Vfunc_Entry(26, Vector, customize, __customize),
     Init_U32___Entry(27, Vector, value_size, NULL),
     Init_U8____Entry(28, Vector, value_type, NULL),
     Init_U32___Entry(29, Vector, capacity, NULL),

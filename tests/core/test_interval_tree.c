@@ -102,7 +102,7 @@ static int test_interval_tree_free_tree_node(TEST_ENTRY *entry)
         INIT_TEST_INSTANCE(*t2, 20, 29, 0);
 
         tree = object_new(allocator, "Interval_Tree", NULL);
-        tree->set_trustee(tree, VALUE_TYPE_STRUCT_POINTER, tree_node_free_callback);
+        tree->customize(tree, VALUE_TYPE_STRUCT_POINTER, tree_node_free_callback);
         tree->add(tree, t0->start, t0);
         tree->add(tree, t1->start, t1);
         tree->add(tree, t2->start, t2);
