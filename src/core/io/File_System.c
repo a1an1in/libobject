@@ -231,7 +231,7 @@ static int __rmdir(File_System *fs, char *dir)
 			__rmdir(fs, dir_name);   // 递归调用
 		}
 		closedir(dirp);
-        dbg_str(DBG_VIP, "rmdir %s", dir);
+        dbg_str(DBG_INFO, "rmdir %s", dir);
 		rmdir(dir);		// 删除空目录
 	} else {
 		perror("unknow file type!");	

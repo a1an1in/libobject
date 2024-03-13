@@ -107,7 +107,7 @@ int vector_copy(vector_t *vector, vector_pos_t *to, vector_pos_t *from, uint32_t
     uint32_t from_pos = from->vector_pos;
     uint32_t to_pos   = to->vector_pos;
     
-    dbg_str(VECTOR_IMPORTANT, "count=%d", count);
+    dbg_str(VECTOR_INFO, "count=%d", count);
     if (from_pos > to_pos) {//forward
         vector_copy_forward(vector, to, from, count);
     } else {//backward
@@ -196,7 +196,7 @@ int vector_add_at(vector_t *vector, int index, void *data)
 
         sync_lock(&vector->vector_lock, NULL);
         if (offset >= capacity) {
-            dbg_str(VECTOR_WARNNING, "realloc mem at %s", __func__);
+            dbg_str(VECTOR_WARN, "realloc mem at %s", __func__);
             vector->vector_head = allocator_mem_zalloc(vector->allocator, 2 * capacity * (vector->step));
             THROW_IF(vector->vector_head == NULL, -1);
 
@@ -226,7 +226,7 @@ int vector_add_at(vector_t *vector, int index, void *data)
 
 int vector_add_front(vector_t *vector, void *data)
 {
-    dbg_str(VECTOR_WARNNING, "not support vector_add_front");
+    dbg_str(VECTOR_WARN, "not support vector_add_front");
     return -1;
 }
 
@@ -248,7 +248,7 @@ int vector_add_back(vector_t *vector, void *data)
             memcpy(vector->vector_head, vector_head, capacity * step);
             allocator_mem_free(vector->allocator, vector_head);
             vector_head = vector->vector_head;
-            dbg_str(VECTOR_WARNNING, "realloc mem, end_pos:%d, old capacity:%d, new capacity:%d", offset, capacity, vector->capacity);
+            dbg_str(VECTOR_WARN, "realloc mem, end_pos:%d, old capacity:%d, new capacity:%d", offset, capacity, vector->capacity);
             // print_backtrace();
         }
 

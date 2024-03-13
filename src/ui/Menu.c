@@ -40,7 +40,7 @@ static int __construct(Menu *menu, char *init_str)
 
 static int __deconstrcut(Menu *menu)
 {
-	dbg_str(DBG_IMPORTANT, "menu deconstruct, menu addr:%p", menu);
+	dbg_str(DBG_INFO, "menu deconstruct, menu addr:%p", menu);
 
 	return 0;
 }
@@ -70,7 +70,7 @@ static void *__get(Menu *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING, "menu get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(DBG_WARN, "menu get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;

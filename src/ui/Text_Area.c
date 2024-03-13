@@ -171,7 +171,7 @@ static void move_cursor_right(Component *component)
         cursor->x      += cursor->width;
         cursor->offset++;
     } else {
-        dbg_str(DBG_WARNNING, 
+        dbg_str(DBG_WARN, 
                 "curor x=%d width=%d line_num=%d line_lenth=%d last_line_num=%d", 
                 cursor->x, cursor->width, cursor_line, line_info->line_lenth, 
                 text->last_line_num);
@@ -412,7 +412,7 @@ static int draw_character(Component *component, char c, void *render)
 
     character = (Character *)r->font->ascii[c].character;
     if (character->height == 0) {
-        dbg_str(DBG_WARNNING, "text list may have problem, draw id=%d, c=%c", c, c);
+        dbg_str(DBG_WARN, "text list may have problem, draw id=%d, c=%c", c, c);
         return -1;
     }
 
@@ -834,7 +834,7 @@ static int __on_key_pageup_pressed(Component *component, void *render)
     } else if (ta->start_line > 0) {
         ta->start_line = 0;
     } else {
-        dbg_str(DBG_WARNNING, "on_key_pageup_pressed");
+        dbg_str(DBG_WARN, "on_key_pageup_pressed");
         return 0;
     }
 

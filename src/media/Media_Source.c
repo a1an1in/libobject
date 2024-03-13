@@ -69,7 +69,7 @@ static void *__get(Media_Source *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"Media_Source get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARN,"Media_Source get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;

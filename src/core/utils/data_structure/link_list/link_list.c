@@ -53,7 +53,7 @@ llist_t *llist_alloc(allocator_t *allocator)
 {
     llist_t *ret = NULL;
 
-    dbg_str(LINKLIST_IMPORTANT, "llist_create");
+    dbg_str(LINKLIST_INFO, "llist_create");
 
     ret = (llist_t *)allocator_mem_alloc(allocator, sizeof(llist_t));
     if (ret == NULL) {
@@ -74,7 +74,7 @@ int llist_set(llist_t *llist, char *attrib, void *value)
         llist->lock_type = *((int *)value);
         dbg_str(LINKLIST_DETAIL, "lock_type=%d", llist->lock_type);
     } else {
-        dbg_str(LINKLIST_WARNNING, "not support attrib %s setting, please check", attrib);
+        dbg_str(LINKLIST_WARN, "not support attrib %s setting, please check", attrib);
         return -1;
     }
 
@@ -151,7 +151,7 @@ int llist_delete(llist_t *llist, list_pos_t *pos)
     list_t *p;
 
     if (llist_pos_equal(&llist->begin, &llist->head)) {
-        dbg_str(LINKLIST_WARNNING, "llist is null, llist_delete");
+        dbg_str(LINKLIST_WARN, "llist is null, llist_delete");
         return -1;
     }
 
@@ -179,7 +179,7 @@ int llist_delete_back(llist_t *llist)
     struct list_head *head = llist->head.list_head_p;
 
     if (llist_pos_equal(&llist->begin, &llist->head)) {
-        dbg_str(LINKLIST_WARNNING, "llist is null, llist_delete_back");
+        dbg_str(LINKLIST_WARN, "llist is null, llist_delete_back");
         return -1;
     }
 
@@ -206,7 +206,7 @@ int llist_remove(llist_t *llist, list_pos_t *pos, void **data)
     list_t *p;
 
     if (llist_pos_equal(&llist->begin, &llist->head)) {
-        dbg_str(LINKLIST_WARNNING, "llist is null, llist_remove");
+        dbg_str(LINKLIST_WARN, "llist is null, llist_remove");
         return -1;
     }
 
@@ -235,7 +235,7 @@ int llist_remove_front(llist_t *llist, void **data)
     struct list_head *head = llist->head.list_head_p;
 
     if (llist_pos_equal(&llist->begin, &llist->head)) {
-        dbg_str(LINKLIST_IMPORTANT, "llist is null");
+        dbg_str(LINKLIST_INFO, "llist is null");
         return -1;
     }
 
@@ -264,7 +264,7 @@ int llist_remove_back(llist_t *llist, void **data)
     struct list_head *head = llist->head.list_head_p;
 
     if (llist_pos_equal(&llist->begin, &llist->head)) {
-        dbg_str(LINKLIST_WARNNING, "llist is null, llist_remove_back");
+        dbg_str(LINKLIST_WARN, "llist is null, llist_remove_back");
         return -1;
     }
 
@@ -338,7 +338,7 @@ list_t *llist_detach_back(llist_t *llist)
     struct list_head *head = llist->head.list_head_p;
 
     if (llist_pos_equal(&llist->begin, &llist->head)) {
-        dbg_str(LINKLIST_WARNNING, "llist is null, llist_detach_back");
+        dbg_str(LINKLIST_WARN, "llist is null, llist_detach_back");
         return NULL;
     }
 
@@ -362,7 +362,7 @@ int llist_destroy(llist_t *llist)
 {
     list_pos_t pos, next;
 
-    dbg_str(LINKLIST_IMPORTANT, "llist_destroy");
+    dbg_str(LINKLIST_INFO, "llist_destroy");
 
     for (   llist_begin(llist, &pos), llist_pos_next(&pos, &next);
             !llist_pos_equal(&pos, &llist->head);

@@ -93,7 +93,7 @@ static void *__get(FF_Extractor *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"extractor get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARN,"extractor get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
@@ -118,7 +118,7 @@ static void *__thread_callback(void *arg)
     AVPacket pkt1, *pkt = &pkt1;
     int i, ret;
 
-    dbg_str(DBG_IMPORTANT,"extractor thread run");
+    dbg_str(DBG_INFO,"extractor thread run");
 
     conditions[0] = STATE_AUDIO_PACKET_QUEUE_FULL;
     conditions[1] = STATE_VIDEO_PACKET_QUEUE_FULL;
@@ -152,7 +152,7 @@ static void *__thread_callback(void *arg)
         player->state_extractor_stopped = 0;
 
         if (player->is_state(player, STATE_EXIT)) {
-            dbg_str(DBG_WARNNING,"exit extrator");
+            dbg_str(DBG_WARN,"exit extrator");
             break;
         }
 
@@ -165,12 +165,12 @@ static void *__thread_callback(void *arg)
 
                 player->set_state(player, STATE_EXTRACTOR_EOF);
                 usleep(500000);
-                dbg_str(DBG_WARNNING,"av_read_frame EOF.");
+                dbg_str(DBG_WARN,"av_read_frame EOF.");
                 /*
                  *return 0;
                  */
             } else {
-                dbg_str(DBG_WARNNING,"av_read_frame error.");
+                dbg_str(DBG_WARN,"av_read_frame error.");
             }
             continue;
         } else {
@@ -223,7 +223,7 @@ static void *__thread_callback(void *arg)
      *thread->join(thread,thread_audioc);
      */
 
-    dbg_str(DBG_IMPORTANT,"extractor thread callback out");
+    dbg_str(DBG_INFO,"extractor thread callback out");
     return NULL;
 }
 
@@ -385,16 +385,16 @@ static int __open(Extractor *extractor)
     }
 
     if (extractor->video_stream_index == -1) {
-        dbg_str(DBG_WARNNING,"Didn't find a video stream.");
+        dbg_str(DBG_WARN,"Didn't find a video stream.");
         return -1;
     } else {
         ff_extractor->video_codec_ctx = format_ctx->streams[extractor->video_stream_index]->codec;
         extractor->video_stream = format_ctx->streams[extractor->video_stream_index];
-        dbg_str(DBG_WARNNING,"video_codec_ctx=%p.", ff_extractor->video_codec_ctx);
+        dbg_str(DBG_WARN,"video_codec_ctx=%p.", ff_extractor->video_codec_ctx);
     }
 
     if (extractor->audio_stream_index == -1) {
-        dbg_str(DBG_WARNNING,"Didn't find a audio stream.");
+        dbg_str(DBG_WARN,"Didn't find a audio stream.");
         return -1;
     } else {
         ff_extractor->audio_codec_ctx = format_ctx->streams[extractor->audio_stream_index]->codec;

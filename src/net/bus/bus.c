@@ -72,7 +72,7 @@ int bus_set(bus_t *bus, char *attrib_name, char *value, int value_len)
     if (!strcmp(attrib_name, "client_sk_type")) {
         bus->client_sk_type = value;
     }else{
-        dbg_str(BUS_WARNNING, "not support attrib setting, please check");
+        dbg_str(BUS_WARN, "not support attrib setting, please check");
     }
 
     return 0;
@@ -102,7 +102,7 @@ int bus_init(bus_t *bus,
     bus->blob = blob_create(bus->allocator);
     if (bus->blob == NULL) {
         client_destroy(bus->client);
-        dbg_str(BUS_WARNNING, "blob_create");
+        dbg_str(BUS_WARN, "blob_create");
         return -1;
     }
     blob_init(bus->blob);
@@ -126,7 +126,7 @@ int bus_send(bus_t *bus,
 
     ret = client_send(bus->client, buf, buf_len, 0);
     if (ret < 0) {
-        dbg_str(BUS_WARNNING, "bus send err");
+        dbg_str(BUS_WARN, "bus send err");
     }
 
     return ret;
@@ -373,7 +373,7 @@ int bus_blob_add_args(blob_t *blob, int argc, bus_method_args_t *args)
                 THROW_IF(args[i].len > BLOB_BUFFER_MAX_SIZE, -1);
                 blob_add_buffer(blob, (char *)args[i].name, (uint8_t *)args[i].value, args[i].len);
             } else {
-                dbg_str(BUS_WARNNING, "bus_blob_add_args, not support type = %d", args[i].type);
+                dbg_str(BUS_WARN, "bus_blob_add_args, not support type = %d", args[i].type);
             }
             // dbg_str(BUS_DETAIL, "bus_blob_add_arg:name \"%s\" value \"%s\"",
             //         args[i].name, args[i].value);
@@ -526,7 +526,7 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
             req->state = state;
             if (req->opaque_buffer_len < buffer_len) {
                 req->opaque_len = req->opaque_buffer_len;
-                dbg_str(BUS_WARNNING, "opaque buffer is too small, please check, opaque_buffer_len:%d, buffer_len:%d", req->opaque_buffer_len, buffer_len);
+                dbg_str(BUS_WARN, "opaque buffer is too small, please check, opaque_buffer_len:%d, buffer_len:%d", req->opaque_buffer_len, buffer_len);
             } else {
                 req->opaque_len = buffer_len;
             }
@@ -616,7 +616,7 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
     tmp_len = buffer_len + blob_get_len((blob_attr_t *)blob->head);
 
     if (tmp_len > BLOB_BUFFER_MAX_SIZE) {
-        dbg_str(BUS_WARNNING, "buffer is too small, please check");
+        dbg_str(BUS_WARN, "buffer is too small, please check");
         return -1;
     }
 
@@ -684,7 +684,7 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
                                blob_get_data_len(args));
             ret = method(obj, argc, tb, buffer, &buffer_len);
             if (buffer_len > BLOB_BUFFER_MAX_SIZE) {
-                dbg_str(BUS_WARNNING, "buffer is too small, please check");
+                dbg_str(BUS_WARN, "buffer is too small, please check");
             } 
             bus_reply_forward_invoke(bus, object_id, method_name, ret,
                                      buffer, buffer_len, src_fd);
@@ -718,7 +718,7 @@ static int bus_process_receiving_data_callback(void *task)
     blob_attr = (blob_attr_t *)(t->buf + sizeof(bus_reqhdr_t));
 
     if (hdr->type > __BUS_REQ_LAST) {
-        dbg_str(BUS_WARNNING, "bus receive err proto type");
+        dbg_str(BUS_WARN, "bus receive err proto type");
         return -1;
     } 
 

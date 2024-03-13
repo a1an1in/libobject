@@ -98,7 +98,7 @@ static void *__get(FrameStream *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"frame_stream get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARN,"frame_stream get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
@@ -111,7 +111,7 @@ static int __add_frame(FrameStream *stream, void *frame)
     stream->queue->add(stream->queue, frame);
 
     if (stream->type == FRAME_STREAM_VIDEO) {
-        dbg_str(DBG_IMPORTANT,"add a video frame, frame size=%d",
+        dbg_str(DBG_INFO,"add a video frame, frame size=%d",
                 stream->size(stream));
         if (stream->size(stream) == MAX_VIDEO_FRAME_QUEUE_SIZE) {
             player->set_state(player, STATE_VIDEO_FRAME_QUEUE_FULL);
@@ -120,7 +120,7 @@ static int __add_frame(FrameStream *stream, void *frame)
             player->clear_state(player, STATE_VIDEO_FRAME_QUEUE_EMPTY);
         }
     } else if (stream->type == FRAME_STREAM_AUDIO) {
-        dbg_str(DBG_IMPORTANT,"add a audio frame, frame size=%d",
+        dbg_str(DBG_INFO,"add a audio frame, frame size=%d",
                 stream->size(stream));
         if (stream->size(stream) == MAX_AUDIO_FRAME_QUEUE_SIZE) {
             player->set_state(player, STATE_AUDIO_FRAME_QUEUE_FULL);
@@ -237,14 +237,14 @@ static void __clear(FrameStream * stream)
 {
     void * element;
 
-    dbg_str(DBG_WARNNING, "clear FrameStream, size=%d",
+    dbg_str(DBG_WARN, "clear FrameStream, size=%d",
             stream->size(stream));
 
     while (!stream->empty(stream)) {
         stream->queue->remove(stream->queue, &element);
         if (element != NULL) {
             /*
-             *dbg_str(DBG_WARNNING, "clear a frame");
+             *dbg_str(DBG_WARN, "clear a frame");
              */
             av_frame_free((AVFrame **)&element);
         }

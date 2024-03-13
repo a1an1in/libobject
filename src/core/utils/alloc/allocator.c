@@ -153,7 +153,7 @@ int default_allocator_destructor()
 
     if (allocator->alloc_count > 0) {
         allocator_mem_info(allocator);
-        dbg_str(DBG_WARNNING,
+        dbg_str(DBG_WARN,
                 "memory leak, there are %d mem allocs havn't been released! "
                 "if you use default allocator, I'll release for you.", 
                 allocator->alloc_count);

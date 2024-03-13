@@ -51,7 +51,7 @@ message_centor_ev_callback(int fd, short event, void *arg)
     char buf[1];
 
     if (s->recv(s, buf, 1, 0) != 1) {
-        dbg_str(DBG_WARNNING, "message centor read ev error, centor:%p", centor);
+        dbg_str(DBG_WARN, "message centor read ev error, centor:%p", centor);
         return ;
     }
 
@@ -61,7 +61,7 @@ message_centor_ev_callback(int fd, short event, void *arg)
                 break;
             }
         default:
-            dbg_str(DBG_WARNNING, "read a unsupported message");
+            dbg_str(DBG_WARN, "read a unsupported message");
             break;
     }
 
@@ -86,7 +86,7 @@ static void map_for_each_arg_callback(void *key, void *element, void *arg)
         subscriber->message = message;
         subscriber->message_handler(subscriber);
     } else {
-        dbg_str(DBG_WARNNING, 
+        dbg_str(DBG_WARN, 
                 "publisher %p publish a message, publisher in map %p ", 
                 message->publisher, key);
     }

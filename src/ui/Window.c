@@ -34,7 +34,7 @@
 
 static int __construct(Window *window, char *init_str)
 {
-    dbg_str(DBG_IMPORTANT, "window construct, window addr:%p", window);
+    dbg_str(DBG_INFO, "window construct, window addr:%p", window);
 
     window->create_font(window, NULL);
     window->create_render(window, NULL);
@@ -50,7 +50,7 @@ static int __construct(Window *window, char *init_str)
 
 static int __deconstrcut(Window *window)
 {
-    dbg_str(DBG_IMPORTANT, "window deconstruct, window addr:%p", window);
+    dbg_str(DBG_INFO, "window deconstruct, window addr:%p", window);
 
     if (window->name != NULL) {
         object_destroy(window->name);
@@ -99,7 +99,7 @@ static int __load_resources(Window *window)
 {
     Container *container = (Container *)window;
 
-    dbg_str(DBG_IMPORTANT, "window load_resources");
+    dbg_str(DBG_INFO, "window load_resources");
 
     window->font->load_ascii_character(window->font, window->render);
 
@@ -130,7 +130,7 @@ static int __unload_resources(Window *window)
 {
     Container *container = (Container *)window;
 
-    dbg_str(DBG_IMPORTANT, "window unload_resources");
+    dbg_str(DBG_INFO, "window unload_resources");
 
     container->for_each_component(container, 
                                   unload_subcomponent_resources_foreach_cb, 

@@ -66,7 +66,7 @@ int message_set(message_t *message, char *attrib, void *value)
     } else if (!strcmp(attrib, "publisher")) {
         message->publisher = value;
     } else {
-        dbg_str(DBG_WARNNING, "not support attrib setting, please check");
+        dbg_str(DBG_WARN, "not support attrib setting, please check");
         return -1;
     }
 

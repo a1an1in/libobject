@@ -100,7 +100,7 @@ __rbtree_map_insert(rbtree_map_t *map, struct rb_root_s *root,
             if (map->enable_same_key)
                 new = &((*new)->rb_left);
             else {
-                dbg_str(RBTMAP_WARNNING, "rbtree_map_insert same key");
+                dbg_str(RBTMAP_WARN, "rbtree_map_insert same key");
                 return 0;
             }
         }
@@ -211,7 +211,7 @@ int rbtree_map_set(rbtree_map_t *map, char *attrib, void *value)
     } else if (!strcmp(attrib, "key_cmp_func")) {
         map->key_cmp_func = (key_cmp_fpt)value;
     } else {
-        dbg_str(HMAP_WARNNING, "not support attrib setting, please check");
+        dbg_str(HMAP_WARN, "not support attrib setting, please check");
         return -1;
     }
 }
@@ -353,7 +353,7 @@ rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it)
     sync_unlock(&map->map_lock);
 
     if (mnode == NULL) {
-        dbg_str(RBTMAP_IMPORTANT, "not found the key, key addr:%p", key);
+        dbg_str(RBTMAP_INFO, "not found the key, key addr:%p", key);
         return 0;
     } else {
         it->rb_node_p = &mnode->node;
@@ -387,7 +387,7 @@ int rbtree_map_destroy(rbtree_map_t *map)
         rbtree_map_delete(map, &it);
     }
     if (rbtree_map_pos_equal(&map->end, &map->begin)) {
-        dbg_str(RBTMAP_IMPORTANT, "rbtree_map_destroy, rbtree_map is NULL");
+        dbg_str(RBTMAP_INFO, "rbtree_map_destroy, rbtree_map is NULL");
         allocator_mem_free(map->allocator, tree_root);
     }
 

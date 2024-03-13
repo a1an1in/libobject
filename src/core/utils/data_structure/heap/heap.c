@@ -174,7 +174,7 @@ int heap_sort(heap_t *heap)
     }
 }
 
-static test_heap(TEST_ENTRY *entry, int argc, void **argv)
+static int test_heap(TEST_ENTRY *entry, int argc, void **argv)
 {
     heap_t *heap;
     void *element;
@@ -211,7 +211,7 @@ static test_heap(TEST_ENTRY *entry, int argc, void **argv)
      */
 
     heap_destroy(heap);
-    return 0;
+    return 1;
 }
 REGISTER_TEST_CMD(test_heap);
 

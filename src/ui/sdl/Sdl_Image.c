@@ -85,7 +85,7 @@ static int __set(Image *image, char *attrib, void *value)
     } else if (strcmp(attrib, "change_size") == 0) {
         i->change_size = value;
     } else {
-        dbg_str(OBJ_WARNNING, "image set,  \"%s\" setting is not support", attrib);
+        dbg_str(OBJ_WARN, "image set,  \"%s\" setting is not support", attrib);
     }
 
     return 0;
@@ -95,7 +95,7 @@ static void * __get(Image *image, char *attrib)
 {
     if (strcmp(attrib, "") == 0){ 
     } else {
-        dbg_str(OBJ_WARNNING, "image get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(OBJ_WARN, "image get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;

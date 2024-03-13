@@ -93,7 +93,7 @@ static int __search(Map *map, void *key, void **element)
     hash_map_pos_t pos;
     int ret;
 
-    dbg_str(HMAP_IMPORTANT, "Hash Map search");
+    dbg_str(HMAP_INFO, "Hash Map search");
 
     ret = hash_map_search(((Hash_Map *)map)->hmap, key, &pos);
     if (ret == 1 && element != NULL) {
@@ -109,7 +109,7 @@ static int __remove(Map *map, void *key, void **element)
     hash_map_pos_t pos;
     int ret;
 
-    dbg_str(HMAP_IMPORTANT, "Hash Map remove");
+    dbg_str(HMAP_INFO, "Hash Map remove");
 
     ret = hash_map_search(((Hash_Map *)map)->hmap, key, &pos);
     if (ret == 1 && element != NULL) {
@@ -119,7 +119,7 @@ static int __remove(Map *map, void *key, void **element)
     } else if (ret == 1) {
         ret = hash_map_delete(((Hash_Map *)map)->hmap, &pos);
     } else {
-        dbg_str(HMAP_WARNNING, "map remove, not found key :%s", key);
+        dbg_str(HMAP_WARN, "map remove, not found key :%s", key);
     }
 
     return ret;

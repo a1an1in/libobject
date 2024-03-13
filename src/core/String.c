@@ -69,10 +69,10 @@ static int __modulate_capacity(String *string, int write_len)
         new_buf = (char *)allocator_mem_alloc(string->obj.allocator, 
                                               string->value_max_len);
         if (string->value == NULL) {
-            dbg_str(OBJ_WARNNING, "string assign alloc error");
+            dbg_str(OBJ_WARN, "string assign alloc error");
             return -1;
         } else {
-            dbg_str(OBJ_WARNNING, "auto modulate string object max value len, "
+            dbg_str(OBJ_WARN, "auto modulate string object max value len, "
                     "write_len =%d, value_max_len from %d to %d",
                     write_len, old, string->value_max_len);
             /*
@@ -193,7 +193,7 @@ static String *__append_char(String *string, char c)
 
     ret = __modulate_capacity(string, 1);
     if (ret < 0) {
-        dbg_str(STRING_WARNNING, "string buf_auto_modulate have problem, please check");
+        dbg_str(STRING_WARN, "string buf_auto_modulate have problem, please check");
         return string;
     }
 
@@ -228,7 +228,7 @@ static void __append(String *string, char *sub, int len)
 {   
     int ret;
     if (sub == NULL) {
-        dbg_str(STRING_WARNNING, "appending-string is null unvalid sub stringing");
+        dbg_str(STRING_WARN, "appending-string is null unvalid sub stringing");
         return ;
     }
 
@@ -316,7 +316,7 @@ __replace(String *self, char *pattern, char *newstr, int max)
             old_len = piece->len;
             old_offset = (int)(piece->start_pos - (void *)self->value);
         } else {
-            dbg_str(STRING_WARNNING, "get_splited_cstr: not exist!!");
+            dbg_str(STRING_WARN, "get_splited_cstr: not exist!!");
         }
 
         if (str_len <= str_len + new_len - old_len) {
@@ -574,7 +574,7 @@ static char *__get_splited_cstr(String *string, int index)
     if (piece != NULL) {
         d = piece->start_pos;
     } else {
-        dbg_str(STRING_WARNNING, "get_splited_cstr: not exist!!");
+        dbg_str(STRING_WARN, "get_splited_cstr: not exist!!");
     }
 
     return d;
@@ -594,7 +594,7 @@ static char *__get_found_cstr(String *string, int index)
     if (piece != NULL) {
         d = piece->start_pos;
     } else {
-        dbg_str(STRING_WARNNING, "get_splited_cstr: not exist!!");
+        dbg_str(STRING_WARN, "get_splited_cstr: not exist!!");
     }
 
     return d;

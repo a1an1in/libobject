@@ -83,7 +83,7 @@ busd_t * busd_alloc(allocator_t *allocator)
 
     blob = blob_create(allocator);
     if (blob == NULL) {
-        dbg_str(BUS_WARNNING, "blob_create");
+        dbg_str(BUS_WARN, "blob_create");
         return NULL;
     }
     blob_init(blob);
@@ -101,7 +101,7 @@ int busd_set(busd_t *busd, char *attrib_name, char *value, int value_len)
     }else if (!strcmp(attrib_name, "server_host")) {
         busd->server_host = value;
     }else{
-        dbg_str(DBG_WARNNING, "not support attrib setting, please check");
+        dbg_str(DBG_WARN, "not support attrib setting, please check");
     }
 
     return 0;
@@ -473,7 +473,7 @@ static int busd_process_receiving_data_callback(void *task)
     blob_attr = (blob_attr_t *)(t->buf + sizeof(bus_reqhdr_t));
 
     if (hdr->type > __BUS_REQ_LAST) {
-        dbg_str(BUS_WARNNING, "busd receive err proto type");
+        dbg_str(BUS_WARN, "busd receive err proto type");
         return -1;
     } 
 

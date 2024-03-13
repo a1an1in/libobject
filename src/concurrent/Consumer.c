@@ -73,7 +73,7 @@ static void *__get(Consumer *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING, "consumer get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(EV_WARN, "consumer get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;

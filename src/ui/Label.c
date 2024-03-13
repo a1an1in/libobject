@@ -44,7 +44,7 @@ draw_character(Component *component, char c, void *render)
 
     character = (Character *)r->font->ascii[c].character;
     if (character->height == 0) {
-        dbg_str(DBG_WARNNING, "text list may have problem, draw id=%d, c=%c", c, c);
+        dbg_str(DBG_WARN, "text list may have problem, draw id=%d, c=%c", c, c);
         return -1;
     }
 
@@ -66,7 +66,7 @@ static int __construct(Label *label, char *init_str)
     allocator_t *allocator = ((Obj *)label)->allocator;
     cursor_t *cursor       = &label->cursor;
 
-    dbg_str(DBG_IMPORTANT, "label construct");
+    dbg_str(DBG_INFO, "label construct");
 
     label->string             = OBJECT_NEW(allocator, String, NULL);
     label->string->assign(label->string, "b1234567890");
@@ -90,7 +90,7 @@ static int __construct(Label *label, char *init_str)
 
 static int __deconstrcut(Label *label)
 {
-    dbg_str(DBG_IMPORTANT, "label deconstruct");
+    dbg_str(DBG_INFO, "label deconstruct");
 
     object_destroy(label->string);
 

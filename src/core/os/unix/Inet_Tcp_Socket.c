@@ -128,7 +128,7 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
         } while ((addr = addr->ai_next) != NULL);
 
         if (addr == NULL) {
-            dbg_str(NET_WARNNING, "bind error for %s %s", host, service);
+            dbg_str(NET_WARN, "bind error for %s %s", host, service);
             THROW(-1);
         }
         
@@ -285,7 +285,7 @@ static int __setsockopt(Inet_Tcp_Socket *socket, sockoptval *val)
 
     size = __get_sockoptval_size(optname);
     if (size <= 0) {
-        dbg_str(NET_WARNNING, "setsockopt level=%d, optname=%d, not supported now", 
+        dbg_str(NET_WARN, "setsockopt level=%d, optname=%d, not supported now", 
                 level, optname);
         return -1;
     }

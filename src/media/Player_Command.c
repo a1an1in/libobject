@@ -84,7 +84,7 @@ int player(int argc, char **argv)
     player->open(player, url);
     player->run(player);
 
-    dbg_str(DBG_WARNNING, "render addr:%p", w->render);
+    dbg_str(DBG_WARN, "render addr:%p", w->render);
     window->add_player(window, player);
     window->add_component((Container *)window, NULL, image);
     window->update_window((Window *)window);

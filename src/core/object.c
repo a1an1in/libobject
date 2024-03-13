@@ -480,7 +480,7 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
     get = __object_get_ancestor_class_func(entry, (char *)"get");
 
     if (get == NULL) {
-        dbg_str(OBJ_WARNNING, "get func pointer is NULL");
+        dbg_str(OBJ_WARN, "get func pointer is NULL");
         return -1;
     }
 
@@ -494,7 +494,7 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
                    entry[i].type == ENTRY_TYPE_IFUNC_POINTER) {
         } else {
             strcpy(o->target_name, type_name);
-            dbg_str(OBJ_WARNNING, "get:%p, __get:%p", get, o->get);
+            dbg_str(OBJ_WARN, "get:%p, __get:%p", get, o->get);
             value = get(obj, entry[i].value_name);
             name = entry[i].value_name;
             if (entry[i].type == ENTRY_TYPE_INT8_T || 
@@ -521,7 +521,7 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
              *    cjson_add_number_to_object(object, name, d);
              */
             } else {
-                dbg_str(OBJ_WARNNING, "type error, please check, type name :%s, entry name :%s, type =%d", 
+                dbg_str(OBJ_WARN, "type error, please check, type name :%s, entry name :%s, type =%d", 
                         type_name, entry[i].type_name, entry[i].type);
             }
         }

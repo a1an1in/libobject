@@ -765,7 +765,7 @@ static int test_vector_copy_case2()
         json->replace(json, "\r", "" , -1);
         json->replace(json, "\n", "" , -1);
         json->replace(json, ", ", ",", -1);
-        // dbg_str(DBG_WARNNING, "json:%s", STR2A(json));
+        // dbg_str(DBG_WARN, "json:%s", STR2A(json));
 
         SET_CATCH_STR_PARS(expect, STR2A(json));
         THROW_IF(strcmp(STR2A(json), expect) != 0, -1);

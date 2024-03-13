@@ -103,7 +103,7 @@ cfg_config_num(configurator_t * c,
 
     buf = (char *)allocator_mem_alloc(allocator, strlen(path));
     if (buf == NULL) {
-        dbg_str(OBJ_WARNNING, "oss set alloc err");
+        dbg_str(OBJ_WARN, "oss set alloc err");
         return -1;
     }
     strcpy(buf, path);
@@ -111,7 +111,7 @@ cfg_config_num(configurator_t * c,
     cnt = compute_slash_count((char *)path);
     out = (char **)allocator_mem_alloc(allocator, sizeof(char *) * cnt);
     if (out == NULL) {
-        dbg_str(OBJ_WARNNING, "oss set alloc err");
+        dbg_str(OBJ_WARN, "oss set alloc err");
         allocator_mem_free(allocator, buf);
         return -1;
     }
@@ -148,7 +148,7 @@ cfg_config_num(configurator_t * c,
     p = cjson_print(root);
 
     if (strlen(p) > c->buf_len) {
-        dbg_str(OBJ_WARNNING,"config buffer is too small");
+        dbg_str(OBJ_WARN,"config buffer is too small");
         ret = -1;
         goto err;
     } else {
@@ -181,7 +181,7 @@ cfg_config_str(configurator_t * c,
 
     buf = (char *)allocator_mem_alloc(allocator, strlen(path));
     if (buf == NULL) {
-        dbg_str(OBJ_WARNNING, "oss set alloc err");
+        dbg_str(OBJ_WARN, "oss set alloc err");
         return -1;
     }
     strcpy(buf, path);
@@ -189,7 +189,7 @@ cfg_config_str(configurator_t * c,
     cnt = compute_slash_count((char *)path);
     out = (char **)allocator_mem_alloc(allocator, sizeof(char *) * cnt);
     if (out == NULL) {
-        dbg_str(OBJ_WARNNING, "oss set alloc err");
+        dbg_str(OBJ_WARN, "oss set alloc err");
         allocator_mem_free(allocator, buf);
         return -1;
     }
@@ -224,7 +224,7 @@ cfg_config_str(configurator_t * c,
     p = cjson_print(root);
 
     if (strlen(p) > c->buf_len) {
-        dbg_str(OBJ_WARNNING,"config buffer is too small");
+        dbg_str(OBJ_WARN,"config buffer is too small");
         ret = -1;
         goto err;
     } else {

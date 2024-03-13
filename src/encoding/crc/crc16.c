@@ -97,11 +97,11 @@ test_crc16(TEST_ENTRY *entry, void *argc, void *argv)
     unsigned short expect = 0x31C3;
     unsigned short ret;
 
-    ret = (unsigned short) crc16(0, "123456789",9);
-    ret = assert_equal(&ret, &expect, sizeof(ret));
-    if (ret == 1) {
-        dbg_str(DBG_SUC, "sucess"); 
-    }
+    TRY {
+        ret = (unsigned short) crc16(0, "123456789",9);
+        ret = assert_equal(&ret, &expect, sizeof(ret));
+        THROW_IF(ret != 1, -1);
+    } CATCH (ret) {}
 
     return ret;
 }

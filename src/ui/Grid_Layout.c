@@ -132,11 +132,11 @@ static int __add_component(Container *obj, void *pos, void *component)
     position_t position;
 
     if (strcmp(c->name->get_cstr(c->name), "") == 0) {
-        dbg_str(DBG_WARNNING, "component name is NULL, this is vip, add component failed, please check");
+        dbg_str(DBG_WARN, "component name is NULL, this is vip, add component failed, please check");
         return -1;
     }
 
-    dbg_str(DBG_IMPORTANT, "add component name %s, component addr %p", c->name, c);
+    dbg_str(DBG_INFO, "add component name %s, component addr %p", c->name, c);
 
     position.x = get_x_axis_of_current_grid(l) + l->hgap;
     position.y = get_y_axis_of_current_grid(l) + l->vgap;
@@ -161,7 +161,7 @@ static int __add_component(Container *obj, void *pos, void *component)
     }
 
     if (rearrange_comonents_flag == 1) {
-        dbg_str(DBG_WARNNING, "not support rearrange component in grid now");
+        dbg_str(DBG_WARN, "not support rearrange component in grid now");
         return -1;
     }
     

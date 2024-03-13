@@ -99,7 +99,7 @@ static void *__get(AVSync *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"avsync get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARN,"avsync get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
@@ -143,7 +143,7 @@ static void __async_core(AVSync *obj, AVFrame *frame, Queue *q )
 
     if ((obj->get_audio_codec(obj) == NULL) &&
         (obj->get_video_codec(obj) == NULL)) {
-        dbg_str(DBG_WARNNING,"avsync don't init");
+        dbg_str(DBG_WARN,"avsync don't init");
         return ;
     }
 
@@ -152,7 +152,7 @@ static void __async_core(AVSync *obj, AVFrame *frame, Queue *q )
     videoc      = obj->get_video_codec(obj);
 
     if (videoc == NULL) {
-        dbg_str(DBG_WARNNING,"avsync VideoCodec can't find failed!");
+        dbg_str(DBG_WARN,"avsync VideoCodec can't find failed!");
         return ;
     }
 

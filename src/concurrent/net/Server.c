@@ -142,7 +142,7 @@ static Worker *__get_worker(Server *server)
         leisure_list->remove(leisure_list, (void **)&worker);
         THROW_IF(worker != NULL, 1);
 
-        dbg_str(NET_WARNNING, "get_worker, alloc a new worker");
+        dbg_str(NET_WARN, "get_worker, alloc a new worker");
         worker = object_new(allocator, "Worker", NULL);
 
 #define TASK_MAX_BUF_LEN 1024 * 10
@@ -240,7 +240,7 @@ static int __close_subsocket(Server *server, Socket *socket)
         socket->fd = -1;
         dbg_str(NET_DETAIL, "add worker %p to leisure_list", worker);
     } else {
-        dbg_str(NET_WARNNING, "worker %p has resigned", worker);
+        dbg_str(NET_WARN, "worker %p has resigned", worker);
         exit(-1);
     }
 

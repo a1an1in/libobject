@@ -83,12 +83,10 @@ void debugger_set_level_infos(debugger_t *debugger)
     debugger_set_level_info(debugger, DBG_PANIC,     (DBG_PANIC_COLOR),    "DBG_PANIC");
     debugger_set_level_info(debugger, DBG_FATAL,     (DBG_FATAL_COLOR),    "DBG_FATAL");
     debugger_set_level_info(debugger, DBG_ERROR,     (DBG_ERROR_COLOR),    "DBG_ERROR");
-    debugger_set_level_info(debugger, DBG_WARNNING,  (DBG_WARNNING_COLOR), "DBG_WARNNING");
+    debugger_set_level_info(debugger, DBG_WARN,  (DBG_WARN_COLOR), "DBG_WARN");
     debugger_set_level_info(debugger, DBG_SUC,       (DBG_SUC_COLOR),      "DBG_SUC");
-    debugger_set_level_info(debugger, DBG_CORRECT,   (DBG_CORRECT_COLOR),  "DBG_CORRECT");
     debugger_set_level_info(debugger, DBG_VIP,       (DBG_VIP_COLOR),      "DBG_VIP");
-    debugger_set_level_info(debugger, DBG_FLOW,      (DBG_FLOW_COLOR),     "DBG_FLOW");
-    debugger_set_level_info(debugger, DBG_IMPORTANT, (DBG_IMPORTANT_COLOR),"DBG_IMPORTANT");
+    debugger_set_level_info(debugger, DBG_INFO,      (DBG_FLOW_COLOR),     "DBG_INFO");
     debugger_set_level_info(debugger, DBG_DETAIL,    (DBG_DETAIL_COLOR),   "DBG_DETAIL");
 }
 uint8_t debugger_get_level_color(debugger_t *debugger, uint32_t level)
@@ -137,8 +135,8 @@ void debugger_set_businesses(debugger_t *debugger)
                 iniparser_setstr(d, level_str, "9");
                 debugger_set_business(debugger, i, 1, 9);
             }else{
-                iniparser_setstr(d, level_str, "6");
-                debugger_set_business(debugger, i, 1, 6);
+                iniparser_setstr(d, level_str, "5");
+                debugger_set_business(debugger, i, 1, 5);
             }
         }
         FILE *f = fopen(debugger->ini_file_name, "w");

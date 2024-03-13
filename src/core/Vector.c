@@ -236,7 +236,7 @@ static int __reset(Vector *vector)
         } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER && vector->value_free_callback == NULL && element != NULL) {
             allocator_mem_free(vector->obj.allocator, element);
         } else if (vector->value_type >= VALUE_TYPE_MAX_TYPE) {
-            dbg_str(DBG_WARNNING, "not support reset unkown pointer:%d", vector->value_type);
+            dbg_str(DBG_WARN, "not support reset unkown pointer:%d", vector->value_type);
         }
         element = NULL;
     }
@@ -488,7 +488,7 @@ static int __reset_from(Vector *vector, int index)
         } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER && vector->value_free_callback == NULL && element != NULL) {
             allocator_mem_free(vector->obj.allocator, element);
         } else {
-            dbg_str(DBG_WARNNING, "not support reset unkown pointer");
+            dbg_str(DBG_WARN, "not support reset unkown pointer");
         }
         element = NULL;
     }

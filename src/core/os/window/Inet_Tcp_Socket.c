@@ -110,7 +110,7 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
     } while ((addr = addr->ai_next) != NULL);
 
     if (addr == NULL) {
-        dbg_str(NET_WARNNING, "bind error for %s %s", host, service);
+        dbg_str(NET_WARN, "bind error for %s %s", host, service);
     }
 
     freeaddrinfo(addrsave);
@@ -251,7 +251,7 @@ static int __getsockopt(Inet_Tcp_Socket *socket, sockoptval *val)
 
 static int __setsockopt(Inet_Tcp_Socket *socket, sockoptval *val)
 {
-    dbg_str(NET_WARNNING, "not supported now");
+    dbg_str(NET_WARN, "not supported now");
     return -1;
 }
 

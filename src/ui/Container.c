@@ -52,7 +52,7 @@ static int __construct(Container *container, char *init_str)
         container->map  = (Map *)OBJECT_NEW(allocator, Hash_Map, container->map_construct_str);
         dbg_str(DBG_DETAIL, "map addr %p", container->map);
     } else {
-        dbg_str(DBG_WARNNING, "not supported map type, type =%d", container->map_type);
+        dbg_str(DBG_WARN, "not supported map type, type =%d", container->map_type);
         return -1;
     }
 
@@ -184,17 +184,17 @@ static void __reset_component_position(void *component, void *arg)
 static int __add_component(Container *obj, void *pos, Component *component)
 {
     if (obj->map_type == 0) {
-        dbg_str(DBG_WARNNING, "%s is support container add op", ((Obj *)obj)->name);
+        dbg_str(DBG_WARN, "%s is support container add op", ((Obj *)obj)->name);
         return -1;
     }
 
     /*
-     *dbg_str(DBG_IMPORTANT, "add component name %s, component addr %p", 
+     *dbg_str(DBG_INFO, "add component name %s, component addr %p", 
      *        component->name, component);
      */
 
     if (strcmp(component->name->get_cstr(component->name), "") == 0) {
-        dbg_str(DBG_WARNNING, 
+        dbg_str(DBG_WARN, 
                 "component name is NULL, this is vip, add component failed, please check");
         return -1;
     }
@@ -221,7 +221,7 @@ static Component *__search_component(Container *obj, char *key)
     void *addr = NULL;
 
     if (obj->map_type == 0) {
-        dbg_str(DBG_WARNNING, "%s is support container search op", ((Obj *)obj)->name);
+        dbg_str(DBG_WARN, "%s is support container search op", ((Obj *)obj)->name);
         return NULL;
     }
 
@@ -240,7 +240,7 @@ static int __for_each_component(Container *obj,
 {
     if (obj->map == NULL) {
         /*
-         *dbg_str(DBG_WARNNING, "%s is not support container", ((Obj *)obj)->name);
+         *dbg_str(DBG_WARN, "%s is not support container", ((Obj *)obj)->name);
          */
         return 0;
     }

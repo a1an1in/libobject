@@ -131,7 +131,7 @@ static void event_thread_notifier_callback(int fd, short events, void *arg)
     int len;
 
     if (s->recv(s, buf, 1, 0) != 1) {
-        dbg_str(EV_WARNNING,"ctl_read error");
+        dbg_str(EV_WARN,"ctl_read error");
         return ;
     }
     dbg_str(EV_VIP, "event_thread notifier received signal:%c", buf[0]);
@@ -157,7 +157,7 @@ static void *__start_routine(void *arg)
     event_t *event         = &et->notifier_event;
     Socket *s, *c;
 
-    dbg_str(DBG_IMPORTANT,"Event_Thread, start_routine:%p, service:%s",
+    dbg_str(DBG_INFO, "Event_Thread, start_routine:%p, service:%s",
             arg, STR2A(et->thread_service));
             
     tt->detach(tt);

@@ -105,7 +105,7 @@ static void * producer(void *arg)
     }
 
     pthread_cond_signal(&cond);
-    dbg_str(DBG_IMPORTANT,"producer notify");
+    dbg_str(DBG_INFO,"producer notify");
     pthread_mutex_unlock(&mutex);
 #else
     mutex_lock->lock(mutex_lock);
@@ -114,7 +114,7 @@ static void * producer(void *arg)
     }
 
     cond->signal(cond);
-    dbg_str(DBG_IMPORTANT,"producer notify");
+    dbg_str(DBG_INFO,"producer notify");
     mutex_lock->unlock(mutex_lock);
 
 #endif 
@@ -153,7 +153,7 @@ static void * consumer(void *arg)
     mutex_lock->unlock(mutex_lock);
 #endif 
 
-    dbg_str(DBG_IMPORTANT,"element value:%d ",*(int *)element);
+    dbg_str(DBG_INFO,"element value:%d ",*(int *)element);
     queue->reset(queue);
 
     return NULL;

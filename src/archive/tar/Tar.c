@@ -66,8 +66,8 @@ static int __list(Tar *tar, Vector **infos)
     int ret, size, offset = 0, len = 0;
 
     TRY {
-        printf("\n");
-        dbg_str(DBG_VIP, "tar list:%s", STR2A(a->name));
+        dbg_str(DBG_INFO, "------------------------------");
+        dbg_str(DBG_INFO, "tar list:%s", STR2A(a->name));
         *infos = archive->extracting_file_infos;
         (*infos)->reset(*infos);
         
@@ -91,9 +91,9 @@ static int __list(Tar *tar, Vector **infos)
             info->size = size;
             offset += ((header->typeflag == '5')? 512 : (512 + ((size + 511) / 512) * 512));
             
-            dbg_str(DBG_VIP, "filename:%s, size:%d, typeflag:%d", header->name, size, header->typeflag);
+            dbg_str(DBG_INFO, "filename:%s, size:%d, typeflag:%d", header->name, size, header->typeflag);
             EXEC(files->add(files, info));
-            dbg_str(DBG_VIP, "count:%d", files->count(files));
+            dbg_str(DBG_INFO, "count:%d", files->count(files));
         }
     } CATCH (ret) {}
     
@@ -111,9 +111,9 @@ static int __extract_file(Tar *tar, archive_file_info_t *info)
     int ret, len, read_len;
 
     TRY {
-        printf("\n");
+        dbg_str(DBG_INFO, "------------------------------");
         THROW_IF(info == NULL, -1);
-        dbg_str(DBG_VIP, "tar extract file:%s, offset:%d", info->file_name, info->offset);
+        dbg_str(DBG_INFO, "tar extract file:%s, offset:%d", info->file_name, info->offset);
 
         /* 1.read file header */
         a->seek(a, 0, SEEK_SET);
@@ -128,7 +128,7 @@ static int __extract_file(Tar *tar, archive_file_info_t *info)
         /* 2.read file data */
         name->assign(name, STR2A(archive->extracting_path));
         name->append(name, header->name, strlen(header->name));
-        dbg_str(DBG_VIP, "filename:%s", STR2A(name));
+        dbg_str(DBG_INFO, "filename:%s", STR2A(name));
         
         /* 3.如果文件是目录， 则需要创建后退出 */
         if(header->typeflag == '5') {
@@ -139,7 +139,7 @@ static int __extract_file(Tar *tar, archive_file_info_t *info)
         /* 4.创建父目录，如果父目录不存在 */
         strcpy(tmp, STR2A(name));
         fs_get_path_and_name(tmp, &root, NULL);
-        dbg_str(DBG_VIP, "root:%s", root);
+        dbg_str(DBG_INFO, "root:%s", root);
         if (!fs_is_exist(root)) {
             fs_mkdir(root, 0777);
         }
@@ -182,9 +182,9 @@ static int __add_file(Tar *tar, archive_file_info_t *info)
         file_name = info->file_name;
 
         memset(buffer, 0, sizeof(buffer));
-        dbg_str(DBG_VIP, "tar name:%s", a->name->get_cstr(a->name));
+        dbg_str(DBG_INFO, "tar name:%s", a->name->get_cstr(a->name));
         EXEC(size = a->get_size(a));
-        dbg_str(DBG_VIP, "tar file size:%d", size);
+        dbg_str(DBG_INFO, "tar file size:%d", size);
         if (size != 0) {
             a->seek(a, -1024, SEEK_END);
         }
@@ -194,15 +194,15 @@ static int __add_file(Tar *tar, archive_file_info_t *info)
         header = buffer;
         path->reset(path);
         path->assign(path, file_name);
-        dbg_str(DBG_VIP, "add_file, name:%s", STR2A(path));
+        dbg_str(DBG_INFO, "add_file, name:%s", STR2A(path));
         EXEC(fs_get_relative_path(STR2A(path), STR2A(archive->adding_path), &relative_path));
         snprintf(header->name, sizeof(header->name), "%s", relative_path);
-        dbg_str(DBG_VIP, "file name:%s", header->name);
+        dbg_str(DBG_INFO, "file name:%s", header->name);
 
         /* add file size*/
         size = fs_get_size(file_name);
         snprintf(header->size, sizeof(header->size), "%011o", size);
-        dbg_buf(DBG_VIP, "file size:", header->size, 12);
+        dbg_buf(DBG_INFO, "file size:", header->size, 12);
         /* add magic*/
         memcpy(header->magic, "ustar  ", 8);
         /* add mode */
@@ -210,7 +210,7 @@ static int __add_file(Tar *tar, archive_file_info_t *info)
         /* add mtime */
         EXEC(fs_get_stat(file_name, &stat));
         snprintf(header->mtime, sizeof(header->mtime), "%011lo", stat.st_mtime);
-        dbg_str(DBG_VIP, "file st_mtime:%d, mtime:%s", stat.st_mtime, header->mtime);
+        dbg_str(DBG_INFO, "file st_mtime:%d, mtime:%s", stat.st_mtime, header->mtime);
 
         /* add checksum */
         add_check_sum(header);

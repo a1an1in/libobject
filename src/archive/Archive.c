@@ -69,7 +69,7 @@ static int __open(Archive *archive, char *archive_name, char *mode)
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "Archive open file %s", archive_name);
+        dbg_str(DBG_INFO, "Archive open file %s", archive_name);
         EXEC(file->open(file, archive_name, mode));
         
         func = object_get_progeny_class_first_normal_func(((Obj *)archive)->target_name, "Archive", "open");
@@ -170,7 +170,7 @@ static int __filter(Archive *archive, char *file)
             EXEC(exclusive->peek_at(exclusive, i, &wildchard));
             tmp->assign(tmp, file);
             ret = tmp->find(tmp, wildchard, 0, -1);
-            dbg_str(DBG_VIP, "filter check file %s, exclusive wildchard:%s, cnt:%d", file, wildchard, inclusive_cnt);
+            dbg_str(DBG_INFO, "filter check file %s, exclusive wildchard:%s, cnt:%d", file, wildchard, inclusive_cnt);
             THROW_IF(ret >= 1, 0);
         }
 
@@ -179,7 +179,7 @@ static int __filter(Archive *archive, char *file)
             EXEC(inclusive->peek_at(inclusive, i, &wildchard));
             tmp->assign(tmp, file);
             ret = tmp->find(tmp, wildchard, 0, -1);
-            dbg_str(DBG_VIP, "filter check file %s, inclusive wildchard:%s, cnt:%d", file, wildchard, inclusive_cnt);
+            dbg_str(DBG_INFO, "filter check file %s, inclusive wildchard:%s, cnt:%d", file, wildchard, inclusive_cnt);
             THROW_IF(ret >= 1, 1);
         }
 
@@ -204,8 +204,8 @@ static int __extract_files(Archive *a, Vector *files)
             EXEC(files->peek_at(files, i, &info));
             CONTINUE_IF(info == NULL);
             
-            dbg_str(DBG_VIP, "extract_files, info addr:%p", info);
-            dbg_str(DBG_VIP, "extract_files, file %s", info->file_name);
+            dbg_str(DBG_INFO, "extract_files, info addr:%p", info);
+            dbg_str(DBG_INFO, "extract_files, file %s", info->file_name);
             EXEC(a->extract_file(a, info));
             count--;
         }
@@ -239,8 +239,8 @@ static int __add_files(Archive *a, Vector *files)
             EXEC(files->peek_at(files, i, &info));
             CONTINUE_IF(info == NULL);
             
-            dbg_str(DBG_VIP, "add_files, info addr:%p", info);
-            dbg_str(DBG_VIP, "add_files, file %s", info->file_name);
+            dbg_str(DBG_INFO, "add_files, info addr:%p", info);
+            dbg_str(DBG_INFO, "add_files, file %s", info->file_name);
             EXEC(a->add_file(a, info));
         }
     } CATCH (ret) {}
@@ -257,7 +257,7 @@ static int __add(Archive *a)
     int ret, count, i, len;
 
     TRY {
-        dbg_str(DBG_VIP, "archive add path: %s", STR2A(a->adding_path));
+        dbg_str(DBG_INFO, "archive add path: %s", STR2A(a->adding_path));
         list = object_new(allocator, "Vector", NULL);
         
         count = fs_tree(STR2A(a->adding_path), list, -1);

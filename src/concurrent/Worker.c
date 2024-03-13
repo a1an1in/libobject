@@ -84,7 +84,7 @@ static int __resign(Worker *worker)
     Producer *p = worker->producer;
     
     if (p == NULL) {
-        dbg_str(EV_WARNNING, "worker resign a unenrolled worker");
+        dbg_str(EV_WARN, "worker resign a unenrolled worker");
         return 0;
     }
 

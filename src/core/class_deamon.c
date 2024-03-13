@@ -105,7 +105,7 @@ int class_deamon_register_class(class_deamon_t *class_deamon,
 
     ret = map_search(class_deamon->map, class_name, &it);
     if (ret == 1) {
-        dbg_str(DBG_WARNNING, "register class %s exists, please check!!!", class_name);
+        dbg_str(DBG_WARN, "register class %s exists, please check!!!", class_name);
         return -1;
     }
 
@@ -120,7 +120,7 @@ void * class_deamon_search_class(class_deamon_t *class_deamon, char *class_name)
 
     ret = map_search(class_deamon->map, class_name, &it);
     if (ret <= 0) {
-        dbg_str(OBJ_WARNNING, "class_deamon_search_method, not found %s", class_name);
+        dbg_str(OBJ_WARN, "class_deamon_search_method, not found %s", class_name);
         return NULL;
     }
 
@@ -141,7 +141,7 @@ void *class_deamon_search_class_name_addr(class_deamon_t *class_deamon, char *cl
 
     ret = map_search(class_deamon->map, class_name, &it);
     if (ret < 0) {
-        dbg_str(OBJ_WARNNING, "class_deamon_search_method, not found %s", class_name);
+        dbg_str(OBJ_WARN, "class_deamon_search_method, not found %s", class_name);
         return NULL;
     }
 

@@ -24,17 +24,15 @@ enum debugger_type{
 };
 
 enum debug_level_enum{
-	DBG_PANIC=0, 		
-	DBG_FATAL, 		
-	DBG_ERROR ,		
-	DBG_WARNNING,
-    DBG_VIP, 	
-	DBG_SUC ,		
-	DBG_CORRECT,
-	DBG_FLOW,
-	DBG_IMPORTANT, 		
-	DBG_DETAIL,
-	DBG_MAX_LEVEL
+    DBG_PANIC=0,	
+    DBG_FATAL,	
+    DBG_ERROR,	
+    DBG_WARN,
+    DBG_SUC,
+    DBG_VIP,
+    DBG_INFO,
+    DBG_DETAIL,
+    DBG_MAX_LEVEL
 };
 
 
@@ -159,7 +157,7 @@ extract_filename_from_path(const char *macro)
 #define DBG_SUC_COLOR 			                      BGC(BLACK)  | FTC(WHITE) | REVERSE_COLOR_FLAG 
 #define DBG_CORRECT_COLOR 		HIGHLIGHT_FLAG << 7 | BGC(GREEN)  | FTC(WHITE) | REVERSE_COLOR_FLAG 
 #define DBG_NON2_COLOR 			HIGHLIGHT_FLAG << 7 | BGC(YELLOW) | FTC(WHITE)  
-#define DBG_WARNNING_COLOR 		HIGHLIGHT_FLAG << 7 | BGC(YELLOW) | FTC(WHITE) | REVERSE_COLOR_FLAG 
+#define DBG_WARN_COLOR 		    HIGHLIGHT_FLAG << 7 | BGC(YELLOW) | FTC(WHITE) | REVERSE_COLOR_FLAG 
 #define DBG_NON3_COLOR  		HIGHLIGHT_FLAG << 7 | BGC(BLUE)   | FTC(WHITE)  
 #define DBG_FLOW_COLOR  		HIGHLIGHT_FLAG << 7 | BGC(BLUE)   | FTC(WHITE) | REVERSE_COLOR_FLAG 
 #define DBG_VIP_COLOR 			HIGHLIGHT_FLAG << 7 | BGC(BLACK)  | FTC(WHITE)  
@@ -184,22 +182,16 @@ extract_filename_from_path(const char *macro)
                 case DBG_ERROR:\
                     __android_log_print(ANDROID_LOG_WARN, "libobject", fmt, ##args);\
                     break;\
-                case DBG_WARNNING:\
+                case DBG_WARN:\
                     __android_log_print(ANDROID_LOG_WARN, "libobject", fmt, ##args);\
                     break;\
                 case DBG_SUC:\
                     __android_log_print(ANDROID_LOG_INFO, "libobject", fmt, ##args);\
                     break;\
-                case DBG_CORRECT:\
-                    __android_log_print(ANDROID_LOG_INFO, "libobject", fmt, ##args);\
-                    break;\
                 case DBG_VIP:\
                     __android_log_print(ANDROID_LOG_INFO, "libobject", fmt, ##args);\
                     break;\
-                case DBG_FLOW:\
-                    __android_log_print(ANDROID_LOG_DEBUG, "libobject", fmt, ##args);\
-                    break;\
-                case DBG_IMPORTANT:\
+                case DBG_INFO:\
                     __android_log_print(ANDROID_LOG_DEBUG, "libobject", fmt, ##args);\
                     break;\
                 case DBG_DETAIL:\

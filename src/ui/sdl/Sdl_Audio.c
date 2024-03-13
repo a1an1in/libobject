@@ -69,7 +69,7 @@ static int __set(Sdl_Audio *sdl_audio, char *attrib, void *value)
     } else if (strcmp(attrib, "pause") == 0) {
         sdl_audio->pause = value;
     } else {
-        dbg_str(OBJ_WARNNING, "sdl_audio set,  \"%s\" setting is not support", attrib);
+        dbg_str(OBJ_WARN, "sdl_audio set,  \"%s\" setting is not support", attrib);
     }
 
     return 0;
@@ -79,7 +79,7 @@ static void * __get(Sdl_Audio *sdl_audio, char *attrib)
 {
     if (strcmp(attrib, "x") == 0){ 
     } else {
-        dbg_str(OBJ_WARNNING, "sdl_audio get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(OBJ_WARN, "sdl_audio get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -103,7 +103,7 @@ __writing_buffer_callback(void *opaque, void *stream, int len)
     } else {
     }
 
-    dbg_str(DBG_IMPORTANT, "audio_buffer_len =%d, len=%d, read_pos=%d",
+    dbg_str(DBG_INFO, "audio_buffer_len =%d, len=%d, read_pos=%d",
             audio->audio_buffer_len, len, audio->audio_read_pos);
 
 	len = (len > audio->audio_buffer_len ? audio->audio_buffer_len : len);	/*  Mix  as  much  data  as  possible  */ 
@@ -111,10 +111,10 @@ __writing_buffer_callback(void *opaque, void *stream, int len)
 
 #if 0
     SDL_MixAudio(stream, &audio->audio_buffer[audio->audio_read_pos], len, SDL_MIX_MAXVOLUME);
-    dbg_buf(DBG_IMPORTANT, "write audio data to device:", &audio->audio_buffer[audio->audio_read_pos], 20);
+    dbg_buf(DBG_INFO, "write audio data to device:", &audio->audio_buffer[audio->audio_read_pos], 20);
 #else
 	SDL_MixAudioFormat(stream, audio->audio_buffer + audio->audio_read_pos, AUDIO_S16SYS, len, SDL_MIX_MAXVOLUME);
-    dbg_buf(DBG_IMPORTANT, "write audio data to device:",
+    dbg_buf(DBG_INFO, "write audio data to device:",
             audio->audio_buffer + audio->audio_read_pos, 20);
 #endif
     
@@ -158,7 +158,7 @@ __writing_buffer_callback(void *opaque, void *stream, int len)
                    buffer, ret);
             audio->audio_buffer_len += ret;
         } else if (audio->audio_buffer_len < 0) {
-            dbg_str(DBG_WARNNING, "audio buffer len wrong");
+            dbg_str(DBG_WARN, "audio buffer len wrong");
             audio->audio_buffer_len = 0;
             return -1;
         }
@@ -244,11 +244,11 @@ static int __init(Sdl_Audio *sdl_audio)
 
     spec->format = AUDIO_S16SYS;
 
-    dbg_str(DBG_IMPORTANT,
+    dbg_str(DBG_INFO,
             "wanted specification: freq=%d, format=%d, channel_num=%d, samples=%d",
             wanted_spec->freq, wanted_spec->format, wanted_spec->channels, wanted_spec->samples); 
     
-    dbg_str(DBG_IMPORTANT,
+    dbg_str(DBG_INFO,
             "real specification: freq=%d, format=%d, channel_num=%d, samples=%d",
             spec->freq, spec->format, spec->channels, spec->samples); 
 

@@ -220,7 +220,7 @@ static void queue_print(void *element)
 static void queue_print_int(void *element)
 {
     int *p =  (int*)element;
-    dbg_str(DBG_IMPORTANT," element %d",*p);
+    dbg_str(DBG_INFO," element %d",*p);
 }
 
 int test_peek_linked_queue_peek()

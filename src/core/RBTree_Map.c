@@ -111,7 +111,7 @@ static int __search(Map *map, void *key, void **element)
     rbtree_map_pos_t pos;
     int ret;
 
-    dbg_str(RBTMAP_IMPORTANT, "Rbtree Map search");
+    dbg_str(RBTMAP_INFO, "Rbtree Map search");
     ret = rbtree_map_search(((RBTree_Map *)map)->rbmap, key, &pos);
     if (ret == 1 && element != NULL) {
         *element = rbtree_map_pos_get_pointer(&pos);
@@ -162,11 +162,11 @@ static int __remove(Map *map, void *key, void **element)
     rbtree_map_pos_t pos;
     int ret;
 
-    dbg_str(RBTMAP_IMPORTANT, "Rbtree Map remove");
+    dbg_str(RBTMAP_INFO, "Rbtree Map remove");
 
     ret = rbtree_map_search(((RBTree_Map *)map)->rbmap, key, &pos);
     if (ret != 1) {
-        dbg_str(RBTMAP_WARNNING, "map remove, not found key :%s", key);
+        dbg_str(RBTMAP_WARN, "map remove, not found key :%s", key);
         return ret;
     }
 

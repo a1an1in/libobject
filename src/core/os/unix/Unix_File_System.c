@@ -71,7 +71,7 @@ static int __mkdir(Unix_File_System *fs, char *path, mode_t mode)
             if (fs_is_exist(tmp)) {
                 continue;
             }
-            dbg_str(DBG_VIP, "mkdir %d:%s", i, tmp);
+            dbg_str(DBG_INFO, "mkdir %d:%s", i, tmp);
             EXEC(mkdir(tmp, mode));
         }
     } CATCH (ret) {} FINALLY {

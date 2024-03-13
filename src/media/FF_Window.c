@@ -121,7 +121,7 @@ static void *__get(FF_Window *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"goya get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARN,"goya get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
@@ -134,7 +134,7 @@ static void __on_key_text_pressed(Window *window, char c, void *render)
     Player *player = w->player;
     static int seek_count;
 
-    dbg_str(DBG_WARNNING, "goya window, on_text_key_pressed: %c", c);
+    dbg_str(DBG_WARN, "goya window, on_text_key_pressed: %c", c);
 
     switch (c) {
         case 'f':
@@ -453,7 +453,7 @@ static void __create_event(FF_Window *window)
     Window *w = (Window *)window;
     allocator_t *allocator = ((Obj *)window)->allocator;
 
-    dbg_str(DBG_IMPORTANT, "window create event");
+    dbg_str(DBG_INFO, "window create event");
     w->event = OBJECT_NEW(allocator, FF_Event, "");
 }
 
@@ -461,7 +461,7 @@ void __destroy_event(FF_Window *window)
 {
     Window *w = (Window *)window;
 
-    dbg_str(DBG_IMPORTANT, "window destroy event");
+    dbg_str(DBG_INFO, "window destroy event");
     object_destroy(w->event);
 }
 

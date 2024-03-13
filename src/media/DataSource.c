@@ -80,7 +80,7 @@ static void *__get(DataSource *obj, char *attrib)
     } else if (strcmp(attrib, "media_peroid") == 0) {
         return obj->media_peroid;
     } else {
-        dbg_str(EV_WARNNING,"data_source get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARN,"data_source get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;

@@ -191,7 +191,7 @@ static int __construct(Border_Layout *border_layout, char *init_str)
     Subject *s             = (Subject *)border_layout;
     uint32_t i;
 
-    dbg_str(DBG_IMPORTANT, "border_layout construct");
+    dbg_str(DBG_INFO, "border_layout construct");
 
     memset(l->blocks, 0, sizeof(layout_block_t) * BORDER_LAYOUT_MAX); 
 
@@ -234,7 +234,7 @@ static int __deconstrcut(Border_Layout *border_layout)
 {
     allocator_t *allocator = ((Obj *)border_layout)->allocator;
 
-    dbg_str(DBG_IMPORTANT, "border_layout deconstruct");
+    dbg_str(DBG_INFO, "border_layout deconstruct");
 
     return 0;
 }
@@ -273,7 +273,7 @@ static int __add_component(Container *obj, void *pos, void *component)
     } else if (strncmp(pos, "South", 5) == 0) {
         index = BORDER_LAYOUT_SOUTH;
     } else {
-        dbg_str(DBG_WARNNING, "borderlayout add component, pos par err");
+        dbg_str(DBG_WARN, "borderlayout add component, pos par err");
         return -1;
     }
 
@@ -431,7 +431,7 @@ static int __add_component(Container *obj, void *pos, void *component)
     }
 
     if (size_change_flag == 1) {
-        dbg_str(DBG_WARNNING, "border layout size changed, index=%d", index);
+        dbg_str(DBG_WARN, "border layout size changed, index=%d", index);
         generate_new_size(l);
     }
 
@@ -452,7 +452,7 @@ static int __add_component(Container *obj, void *pos, void *component)
             {
                 position.x = l->blocks[BORDER_LAYOUT_WEST].width + l->hgap;
                 position.y = l->blocks[BORDER_LAYOUT_NORTH].height + l->vgap;
-                dbg_str(DBG_IMPORTANT, "x =%d, y=%d", position.x, position.y);
+                dbg_str(DBG_INFO, "x =%d, y=%d", position.x, position.y);
             }
             break;
         case BORDER_LAYOUT_EAST:

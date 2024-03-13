@@ -60,12 +60,12 @@ static int __deconstrcut(FF_Video_Codec *codec)
     if (codec->out_frame != NULL) {
         av_free(codec->out_frame->data[0]);
         av_frame_free(&codec->out_frame);
-        dbg_str(DBG_WARNNING,"codec deconstruct outframe");
+        dbg_str(DBG_WARN,"codec deconstruct outframe");
     }
 
     if (codec->sws_context != NULL) {
         sws_freeContext(codec->sws_context);
-        dbg_str(DBG_WARNNING,"codec deconstruct sws_context");
+        dbg_str(DBG_WARN,"codec deconstruct sws_context");
     }
 
     return 0;
@@ -107,7 +107,7 @@ static void *__get(FF_Video_Codec *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"codec get, \"%s\" getting attrib is not supported",
+        dbg_str(DBG_WARN,"codec get, \"%s\" getting attrib is not supported",
                 attrib);
         return NULL;
     }
@@ -188,7 +188,7 @@ static void *__thread_callback(void *arg)
                         ret);
             }
             if (ret == AVERROR_EOF) {
-                dbg_str(DBG_WARNNING,"video codec EOF");
+                dbg_str(DBG_WARN,"video codec EOF");
                 exit(1);
                 return 0;
             }
@@ -198,21 +198,21 @@ static void *__thread_callback(void *arg)
         if (pkt != NULL) {
             ret = avcodec_send_packet(ff_codec->codec_ctx, pkt);
             if (ret == AVERROR(EAGAIN)) {
-                dbg_str(DBG_WARNNING,"Video Codec send packet failed");
+                dbg_str(DBG_WARN,"Video Codec send packet failed");
 
             } else {
-                dbg_str(DBG_IMPORTANT,
+                dbg_str(DBG_INFO,
                         "send video packet to avcodec, current queue size=%d, ret = %d",
                         pck_stream->size(pck_stream),
                         ret);
             }
             av_packet_free(&pkt);
         } else {
-            dbg_str(DBG_WARNNING,"get video packet from queue err, queue size=%d",
+            dbg_str(DBG_WARN,"get video packet from queue err, queue size=%d",
                     pck_stream->size(pck_stream));
         }
     }
-    dbg_str(DBG_IMPORTANT,"video codec thread callback out");
+    dbg_str(DBG_INFO,"video codec thread callback out");
 }
 static int __sdl_update_yuvtexture(void *texture, AVFrame *frame)
 {
@@ -278,7 +278,7 @@ __scale_yuv420p_frame(Codec *codec, AVFrame *src,
     if ((ff_codec->sws_context != NULL) && 
         player->is_state(player, STATE_SCREENSIZE_CHANGED))
     {
-        dbg_str(DBG_WARNNING,"sws_getContext, STATE_SCREENSIZE_CHANGED");
+        dbg_str(DBG_WARN,"sws_getContext, STATE_SCREENSIZE_CHANGED");
         sws_freeContext(ff_codec->sws_context);
         ff_codec->sws_context = NULL;
     }
@@ -294,7 +294,7 @@ __scale_yuv420p_frame(Codec *codec, AVFrame *src,
                                      NULL, NULL, NULL);
         ff_codec->sws_context= sws_context;
 
-        dbg_str(DBG_WARNNING,"sws_getContext create");
+        dbg_str(DBG_WARN,"sws_getContext create");
     } else {
         sws_context = ff_codec->sws_context;
     }
@@ -341,7 +341,7 @@ static int __update_texture(Codec *codec, void *texture)
         return 0;
     }
 
-    dbg_str(DBG_IMPORTANT,"update video texture, video frame size :%d  ",
+    dbg_str(DBG_INFO,"update video texture, video frame size :%d  ",
             frame_stream->size(frame_stream));
 
     frame_stream->remove_frame(frame_stream, (void **)&frame);
@@ -354,7 +354,7 @@ static int __update_texture(Codec *codec, void *texture)
 
         if (out_frame != NULL && 
             player->is_state(player, STATE_SCREENSIZE_CHANGED)) {
-            dbg_str(DBG_WARNNING,"realloc out frame");
+            dbg_str(DBG_WARN,"realloc out frame");
             av_free(out_frame->data[0]);
             av_frame_free(&out_frame);
             ff_codec->out_frame = NULL;
@@ -433,7 +433,7 @@ __update_texture_from_current_frame(Codec *codec, void *texture)
     if ((ff_codec->sws_context != NULL) && 
         player->is_state(player, STATE_SCREENSIZE_CHANGED))
     {
-        dbg_str(DBG_WARNNING,"sws_getContext, STATE_SCREENSIZE_CHANGED");
+        dbg_str(DBG_WARN,"sws_getContext, STATE_SCREENSIZE_CHANGED");
         sws_freeContext(ff_codec->sws_context);
         ff_codec->sws_context = NULL;
     }
@@ -447,7 +447,7 @@ __update_texture_from_current_frame(Codec *codec, void *texture)
                                      AV_PIX_FMT_YUV420P, 
                                      SWS_BICUBIC, 
                                      NULL, NULL, NULL);
-        dbg_str(DBG_WARNNING,"sws_getContext create");
+        dbg_str(DBG_WARN,"sws_getContext create");
     }
 
 	ret = sws_scale(sws_context,
@@ -484,7 +484,7 @@ static int __update_texture2(Codec *codec, void *texture)
     uint64_t  pts    = AV_NOPTS_VALUE;
     int ret;
 
-    dbg_str(DBG_WARNNING,"update video texture");
+    dbg_str(DBG_WARN,"update video texture");
 
     player->wait_if_false_with_except(player, 
                                       player->is_state,
@@ -521,7 +521,7 @@ static int __update_texture2(Codec *codec, void *texture)
         }else {
             codec->cur_render_video_clock = pts*av_q2d(codec->extractor->video_stream->time_base);
         }
-        dbg_str(DBG_IMPORTANT, "codec->cur_render_video_clock= %lf",
+        dbg_str(DBG_INFO, "codec->cur_render_video_clock= %lf",
                 codec->cur_render_video_clock);
 
         sync->async_core(sync,frame, frame_stream->queue); // 同步调整
@@ -543,7 +543,7 @@ static int __update_texture2(Codec *codec, void *texture)
                     rect->width, rect->height, 
                     AV_PIX_FMT_YUV420P, 1);
             if (ret < 0) {
-                dbg_str(DBG_WARNNING,"av_image_alloc");
+                dbg_str(DBG_WARN,"av_image_alloc");
             }
         }
 
@@ -565,7 +565,7 @@ static int __update_texture2(Codec *codec, void *texture)
                                        dst_data[0], dst_linesize[0],
                                        dst_data[1], dst_linesize[1],
                                        dst_data[2], dst_linesize[2]);
-            dbg_str(DBG_WARNNING,"SDL_UpdateYUVTexture, ret=%d", ret);
+            dbg_str(DBG_WARN,"SDL_UpdateYUVTexture, ret=%d", ret);
             ret = 1;
         } 
 

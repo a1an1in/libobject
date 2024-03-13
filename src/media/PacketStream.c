@@ -97,7 +97,7 @@ static void *__get(PacketStream *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING,"packet_stream get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(EV_WARN,"packet_stream get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
@@ -110,7 +110,7 @@ static int __add_packet(PacketStream *stream, void *packet)
     stream->queue->add(stream->queue, packet);
 
     if (stream->type == PACKET_STREAM_VIDEO) {
-        dbg_str(DBG_IMPORTANT,
+        dbg_str(DBG_INFO,
                 "add a video packet to packet queue, packet size =%d",
                 stream->size(stream));
 
@@ -121,7 +121,7 @@ static int __add_packet(PacketStream *stream, void *packet)
             player->clear_state(player, STATE_VIDEO_PACKET_QUEUE_EMPTY);
         }
     } else if (stream->type == PACKET_STREAM_AUDIO) {
-        dbg_str(DBG_IMPORTANT,
+        dbg_str(DBG_INFO,
                 "add a audio packet to packet queue, packet size =%d", 
                 stream->size(stream));
 
@@ -198,14 +198,14 @@ static void __clear(PacketStream * stream)
 {
     void * element;
 
-    dbg_str(DBG_WARNNING, "clear PacketStream, size=%d",
+    dbg_str(DBG_WARN, "clear PacketStream, size=%d",
             stream->size(stream));
 
     while (!stream->empty(stream)) {
         stream->queue->remove(stream->queue, &element);
         if (element != NULL) {
             /*
-             *dbg_str(DBG_WARNNING, "remove a packet");
+             *dbg_str(DBG_WARN, "remove a packet");
              */
             av_packet_free((AVPacket **)&element);
         }

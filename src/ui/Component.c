@@ -71,7 +71,7 @@ int __add_event_listener_cb(Component *component, char *name, void *value)
     if (strcmp(name, "do_on_mouse_pressed") == 0) {
         component->listener.do_on_mouse_pressed = value;
     } else {
-        dbg_str(DBG_WARNNING, "add_event_listener_cb %s, not support now", name);
+        dbg_str(DBG_WARN, "add_event_listener_cb %s, not support now", name);
     }
 }
 
@@ -163,7 +163,7 @@ static void __on_key_text_pressed(Component *component, char c, void *render)
     dbg_str(DBG_DETAIL, "EVENT: text input %c", c);
     cur = container->search_component(container, "text_area");
     if (cur == NULL) {
-        dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
+        dbg_str(DBG_WARN, "not found component :%s", "text_field");
         return;
     }
 
@@ -182,7 +182,7 @@ static void __on_key_up_pressed(Component *component, void *render)
 
     cur = container->search_component(container, "text_area");
     if (cur == NULL) {
-        dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
+        dbg_str(DBG_WARN, "not found component :%s", "text_field");
         return;
     }
     if (cur->on_key_up_pressed) cur->on_key_up_pressed(cur, g); 
@@ -197,7 +197,7 @@ static void __on_key_down_pressed(Component *component, void *render)
 
     cur = container->search_component(container, "text_area");
     if (cur == NULL) {
-        dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
+        dbg_str(DBG_WARN, "not found component :%s", "text_field");
         return;
     }
     if (cur->on_key_down_pressed) cur->on_key_down_pressed(cur, g); 
@@ -211,7 +211,7 @@ static void __on_key_left_pressed(Component *component, void *render)
 
     cur = container->search_component(container, "text_area");
     if (cur == NULL) {
-        dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
+        dbg_str(DBG_WARN, "not found component :%s", "text_field");
         return;
     }
     if (cur->on_key_left_pressed) cur->on_key_left_pressed(cur, g); 
@@ -225,7 +225,7 @@ static void __on_key_right_pressed(Component *component, void *render)
 
     cur = container->search_component(container, "text_area");
     if (cur == NULL) {
-        dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
+        dbg_str(DBG_WARN, "not found component :%s", "text_field");
         return;
     }
     if (cur->on_key_right_pressed) cur->on_key_right_pressed(cur, g); 
@@ -239,7 +239,7 @@ static void __on_key_pageup_pressed(Component *component, void *render)
 
     cur = container->search_component(container, "text_area");
     if (cur == NULL) {
-        dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
+        dbg_str(DBG_WARN, "not found component :%s", "text_field");
         return;
     }
     if (cur->on_key_pageup_pressed) cur->on_key_pageup_pressed(cur, g); 
@@ -253,7 +253,7 @@ static void __on_key_pagedown_pressed(Component *component, void *render)
 
     cur = container->search_component(container, "text_area");
     if (cur == NULL) {
-        dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
+        dbg_str(DBG_WARN, "not found component :%s", "text_field");
         return;
     }
     if (cur->on_key_pagedown_pressed) cur->on_key_pagedown_pressed(cur, g); 
@@ -267,7 +267,7 @@ static void __on_key_onelineup_pressed(Component *component, void *render)
 
     cur = container->search_component(container, "text_area");
     if (cur == NULL) {
-        dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
+        dbg_str(DBG_WARN, "not found component :%s", "text_field");
         return;
     }
     if (cur->on_key_onelineup_pressed) cur->on_key_onelineup_pressed(cur, g); 
@@ -281,7 +281,7 @@ static void __on_key_onelinedown_pressed(Component *component, void *render)
 
     cur = container->search_component(container, "text_area");
     if (cur == NULL) {
-        dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
+        dbg_str(DBG_WARN, "not found component :%s", "text_field");
         return;
     }
     if (cur->on_key_onelinedown_pressed) cur->on_key_onelinedown_pressed(cur, g); 
@@ -295,7 +295,7 @@ static void __on_key_backspace_pressed(Component *component, void *render)
 
     cur = container->search_component(container, "text_area");
     if (cur == NULL) {
-        dbg_str(DBG_WARNNING, "not found component :%s", "text_field");
+        dbg_str(DBG_WARN, "not found component :%s", "text_field");
         return;
     }
     if (cur->on_key_backspace_pressed) cur->on_key_backspace_pressed(cur, g); 

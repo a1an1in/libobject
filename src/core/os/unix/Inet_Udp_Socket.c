@@ -109,7 +109,7 @@ static int __bind(Inet_Udp_Socket *socket, char *host, char *service)
     } while ((addr = addr->ai_next) != NULL);
 
     if (addr == NULL) {
-        dbg_str(NET_WARNNING, "bind error for %s %s", host, service);
+        dbg_str(NET_WARN, "bind error for %s %s", host, service);
     }
 
     freeaddrinfo(addrsave);

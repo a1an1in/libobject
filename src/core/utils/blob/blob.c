@@ -58,7 +58,7 @@ int blob_init(blob_t *blob)
         blob->len = BLOB_MAX_SIZE;
         blob->head = (uint8_t *) allocator_mem_alloc(allocator, blob->len);
         if(blob->head == NULL) {
-            dbg_str(DBG_WARNNING, "allocator_mem_alloc");
+            dbg_str(DBG_WARN, "allocator_mem_alloc");
             return -1;
         }
         memset(blob->head, 0 , blob->len);

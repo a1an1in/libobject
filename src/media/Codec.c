@@ -128,7 +128,7 @@ static void *__get(Codec *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"codec get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARN,"codec get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;

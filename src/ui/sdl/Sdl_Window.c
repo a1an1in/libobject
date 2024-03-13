@@ -41,7 +41,7 @@
 static int __construct(Window *window, char *init_str)
 {
     Sdl_Window *w = (Sdl_Window *)window;
-    dbg_str(DBG_IMPORTANT, "Sdl_window construct");
+    dbg_str(DBG_INFO, "Sdl_window construct");
 
     w->flags = 0;
 

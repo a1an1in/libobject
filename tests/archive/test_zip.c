@@ -46,7 +46,7 @@ static int test_zip_regex(TEST_ENTRY *entry, int argc, void **argv)
         SET_CATCH_INT_PARS(count, 0);
         THROW_IF(count != 1, -1);
         value = str->get_found_cstr(str, 0);
-        dbg_str(DBG_VIP, "find cstr:%s", value);
+        dbg_str(DBG_INFO, "find cstr:%s", value);
     } CATCH (ret) { 
         CATCH_SHOW_INT_PARS(DBG_ERROR);
     } FINALLY {

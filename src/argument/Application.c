@@ -101,7 +101,7 @@ static int __construct(Application *app, char *init_str)
                         __option_version_callback, NULL);
     command->add_option(command, "--help", "-h", NULL, "help for xtools",
                         __option_help_callback, app);
-    command->add_option(command, "--log-level", "", "6", "setting log display level, the default value is 6.",
+    command->add_option(command, "--log-level", "", "5", "setting log display level, the default value is 6.",
                         __option_log_level_callback, app);
 
     return 0;

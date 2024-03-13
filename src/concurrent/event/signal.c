@@ -190,7 +190,7 @@ int set_quit_signal(Event_Base* eb)
     ev->ev_base            = eb;
     ev->ev_arg             = ev;
 
-    dbg_str(EV_IMPORTANT,"set_break_signal, fd=%d, ev_callback=%p, break_flag=%d",
+    dbg_str(EV_INFO,"set_break_signal, fd=%d, ev_callback=%p, break_flag=%d",
             ev->ev_fd, ev->ev_callback,  eb->break_flag);
 
     eb->add(eb, ev);
@@ -222,7 +222,7 @@ int set_segment_signal(Event_Base* eb)
     ev->ev_base            = eb;
     ev->ev_arg             = ev;
 
-    dbg_str(EV_IMPORTANT,"set_break_signal, fd=%d, ev_callback=%p, break_flag=%d",
+    dbg_str(EV_INFO,"set_break_signal, fd=%d, ev_callback=%p, break_flag=%d",
             ev->ev_fd, ev->ev_callback,  eb->break_flag);
 
     eb->add(eb, ev);

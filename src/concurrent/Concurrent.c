@@ -75,7 +75,7 @@ static void *__get(Concurrent *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING, "eb get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(EV_WARN, "eb get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;

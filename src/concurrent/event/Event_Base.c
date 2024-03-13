@@ -129,7 +129,7 @@ static int __del(Event_Base *eb, event_t *event)
         //del fd in map
         ret = io_map->del(io_map, fd);
         if (ret < 0) {
-            dbg_str(EV_WARNNING, "event base del fd = %d, but not found fd in io_map, ret=%d", 
+            dbg_str(EV_WARN, "event base del fd = %d, but not found fd in io_map, ret=%d", 
                     fd, ret);
         } else {
             dbg_str(EV_VIP, "event base del io, fd = %d, evnt addr:%p", fd, event);
@@ -156,7 +156,7 @@ static int __activate_io(Event_Base *eb, int fd, short events)
     dbg_str(EV_DETAIL, "search ret=%d", ret);
 
     if (ret < 0) {
-        dbg_str(EV_WARNNING, "not found fd = %d in io_map, ret=%d", fd, ret);
+        dbg_str(EV_WARN, "not found fd = %d in io_map, ret=%d", fd, ret);
     } else {
         dbg_str(EV_DETAIL, "event addr:%p, ev_callback=%p", 
                 event, event->ev_callback);
@@ -202,10 +202,10 @@ static int __activate_signal(Event_Base *eb, int fd, short events)
 
     map->search_all_same_key(map, fd, list);
     if (list->count(list) != 0) {
-        dbg_str(EV_WARNNING, "activate_signal, list count=%d, signal=%d", list->count(list), fd);
+        dbg_str(EV_WARN, "activate_signal, list count=%d, signal=%d", list->count(list), fd);
         list->for_each(list, __signal_list_for_each_callback);
     } else {
-        dbg_str(EV_WARNNING, "activate_signal, get event addr error");
+        dbg_str(EV_WARN, "activate_signal, get event addr error");
         return -1;
     }
 

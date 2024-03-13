@@ -25,7 +25,7 @@ static int __get_file_info_stat_callback(int index, fs_file_info_t *info)
 
 static int __print_file_info_callback(int index, fs_file_info_t *info)
 {
-    printf("index:%d file name:%s atime:%lx, ctime:%lx, mtime:%lx size:%ld\n", 
+    dbg_str(DBG_INFO, "index:%d file name:%s atime:%lx, ctime:%lx, mtime:%lx size:%ld", 
             index, info->file_name, info->st.st_atime, info->st.st_ctime,
             info->st.st_mtime, info->st.st_size);
 
@@ -178,7 +178,7 @@ int fs_mkfile(char *path, mode_t mode)
         string = object_new(allocator, "String", NULL);
         string->assign(string, path);
         EXEC(fs_get_path_and_name(string->get_cstr(string), &parent_dir, &name));
-        dbg_str(DBG_VIP, "fs_mkfile dir:%s, name:%s", parent_dir, name);
+        dbg_str(DBG_INFO, "fs_mkfile dir:%s, name:%s", parent_dir, name);
         EXEC(fs_mkdir(parent_dir, mode));
         f = fopen(path, "w+");
         THROW_IF(f == NULL, -1);
@@ -209,7 +209,7 @@ int fs_list(char *path, Vector *vector)
 
         if (path[len - 1] != '/') {
             strcat(tmp, "/");
-            dbg_str(DBG_VIP, "path:%s", tmp);
+            dbg_str(DBG_INFO, "path:%s", tmp);
         }
 
         EXEC(vector->customize(vector, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback));
@@ -249,7 +249,7 @@ int fs_tree(char *path, Vector *vector, int depth)
             if (!S_ISDIR(info->st.st_mode)) continue;
             len = strlen(info->file_name);
             if (info->file_name[len - 1] == '.') continue;
-            dbg_str(DBG_VIP, "filename:%s", info->file_name);
+            dbg_str(DBG_INFO, "filename:%s", info->file_name);
             EXEC(fs_tree(info->file_name, vector, depth));
         }
         EXEC(vector->add_vector(vector, list));

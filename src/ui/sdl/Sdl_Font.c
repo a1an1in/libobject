@@ -42,7 +42,7 @@ static int __construct(Font *font, char *init_str)
     dbg_str(OBJ_DETAIL, "font construct, font addr:%p", font);
 
     if (TTF_Init() == -1){
-        dbg_str(DBG_WARNNING, "TTF_Init error");
+        dbg_str(DBG_WARN, "TTF_Init error");
         return -1;
     }
 
@@ -90,7 +90,7 @@ static int __set(Font *font, char *attrib, void *value)
         f->get_character_height = value;
     }
     else {
-        dbg_str(OBJ_WARNNING, "font set,  \"%s\" setting is not support", attrib);
+        dbg_str(OBJ_WARN, "font set,  \"%s\" setting is not support", attrib);
     }
 
     return 0;
@@ -100,7 +100,7 @@ static void * __get(Font *font, char *attrib)
 {
     if (strcmp(attrib, "x") == 0){ 
     } else {
-        dbg_str(OBJ_WARNNING, "font get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(OBJ_WARN, "font get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -165,14 +165,14 @@ static int __unload_ascii_character(Font *font, void *render)
     int i;                                                                                                               
     ascii_character_t *ascii = font->ascii;  
 
-    dbg_str(DBG_IMPORTANT, "unload asscii info"); 
+    dbg_str(DBG_INFO, "unload asscii info"); 
 
     for( i = 0; i < 128; i++) {  
         if (ascii[i].character != NULL)
             object_destroy(ascii[i].character);   
     }      
 
-    dbg_str(DBG_IMPORTANT, "unload asscii info end"); 
+    dbg_str(DBG_INFO, "unload asscii info end"); 
     return 0;
 }
 static int __get_character_width(Font *font, char c)

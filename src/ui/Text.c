@@ -99,7 +99,7 @@ int extract_text_disturbed_by_inserting(Text *text, int line_num,
             line_count ++;
             line_info = cur->get_vpointer(cur);
             if (strlen(str) + line_info->tail - line_info->head + 1 > len) {
-                dbg_str(DBG_WARNNING, "buffer too small, please check");
+                dbg_str(DBG_WARN, "buffer too small, please check");
                 return -1;
             }
             /*
@@ -224,7 +224,7 @@ int rewrite_text(Text *text, int start_line, int offset,
     }
 
     if (ret == 0) {
-        dbg_str(DBG_WARNNING, "rewrite_text warnning, i=%d, line_num=%d, count=%d, len=%d", 
+        dbg_str(DBG_WARN, "rewrite_text warnning, i=%d, line_num=%d, count=%d, len=%d", 
                 i, line_num, count, len);
     }
 
@@ -252,7 +252,7 @@ static int __construct(Text *text, char *init_str)
 
     text->line_info  = OBJECT_NEW(allocator, Linked_List, buf);
     if (!text->line_info) {
-        dbg_str(DBG_WARNNING, "create line_info err");
+        dbg_str(DBG_WARN, "create line_info err");
         return -1;
     }
 
@@ -410,7 +410,7 @@ int __write_char(Text *text, int line_num,  int offset, int width, char c, void 
          *ret = line_count + new_line_count;
          */
         ret = text->last_line_num - line_num + 1;
-        dbg_str(DBG_IMPORTANT, 
+        dbg_str(DBG_INFO, 
                 "new a line, line_num=%d, last_line_num=%d new_line_count=%d, line_count=%d, write_len=%d, total_len=%d, value:%s", 
                 line_num , text->last_line_num, new_line_count, line_count, write_len, total_len,  str + write_len);
     } else {

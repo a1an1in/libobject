@@ -399,7 +399,7 @@ static int __parse_args(Command *command)
     p = strstr(command->argv[0], 
                command->name->get_cstr(command->name));
     if (p == NULL) {
-        dbg_str(ARG_WARNNING, "args passed to wrong command");
+        dbg_str(ARG_WARN, "args passed to wrong command");
         ret = -1;
     }
 
@@ -415,7 +415,7 @@ static int __parse_args(Command *command)
 
             ret = __does_option_need_value(command, command->argv[i]);
             if (ret < 0) {
-                dbg_str(ARG_WARNNING, "not recognized option");
+                dbg_str(ARG_WARN, "not recognized option");
                 continue;
             } else if (ret == 0) { /*second, process option without value*/
                 __parse_option_with_no_value(command, command->argv[i]);
@@ -448,10 +448,10 @@ static int __parse_args(Command *command)
                     argument->set(argument, "value", command->argv[i]);
                     argument->set(argument, "set_flag", &set_flag);
                 } else {
-                    dbg_str(ARG_WARNNING, "not recognize arg %s",command->argv[i]);
+                    dbg_str(ARG_WARN, "not recognize arg %s",command->argv[i]);
                 }
             } else {
-                dbg_str(ARG_WARNNING, "not recognize arg %s",command->argv[i]);
+                dbg_str(ARG_WARN, "not recognize arg %s",command->argv[i]);
             }
         }
     }
@@ -650,7 +650,7 @@ static int __help(Command *command)
         buffer->printf(buffer, 512, "usage:\n");
         buffer->printf(buffer, 512, "%s ", STR2A(command->name));
 
-        (options != NULL) && (options->for_each_arg(options, __help_head_option_for_each_callback, buffer));
+        if (options != NULL) options->for_each_arg(options, __help_head_option_for_each_callback, buffer);
 
         if (subcommands != NULL) {
             subcommands->for_each_arg(subcommands, __help_head_subcommand_for_each_callback, buffer);

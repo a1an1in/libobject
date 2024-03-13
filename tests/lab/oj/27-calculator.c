@@ -67,7 +67,7 @@ static int stack_init(struct stack_s *as)
 
     as->top = (uint8_t *)malloc(as->size);
     if(as->top == NULL) {
-        dbg_str(DBG_WARNNING,"allocator_mem_alloc");
+        dbg_str(DBG_WARN,"allocator_mem_alloc");
         return -1;
     }
     as->cur = as->top;
@@ -87,7 +87,7 @@ static int stack_push(struct stack_s *as, void *data)
         as->count++;
     } else {
         ret = -1;
-        dbg_str(DBG_WARNNING,"array stack is full");
+        dbg_str(DBG_WARN,"array stack is full");
     }
 
     return ret;
@@ -102,7 +102,7 @@ static int stack_pop(struct stack_s *as,void **out)
         *out = *((void **)(as->cur));
         as->count--;
     } else {
-        dbg_str(DBG_WARNNING,"array stack is null");
+        dbg_str(DBG_WARN,"array stack is null");
         ret = -1;
     }
 
@@ -116,7 +116,7 @@ static int stack_peek(struct stack_s *as,void **out)
     if(as->cur > as->top) {
         *out = *((void **)(as->cur - as->step));
     } else {
-        dbg_str(DBG_WARNNING,"array stack is null");
+        dbg_str(DBG_WARN,"array stack is null");
         ret = -1;
     }
 

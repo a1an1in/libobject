@@ -68,7 +68,7 @@ static int __reset(List *list)
         } else if (list->value_type  == VALUE_TYPE_ALLOC_POINTER && element != NULL) {
             allocator_mem_free(list->obj.allocator, element);
         } else if (list->value_type >= VALUE_TYPE_MAX_TYPE) {
-            dbg_str(OBJ_WARNNING, "not support reset unkown pointer");
+            dbg_str(OBJ_WARN, "not support reset unkown pointer");
         }
 
         element = NULL;
@@ -85,14 +85,14 @@ static void __for_each(List *list, void (*func)(void *element))
     Iterator *cur, *end;
     void *element;
 
-    dbg_str(OBJ_IMPORTANT, "List for_each");
+    dbg_str(OBJ_INFO, "List for_each");
     cur = list->begin(list);
     end = list->end(list);
 
     for (; !end->equal(end, cur); cur->next(cur)) {
         element = cur->get_vpointer(cur);
         /*
-         *dbg_str(OBJ_IMPORTANT, "List for_each, element=%p", element);
+         *dbg_str(OBJ_INFO, "List for_each, element=%p", element);
          */
         func(element);
     }
@@ -104,7 +104,7 @@ __for_each_arg(List *list, void (*func)(void *element, void *arg), void *arg)
     Iterator *cur, *end;
     void *element;
 
-    dbg_str(OBJ_IMPORTANT, "List for_each arg2");
+    dbg_str(OBJ_INFO, "List for_each arg2");
     cur = list->begin(list);
     end = list->end(list);
 

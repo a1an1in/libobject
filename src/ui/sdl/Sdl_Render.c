@@ -124,7 +124,7 @@ static void *__get(Sdl_Render *obj, char *attrib)
     if (strcmp(attrib, "name") == 0) {
         return obj->name;
     } else {
-        dbg_str(DBG_WARNNING, "sdl_grath get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(DBG_WARN, "sdl_grath get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -253,7 +253,7 @@ static int __draw_image(Sdl_Render *render, int x, int y, void *image)
         SDL_Rect quad = { x, y, i->width, i->height};
         SDL_RenderCopy(render->sdl_render, si->texture, NULL, &quad );
     } else {
-        dbg_str(DBG_WARNNING, "draw_image, texture is null");
+        dbg_str(DBG_WARN, "draw_image, texture is null");
     }
 }
 

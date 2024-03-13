@@ -48,7 +48,7 @@ static int test_client_udp_ipv4_send(TEST_ENTRY *entry, void *argc, void *argv)
     client_send(c, str, strlen(str), 0);
 
     object_destroy(c);
-    dbg_str(NET_WARNNING,"test_obj_client_send end");
+    dbg_str(NET_WARN,"test_obj_client_send end");
 }
 REGISTER_TEST_CMD(test_client_udp_ipv4_send);
 
@@ -99,7 +99,7 @@ static int test_server_inet_tcp_ipv4(TEST_ENTRY *entry, void *argc, void *argv)
         after_alloc_count = allocator->alloc_count;
         ret = assert_equal(&pre_alloc_count, &after_alloc_count, sizeof(int));
         if (ret == 0) {
-            dbg_str(NET_WARNNING, "server has memory omit, pre_alloc_count=%d, after_alloc_count=%d",
+            dbg_str(NET_WARN, "server has memory omit, pre_alloc_count=%d, after_alloc_count=%d",
                     pre_alloc_count, after_alloc_count);
             ret = -1;
         }
@@ -143,6 +143,6 @@ static int test_client_udp_v6_send(TEST_ENTRY *entry, void *argc, void *argv)
     client_send(c, str, strlen(str), 0);
 
     object_destroy(c);
-    dbg_str(NET_WARNNING,"test_obj_client_send end");
+    dbg_str(NET_WARN,"test_obj_client_send end");
 }
 REGISTER_TEST_CMD(test_client_udp_v6_send);

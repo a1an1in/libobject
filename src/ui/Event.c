@@ -65,7 +65,7 @@ static int __set(__Event *event, char *attrib, void *value)
         event->poll_event = value;
     }
     else {
-        dbg_str(OBJ_WARNNING, "event set,  \"%s\" setting is not support", attrib);
+        dbg_str(OBJ_WARN, "event set,  \"%s\" setting is not support", attrib);
     }
 
     return 0;
@@ -75,7 +75,7 @@ static void * __get(__Event *event, char *attrib)
 {
     if (strcmp(attrib, "") == 0){ 
     } else {
-        dbg_str(OBJ_WARNNING, "event get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(OBJ_WARN, "event get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;

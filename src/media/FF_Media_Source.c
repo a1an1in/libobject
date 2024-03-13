@@ -120,7 +120,7 @@ static void *__get(FF_Media_Source *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"FF_Media_Source get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARN,"FF_Media_Source get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
@@ -165,7 +165,7 @@ static void __init(FF_Media_Source *self,char *url)
     int i,len;
 
     if ( url == NULL ) {
-        dbg_str(DBG_WARNNING,"FF_Media_Source::__init() failed. second arguments url == NULL ");
+        dbg_str(DBG_WARN,"FF_Media_Source::__init() failed. second arguments url == NULL ");
         return ;
     }
     self->set_url(self,url);
@@ -328,19 +328,19 @@ static int __url_sanitycheck(FF_Media_Source *self,char *url)
         ret = avformat_open_input(&avfmt_ctx,url,NULL,NULL);
 
         if ( ret < 0 || avformat_find_stream_info(avfmt_ctx,NULL) < 0 ) {
-            dbg_str(DBG_WARNNING,"FF_Media_Source::__init() failed. streamfile assets lose ");
+            dbg_str(DBG_WARN,"FF_Media_Source::__init() failed. streamfile assets lose ");
             goto end;
         }
 
         hls_ctx = (struct My_HLSContext *)avfmt_ctx->priv_data;
         if (hls_ctx == NULL ) {
-            dbg_str(DBG_WARNNING,"FF_Media_Source::__init() failed. parse playlist error. ");
+            dbg_str(DBG_WARN,"FF_Media_Source::__init() failed. parse playlist error. ");
             goto end;
         }
 
         n_variants = hls_ctx->n_variants;
         if ( n_variants == 0 ) {
-            dbg_str(DBG_WARNNING,"FF_Media_Source::__init() failed. playlist format error. ");
+            dbg_str(DBG_WARN,"FF_Media_Source::__init() failed. playlist format error. ");
             goto end;
         }
         self->stream_type = n_variants > 1 ? HLS_TYPE_MASTER:HLS_TYPE_NORMAL;

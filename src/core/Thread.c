@@ -39,7 +39,7 @@ static int __construct(Thread *thread, char *init_str)
 {
     allocator_t *allocator = thread->obj.allocator;
 
-    dbg_str(DBG_IMPORTANT, "Thread construct, thread addr:%p", thread);
+    dbg_str(DBG_INFO, "Thread construct, thread addr:%p", thread);
     thread->is_run   = 0;
     thread->arg      = NULL;
     thread->joinable = 1;
@@ -52,16 +52,16 @@ static int __deconstrcut(Thread *thread)
     int ret;
     void *tret;
 
-    dbg_str(DBG_IMPORTANT, "thread deconstruct, thread addr:%p", thread);
+    dbg_str(DBG_INFO, "thread deconstruct, thread addr:%p", thread);
 
     if (thread->joinable) {
         ret = pthread_join(thread->tid, &tret);
         if (ret != 0) {
-            dbg_str(OBJ_WARNNING, "can't join with thread tid=%d", thread->tid);
+            dbg_str(OBJ_WARN, "can't join with thread tid=%d", thread->tid);
         }
     }
 
-    dbg_str(DBG_IMPORTANT, "thread deconstruct, out");
+    dbg_str(DBG_INFO, "thread deconstruct, out");
 
     return 0;
 }
@@ -79,7 +79,7 @@ static int __start(Thread *thread)
             thread->arg = thread;
         }
         if ((pthread_create(&thread->tid, NULL, thread->start_routine, thread->arg)) != 0) {
-            dbg_str(OBJ_WARNNING, "pthread start error");
+            dbg_str(OBJ_WARN, "pthread start error");
         }
 
         thread->is_run = 0;
@@ -107,7 +107,7 @@ static int __set_opaque(Thread *thread, void *arg)
 
 static void *__start_routine(void *arg)
 {
-    dbg_str(OBJ_WARNNING, "start_routine, you may need implent it!!");
+    dbg_str(OBJ_WARN, "start_routine, you may need implent it!!");
     return NULL;
 }
 
@@ -214,7 +214,7 @@ static void *func(void *arg)
         if ( i == 150 ) {
             thread->stop(thread);
         }
-        dbg_str(DBG_IMPORTANT," i= %d   I= %d " ,i,thread->tid);
+        dbg_str(DBG_INFO," i= %d   I= %d " ,i,thread->tid);
     }
     
     return 1;
@@ -232,7 +232,7 @@ static void *func_detach(void *arg)
         if ( i == 150 ) {
             thread->stop(thread);
         }
-        dbg_str(DBG_IMPORTANT," i= %d   I= %d " ,i,thread->tid);
+        dbg_str(DBG_INFO," i= %d   I= %d " ,i,thread->tid);
     }
     
     return 1;
@@ -240,7 +240,7 @@ static void *func_detach(void *arg)
 
 static void * join_func(void *arg)
 {
-    dbg_str(DBG_IMPORTANT,"JOIN FUNC");
+    dbg_str(DBG_INFO,"JOIN FUNC");
     return NULL;
 }
 
@@ -256,7 +256,7 @@ static void *func_detach2(void *arg)
         if ( i == 150 ) {
             thread->stop(thread);
         }
-        dbg_str(DBG_IMPORTANT," i= %d   I= %d " ,i,thread->tid);
+        dbg_str(DBG_INFO," i= %d   I= %d " ,i,thread->tid);
     }
     
     return 1;

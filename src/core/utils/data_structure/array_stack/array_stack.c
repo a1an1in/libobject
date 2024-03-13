@@ -37,7 +37,7 @@ int array_stack_init(array_stack_t *as)
 
     as->top = (uint8_t *)allocator_mem_alloc(as->allocator,as->size);
     if(as->top == NULL) {
-        dbg_str(DBG_WARNNING,"allocator_mem_alloc");
+        dbg_str(DBG_WARN,"allocator_mem_alloc");
         return -1;
     }
     as->cur = as->top;
@@ -57,7 +57,7 @@ int array_stack_push(array_stack_t *as, void *data)
         as->count++;
     } else {
         ret = -1;
-        dbg_str(DBG_WARNNING,"array stack is full");
+        dbg_str(DBG_WARN,"array stack is full");
     }
 
     return ret;
@@ -72,7 +72,7 @@ int array_stack_pop(array_stack_t *as,void **out)
         *out = *((void **)(as->cur));
         as->count--;
     } else {
-        dbg_str(DBG_WARNNING,"array stack is null");
+        dbg_str(DBG_WARN,"array stack is null");
         ret = -1;
     }
 

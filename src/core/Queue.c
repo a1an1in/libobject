@@ -56,12 +56,12 @@ static void __for_each(Queue *queue, void (*func)(void *element))
     Iterator *cur, *end;
     void *element;
 
-    dbg_str(OBJ_IMPORTANT, "queue for_each");
+    dbg_str(OBJ_INFO, "queue for_each");
     cur = queue->begin(queue);
     end = queue->end(queue);
 
     element = end->get_vpointer(end);
-    dbg_str(DBG_IMPORTANT, "queue for_each, end element:%p", element);
+    dbg_str(DBG_INFO, "queue for_each, end element:%p", element);
     for (; !end->equal(end, cur); cur->next(cur)) {
         element = cur->get_vpointer(cur);
         func(element);
@@ -76,7 +76,7 @@ __for_each_arg(Queue *queue,
     Iterator *cur, *end;
     void *element;
 
-    dbg_str(OBJ_IMPORTANT, "queue for_each arg");
+    dbg_str(OBJ_INFO, "queue for_each arg");
     cur = queue->begin(queue);
     end = queue->end(queue);
 
@@ -94,7 +94,7 @@ __for_each_arg2(Queue *queue,
     Iterator *cur, *end;
     void *element;
 
-    dbg_str(OBJ_IMPORTANT, "queue for_each arg2");
+    dbg_str(OBJ_INFO, "queue for_each arg2");
     cur = queue->begin(queue);
     end = queue->end(queue);
 
@@ -113,7 +113,7 @@ __for_each_arg3(Queue *queue,
     Iterator *cur, *end;
     void *element;
 
-    dbg_str(OBJ_IMPORTANT, "queue for_each arg3");
+    dbg_str(OBJ_INFO, "queue for_each arg3");
     cur = queue->begin(queue);
     end = queue->end(queue);
 
@@ -132,7 +132,7 @@ __for_each_arg4(Queue *queue,
     Iterator *cur, *end;
     void *element;
 
-    dbg_str(OBJ_IMPORTANT, "queue for_each arg4");
+    dbg_str(OBJ_INFO, "queue for_each arg4");
     cur = queue->begin(queue);
     end = queue->end(queue);
 
@@ -151,7 +151,7 @@ __for_each_arg5(Queue *queue,
     Iterator *cur, *end;
     void *element;
 
-    dbg_str(OBJ_IMPORTANT, "queue for_each arg5");
+    dbg_str(OBJ_INFO, "queue for_each arg5");
     cur = queue->begin(queue);
     end = queue->end(queue);
 
@@ -184,7 +184,7 @@ static void __reset(Queue *queue)
         } else if (queue->value_type  == VALUE_TYPE_ALLOC_POINTER && element != NULL) {
             allocator_mem_free(queue->obj.allocator, element);
         } else if (queue->value_type >= VALUE_TYPE_MAX_TYPE) {
-            dbg_str(DBG_WARNNING, "not support reset unkown pointer");
+            dbg_str(DBG_WARN, "not support reset unkown pointer");
         }
 
         element = NULL;

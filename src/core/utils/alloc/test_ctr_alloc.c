@@ -73,7 +73,7 @@ void test_ctr_alloc()
     allocator_ctr_init(allocator, 0, 0, 1024);
 
     printf("\n");
-    dbg_str(ALLOC_IMPORTANT,"ctr alloc test begin");
+    dbg_str(ALLOC_INFO,"ctr alloc test begin");
     /*
      *allocator_ctr_init(allocator,0,0,0);
      */
@@ -86,7 +86,7 @@ void test_ctr_alloc()
     p3 = allocator_mem_alloc(allocator,200);
     dbg_str(ALLOC_DETAIL,"alloc addr:%p",p3);
 
-    dbg_str(ALLOC_IMPORTANT,"inquire alloc info");
+    dbg_str(ALLOC_INFO,"inquire alloc info");
     allocator_mem_info(allocator);
 
     allocator_mem_free(allocator,p);
@@ -98,7 +98,7 @@ void test_ctr_alloc()
     for(size = 8,i = 0; i< 20; i++,size += 8){
         p = allocator_mem_alloc(allocator,size);
     }
-    dbg_str(ALLOC_WARNNING,"inquire alloc info");
+    dbg_str(ALLOC_WARN,"inquire alloc info");
     allocator_mem_info(allocator);
 
     allocator_destroy(allocator);

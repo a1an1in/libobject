@@ -103,7 +103,7 @@ static int __read(Buffer *buffer, void *dst, int len)
 
     if (buffer->w_offset == buffer->r_offset) {
         l = 0;
-        dbg_str(IO_WARNNING, "content is nil");
+        dbg_str(IO_WARN, "content is nil");
         goto end;
     } else {
         l = buffer->w_offset - buffer->r_offset;

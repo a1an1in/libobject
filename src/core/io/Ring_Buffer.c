@@ -108,7 +108,7 @@ static int __read(Ring_Buffer *rb, void *dst, int len)
     if (rb->last_operation_flag != BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         l = 0;
-        dbg_str(IO_WARNNING, "rb is nil");
+        dbg_str(IO_WARN, "rb is nil");
         goto end;
     } else if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
@@ -156,7 +156,7 @@ static int __read_to_string(Ring_Buffer *rb, String *str, int len)
     if (rb->last_operation_flag != BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         l = 0;
-        dbg_str(IO_WARNNING, "rb is nil");
+        dbg_str(IO_WARN, "rb is nil");
         goto end;
     } else if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
@@ -195,7 +195,7 @@ static int __read_to_buffer(Ring_Buffer *rb, Buffer *buffer, int len)
     if (rb->last_operation_flag != BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         l = 0;
-        dbg_str(IO_WARNNING, "ring buffer read to buffer, rb is nil");
+        dbg_str(IO_WARN, "ring buffer read to buffer, rb is nil");
         goto end;
     } else if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
@@ -307,7 +307,7 @@ static int __write(Ring_Buffer *rb, void *src, int len)
     if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         l = 0;
-        dbg_str(IO_WARNNING, "rb is full");
+        dbg_str(IO_WARN, "rb is full");
         goto end;
     } else if (rb->w_offset == rb->r_offset) {
         l =  rb->size;
@@ -342,7 +342,7 @@ static int __printf(Ring_Buffer *rb, const char *fmt, ...)
     if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         ret = l = 0;
-        dbg_str(IO_WARNNING, "rb is full");
+        dbg_str(IO_WARN, "rb is full");
         goto end;
     } else if (rb->w_offset == rb->r_offset) {
         l =  rb->size;
@@ -369,7 +369,7 @@ static int __memcpy(Ring_Buffer *rb, void *addr, int len)
     if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {
         ret = l = 0;
-        dbg_str(IO_WARNNING, "rb is full");
+        dbg_str(IO_WARN, "rb is full");
         goto end;
     } else if (rb->w_offset == rb->r_offset) {
         l =  rb->size;

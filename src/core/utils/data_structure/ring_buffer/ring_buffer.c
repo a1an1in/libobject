@@ -104,7 +104,7 @@ int rbuf_set(ring_buffer_t *rbuf, char *attrib, void *value, uint32_t len)
     }else if(!strcmp(attrib, "buffer_len")){
         rbuf_set_buffer_len(rbuf, value, len);
     }else{
-        dbg_str(DBG_WARNNING, "not support now");
+        dbg_str(DBG_WARN, "not support now");
     }
 
     return ret;

@@ -90,7 +90,7 @@ static void *__get(FF_Audio_Codec *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"codec get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARN,"codec get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
@@ -169,7 +169,7 @@ static void *__thread_callback(void *arg)
             } else {
             }
             if (ret == AVERROR_EOF) {
-                dbg_str(DBG_WARNNING,"audio codec EOF");
+                dbg_str(DBG_WARN,"audio codec EOF");
                 return 0;
             }
         } while (ret != AVERROR(EAGAIN));
@@ -177,14 +177,14 @@ static void *__thread_callback(void *arg)
         packet_stream->remove_packet(packet_stream, (void **)&pkt);
         if (pkt != NULL) {
             if (avcodec_send_packet(ff_codec->codec_ctx, pkt) == AVERROR(EAGAIN)) {
-                dbg_str(DBG_WARNNING,"Audio Codec send packet failed");
+                dbg_str(DBG_WARN,"Audio Codec send packet failed");
             }
             av_packet_free(&pkt);
         }
     }
 
     av_frame_free(&frame);
-    dbg_str(DBG_IMPORTANT,"audio codec thread callback out");
+    dbg_str(DBG_INFO,"audio codec thread callback out");
 }
 
 static int __update_texture(Codec *codec, void *buffer)
@@ -282,7 +282,7 @@ static int __update_texture(Codec *codec, void *buffer)
         }
     }
 
-    dbg_str(DBG_IMPORTANT,"update audio texture, AUDIO frame size :%d  ",
+    dbg_str(DBG_INFO,"update audio texture, AUDIO frame size :%d  ",
             frame_stream->size(frame_stream));
     ret = frame_stream->remove_frame(frame_stream, (void **)&frame);
 
@@ -326,7 +326,7 @@ static int __update_texture(Codec *codec, void *buffer)
         }
         av_frame_free(&frame);
     } else {
-        dbg_str(DBG_WARNNING,"audio data queue is null");
+        dbg_str(DBG_WARN,"audio data queue is null");
     }
 
     return ret;

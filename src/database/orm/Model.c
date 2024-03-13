@@ -10,7 +10,6 @@
 #include <libobject/core/policy.h>
 #include <libobject/core/String.h>
 #include <libobject/core/Vector.h>
-#include <libobject/core/Number.h>
 
 static int __construct(Model *model, char *init_str)
 {

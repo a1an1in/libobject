@@ -419,7 +419,7 @@ static int __set(FF_Event *event, char *attrib, void *value)
     } else if (strcmp(attrib, "poll_event") == 0) {
         e->poll_event = value;
     } else {
-        dbg_str(OBJ_WARNNING, "event set,  \"%s\" setting is not support", attrib);
+        dbg_str(OBJ_WARN, "event set,  \"%s\" setting is not support", attrib);
     }
 
     return 0;
@@ -429,7 +429,7 @@ static void * __get(FF_Event *event, char *attrib)
 {
     if (strcmp(attrib, "") == 0){ 
     } else {
-        dbg_str(OBJ_WARNNING, "event get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(OBJ_WARN, "event get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;
@@ -575,13 +575,13 @@ static int __poll_event(__Event *event, void *window)
                               if (SDL_GetModState() & KMOD_CTRL) {
                                   component->on_key_onelineup_pressed(component, g);
                               } else{
-                                  dbg_str(DBG_IMPORTANT, "key j down");
+                                  dbg_str(DBG_INFO, "key j down");
                               }
                              break;
                          case SDLK_k:
                               if (SDL_GetModState() & KMOD_CTRL) {
                                   /*
-                                   *dbg_str(DBG_IMPORTANT, "ctrl + k");
+                                   *dbg_str(DBG_INFO, "ctrl + k");
                                    */
                                   component->on_key_onelinedown_pressed(component, g);
                               }

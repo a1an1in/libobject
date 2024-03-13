@@ -68,7 +68,7 @@ static int __set(__Timer *timer, char *attrib, void *value)
     } else if (strcmp(attrib, "reuse") == 0) {
         t->reuse = value;
     } else {
-        dbg_str(OBJ_WARNNING, "timer set,  \"%s\" setting is not support", attrib);
+        dbg_str(OBJ_WARN, "timer set,  \"%s\" setting is not support", attrib);
     }
 
     return 0;
@@ -78,7 +78,7 @@ static void * __get(__Timer *timer, char *attrib)
 {
     if (strcmp(attrib, "") == 0){ 
     } else {
-        dbg_str(OBJ_WARNNING, "timer get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(OBJ_WARN, "timer get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;

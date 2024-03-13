@@ -56,7 +56,7 @@ out_event_callback(int fd, short event_res, void *arg)
 {
     Player *player = (Player *)arg;
 
-    dbg_str(DBG_WARNNING,"out event callback");
+    dbg_str(DBG_WARN,"out event callback");
     player->out_flag = 1;
     player->extractor->out_flag = 1;
     player->video_codec->out_flag = 1;
@@ -240,7 +240,7 @@ static void *__get(Player *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"player get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARN,"player get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;
@@ -315,7 +315,7 @@ static int __open_inner(Player *player, char *url)
     int ret = 0;
     
     if (player->is_state(player,STATE_INITED)) {
-        dbg_str(DBG_WARNNING,"close input");
+        dbg_str(DBG_WARN,"close input");
         while (!player->is_state(player, STATE_STOPPED)) {
             usleep(40000);
         } 
@@ -647,7 +647,7 @@ static double __get_position(Player *player)
     AVSync *sync = player->sync;
    
     if (player->is_state(player, STATE_SEEKING)) {
-        dbg_str(DBG_WARNNING,"get position, but player is seeking");
+        dbg_str(DBG_WARN,"get position, but player is seeking");
         return player->seek_timestamp;
     }
 
@@ -795,7 +795,7 @@ static int __draw_image(void *arg)
     if (ret == 1) {
         int x, y;
         /*
-         *dbg_str(DBG_WARNNING,
+         *dbg_str(DBG_WARN,
          *        "drawing a texture, x=%d, y=%d, width=%d height=%d",
          *        rect.x, rect.y, rect.width, rect.height);
          */
@@ -1250,7 +1250,7 @@ static int __set_state(Player *player, enum player_state_e state)
                     && player->state_video_frame_queue_empty == 1
                     && player->state_extractor_eof == 0)
             {
-                dbg_str(DBG_WARNNING, "player has no data");
+                dbg_str(DBG_WARN, "player has no data");
             }
             break;
         case STATE_AUDIO_PACKET_QUEUE_FULL:
@@ -1274,7 +1274,7 @@ static int __set_state(Player *player, enum player_state_e state)
                     && player->state_video_frame_queue_empty == 1
                     && player->state_extractor_eof == 0)
             {
-                dbg_str(DBG_WARNNING, "player has no data");
+                dbg_str(DBG_WARN, "player has no data");
             }
             break;
         case STATE_VIDEO_PACKET_QUEUE_FULL:
@@ -1297,7 +1297,7 @@ static int __set_state(Player *player, enum player_state_e state)
                        player->state_video_packet_queue_empty == 1 && 
                        player->state_video_frame_queue_empty == 1 &&
                        player->state_extractor_eof == 0) {
-                dbg_str(DBG_WARNNING, "player has no data");
+                dbg_str(DBG_WARN, "player has no data");
             }
             break;
         case STATE_AUDIO_FRAME_QUEUE_FULL:
@@ -1435,12 +1435,12 @@ static int __clear_state(Player *player, enum player_state_e state)
             player->state_playing = 0;
             break;
         case STATE_STOPPING:
-            dbg_str(DBG_IMPORTANT,"clear state :%s",
+            dbg_str(DBG_INFO,"clear state :%s",
                     player->state_to_str(player, state));
             player->state_stopping = 0;
             break;
         case STATE_STOPPED:
-            dbg_str(DBG_IMPORTANT,"clear state :%s",
+            dbg_str(DBG_INFO,"clear state :%s",
                     player->state_to_str(player, state));
             player->state_stopped = 0;
             break;
@@ -1448,7 +1448,7 @@ static int __clear_state(Player *player, enum player_state_e state)
             player->state_audio_packet_queue_empty = 0;
             break;
         case STATE_AUDIO_PACKET_QUEUE_FULL:
-            dbg_str(DBG_IMPORTANT,"clear state :%s",
+            dbg_str(DBG_INFO,"clear state :%s",
                     player->state_to_str(player, state));
 
             player->state_audio_packet_queue_full = 0;
@@ -1457,7 +1457,7 @@ static int __clear_state(Player *player, enum player_state_e state)
             player->state_video_packet_queue_empty = 0;
             break;
         case STATE_VIDEO_PACKET_QUEUE_FULL:
-            dbg_str(DBG_IMPORTANT,"clear state :%s",
+            dbg_str(DBG_INFO,"clear state :%s",
                     player->state_to_str(player, state));
             player->state_video_packet_queue_full = 0;
             break;

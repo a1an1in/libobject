@@ -106,7 +106,7 @@ static int __connect_centor(Subscriber *subscriber, void *centor)
 static void __printf_map(void *key, void *element)
 {
     char **publisher  = (char **)key;
-    dbg_str(DBG_IMPORTANT, "subscriber map, key=%p", *publisher);
+    dbg_str(DBG_INFO, "subscriber map, key=%p", *publisher);
 }
 
 static int __subscribe(Subscriber *subscriber, void *publisher)

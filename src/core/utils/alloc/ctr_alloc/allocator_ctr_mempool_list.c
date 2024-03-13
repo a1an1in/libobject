@@ -104,7 +104,7 @@ void mempool_print_head_list(struct list_head *hl_head)
 
 void mempool_print_list(ctr_mempool_t *mempool_list)
 {
-    dbg_str(ALLOC_WARNNING, "mempool info, start addr:%p, depth:%d, min_depth:%d, "
+    dbg_str(ALLOC_WARN, "mempool info, start addr:%p, depth:%d, min_depth:%d, "
             "mempool_capacity=%d, list_head_addr:%p", 
             mempool_list->start, 
             mempool_list->depth, 
@@ -290,7 +290,7 @@ mempool_alloc_slab_list(allocator_t *allocator, uint32_t size)
     mempool_list->depth -= slab_list->slab_size;
 
     if (mempool_list->depth < 0) {
-        dbg_str(DBG_WARNNING, "mempool_list->depth=%d, slab_list->slab_size=%d",
+        dbg_str(DBG_WARN, "mempool_list->depth=%d, slab_list->slab_size=%d",
                 mempool_list->depth, slab_list->slab_size);
     }
 

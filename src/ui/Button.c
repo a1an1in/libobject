@@ -43,7 +43,7 @@ static int __construct(Button *button, char *init_str)
     Label *label;
     char buf[2048];
 
-	dbg_str(DBG_IMPORTANT, "button construct, button addr:%p", button);
+	dbg_str(DBG_INFO, "button construct, button addr:%p", button);
 
     gen_label_setting_str(subject->x, subject->y, subject->width, subject->height, 
                           "label", (void *)buf);
@@ -56,7 +56,7 @@ static int __construct(Button *button, char *init_str)
 
 static int __deconstrcut(Button *button)
 {
-	dbg_str(DBG_IMPORTANT, "button deconstruct, button addr:%p", button);
+	dbg_str(DBG_INFO, "button deconstruct, button addr:%p", button);
 
 	return 0;
 }

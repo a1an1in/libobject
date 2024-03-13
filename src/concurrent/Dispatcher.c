@@ -75,7 +75,7 @@ static void *__get(Dispatcher *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(EV_WARNNING, "dispatcher get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(EV_WARN, "dispatcher get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;

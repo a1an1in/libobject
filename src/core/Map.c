@@ -65,7 +65,7 @@ static void __for_each(Map *map, void (*func)(void *key, void *element))
     Iterator *cur, *end;
     void *key, *value;
 
-    dbg_str(OBJ_IMPORTANT, "Map for_each");
+    dbg_str(OBJ_INFO, "Map for_each");
 
     cur = map->begin(map);
     end = map->end(map);
@@ -83,7 +83,7 @@ static void __for_each_arg(Map *map,void (*func)(void *key, void *element, void 
     Iterator *cur, *end;
     void *key, *value;
 
-    dbg_str(OBJ_IMPORTANT, "Map for_each");
+    dbg_str(OBJ_INFO, "Map for_each");
     cur = map->begin(map);
     end = map->end(map);
 
@@ -132,7 +132,7 @@ static int __reset(Map *map)
         } else if (map->value_type == VALUE_TYPE_STRUCT_POINTER && map->value_free_callback == NULL && element != NULL) {
             allocator_mem_free(map->obj.allocator, element);
         } else if (map->value_type >= VALUE_TYPE_MAX_TYPE) {
-            dbg_str(DBG_WARNNING, "not support reset unkown pointer");
+            dbg_str(DBG_WARN, "not support reset unkown pointer");
         }
 
         element = NULL;

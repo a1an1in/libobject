@@ -120,7 +120,7 @@ static void *__get(Extractor *obj, char *attrib)
     } else if (strcmp(attrib, "data_source") == 0) {
         return obj->data_source;
     } else {
-        dbg_str(DBG_WARNNING,"extractor get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARN,"extractor get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;

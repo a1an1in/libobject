@@ -79,7 +79,7 @@ static void *__get(MediaPeriod *obj, char *attrib)
 {
     if (strcmp(attrib, "") == 0) {
     } else {
-        dbg_str(DBG_WARNNING,"media_period get, \"%s\" getting attrib is not supported",attrib);
+        dbg_str(DBG_WARN,"media_period get, \"%s\" getting attrib is not supported",attrib);
         return NULL;
     }
     return NULL;

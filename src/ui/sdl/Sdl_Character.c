@@ -72,7 +72,7 @@ static int __set(Character *character, char *attrib, void *value)
     } else if (strcmp(attrib, "load_character") == 0) {
         c->load_character = value;
     } else {
-        dbg_str(OBJ_WARNNING, "character set,  \"%s\" setting is not support", attrib);
+        dbg_str(OBJ_WARN, "character set,  \"%s\" setting is not support", attrib);
     }
 
     return 0;
@@ -82,7 +82,7 @@ static void * __get(Character *character, char *attrib)
 {
     if (strcmp(attrib, "") == 0){ 
     } else {
-        dbg_str(OBJ_WARNNING, "character get, \"%s\" getting attrib is not supported", attrib);
+        dbg_str(OBJ_WARN, "character get, \"%s\" getting attrib is not supported", attrib);
         return NULL;
     }
     return NULL;

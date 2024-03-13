@@ -62,7 +62,7 @@ static int __trustee_io(Select_Base *b, event_t *e)
     Event_Base *p = (Event_Base *)b;
 
     if (fd < 0) {
-        dbg_str(EV_WARNNING, "not add this fd =%d", fd);
+        dbg_str(EV_WARN, "not add this fd =%d", fd);
         return 0;
     }
 
@@ -115,12 +115,12 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
     res = select(nfds, &b->event_readset_out, 
                  &b->event_writeset_out, NULL, tv);
     if (res == -1) {
-        dbg_str(EV_WARNNING, "res=%d", WSAGetLastError());
+        dbg_str(EV_WARN, "res=%d", WSAGetLastError());
         if (errno == EINTR) {
         } else {
             ((Event_Base *)b)->break_flag = 1;
             perror("dispatch");
-            dbg_str(EV_WARNNING, "dispatch, erro_no:%d, nfds=%d", errno, nfds);
+            dbg_str(EV_WARN, "dispatch, erro_no:%d, nfds=%d", errno, nfds);
         }
         return (0);
     } else if (res > 0) {

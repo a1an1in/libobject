@@ -54,7 +54,7 @@ void *client(allocator_t *allocator, char *type,
     } else if (!strcmp(type,CLIENT_TYPE_INET_TCP)) {
         client = OBJECT_NEW(allocator, Inet_Tcp_Client, NULL);
     } else {
-        dbg_str(NET_WARNNING,"client error type");
+        dbg_str(NET_WARN,"client error type");
         return NULL;
     }
 
@@ -107,7 +107,7 @@ void *server(allocator_t *allocator, char *type,
             EXEC(server->bind(server, host, service)); 
             EXEC(server->trustee(server, (void *)work_callback, opaque));
         } else {
-            dbg_str(NET_WARNNING,"server type error");
+            dbg_str(NET_WARN,"server type error");
             return NULL;
         }
     } CATCH (ret) {

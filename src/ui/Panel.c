@@ -37,7 +37,7 @@
 
 static int __construct(Panel *panel, char *init_str)
 {
-    dbg_str(DBG_IMPORTANT, "panel construct, panel addr:%p", panel);
+    dbg_str(DBG_INFO, "panel construct, panel addr:%p", panel);
 
 
     return 0;
@@ -45,7 +45,7 @@ static int __construct(Panel *panel, char *init_str)
 
 static int __deconstrcut(Panel *panel)
 {
-    dbg_str(DBG_IMPORTANT, "panel deconstruct, panel addr:%p", panel);
+    dbg_str(DBG_INFO, "panel deconstruct, panel addr:%p", panel);
 
     return 0;
 }

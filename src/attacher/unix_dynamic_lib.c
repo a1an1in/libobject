@@ -228,7 +228,7 @@ int dl_parse_dynamic_table(pid_t pid, Interval_Tree *tree)
             p2[3] = '\0';
             module_name = allocator_mem_zalloc(allocator, strlen(p1 + 1) + 1);
             memcpy(module_name, p1 + 1, strlen(p1 + 1));
-            printf("dl_parse_dynamic_table, addr1:%p, addr2:%p, moudle name:%s\n", addr[0], addr[1], module_name);
+            dbg_str(DBG_INFO, "dl_parse_dynamic_table, addr1:%p, addr2:%p, moudle name:%s", addr[0], addr[1], module_name);
             
             node = allocator_mem_zalloc(allocator, sizeof(interval_tree_node_t));
             node->value = module_name;

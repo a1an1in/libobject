@@ -70,7 +70,7 @@ static int __init(allocator_t *allocator)
     }
     allocator->alloc_count = 0;
 
-    dbg_str(ALLOC_IMPORTANT, "slab_num=%d, data_size=%d, cap=%d", 
+    dbg_str(ALLOC_INFO, "slab_num=%d, data_size=%d, cap=%d", 
             ctr_alloc->slab_array_max_num, 
             ctr_alloc->data_min_size, 
             ctr_alloc->mempool_capacity);
@@ -126,7 +126,7 @@ static void *alloc_huge_slab(allocator_t *allocator, uint32_t size)
     if (slab_list == NULL) {
         return NULL;
     }
-    dbg_str(ALLOC_WARNNING, "alloc_huge_slab, size:%d, slab_list addr:%p", size, slab_list);
+    dbg_str(ALLOC_WARN, "alloc_huge_slab, size:%d, slab_list addr:%p", size, slab_list);
 
     slab_list->data_size = size;
     slab_list->size      = size;
@@ -168,7 +168,7 @@ static void *__alloc(allocator_t *allocator, uint32_t size)
     index = slab_get_slab_index(allocator, size);
 
     if (size > ctr_alloc->mempool_capacity || index < 0) {
-        dbg_str(ALLOC_IMPORTANT,
+        dbg_str(ALLOC_INFO,
                 "ctr alloc size = %d, which is too huge, using sys malloc",
                 size);
         mem = alloc_huge_slab(allocator, size);
@@ -176,7 +176,7 @@ static void *__alloc(allocator_t *allocator, uint32_t size)
         mem = alloc_normal_slab(allocator, size);
     }
 
-    dbg_str(ALLOC_IMPORTANT, "ctr_alloc allocator mem, request size=%d, mem addr=%p, "
+    dbg_str(ALLOC_DETAIL, "ctr_alloc allocator mem, request size=%d, mem addr=%p, "
             "allocator using count=%d", size, mem, allocator->alloc_count);
 
     return mem;
@@ -235,7 +235,7 @@ static void __free(allocator_t *allocator, void *addr)
     }
     slab_list = container_of(addr, ctr_slab_t, data);
     if (slab_list->stat_flag == 0) {
-        dbg_str(ALLOC_WARNNING, "this addr has been released, tag:%s",
+        dbg_str(ALLOC_WARN, "this addr has been released, tag:%s",
                 slab_list->tag);
         return;
     }
@@ -252,7 +252,7 @@ static void __free(allocator_t *allocator, void *addr)
         free_normal_slab(allocator, slab_list);
     }
 
-    dbg_str(ALLOC_IMPORTANT, 
+    dbg_str(ALLOC_INFO, 
             "free ctr mem, free add=%p, allocator using count=%d", 
             addr, allocator->alloc_count);
 
