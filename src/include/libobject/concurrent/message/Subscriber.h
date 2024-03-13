@@ -5,7 +5,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
-#include <libobject/message/message.h>
+#include <libobject/concurrent/message/message.h>
 
 typedef struct subscriber_s Subscriber;
 

@@ -33,9 +33,9 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/message/Publisher.h> 
-#include <libobject/message/Centor.h>
-#include <libobject/message/Subscriber.h>
+#include <libobject/concurrent/message/Publisher.h> 
+#include <libobject/concurrent/message/Centor.h>
+#include <libobject/concurrent/message/Subscriber.h>
 
 static int __construct(Publisher *publisher, char *init_str)
 {
@@ -138,9 +138,9 @@ static int test_message_publisher()
 
     usleep(5 * 1000 * 1000);
     
-    object_destroy(centor);
     object_destroy(subscriber);
     object_destroy(publisher);
+    object_destroy(centor);
 
     return 1;
 }

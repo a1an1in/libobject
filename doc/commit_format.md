@@ -1,7 +1,8 @@
-[update:log] 修改log等级.
+[update:concurrent] 移动message到concurrent.
 
 Description:
-修改一些模块日志等级， 使测试日志更清晰。
+因为message是基于concurrent的io_worker实现的。可以理解成concurrent
+模块提供的一个简单的进程间通信机制。
 
 Major Changes:
-1. 修改一下模块日志等级，保证mockery 测试日志更清晰。
+1. 移动message目录。

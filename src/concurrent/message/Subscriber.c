@@ -34,9 +34,9 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/message/Subscriber.h> 
-#include <libobject/message/Centor.h>
-#include <libobject/message/message.h>
+#include <libobject/concurrent/message/Subscriber.h> 
+#include <libobject/concurrent/message/Centor.h>
+#include <libobject/concurrent/message/message.h>
 #include <libobject/core/Rbtree_Map.h>
 
 static void __message_handler(void *arg)

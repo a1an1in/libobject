@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Obj.h>
-#include <libobject/message/message.h>
-#include <libobject/message/Centor.h>
+#include <libobject/concurrent/message/message.h>
+#include <libobject/concurrent/message/Centor.h>
 
 typedef struct msg_publisher_s Publisher;
 

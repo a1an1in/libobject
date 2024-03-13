@@ -33,8 +33,8 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/message/message.h> 
-#include <libobject/message/Publisher.h>
+#include <libobject/concurrent/message/message.h> 
+#include <libobject/concurrent/message/Publisher.h>
 
 message_t *message_alloc(allocator_t *allocator)
 {

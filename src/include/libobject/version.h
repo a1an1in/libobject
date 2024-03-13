@@ -1,1 +1,1 @@
-#define PROJECT_VERSION "v2.12.1.78"
+#define PROJECT_VERSION "v2.12.1.87"
