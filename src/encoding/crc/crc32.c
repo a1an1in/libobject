@@ -121,7 +121,7 @@ test_crc32(TEST_ENTRY *entry, void *argc, void *argv)
     result = (unsigned int)crc32(0, "123456789", 9);
     ret = assert_equal(&result, &expect, sizeof(result));
     if (ret == 1) {
-        dbg_str(DBG_SUC, "sucess"); 
+        dbg_str(DBG_INFO, "sucess"); 
     } else {
         dbg_str(DBG_ERROR, "expect=%x ret=%x", expect, result); 
     }
@@ -138,7 +138,7 @@ static int teset_file_compute_crc32()
 
     TRY {
         EXEC(file_compute_crc32(file_name, &crc));
-        dbg_str(DBG_VIP, "file crc32:%x, expect:%x", crc, expect_crc);
+        dbg_str(DBG_INFO, "file crc32:%x, expect:%x", crc, expect_crc);
         THROW_IF(crc != expect_crc, -1);
     } CATCH (ret) {}
 

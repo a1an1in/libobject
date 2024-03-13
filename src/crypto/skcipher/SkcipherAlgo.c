@@ -227,7 +227,7 @@ test_aes(TEST_ENTRY *entry, void *argc, void *argv)
 	
 	uint8_t out[16] = {0}; // 128
 
-    dbg_str(DBG_SUC, "test_aes in");
+    dbg_str(DBG_INFO, "test_aes in");
     algo = object_new(allocator, "Aes", NULL);
     algo->set_key(algo, key, sizeof(key));
 

@@ -153,7 +153,7 @@ static int test_string_get_substring_case0()
         EXEC(string->get_substring(string, regex, 0, &start, &len));
         strncpy(buffer, &string->value[start], len);
         dbg_str(DBG_DETAIL, "start:%d", start);
-        dbg_str(DBG_VIP, "sub:%s", buffer);
+        dbg_str(DBG_INFO, "sub:%s", buffer);
         THROW_IF(start == -1, -1);
         THROW_IF(strcmp(buffer, "snipaste_20210907_14-25-03.png") != 0, -1);
     } CATCH (ret) {} FINALLY {
@@ -176,7 +176,7 @@ static int test_string_get_substring_case1()
         string->assign(string, t);
         EXEC(string->get_substring(string, regex, 0, &start, &len));
         string->value[start + len] = '\0';
-        dbg_str(DBG_VIP, "sub:%s", &string->value[start]);
+        dbg_str(DBG_INFO, "sub:%s", &string->value[start]);
         THROW_IF(start == -1, -1);
         THROW_IF(strcmp(&string->value[start], "alan") != 0, -1);
     } CATCH (ret) {} FINALLY {

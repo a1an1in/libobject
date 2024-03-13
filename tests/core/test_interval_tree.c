@@ -65,7 +65,7 @@ static int test_interval_tree_search_key(TEST_ENTRY *entry)
         ret = tree->search(tree, 23, (void **)&t);
         THROW_IF(ret != 1, -1);
         THROW_IF(t->start != t2.start || t->end != t2.end, -1);
-        dbg_str(DBG_VIP, "found key, start:%lx, end:%lx", t->start, t->end);
+        dbg_str(DBG_INFO, "found key, start:%lx, end:%lx", t->start, t->end);
     } CATCH (ret) { } FINALLY { 
         object_destroy(tree);
     }
@@ -76,7 +76,7 @@ REGISTER_TEST_FUNC(test_interval_tree_search_key);
 
 static int tree_node_free_callback(allocator_t *allocator, void *value)
 {
-    dbg_str(DBG_VIP, "tree_node_free_callback");
+    dbg_str(DBG_INFO, "tree_node_free_callback");
     interval_tree_node_t *t = (interval_tree_node_t *)value;
     allocator_mem_free(allocator, t->value);
     allocator_mem_free(allocator, t);

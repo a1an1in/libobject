@@ -39,7 +39,7 @@ static int test_zip_regex(TEST_ENTRY *entry, int argc, void **argv)
     int ret, count;
 
     TRY {
-        dbg_str(DBG_SUC, "test_zip_regex");
+        dbg_str(DBG_INFO, "test_zip_regex");
         str = object_new(allocator, "String", NULL);
         str->assign(str, test_str);
         count = str->find(str, "subdir(.*)", 0, -1);
@@ -66,7 +66,7 @@ static int test_zip_list(TEST_ENTRY *entry, int argc, void **argv)
     char *zip_file = "./tests/res/zip/test_zip.zip";
 
     TRY {
-        dbg_str(DBG_SUC, "test extract zip");
+        dbg_str(DBG_INFO, "test extract zip");
         archive = object_new(allocator, "Zip", NULL);
         archive->set_extracting_path(archive, "./tests/output/zip/");
         archive->open(archive, zip_file, "r+");
@@ -96,7 +96,7 @@ static int test_zip_extract_deflate_file(TEST_ENTRY *entry, int argc, void **arg
     char *reference_file2 = "./tests/res/zip/test_zip_extract2.txt";
 
     TRY {
-        dbg_str(DBG_SUC, "test extract zip");
+        dbg_str(DBG_INFO, "test extract zip");
         // zip extract file only need file_name,  so we don't have to search 
         // archive_file_info
         info.file_name = file;
@@ -130,7 +130,7 @@ static int test_zip_extract_store_file(TEST_ENTRY *entry, int argc, void **argv)
     char *reference_file2 = "./tests/res/zip/test_zip_extract.txt";
 
     TRY {
-        dbg_str(DBG_SUC, "test extract zip");
+        dbg_str(DBG_INFO, "test extract zip");
         info.file_name = file;
 
         archive = object_new(allocator, "Zip", NULL);
@@ -161,7 +161,7 @@ static int test_zip_extract_files(TEST_ENTRY *entry, int argc, void **argv)
     char *tar_name = "./tests/res/zip/test_zip.zip";
 
     TRY {
-        dbg_str(DBG_SUC, "test add files to zip");
+        dbg_str(DBG_INFO, "test add files to zip");
 
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
@@ -193,7 +193,7 @@ static int test_zip_extract_all(TEST_ENTRY *entry, int argc, void **argv)
     char *tar_name = "./tests/res/zip/test_zip.zip";
 
     TRY {
-        dbg_str(DBG_SUC, "test add files to zip");
+        dbg_str(DBG_INFO, "test add files to zip");
 
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
@@ -224,7 +224,7 @@ static int test_zip_extract_with_regex(TEST_ENTRY *entry, int argc, void **argv)
     char *tar_name = "./tests/res/zip/test_zip.zip";
 
     TRY {
-        dbg_str(DBG_SUC, "test add files to zip");
+        dbg_str(DBG_INFO, "test add files to zip");
 
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
@@ -256,7 +256,7 @@ static int test_zip_add_1_file(TEST_ENTRY *entry, int argc, void **argv)
     char *tar_name = "./tests/output/zip/test_zip.zip";
 
     TRY {
-        dbg_str(DBG_SUC, "test add files to zip");
+        dbg_str(DBG_INFO, "test add files to zip");
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
         archive->open(archive, tar_name, "w+");
@@ -284,7 +284,7 @@ static int test_zip_add_2_files(TEST_ENTRY *entry, int argc, void **argv)
     char *tar_name = "./tests/output/zip/test_zip.zip";
 
     TRY {
-        dbg_str(DBG_SUC, "test add files to zip");
+        dbg_str(DBG_INFO, "test add files to zip");
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
         EXEC(archive->open(archive, tar_name, "w+"));
@@ -314,7 +314,7 @@ static int test_zip_add_files(TEST_ENTRY *entry, int argc, void **argv)
     char *tar_name = "./tests/output/zip/test_zip.zip";
 
     TRY {
-        dbg_str(DBG_SUC, "test add files to zip");
+        dbg_str(DBG_INFO, "test add files to zip");
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
         archive->open(archive, tar_name, "w+");
@@ -344,7 +344,7 @@ static int test_zip_add_all(TEST_ENTRY *entry, int argc, void **argv)
     char *tar_name = "./tests/output/zip/test_zip.zip";
 
     TRY {
-        dbg_str(DBG_SUC, "test add files to zip");
+        dbg_str(DBG_INFO, "test add files to zip");
         fs_mkdir("./tests/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
         EXEC(archive->open(archive, tar_name, "w+"));

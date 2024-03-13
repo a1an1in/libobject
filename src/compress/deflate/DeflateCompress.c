@@ -89,7 +89,7 @@ static int __uncompress_buf(DeflateCompress *c, char *in, int in_len, char *out,
 
  static int __compress(DeflateCompress *c, File *in, long in_len, File *out, long *out_len)
  {
-    dbg_str(DBG_SUC, "zip compress, in len:%d", in_len);
+    dbg_str(DBG_INFO, "zip compress, in len:%d", in_len);
     return TRY_EXEC(deflate_compress(in->f, in_len, out->f, out_len));
  }
 

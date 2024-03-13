@@ -47,7 +47,7 @@ static int __compress(Tgz *tgz, char *file_in, char **file_out)
 
         file_name = tgz->file_name;
         file_name->format(file_name, 1024, fmt, STR2A(archive->extracting_path), name);
-        dbg_str(DBG_VIP, "tgz compress file:%s, file_out:%s", file_in, STR2A(file_name));
+        dbg_str(DBG_INFO, "tgz compress file:%s, file_out:%s", file_in, STR2A(file_name));
         *file_out = STR2A(file_name);
 
         c = tgz->c;
@@ -82,7 +82,7 @@ static int __uncompress(Tgz *tgz, char *file_in, char **file_out)
 
         file_name = tgz->file_name;
         file_name->format(file_name, 1024, fmt, STR2A(archive->extracting_path), name);
-        dbg_str(DBG_VIP, "tgz uncompress file:%s, file_out:%s", file_in, STR2A(file_name));
+        dbg_str(DBG_INFO, "tgz uncompress file:%s, file_out:%s", file_in, STR2A(file_name));
         *file_out = STR2A(file_name);
 
         c = tgz->c;

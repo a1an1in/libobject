@@ -191,7 +191,7 @@ test_crc64(TEST_ENTRY *entry, void *argc, void *argv)
     ret = (unsigned long long) crc64(0,(unsigned char*)"123456789",9);
     ret = assert_equal(&ret, &expect, sizeof(ret));
     if (ret == 1) {
-        dbg_str(DBG_SUC, "sucess"); 
+        dbg_str(DBG_INFO, "sucess"); 
     }
 
     return ret;

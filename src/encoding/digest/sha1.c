@@ -294,7 +294,7 @@ test_sha1(TEST_ENTRY *entry, void *argc, void *argv)
 
     ret = assert_equal(result_hex, expect, strlen(expect));
     if (ret == 1) {
-        dbg_str(DBG_SUC, "sucess"); 
+        dbg_str(DBG_INFO, "sucess"); 
     } else {
         dbg_str(DBG_ERROR, "expect:%s result:%s", expect, result_hex);
     }

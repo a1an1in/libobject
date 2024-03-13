@@ -120,7 +120,7 @@ static int test_fs_get_mtime(TEST_ENTRY *entry)
     TRY {
         ret = fs_get_mtime("./res/TIMES.TTF", time, 1024 );
         THROW_IF(ret < 0, -1);
-        dbg_str(DBG_SUC, "fs_get_mtime, time:%s", time);
+        dbg_str(DBG_INFO, "fs_get_mtime, time:%s", time);
     } CATCH (ret) {}
 
     return ret;
@@ -136,7 +136,7 @@ static int test_fs_get_ctime(TEST_ENTRY *entry)
     TRY {
         ret = fs_get_ctime("./res/TIMES.TTF", time, 1024 );
         THROW_IF(ret < 0, -1);
-        dbg_str(DBG_SUC, "fs_get_ctime, time:%s", time);
+        dbg_str(DBG_INFO, "fs_get_ctime, time:%s", time);
     } CATCH (ret) { }
 
     return ret;
@@ -152,7 +152,7 @@ static int test_fs_get_stat(TEST_ENTRY *entry)
     TRY {
         EXEC(fs_get_stat("./res/TIMES.TTF", &stat));
         THROW_IF(ret < 0, -1);
-        dbg_str(DBG_VIP, "fs_get_stat, modify_time:%d", stat.st_mtime);
+        dbg_str(DBG_INFO, "fs_get_stat, modify_time:%d", stat.st_mtime);
     } CATCH (ret) { }
 
     return ret;
@@ -168,7 +168,7 @@ static int test_fs_get_size(TEST_ENTRY *entry)
         THROW_IF(ret < 0, -1);
         THROW_IF(ret != 1110872, -1);
 
-        dbg_str(DBG_SUC, "file size:%d", ret);
+        dbg_str(DBG_INFO, "file size:%d", ret);
     } CATCH (ret) {}
 
     return ret;
@@ -211,7 +211,7 @@ static int test_fs_get_path_and_name(TEST_ENTRY *entry)
 
     TRY {
         EXEC(fs_get_path_and_name(name, &dir, &current_name));
-        dbg_str(DBG_VIP, "fs_get_path_and_name %s :%s ", dir, current_name);
+        dbg_str(DBG_INFO, "fs_get_path_and_name %s :%s ", dir, current_name);
         THROW_IF(strcmp(dir, "./tests/res/aa/bb") != 0, -1);
         THROW_IF(strcmp(current_name, "cc") != 0, -1);
     } CATCH (ret) {}
@@ -229,7 +229,7 @@ static int test_fs_get_relative_path(TEST_ENTRY *entry)
 
     TRY {
         EXEC(fs_get_relative_path(name, root, &relative_path));
-        dbg_str(DBG_VIP, "fs_get_relative_path %s :%s", name, relative_path);
+        dbg_str(DBG_INFO, "fs_get_relative_path %s :%s", name, relative_path);
         THROW_IF(strcmp(relative_path, "aa/bb/cc") != 0, -1);
     } CATCH (ret) {}
 

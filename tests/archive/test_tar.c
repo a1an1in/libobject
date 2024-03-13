@@ -19,7 +19,7 @@ static int test_tar_list(TEST_ENTRY *entry, int argc, void **argv)
 	char *zip_file = "./tests/res/tar/test_extract.tar";
 
     TRY {
-        dbg_str(DBG_SUC, "test_tar_list");
+        dbg_str(DBG_INFO, "test_tar_list");
         fs_mkdir("./tests/output/tar/", 0777);
         archive = object_new(allocator, "Tar", NULL);
         archive->set_extracting_path(archive, "./tests/output/tar/");
@@ -49,7 +49,7 @@ static int test_tar_extract_file(TEST_ENTRY *entry, int argc, void **argv)
     char *ref_file = "./tests/res/tar/test_extract.txt";
 
     TRY {
-        dbg_str(DBG_SUC, "test_tar_extract_file");
+        dbg_str(DBG_INFO, "test_tar_extract_file");
         fs_mkdir("./tests/output/tar/", 0777);
         archive = object_new(allocator, "Tar", NULL);
 		EXEC(archive->open(archive, archive_file, "r+"));
@@ -83,7 +83,7 @@ static int test_tar_extract_all(TEST_ENTRY *entry, int argc, void **argv)
     char *ref_file = "./tests/res/tar/test_extract.txt";
 
     TRY {
-        dbg_str(DBG_SUC, "test_tar_extract_all");
+        dbg_str(DBG_INFO, "test_tar_extract_all");
 
         fs_mkdir("./tests/output/tar/", 0777);
         archive = object_new(allocator, "Tar", NULL);
@@ -112,7 +112,7 @@ static int test_tar_add_file(TEST_ENTRY *entry, int argc, void **argv)
     char *tar_name = "./tests/output/tar/test_create.tar";
 
     TRY {
-        dbg_str(DBG_SUC, "test_tar_add_file");
+        dbg_str(DBG_INFO, "test_tar_add_file");
 
         fs_mkdir("./tests/output/tar/", 0777);
         archive = object_new(allocator, "Tar", NULL);
@@ -145,7 +145,7 @@ static int test_tar_add_all(TEST_ENTRY *entry, int argc, void **argv)
     char *tar_name = "./tests/output/tar/test_add.tar";
 
     TRY {
-        dbg_str(DBG_SUC, "test_tar_add_all");
+        dbg_str(DBG_INFO, "test_tar_add_all");
         fs_mkdir("./tests/output/tar", 0777);
         archive = object_new(allocator, "Tar", NULL);
 		EXEC(archive->open(archive, tar_name, "w+"));

@@ -85,7 +85,6 @@ static int test_array_stack_pop(TEST_ENTRY *entry)
         expect_value = 6;
         stack->pop(stack, (void **)&p);
         THROW_IF((int)p != expect_value, -1);
-        dbg_str(DBG_VIP, "%x:%x", (int)p, expect_value);
 
         expect_value = 5;
         stack->pop(stack, (void **)&p);

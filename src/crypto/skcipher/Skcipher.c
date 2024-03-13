@@ -115,7 +115,7 @@ test_skcipher_ecb_aes(TEST_ENTRY *entry, void *argc, void *argv)
     int out_len = 64, out_base64_len = 512;
 
     TRY {
-        dbg_str(DBG_SUC, "test_skciphter_ecb_aes in");
+        dbg_str(DBG_INFO, "test_skciphter_ecb_aes in");
         sk = object_new(allocator, "Skcipher", NULL);
 
         EXEC(sk->set_algo(sk, "Ecb(Aes)"));
@@ -159,7 +159,7 @@ test_skcipher_cbc_aes(TEST_ENTRY *entry, void *argc, void *argv)
     char *iv = "1234567890123456";
 
     TRY {
-        dbg_str(DBG_SUC, "test_skciphter_cbc_aes in");
+        dbg_str(DBG_INFO, "test_skciphter_cbc_aes in");
         sk = object_new(allocator, "Skcipher", NULL);
 
         EXEC(sk->set_algo(sk, "Cbc(Aes)"));

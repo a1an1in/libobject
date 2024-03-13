@@ -16,7 +16,7 @@ static int test_deflate_compress_file(TEST_ENTRY *entry, int argc, void **argv)
                            0x27, 0x05, 0x00};
 
     TRY {
-        dbg_str(DBG_SUC, "test_deflate_compress_file start ...");
+        dbg_str(DBG_INFO, "test_deflate_compress_file start ...");
         in_file = object_new(allocator, "File", NULL);
         out_file = object_new(allocator, "File", NULL);
         in_file->open(in_file, src_file, "r+");
@@ -28,9 +28,9 @@ static int test_deflate_compress_file(TEST_ENTRY *entry, int argc, void **argv)
         EXEC(c->compress(c, in_file, 200, out_file, &out_len));
         out_file->seek(out_file, 0, SEEK_SET);
         out_file->read(out_file, (uint8_t *)buf, out_len);
-        dbg_str(DBG_VIP, "out_len:%d", out_len);
-        dbg_buf(DBG_VIP, "expect out:", expect_out, sizeof(expect_out));
-        dbg_buf(DBG_VIP, "compressed:", buf, sizeof(expect_out));
+        dbg_str(DBG_INFO, "out_len:%d", out_len);
+        dbg_buf(DBG_INFO, "expect out:", expect_out, sizeof(expect_out));
+        dbg_buf(DBG_INFO, "compressed:", buf, sizeof(expect_out));
         THROW_IF(strcmp(expect_out, buf) != 0, -1);
 
     } CATCH (ret) { } FINALLY {
@@ -57,7 +57,7 @@ static int test_deflate_uncompress_file(TEST_ENTRY *entry, int argc, void **argv
                                  "hello world, hello world2";
     
     TRY {
-        dbg_str(DBG_SUC, "test_deflate_uncompress_file start ...");
+        dbg_str(DBG_INFO, "test_deflate_uncompress_file start ...");
         in_file = object_new(allocator, "File", NULL);
         out_file = object_new(allocator, "File", NULL);
         in_file->open(in_file, src_file, "r+");
@@ -69,9 +69,9 @@ static int test_deflate_uncompress_file(TEST_ENTRY *entry, int argc, void **argv
 
         out_file->seek(out_file, 0, SEEK_SET);
         out_file->read(out_file, (uint8_t *)buf, out_len);
-        dbg_str(DBG_VIP, "out_len:%d", out_len);
-        dbg_str(DBG_VIP, "expect plaintext:%s", expect_plaintext);
-        dbg_str(DBG_VIP, "uncompressed plaintext:%s", buf);
+        dbg_str(DBG_INFO, "out_len:%d", out_len);
+        dbg_str(DBG_INFO, "expect plaintext:%s", expect_plaintext);
+        dbg_str(DBG_INFO, "uncompressed plaintext:%s", buf);
         THROW_IF(strcmp(expect_plaintext, buf) != 0, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(c);
@@ -102,9 +102,9 @@ static int test_deflate_uncompress_buf(TEST_ENTRY *entry)
         c = object_new(allocator, "DeflateCompress", NULL);
         THROW_IF(c == NULL, -1);
         // EXEC(c->compress_buf(c, plaintext, strlen(plaintext), compress_out, &compress_out_len));
-        // dbg_str(DBG_VIP, "in len:%d sizeof(uncompress_out):%d", compress_out_len, uncompress_out_len);
+        // dbg_str(DBG_INFO, "in len:%d sizeof(uncompress_out):%d", compress_out_len, uncompress_out_len);
         EXEC(c->uncompress_buf(c, compress_out, 25, uncompress_out, &uncompress_out_len));
-        dbg_str(DBG_VIP, "uncompress_out:%s", uncompress_out);
+        dbg_str(DBG_INFO, "uncompress_out:%s", uncompress_out);
         THROW_IF(memcmp(plaintext, uncompress_out, strlen(plaintext)) != 0, -1);
     } CATCH(ret) { } FINALLY {
         object_destroy(c);

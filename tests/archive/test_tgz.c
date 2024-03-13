@@ -19,7 +19,7 @@ static int test_tgz_extract(TEST_ENTRY *entry, int argc, void **argv)
     char *tar_file_path;
 
     TRY {
-        dbg_str(DBG_SUC, "test_tgz");
+        dbg_str(DBG_INFO, "test_tgz");
 
         fs_mkdir("./tests/output/tgz/", 0777);
         archive = object_new(allocator, "Tgz", NULL);
@@ -50,7 +50,7 @@ static int test_tgz_add(TEST_ENTRY *entry, int argc, void **argv)
     char *tgz_file;
     
     TRY {
-        dbg_str(DBG_SUC, "test_tar");
+        dbg_str(DBG_INFO, "test_tar");
 
         fs_mkdir("./tests/output/tgz/", 0777);
         archive = object_new(allocator, "Tgz", NULL);

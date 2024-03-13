@@ -12,7 +12,7 @@ static int test_gz_compress_file(TEST_ENTRY *entry, int argc, void **argv)
     char *reference_file = "./tests/res/gz/test_gzip.gz";
 
     TRY {
-        dbg_str(DBG_SUC, "test_gzip start ...");
+        dbg_str(DBG_INFO, "test_gzip start ...");
 
         fs_mkdir("./tests/output/gz", 0777);
         c = object_new(allocator, "GZCompress", NULL);
@@ -41,7 +41,7 @@ static int test_gz_uncompress_file(TEST_ENTRY *entry, int argc, void **argv)
     char *reference_file = "./tests/res/gz/test_gzip.txt";
 
     TRY {
-        dbg_str(DBG_SUC, "test_gzip start ...");
+        dbg_str(DBG_INFO, "test_gzip start ...");
 
         fs_mkdir("./tests/output/gz", 0777);
         c = object_new(allocator, "GZCompress", NULL);

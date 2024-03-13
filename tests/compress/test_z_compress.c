@@ -17,7 +17,7 @@ static int test_z_compress_buf(TEST_ENTRY *entry)
         c = object_new(allocator, "ZCompress", NULL);
         THROW_IF(c == NULL, -1);
         EXEC(c->compress_buf(c, plaintext, strlen(plaintext), compress_out, &compress_out_len));
-        dbg_str(DBG_VIP, "in len:%d sizeof(uncompress_out):%d", compress_out_len, uncompress_out_len);
+        dbg_str(DBG_INFO, "in len:%d sizeof(uncompress_out):%d", compress_out_len, uncompress_out_len);
         EXEC(c->uncompress_buf(c, compress_out, compress_out_len, uncompress_out, &uncompress_out_len));
         THROW_IF(strlen(plaintext) != uncompress_out_len, -1);
         THROW_IF(memcmp(plaintext, uncompress_out, strlen(plaintext)) != 0, -1);

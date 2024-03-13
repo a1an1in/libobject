@@ -27,7 +27,7 @@ static int __deconstruct(Digest_HmacSha1 *digest)
 
 static int __init(Digest_HmacSha1 *digest)
 {
-    dbg_str(DBG_SUC, "Digest_HmacSha1 not implement init()");
+    dbg_str(DBG_INFO, "Digest_HmacSha1 not implement init()");
     return -1;
 }
 
@@ -77,7 +77,7 @@ test_hmac_sha1_v1(TEST_ENTRY *entry, void *argc, void *argv)
     int i, ret;
     Digest *digest;
 
-    dbg_str(DBG_SUC, "Digest_HmacSha1 in");
+    dbg_str(DBG_INFO, "Digest_HmacSha1 in");
     digest = object_new(allocator, "Openssl::Digest_HmacSha1", NULL);
     digest->init_with_key(digest, key, strlen(key));
 #if 0
@@ -94,7 +94,7 @@ test_hmac_sha1_v1(TEST_ENTRY *entry, void *argc, void *argv)
 
     ret = assert_equal(result_hex, expect, strlen(expect));
     if (ret == 1) {
-        dbg_str(DBG_SUC, "sucess, expect:%s result:%s", expect, result_hex);
+        dbg_str(DBG_INFO, "sucess, expect:%s result:%s", expect, result_hex);
     } else {
         dbg_str(DBG_ERROR, "expect:%s result:%s", expect, result_hex);
     }

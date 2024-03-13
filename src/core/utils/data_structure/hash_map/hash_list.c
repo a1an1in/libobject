@@ -467,7 +467,7 @@ int test_hash_map_search_default(TEST_ENTRY *entry)
     ret = hash_map_search(map, key6, &it);
     if (ret == 1) {
         t = hash_map_pos_get_pointer(&it);
-        dbg_str(DBG_SUC,"t->a=%d t->b=%d", t->a, t->b);
+        dbg_str(DBG_INFO,"t->a=%d t->b=%d", t->a, t->b);
         ret = assert_equal(t, &t2, sizeof(void *));
     } else if (ret == 0){
         goto end;
@@ -519,7 +519,7 @@ int test_hash_map_search_string_key(TEST_ENTRY *entry)
         dbg_str(DBG_DETAIL,"search node key = 22");
         hash_map_search(map, (void *)"22",&it);
         t = hash_map_pos_get_pointer(&it);
-        dbg_str(DBG_SUC,"t->a=%d t->b=%d", t->a, t->b);
+        dbg_str(DBG_INFO,"t->a=%d t->b=%d", t->a, t->b);
         THROW_IF(t != &t2, -1);
 
         ret = hash_map_search(map, (void *)"223",&it);
