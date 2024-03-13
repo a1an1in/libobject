@@ -9,9 +9,12 @@
 #include <libobject/concurrent/Producer.h>
 #include <libobject/concurrent/worker_api.h>
 
+static int peroid_timer_counter;
+
 static void test_work_callback(void *task)
 {
-    dbg_str(DBG_SUC, "test_work_callback");
+    peroid_timer_counter++;
+    dbg_str(DBG_INFO, "test_work_callback, peroid_timer_counter:%d", peroid_timer_counter);
 }
 
 int test_peroid_timer_worker(TEST_ENTRY *entry)
@@ -19,23 +22,27 @@ int test_peroid_timer_worker(TEST_ENTRY *entry)
     allocator_t *allocator = allocator_get_default_instance();
     Worker *worker;
     struct timeval ev_tv;
+    int ret;
 
-    sleep(1);
+    TRY {
+        sleep(1);
 
-    gettimeofday(&lasttime, NULL);
-    ev_tv.tv_sec  = 2;
-    ev_tv.tv_usec = 0;
+        gettimeofday(&lasttime, NULL);
+        ev_tv.tv_sec  = 2;
+        ev_tv.tv_usec = 0;
 
-    dbg_str(DBG_SUC, "opaque addr:%p", &ev_tv);
-    worker = timer_worker(allocator, EV_READ | EV_PERSIST, &ev_tv, test_work_callback, &ev_tv);
+        dbg_str(DBG_INFO, "opaque addr:%p", &ev_tv);
+        worker = timer_worker(allocator, EV_READ | EV_PERSIST, &ev_tv, test_work_callback, &ev_tv);
 
-    sleep(10);
-    worker_destroy(worker);
-    sleep(5);
+        sleep(10);
+        THROW_IF(peroid_timer_counter != 4, -1);
+    } CATCH (ret) {} FINALLY {
+        worker_destroy(worker);
+    }
 
-    return 1;
+    return ret;
 }
-REGISTER_TEST_CMD(test_peroid_timer_worker);
+REGISTER_TEST_FUNC(test_peroid_timer_worker);
 
 
 #if (!defined(WINDOWS_USER_MODE))

@@ -21,8 +21,7 @@ static int test_akcipher_dsa(TEST_ENTRY *entry)
         EXEC(cipher->decrypt(cipher, (akcipher_key_type_e)key, compress_out, compress_out_len, uncompress_out, &uncompress_out_len));
         THROW_IF(strlen(plaintext) != uncompress_out_len, -1);
         THROW_IF(memcmp(plaintext, uncompress_out, strlen(plaintext)) != 0, -1);
-    } CATCH(ret) {
-    } FINALLY {
+    } CATCH(ret) { } FINALLY {
         object_destroy(cipher);
     };
 

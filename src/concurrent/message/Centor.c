@@ -38,9 +38,13 @@
 #include <libobject/concurrent/message/message.h> 
 #include <libobject/concurrent/message/Subscriber.h>
 #include <libobject/concurrent/message/Publisher.h>
+#include <libobject/concurrent/worker_api.h>
 #include <libobject/core/Linked_Queue.h>
 #include <libobject/core/Rbtree_Map.h>
 #include <libobject/config.h>
+
+/* message 是基于concurrent 实现的，所以跟concurrent的使用范围一样，
+ * 只能用于进程中用作模块间通信*/
 
 static void
 message_centor_ev_callback(int fd, short event, void *arg)
@@ -142,13 +146,14 @@ static int __construct(Centor *centor, char *init_str)
 
     centor->message_queue  = object_new(allocator, "Linked_Queue", NULL);
     centor->subscriber_map = object_new(allocator, "RBTree_Map", NULL);
+    dbg_str(DBG_SUC, "centor construct, worker addr:%p", centor->worker);
 
     return 0;
 }
 
 static int __deconstrcut(Centor *centor)
 {
-    dbg_str(DBG_DETAIL, "centor deconstruct, centor addr:%p", centor);
+    dbg_str(DBG_DETAIL, "centor deconstruct, centor addr:%p, worker:%p", centor, centor->worker);
     worker_destroy(centor->worker);
     object_destroy(centor->s);
     object_destroy(centor->c);
@@ -168,22 +173,3 @@ static class_info_entry_t concurent_class_info[] = {
 };
 REGISTER_CLASS("Centor", concurent_class_info);
 
-int test_obj_message_centor()
-{
-    Centor *centor;
-    allocator_t *allocator = allocator_get_default_instance();
-    char * test_str = "p";
-
-    centor = OBJECT_NEW(allocator, Centor, NULL);
-
-    centor->c->send(centor->c, test_str, 1, 0);
-#if (defined(WINDOWS_USER_MODE))
-    system("pause"); 
-#else
-    pause();
-#endif
-    object_destroy(centor);
-
-    return 1;
-}
-REGISTER_TEST_CMD(test_obj_message_centor);
