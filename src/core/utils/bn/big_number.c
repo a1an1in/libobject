@@ -13,6 +13,59 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/try.h>
 
+int bn_cmp(uint8_t *n1, int n1_len, uint8_t *n2, int n2_len, int *out) 
+{
+    int ret, i;
+
+    TRY {
+        THROW_IF(n1 == NULL || n2 == NULL, -1);
+
+        if (n1_len > n2_len) {
+            *out = 1;
+            return 1;
+        } else if (n1_len < n2_len) {
+            *out = -1;
+            return 1;
+        }
+
+        for (i = n1_len; i >= 0; i--) {
+            if (n1[i - 1] > n2[i - 1]) {
+                *out = 1;
+                return 1;
+            }
+            if (n1[i - 1] < n2[i - 1]) {
+                *out = -1;
+                return 1;
+            }
+        }
+        *out = 0;
+        THROW(1);
+    } CATCH (ret) {
+    }
+
+    return ret;
+}
+
+/* 计算big number 有多少位， 因为高位有可能是0 */
+int bn_size(uint8_t *dest, int dest_len, int *len)
+{
+    int i;
+
+    for (i = dest_len - 1; i >= 0; i--) {
+        if (dest[i] != 0) {
+            break;
+        }
+    }
+
+    if (i >= 0) {
+        *len = i + 1;
+    } else {
+        *len = 0;
+    }
+    
+    return 1;
+}
+
 int bn_add(uint8_t *dest, int dest_len, int *dest_size, uint8_t *add, int add_size) 
 {
     uint8_t *n1, *n2, t1, t2, diff, l, i, carry = 0;
@@ -80,6 +133,7 @@ int bn_sub(uint8_t *dest, int dest_len, int *dest_size, int *neg_flag, uint8_t *
             n2 = dest;
             n1 = sub;
             diff = sub_size - *dest_size;
+            *neg_flag = 1;
         }
         /* 1. compute the same len part */
         l = *dest_size > sub_size ? sub_size : *dest_size;
@@ -106,46 +160,10 @@ int bn_sub(uint8_t *dest, int dest_len, int *dest_size, int *neg_flag, uint8_t *
         while (max_size && *(--dest) == 0) {
             max_size--;
         }
-        if (*dest_size < sub_size) {
-            *neg_flag = 1;
-        }
         
         *dest_size = max_size;
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "max_size:%d, dest_len=%d", max_size, dest_len);
-    }
-
-    return ret;
-}
-
-int bn_cmp(uint8_t *n1, int n1_len, uint8_t *n2, int n2_len, int *out) 
-{
-    int ret, i;
-
-    TRY {
-        THROW_IF(n1 == NULL || n2 == NULL, -1);
-
-        if (n1_len > n2_len) {
-            *out = 1;
-            return 1;
-        } else if (n1_len < n2_len) {
-            *out = -1;
-            return 1;
-        }
-
-        for (i = n1_len; i >= 0; i--) {
-            if (n1[i - 1] > n2[i - 1]) {
-                *out = 1;
-                return 1;
-            }
-            if (n1[i - 1] < n2[i - 1]) {
-                *out = -1;
-                return 1;
-            }
-        }
-        *out = 0;
-        THROW(1);
-    } CATCH (ret) {
     }
 
     return ret;
@@ -196,25 +214,6 @@ int bn_mul_u32(uint32_t *dest, int dest_len, uint32_t *a, int a_size, uint32_t w
     }
 
     return ret;
-}
-
-int bn_size(uint8_t *dest, int dest_len, int *len)
-{
-    int i;
-
-    for (i = dest_len - 1; i >= 0; i--) {
-        if (dest[i] != 0) {
-            break;
-        }
-    }
-
-    if (i >= 0) {
-        *len = i + 1;
-    } else {
-        *len = 0;
-    }
-    
-    return 1;
 }
 
 int bn_mul(uint8_t *dest, int dest_len, int *dest_size, uint8_t *a, int a_size, uint8_t *b, int b_size)
@@ -299,8 +298,9 @@ int bn_div(uint8_t *quotient, int quotient_len, int *quotient_size,
         }
 
         for (i = dividend_size - divisor_size; i >= 0; i = dividend_size - divisor_size) {
-            /* 1. guess multiple of the top byte */
+            /* 1. 猜测商的最高位 */
             dbg_buf(DBG_DETAIL, "bn_div dividend:", dividend, dividend_len);
+            dbg_str(DBG_DETAIL, "bn_div dividend size:%d", dividend_size);
             EXEC(bn_cmp(dividend + dividend_size - divisor_size, divisor_size, divisor, divisor_size, &compare_result));
             if (compare_result >= 0) {
                 multiple = dividend[dividend_size - 1] / divisor[divisor_size - 1];
@@ -309,7 +309,7 @@ int bn_div(uint8_t *quotient, int quotient_len, int *quotient_size,
                 i--;
             } else {THROW(1);}
             
-            /* 2. compute multiple */
+            /* 2. 计算商的最高位倍数 */
             do {
                 memset(tmp, 0, tmp_len);
                 EXEC(bn_mul_u32(tmp, tmp_len, divisor, divisor_size, multiple));
@@ -320,7 +320,7 @@ int bn_div(uint8_t *quotient, int quotient_len, int *quotient_size,
                 multiple--;
             } while (multiple > 0);
 
-            /* 3. dividend sub multiple of divisor */
+            /* 3. 减去倍数被除数，然后产生新的被除数，进入下一次循环, 直到被除数小于除数 */
             THROW_IF(multiple == 0, -1);
             quotient[i] = multiple;
             memset(tmp, 0, remainder_len);
@@ -328,7 +328,7 @@ int bn_div(uint8_t *quotient, int quotient_len, int *quotient_size,
             EXEC(bn_size(tmp, tmp_len, &tmp_size));
             dbg_buf(DBG_DETAIL, "bn_div tmp:", tmp, tmp_size);
             EXEC(bn_sub(dividend, dividend_size, &dividend_size, &neg_flag, tmp, tmp_size));
-            dbg_str(DBG_VIP, "bn_div multiple:%x", multiple);
+            dbg_str(DBG_INFO, "bn_div multiple:%x", multiple);
         }
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "remainder_len:%d", remainder_len);
@@ -340,9 +340,12 @@ int bn_div(uint8_t *quotient, int quotient_len, int *quotient_size,
         dbg_buf(DBG_ERROR, "divisor:", divisor, divisor_size);
     } FINALLY {
         if (quotient_size) {bn_size(quotient, quotient_len, quotient_size);}
+        dbg_str(DBG_DETAIL, "bn_div dividend size:%d", dividend_size);
         
         if (remainder_size) {
+            memset(remainder, 0, remainder_len); //需要清空，前面计算tmp有使用过。
             memcpy(remainder, dividend, dividend_size);
+            dbg_buf(DBG_DETAIL, "bn_div remainder:", remainder, dividend_len);
             *remainder_size = dividend_size;
         }
     }
@@ -384,8 +387,7 @@ int bn_rand(uint8_t *dest, int dest_len, int *dest_size, int bits, int top, int 
 
         *dest_size = bytes;
         dbg_buf(DBG_DETAIL, "rand:", dest, bytes);
-    } CATCH (ret) {
-    }
+    } CATCH (ret) { }
 }
 
 int bn_prime(uint8_t *dest, int dest_len, int *dest_size, int bits)
