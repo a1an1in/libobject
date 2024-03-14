@@ -195,8 +195,8 @@ static int test_fs_is_exist(TEST_ENTRY *entry)
     int ret;
 
     TRY {
-        THROW_IF(fs_is_exist("./tests/res/") != 1, -1);
-        THROW_IF(fs_is_exist("./tests/res/xxx") == 1, -1);
+        THROW_IF(fs_is_exist("./tests/core/res/") != 1, -1);
+        THROW_IF(fs_is_exist("./tests/core/res/xxx") == 1, -1);
     } CATCH (ret) {}
 
     return ret;
@@ -205,14 +205,14 @@ REGISTER_TEST_FUNC(test_fs_is_exist);
 
 static int test_fs_get_path_and_name(TEST_ENTRY *entry)
 {
-    char name[1024] = "./tests/res/aa/bb/cc";
+    char name[1024] = "./tests/core/res/aa/bb/cc";
     char *dir, *current_name;
     int ret;
 
     TRY {
         EXEC(fs_get_path_and_name(name, &dir, &current_name));
         dbg_str(DBG_INFO, "fs_get_path_and_name %s :%s ", dir, current_name);
-        THROW_IF(strcmp(dir, "./tests/res/aa/bb") != 0, -1);
+        THROW_IF(strcmp(dir, "./tests/core/res/aa/bb") != 0, -1);
         THROW_IF(strcmp(current_name, "cc") != 0, -1);
     } CATCH (ret) {}
 
@@ -222,8 +222,8 @@ REGISTER_TEST_FUNC(test_fs_get_path_and_name);
 
 static int test_fs_get_relative_path(TEST_ENTRY *entry)
 {
-    char name[1024] = "./tests/res/aa/bb/cc";
-    char *root = "./tests/res/";
+    char name[1024] = "./tests/core/res/aa/bb/cc";
+    char *root = "./tests/core/res/";
     char *relative_path;
     int ret;
 
@@ -239,9 +239,9 @@ REGISTER_TEST_FUNC(test_fs_get_relative_path);
 
 static int test_fs_mk_and_rm_dir(TEST_ENTRY *entry)
 {
-    // char *make_dir_name = "./tests/res/aa/bb/cc";
-    char *make_dir_name = "./tests/res/aa";
-    char *del_dir_name = "./tests/res/aa";
+    // char *make_dir_name = "./tests/core/res/aa/bb/cc";
+    char *make_dir_name = "./tests/core/res/aa";
+    char *del_dir_name = "./tests/core/res/aa";
     int ret;
 
     TRY {
@@ -257,7 +257,7 @@ REGISTER_TEST_FUNC(test_fs_mk_and_rm_dir);
 
 static int test_fs_mk_and_rm_file(TEST_ENTRY *entry)
 {
-    char name[1024] = "./tests/res/aa/bb/cc/abc.txt";
+    char name[1024] = "./tests/core/res/aa/bb/cc/abc.txt";
     int ret;
 
     TRY {
@@ -265,7 +265,7 @@ static int test_fs_mk_and_rm_file(TEST_ENTRY *entry)
         THROW_IF(fs_is_exist(name) != 1, -1);
         EXEC(fs_rmfile(name));
         THROW_IF(fs_is_exist(name) == 1, -1);
-        EXEC(fs_rmdir("./tests/res/aa"));
+        EXEC(fs_rmdir("./tests/core/res/aa"));
     } CATCH (ret) {}
 
     return ret;

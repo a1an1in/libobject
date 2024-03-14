@@ -7,14 +7,14 @@ static int test_gz_compress_file(TEST_ENTRY *entry, int argc, void **argv)
     int fd, ret;
     allocator_t *allocator = allocator_get_default_instance();
     Compress *c;
-    char *src_file = "./tests/res/gz/test_gzip.txt";
-    char *dst_file = "./tests/output/gz/test_gzip.gz";
-    char *reference_file = "./tests/res/gz/test_gzip.gz";
+    char *src_file = "./tests/compress/res/gz/test_gzip.txt";
+    char *dst_file = "./tests/compress/output/gz/test_gzip.gz";
+    char *reference_file = "./tests/compress/res/gz/test_gzip.gz";
 
     TRY {
         dbg_str(DBG_INFO, "test_gzip start ...");
 
-        fs_mkdir("./tests/output/gz", 0777);
+        fs_mkdir("./tests/compress/output/gz", 0777);
         c = object_new(allocator, "GZCompress", NULL);
         THROW_IF(c == NULL, -1);
         EXEC(c->compress_file(c, src_file, dst_file));
@@ -23,7 +23,7 @@ static int test_gz_compress_file(TEST_ENTRY *entry, int argc, void **argv)
 
     } CATCH (ret) { } FINALLY {
         object_destroy(c);
-        fs_rmdir("./tests/output/gz/");
+        fs_rmdir("./tests/compress/output/gz/");
     }
 
     return ret;
@@ -36,14 +36,14 @@ static int test_gz_uncompress_file(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Compress *c;
     char buf[65536];
-    char *src_file = "./tests/res/gz/test_gzip.gz";
-    char *dst_file = "./tests/output/gz/test_gzip.txt";
-    char *reference_file = "./tests/res/gz/test_gzip.txt";
+    char *src_file = "./tests/compress/res/gz/test_gzip.gz";
+    char *dst_file = "./tests/compress/output/gz/test_gzip.txt";
+    char *reference_file = "./tests/compress/res/gz/test_gzip.txt";
 
     TRY {
         dbg_str(DBG_INFO, "test_gzip start ...");
 
-        fs_mkdir("./tests/output/gz", 0777);
+        fs_mkdir("./tests/compress/output/gz", 0777);
         c = object_new(allocator, "GZCompress", NULL);
         THROW_IF(c == NULL, -1);
         EXEC(c->uncompress_file(c, src_file, dst_file));
@@ -52,7 +52,7 @@ static int test_gz_uncompress_file(TEST_ENTRY *entry, int argc, void **argv)
 
     } CATCH (ret) { } FINALLY {
         object_destroy(c);
-        fs_rmdir("./tests/output/gz/");
+        fs_rmdir("./tests/compress/output/gz/");
     }
 
     return ret;

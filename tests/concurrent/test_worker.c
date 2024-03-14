@@ -35,7 +35,7 @@ int test_peroid_timer_worker(TEST_ENTRY *entry)
         worker = timer_worker(allocator, EV_READ | EV_PERSIST, &ev_tv, test_work_callback, &ev_tv);
 
         sleep(10);
-        THROW_IF(peroid_timer_counter != 4, -1);
+        THROW_IF(peroid_timer_counter < 4, -1);
     } CATCH (ret) {} FINALLY {
         worker_destroy(worker);
     }

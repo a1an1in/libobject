@@ -34,7 +34,7 @@ static int test_zip_regex(TEST_ENTRY *entry, int argc, void **argv)
 {
     allocator_t *allocator = allocator_get_default_instance();
     String *str;
-    char *test_str = "./tests/output/zip/subdir/test_zip_extract2.txt";
+    char *test_str = "./tests/archive/output/zip/subdir/test_zip_extract2.txt";
     char *value;
     int ret, count;
 
@@ -63,12 +63,12 @@ static int test_zip_list(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
     Vector *infos;
-    char *zip_file = "./tests/res/zip/test_zip.zip";
+    char *zip_file = "./tests/archive/res/zip/test_zip.zip";
 
     TRY {
         dbg_str(DBG_INFO, "test extract zip");
         archive = object_new(allocator, "Zip", NULL);
-        archive->set_extracting_path(archive, "./tests/output/zip/");
+        archive->set_extracting_path(archive, "./tests/archive/output/zip/");
         archive->open(archive, zip_file, "r+");
         archive->list(archive, &infos);
         SET_CATCH_INT_PARS(infos->count(infos), 0);
@@ -77,7 +77,7 @@ static int test_zip_list(TEST_ENTRY *entry, int argc, void **argv)
         CATCH_SHOW_INT_PARS(DBG_ERROR);
     } FINALLY {
         object_destroy(archive);
-        fs_rmdir("./tests/output/zip/");
+        fs_rmdir("./tests/archive/output/zip/");
     }
 
     return ret;
@@ -90,10 +90,10 @@ static int test_zip_extract_deflate_file(TEST_ENTRY *entry, int argc, void **arg
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
     archive_file_info_t info;
-	char *zip_file = "./tests/res/zip/test_zip.zip";
+	char *zip_file = "./tests/archive/res/zip/test_zip.zip";
     char *file = "test_zip_extract.txt";
-    char *reference_file1 = "./tests/res/zip/test_zip_extract.txt";
-    char *reference_file2 = "./tests/res/zip/test_zip_extract2.txt";
+    char *reference_file1 = "./tests/archive/res/zip/test_zip_extract.txt";
+    char *reference_file2 = "./tests/archive/res/zip/test_zip_extract2.txt";
 
     TRY {
         dbg_str(DBG_INFO, "test extract zip");
@@ -102,16 +102,16 @@ static int test_zip_extract_deflate_file(TEST_ENTRY *entry, int argc, void **arg
         info.file_name = file;
 
         archive = object_new(allocator, "Zip", NULL);
-        archive->set_extracting_path(archive, "./tests/output/zip/");
+        archive->set_extracting_path(archive, "./tests/archive/output/zip/");
         archive->open(archive, zip_file, "r+");
         archive->extract_file(archive, &info);
-        ret = assert_file_equal("./tests/output/zip/test_zip_extract.txt", reference_file1);
+        ret = assert_file_equal("./tests/archive/output/zip/test_zip_extract.txt", reference_file1);
         THROW_IF(ret != 1, -1);
-        ret = assert_file_equal("./tests/output/zip/test_zip_extract.txt", reference_file2);
+        ret = assert_file_equal("./tests/archive/output/zip/test_zip_extract.txt", reference_file2);
         THROW_IF(ret != 0, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        fs_rmdir("./tests/output/zip/");
+        fs_rmdir("./tests/archive/output/zip/");
     }
 
     return ret;
@@ -124,26 +124,26 @@ static int test_zip_extract_store_file(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
     archive_file_info_t info;
-	char *zip_file = "./tests/res/zip/test_zip.zip";
+	char *zip_file = "./tests/archive/res/zip/test_zip.zip";
     char *file = "subdir/test_zip_extract2.txt";
-    char *reference_file1 = "./tests/res/zip/test_zip_extract2.txt";
-    char *reference_file2 = "./tests/res/zip/test_zip_extract.txt";
+    char *reference_file1 = "./tests/archive/res/zip/test_zip_extract2.txt";
+    char *reference_file2 = "./tests/archive/res/zip/test_zip_extract.txt";
 
     TRY {
         dbg_str(DBG_INFO, "test extract zip");
         info.file_name = file;
 
         archive = object_new(allocator, "Zip", NULL);
-        archive->set_extracting_path(archive, "./tests/output/zip/");
+        archive->set_extracting_path(archive, "./tests/archive/output/zip/");
         archive->open(archive, zip_file, "r+");
         archive->extract_file(archive, &info);
-        ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", reference_file1);
+        ret = assert_file_equal("./tests/archive/output/zip/subdir/test_zip_extract2.txt", reference_file1);
         THROW_IF(ret != 1, -1);
-        ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", reference_file2);
+        ret = assert_file_equal("./tests/archive/output/zip/subdir/test_zip_extract2.txt", reference_file2);
         THROW_IF(ret != 0, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        fs_rmdir("./tests/output/zip/");
+        fs_rmdir("./tests/archive/output/zip/");
     }
 
     return ret;
@@ -156,26 +156,26 @@ static int test_zip_extract_files(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
     Vector *infos;
-    char *ref_file1 = "./tests/res/zip/test_zip_extract.txt";
-    char *ref_file2 = "./tests/res/zip/test_zip_extract2.txt";
-    char *tar_name = "./tests/res/zip/test_zip.zip";
+    char *ref_file1 = "./tests/archive/res/zip/test_zip_extract.txt";
+    char *ref_file2 = "./tests/archive/res/zip/test_zip_extract2.txt";
+    char *tar_name = "./tests/archive/res/zip/test_zip.zip";
 
     TRY {
         dbg_str(DBG_INFO, "test add files to zip");
 
-        fs_mkdir("./tests/output/zip", 0777);
+        fs_mkdir("./tests/archive/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
         archive->open(archive, tar_name, "r");
-        archive->set_extracting_path(archive, "./tests/output/zip/");
+        archive->set_extracting_path(archive, "./tests/archive/output/zip/");
         archive->list(archive, &infos);
         archive->extract_files(archive, infos);
-        ret = assert_file_equal("./tests/output/zip/test_zip_extract.txt", ref_file1);
+        ret = assert_file_equal("./tests/archive/output/zip/test_zip_extract.txt", ref_file1);
         THROW_IF(ret != 1, -1);
-        ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", ref_file2);
+        ret = assert_file_equal("./tests/archive/output/zip/subdir/test_zip_extract2.txt", ref_file2);
         THROW_IF(ret != 1, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        fs_rmdir("./tests/output/zip/");
+        fs_rmdir("./tests/archive/output/zip/");
     }
 
     return ret;
@@ -188,25 +188,25 @@ static int test_zip_extract_all(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
     Vector *infos;
-    char *ref_file1 = "./tests/res/zip/test_zip_extract.txt";
-    char *ref_file2 = "./tests/res/zip/test_zip_extract2.txt";
-    char *tar_name = "./tests/res/zip/test_zip.zip";
+    char *ref_file1 = "./tests/archive/res/zip/test_zip_extract.txt";
+    char *ref_file2 = "./tests/archive/res/zip/test_zip_extract2.txt";
+    char *tar_name = "./tests/archive/res/zip/test_zip.zip";
 
     TRY {
         dbg_str(DBG_INFO, "test add files to zip");
 
-        fs_mkdir("./tests/output/zip", 0777);
+        fs_mkdir("./tests/archive/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
         archive->open(archive, tar_name, "r");
-        archive->set_extracting_path(archive, "./tests/output/zip/");
+        archive->set_extracting_path(archive, "./tests/archive/output/zip/");
         EXEC(archive->extract(archive));
-        ret = assert_file_equal("./tests/output/zip/test_zip_extract.txt", ref_file1);
+        ret = assert_file_equal("./tests/archive/output/zip/test_zip_extract.txt", ref_file1);
         THROW_IF(ret != 1, -1);
-        ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", ref_file2);
+        ret = assert_file_equal("./tests/archive/output/zip/subdir/test_zip_extract2.txt", ref_file2);
         THROW_IF(ret != 1, -1);
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        fs_rmdir("./tests/output/zip/");
+        fs_rmdir("./tests/archive/output/zip/");
     }
 
     return ret;
@@ -219,27 +219,27 @@ static int test_zip_extract_with_regex(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
     Vector *infos;
-    char *ref_file1 = "./tests/res/zip/test_zip_extract.txt";
-    char *ref_file2 = "./tests/res/zip/test_zip_extract2.txt";
-    char *tar_name = "./tests/res/zip/test_zip.zip";
+    char *ref_file1 = "./tests/archive/res/zip/test_zip_extract.txt";
+    char *ref_file2 = "./tests/archive/res/zip/test_zip_extract2.txt";
+    char *tar_name = "./tests/archive/res/zip/test_zip.zip";
 
     TRY {
         dbg_str(DBG_INFO, "test add files to zip");
 
-        fs_mkdir("./tests/output/zip", 0777);
+        fs_mkdir("./tests/archive/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
         EXEC(archive->open(archive, tar_name, "r"));
-        EXEC(archive->set_extracting_path(archive, "./tests/output/zip/"));
+        EXEC(archive->set_extracting_path(archive, "./tests/archive/output/zip/"));
         EXEC(archive->set_wildchard(archive, SET_INCLUSIVE_WILDCHARD_TYPE, "subdir.*"));
         EXEC(archive->extract(archive));
 
-        THROW_IF(fs_is_exist("./tests/output/zip/test_zip_extract.txt"), -1);
-        ret = assert_file_equal("./tests/output/zip/subdir/test_zip_extract2.txt", ref_file2);
+        THROW_IF(fs_is_exist("./tests/archive/output/zip/test_zip_extract.txt"), -1);
+        ret = assert_file_equal("./tests/archive/output/zip/subdir/test_zip_extract2.txt", ref_file2);
         THROW_IF(ret != 1, -1);
 
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        fs_rmdir("./tests/output/zip/");
+        fs_rmdir("./tests/archive/output/zip/");
     }
 
     return ret;
@@ -252,12 +252,12 @@ static int test_zip_add_1_file(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
     archive_file_info_t info;
-    char *file = "./tests/res/zip/test_zip_deflate.txt";
-    char *tar_name = "./tests/output/zip/test_zip.zip";
+    char *file = "./tests/archive/res/zip/test_zip_deflate.txt";
+    char *tar_name = "./tests/archive/output/zip/test_zip.zip";
 
     TRY {
         dbg_str(DBG_INFO, "test add files to zip");
-        fs_mkdir("./tests/output/zip", 0777);
+        fs_mkdir("./tests/archive/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
         archive->open(archive, tar_name, "w+");
 
@@ -266,7 +266,7 @@ static int test_zip_add_1_file(TEST_ENTRY *entry, int argc, void **argv)
         EXEC(archive->save(archive));
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        fs_rmdir("./tests/output");
+        fs_rmdir("./tests/archive/output");
     }
 
     return ret;
@@ -279,13 +279,13 @@ static int test_zip_add_2_files(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
     archive_file_info_t info;
-    char *file1 = "./tests/res/zip/test_zip_deflate.txt";
-    char *file2 = "./tests/res/zip/test_zip_extract2.txt";
-    char *tar_name = "./tests/output/zip/test_zip.zip";
+    char *file1 = "./tests/archive/res/zip/test_zip_deflate.txt";
+    char *file2 = "./tests/archive/res/zip/test_zip_extract2.txt";
+    char *tar_name = "./tests/archive/output/zip/test_zip.zip";
 
     TRY {
         dbg_str(DBG_INFO, "test add files to zip");
-        fs_mkdir("./tests/output/zip", 0777);
+        fs_mkdir("./tests/archive/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
         EXEC(archive->open(archive, tar_name, "w+"));
 
@@ -296,7 +296,7 @@ static int test_zip_add_2_files(TEST_ENTRY *entry, int argc, void **argv)
         EXEC(archive->save(archive));
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        fs_rmdir("./tests/output");
+        fs_rmdir("./tests/archive/output");
     }
 
     return ret;
@@ -309,13 +309,13 @@ static int test_zip_add_files(TEST_ENTRY *entry, int argc, void **argv)
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
     archive_file_info_t info = {0};
-    char *file1 = "./tests/res/zip/test_zip_deflate.txt";
-    char *file2 = "./tests/res/zip/test_zip_extract2.txt";
-    char *tar_name = "./tests/output/zip/test_zip.zip";
+    char *file1 = "./tests/archive/res/zip/test_zip_deflate.txt";
+    char *file2 = "./tests/archive/res/zip/test_zip_extract2.txt";
+    char *tar_name = "./tests/archive/output/zip/test_zip.zip";
 
     TRY {
         dbg_str(DBG_INFO, "test add files to zip");
-        fs_mkdir("./tests/output/zip", 0777);
+        fs_mkdir("./tests/archive/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
         archive->open(archive, tar_name, "w+");
 
@@ -329,7 +329,7 @@ static int test_zip_add_files(TEST_ENTRY *entry, int argc, void **argv)
         EXEC(archive->save(archive));
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        // fs_rmdir("./tests/output");
+        // fs_rmdir("./tests/archive/output");
     }
 
     return ret;
@@ -341,20 +341,20 @@ static int test_zip_add_all(TEST_ENTRY *entry, int argc, void **argv)
     int ret;
     allocator_t *allocator = allocator_get_default_instance();
     Archive *archive;
-    char *tar_name = "./tests/output/zip/test_zip.zip";
+    char *tar_name = "./tests/archive/output/zip/test_zip.zip";
 
     TRY {
         dbg_str(DBG_INFO, "test add files to zip");
-        fs_mkdir("./tests/output/zip", 0777);
+        fs_mkdir("./tests/archive/output/zip", 0777);
         archive = object_new(allocator, "Zip", NULL);
         EXEC(archive->open(archive, tar_name, "w+"));
-        EXEC(archive->set_adding_path(archive, "./tests/res/zip"));
+        EXEC(archive->set_adding_path(archive, "./tests/archive/res/zip"));
 
         EXEC(archive->add(archive));
         EXEC(archive->save(archive));
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
-        // fs_rmdir("./tests/output/zip/");
+        // fs_rmdir("./tests/archive/output/zip/");
     }
 
     return ret;

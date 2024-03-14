@@ -1,8 +1,8 @@
-[update:BN] 将以前ctest的Number的test移植到BN.
+[update:test] 更改测试资源目录位置.
 
 Description:
-目前mockery function测试全部成功。
+资源目录放在tests下面不太好，最好是放在各种模块下面。
 
 Major Changes:
-1. 修复了一个mod高位数据不对的bug。
-2. 将Number测试全部移植到BN，并完全通过测试.
+1. 修复了测试定时器的bug， 定时个数有可能有1个数的偏差。
+2. 移动测试资源目录位置.

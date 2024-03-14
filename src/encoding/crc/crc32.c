@@ -132,7 +132,7 @@ REGISTER_TEST_FUNC(test_crc32);
 
 static int teset_file_compute_crc32()
 {
-    char *file_name = "./tests/res/zip/test_zip_extract.txt";
+    char *file_name = "./tests/archive/res/zip/test_zip_extract.txt";
     uint32_t crc, expect_crc = 0xa8e65b40;
     int ret;
 
