@@ -16,19 +16,29 @@
 #include <libobject/core/utils/data_structure/vector.h>
 #include <libobject/core/try.h>
 #include <libobject/core/Map.h>
+#include <time.h>
 
 static int test_try_catch_performance(TEST_ENTRY *entry)
 {
     struct timeval start, end, tv;
+    time_t cur;
+    struct timespec t1, t2;
     int a;
     int ret = 0;
 
     timeval_now(&start, NULL);
+    
+    /* 测试精度是毫秒 */
+    clock_gettime(CLOCK_REALTIME, &t1);
+    dbg_str(DBG_INFO, "first:%ld", t1.tv_sec * 1000 + t1.tv_nsec / 1000000);
     TRY {
     } CATCH (ret) {
     }
     timeval_now(&end, NULL);
     timeval_sub(&end, &start, &tv);
+    clock_gettime(CLOCK_REALTIME, &t2);
+    dbg_str(DBG_INFO, "second:%ld", t2.tv_sec * 1000 + t2.tv_nsec / 1000000);
+    dbg_str(DBG_INFO, "diff:%ld", (t2.tv_sec * 1000 + t2.tv_nsec / 1000000) - (t1.tv_sec * 1000 + t1.tv_nsec / 1000000));
 
     timeval_print(&tv);
 

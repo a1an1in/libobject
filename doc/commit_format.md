@@ -1,8 +1,7 @@
-[update:test] 更改测试资源目录位置.
+[update:test] 更新修改.
 
 Description:
-资源目录放在tests下面不太好，最好是放在各种模块下面。
+update.
 
 Major Changes:
-1. 修复了测试定时器的bug， 定时个数有可能有1个数的偏差。
-2. 移动测试资源目录位置.
+1. 修复一个编译警告

@@ -20,7 +20,7 @@ static int __copy_command_action(Node *node, char *arg1, char *arg2)
 
 static int __list_command_action(Node *node, char *arg1, char *arg2)
 {
-    return TRY_EXEC(node->list(node, arg1));;
+    return TRY_EXEC(node->list(node, arg1));
 }
 
 struct node_command_s {
