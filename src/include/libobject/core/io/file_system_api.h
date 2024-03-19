@@ -23,5 +23,9 @@ extern int fs_rmfile(char *path);
 extern int fs_mkdir(char *path, mode_t mode);
 extern int fs_rmdir(char *path);
 extern int fs_tree(char *path, Vector *vector, int depth);
+extern int fs_file_info_struct_custom_to_json(cjson_t *root, void *element);
+extern int fs_file_info_struct_custom_free(allocator_t *allocator, fs_file_info_t *info);
+extern int fs_file_info_struct_custom_new(allocator_t *allocator, cjson_t *c, void **value);
+extern int fs_file_info_struct_custom_print(int index, fs_file_info_t *info);
 
 #endif

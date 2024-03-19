@@ -6,6 +6,8 @@
  * @date 2022-02-18
  */
 
+#include <libobject/core/Vector.h>
+#include <libobject/core/io/file_system_api.h>
 #include "Node_Cli_Command.h"
 
 static int __bus_call_command_action(Node *node, char *arg1, char *arg2)
@@ -20,7 +22,29 @@ static int __copy_command_action(Node *node, char *arg1, char *arg2)
 
 static int __list_command_action(Node *node, char *arg1, char *arg2)
 {
-    return TRY_EXEC(node->list(node, arg1));
+    allocator_t *allocator = node->parent.allocator;
+    int value_type = VALUE_TYPE_STRUCT_POINTER;
+    uint8_t trustee_flag = 1;
+    Vector *list;
+    int ret;
+
+    TRY {
+        list = object_new(allocator, "Vector", NULL);
+
+        list->set(list, "/Vector/value_type", &value_type);
+        list->set(list, "/Vector/trustee_flag", &trustee_flag);
+        list->set(list, "/Vector/value_to_json_callback", fs_file_info_struct_custom_to_json);
+        list->set(list, "/Vector/value_free_callback", fs_file_info_struct_custom_free);
+        list->set(list, "/Vector/value_new_callback", fs_file_info_struct_custom_new);
+
+        EXEC(node->list(node, arg1, list))
+
+        list->for_each(list, fs_file_info_struct_custom_print);
+    } CATCH (ret) {} FINALLY {
+        object_destroy(list);
+    }
+
+    return ret;
 }
 
 struct node_command_s {

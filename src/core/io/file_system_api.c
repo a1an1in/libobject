@@ -10,7 +10,47 @@
 
 File_System *globle_file_system;
 
-static int __free_file_info_callback(allocator_t *allocator, fs_file_info_t *info)
+int fs_file_info_struct_custom_to_json(cjson_t *root, void *element)
+{
+    cjson_t *item = NULL;
+    fs_file_info_t *o = (fs_file_info_t *)element;
+
+    item = cjson_create_object();
+    cjson_add_string_to_object(item, "file_name", o->file_name);
+    cjson_add_number_to_object(item, "size", o->st.st_size);
+    if (item != NULL) {
+        cjson_add_item_to_array(root, item);
+    }
+
+    return 1;
+}
+
+int fs_file_info_struct_custom_new(allocator_t *allocator, cjson_t *c, void **value)
+{
+    fs_file_info_t *v;
+    int ret;
+
+    TRY {
+        v = allocator_mem_alloc(allocator, sizeof(fs_file_info_t));
+        *value = v;
+        while (c) {
+            if (strcmp(c->string, "size") == 0) {
+                v->st.st_size = c->valueint;
+            } else if (strcmp(c->string, "file_name") == 0) {
+                v->file_name = allocator_mem_alloc(allocator, strlen(c->valuestring) + 1);
+                strcpy(v->file_name, c->valuestring);
+            } else {
+                dbg_str(DBG_VIP, "wrong value name:%s", c->string);
+            }
+
+            c = c->next;
+        }
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+int fs_file_info_struct_custom_free(allocator_t *allocator, fs_file_info_t *info)
 {
     allocator_mem_free(allocator, info->file_name);
     allocator_mem_free(allocator, info);
@@ -18,18 +58,18 @@ static int __free_file_info_callback(allocator_t *allocator, fs_file_info_t *inf
     return 1;
 }
 
-static int __get_file_info_stat_callback(int index, fs_file_info_t *info)
-{
-    return fs_get_stat(info->file_name, &info->st);
-}
-
-static int __print_file_info_callback(int index, fs_file_info_t *info)
+int fs_file_info_struct_custom_print(int index, fs_file_info_t *info)
 {
     dbg_str(DBG_INFO, "index:%d file name:%s atime:%lx, ctime:%lx, mtime:%lx size:%ld", 
             index, info->file_name, info->st.st_atime, info->st.st_ctime,
             info->st.st_mtime, info->st.st_size);
 
     return 1;
+}
+
+static int fs_file_info_struct_custom_get_stat(int index, fs_file_info_t *info)
+{
+    return fs_get_stat(info->file_name, &info->st);
 }
 
 int fs_init()
@@ -212,9 +252,9 @@ int fs_list(char *path, Vector *vector)
             dbg_str(DBG_INFO, "path:%s", tmp);
         }
 
-        EXEC(vector->customize(vector, VALUE_TYPE_STRUCT_POINTER, __free_file_info_callback));
+        EXEC(vector->customize(vector, VALUE_TYPE_STRUCT_POINTER, fs_file_info_struct_custom_free));
         EXEC(ret = globle_file_system->list(globle_file_system, tmp, vector));
-        EXEC(vector->for_each(vector, __get_file_info_stat_callback));
+        EXEC(vector->for_each(vector, fs_file_info_struct_custom_get_stat));
         THROW(ret);
     } CATCH (ret) {}
 
@@ -223,7 +263,7 @@ int fs_list(char *path, Vector *vector)
 
 int fs_print_file_info_list(Vector *vector)
 {
-    return vector->for_each(vector, __print_file_info_callback);
+    return vector->for_each(vector, fs_file_info_struct_custom_print);
 }
 
 int fs_tree(char *path, Vector *vector, int depth)
@@ -237,7 +277,7 @@ int fs_tree(char *path, Vector *vector, int depth)
         THROW_IF(depth == 0, 0);
         if (depth > 0) depth--;
         EXEC(vector->customize(vector, VALUE_TYPE_STRUCT_POINTER, 
-                               __free_file_info_callback));
+                               fs_file_info_struct_custom_free));
 
         list = object_new(allocator, "Vector", NULL);
         EXEC(fs_list(path, list));

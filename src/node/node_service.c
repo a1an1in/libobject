@@ -3,6 +3,7 @@
 #include <libobject/net/bus/busd.h>
 #include <libobject/core/io/File.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/core/io/file_system_api.h>
 #include "Node.h"
 
 static const struct blob_policy_s test_policy[] = { 
@@ -147,7 +148,9 @@ static int node_list(bus_object_t *obj, int argc,
 {
     bus_t *bus;
     char *path;
-    uint32_t len, offset;
+    int value_type = VALUE_TYPE_STRUCT_POINTER;
+    uint8_t trustee_flag = 1;
+    uint32_t len;
     Vector *list = NULL;
     allocator_t *allocator;
     int ret, count;
@@ -160,12 +163,18 @@ static int node_list(bus_object_t *obj, int argc,
         dbg_str(DBG_VIP, "node_list path:%s", path);
 
         list = object_new(allocator, "Vector", NULL);
+        list->set(list, "/Vector/value_type", &value_type);
+        list->set(list, "/Vector/trustee_flag", &trustee_flag);
+        list->set(list, "/Vector/value_to_json_callback", fs_file_info_struct_custom_to_json);
+        list->set(list, "/Vector/value_free_callback", fs_file_info_struct_custom_free);
         count = fs_tree(path, list, -1);
         THROW_IF(count < 0, -1);
-
-        fs_print_file_info_list(list);
-    } CATCH (ret) {} FINALLY {
-        *out_len = 0;
+        dbg_str(DBG_VIP, "node_list json:%s", list->to_json(list));
+        len = strlen(list->to_json(list));
+        memcpy(out, list->to_json(list), len);
+        *out_len = len;
+        // fs_print_file_info_list(list);
+    } CATCH (ret) {*out_len = 0;} FINALLY {
         object_destroy(list);
     }
 

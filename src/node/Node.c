@@ -237,7 +237,7 @@ static int __copy(Node *node, char *from, char *to)
     return ret;
 }
 
-static int __list(Node *node, char *str)
+static int __list(Node *node, char *str, Vector *vector)
 {
     char *path, *node_id;
     int read_flag = 0, write_flag = 0;
@@ -257,6 +257,12 @@ static int __list(Node *node, char *str)
         THROW_IF(path == NULL, -1);
         snprintf(buffer, sizeof(buffer), "%s@list(%s)", node_id, path);
         EXEC(node->call(node, buffer, buffer, &len));
+        THROW_IF(len == 0, 0);
+        if (len > 0) {
+            buffer[len] = 0;
+            // dbg_str(DBG_VIP, "node list:%s", buffer);
+        }
+        vector->assign(vector, buffer);
     } CATCH (ret) {}
 
     return ret;

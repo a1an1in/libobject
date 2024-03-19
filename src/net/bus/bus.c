@@ -471,8 +471,8 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
 
         while(req->state == 0xfffe) usleep(100);
 
-        dbg_str(BUS_VIP, "bus_invoke_sync, return state=%d", req->state);
-        dbg_buf(BUS_SUC, "opaque:", req->opaque, req->opaque_len);
+        dbg_str(BUS_VIP, "bus_invoke_sync, return state=%d, opaque_len:%d", req->state, req->opaque_len);
+        dbg_buf(BUS_DETAIL, "opaque:", req->opaque, req->opaque_len);
 
         if (out_buf != NULL) {
             *out_len = req->opaque_len;
