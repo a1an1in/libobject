@@ -4,7 +4,7 @@
 #include <libobject/core/io/File.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/io/file_system_api.h>
-#include "Node.h"
+#include <libobject/node/Node.h>
 
 static const struct blob_policy_s test_policy[] = { 
     [0] = { .name = "par1",  .type = BLOB_TYPE_INT32 }, 

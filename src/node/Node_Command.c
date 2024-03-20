@@ -7,7 +7,7 @@
  */
 
 #include "Node_Command.h"
-#include "Node.h"
+#include <libobject/node/Node.h>
 
 static int __run_command(Node_Command *command)
 {

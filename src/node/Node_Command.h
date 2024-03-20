@@ -5,7 +5,7 @@
 #include <libobject/argument/Application.h>
 #include <libobject/argument/Command.h>
 #include <libobject/core/String.h>
-#include "Node.h"
+#include <libobject/node/Node.h>
 
 typedef struct Node_Command_s Node_Command;
 

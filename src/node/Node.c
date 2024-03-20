@@ -6,9 +6,9 @@
  * @date 2024-02-18
  */
 
-#include "Node.h"
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/core/io/File.h>
+#include <libobject/node/Node.h>
 
 static int __construct(Node *node, char *init_str)
 {

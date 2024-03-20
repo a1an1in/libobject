@@ -1,9 +1,8 @@
-[update:node] list实现完成.
+[update:node] 更改node头文件以便测试.
 
 Description:
-node::list可以支持获取对端json列表， 然后反序列化存储
-到vector中.
+目前还没有在测试用例中加deamon， 所以还需要暂时使用mockery cmd
+来测试.
 
 Major Changes:
-1. 实现node::list。
-2. 增加fs_file_info定制函数。
+1. 修改node 测试用例，目的是为了使用mockery func 测试node。
