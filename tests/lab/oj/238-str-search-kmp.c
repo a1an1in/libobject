@@ -55,7 +55,7 @@ RDXI
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 void get_next(char *p, int *next) {
     int p_len = strlen(p);

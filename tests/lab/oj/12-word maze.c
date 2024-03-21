@@ -39,7 +39,7 @@ YES
 #include <string.h>
 #include <sys/types.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 #if 0
 static char test[22][22] = {{'C', 'P', 'U', 'C', 'Y'},

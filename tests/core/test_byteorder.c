@@ -37,7 +37,7 @@
 #include <string.h>
 #include <libobject/core/utils/byteorder.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 static int test_check_endian(TEST_ENTRY *entry, void *argc, void *argv)
 {

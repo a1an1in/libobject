@@ -35,7 +35,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Vector.h>
 #include <libobject/core/Object_Cache.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 static int test_object_cache_memery_leak(TEST_ENTRY *entry)
 {

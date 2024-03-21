@@ -38,7 +38,7 @@ The output will consist of one line for each line of input giving the exact valu
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 static int del_decimal_point(char *a)
 {

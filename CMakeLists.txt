@@ -5,7 +5,7 @@ init_platform()
 if (POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
-project (libobject VERSION 2.12.2.20)
+project (libobject VERSION 2.12.2.33)
 
 #version format "[VERSION <major>[.<minor>[.<patch>[.<tweak>]]]]"
 configure_file(
@@ -25,7 +25,7 @@ add_compiling_options()
 
 set (module_lists "")
 list(APPEND module_lists "src/argument")
-list(APPEND module_lists "src/cmds")
+list(APPEND module_lists "src/mockery")
 list(APPEND module_lists "src/concurrent")
 list(APPEND module_lists "src/core")
 list(APPEND module_lists "src/stub")

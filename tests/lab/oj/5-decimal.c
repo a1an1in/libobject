@@ -33,7 +33,7 @@ Limits:
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 int fun(double data, int base, char *ret)
 {

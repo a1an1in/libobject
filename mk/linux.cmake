@@ -20,7 +20,7 @@ macro (set_cmake_evironment_variable)
     SET (ExternalLibs ${ExternalLibs} 
         -Wl,--whole-archive
             object-tests
-            object-cmds
+            object-mockery
             object-node 
             object-archive 
             object-compress 

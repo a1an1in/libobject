@@ -35,7 +35,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Array_Stack.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include "Orm_Test.h"
 #include "Test_User_Model.h"
 

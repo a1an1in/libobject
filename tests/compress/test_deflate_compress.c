@@ -1,5 +1,5 @@
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include <libobject/compress/Compress.h>
 
 static int test_deflate_compress_file(TEST_ENTRY *entry, int argc, void **argv)

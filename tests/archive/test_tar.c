@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include <libobject/archive/Archive.h>
 
 static int test_tar_list(TEST_ENTRY *entry, int argc, void **argv)

@@ -27,7 +27,7 @@ Prints the number of prime numbers
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include <libobject/core/utils/dbg/debug.h>
 
 int count_primes(int n) {

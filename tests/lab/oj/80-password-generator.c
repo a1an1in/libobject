@@ -47,7 +47,7 @@ haohaoxuexi
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 unsigned int compress_integer(unsigned int num)
 {

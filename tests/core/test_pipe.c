@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <regex.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include <libobject/core/io/Pipe.h>
 #include <libobject/concurrent/worker_api.h>
 

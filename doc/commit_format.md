@@ -1,8 +1,8 @@
-[update:node] 更改node头文件以便测试.
+[update:NA] 删掉cmds module.
 
 Description:
-目前还没有在测试用例中加deamon， 所以还需要暂时使用mockery cmd
-来测试.
+因为目前Command都放到相关的库里面去了， 没有统一存放， 所以现在
+就没有存在的必要了.
 
 Major Changes:
-1. 修改node 测试用例，目的是为了使用mockery func 测试node。
+1. 删掉cmds， mockery单独成库。

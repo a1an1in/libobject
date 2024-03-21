@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include <libobject/core/try.h>
 
 int test_str_cmp(TEST_ENTRY *entry)

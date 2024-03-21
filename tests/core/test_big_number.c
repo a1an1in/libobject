@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <libobject/core/utils/bn/big_number.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include <libobject/core/try.h>
 
 static int

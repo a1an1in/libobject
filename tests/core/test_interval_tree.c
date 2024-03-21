@@ -35,7 +35,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Linked_List.h>
 #include <libobject/core/Interval_Tree.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 #define INIT_TEST_INSTANCE(t, a, b, c) (t).start=a,(t).end=b,(t).value=c
 

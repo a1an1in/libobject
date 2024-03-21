@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Vector.h>
-#include <libobject/ctest/Test_Runner.h>
-#include <libobject/cmds/Mockery_Command.h>
 #include <libobject/argument/Application.h>
+#include <libobject/mockery/Mockery_Command.h>
+#include <libobject/mockery/mockery.h>
 
 static int mockery_result_struct_custom_to_json(cjson_t *root, void *element)
 {

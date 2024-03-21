@@ -10,7 +10,7 @@
 #include <sys/ptrace.h>
 #include <sys/user.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include <libobject/attacher/dynamic_lib.h>
 
 extern int print_outbound(int a, int b, int c, int d, int e, int f, int *g);

@@ -69,7 +69,7 @@ int dp(int n, int k) {
     return st[n][k];
 }
 
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 static int test_oj_31_1(TEST_ENTRY *entry, void *argc, void *argv) {
     memset(st, 0, sizeof(0));

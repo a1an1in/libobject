@@ -36,7 +36,7 @@
 #include <errno.h>
 #include <string.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 char* strchr_n(char *s, char c, int n)
 {

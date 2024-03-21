@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <libobject/net/bus/bus.h>
 #include <libobject/net/bus/busd.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 static const struct blob_policy_s hello_policy[] = {
 	[0] = { .name = "id", .type = BLOB_TYPE_UINT32 },

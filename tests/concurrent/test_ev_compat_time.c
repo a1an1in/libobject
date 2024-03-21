@@ -9,7 +9,7 @@
 #include <errno.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/concurrent/event_api.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 static struct timeval lasttime;
 

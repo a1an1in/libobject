@@ -35,7 +35,7 @@ Case 2:
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 int str_plus(char *a, char *b, char *out)
 {

@@ -29,7 +29,7 @@ Solo小学一年级的时候做数学题很莫名奇妙，经常把算术表达�
 #include <string.h>
 #include <sys/types.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 struct stack_s {
     uint8_t step;

@@ -34,7 +34,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Array_Stack.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include "Url_Test.h"
 
 static int __construct(Url_Test *test, char *init_str)

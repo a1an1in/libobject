@@ -38,7 +38,7 @@ Jungle不喜欢计算，所以他希望拥有一个万能的计算器，能够�
 #include <string.h>
 #include <sys/types.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -48,7 +48,7 @@ Jungle不喜欢计算，所以他希望拥有一个万能的计算器，能够�
 #include <string.h>
 #include <sys/types.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 struct stack_s {
     uint8_t step;

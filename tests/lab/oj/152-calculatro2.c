@@ -45,7 +45,7 @@ b：ch 优先级低于或者等于 栈顶元素，输出栈顶元素，ch入栈
 #include <string.h>
 #include <sys/types.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 typedef unsigned char uint8_t;
 

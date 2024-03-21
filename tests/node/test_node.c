@@ -1,7 +1,7 @@
 #if (!defined(WINDOWS_USER_MODE))
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/net/bus/bus.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/node/Node.h>
 

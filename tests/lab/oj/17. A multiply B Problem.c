@@ -33,7 +33,7 @@ For each case, output the product is of A × B in one line.
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 static int str_multply(char *a, char *b, char *out)
 {

@@ -1,5 +1,5 @@
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include <libobject/compress/Compress.h>
 
 static int test_z_compress_buf(TEST_ENTRY *entry)

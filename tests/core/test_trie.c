@@ -34,7 +34,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Array_Stack.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include <libobject/core/Trie.h>
 
 static int test_trie_insert(TEST_ENTRY *entry)
