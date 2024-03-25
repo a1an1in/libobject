@@ -191,11 +191,49 @@ static int __write(Node *node, char *from, char *node_id, char *to)
 
 static int __read(Node *node, char *node_id, char *from, char *to)
 {
+    bus_t *bus;
+    File *file = NULL;
+    allocator_t *allocator;
+	char buffer[1024] = {0}, file_name;
+    uint32_t buffer_size = sizeof(buffer);
+    uint32_t size, i, read_len = 0, offset = 0, count = 0;
+    uint32_t file_name_len;
+    Vector *list = NULL;
+    fs_file_info_t *fs_file_info;
+    char *relative_path;
+    bus_method_args_t args[4] = {
+        [0] = {ARG_TYPE_STRING, "filename", from}, 
+        [1] = {ARG_TYPE_UINT32, "offset", offset}, 
+        [3] = {ARG_TYPE_UINT32, "length", 0}, 
+    };
     int ret;
 
     TRY {
         dbg_str(DBG_VIP, "node read in");
-    } CATCH (ret) {}
+        THROW_IF(node == NULL || node_id == NULL, -1);
+        THROW_IF(from == NULL || to == NULL, -1);
+
+        allocator = node->parent.allocator;
+        bus = node->bus;
+
+        list = object_new(allocator, "Vector", NULL);
+        EXEC(node->list(node, node_id, from, list));
+        count = list->count(list);
+        THROW_IF(count < 0, -1);
+
+        for (i = 0; i < count; i++) {
+            EXEC(list->peek_at(list, i, &fs_file_info));
+            THROW_IF(fs_file_info == NULL, -1);
+
+            file_name_len = strlen(fs_file_info->file_name);
+            if ((fs_file_info->file_name[file_name_len - 1] == '.')) continue;
+            
+            dbg_str(DBG_VIP, "read file name:%s", fs_file_info->file_name);
+        }
+    } CATCH (ret) {} FINALLY {
+        // object_destroy(file);
+        object_destroy(list);
+    }
 
     return ret;
 }
@@ -237,22 +275,17 @@ static int __copy(Node *node, char *from, char *to)
     return ret;
 }
 
-static int __list(Node *node, char *str, Vector *vector)
+static int __list(Node *node, char *node_id, char *path, Vector *vector)
 {
-    char *path, *node_id;
+    int value_type = VALUE_TYPE_STRUCT_POINTER;
+    uint8_t trustee_flag = 1;
     int read_flag = 0, write_flag = 0;
     char buffer[BLOB_BUFFER_MAX_SIZE];
     int len = sizeof(buffer);
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "node list path:%s", str);
-        if ((path = strchr(str, ':')) != NULL) {
-            read_flag = 1;
-            node_id = str;
-            *path = '\0';
-            path = path + 1;
-        }
+        dbg_str(DBG_VIP, "node list node_id:%s, path:%s", node_id, path);
 
         THROW_IF(path == NULL, -1);
         snprintf(buffer, sizeof(buffer), "%s@list(%s)", node_id, path);
@@ -260,8 +293,13 @@ static int __list(Node *node, char *str, Vector *vector)
         THROW_IF(len == 0, 0);
         if (len > 0) {
             buffer[len] = 0;
-            // dbg_str(DBG_VIP, "node list:%s", buffer);
         }
+
+        vector->set(vector, "/Vector/value_type", &value_type);
+        vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
+        vector->set(vector, "/Vector/value_to_json_callback", fs_file_info_struct_custom_to_json);
+        vector->set(vector, "/Vector/value_free_callback", fs_file_info_struct_custom_free);
+        vector->set(vector, "/Vector/value_new_callback", fs_file_info_struct_custom_new);
         vector->assign(vector, buffer);
     } CATCH (ret) {}
 
