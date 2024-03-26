@@ -91,6 +91,7 @@ static int __add_event(Event_Thread *thread, event_t *event)
     if (event == NULL) {
         return -1;
     }
+    dbg_str(DBG_VIP, "event_thread, add_event fd=%d", event->ev_fd);
 
     eb->add(eb, event);
 

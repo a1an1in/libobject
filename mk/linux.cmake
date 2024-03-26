@@ -21,6 +21,7 @@ macro (set_cmake_evironment_variable)
         -Wl,--whole-archive
             object-tests
             object-mockery
+            object-drivers
             object-node 
             object-archive 
             object-compress 

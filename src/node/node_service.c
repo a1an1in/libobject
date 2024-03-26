@@ -97,9 +97,9 @@ static int node_write_file(bus_object_t *obj, int argc,
          * 需要先删除，因为文件是分片追加的，刚开始写的时候不清零
          *会有问题。
          **/
-        if(fs_is_exist(filename) && offset == 0) {
+        if (fs_is_exist(filename) && offset == 0) {
             EXEC(fs_rmfile(filename));
-        } else if(!fs_is_exist(filename)) {
+        } else if (!fs_is_exist(filename)) {
             EXEC(fs_mkfile(filename, 0777));
         }
 

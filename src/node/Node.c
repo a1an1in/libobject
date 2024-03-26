@@ -153,8 +153,7 @@ static int __write(Node *node, char *from, char *node_id, char *to)
                 THROW_IF(fs_file_info == NULL, -1);
 
                 file_name_len = strlen(fs_file_info->file_name);
-                if ((fs_file_info->file_name[file_name_len - 1] == '.') &&
-                    (strlen(fs_file_info->file_name) <= 2)) continue;
+                if ((fs_file_info->file_name[file_name_len - 1] == '.')) continue;
                 
                 EXEC(fs_get_relative_path(fs_file_info->file_name, from, &relative_path));
                 
