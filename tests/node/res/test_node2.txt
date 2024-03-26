@@ -43,13 +43,11 @@ static int __test_node_list(Node *node)
 static int __test_node_read(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
-    char from[1024] = "node:./tests/node/res/";
-    char to[1024] = "./tests/node/output/read/";
+    char from[1024] = "node:./tests/node/";
     int ret;
     
     TRY {
-        EXEC(fs_rmdir(to));
-        EXEC(node->copy(node, from, to));
+        EXEC(node->copy(node, from, "./tests/node/output/"));
     } CATCH (ret) {} FINALLY {
     }
 

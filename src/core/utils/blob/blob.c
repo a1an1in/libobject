@@ -279,14 +279,14 @@ int blob_parse_to_attr(const struct blob_policy_s *policy,
     int i;
     blob_attr_t *pos, *head = (blob_attr_t *)data;
 
-    dbg_str(DBG_DETAIL, "policy count=%d", policy_count);
+    dbg_str(BUS_DETAIL, "policy count=%d", policy_count);
     blob_for_each_attr(pos, head, len){
         for(i = 0; i < policy_count; i++) {
             if(!strncmp(blob_get_name((blob_attr_t *)pos), 
                policy[i].name, strlen(policy[i].name))) 
             {
                 tb[i] = (blob_attr_t *)pos;
-                dbg_str(DBG_DETAIL, "found policy %d, name=%s", i, policy[i].name);
+                dbg_str(BUS_DETAIL, "found policy %d, name=%s", i, policy[i].name);
             }
         }
     }

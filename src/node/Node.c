@@ -143,7 +143,6 @@ static int __write(Node *node, char *from, char *node_id, char *to)
         allocator = node->parent.allocator;
         bus = node->bus;
         if (fs_is_directory(from)) {
-            dbg_str(DBG_VIP, "run at here");
             list = object_new(allocator, "Vector", NULL);
             count = fs_tree(from, list, -1);
             THROW_IF(count < 0, -1);
@@ -194,17 +193,17 @@ static int __read(Node *node, char *node_id, char *from, char *to)
     bus_t *bus;
     File *file = NULL;
     allocator_t *allocator;
-	char buffer[1024] = {0}, file_name;
-    uint32_t buffer_size = sizeof(buffer);
+	char buffer[BLOB_BUFFER_MAX_SIZE] = {0}, file_name;
+    uint32_t read_size = 1024;
     uint32_t size, i, read_len = 0, offset = 0, count = 0;
     uint32_t file_name_len;
     Vector *list = NULL;
     fs_file_info_t *fs_file_info;
     char *relative_path;
-    bus_method_args_t args[4] = {
-        [0] = {ARG_TYPE_STRING, "filename", from}, 
+    bus_method_args_t args[3] = {
+        [0] = {ARG_TYPE_STRING, "filename", NULL}, 
         [1] = {ARG_TYPE_UINT32, "offset", offset}, 
-        [3] = {ARG_TYPE_UINT32, "length", 0}, 
+        [2] = {ARG_TYPE_UINT32, "length", 0}, 
     };
     int ret;
 
@@ -220,18 +219,47 @@ static int __read(Node *node, char *node_id, char *from, char *to)
         EXEC(node->list(node, node_id, from, list));
         count = list->count(list);
         THROW_IF(count < 0, -1);
+        file = object_new(allocator, "File", NULL);
 
         for (i = 0; i < count; i++) {
+            offset = 0;
             EXEC(list->peek_at(list, i, &fs_file_info));
             THROW_IF(fs_file_info == NULL, -1);
 
             file_name_len = strlen(fs_file_info->file_name);
             if ((fs_file_info->file_name[file_name_len - 1] == '.')) continue;
             
-            dbg_str(DBG_VIP, "read file name:%s", fs_file_info->file_name);
+            size = fs_file_info->st.st_size;
+            dbg_str(DBG_VIP, "read file name:%s, size:%d", fs_file_info->file_name, size);
+            
+            EXEC(fs_get_relative_path(fs_file_info->file_name, from, &relative_path));
+            memset(buffer, 0, sizeof(buffer));
+            strcpy(buffer, to);
+            strcat(buffer, relative_path);
+            dbg_str(DBG_VIP, "dest file name:%s", buffer);
+
+            if (!fs_is_exist(buffer)) {
+                EXEC(fs_mkfile(buffer, 0777));
+            }
+            EXEC(file->open(file, buffer, "a+"));
+            for (i = 0; i <= (size / read_size); i++) {
+                args[0].value = fs_file_info->file_name;
+                args[1].value = offset;
+                args[2].value = (size - i * read_size) > read_size ? read_size : (size - i * read_size);
+                
+                EXEC(bus_invoke_sync(bus, "node", "read_file", ARRAY_SIZE(args), args, buffer, &args[2].value));
+                dbg_str(DBG_VIP, "read %s, offset:%d, read size:%d, read len:%d", 
+                        from, offset, read_size, args[2].value);
+                
+                EXEC(file->seek(file, offset, SEEK_SET));
+                EXEC(file->write(file, buffer, (int)args[2].value));
+                offset += (uint32_t)args[2].value;
+            }
+            
+            EXEC(file->close(file));
         }
     } CATCH (ret) {} FINALLY {
-        // object_destroy(file);
+        object_destroy(file);
         object_destroy(list);
     }
 

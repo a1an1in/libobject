@@ -100,7 +100,7 @@ static int __deconstrcut(Inet_Tcp_Socket *socket)
 static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
 {
     struct addrinfo  *addr, *addrsave, hint;
-    int skfd, ret;
+    int skfd, opt = 1, ret;
     char *h, *s;
 
     TRY {
@@ -119,8 +119,9 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
         THROW_IF(getaddrinfo(h, s, &hint, &addr) != 0, -1);
         addrsave = addr;
         THROW_IF(addr == NULL, -1);
-        dbg_str(NET_DETAIL, "ai_family=%d type=%d", addr->ai_family, addr->ai_socktype);                    
+        dbg_str(NET_DETAIL, "ai_family=%d type=%d", addr->ai_family, addr->ai_socktype);
 
+        setsockopt(socket->parent.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));                
         do {
             if ((ret = bind(socket->parent.fd, addr->ai_addr, addr->ai_addrlen)) == 0)
                 break;
@@ -141,13 +142,7 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
 
 static int __listen(Inet_Tcp_Socket *socket, int backlog)
 {
-    int opt = 1, ret;
-
-    ret = setsockopt(socket->parent.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    if (ret == -1) {
-        perror("setsockopt error");
-        return -1;
-    }
+    int ret;
 
     if (listen(socket->parent.fd, backlog) == -1) {
         perror("listen error");

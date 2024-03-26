@@ -43,6 +43,7 @@ sysroot/
 .idea
 cmake-build-debug/
 tests/output/
+tests/node/output/
 
 *.swn
 *.swo

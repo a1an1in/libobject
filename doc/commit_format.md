@@ -1,8 +1,9 @@
-[update:NA] 删掉cmds module.
+[update:Node] node read 测试通过.
 
 Description:
-因为目前Command都放到相关的库里面去了， 没有统一存放， 所以现在
-就没有存在的必要了.
+目前node已经支持读写了， 但是还没有写的用例.
 
 Major Changes:
-1. 删掉cmds， mockery单独成库。
+1. 修复bind不能重复使用端口的错误.
+2. 修复busd内存超过配置大小错误。
+3. 实现node read.

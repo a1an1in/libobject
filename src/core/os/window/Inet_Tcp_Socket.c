@@ -76,7 +76,7 @@ static int __deconstrcut(Inet_Tcp_Socket *socket)
 static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
 {
     struct addrinfo  *addr, *addrsave, hint;
-    int ret;
+    int opt = 1, ret;
     char *h, *s;
 
     memset(&hint, 0, sizeof(struct addrinfo));
@@ -104,6 +104,8 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
         return -1;
     }
 
+    setsockopt(socket->parent.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
     do {
         if ((ret = bind(socket->parent.fd, addr->ai_addr, addr->ai_addrlen)) == 0)
             break;
@@ -120,10 +122,6 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
 
 static int __listen(Inet_Tcp_Socket *socket, int backlog)
 {
-    int opt = 1;
-
-    setsockopt(socket->parent.fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
     if (listen(socket->parent.fd, backlog) == -1) {
         dbg_str(NET_ERROR, "socket listen error, err:%d", WSAGetLastError());
         return -1;

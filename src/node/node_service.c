@@ -128,14 +128,37 @@ static int node_read_file(bus_object_t *obj, int argc,
 {
     char *filename;
     uint32_t len, offset;
+    File *file = NULL;
+    allocator_t *allocator;
+    bus_t *bus;
+    int ret;
 
-    filename = blob_get_string(args[0]);
-    offset = blob_get_uint32(args[1]);
-    len = blob_get_uint32(args[2]);
+    TRY {
+        THROW_IF(obj->bus == NULL, -1);
+        bus = obj->bus;
+        allocator = bus->allocator;
+        
+        filename = blob_get_string(args[0]);
+        offset = blob_get_uint32(args[1]);
+        len = blob_get_uint32(args[2]);
+        dbg_str(DBG_VIP, "file name:%s, data len:%d, offset:%d", filename, len, offset);
 
-    dbg_str(DBG_VIP, "file name:%s, data len:%d, offset:%d", filename, len, offset);
+        THROW_IF(!fs_is_exist(filename), -1);
 
-	return 1;
+        file = object_new(allocator, "File", NULL);
+        EXEC(file->open(file, filename, "a+"));
+        EXEC(file->seek(file, offset, SEEK_SET));
+        EXEC(file->read(file, out, len));
+        EXEC(file->close(file));
+
+        *out_len = len;
+    } CATCH (ret) {
+        *out_len = 0;
+    } FINALLY {
+        object_destroy(file);
+    }
+
+	return ret;
 }
 
 static const struct blob_policy_s list_policy[] = {

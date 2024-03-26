@@ -349,10 +349,7 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
         dbg_str(BUS_DETAIL, "invoke object_id:%s", object_id);
         if (object_id != NULL) {
             ret = map->search(map, object_id, (void **)&obj);
-            if (ret > 0) {
-                dbg_str(BUS_DETAIL, "obj addr:%p", obj);
-                busd_dump_object(obj);
-            } else {
+            if (ret <= 0) {
                 int cnt = map->count(map);
                 dbg_str(BUS_DETAIL, "not found object :%s, ret:%d, cnt:%d", object_id, ret, cnt);
                 return -1;
@@ -382,9 +379,7 @@ int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, ui
 {
     bus_reqhdr_t hdr;
     blob_t *blob = busd->blob;
-#define BUS_ADD_OBJECT_MAX_BUFFER_LEN 1024
-    uint8_t buffer[BUS_ADD_OBJECT_MAX_BUFFER_LEN];
-#undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
+    uint8_t buffer[BLOB_BUFFER_MAX_SIZE];
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
