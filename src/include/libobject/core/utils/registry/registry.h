@@ -50,6 +50,4 @@ int execute_dtor_funcs();
         __register_dtor_func(level, func);\
     } 
 
-
-
 #endif 

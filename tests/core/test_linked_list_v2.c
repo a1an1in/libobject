@@ -37,7 +37,7 @@
 #include <libobject/core/String.h>
 #include <libobject/mockery/mockery.h>
 
-static int test_linked_list_count(TEST_ENTRY *entry)
+static int test_linked_list_v2_count(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     List *list;
@@ -65,9 +65,9 @@ static int test_linked_list_count(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_linked_list_count);
+REGISTER_TEST_FUNC(test_linked_list_v2_count);
 
-static int test_linked_list_remove(TEST_ENTRY *entry)
+static int test_linked_list_v2_remove(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     List *list;
@@ -96,9 +96,9 @@ static int test_linked_list_remove(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_linked_list_remove);
+REGISTER_TEST_FUNC(test_linked_list_v2_remove);
 
-static int test_linked_list_reset(TEST_ENTRY *entry)
+static int test_linked_list_v2_reset(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     List *list;
@@ -127,9 +127,9 @@ static int test_linked_list_reset(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_linked_list_reset);
+REGISTER_TEST_FUNC(test_linked_list_v2_reset);
 
-static int test_linked_list_reset_string_value(TEST_ENTRY *entry)
+static int test_linked_list_v2_reset_string_value(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     List *list;
@@ -179,4 +179,4 @@ static int test_linked_list_reset_string_value(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_linked_list_reset_string_value);
+REGISTER_TEST_FUNC(test_linked_list_v2_reset_string_value);

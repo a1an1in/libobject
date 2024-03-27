@@ -425,4 +425,4 @@ static int hls_parse(void *base,int argc,char **argv)
     return 1;
 
 }
-REGISTER_TEST_FUNC(hls_parse);
+REGISTER_TEST_CMD(hls_parse);

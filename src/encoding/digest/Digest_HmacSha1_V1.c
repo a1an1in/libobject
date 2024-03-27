@@ -6,7 +6,7 @@
  * @date 2022-1-17
  */
 #if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
-
+#include <libobject/mockery/mockery.h>
 #include <libobject/encoding/Digest_HmacSha1_V1.h>
 #include "sha1.h"
 

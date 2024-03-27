@@ -1,7 +1,6 @@
 #include <libobject/core/String.h>
 #include <libobject/encoding/base64.h>
-#include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 int base64_encode(uint8_t *src, int src_len, uint8_t *dst, int *dst_len)  
 {  

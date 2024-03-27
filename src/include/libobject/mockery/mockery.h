@@ -3,6 +3,7 @@
 
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/reg_heap.h>
+#include <libobject/core/try.h>
 
 int __register_mockery_cmd(int (*func)(void *, void *, void *), const char *func_name, const char *file, int line); 
 int __register_mockery_func(int (*func)(void *), const char *func_name, const char *file, int line); 

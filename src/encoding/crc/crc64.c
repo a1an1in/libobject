@@ -38,8 +38,7 @@
  * POSSIBILITY OF SUCH DAMAGE. */
 
 #include <stdint.h>
-#include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 static const uint64_t crc64_tab[256] = {
     UINT64_C(0x0000000000000000), UINT64_C(0x7ad870c830358979),

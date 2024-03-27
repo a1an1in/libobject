@@ -2,8 +2,6 @@
 #include <string.h>
 #include <libobject/core/try.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
-
 
 long ex(long a, long b)
 {
@@ -59,19 +57,24 @@ char *str_trim(char *str)
     return p;
 }
 
-static int test_hex_to_int()
+/* 找第二个字符 */
+char* strchr_n(char *s, char c, int n)
 {
-    char buf[1024] = "0x123";
-    int d;
-    int ret, expect = 0x123;
+    int count = 0;
 
-    TRY {
-        d = str_hex_to_int(buf);
-        THROW_IF(d != expect, -1);
-    } CATCH (ret) {
+    while (*s != '\0') {
+        if (*s == c) {
+            count++;
+        }
+
+        if (count == n) break;
+
+        ++s;
     }
 
-    return ret;
+    if (count == n) {
+        return s;
+    } else return NULL;
 }
-REGISTER_TEST_FUNC(test_hex_to_int);
+
 

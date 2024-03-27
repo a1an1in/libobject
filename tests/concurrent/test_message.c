@@ -4,6 +4,7 @@
 #include <libobject/concurrent/message/Publisher.h> 
 #include <libobject/concurrent/message/Centor.h>
 #include <libobject/concurrent/message/Subscriber.h>
+#include <libobject/mockery/mockery.h>
 
 static int got_on_pause_message_flag;
 

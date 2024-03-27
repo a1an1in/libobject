@@ -11,6 +11,7 @@
 #include <dlfcn.h>
 #include <libobject/core/String.h>
 #include "UnixFShell.h"
+#include <libobject/mockery/mockery.h>
 
 static int __construct(UnixFShell *shell, char *init_str)
 {

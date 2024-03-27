@@ -55,6 +55,6 @@ static int test_memmove(TEST_ENTRY *entry, void *argc, void *argv)
     dbg_str(DBG_DETAIL, "%s", test);
     return 1;
 }
-REGISTER_TEST_FUNC(test_memmove);
+REGISTER_TEST_CMD(test_memmove);
 
 

@@ -1,9 +1,9 @@
-[update:Node] node read 测试通过.
+[update:tests] 将mockery func测试用例移动到tests目录.
 
 Description:
-目前node已经支持读写了， 但是还没有写的用例.
+更改mockery头文件后，有部分还是使用register头文件的测试
+用例找不到了， 所以借用这个机会把大部分用例移动到tests目录.
 
 Major Changes:
-1. 修复bind不能重复使用端口的错误.
-2. 修复busd内存超过配置大小错误。
-3. 实现node read.
+1. 移动测试用例位置。
+2. 更改测试用例注册头文件声明。

@@ -51,7 +51,7 @@ static struct test *__init_test_instance(struct test *t, int a, int b)
     return t;
 }
 
-static int test_hash_map_count(TEST_ENTRY *entry)
+static int test_hash_map_v2_count(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -93,9 +93,9 @@ static int test_hash_map_count(TEST_ENTRY *entry)
     
     return ret;
 }
-REGISTER_TEST_FUNC(test_hash_map_count);
+REGISTER_TEST_FUNC(test_hash_map_v2_count);
 
-static int test_hash_map_reset_int_value(TEST_ENTRY *entry)
+static int test_hash_map_v2_reset_int_value(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -130,9 +130,9 @@ static int test_hash_map_reset_int_value(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_hash_map_reset_int_value);
+REGISTER_TEST_FUNC(test_hash_map_v2_reset_int_value);
 
-static int test_hash_map_reset_string_value(TEST_ENTRY *entry)
+static int test_hash_map_v2_reset_string_value(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -180,9 +180,9 @@ static int test_hash_map_reset_string_value(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_hash_map_reset_string_value);
+REGISTER_TEST_FUNC(test_hash_map_v2_reset_string_value);
 
-static int test_hash_map_reset_object_value(TEST_ENTRY *entry)
+static int test_hash_map_v2_reset_object_value(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -229,9 +229,9 @@ static int test_hash_map_reset_object_value(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_hash_map_reset_object_value);
+REGISTER_TEST_FUNC(test_hash_map_v2_reset_object_value);
 
-static int test_hash_map_add(TEST_ENTRY *entry)
+static int test_hash_map_v2_add(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -255,9 +255,9 @@ static int test_hash_map_add(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_hash_map_add);
+REGISTER_TEST_FUNC(test_hash_map_v2_add);
 
-static int test_hash_map_remove(TEST_ENTRY *entry)
+static int test_hash_map_v2_remove(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -296,9 +296,9 @@ static int test_hash_map_remove(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_hash_map_remove);
+REGISTER_TEST_FUNC(test_hash_map_v2_remove);
 
-static int test_hash_map_search_string_key(TEST_ENTRY *entry)
+static int test_hash_map_v2_search_string_key(TEST_ENTRY *entry)
 {
     Iterator *iter, *next, *prev;
     allocator_t *allocator = allocator_get_default_instance();
@@ -338,10 +338,10 @@ static int test_hash_map_search_string_key(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_hash_map_search_string_key);
+REGISTER_TEST_FUNC(test_hash_map_v2_search_string_key);
 
 #if 0
-static int test_hash_map_search_all_string_key(TEST_ENTRY *entry)
+static int test_hash_map_v2_search_all_string_key(TEST_ENTRY *entry)
 {
     List *list;
     allocator_t *allocator = allocator_get_default_instance();
@@ -384,10 +384,10 @@ static int test_hash_map_search_all_string_key(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_hash_map_search_all_string_key);
+REGISTER_TEST_FUNC(test_hash_map_v2_search_all_string_key);
 #endif
 
-static int test_hash_map_search_int_key(TEST_ENTRY *entry)
+static int test_hash_map_v2_search_int_key(TEST_ENTRY *entry)
 {
     Iterator *iter, *next, *prev;
     allocator_t *allocator = allocator_get_default_instance();
@@ -437,10 +437,10 @@ static int test_hash_map_search_int_key(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_hash_map_search_int_key);
+REGISTER_TEST_FUNC(test_hash_map_v2_search_int_key);
 
 #if 0
-static int test_hash_map_search_all_int_key(TEST_ENTRY *entry)
+static int test_hash_map_v2_search_all_int_key(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -480,5 +480,5 @@ static int test_hash_map_search_all_int_key(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_hash_map_search_all_int_key);
+REGISTER_TEST_FUNC(test_hash_map_v2_search_all_int_key);
 #endif

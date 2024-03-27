@@ -8,6 +8,7 @@
 
 #include <libobject/crypto/Skcipher.h>
 #include <libobject/encoding/base64.h>
+#include <libobject/mockery/mockery.h>
 
 static int __construct(Skcipher *sk, char *init_str)
 {

@@ -109,8 +109,7 @@ __object_get_entry_of_parent_class(void *class_info_addr)
                 return &entry[i];
             }
         }   
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return NULL;
 }
@@ -152,8 +151,7 @@ __object_get_class_size(void *class_info_addr)
         if (entry[i].type == ENTRY_TYPE_END) {
             size = entry[i].value_len;
         }
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return size;
 }
@@ -177,8 +175,7 @@ int __object_init_funcs(void *obj, void *class_info_addr)
                     set(obj, (char *)entry[i].value_name, entry[i].value);
             }
         }   
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -207,8 +204,7 @@ __object_inherit_funcs(void *obj, void *class_info)
                     set(obj, (char *)entry[i].value_name, method);
             }
         }   
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -241,8 +237,7 @@ int __object_override_virtual_func(void *obj,
                     set(obj, (char *)entry[i].value_name, reimplement_func);
             }
         }   
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -403,8 +398,7 @@ int object_set(void *obj, char *type_name, char *set_str)
 
         EXEC(__object_set(obj, type_name, root, NULL));
         cjson_delete(root);
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -580,8 +574,7 @@ __object_override_virtual_funcs(void *obj, char *cur_class_name, char *func_name
 
         strcpy(o->target_name, cur_class_name);
         set(obj, func_name, value); 
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -739,8 +732,7 @@ int object_destroy(void *obj)
         } else {
             __object_destroy(o, o->name);
         }
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return ret;
 }

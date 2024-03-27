@@ -5,7 +5,7 @@
  * @version 
  * @date 2020-04-25
  */
-
+#include <libobject/mockery/mockery.h>
 #include <libobject/encoding/Digest_Sha1.h>
 #include "sha1.h"
 

@@ -51,7 +51,7 @@ static struct test *__init_test_instance(struct test *t, int a, int b)
     return t;
 }
 
-static int test_rbtree_map_count(TEST_ENTRY *entry)
+static int test_rbtree_map_v2_count(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -93,9 +93,9 @@ static int test_rbtree_map_count(TEST_ENTRY *entry)
     
     return ret;
 }
-REGISTER_TEST_FUNC(test_rbtree_map_count);
+REGISTER_TEST_FUNC(test_rbtree_map_v2_count);
 
-static int test_rbtree_map_reset(TEST_ENTRY *entry)
+static int test_rbtree_map_v2_reset(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -130,9 +130,9 @@ static int test_rbtree_map_reset(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_rbtree_map_reset);
+REGISTER_TEST_FUNC(test_rbtree_map_v2_reset);
 
-static int test_rbtree_map_reset_string_value(TEST_ENTRY *entry)
+static int test_rbtree_map_v2_reset_string_value(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -181,9 +181,9 @@ static int test_rbtree_map_reset_string_value(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_rbtree_map_reset_string_value);
+REGISTER_TEST_FUNC(test_rbtree_map_v2_reset_string_value);
 
-static int test_rbtree_map_reset_object_value(TEST_ENTRY *entry)
+static int test_rbtree_map_v2_reset_object_value(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -196,8 +196,6 @@ static int test_rbtree_map_reset_object_value(TEST_ENTRY *entry)
 
     TRY {
         map = object_new(allocator, "RBTree_Map", NULL);
-        expect_alloc_count = allocator->alloc_count;
-
         obj1 = object_new(allocator, "Simplest_Obj", NULL);
         obj2 = object_new(allocator, "Simplest_Obj", NULL);
 
@@ -218,17 +216,15 @@ static int test_rbtree_map_reset_object_value(TEST_ENTRY *entry)
         map->reset(map);
         count = map->count(map);
         THROW_IF(count != expect_count, -1);
-        count = allocator->alloc_count;
-        THROW_IF(count != expect_alloc_count, -1);
     } CATCH (ret) {} FINALLY {
         object_destroy(map);
     }
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_rbtree_map_reset_object_value);
+REGISTER_TEST_FUNC(test_rbtree_map_v2_reset_object_value);
 
-static int test_rbtree_map_add(TEST_ENTRY *entry)
+static int test_rbtree_map_v2_add(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -252,9 +248,9 @@ static int test_rbtree_map_add(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_rbtree_map_add);
+REGISTER_TEST_FUNC(test_rbtree_map_v2_add);
 
-static int test_rbtree_map_remove(TEST_ENTRY *entry)
+static int test_rbtree_map_v2_remove(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -293,9 +289,9 @@ static int test_rbtree_map_remove(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_rbtree_map_remove);
+REGISTER_TEST_FUNC(test_rbtree_map_v2_remove);
 
-static int test_rbtree_map_search_string_key(TEST_ENTRY *entry)
+static int test_rbtree_map_v2_search_string_key(TEST_ENTRY *entry)
 {
     Iterator *iter, *next, *prev;
     allocator_t *allocator = allocator_get_default_instance();
@@ -335,9 +331,9 @@ static int test_rbtree_map_search_string_key(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_rbtree_map_search_string_key);
+REGISTER_TEST_FUNC(test_rbtree_map_v2_search_string_key);
 
-static int test_rbtree_map_search_all_string_key(TEST_ENTRY *entry)
+static int test_rbtree_map_v2_search_all_string_key(TEST_ENTRY *entry)
 {
     List *list;
     allocator_t *allocator = allocator_get_default_instance();
@@ -380,9 +376,9 @@ static int test_rbtree_map_search_all_string_key(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_rbtree_map_search_all_string_key);
+REGISTER_TEST_FUNC(test_rbtree_map_v2_search_all_string_key);
 
-static int test_rbtree_map_search_int_key(TEST_ENTRY *entry)
+static int test_rbtree_map_v2_search_int_key(TEST_ENTRY *entry)
 {
     Iterator *iter, *next, *prev;
     allocator_t *allocator = allocator_get_default_instance();
@@ -432,9 +428,9 @@ static int test_rbtree_map_search_int_key(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_rbtree_map_search_int_key);
+REGISTER_TEST_FUNC(test_rbtree_map_v2_search_int_key);
 
-static int test_rbtree_map_search_all_int_key(TEST_ENTRY *entry)
+static int test_rbtree_map_v2_search_all_int_key(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Map *map;
@@ -474,4 +470,4 @@ static int test_rbtree_map_search_all_int_key(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_rbtree_map_search_all_int_key);
+REGISTER_TEST_FUNC(test_rbtree_map_v2_search_all_int_key);

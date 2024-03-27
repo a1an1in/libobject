@@ -3,9 +3,7 @@
  * public domain implementation:
  * http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5
  */
-
-#include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 #include <libobject/encoding/md5.h>
 
 /*

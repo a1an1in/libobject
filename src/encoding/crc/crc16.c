@@ -1,6 +1,5 @@
 #include <stdio.h>
-#include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 /*
  * Copyright 2001-2010 Georges Menie (www.menie.org)
