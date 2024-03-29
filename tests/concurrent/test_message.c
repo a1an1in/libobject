@@ -11,7 +11,7 @@ static int got_on_pause_message_flag;
 static void test_on_pause(message_t *message, void *arg)
 {
     Subscriber *subscriber = (Subscriber *)arg;
-    dbg_str(DBG_SUC, "subscriber receive a message:%s", (char *)message->what);
+    dbg_str(DBG_VIP, "subscriber receive a message:%s", (char *)message->what);
     dbg_str(DBG_DETAIL, "message arg:%p", arg);
     got_on_pause_message_flag = 1;
 }
@@ -19,7 +19,7 @@ static void test_on_pause(message_t *message, void *arg)
 static void test_xxxx(message_t *message, void *arg)
 {
     Subscriber *subscriber = (Subscriber *)arg;
-    dbg_str(DBG_SUC, "subscriber receive a message:%s", (char *)message->what);
+    dbg_str(DBG_VIP, "subscriber receive a message:%s", (char *)message->what);
     dbg_str(DBG_DETAIL, "message arg:%p", arg);
 }
 
@@ -42,8 +42,8 @@ static int test_message_publisher()
         subscriber->add_method(subscriber, "test_xxxx", test_xxxx, allocator);   
         subscriber->subscribe(subscriber, publisher);
 
-        dbg_str(DBG_SUC, "%p subscribe a publisher, publisher addr:%p", subscriber, publisher);
-        dbg_str(DBG_SUC, "message handler arg:%p", allocator);
+        dbg_str(DBG_VIP, "%p subscribe a publisher, publisher addr:%p", subscriber, publisher);
+        dbg_str(DBG_VIP, "message handler arg:%p", allocator);
 
         publisher->connect_centor(publisher, centor);
         publisher->publish_message(publisher, test_str, strlen(test_str));

@@ -123,7 +123,7 @@ static int __construct(Centor *centor, char *init_str)
     Socket *s, *c;
     char service[10] = {0};
 
-    dbg_str(DBG_SUC, "centor construct, centor addr:%p", centor);
+    dbg_str(DBG_VIP, "centor construct, centor addr:%p", centor);
     sprintf(service, "%d", MESSAGE_SERVICE);
 
     s = object_new(allocator, "Inet_Udp_Socket", NULL);
@@ -136,7 +136,7 @@ static int __construct(Centor *centor, char *init_str)
     c->setnonblocking(c);
     centor->c = c;
 
-    dbg_str(DBG_SUC, "centor add io_worker fd=%d", centor->s->fd);
+    dbg_str(DBG_VIP, "centor add io_worker fd=%d", centor->s->fd);
     centor->worker = io_worker(allocator,
                                centor->s->fd,
                                NULL, NULL,
@@ -146,7 +146,7 @@ static int __construct(Centor *centor, char *init_str)
 
     centor->message_queue  = object_new(allocator, "Linked_Queue", NULL);
     centor->subscriber_map = object_new(allocator, "RBTree_Map", NULL);
-    dbg_str(DBG_SUC, "centor construct, worker addr:%p", centor->worker);
+    dbg_str(DBG_VIP, "centor construct, worker addr:%p", centor->worker);
 
     return 0;
 }

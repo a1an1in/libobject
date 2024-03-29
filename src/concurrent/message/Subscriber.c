@@ -53,7 +53,7 @@ static void __message_handler(void *arg)
     subscriber->method_map->search(subscriber->method_map,
             message->what, (void **)&method);
     if (method != NULL) {
-        dbg_str(DBG_SUC, "subscriber handle message, opaque:%p, msg.what=%s",
+        dbg_str(DBG_VIP, "subscriber handle message, opaque:%p, msg.what=%s",
                 subscriber->opaque,
                 message->what);
         method->func(message, method->arg);
