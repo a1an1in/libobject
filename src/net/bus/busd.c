@@ -176,9 +176,7 @@ int busd_reply_add_object(busd_t *busd, int state, char *object_id, int fd)
 {
     bus_reqhdr_t hdr;
     blob_t *blob = busd->blob;
-#define BUS_ADD_OBJECT_MAX_BUFFER_LEN 1024
-    uint8_t buffer[BUS_ADD_OBJECT_MAX_BUFFER_LEN];
-#undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
+    uint8_t buffer[BLOB_BUFFER_MAX_SIZE];
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
@@ -239,9 +237,7 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
 {
     bus_reqhdr_t hdr;
     blob_t *blob = busd->blob;
-#define BUS_ADD_OBJECT_MAX_BUFFER_LEN 1024
-    uint8_t buffer[BUS_ADD_OBJECT_MAX_BUFFER_LEN];
-#undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
+    uint8_t buffer[BLOB_BUFFER_MAX_SIZE];
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 

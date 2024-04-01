@@ -204,6 +204,37 @@ static int node_list(bus_object_t *obj, int argc,
 	return ret;
 }
 
+static const struct blob_policy_s exec_fshell_command_policy[] = {
+	[0] = { .name = "command",  .type = BLOB_TYPE_STRING }, 
+};
+
+static int node_exec_fshell_command(bus_object_t *obj, int argc, 
+		      		                struct blob_attr_s **args, 
+                                    void *out, int *out_len)
+{
+    bus_t *bus;
+    char *command;
+    int value_type = VALUE_TYPE_STRUCT_POINTER;
+    uint8_t trustee_flag = 1;
+    uint32_t len = 0;
+    Vector *list = NULL;
+    allocator_t *allocator;
+    int ret, count;
+
+    TRY {
+        command = blob_get_string(args[0]);
+        bus = obj->bus;
+        allocator = bus->allocator;
+        dbg_str(DBG_VIP, "node_exec_fshell_command command:%s", command);
+
+        *out_len = len;
+        // fs_print_file_info_list(list);
+    } CATCH (ret) {*out_len = 0;} FINALLY {
+    }
+
+	return ret;
+}
+
 static const struct bus_method node_service_methods[] = {
 	BUS_METHOD_WITHOUT_ARG("exit", node_exit, NULL),
     BUS_METHOD("test", node_test, test_policy),
@@ -211,6 +242,7 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("write_file", node_write_file, write_file_policy),
     BUS_METHOD("list", node_list, list_policy),
     BUS_METHOD("read_file", node_read_file, read_file_policy),
+    BUS_METHOD("exec_fshell_command", node_exec_fshell_command, exec_fshell_command_policy),
 };
 
 bus_object_t node_object = {

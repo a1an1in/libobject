@@ -78,7 +78,7 @@ static int __loop(Node *node)
  *   fshell的接口， 就不需要做额外的开发了， 直接就可以调用函数， 不用再对各种不同
  *   应用写不同bus接口了。
  */
-static int __call(Node *node, char *code, void *out, uint32_t *out_len)
+static int __bus_call(Node *node, char *code, void *out, uint32_t *out_len)
 {
     allocator_t *allocator = node->parent.allocator;
     char *method_name = NULL;
@@ -88,7 +88,7 @@ static int __call(Node *node, char *code, void *out, uint32_t *out_len)
     int ret, argc, i, count;
 
     TRY {
-        dbg_str(DBG_VIP, "call in, code:%s", code);
+        dbg_str(DBG_VIP, "bus_call in, code:%s", code);
         EXEC(str->reset(str));
         str->assign(str, code);
         count = str->split(str, "[,@ \t\n();]", -1);
@@ -108,8 +108,39 @@ static int __call(Node *node, char *code, void *out, uint32_t *out_len)
         EXEC(bus_invoke_sync(node->bus, node_id, method_name, argc, args, out, out_len));
         node_free_argument_template(allocator, args, argc);
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "call argc:%d, count:%d", argc, count);
+        dbg_str(DBG_ERROR, "bus_call argc:%d, count:%d", argc, count);
     }
+
+    return ret;
+}
+
+/*
+ * 这个不能复用bus_call, 因为fshell_call不想把命令的参数也解析出来。如果加标记判断
+ * 什么时候解析，会把bus_call搞复杂了。
+ */
+static int __fshell_call(Node *node, char *code, void *out, uint32_t *out_len)
+{
+    bus_t *bus;
+    String *str = node->str;
+    char *node_id, *command;
+    char buffer[1024] = {0};
+    bus_method_args_t args[1] = {
+        [0] = {ARG_TYPE_STRING, "command", NULL}, 
+    };
+    int ret, count;
+
+    TRY {
+        EXEC(str->reset(str));
+        str->assign(str, code);
+        count = str->split(str, "[@]", -1);
+        THROW_IF(count != 2, -1);
+        bus = node->bus;
+
+        node_id = str->get_splited_cstr(str, 0);
+        command = str->get_splited_cstr(str, 1);
+        args[0].value = command;
+        EXEC(bus_invoke_sync(bus, node_id, "exec_fshell_command", ARRAY_SIZE(args), args, NULL, NULL));
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -316,7 +347,7 @@ static int __list(Node *node, char *node_id, char *path, Vector *vector)
 
         THROW_IF(path == NULL, -1);
         snprintf(buffer, sizeof(buffer), "%s@list(%s)", node_id, path);
-        EXEC(node->call(node, buffer, buffer, &len));
+        EXEC(node->bus_call(node, buffer, buffer, &len));
         THROW_IF(len == 0, 0);
         if (len > 0) {
             buffer[len] = 0;
@@ -339,12 +370,13 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(2 , Node, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3 , Node, init, __init),
     Init_Nfunc_Entry(4 , Node, loop, __loop),
-    Init_Nfunc_Entry(5 , Node, call, __call),
-    Init_Nfunc_Entry(6 , Node, write, __write),
-    Init_Nfunc_Entry(7 , Node, read, __read),
-    Init_Nfunc_Entry(8 , Node, copy, __copy),
-    Init_Nfunc_Entry(9 , Node, list, __list),
-    Init_End___Entry(10, Node),
+    Init_Nfunc_Entry(5 , Node, bus_call, __bus_call),
+    Init_Nfunc_Entry(6 , Node, fshell_call, __fshell_call),
+    Init_Nfunc_Entry(7 , Node, write, __write),
+    Init_Nfunc_Entry(8 , Node, read, __read),
+    Init_Nfunc_Entry(9 , Node, copy, __copy),
+    Init_Nfunc_Entry(10, Node, list, __list),
+    Init_End___Entry(11, Node),
 };
 REGISTER_CLASS("Node", node_class_info);
 

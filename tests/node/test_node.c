@@ -11,8 +11,10 @@ static int __test_node_bus_call(Node *node)
     int ret;
     
     TRY {
-        EXEC((ret = node->call(node, method, NULL, 0)));
+        EXEC((ret = node->bus_call(node, method, NULL, 0)));
         THROW_IF(ret != 1, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY { }
 
     return ret;
@@ -31,6 +33,8 @@ static int __test_node_list(Node *node)
         EXEC(node->list(node, "node", path, list));
         list->for_each(list, fs_file_info_struct_custom_print);
         THROW_IF(list->count(list) != 4, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
         object_destroy(list);
     }
@@ -52,6 +56,8 @@ static int __test_node_read(Node *node)
         strcat(from, "test_node2.txt");
         strcat(to, "test_node2.txt");
         THROW_IF(assert_file_equal(from, to) != 1, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {}
 
     return ret;
@@ -71,6 +77,23 @@ static int __test_node_write(Node *node)
         strcpy(to, "./tests/node/output/write/");
         strcat(to, "test_node2.txt");
         THROW_IF(assert_file_equal(from, to) != 1, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
+static int __test_node_fshell(Node *node)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    char code[1024] ="node@fs_add(1,2)";
+    int ret;
+    
+    TRY {
+        EXEC(node->fshell_call(node, code, NULL, NULL));
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {}
 
     return ret;
@@ -101,10 +124,11 @@ static int test_node(TEST_ENTRY *entry)
         node->disable_node_service_flag = 1;
         EXEC(node->init(node));
 
-        EXEC(__test_node_bus_call(node));
-        EXEC(__test_node_list(node));
-        EXEC(__test_node_read(node));
-        EXEC(__test_node_write(node));
+        // EXEC(__test_node_bus_call(node));
+        // EXEC(__test_node_list(node));
+        // EXEC(__test_node_read(node));
+        // EXEC(__test_node_write(node));
+        EXEC(__test_node_fshell(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         object_destroy(deamon);

@@ -10,9 +10,14 @@
 #include <libobject/core/io/file_system_api.h>
 #include "Node_Cli_Command.h"
 
+static int __fshell_call_command_action(Node *node, char *arg1, char *arg2)
+{
+    return TRY_EXEC(node->fshell_call(node, arg1, NULL, 0));
+}
+
 static int __bus_call_command_action(Node *node, char *arg1, char *arg2)
 {
-    return TRY_EXEC(node->call(node, arg1, NULL, 0));
+    return TRY_EXEC(node->bus_call(node, arg1, NULL, 0));
 }
 
 static int __copy_command_action(Node *node, char *arg1, char *arg2)
@@ -54,7 +59,7 @@ struct node_command_s {
     int (*action)(Node *node, char *arg1, char *arg2);
 } node_command_table[COMMAND_TYPE_MAX] = {
     [COMMAND_TYPE_BUS_CALL] = {COMMAND_TYPE_BUS_CALL, "bus_call", __bus_call_command_action},
-    [COMMAND_TYPE_FSHELL_CALL] = {COMMAND_TYPE_FSHELL_CALL, "fshell_call", NULL},
+    [COMMAND_TYPE_FSHELL_CALL] = {COMMAND_TYPE_FSHELL_CALL, "fshell_call", __fshell_call_command_action},
     [COMMAND_TYPE_COPY] = {COMMAND_TYPE_COPY, "copy", __copy_command_action},
     [COMMAND_TYPE_LIST] = {COMMAND_TYPE_LIST, "list", __list_command_action},
     [COMMAND_TYPE_EXIT] = {COMMAND_TYPE_EXIT, "exit", NULL},

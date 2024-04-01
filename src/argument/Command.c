@@ -475,7 +475,7 @@ static int __run_option_actions(Command *command)
             o->set_flag == 1) {
             int (*option_action)(void *, void *) = o->action;
             option_action(o, o->opaque);
-            dbg_str(DBG_DETAIL, "run option action:%s\n", o->name->get_cstr(o->name));
+            dbg_str(DBG_DETAIL, "run option action:%s", o->name->get_cstr(o->name));
         }
     }
     return 0;
@@ -649,7 +649,6 @@ static int __help(Command *command)
         dbg_str(DBG_DETAIL, "run %s command help", STR2A(command->name));
         buffer->printf(buffer, 512, "usage:\n");
         buffer->printf(buffer, 512, "%s ", STR2A(command->name));
-
         if (options != NULL) options->for_each_arg(options, __help_head_option_for_each_callback, buffer);
 
         if (subcommands != NULL) {
@@ -657,7 +656,7 @@ static int __help(Command *command)
             if (subcommands->count(subcommands) > 0) {
                 buffer->w_offset -= 3;
             }
-        } else if (args->count(args) != 0) {
+        } else if ((args != NULL) && (args->count(args) != 0)) {
             args->for_each_arg(args, __help_head_argument_for_each_callback, buffer);
         }
 
@@ -669,7 +668,7 @@ static int __help(Command *command)
         if (subcommands != NULL) {
             buffer->printf(buffer, 512, "\nsubcommands details:\n");
             subcommands->for_each_arg(subcommands, __help_details_subcommand_for_each_callback, buffer);
-        } else if (args->count(args) != 0) {
+        } else if ((args != NULL) && (args->count(args) != 0)) {
             buffer->printf(buffer, 512, "\nargument details:\n");
             args->for_each_arg(args, __help_details_argument_for_each_callback, buffer);
         }

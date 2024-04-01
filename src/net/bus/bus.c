@@ -187,10 +187,8 @@ int bus_add_object(bus_t *bus, bus_object_t *obj)
 {
     bus_reqhdr_t hdr;
     blob_t *blob = bus->blob;
-#define BUS_ADD_OBJECT_MAX_BUFFER_LEN 1024
-    uint8_t buffer[BUS_ADD_OBJECT_MAX_BUFFER_LEN];
-    char object_infos[BUS_ADD_OBJECT_MAX_BUFFER_LEN] = {0};
-#undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
+    uint8_t buffer[BLOB_BUFFER_MAX_SIZE];
+    char object_infos[BLOB_BUFFER_MAX_SIZE] = {0};
     uint32_t buffer_len;
 
     dbg_str(BUS_DETAIL, "bus_add_object, obj addr:%p", obj);
@@ -253,9 +251,7 @@ int bus_lookup(bus_t *bus, char *key)
 {
     bus_reqhdr_t hdr;
     blob_t *blob = bus->blob;
-#define BUS_ADD_OBJECT_MAX_BUFFER_LEN 1024
-    uint8_t buffer[BUS_ADD_OBJECT_MAX_BUFFER_LEN];
-#undef BUS_ADD_OBJECT_MAX_BUFFER_LEN 
+    uint8_t buffer[BLOB_BUFFER_MAX_SIZE];
     uint32_t buffer_len;
 
     memset(&hdr, 0, sizeof(hdr));
