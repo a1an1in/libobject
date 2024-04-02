@@ -72,7 +72,7 @@ static int __modulate_capacity(String *string, int write_len)
             dbg_str(OBJ_WARN, "string assign alloc error");
             return -1;
         } else {
-            dbg_str(OBJ_WARN, "auto modulate string object max value len, "
+            dbg_str(OBJ_VIP, "auto modulate string object max value len, "
                     "write_len =%d, value_len:%d, value_max_len from %d to %d",
                     write_len, string->value_len, old, string->value_max_len);
             /*

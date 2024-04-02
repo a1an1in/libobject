@@ -92,9 +92,11 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 bus_call "node@list(./tests/node/)"
 ./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 list node:./tests/node/
 
-./sysroot/linux/bin/xtools node_cli --host=127.0.0.1 --service=12345 --log-level=0x20016 fshell_call "node@fs_add(1,2)"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 bus_call "node@open_fshell()"
+./sysroot/linux/bin/xtools node_cli --host=127.0.0.1 --service=12345 --log-level=0x20016 execute "node@fs_add(1,2)"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 bus_call "node@close_fshell()"
 ./sysroot/linux/bin/xtools mockery --log-level=0x16 test_read_file
 ./sysroot/linux/bin/xtools mockery --log-level=0x16 test_write_file
-./sysroot/linux/bin/xtools mockery --log-level=0x16 test_node
+./sysroot/linux/bin/xtools mockery --log-level=0x16 -f test_node
 
 ```

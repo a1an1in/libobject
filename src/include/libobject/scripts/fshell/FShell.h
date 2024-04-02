@@ -28,7 +28,8 @@ struct FShell_s{
     int (*set_prompt)(FShell *shell, char *prompt);
     int (*init)(FShell *shell);
 
-    Map *map;
+    Map *map;  //加载的外部库， value 是文件句柄，析构的时候会释放。
+    Map *variable_map;  //shell自定义变量表， 统一管理方便统一释放。
     Worker *worker;
     int close_flag;
     char prompt[20];

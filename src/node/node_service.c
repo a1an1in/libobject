@@ -5,6 +5,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/node/Node.h>
+#include <libobject/scripts/fshell/api.h>
 
 static const struct blob_policy_s test_policy[] = { 
     [0] = { .name = "par1",  .type = BLOB_TYPE_INT32 }, 
@@ -204,33 +205,85 @@ static int node_list(bus_object_t *obj, int argc,
 	return ret;
 }
 
-static const struct blob_policy_s exec_fshell_command_policy[] = {
-	[0] = { .name = "command",  .type = BLOB_TYPE_STRING }, 
-};
-
-static int node_exec_fshell_command(bus_object_t *obj, int argc, 
-		      		                struct blob_attr_s **args, 
-                                    void *out, int *out_len)
+/*
+ * node 只会使用一个fshell， 所有可以把shell保存在bus中。
+ */
+static int node_open_fshell(bus_object_t *obj, int argc, 
+                            struct blob_attr_s **args, 
+                            void *out, int *out_len)
 {
     bus_t *bus;
     char *command;
     int value_type = VALUE_TYPE_STRUCT_POINTER;
     uint8_t trustee_flag = 1;
     uint32_t len = 0;
-    Vector *list = NULL;
+    void *shell = NULL;
     allocator_t *allocator;
+    int ret, count;
+
+    TRY {
+        bus = obj->bus;
+        allocator = bus->allocator;
+
+        dbg_str(DBG_VIP, "node_open_fshell in");
+        shell = object_new(allocator, "UnixFShell", NULL);
+
+        bus->shell = shell;
+    } CATCH (ret) {} FINALLY {
+        *out_len = 0;
+    }
+
+	return ret;
+}
+
+static const struct blob_policy_s exec_fshell_policy[] = {
+	[0] = { .name = "command",  .type = BLOB_TYPE_STRING }, 
+};
+
+static int node_exec_fshell(bus_object_t *obj, int argc, 
+                            struct blob_attr_s **args, 
+                            void *out, int *out_len)
+{
+    bus_t *bus;
+    char *command;
+    allocator_t *allocator;
+    FShell *shell;
+    String *str;
+    Node *node;
     int ret, count;
 
     TRY {
         command = blob_get_string(args[0]);
         bus = obj->bus;
         allocator = bus->allocator;
-        dbg_str(DBG_VIP, "node_exec_fshell_command command:%s", command);
+        shell = bus->shell;
+        node = bus->opaque;
+        str = node->str;
 
-        *out_len = len;
-        // fs_print_file_info_list(list);
-    } CATCH (ret) {*out_len = 0;} FINALLY {
+        dbg_str(DBG_VIP, "node_exec_fshell command:%s", command);
+        str->reset(str);
+        str->assign(str, command);
+        THROW(shell->run_func(shell, str));
+    } CATCH (ret) {} FINALLY {
+        *out_len = 0;
     }
+
+	return ret;
+}
+
+static int node_close_fshell(bus_object_t *obj, int argc, 
+                             struct blob_attr_s **args, 
+                             void *out, int *out_len)
+{
+    bus_t *bus;
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "node_close_fshell in");
+        bus = obj->bus;
+        object_destroy(bus->shell);
+        bus->shell = NULL;
+    } CATCH (ret) {*out_len = 0;} FINALLY { }
 
 	return ret;
 }
@@ -239,10 +292,12 @@ static const struct bus_method node_service_methods[] = {
 	BUS_METHOD_WITHOUT_ARG("exit", node_exit, NULL),
     BUS_METHOD("test", node_test, test_policy),
     BUS_METHOD("set_loglevel", node_set_loglevel, set_loglevel_policy),
-    BUS_METHOD("write_file", node_write_file, write_file_policy),
     BUS_METHOD("list", node_list, list_policy),
+    BUS_METHOD("write_file", node_write_file, write_file_policy),
     BUS_METHOD("read_file", node_read_file, read_file_policy),
-    BUS_METHOD("exec_fshell_command", node_exec_fshell_command, exec_fshell_command_policy),
+    BUS_METHOD_WITHOUT_ARG("open_fshell", node_open_fshell, NULL),
+    BUS_METHOD("exec_fshell", node_exec_fshell, exec_fshell_policy),
+    BUS_METHOD_WITHOUT_ARG("close_fshell", node_close_fshell, NULL),
 };
 
 bus_object_t node_object = {

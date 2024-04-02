@@ -87,11 +87,13 @@ static int __test_node_write(Node *node)
 static int __test_node_fshell(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
-    char code[1024] ="node@fs_add(1,2)";
     int ret;
     
     TRY {
-        EXEC(node->fshell_call(node, code, NULL, NULL));
+        EXEC(node->bus_call(node, "node@open_fshell()", NULL, 0));
+        EXEC(node->execute(node, "node@fsh_add(1, 2)", NULL, NULL));
+        EXEC(node->bus_call(node, "node@close_fshell()", NULL, 0));
+
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {}

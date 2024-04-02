@@ -11,10 +11,10 @@ typedef struct Node_Cli_Command_s Node_Cli_Command;
 
 enum command_type_e {
     COMMAND_TYPE_BUS_CALL = 0,
-    COMMAND_TYPE_FSHELL_CALL,
     COMMAND_TYPE_COPY,
     COMMAND_TYPE_LIST,
     COMMAND_TYPE_EXIT,
+    COMMAND_TYPE_EXECUTE,
     COMMAND_TYPE_MAX
 };
 

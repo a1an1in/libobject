@@ -474,8 +474,8 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
             *out_len = req->opaque_len;
         }
 
-        ret = req->state;
         EXEC(map->del(map, buffer));
+        THROW(req->state);
     } CATCH (ret) {} FINALLY {
         allocator_mem_free(bus->allocator, req);
     }
@@ -531,7 +531,7 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
                 memcpy(req->opaque, buffer, req->opaque_len);
             }
             
-            dbg_str(BUS_DETAIL, "method_name:%s, state:%d", req->method, req->state);
+            dbg_str(DBG_VIP, "method_name:%s, state:%d", req->method, req->state);
         }
     }
 
@@ -763,6 +763,7 @@ int bus_destroy(bus_t *bus)
 
     object_destroy(bus->obj_map);
     object_destroy(bus->req_map);
+    object_destroy(bus->shell);
     blob_destroy(bus->blob);
     client_destroy(bus->client);
     allocator_mem_free(bus->allocator, bus);

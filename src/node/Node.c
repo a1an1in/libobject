@@ -115,10 +115,10 @@ static int __bus_call(Node *node, char *code, void *out, uint32_t *out_len)
 }
 
 /*
- * 这个不能复用bus_call, 因为fshell_call不想把命令的参数也解析出来。如果加标记判断
+ * 这个不能复用bus_call, 因为execute不想把命令的参数也解析出来。如果加标记判断
  * 什么时候解析，会把bus_call搞复杂了。
  */
-static int __fshell_call(Node *node, char *code, void *out, uint32_t *out_len)
+static int __execute(Node *node, char *code, void *out, uint32_t *out_len)
 {
     bus_t *bus;
     String *str = node->str;
@@ -139,7 +139,7 @@ static int __fshell_call(Node *node, char *code, void *out, uint32_t *out_len)
         node_id = str->get_splited_cstr(str, 0);
         command = str->get_splited_cstr(str, 1);
         args[0].value = command;
-        EXEC(bus_invoke_sync(bus, node_id, "exec_fshell_command", ARRAY_SIZE(args), args, NULL, NULL));
+        EXEC(bus_invoke_sync(bus, node_id, "exec_fshell", ARRAY_SIZE(args), args, NULL, NULL));
     } CATCH (ret) {}
 
     return ret;
@@ -371,7 +371,7 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(3 , Node, init, __init),
     Init_Nfunc_Entry(4 , Node, loop, __loop),
     Init_Nfunc_Entry(5 , Node, bus_call, __bus_call),
-    Init_Nfunc_Entry(6 , Node, fshell_call, __fshell_call),
+    Init_Nfunc_Entry(6 , Node, execute, __execute),
     Init_Nfunc_Entry(7 , Node, write, __write),
     Init_Nfunc_Entry(8 , Node, read, __read),
     Init_Nfunc_Entry(9 , Node, copy, __copy),

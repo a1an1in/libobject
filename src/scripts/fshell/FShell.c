@@ -26,12 +26,24 @@ static int __construct(FShell *shell, char *init_str)
 {
     Map *map;
     struct event *signal;
+    int trustee_flag = 1;
+    int value_type = VALUE_TYPE_STRUCT_POINTER;
     allocator_t *allocator = shell->parent.allocator;
 
     map = object_new(shell->parent.allocator, "RBTree_Map", NULL);
     map->set_cmp_func(map, string_key_cmp_func);
     shell->map = map;
     shell->close_flag = 0;
+
+    /* 设置为alloc 类型的变量， shell变量不适合与object类型数据，
+     * 因为这个map的类型需要统一，二者如果有多个类型， 不太好分辨
+     * 是什么类型和需要用什么方法释放
+     **/
+    map = object_new(shell->parent.allocator, "RBTree_Map", NULL);
+    map->set_cmp_func(map, string_key_cmp_func);
+    map->set(map, "/Map/trustee_flag", &trustee_flag);
+    map->set(map, "/Map/value_type", &value_type);
+    shell->variable_map = map;
 
     sprintf(shell->prompt, "%s", "fshell$ ");
 
@@ -43,6 +55,7 @@ static int __deconstruct(FShell *shell)
     allocator_t *allocator = shell->parent.allocator;
 
     dbg_str(DBG_DETAIL, "fshell deconstruct in, shell->worker=%p", shell->worker);
+    object_destroy(shell->variable_map);
     object_destroy(shell->map);
     worker_destroy(shell->worker);
     dbg_str(DBG_DETAIL, "fshell deconstruct out");
@@ -92,6 +105,7 @@ static int __run_func(FShell *shell, String *str)
 
         THROW_IF(cnt <= 0, 0);
         arg = str->get_splited_cstr(str, 0);
+        dbg_str(DBG_VIP, "run at here, func name:%s", arg);
         EXEC(shell->get_func_addr(shell, NULL, arg, &func));
         THROW_IF(func == NULL, -1);
 
@@ -119,7 +133,7 @@ static int __run_func(FShell *shell, String *str)
                    par[10], par[11], par[12], par[13], par[14],
                    par[15], par[16], par[17], par[18], par[19]);
         dbg_str(DBG_DETAIL, "run func ret:%d", ret);
-        
+        THROW(ret);
     } CATCH (ret) { }
 
     return ret;

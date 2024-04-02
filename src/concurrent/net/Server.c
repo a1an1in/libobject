@@ -142,7 +142,7 @@ static Worker *__get_worker(Server *server)
         leisure_list->remove(leisure_list, (void **)&worker);
         THROW_IF(worker != NULL, 1);
 
-        dbg_str(NET_WARN, "get_worker, alloc a new worker");
+        dbg_str(NET_VIP, "get_worker, alloc a new worker");
         worker = object_new(allocator, "Worker", NULL);
 
 #define TASK_MAX_BUF_LEN 1024 * 10
