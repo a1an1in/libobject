@@ -213,13 +213,9 @@ static int node_open_fshell(bus_object_t *obj, int argc,
                             void *out, int *out_len)
 {
     bus_t *bus;
-    char *command;
-    int value_type = VALUE_TYPE_STRUCT_POINTER;
-    uint8_t trustee_flag = 1;
-    uint32_t len = 0;
     void *shell = NULL;
     allocator_t *allocator;
-    int ret, count;
+    int ret;
 
     TRY {
         bus = obj->bus;
@@ -250,7 +246,7 @@ static int node_exec_fshell(bus_object_t *obj, int argc,
     FShell *shell;
     String *str;
     Node *node;
-    int ret, count;
+    int ret;
 
     TRY {
         command = blob_get_string(args[0]);

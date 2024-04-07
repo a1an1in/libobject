@@ -1,6 +1,7 @@
 /**
  * @file Uio.c
- * @Synopsis  
+ * @Synopsis  因为uio会依赖worker而且是driver的基础， 所有单独
+ * 立个库， 负责driver开发。
  * @author alan lin
  * @version 
  * @date 2024-03-26

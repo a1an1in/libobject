@@ -4,4 +4,4 @@ Description:
 更新修改.
 
 Major Changes:
-1. 目前已经可以调用fsh_add。
+1. 优化代码。

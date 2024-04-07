@@ -244,6 +244,7 @@ __add_stub_hooks(Attacher *attacher, stub_t *stub, void *func, void *pre, void *
     void *addr;
     char module_name[64] = {0};
     int ret;
+    /* 如果size 为0表示是 value类型， 这时也可以传递地址 */
     attacher_paramater_t pars[6] = {{stub, 0}, {NULL, 0},
                                     {NULL, 0}, {NULL, 0},
                                     {NULL, 0}, {para_count, 0}};

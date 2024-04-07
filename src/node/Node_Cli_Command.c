@@ -35,14 +35,12 @@ static int __list_command_action(Node *node, char *arg1, char *arg2)
     int ret;
 
     TRY {
-        list = object_new(allocator, "Vector", NULL);
-
         if ((path = strchr(arg1, ':')) != NULL) {
             node_id = arg1;
             *path = '\0';
             path = path + 1;
         }
-
+        list = object_new(allocator, "Vector", NULL);
         EXEC(node->list(node, node_id, path, list));
 
         list->for_each(list, fs_file_info_struct_custom_print);
@@ -197,6 +195,7 @@ static int __construct(Node_Cli_Command *command, char *init_str)
                   __option_execute_command_callback, command);
     c->add_option(c, "--disable-node-service", "", "true", "disable node service for node cli.", 
                   __option_disable_node_service_callback, command);
+
     c->add_argument(c, "",
                                                       "command type, it's optional if you want to call bus or fshell, \n"
                     "                                ""we can excute cmd by option. now we support bus_call, execute \n"
