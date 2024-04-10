@@ -18,7 +18,9 @@
 
 #ifndef __DEBUG_STRING_H__
 #define __DEBUG_STRING_H__
-#include "basic_types.h"
+
+#include <libobject/basic_types.h>
 uint32_t debug_string_buf_to_str(uint8_t *buf_addr,size_t buf_len,char *str,size_t str_len);
 int debug_string_itoa(int val, char* buf,int radix);
+
 #endif

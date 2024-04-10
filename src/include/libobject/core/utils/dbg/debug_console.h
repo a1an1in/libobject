@@ -18,9 +18,10 @@
 #ifndef __DEBUG_CONSOLE_H__
 #define __DEBUG_CONSOLE_H__
 
-#include "basic_types.h"
+#include <libobject/basic_types.h>
 
-typedef struct debug_cosole_prive{
-}debug_cosole_prive_t;
+typedef struct debug_cosole_prive {
+} debug_cosole_prive_t;
 int console_print_regester();
+
 #endif

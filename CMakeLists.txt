@@ -5,7 +5,7 @@ init_platform()
 if (POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
-project (libobject VERSION 2.12.2.212)
+project (libobject VERSION 2.12.2.234)
 
 #version format "[VERSION <major>[.<minor>[.<patch>[.<tweak>]]]]"
 configure_file(
@@ -30,20 +30,20 @@ list(APPEND module_lists "src/concurrent")
 list(APPEND module_lists "src/core")
 list(APPEND module_lists "src/stub")
 list(APPEND module_lists "src/encoding")
+list(APPEND module_lists "src/net")
+list(APPEND module_lists "src/node")
 
 if ("${PLATFORM}" STREQUAL "windows")
     list(APPEND module_lists "tests")
-    #list(APPEND module_lists "src/net")
+    
 else()
     list(APPEND module_lists "src/compress")
     list(APPEND module_lists "src/crypto")
     list(APPEND module_lists "src/database")
-    
     list(APPEND module_lists "src/attacher")
-    list(APPEND module_lists "src/net")
     list(APPEND module_lists "src/scripts")
     list(APPEND module_lists "src/archive")
-    list(APPEND module_lists "src/node")
+
     list(APPEND module_lists "src/drivers")
     list(APPEND module_lists "3rd/test_process")
     list(APPEND module_lists "3rd/test_lib")

@@ -73,8 +73,10 @@ static void signal_handler(int sig)
     list->for_each_arg(list, __evsig_send, (void *)&msg);
 
     if (sig == SIGSEGV) {
+#if (!defined(WINDOWS_USER_MODE))
         print_backtrace();
         sleep(1);
+#endif 
     }
 
     return ;
@@ -178,7 +180,8 @@ int set_quit_signal(Event_Base* eb)
     struct event *ev = &eb->quit_event;
 
 #if (defined(WINDOWS_USER_MODE))
-    ev->ev_fd              = SIGQUIT;
+    // ev->ev_fd              = SIGQUIT;
+    ev->ev_fd              = SIGINT; // ??SIGQUIT windows 编译不过先改为SIGINT
 #else
     ev->ev_fd              = SIGINT;
 #endif
