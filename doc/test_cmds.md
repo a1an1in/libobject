@@ -83,18 +83,18 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 
 /* test node cli */
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x20017 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 --bus_call="node@set_loglevel(1,2,3)"
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 bus_call "node@set_loglevel(1,2,3)"
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 bus_call "node@exit()"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 --call_bus="node@set_loglevel(1,2,3)"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 call_bus "node@set_loglevel(1,2,3)"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 call_bus "node@exit()"
 ./sysroot/linux/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 copy ./tests/node/test_node.txt "node:./tests/node/output/write/test_node.txt"
 ./sysroot/linux/bin/xtools node_cli --log-level=0x20019 --host=127.0.0.1 --service=12345 copy ./tests/node/test_node.c "node:./tests/node/output/write/test_node.c"
 ./sysroot/linux/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 copy ./tests/node/ "node:./tests/node/output/write/"
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 bus_call "node@list(./tests/node/)"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 call_bus "node@list(./tests/node/)"
 ./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 list node:./tests/node/
 
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 bus_call "node@open_fshell()"
-./sysroot/linux/bin/xtools node_cli --host=127.0.0.1 --service=12345 --log-level=0x20016 execute "node@fs_add(1,2)"
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 bus_call "node@close_fshell()"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 call_bus "node@open_fshell()"
+./sysroot/linux/bin/xtools node_cli --host=127.0.0.1 --service=12345 --log-level=0x20016 execute_fsh "node@fs_add(1,2)"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 call_bus "node@close_fshell()"
 ./sysroot/linux/bin/xtools mockery --log-level=0x16 test_read_file
 ./sysroot/linux/bin/xtools mockery --log-level=0x16 test_write_file
 ./sysroot/linux/bin/xtools mockery --log-level=0x16 -f test_node

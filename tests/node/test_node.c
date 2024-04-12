@@ -11,7 +11,7 @@ static int __test_node_bus_call(Node *node)
     int ret;
     
     TRY {
-        EXEC((ret = node->bus_call(node, method, NULL, 0)));
+        EXEC((ret = node->call_bus(node, method, NULL, 0)));
         THROW_IF(ret != 1, -1);
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
@@ -90,9 +90,9 @@ static int __test_node_fshell(Node *node)
     int ret;
     
     TRY {
-        EXEC(node->bus_call(node, "node@open_fshell()", NULL, 0));
-        EXEC(node->execute(node, "node@fsh_add(1, 2)", NULL, NULL));
-        EXEC(node->bus_call(node, "node@close_fshell()", NULL, 0));
+        EXEC(node->call_bus(node, "node@open_fshell()", NULL, 0));
+        EXEC(node->execute_fsh(node, "node@fsh_add(1, 2)", NULL, NULL));
+        EXEC(node->call_bus(node, "node@close_fshell()", NULL, 0));
 
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);

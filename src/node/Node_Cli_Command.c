@@ -12,12 +12,12 @@
 
 static int __execute_command_action(Node *node, char *arg1, char *arg2)
 {
-    return TRY_EXEC(node->execute(node, arg1, NULL, 0));
+    return TRY_EXEC(node->execute_fsh(node, arg1, NULL, 0));
 }
 
 static int __bus_call_command_action(Node *node, char *arg1, char *arg2)
 {
-    return TRY_EXEC(node->bus_call(node, arg1, NULL, 0));
+    return TRY_EXEC(node->call_bus(node, arg1, NULL, 0));
 }
 
 static int __copy_command_action(Node *node, char *arg1, char *arg2)
@@ -56,10 +56,10 @@ struct node_command_s {
     char *command_name;
     int (*action)(Node *node, char *arg1, char *arg2);
 } node_command_table[COMMAND_TYPE_MAX] = {
-    [COMMAND_TYPE_BUS_CALL] = {COMMAND_TYPE_BUS_CALL, "bus_call", __bus_call_command_action},
+    [COMMAND_TYPE_BUS_CALL] = {COMMAND_TYPE_BUS_CALL, "call_bus", __bus_call_command_action},
     [COMMAND_TYPE_COPY] = {COMMAND_TYPE_COPY, "copy", __copy_command_action},
     [COMMAND_TYPE_LIST] = {COMMAND_TYPE_LIST, "list", __list_command_action},
-    [COMMAND_TYPE_EXECUTE] = {COMMAND_TYPE_EXECUTE, "execute", __execute_command_action},
+    [COMMAND_TYPE_EXECUTE] = {COMMAND_TYPE_EXECUTE, "execute_fsh", __execute_command_action},
     [COMMAND_TYPE_EXIT] = {COMMAND_TYPE_EXIT, "exit", NULL},
 };
 
@@ -187,22 +187,22 @@ static int __construct(Node_Cli_Command *command, char *init_str)
     c->set(c, "/Command/name", "node_cli");
     c->add_option(c, "--host", "", "", "set node center ip address.", __option_host_callback, command);
     c->add_option(c, "--service", "-s", "", "set node center port.", __option_service_callback, command);
-    c->add_option(c, "--bus_call", "-b", "",
+    c->add_option(c, "--call_bus", "-b", "",
                                                     "set the executing code of bus, \n"
-                  "                                ""eg: --bus_call=nodeid@set_loglevel(1,2,3).",
+                  "                                ""eg: --call_bus=nodeid@set_loglevel(1,2,3).",
                   __option_bus_call_command_callback, command);
-    c->add_option(c, "--execute", "-f", "", "set the executing code of fshell, eg, --execute=fsh_add(1,2).", 
+    c->add_option(c, "--execute_fsh", "-f", "", "set the executing code of fshell, eg, --execute_fsh=fsh_add(1,2).", 
                   __option_execute_command_callback, command);
     c->add_option(c, "--disable-node-service", "", "true", "disable node service for node cli.", 
                   __option_disable_node_service_callback, command);
 
     c->add_argument(c, "",
                                                       "command type, it's optional if you want to call bus or fshell, \n"
-                    "                                ""we can excute cmd by option. now we support bus_call, execute \n"
+                    "                                ""we can excute cmd by option. now we support call_bus, execute_fsh \n"
                     "                                ""and copy commands.",
                     __argument_arg0_action_callback, command);
     c->add_argument(c, "",
-                                                      "if arg0 is bus_call or execute, it should set call method here, \n"
+                                                      "if arg0 is call_bus or execute_fsh, it should set call method here, \n"
                     "                                ""like nodeid@set_loglevel(1,2,3).\n"
                     "                                ""if arg0 is copy command, it should set the source file to copy.\n"
                     "                                ""if arg0 is upgrade command, it should set install package URL.",

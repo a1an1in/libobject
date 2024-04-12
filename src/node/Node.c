@@ -78,7 +78,7 @@ static int __loop(Node *node)
  *   fshell的接口， 就不需要做额外的开发了， 直接就可以调用函数， 不用再对各种不同
  *   应用写不同bus接口了。
  */
-static int __bus_call(Node *node, char *code, void *out, uint32_t *out_len)
+static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
 {
     allocator_t *allocator = node->parent.allocator;
     char *method_name = NULL;
@@ -88,7 +88,7 @@ static int __bus_call(Node *node, char *code, void *out, uint32_t *out_len)
     int ret, argc, i, count;
 
     TRY {
-        dbg_str(DBG_VIP, "bus_call in, code:%s", code);
+        dbg_str(DBG_VIP, "call_bus in, code:%s", code);
         EXEC(str->reset(str));
         str->assign(str, code);
         count = str->split(str, "[,@ \t\n();]", -1);
@@ -108,7 +108,7 @@ static int __bus_call(Node *node, char *code, void *out, uint32_t *out_len)
         EXEC(bus_invoke_sync(node->bus, node_id, method_name, argc, args, out, out_len));
         node_free_argument_template(allocator, args, argc);
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "bus_call argc:%d, count:%d", argc, count);
+        dbg_str(DBG_ERROR, "call_bus argc:%d, count:%d", argc, count);
     }
 
     return ret;
@@ -118,7 +118,7 @@ static int __bus_call(Node *node, char *code, void *out, uint32_t *out_len)
  * 这个不能复用bus_call, 因为execute不想把命令的参数也解析出来。如果加标记判断
  * 什么时候解析，会把bus_call搞复杂了。
  */
-static int __execute(Node *node, char *code, void *out, uint32_t *out_len)
+static int __execute_fsh(Node *node, char *code, void *out, uint32_t *out_len)
 {
     bus_t *bus;
     String *str = node->str;
@@ -347,7 +347,7 @@ static int __list(Node *node, char *node_id, char *path, Vector *vector)
 
         THROW_IF(path == NULL, -1);
         snprintf(buffer, sizeof(buffer), "%s@list(%s)", node_id, path);
-        EXEC(node->bus_call(node, buffer, buffer, &len));
+        EXEC(node->call_bus(node, buffer, buffer, &len));
         THROW_IF(len == 0, 0);
         if (len > 0) {
             buffer[len] = 0;
@@ -370,8 +370,8 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(2 , Node, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3 , Node, init, __init),
     Init_Nfunc_Entry(4 , Node, loop, __loop),
-    Init_Nfunc_Entry(5 , Node, bus_call, __bus_call),
-    Init_Nfunc_Entry(6 , Node, execute, __execute),
+    Init_Nfunc_Entry(5 , Node, call_bus, __call_bus),
+    Init_Nfunc_Entry(6 , Node, execute_fsh, __execute_fsh),
     Init_Nfunc_Entry(7 , Node, write, __write),
     Init_Nfunc_Entry(8 , Node, read, __read),
     Init_Nfunc_Entry(9 , Node, copy, __copy),
