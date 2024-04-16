@@ -275,10 +275,10 @@ static void __info(allocator_t *allocator)
     printf("##########################printf allocator mem info##########################\n");
     dbg_str(ALLOC_VIP, "the mem using, count=%d", allocator->alloc_count);
     dbg_str(ALLOC_VIP, "query pool:");
-    mempool_print_list_for_each(allocator->priv.ctr_alloc.pool);
+    // mempool_print_list_for_each(allocator->priv.ctr_alloc.pool);
 
     dbg_str(ALLOC_VIP, "query empty_pool:");
-    mempool_print_list_for_each(allocator->priv.ctr_alloc.empty_pool);
+    // mempool_print_list_for_each(allocator->priv.ctr_alloc.empty_pool);
 
     /*
      *dbg_str(ALLOC_VIP, "query free_slabs:");
