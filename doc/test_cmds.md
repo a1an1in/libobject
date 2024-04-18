@@ -19,17 +19,18 @@
 * ./sysroot/linux/bin/xtools wget http://mirrors.ustc.edu.cn/gnu/hello/hello-1.3.tar.gz
 * ./sysroot/linux/bin/xtools player http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8
 * ./sysroot/linux/bin/xtools --event-thread-service=11111 --event-signal-service=11112 fshell
-* ./sysroot/linux/bin/xtools --log-level=0x6 
-* ./sysroot/linux/bin/xtools fshell --log-level=0x6
-* ./sysroot/linux/bin/xtools ctest -r=Hash_Map_Test
-* ./sysroot/linux/bin/xtools mockery --log-level=0x6 test_mockery_command 123 456
-* ./sysroot/linux/bin/xtools mockery --log-level=0x6 test_string
-* ./sysroot/linux/bin/xtools mockery --log-level=0x6 test_stub_add_hooks
-* ./sysroot/linux/bin/xtools mockery --log-level=0x6 all
-* ./sysroot/linux/bin/xtools mockery test_datetime_for_each_month
+* ./sysroot/linux/bin/xtools fshell --log-level=0x16
+* ./sysroot/linux/bin/xtools mockery --log-level=0x16 test_mockery_command 123 456
+* ./sysroot/linux/bin/xtools mockery --log-level=0x16 -f test_string
+* ./sysroot/linux/bin/xtools mockery --log-level=0x16 -f test_stub_add_hooks
+* ./sysroot/linux/bin/xtools mockery --log-level=0x16 -f all
+* ./sysroot/linux/bin/xtools mockery --log-level=0x16 -f test_datetime_for_each_month
 * ./sysroot/linux/bin/xtools --event-thread-service=11111 --event-signal-service=11121 mockery test_inet_tcp_client
 * ./sysroot/linux/bin/xtools mockery --log-level=0x6 test_attacher
 * sudo ./sysroot/linux/bin/xtools mockery --log-level=0x6 test_attacher_call_from_lib 94989
+* 
+* ./sysroot/windows/bin/xtools.exe mockery --log-level=0x16 -f test_string
+* ./sysroot/windows/bin/xtools.exe mockery --log-level=0x16 -f test_message_publisher
 * 
 * 
 
@@ -60,6 +61,10 @@ addr2line -f -e ./sysroot/linux/bin/xtools  libobject-core.so 0x152
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 mockery --log-level=0x20016 test_bus_server
 ./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x20016 test_bus_client_invoke_sync
 ./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x20016 test_bus_client_lookup_sync
+
+./sysroot/windows/bin/xtools.exe --event-thread-service=11131 --event-signal-service=11132 mockery --log-level=0x30017 test_bus_server
+./sysroot/windows/bin/xtools.exe --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x20016 test_bus_client_invoke_sync
+./sysroot/windows/bin/xtools.exe --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x20016 test_bus_client_lookup_sync
 
 ```
 
@@ -98,5 +103,7 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/linux/bin/xtools mockery --log-level=0x16 test_read_file
 ./sysroot/linux/bin/xtools mockery --log-level=0x16 test_write_file
 ./sysroot/linux/bin/xtools mockery --log-level=0x16 -f test_node
+
+./sysroot/windows/bin/xtools.exe mockery --log-level=0x16 -f test_node
 
 ```

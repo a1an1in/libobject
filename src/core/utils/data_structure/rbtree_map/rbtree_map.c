@@ -351,7 +351,7 @@ rbtree_map_search(rbtree_map_t *map, void *key, rbtree_map_pos_t *it)
     sync_unlock(&map->map_lock);
 
     if (mnode == NULL) {
-        dbg_str(RBTMAP_INFO, "not found the key, key addr:%p", key);
+        dbg_str(RBTMAP_DETAIL, "not found the key, key addr:%p", key);
         return 0;
     } else {
         it->rb_node_p = &mnode->node;

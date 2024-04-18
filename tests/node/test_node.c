@@ -1,5 +1,3 @@
-#if (!defined(WINDOWS_USER_MODE))
-
 #include <libobject/mockery/mockery.h>
 #include <libobject/node/Node.h>
 #include <libobject/core/io/file_system_api.h>
@@ -139,5 +137,3 @@ static int test_node(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_FUNC(test_node);
-
-#endif

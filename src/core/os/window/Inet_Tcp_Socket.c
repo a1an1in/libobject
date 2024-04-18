@@ -59,6 +59,7 @@ static int __construct(Inet_Tcp_Socket *sk, char *init_str)
     }
 
     sk->parent.fd = fd;
+    dbg_str(DBG_VIP, "socket construct, socket fd:%p", fd);
 
     return 1;
 }
@@ -281,49 +282,4 @@ static class_info_entry_t inet_tcp_socket_class_info[] = {
     Init_End___Entry(17, Inet_Tcp_Socket),
 };
 REGISTER_CLASS("Inet_Tcp_Socket", inet_tcp_socket_class_info);
-
-void test_inet_tcp_socket_send()
-{
-    Socket *socket;
-    allocator_t *allocator = allocator_get_default_instance();
-
-    char *test_str = "hello world";
-
-    dbg_str(DBG_DETAIL, "run at here");
-    socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
-
-    socket->connect(socket, "127.0.0.1", "11013");
-    socket->send(socket, test_str, strlen(test_str), 0);
-
-    sleep(1);
-
-    object_destroy(socket);
-}
-REGISTER_TEST_CMD(test_inet_tcp_socket_send);
-
-int test_inet_tcp_socket_recv()
-{
-    Socket *socket;
-    int fd;
-    char buf[1024] = {0};
-    allocator_t *allocator = allocator_get_default_instance();
-
-    dbg_str(DBG_DETAIL, "run at here");
-    socket = OBJECT_NEW(allocator, Inet_Tcp_Socket, NULL);
-
-    dbg_str(NET_DETAIL, "sizeof socket=%d", sizeof(Socket));
-    socket->bind(socket, "127.0.0.1", "11013"); 
-    socket->listen(socket, 1024);
-
-    fd = socket->accept(socket, NULL, NULL);
-
-    dbg_str(DBG_DETAIL, "run at here");
-    recv(fd, buf, 1024, 0);
-    dbg_str(NET_SUC, "recv : %s", buf);
-
-    object_destroy(socket);
-
-    return 0;
-}
-REGISTER_TEST_CMD(test_inet_tcp_socket_recv);
 #endif

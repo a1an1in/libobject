@@ -38,8 +38,8 @@ typedef struct busd_s {
 
 typedef struct busd_object {
 	char *id;
-	char  *infos;
-    uint8_t fd;
+	char *infos;
+    int fd;
     allocator_t *allocator;
 } busd_object_t;
 

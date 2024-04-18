@@ -21,11 +21,12 @@ macro (set_cmake_evironment_variable)
         -Wl,--whole-archive
             object-tests
             object-mockery
+            object-node 
             # object-compress 
             # object-scripts 
             object-stub 
             # object-db 
-            # object-net
+            object-net
             object-concurrent
             # object-crypto
             object-encoding

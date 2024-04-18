@@ -1,5 +1,6 @@
-#if (!defined(WINDOWS_USER_MODE))
+
 #include <unistd.h>
+#include <libobject/core/utils/dbg/debug.h>
 #include <libobject/net/bus/bus.h>
 #include <libobject/net/bus/busd.h>
 #include <libobject/mockery/mockery.h>
@@ -59,7 +60,60 @@ static bus_object_t test_object = {
 	.n_methods = ARRAY_SIZE(test_methods),
 };
 
-static int test_bus_server()
+
+static int __test_bus_invoke_sync()
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    bus_t *bus;
+    char *deamon_host = "127.0.0.1";
+    char *deamon_srv  = "12345";
+	char out[1024] = {0};
+    int out_len = sizeof(out);
+    bus_method_args_t args[2] = {
+        [0] = {ARG_TYPE_UINT32, "id", 123},
+        [1] = {ARG_TYPE_STRING, "content", "hello_world"},
+    };
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "test_bus_invoke_sync");
+        bus = bus_create(allocator, deamon_host, deamon_srv, CLIENT_TYPE_INET_TCP);
+        THROW_IF(bus == NULL, -1);
+
+        EXEC(bus_invoke_sync(bus, "test", "hello", 2, args, out, &out_len));
+        dbg_buf(DBG_VIP, "return buffer:", (uint8_t *)out, out_len);
+    } CATCH (ret) {} FINALLY {
+        bus_destroy(bus);
+    }
+
+    return ret;
+}
+
+static int __test_bus_lookup_sync()
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    bus_t *bus;
+    char *deamon_host = "127.0.0.1";
+    char *deamon_srv  = "12345";
+	char out[1024];
+    int out_len = 1024;
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "test_bus_client");
+
+        bus = bus_create(allocator, deamon_host, deamon_srv, CLIENT_TYPE_INET_TCP);
+        THROW_IF(bus == NULL, -1);
+
+        bus_lookup_sync(bus, "test", out, &out_len);
+    } CATCH (ret) {} FINALLY {
+        bus_destroy(bus);
+    }
+	
+    return ret;
+}
+
+static int test_bus()
 {
     allocator_t *allocator = allocator_get_default_instance();
     bus_t *bus = NULL;
@@ -68,7 +122,7 @@ static int test_bus_server()
     char *deamon_srv  = "12345";
 	char buf[1024]    = "hello world!";
 	int buf_len       = strlen(buf);
-    int ret;
+    int ret, count = 0;
     
     TRY {
         dbg_str(DBG_VIP,"test create busd_daemon");
@@ -84,11 +138,11 @@ static int test_bus_server()
         dbg_str(DBG_VIP, "bus add object");
         bus_add_object(bus, &test_object);
 
-    #if (defined(WINDOWS_USER_MODE))
-        system("pause");
-    #else
-        pause();
-    #endif
+        sleep(1);
+
+        EXEC(__test_bus_invoke_sync);
+        // EXEC(__test_bus_lookup_sync);
+        sleep(1);
         
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);
@@ -97,5 +151,4 @@ static int test_bus_server()
 
     return ret;
 }
-REGISTER_TEST_CMD(test_bus_server);
-#endif
+REGISTER_TEST_FUNC(test_bus);

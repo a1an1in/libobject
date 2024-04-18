@@ -185,41 +185,4 @@ static class_info_entry_t inet_udp_socket_class_info[] = {
 };
 REGISTER_CLASS("Inet_Udp_Socket", inet_udp_socket_class_info);
 
-void test_inet_udp_socket_send()
-{
-    Socket *socket;
-    allocator_t *allocator = allocator_get_default_instance();
-
-    char *test_str = "hello world";
-
-    socket = OBJECT_NEW(allocator, Inet_Udp_Socket, NULL);
-
-    socket->connect(socket, "127.0.0.1", "11011");
-    socket->send(socket, test_str, strlen(test_str), 0);
-
-    //while(1) sleep(1);
-
-    object_destroy(socket);
-}
-REGISTER_TEST_CMD(test_inet_udp_socket_send);
-
-void test_inet_udp_socket_recv()
-{
-    Socket *socket;
-    char buf[1024] = {0};
-    allocator_t *allocator = allocator_get_default_instance();
-
-    dbg_str(NET_DETAIL, "test_inet_udp_socket_recv in");
-    socket = OBJECT_NEW(allocator, Inet_Udp_Socket, NULL);
-
-    socket->bind(socket, "127.0.0.1", "11011");
-    while(1) {
-        socket->recv(socket, buf, 1024, 0);
-        dbg_str(NET_SUC, "recv : %s", buf);
-    }
-
-    object_destroy(socket);
-}
-REGISTER_TEST_CMD(test_inet_udp_socket_recv);
-
 #endif //end of WINDOWS_USER_MODE

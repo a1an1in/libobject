@@ -29,7 +29,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#if (!defined(WINDOWS_USER_MODE))
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/net/bus/busd.h>
@@ -163,6 +162,8 @@ busd_create_bus_object(busd_t *busd, char *object_id, blob_attr_t *attr, int fd)
     obj->allocator = allocator;
     obj->id        = (char *)allocator_mem_zalloc(allocator, strlen(object_id) + 1);
     strncpy(obj->id, object_id, strlen(object_id));
+
+    dbg_str(BUS_INFO, "busd_create_bus_object, obj:%p, fd:%d", obj, fd);
 
     obj->infos = (char *)allocator_mem_zalloc(allocator, strlen(object_infos));
     strncpy(obj->infos, object_infos, strlen(object_infos));
@@ -299,7 +300,7 @@ busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd,
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_SUC, "busd_forward_invoke, object_id:%s, method:%s", object_id, method);
+    dbg_str(BUS_SUC, "busd_forward_invoke, object_id:%s, method:%s, dest_fd:%d", object_id, method, dest_fd);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUSD_FORWARD_INVOKE;
@@ -365,7 +366,7 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
         dbg_str(BUS_DETAIL, "invoke args");
         args = attr[BUSD_INVOKE_ARGS];
     }
-    dbg_str(BUS_SUC, "busd_handle_invoke_method, object_id:%s, method:%s", object_id, method);
+    dbg_str(BUS_SUC, "busd_handle_invoke_method, object_id:%s, method:%s, obj fd:%d, obj addr:%p", object_id, method, obj->fd, obj);
     busd_forward_invoke(busd, fd, obj->fd, object_id, method, argc, args);
 
     return 0;
@@ -534,4 +535,3 @@ int busd_destroy(busd_t *busd)
 
     return ret;
 }
-#endif
