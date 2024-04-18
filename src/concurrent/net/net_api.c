@@ -73,7 +73,7 @@ int client_trustee(void *client, struct timeval *tv, void *work_callback, void *
     int ret;
 
     TRY {
-        THROW_IF(work_callback == NULL, -1);
+        // THROW_IF(work_callback == NULL, -1);
         c->trustee(c, NULL, (void *)work_callback, opaque);
     } CATCH (ret) {
     }

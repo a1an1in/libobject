@@ -1,10 +1,10 @@
-[update:windows] 修复windows平台问题.
+[update:EventBase] 修复EB问题.
 
 Description:
-目前windows下net可以跑过，但是还是有问题，SOCKET类型转成了int型.
+修复event base问题， 删掉的fd找不到时去执行了上次运行的event.
 
 Major Changes:
-1. 删除socket测试， 因为concurrent已经能覆盖， 而且socket测试是阻塞的，
-   需要recv和sender不好测试。
-2. 整合test_net和test_bus, 以便可以使用mockery_func来测试。
-3. 修改一个busd.h bug， 里面定义的fd是uint8_t类型，在windows下面有问题。
+1. Eventbase 在activate_io有bug， 找不到io也会去执行ev_callback，
+   只不过有可能是上次的callback，所有会导致程序卡住。
+2. 修改部分模块关键的日志的等级。
+3. 修改test_net, 添加等待时间。

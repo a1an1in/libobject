@@ -171,7 +171,7 @@ quit_signal_cb(int fd, short event_res, void *arg)
     struct event *event = (struct event *)arg;
     Event_Base* eb = (Event_Base*)event->ev_base;
 
-    dbg_str(DBG_VIP, "quit_signal_cb, signal no:%d", event->ev_fd);
+    dbg_str(DBG_WARN, "quit_signal_cb, signal no:%d", event->ev_fd);
     eb->break_flag = 1;
 }
 

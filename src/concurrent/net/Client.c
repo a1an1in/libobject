@@ -96,7 +96,7 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
             //dbg_str(DBG_ERROR, "client ev_callback error, fd:%d, len=%d", fd, len);
         }
 
-        if (worker->work_callback && len > 0) {
+        if (worker->work_callback != NULL && worker->work_callback && len > 0) {
             work_task_t *task;
             task = work_task_alloc(worker->obj.allocator, len + 1);
             THROW_IF(task == NULL, -1);

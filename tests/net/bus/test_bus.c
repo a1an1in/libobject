@@ -69,6 +69,7 @@ static int __test_bus_invoke_sync()
     char *deamon_srv  = "12345";
 	char out[1024] = {0};
     int out_len = sizeof(out);
+    char expert_buffer[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     bus_method_args_t args[2] = {
         [0] = {ARG_TYPE_UINT32, "id", 123},
         [1] = {ARG_TYPE_STRING, "content", "hello_world"},
@@ -82,6 +83,7 @@ static int __test_bus_invoke_sync()
 
         EXEC(bus_invoke_sync(bus, "test", "hello", 2, args, out, &out_len));
         dbg_buf(DBG_VIP, "return buffer:", (uint8_t *)out, out_len);
+        THROW_IF(assert_equal(out, expert_buffer, sizeof(expert_buffer)) != 1, 0);
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);
     }
@@ -104,8 +106,9 @@ static int __test_bus_lookup_sync()
 
         bus = bus_create(allocator, deamon_host, deamon_srv, CLIENT_TYPE_INET_TCP);
         THROW_IF(bus == NULL, -1);
-
         bus_lookup_sync(bus, "test", out, &out_len);
+
+        THROW_IF(strstr(out, "test") == NULL, 0);
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);
     }
@@ -125,6 +128,7 @@ static int test_bus()
     int ret, count = 0;
     
     TRY {
+        sleep(1);
         dbg_str(DBG_VIP,"test create busd_daemon");
         busd = busd_create(allocator, deamon_host,
                            deamon_srv, SERVER_TYPE_INET_TCP);
@@ -138,12 +142,8 @@ static int test_bus()
         dbg_str(DBG_VIP, "bus add object");
         bus_add_object(bus, &test_object);
 
-        sleep(1);
-
-        EXEC(__test_bus_invoke_sync);
-        // EXEC(__test_bus_lookup_sync);
-        sleep(1);
-        
+        EXEC(__test_bus_invoke_sync());
+        // EXEC(__test_bus_lookup_sync());     
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);
         busd_destroy(busd);

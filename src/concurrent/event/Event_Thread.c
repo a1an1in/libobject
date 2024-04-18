@@ -129,10 +129,10 @@ static void event_thread_notifier_callback(int fd, short events, void *arg)
     Event_Thread *event_thread = (Event_Thread *)arg;
     Socket *s = event_thread->s;
     char buf[1];
-    int len;
+    int len, ret;
 
-    if (s->recv(s, buf, 1, 0) != 1) {
-        dbg_str(EV_WARN,"ctl_read error");
+    if ((ret = s->recv(s, buf, 1, 0)) != 1) {
+        dbg_str(EV_WARN,"event thread notifier was waked up, fd:%d ret:%d!", fd, ret);
         return ;
     }
     dbg_str(EV_VIP, "event_thread notifier received signal:%c", buf[0]);
@@ -141,6 +141,7 @@ static void event_thread_notifier_callback(int fd, short events, void *arg)
         case 'd': 
             break;
         case 'e': //exit
+            dbg_str(DBG_WARN, "event_thread received exit signal!");
             break;
         default:
             break;
@@ -198,7 +199,8 @@ static int __stop(Event_Thread *thread)
     if (c->send(c, "e", 1, 0) != 1) {//to make option task effect
         return -1;
     }
-    dbg_str(EV_VIP,"Event Thread stop");
+
+    dbg_str(DBG_VIP,"Event Thread has been stopped!");
 
     return 0;
 }

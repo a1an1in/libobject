@@ -90,6 +90,7 @@ static int __test_node_fshell(Node *node)
     TRY {
         EXEC(node->call_bus(node, "node@open_fshell()", NULL, 0));
         EXEC(node->execute_fsh(node, "node@fsh_add(1, 2)", NULL, NULL));
+        // EXEC(node->execute_fsh(node, "node@fsh_alloc(8)", NULL, NULL));
         EXEC(node->call_bus(node, "node@close_fshell()", NULL, 0));
 
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 

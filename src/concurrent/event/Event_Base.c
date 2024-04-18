@@ -155,8 +155,8 @@ static int __activate_io(Event_Base *eb, int fd, short events)
     ret = io_map->search(io_map, fd, (void **)&event);
     dbg_str(EV_DETAIL, "search ret=%d", ret);
 
-    if (ret < 0) {
-        dbg_str(EV_WARN, "not found fd = %d in io_map, ret=%d", fd, ret);
+    if (ret <= 0) {
+        dbg_str(EV_INFO, "not found fd = %d in io_map, ret=%d", fd, ret);
     } else {
         dbg_str(EV_DETAIL, "event addr:%p, ev_callback=%p", 
                 event, event->ev_callback);
@@ -251,7 +251,7 @@ static int __loop(Event_Base *eb)
         __process_timeout_events(eb);
     }
 
-    dbg_str(DBG_VIP, "break Event_Base loop");
+    dbg_str(DBG_WARN, "break Event_Base loop");
 }
 
 static class_info_entry_t event_base_class_info[] = {

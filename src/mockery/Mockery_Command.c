@@ -211,7 +211,7 @@ static int __argument_action_callback(Argument *argu, void *opaque)
         command->argument_flag = 1;
         command->func_name = STR2A(argu->value);
         cnt = command->parent.args->count(command->parent.args);
-        dbg_str(DBG_SUC,"argument_action_callback:%s, args count:%d", STR2A(argu->value), cnt);
+        // dbg_str(DBG_SUC,"argument_action_callback:%s, args count:%d", STR2A(argu->value), cnt);
 
         for (i = 0; i < cnt; i++) {
             a = command->parent.get_argment(&command->parent, i);

@@ -123,3 +123,18 @@ int fsh_call(void *p1, void *p2, void *p3, void *p4, void *p5,
 
     return ret;
 }
+
+// int fsh_alloc(FShell *shell, int size, char *addr, int len)
+// {
+//     allocator_t *allocator = shell->parent.allocator;
+//     void *addr = NULL;
+//     int ret;
+
+//     TRY {
+//         addr = allocator_mem_zalloc(allocator, size);
+//         THROW_IF(addr == NULL, -1);
+//         snprintf(addr, len, "%p", addr);
+//     } CATCH (ret) {}
+
+//     return ret;
+// }
