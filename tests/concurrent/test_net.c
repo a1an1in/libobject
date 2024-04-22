@@ -13,7 +13,7 @@ static int test_work_callback(void *task)
     work_task_t *t = (work_task_t *)task;
 
     if (t->buf_len == 0) { return 0; }
-    // dbg_str(DBG_SUC,"task len:%d content:%s", t->buf_len, t->buf);
+    dbg_str(DBG_SUC,"work callback, fd:%d,task len:%d content:%s", t->fd, t->buf_len, t->buf);
     if (strncmp("hello world", t->buf, t->buf_len) == 0) {
         test_net_result = 1;
     }

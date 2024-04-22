@@ -102,6 +102,7 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
             THROW_IF(task == NULL, -1);
             memcpy(task->buf, buf, len);
             task->buf_len = len;
+            task->fd = fd;
             task->opaque  = client->opaque;
             worker->work_callback(task);
             work_task_free(task);

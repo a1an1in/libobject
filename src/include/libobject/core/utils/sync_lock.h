@@ -18,9 +18,9 @@
 #ifndef __SYNC_LOCK_H__
 #define __SYNC_LOCK_H__
 
+#include <pthread.h>
 #include <libobject/user_mode.h>
 #include <libobject/basic_types.h>
-#include <pthread.h>
 
 enum sync_lock_type{
 	PTHREAD_MUTEX_LOCK = 1,

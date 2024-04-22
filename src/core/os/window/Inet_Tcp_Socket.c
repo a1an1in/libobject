@@ -59,7 +59,7 @@ static int __construct(Inet_Tcp_Socket *sk, char *init_str)
     }
 
     sk->parent.fd = fd;
-    dbg_str(DBG_VIP, "socket construct, socket fd:%p", fd);
+    dbg_str(DBG_VIP, "construct windows tcp socket, socket fd:%d", fd);
 
     return 1;
 }

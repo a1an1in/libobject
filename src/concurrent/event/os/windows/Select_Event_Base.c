@@ -68,7 +68,7 @@ static int __trustee_io(Select_Base *b, event_t *e)
 
     b->maxfdp = b->maxfdp -1 > fd ? b->maxfdp : fd + 1; 
 
-    dbg_str(EV_DETAIL, "select base add event, fd =%d, maxfdp=%d", fd, b->maxfdp);
+    dbg_str(DBG_VIP, "select base add event, fd =%d, maxfdp=%d", fd, b->maxfdp);
 
     if (e->ev_events & EV_READ)
         FD_SET(fd, &b->event_readset_in);

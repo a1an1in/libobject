@@ -44,6 +44,7 @@ static int __construct(Inet_Udp_Socket *udp_socket, char *init_str)
 
     sk = socket(AF_INET, SOCK_DGRAM, 0);
     udp_socket->parent.fd = sk;
+    dbg_str(DBG_WARN, "construct windows upd socket:%d", sk);
 
     return 1;
 }
