@@ -135,13 +135,13 @@ static void event_thread_notifier_callback(int fd, short events, void *arg)
         dbg_str(EV_WARN,"event thread notifier was waked up, fd:%d ret:%d!", fd, ret);
         return ;
     }
-    dbg_str(EV_VIP, "event_thread notifier received signal:%c", buf[0]);
+    dbg_str(EV_VIP, "event_thread notifier received message:%c", buf[0]);
     switch(buf[0]) {
         case 'a': 
         case 'd': 
             break;
         case 'e': //exit
-            dbg_str(DBG_WARN, "event_thread received exit signal!");
+            dbg_str(DBG_WARN, "event_thread received exit message!");
             break;
         default:
             break;

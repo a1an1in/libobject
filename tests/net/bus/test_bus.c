@@ -143,7 +143,8 @@ static int test_bus()
         bus_add_object(bus, &test_object);
 
         EXEC(__test_bus_invoke_sync());
-        // EXEC(__test_bus_lookup_sync());     
+        EXEC(__test_bus_lookup_sync());
+        usleep(1000); 
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);
         busd_destroy(busd);

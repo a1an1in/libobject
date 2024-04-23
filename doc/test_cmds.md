@@ -32,6 +32,7 @@
 * 
 * ./sysroot/windows/bin/xtools.exe mockery --log-level=0x16 -f test_string
 * ./sysroot/windows/bin/xtools.exe mockery --log-level=0x16 -f test_message_publisher
+* ./sysroot/windows/bin/xtools.exe mockery --log-level=0x16 -f test_net
 * 
 * 
 

@@ -59,8 +59,8 @@ static int __construct(Inet_Tcp_Server *server, char *init_str)
 static int __deconstrcut(Inet_Tcp_Server *server)
 {
     dbg_str(NET_DETAIL, "server deconstruct, server addr:%p", server);
-    object_destroy(server->parent.socket);
     object_destroy(server->parent.worker);
+    object_destroy(server->parent.socket);
 
     return 0;
 }

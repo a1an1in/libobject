@@ -201,7 +201,7 @@ int busd_reply_add_object(busd_t *busd, int state, char *object_id, int fd)
 
     dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
 
-    write(fd, buffer, buffer_len);  
+    send(fd, buffer, buffer_len, 0);  
 
     return 0;
 }
@@ -242,7 +242,7 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_VIP, "busd_reply_lookup_object, object_id:%s", obj->id);
+    dbg_str(BUS_VIP, "busd_reply_lookup_object, object_id:%s, fd:%d", obj->id, fd);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUSD_REPLY_LOOKUP;
@@ -262,7 +262,7 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
 
     dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
 
-    write(fd, buffer, buffer_len);  
+    send(fd, buffer, buffer_len, 0);  
 
     return 0;
 }
@@ -324,7 +324,7 @@ busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd,
 
     dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
 
-    write(dest_fd, buffer, buffer_len);  
+    send(dest_fd, buffer, buffer_len, 0);  
 
     return 0;
 }
@@ -402,7 +402,7 @@ int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, ui
 
     dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
 
-    write(source_fd, buffer, buffer_len);  
+    send(source_fd, buffer, buffer_len, 0);  
 
     return 0;
 }

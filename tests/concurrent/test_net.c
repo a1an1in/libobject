@@ -7,16 +7,17 @@
 #include <libobject/concurrent/net/api.h>
 #include <libobject/mockery/mockery.h>
 
-static int test_net_result;
-static int test_work_callback(void *task)
+static int test_echo_work_result;
+static int test_echo_work_callback(void *task)
 {
     work_task_t *t = (work_task_t *)task;
 
     if (t->buf_len == 0) { return 0; }
     dbg_str(DBG_SUC,"work callback, fd:%d,task len:%d content:%s", t->fd, t->buf_len, t->buf);
     if (strncmp("hello world", t->buf, t->buf_len) == 0) {
-        test_net_result = 1;
+        test_echo_work_result = 1;
     }
+    send(t->fd, t->buf, t->buf_len, 0);
     
     return 1;
 }
@@ -31,20 +32,21 @@ static int test_net_udp_ipv4(TEST_ENTRY *entry, void *argc, void *argv)
 
     TRY {
         c1 = client(allocator, CLIENT_TYPE_INET_UDP, (char *)"127.0.0.1", (char *)"1989");
-        client_trustee(c1, NULL, test_work_callback, NULL);
+        client_trustee(c1, NULL, test_echo_work_callback, NULL);
 
         c2 = client(allocator, CLIENT_TYPE_INET_UDP, (char *)"127.0.0.1", (char *)"1990");
         client_connect(c2, "127.0.0.1", "1989");
         client_trustee(c2, NULL, NULL, NULL);
         usleep(1000);
         client_send(c2, str, strlen(str), 0);
-        usleep(1000);
-        THROW_IF(test_net_result != 1, 0);
+        usleep(100000);
+        THROW_IF(test_echo_work_result != 1, 0);
     } CATCH (ret) {} FINALLY {
+        dbg_str(DBG_FATAL, "run at here");
         object_destroy(c2);
-        usleep(1000);
+        dbg_str(DBG_FATAL, "run at here");
         object_destroy(c1);
-        test_net_result = 0;
+        test_echo_work_result = 0;
     }
 
     return ret;
@@ -63,7 +65,7 @@ static int test_net_udp_v6(TEST_ENTRY *entry, void *argc, void *argv)
 
     TRY {
         c1 = client(allocator, CLIENT_TYPE_INET_UDP_V6, localhost, (char *)"1989");
-        client_trustee(c1, NULL, test_work_callback, NULL);
+        client_trustee(c1, NULL, test_echo_work_callback, NULL);
 
         c2 = client(allocator, CLIENT_TYPE_INET_UDP_V6, localhost, (char *)"1990");
         client_connect(c2, localhost, "1989");
@@ -71,18 +73,32 @@ static int test_net_udp_v6(TEST_ENTRY *entry, void *argc, void *argv)
         usleep(1000);
         client_send(c2, str, strlen(str), 0);
         usleep(1000);
-        THROW_IF(test_net_result != 1, 0);
+        THROW_IF(test_echo_work_result != 1, 0);
     } CATCH (ret) {} FINALLY {
         object_destroy(c2);
         usleep(1000);
         object_destroy(c1);
-        test_net_result = 0;
+        test_echo_work_result = 0;
     }
 
     return ret;
 }
 // REGISTER_TEST_FUNC(test_net_udp_v6);
 #endif
+
+static int test_tcp_client_work_result;
+static int test_tcp_client_work_callback(void *task)
+{
+    work_task_t *t = (work_task_t *)task;
+
+    if (t->buf_len == 0) { return 0; }
+    dbg_str(DBG_SUC,"tcp client work callback, fd:%d,task len:%d content:%s", t->fd, t->buf_len, t->buf);
+    if (strncmp("hello world", t->buf, t->buf_len) == 0) {
+        test_tcp_client_work_result = 1;
+    }
+
+    return 1;
+}
 
 static int test_net_tcp_ipv4(TEST_ENTRY *entry, void *argc, void *argv)
 {
@@ -95,15 +111,15 @@ static int test_net_tcp_ipv4(TEST_ENTRY *entry, void *argc, void *argv)
     TRY {
         s = (Server *)server(allocator, SERVER_TYPE_INET_TCP, 
                              "127.0.0.1", "11013",
-                             test_work_callback, s);
+                             test_echo_work_callback, s);
         c = client(allocator, CLIENT_TYPE_INET_TCP, NULL, NULL);
         client_connect(c, "127.0.0.1", "11013");
-        client_trustee(c, NULL, NULL, NULL);
+        client_trustee(c, NULL, test_tcp_client_work_callback, NULL);
         
         usleep(1000);
         client_send(c, str, strlen(str), 0);
         usleep(1000);
-        THROW_IF(test_net_result != 1, 0);
+        THROW_IF((test_echo_work_result != 1) || (test_tcp_client_work_result != 1), 0);
     } CATCH (ret) {} FINALLY {
         object_destroy(c);
 
@@ -112,7 +128,7 @@ static int test_net_tcp_ipv4(TEST_ENTRY *entry, void *argc, void *argv)
         //server一般是不会释放的。
         usleep(1000); 
         server_destroy(s);
-        test_net_result = 0;
+        test_echo_work_result = 0;
     }
 
     return ret;

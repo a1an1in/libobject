@@ -58,8 +58,8 @@ static int __construct(Inet_Udp_Client *client, char *init_str)
 static int __deconstrcut(Inet_Udp_Client *client)
 {
     dbg_str(NET_DETAIL, "Inet_Udp_Client deconstruct, client addr:%p", client);
-    object_destroy(client->parent.socket);
     object_destroy(client->parent.worker);
+    object_destroy(client->parent.socket);
 
     return 0;
 }

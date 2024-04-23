@@ -127,9 +127,9 @@ static int test_node(TEST_ENTRY *entry)
 
         // EXEC(__test_node_bus_call(node));
         // EXEC(__test_node_list(node));
-        // EXEC(__test_node_read(node));
+        EXEC(__test_node_read(node));
         // EXEC(__test_node_write(node));
-        EXEC(__test_node_fshell(node));
+        // EXEC(__test_node_fshell(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         object_destroy(deamon);
