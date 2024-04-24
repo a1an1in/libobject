@@ -9,6 +9,7 @@
 #include <libobject/argument/Test_Command.h>
 #include <libobject/argument/Test_Sub1_Command.h>
 #include <libobject/argument/Test_Sub2_Command.h>
+#include <libobject/mockery/mockery.h>
 
 static int __construct(Command *command, char *init_str)
 {

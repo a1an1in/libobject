@@ -37,7 +37,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/concurrent/event/Select_Base.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 static int __construct(Select_Base *eb, char *init_str)
 {

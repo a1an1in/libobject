@@ -8,6 +8,7 @@
  */
 
 #include "Stun_Udp.h"
+#include <libobject/mockery/mockery.h>
 
 static int __stun_client_resp_callback(void *task);
 

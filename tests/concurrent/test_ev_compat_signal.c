@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/concurrent/event_api.h>
+#include <libobject/mockery/mockery.h>
 
 static void
 signal_cb(int fd, short event_res, void *arg)

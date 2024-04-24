@@ -83,7 +83,7 @@ int console_print_print_str_vl(debugger_t *debugger,
     }else{
         strcpy(reverse_color_value, "");
     }
-    if((color_value & 0xfe) == 0xe & high_light_flag == 0){
+    if(((color_value & 0xfe) == 0xe) && (high_light_flag == 0)){
         printf("\33[0m\33[%dm\33[%dm", 49, 30);
         printf("%s", dest);
         printf("\33[0m\033[K");

@@ -32,8 +32,8 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/core/utils/registry/registry.h>
 #include <libobject/net/http/Client.h>
+#include <libobject/mockery/mockery.h>
 
 static int __http_client_response_callback(void *task)
 {

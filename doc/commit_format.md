@@ -1,11 +1,7 @@
-[update:Windows] 修复windows平台net和bus问题.
+[update:linux] 修复linux平台编译警告.
 
 Description:.
-平台差异，windows上net和bus有些问题，已经修复。
+之前修改mockery引入了些编译警告，没有处理，这次修复好了。
 
 Major Changes:
-1. 修复concurrent net问题，worker在socket后释放， 
-   会导致windows select异常退出。错误码为10038，
-   表示套接字有问题。
-2. 修复busd 在windows问题， 貌似windows不能用
-   write函数发送数据， 把write替换为send。
+1. 修复缺少mockery头文件引起的告警。

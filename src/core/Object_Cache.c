@@ -37,6 +37,7 @@
 #include <libobject/core/Object_Cache.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/String.h>
+#include <libobject/mockery/mockery.h>
 
 static int __construct(Object_Cache *cache,char *init_str)
 {

@@ -34,6 +34,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Thread.h>
+#include <libobject/mockery/mockery.h>
 
 static int __construct(Thread *thread, char *init_str)
 {

@@ -1,7 +1,7 @@
 #if (defined(LINUX_USER_MODE))
 #include <Python.h>
 #include <libobject/core/try.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 static int test_python()
 {

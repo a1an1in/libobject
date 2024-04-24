@@ -35,8 +35,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libobject/core/utils/registry/reg_heap.h>
-#include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/utils/dbg/debug.h>
+#include <libobject/mockery/mockery.h>
 
 reg_heap_t *global_testfunc_reg_heap = NULL;
 

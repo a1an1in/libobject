@@ -4,7 +4,7 @@
 #include <libobject/core/utils/json/cjson.h>
 #include <libobject/core/utils/config.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 #if (defined(WINDOWS_USER_MODE))
 // static char *

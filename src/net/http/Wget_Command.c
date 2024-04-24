@@ -11,6 +11,7 @@
 #include <libobject/argument/Application.h>
 #include <libobject/argument/Argument.h>
 #include <libobject/net/url/Url.h>
+#include <libobject/mockery/mockery.h>
 
 //test command: ./sysroot/mac/bin/cean wget http://mirror.hust.edu.cn/gnu/hello/hello-1.3.tar.gz
 

@@ -33,7 +33,7 @@
 #include <string.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/data_structure/heap.h>
-#include <libobject/core/utils/registry/registry.h>
+#include <libobject/mockery/mockery.h>
 
 static int greater_than(void *element1, void *element2) 
 {
