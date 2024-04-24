@@ -105,3 +105,12 @@ macro (display_configs)
         display_mac_platform_configs()
     endif()
 endmacro()
+
+macro (config_lib_version)
+    #version format "[VERSION <major>[.<minor>[.<patch>[.<tweak>]]]]"
+    configure_file(
+        ${PROJECT_SOURCE_DIR}/src/include/libobject/version.h.in
+        ${PROJECT_SOURCE_DIR}/src/include/libobject/version.h
+        @ONLY
+    )
+endmacro()
