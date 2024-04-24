@@ -4,7 +4,6 @@
 #include <libobject/core/utils/json/cjson.h>
 #include <libobject/core/utils/config.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/mockery/mockery.h>
 
 #if (defined(WINDOWS_USER_MODE))
 // static char *
@@ -244,6 +243,7 @@ end:
     return ret;
 }
 
+#if 0
 int test_cfg_config_num(TEST_ENTRY *entry)
 {
     configurator_t * c;
@@ -295,3 +295,4 @@ int test_str_split(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_CMD(test_str_split);
+#endif

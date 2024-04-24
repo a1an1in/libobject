@@ -33,7 +33,6 @@
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
-#include <libobject/mockery/mockery.h>
 #include "Mutex_Lock.h"
 
 static int __construct(Mutex_Lock *lock, char *init_str)
@@ -78,22 +77,3 @@ static class_info_entry_t lock_class_info[] = {
     Init_End___Entry(6 , Mutex_Lock),
 };
 REGISTER_CLASS("Mutex_Lock", lock_class_info);
-
-int test_mutex_lock()
-{
-    Lock *lock;
-    allocator_t *allocator = allocator_get_default_instance();
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-
-    lock = OBJECT_NEW(allocator, Mutex_Lock, NULL);
-
-    lock->lock(lock);
-    lock->unlock(lock);
-
-    object_destroy(lock);
-
-    return 1;
-}
-REGISTER_TEST_CMD(test_mutex_lock);

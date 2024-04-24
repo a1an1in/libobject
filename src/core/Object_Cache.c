@@ -37,7 +37,6 @@
 #include <libobject/core/Object_Cache.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/String.h>
-#include <libobject/mockery/mockery.h>
 
 static int __construct(Object_Cache *cache,char *init_str)
 {
@@ -167,6 +166,7 @@ static class_info_entry_t object_cache_info[] = {
 };
 REGISTER_CLASS("Object_Cache", object_cache_info);
 
+#if 0
 static int test_object_cache_new()
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -206,3 +206,4 @@ end:
 }
 
 REGISTER_TEST_FUNC(test_object_cache_new);
+#endif

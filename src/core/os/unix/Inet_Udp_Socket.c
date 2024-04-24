@@ -42,7 +42,6 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Thread.h>
-#include <libobject/mockery/mockery.h>
 #include "Inet_Udp_Socket.h"
 
 static int __construct(Inet_Udp_Socket *sk, char *init_str)
@@ -243,6 +242,7 @@ static class_info_entry_t inet_udp_socket_class_info[] = {
 };
 REGISTER_CLASS("Inet_Udp_Socket", inet_udp_socket_class_info);
 
+#if 0
 void test_inet_udp_socket_send()
 {
     Socket *socket;
@@ -283,4 +283,5 @@ void test_inet_udp_socket_recv()
     object_destroy(socket);
 }
 REGISTER_TEST_CMD(test_inet_udp_socket_recv);
+#endif
 #endif

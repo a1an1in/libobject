@@ -1,4 +1,5 @@
-#if (!defined(WINDOWS_USER_MODE))
+
+#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE))
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <errno.h>

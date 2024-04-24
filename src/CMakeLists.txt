@@ -16,6 +16,8 @@ file(GLOB MOUDLE_SRC
 add_executable(${PROJECT_NAME} ${MOUDLE_SRC})
 if ("${PLATFORM}" STREQUAL "windows")
     target_link_libraries(${PROJECT_NAME} ${ExternalLibs})
+elseif("${PLATFORM}" STREQUAL "mac")
+    target_link_libraries(${PROJECT_NAME} ${ExternalLibs})
 else()
     target_link_libraries(${PROJECT_NAME} ${ExternalLibs}  -Wl,--no-as-needed -lobject-testlib2 -Wl,--as-needed object-testlib)
 endif()

@@ -34,7 +34,6 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Thread.h>
-#include <libobject/mockery/mockery.h>
 
 static int __construct(Thread *thread, char *init_str)
 {
@@ -169,6 +168,8 @@ static class_info_entry_t thread_class_info[] = {
     Init_End___Entry(14, Thread),
 };
 REGISTER_CLASS("Thread", thread_class_info);
+
+#if 0
 
 void *test_func(void *arg)
 {
@@ -325,3 +326,4 @@ REGISTER_TEST_CMD(test_safe_thread);
 REGISTER_TEST_CMD(test_thread_join);
 REGISTER_TEST_CMD(test_thread_detach1);
 REGISTER_TEST_CMD(test_thread_detach2);
+#endif

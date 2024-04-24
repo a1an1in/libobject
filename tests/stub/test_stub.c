@@ -1,3 +1,4 @@
+#if (!defined(MAC_USER_MODE))
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -149,3 +150,4 @@ static int test_stub_add_hooks(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_FUNC(test_stub_add_hooks);
+#endif

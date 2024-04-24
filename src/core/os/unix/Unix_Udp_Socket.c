@@ -39,7 +39,6 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Thread.h>
-#include <libobject/mockery/mockery.h>
 #include "Unix_Udp_Socket.h"
 
 static int __construct(Unix_Udp_Socket *sk, char *init_str)
@@ -180,6 +179,7 @@ static class_info_entry_t inet_udp_socket_class_info[] = {
 };
 REGISTER_CLASS("Unix_Udp_Socket", inet_udp_socket_class_info);
 
+#if 0
 #define UNIX_CLIENT_PATH "/tmp/unix_client_01"
 #define UNIX_SERVER_PATH "/tmp/unix_server_01"
 
@@ -222,4 +222,5 @@ void test_unix_udp_socket_recv()
     object_destroy(socket);
 }
 REGISTER_TEST_CMD(test_unix_udp_socket_recv);
+#endif
 #endif

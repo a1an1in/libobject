@@ -22,42 +22,6 @@ set (CMAKE_BUILD_TYPE "Debug")
 display_configs("${PLATFORM}")
 add_compiling_options()
 #include (mk/build_external.cmake)
-
-set (module_lists "")
-list(APPEND module_lists "src/argument")
-list(APPEND module_lists "src/mockery")
-list(APPEND module_lists "src/concurrent")
-list(APPEND module_lists "src/core")
-list(APPEND module_lists "src/stub")
-list(APPEND module_lists "src/encoding")
-list(APPEND module_lists "src/net")
-list(APPEND module_lists "src/node")
-
-if ("${PLATFORM}" STREQUAL "windows")
-    list(APPEND module_lists "tests")
-    
-else()
-    list(APPEND module_lists "src/compress")
-    list(APPEND module_lists "src/crypto")
-    list(APPEND module_lists "src/database")
-    list(APPEND module_lists "src/attacher")
-    list(APPEND module_lists "src/scripts")
-    list(APPEND module_lists "src/archive")
-
-    list(APPEND module_lists "src/drivers")
-    list(APPEND module_lists "3rd/test_process")
-    list(APPEND module_lists "3rd/test_lib")
-    list(APPEND module_lists "3rd/test_lib2")
-    
-    #list(APPEND module_lists "src/media")
-    #list(APPEND module_lists "src/ui")
-    #list(APPEND module_lists "3rd/app")
-
-    list(APPEND module_lists "tests")
-endif()
-
-list(APPEND module_lists "src/.")
-add_subdirectories("${module_lists}")
+add_module_lists()
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/include/libobject DESTINATION include)
-

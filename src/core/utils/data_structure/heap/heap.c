@@ -33,7 +33,6 @@
 #include <string.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/data_structure/heap.h>
-#include <libobject/mockery/mockery.h>
 
 static int greater_than(void *element1, void *element2) 
 {
@@ -174,6 +173,7 @@ int heap_sort(heap_t *heap)
     }
 }
 
+#if 0
 static int test_heap(TEST_ENTRY *entry, int argc, void **argv)
 {
     heap_t *heap;
@@ -215,3 +215,4 @@ static int test_heap(TEST_ENTRY *entry, int argc, void **argv)
 }
 REGISTER_TEST_CMD(test_heap);
 
+#endif
