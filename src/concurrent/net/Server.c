@@ -40,6 +40,7 @@ static void __release_working_worker(void *element)
 {
     Worker *worker = (Worker *)element;
 
+    dbg_str(NET_VIP, "release_working_worker:%s", worker);
     worker->resign(worker);
     work_task_free(worker->task);
     object_destroy(worker->socket);
@@ -147,12 +148,13 @@ static Worker *__get_worker(Server *server)
 
 #define TASK_MAX_BUF_LEN 1024 * 10
         task = work_task_alloc(allocator, TASK_MAX_BUF_LEN);
+#undef TASK_MAX_BUF_LEN
         worker->task = (void *)task;
 
         socket = object_new(allocator, "Inet_Tcp_Socket", init);//in order to close fd
         THROW_IF(socket == NULL, -1);
         worker->socket = socket;
-#undef TASK_MAX_BUF_LEN
+
     } CATCH (ret) {
         work_task_free(task);
         object_destroy(worker);

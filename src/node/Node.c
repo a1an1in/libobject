@@ -152,7 +152,7 @@ static int __write(Node *node, char *from, char *node_id, char *to)
     allocator_t *allocator;
 	char buffer[1024] = {0}, file_name;
     uint32_t buffer_size = sizeof(buffer);
-    uint32_t size, i, read_len = 0, offset = 0, count = 0;
+    uint32_t size, i, j, read_len = 0, offset = 0, count = 0;
     uint32_t file_name_len;
     Vector *list = NULL;
     fs_file_info_t *fs_file_info;
@@ -199,7 +199,7 @@ static int __write(Node *node, char *from, char *node_id, char *to)
             EXEC(file->open(file, from, "r+"));
             size = fs_get_size(from);
             dbg_str(DBG_VIP, "run at here, size=%d, num:%d", size, size / buffer_size);
-            for (i = 0; i <= (size / buffer_size); i++) {
+            for (j = 0; j <= (size / buffer_size); j++) {
                 read_len = file->read(file, buffer, buffer_size);
                 args[1].value = offset;
                 args[2].len = read_len;
@@ -225,7 +225,7 @@ static int __read(Node *node, char *node_id, char *from, char *to)
     allocator_t *allocator;
 	char buffer[BLOB_BUFFER_MAX_SIZE] = {0}, file_name;
     uint32_t read_size = 1024;
-    uint32_t size, i, read_len = 0, offset = 0, count = 0;
+    uint32_t size, i, j, read_len = 0, offset = 0, count = 0;
     uint32_t file_name_len;
     Vector *list = NULL;
     fs_file_info_t *fs_file_info;
@@ -260,7 +260,7 @@ static int __read(Node *node, char *node_id, char *from, char *to)
             if ((fs_file_info->file_name[file_name_len - 1] == '.')) continue;
             
             size = fs_file_info->st.st_size;
-            dbg_str(DBG_VIP, "read file name:%s, size:%d", fs_file_info->file_name, size);
+            dbg_str(DBG_VIP, "read index: %d, file name:%s, size:%d", i, fs_file_info->file_name, size);
             
             EXEC(fs_get_relative_path(fs_file_info->file_name, from, &relative_path));
             memset(buffer, 0, sizeof(buffer));
@@ -272,10 +272,10 @@ static int __read(Node *node, char *node_id, char *from, char *to)
                 EXEC(fs_mkfile(buffer, 0777));
             }
             EXEC(file->open(file, buffer, "a+"));
-            for (i = 0; i <= (size / read_size); i++) {
+            for (j = 0; j <= (size / read_size); j++) {
                 args[0].value = fs_file_info->file_name;
                 args[1].value = offset;
-                args[2].value = (size - i * read_size) > read_size ? read_size : (size - i * read_size);
+                args[2].value = (size - j * read_size) > read_size ? read_size : (size - j * read_size);
                 
                 EXEC(bus_invoke_sync(bus, "node", "read_file", ARRAY_SIZE(args), args, buffer, &args[2].value));
                 dbg_str(DBG_VIP, "read %s, offset:%d, read size:%d, read len:%d", 
@@ -287,6 +287,7 @@ static int __read(Node *node, char *node_id, char *from, char *to)
             }
             
             EXEC(file->close(file));
+            fs_file_info = NULL;
         }
     } CATCH (ret) {} FINALLY {
         object_destroy(file);

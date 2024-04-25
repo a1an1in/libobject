@@ -125,13 +125,14 @@ static int test_node(TEST_ENTRY *entry)
         node->disable_node_service_flag = 1;
         EXEC(node->init(node));
 
-        // EXEC(__test_node_bus_call(node));
-        // EXEC(__test_node_list(node));
+        EXEC(__test_node_bus_call(node));
+        EXEC(__test_node_list(node));
         EXEC(__test_node_read(node));
-        // EXEC(__test_node_write(node));
+        EXEC(__test_node_write(node));
         // EXEC(__test_node_fshell(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
+        usleep(10000);
         object_destroy(deamon);
     }
 
