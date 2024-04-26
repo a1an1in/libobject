@@ -6,12 +6,12 @@ macro (set_cmake_evironment_variable)
         INCLUDE_DIRECTORIES(
             /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include
             ${PROJECT_SOURCE_DIR}/src/include)
-        set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/ios/bin/${IOS_PLATFORM})
-        set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/ios/lib/${IOS_PLATFORM})
-        set (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr)
+        SET (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/ios/bin/${IOS_PLATFORM})
+        SET (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/sysroot/ios/lib/${IOS_PLATFORM})
+        SET (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr)
     elseif (IOS_PLATFORM STREQUAL "SIMULATOR64")
         if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local")
-            set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/SIMULATOR64)
+            SET (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/SIMULATOR64)
         endif ()
         LINK_DIRECTORIES(
             /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/lib
@@ -20,16 +20,16 @@ macro (set_cmake_evironment_variable)
             /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/include
             ${CMAKE_INSTALL_PREFIX}/include
             ${PROJECT_SOURCE_DIR}/src/include)
-        set (EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)
-        set (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
-        set (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DIOS_PLATFORM=SIMULATOR64 -DCMAKE_TOOLCHAIN_FILE=${PROJECT_SOURCE_DIR}/mk/ios.toolchain.cmake)
-        #set (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr)
+        SET (EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)
+        SET (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+        SET (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DIOS_PLATFORM=SIMULATOR64 -DCMAKE_TOOLCHAIN_FILE=${PROJECT_SOURCE_DIR}/mk/ios.toolchain.cmake)
+        #SET (CMAKE_INSTALL_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr)
         #SET(ExternalLibs ${ExternalLibs} avformat avfilter swscale swresample avcodec avutil x264 vorbis vorbisenc
             #vorbisfile mp3lame vpx xvidcore opus fdk-aac theora xvidcore z iconv bz2 SDL2 SDL2_ttf yuv -force_load /usr/local/lib/libobject.a)
         #SET(ExternalLibs ${ExternalLibs} avformat avfilter swscale swresample avcodec avutil SDL2 SDL2_ttf)
         #SET(ExternalLibs ${ExternalLibs} z iconv bz2)
         #SET(ExternalLibs ${ExternalLibs} "-force_load /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/lib/libobject.a")
-        set (SYS_LIBRARY_PATH /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/lib )
+        SET (SYS_LIBRARY_PATH /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/lib )
 
     else()
         message(FATAL_ERROR "Invalid IOS_PLATFORM: ${IOS_PLATFORM}")
@@ -169,7 +169,7 @@ macro (display_ios_platform_configs)
 endmacro()
 
 macro (add_module_lists)
-    set (module_lists "")
+    SET (module_lists "")
     list(APPEND module_lists "src/argument")
     list(APPEND module_lists "src/mockery")
     list(APPEND module_lists "src/concurrent")

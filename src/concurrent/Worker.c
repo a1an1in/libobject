@@ -63,7 +63,7 @@ static int  __assign(Worker *worker, int fd, int ev_events,
     event->ev_callback    = ev_callback;
     event->ev_arg         = ev_arg;
     worker->work_callback = work_callback;
-    worker->flags         = 0;
+    worker->flags         = 0;  //是否已经ressign标记。
 
     if (ev_tv != NULL)
         event->ev_timeout     = *ev_tv;

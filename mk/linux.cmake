@@ -14,9 +14,9 @@ macro (set_cmake_evironment_variable)
         ${PROJECT_SOURCE_DIR}/src/include
         ${CMAKE_INSTALL_PREFIX}/include)
 
-    set (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
-    set (EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)
-    set (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+    SET (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
+    SET (EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)
+    SET (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
     SET (ExternalLibs ${ExternalLibs} 
         -Wl,--whole-archive
             object-tests
@@ -47,7 +47,7 @@ macro (display_linux_platform_configs)
 endmacro()
 
 macro (add_module_lists)
-    set (module_lists "")
+    SET (module_lists "")
     list(APPEND module_lists "src/argument")
     list(APPEND module_lists "src/mockery")
     list(APPEND module_lists "src/concurrent")

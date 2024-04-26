@@ -185,8 +185,8 @@ static int __run_command(Mockery_Command *command)
         execute_designated_cmd(command, command->func_name, command->argc, command->argv);
     }
 
-    dbg_str(DBG_VIP, "mockery %s end", command->func_name);
-    debugger_set_all_businesses_level(debugger_gp, 1, 3);
+    dbg_str(DBG_SUC, "mockery %s end", command->func_name);
+    debugger_set_all_businesses_level(debugger_gp, 1, 4);
 
     return 1;
 }

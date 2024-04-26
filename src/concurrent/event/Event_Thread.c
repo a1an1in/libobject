@@ -76,7 +76,7 @@ static int __deconstrcut(Event_Thread *thread)
     object_destroy(thread->c);
     object_destroy(thread->eb);
 #if (defined(WINDOWS_USER_MODE))
-    printf("windows WSACleanup\n"); 
+    dbg_str(DBG_INFO,"windows WSACleanup");
     WSACleanup();
 #endif
     
@@ -141,7 +141,7 @@ static void event_thread_notifier_callback(int fd, short events, void *arg)
         case 'd': 
             break;
         case 'e': //exit
-            dbg_str(DBG_WARN, "event_thread received exit message!");
+            dbg_str(DBG_SUC, "event_thread received exit message!");
             break;
         default:
             break;

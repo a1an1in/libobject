@@ -15,6 +15,8 @@ static int __construct(Node *node, char *init_str)
     allocator_t *allocator = node->parent.allocator;
 
     node->str = object_new(allocator, "String", NULL);
+    node->busd = NULL;
+    node->bus = NULL;
     
     return 0;
 }
@@ -23,6 +25,13 @@ static int __deconstruct(Node *node)
 {
     object_destroy(node->str);
     bus_destroy(node->bus);
+
+    //需要等待客户端关闭连接， 然后服务器也处理关闭事务， 不然
+    //如果server也同时销毁， 有可能会同时操作worker链表，导致异常。
+    //因为使用的event base, 所以没有给链表加锁，但是销毁server和对
+    //客户端关闭处理是在俩个不通线程处理，所以需要等待一下， 这个不算
+    //是问题， 是异步设计需要注意的一个地方。
+    usleep(1000); 
     busd_destroy(node->busd);
 
     return 0;

@@ -132,7 +132,7 @@ static int test_node(TEST_ENTRY *entry)
         // EXEC(__test_node_fshell(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
-        usleep(10000);
+        usleep(1000);
         object_destroy(deamon);
     }
 

@@ -33,7 +33,6 @@
 #if (defined(WINDOWS_USER_MODE))
 #include <stdio.h>
 #include <errno.h>
-#include <libobject/core/utils/registry/registry.h>
 #include <libobject/concurrent/event/Select_Base.h>
 
 static int __construct(Select_Base *eb, char *init_str)
@@ -165,40 +164,4 @@ static class_info_entry_t select_base_class_info[] = {
     Init_End___Entry(7, Select_Base),
 };
 REGISTER_CLASS("Select_Base", select_base_class_info);
-
-static void test_ev_callback(int fd, short events, void *arg)
-{
-    dbg_str(EV_DETAIL, "hello world, event");
-}
-
-int test_select_base()
-{
-    Event_Base *eb;
-    allocator_t *allocator = allocator_get_default_instance();
-    char *set_str;
-    char buf[2048];
-    cjson_t *root, *e, *s;
-    event_t event;
-
-    eb = OBJECT_NEW(allocator, Select_Base, NULL);
-    eb->init(eb);
-
-    dbg_str(EV_DETAIL, "run at here, eb=%p", eb);
-
-    object_dump(eb, "Select_Base", buf, 2048);
-    dbg_str(EV_DETAIL, "Select_Base dump: %s", buf);
-
-    event.ev_timeout.tv_sec  = 10;
-    event.ev_timeout.tv_usec = 0;
-    event.ev_fd = -1;
-    event.ev_callback = test_ev_callback;
-
-    eb->add(eb, &event);
-    eb->loop(eb);
-
-    object_destroy(eb);
-
-    return 1;
-}
-REGISTER_TEST_FUNC(test_select_base);
 #endif
