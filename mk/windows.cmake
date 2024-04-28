@@ -23,7 +23,7 @@ macro (set_cmake_evironment_variable)
             object-mockery
             object-node 
             # object-compress 
-            # object-scripts 
+            object-scripts 
             object-stub 
             # object-db 
             object-net
@@ -59,6 +59,7 @@ endmacro()
 
 macro (add_module_lists)
     SET (module_lists "")
+    list(APPEND module_lists "src/scripts")
     list(APPEND module_lists "src/argument")
     list(APPEND module_lists "src/mockery")
     list(APPEND module_lists "src/concurrent")

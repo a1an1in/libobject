@@ -5,7 +5,7 @@
  * @version 
  * @date 2023-04-03
  */
-
+#if (!defined(WINDOWS_USER_MODE))
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/ptrace.h>
@@ -13,7 +13,7 @@
 #include <libobject/core/utils/string.h>
 #include <libobject/scripts/fshell/FShell.h>
 
-FShell *g_shell;
+extern FShell *g_shell;
 
 int fsh_help()
 {
@@ -138,3 +138,4 @@ int fsh_call(void *p1, void *p2, void *p3, void *p4, void *p5,
 
 //     return ret;
 // }
+#endif

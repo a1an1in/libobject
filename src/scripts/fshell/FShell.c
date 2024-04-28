@@ -13,6 +13,8 @@
 #include <libobject/scripts/fshell/FShell.h>
 #include <libobject/scripts/fshell/api.h>
 
+FShell *g_shell;
+
 static void __close_fshell_callback(void *arg)
 {
     FShell *shell = (FShell *)arg;
