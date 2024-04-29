@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#if (!defined(WINDOWS_USER_MODE))
 #include <dlfcn.h>
+#endif
 #include <string.h>
 
 void *my_dlopen(char *name, int flag);
@@ -73,19 +75,21 @@ int my_free(void *addr)
     return 0;
 }
 
+
 void *my_dlopen(char *name, int flag)
 {
     void *handle = NULL;
     int i;
 
-    printf("my_dlopen name:%s, strlen:%ld, flag:%x\n", name, strlen(name), flag);
-    
+    printf("my_dlopen name:%s, strlen:%I64d, flag:%x\n", name, strlen(name), flag);
+#if (!defined(WINDOWS_USER_MODE))
     handle = dlopen(name, flag);
     if (handle == NULL) {
         printf("dlopen error %s\n", dlerror());
     } else {
         printf("my_dlopen handle:%p\n", handle);
     }
+#endif
 
     return handle;
 }
@@ -93,18 +97,21 @@ void *my_dlopen(char *name, int flag)
 int my_dlclose (void *handle)
 {
     printf( "my_dlclose handle:%p\n", handle);
+#if (!defined(WINDOWS_USER_MODE))
     return dlclose(handle);
+#endif
 }
 
  char *my_dlerror()
  {
     char *addr;
 
+#if (!defined(WINDOWS_USER_MODE))
     addr = dlerror();
     printf("addr :%s\n", addr);
     perror("perror:");
     printf("debug_info :%s\n", debug_info);
-
+#endif
     return addr;
  }
 
@@ -112,12 +119,15 @@ void *subprocess_callback(void *para)
 {
     int i = 0, sum = 0;
 
+#if (!defined(WINDOWS_USER_MODE))
     printf("child process tid: %u\n", gettid());
+    printf("dlopen function addr: %p\n", dlopen);
+#endif
     printf("test_lib_hello_world addr: %p\n", test_lib_hello_world);
     printf("my_free function addr: %p\n", my_free);
     printf("my_malloc function addr: %p\n", my_malloc);
     printf("my_dlopen function addr: %p\n", my_dlopen);
-    printf("dlopen function addr: %p\n", dlopen);
+
     printf("sprintf function addr: %p\n", sprintf);
     
     printf("test_lib_hello_world_with_pointer_pars function addr: %p\n", test_lib_hello_world_with_pointer_pars);

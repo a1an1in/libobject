@@ -45,7 +45,11 @@ static int __construct(Command *command, char *init_str)
                  "                                execute certain functions to achieve certain goals.");
     command->add_argument(command, "", "arg0", NULL, NULL);
     command->add_argument(command, "", "arg1", NULL, NULL);
+#if (defined(WINDOWS_USER_MODE))
+    fcommand->shell = object_new(allocator, "WindowsFShell", NULL);
+#else
     fcommand->shell = object_new(allocator, "UnixFShell", NULL);
+#endif
 
     return 0;
 }

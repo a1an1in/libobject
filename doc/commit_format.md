@@ -1,7 +1,7 @@
-[update:fshell] 增加fshell windows模板。
+[update:windows] 增加windows dl测试用例。
 
 Description:
-增加类和测试模板，还为实现。
+适配dl, 只加了模板和fix编译错误。
 
 Major Changes:
 1. 更新。

@@ -157,3 +157,34 @@ static int test_fshell_load_and_get_func_addr()
 }
 REGISTER_TEST_FUNC(test_fshell_load_and_get_func_addr);
 
+#if (defined(WINDOWS_USER_MODE))
+#include <windows.h>
+static int test_windows_dl()
+{
+    int ret;
+    FShell *shell;
+    HMODULE handle;
+    char *func_name = "test_lib_print_outbound";
+    char *lib_name = "./sysroot/windows/lib/libobject-testlib.dll";
+
+    char name[20];
+    void *addr;
+    allocator_t *allocator = allocator_get_default_instance();
+
+    TRY {
+        // handle = LoadLibrary("./sysroot/windows/lib/libobject-core.dll");
+        handle = GetModuleHandle(NULL);
+        // GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, "libobject-core.dll", &handle);
+        THROW_IF(handle == NULL, -1);
+        addr = GetProcAddress(handle, "allocator_get_default_instance");
+        THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "%p %p",  allocator_get_default_instance, addr);
+    } CATCH (ret) {
+    } FINALLY {
+        FreeLibrary(handle);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_windows_dl);
+#endif
