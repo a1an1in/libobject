@@ -83,7 +83,7 @@ void debugger_set_level_infos(debugger_t *debugger)
     debugger_set_level_info(debugger, DBG_PANIC,     (DBG_PANIC_COLOR),    "DBG_PANIC");
     debugger_set_level_info(debugger, DBG_FATAL,     (DBG_FATAL_COLOR),    "DBG_FATAL");
     debugger_set_level_info(debugger, DBG_ERROR,     (DBG_ERROR_COLOR),    "DBG_ERROR");
-    debugger_set_level_info(debugger, DBG_WARN,  (DBG_WARN_COLOR), "DBG_WARN");
+    debugger_set_level_info(debugger, DBG_WARN,      (DBG_WARN_COLOR), "DBG_WARN");
     debugger_set_level_info(debugger, DBG_SUC,       (DBG_SUC_COLOR),      "DBG_SUC");
     debugger_set_level_info(debugger, DBG_VIP,       (DBG_VIP_COLOR),      "DBG_VIP");
     debugger_set_level_info(debugger, DBG_INFO,      (DBG_FLOW_COLOR),     "DBG_INFO");

@@ -1,7 +1,7 @@
-[update:windows] 增加windows dl测试用例。
+[update:WindowsFShell] 更新。
 
 Description:
-适配dl, 只加了模板和fix编译错误。
+node 增加Windows fshell接口。
 
 Major Changes:
 1. 更新。

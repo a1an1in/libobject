@@ -222,7 +222,11 @@ static int node_open_fshell(bus_object_t *obj, int argc,
         allocator = bus->allocator;
 
         dbg_str(DBG_VIP, "node_open_fshell in");
+#if (!defined(WINDOWS_USER_MODE))
         shell = object_new(allocator, "UnixFShell", NULL);
+#else
+        shell = object_new(allocator, "WindowsFShell", NULL);
+#endif
 
         bus->shell = shell;
     } CATCH (ret) {} FINALLY {
