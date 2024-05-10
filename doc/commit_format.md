@@ -1,7 +1,7 @@
-[update:WindowsFShell] 更新。
+[update:WindowsFShell] 增加windows-dl
 
 Description:
-node 增加Windows fshell接口。
+适配windows-dl。
 
 Major Changes:
 1. 更新。

@@ -58,6 +58,7 @@ function do_build_windows {
     make
     if [[ $OPTION_INSTALL == "true" ]]; then
         mingw32-make install
+        echo "mingw32-make install"
         exit 0
     fi
 }

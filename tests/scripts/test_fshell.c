@@ -35,8 +35,8 @@ static int test_fshell_get_addr()
 {
     int ret;
     FShell *shell;
-    char *func_name = "print_outbound";
-    void *expect_addr = print_outbound;
+    char *func_name = "object_new";
+    void *expect_addr = object_new;
     void *addr;
     allocator_t *allocator = allocator_get_default_instance();
 
@@ -48,6 +48,7 @@ static int test_fshell_get_addr()
 #endif
         EXEC(shell->get_func_addr(shell, NULL, func_name, &addr));
         THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "add:%p expec addr:%p", addr, expect_addr);
         THROW_IF(addr != expect_addr, -1);
     } CATCH (ret) {
     } FINALLY {
@@ -77,6 +78,7 @@ static int test_fshell_get_func_name()
         EXEC(shell->get_func_name(shell, NULL, func_addr, name, 20));
         dbg_str(DBG_DETAIL, "name:%s", name);
         ret = strcmp(expect_func_name, name);
+        dbg_str(DBG_VIP, "name:%s, expect_func_name:%s", name, expect_func_name);
         THROW_IF(ret != 0, -1);
     } CATCH (ret) {
     } FINALLY {

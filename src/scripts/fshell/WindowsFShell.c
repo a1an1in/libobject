@@ -8,7 +8,7 @@
 
 #if (defined(WINDOWS_USER_MODE))
 #define _GNU_SOURCE
-// #include <dlfcn.h>
+#include <dl/dlfcn.h>
 #include <libobject/core/String.h>
 #include "WindowsFShell.h"
 #include <libobject/mockery/mockery.h>
@@ -82,19 +82,19 @@ static int __get_func_addr(WindowsFShell *shell, char *lib_name, char *func_name
     int ret;
 
     TRY {
-        THROW(0);
+        // THROW(0);
         /* open the needed object */
-        // handle = dlopen(lib_name, RTLD_LOCAL | RTLD_LAZY);
+        handle = dlopen(lib_name, RTLD_LOCAL | RTLD_LAZY);
         THROW_IF(handle == NULL, -1);
-        dbg_str(DBG_DETAIL, "handle=%p", handle);
+        dbg_str(DBG_VIP, "handle=%p", handle);
 
         /* find the address of function and data objects */
-        // *addr = dlsym(handle, func_name);
-        dbg_str(DBG_DETAIL, "addr=%p", *addr);
+        *addr = dlsym(handle, func_name);
+        dbg_str(DBG_VIP, "addr=%p", *addr);
     } CATCH (ret) {
     } FINALLY {
-        // if (handle != NULL)
-        // dlclose(handle);
+        if (handle != NULL)
+        dlclose(handle);
     }
 
     return ret;
@@ -103,21 +103,21 @@ static int __get_func_addr(WindowsFShell *shell, char *lib_name, char *func_name
 static int __get_func_name(WindowsFShell *shell, char *lib_name, void *addr, char *name, unsigned int name_len)
 {
     void *handle = NULL;
-    // Dl_info dl;
+    Dl_info dl;
     int ret = 0;
 
     TRY {
-        THROW(0);
+        // THROW(0);
         /* open the needed object */
-        // handle = dlopen(lib_name, RTLD_LOCAL | RTLD_LAZY);
+        handle = dlopen(lib_name, RTLD_LOCAL | RTLD_LAZY);
         THROW_IF(handle == NULL, -1);
 
         /* find the address of function and data objects */
-        // ret = dladdr(addr, &dl);
-        // dlclose(handle);
+        ret = dladdr(addr, &dl);
+        dlclose(handle);
         THROW_IF(ret == 0, -1);
 
-        // strncpy(name, dl.dli_sname, name_len - 1);
+        strncpy(name, dl.dli_sname, name_len - 1);
     } CATCH (ret) {
     }
 

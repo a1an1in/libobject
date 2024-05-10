@@ -43,7 +43,7 @@ macro (set_cmake_evironment_variable)
         # mysqlclient
         # python3.8
         # crypto 
-        # dl 
+        dl 
         pthread 
         # m 
         # msvcrt
@@ -71,6 +71,7 @@ macro (add_module_lists)
     list(APPEND module_lists "tests")
     list(APPEND module_lists "src/.")
     list(APPEND module_lists "3rd/test_lib")
+    list(APPEND module_lists "3rd/windows-dl")
     add_subdirectories("${module_lists}")
 endmacro()
 
