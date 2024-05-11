@@ -14,3 +14,6 @@ file(GLOB MOUDLE_SRC
 )
 
 add_library(${PROJECT_NAME} STATIC ${MOUDLE_SRC})
+if ("${PLATFORM}" STREQUAL "windows")
+    add_dependencies(${PROJECT_NAME} dl)
+endif()
