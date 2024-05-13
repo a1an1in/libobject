@@ -117,7 +117,7 @@ static int __mkdir(File *file, char *path, mode_t mode)
 
 static int __close(File *file)
 {
-    if (file->f == NULL) return ;
+    if (file->f == NULL) return 0;
 
     fclose(file->f);
     file->f = NULL;

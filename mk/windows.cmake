@@ -100,4 +100,6 @@ macro (add_compiling_options)
     add_definitions(-Wno-incompatible-pointer-types)
     add_definitions(-Wno-pointer-to-int-cast)
     add_definitions(-Wno-address-of-packed-member)
+    add_definitions(-Wno-int-to-pointer-cast)
+    
 endmacro()

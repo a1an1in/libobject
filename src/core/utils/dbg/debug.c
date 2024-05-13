@@ -67,7 +67,7 @@ void debugger_set_all_businesses_level(debugger_t *debugger,int sw, int level)
     int bussiness_num, i;
 
     bussiness_num = iniparser_getint(d, (char *)"businesses:business_num", 0);
-        for(i = 0; i < bussiness_num; i++){
+        for (i = 0; i < bussiness_num; i++) {
             debugger_set_business(debugger, i, sw, level);
         }
 }
@@ -83,10 +83,10 @@ void debugger_set_level_infos(debugger_t *debugger)
     debugger_set_level_info(debugger, DBG_PANIC,     (DBG_PANIC_COLOR),    "DBG_PANIC");
     debugger_set_level_info(debugger, DBG_FATAL,     (DBG_FATAL_COLOR),    "DBG_FATAL");
     debugger_set_level_info(debugger, DBG_ERROR,     (DBG_ERROR_COLOR),    "DBG_ERROR");
-    debugger_set_level_info(debugger, DBG_WARN,      (DBG_WARN_COLOR), "DBG_WARN");
+    debugger_set_level_info(debugger, DBG_WARN,      (DBG_WARN_COLOR),     "DBG_WARN");
     debugger_set_level_info(debugger, DBG_SUC,       (DBG_SUC_COLOR),      "DBG_SUC");
     debugger_set_level_info(debugger, DBG_VIP,       (DBG_VIP_COLOR),      "DBG_VIP");
-    debugger_set_level_info(debugger, DBG_INFO,      (DBG_FLOW_COLOR),     "DBG_INFO");
+    debugger_set_level_info(debugger, DBG_INFO,      (DBG_INFO_COLOR),     "DBG_INFO");
     debugger_set_level_info(debugger, DBG_DETAIL,    (DBG_DETAIL_COLOR),   "DBG_DETAIL");
 }
 uint8_t debugger_get_level_color(debugger_t *debugger, uint32_t level)
@@ -118,10 +118,10 @@ void debugger_set_businesses(debugger_t *debugger)
 
     bussiness_num = iniparser_getint(d, (char *)"businesses:business_num", 0);
     sprintf(buf, "%d", MAX_DEBUG_BUSINESS_NUM);
-    if(bussiness_num == 0){
+    if (bussiness_num == 0) {
         iniparser_setstr(d, (char *)"businesses", NULL); 
         iniparser_setstr(d, (char *)"businesses:business_num", buf); 
-        for(i = 0; i < MAX_DEBUG_BUSINESS_NUM; i++){
+        for (i = 0; i < MAX_DEBUG_BUSINESS_NUM; i++) {
             snprintf(switch_str, MAX_STRING_LEN,
                      "businesses:%s_switch",
                      debug_business_names[i]);
@@ -131,10 +131,10 @@ void debugger_set_businesses(debugger_t *debugger)
                      debug_business_names[i]);
 
             iniparser_setstr(d, switch_str, "1");
-            if(i == 0){
+            if (i == 0) {
                 iniparser_setstr(d, level_str, "9");
                 debugger_set_business(debugger, i, 1, 9);
-            }else{
+            } else {
                 iniparser_setstr(d, level_str, "5");
                 debugger_set_business(debugger, i, 1, 5);
             }
@@ -142,8 +142,8 @@ void debugger_set_businesses(debugger_t *debugger)
         FILE *f = fopen(debugger->ini_file_name, "w");
         iniparser_dump_ini(d, f);
         fclose(f);
-    }else{
-        for(i = 0; i < bussiness_num; i++){
+    } else {
+        for (i = 0; i < bussiness_num; i++) {
             snprintf(switch_str, MAX_STRING_LEN,
                      "businesses:%s_switch",
                      debug_business_names[i]);
@@ -172,13 +172,13 @@ int debugger_get_business_level(debugger_t *debugger, uint32_t business_num)
 
 void debugger_init(debugger_t *debugger)
 {
-    if(debugger->dbg_ops->init)
+    if (debugger->dbg_ops->init)
         debugger->dbg_ops->init(debugger);
 }
 
 void debugger_destroy(debugger_t *debugger)
 {
-    if(debugger->dbg_ops->destroy)
+    if (debugger->dbg_ops->destroy)
         debugger->dbg_ops->destroy(debugger);
 }
 
@@ -188,14 +188,15 @@ int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt,
     va_list ap;
     uint32_t business_num = dbg_switch >> 8;
     uint8_t level = dbg_switch & 0xff;
-    char fmt_str[MAX_DBG_STR_LEN];
+    char fmt_str[MAX_DBG_STR_LEN] = {0};
     char *level_str;
+
     /* business print switch */
-    if(!debugger_is_business_switch_on(debugger, business_num)){
+    if (!debugger_is_business_switch_on(debugger, business_num)) {
         return -1;
     }
     /* business print level control */
-    if(debugger_get_business_level(debugger, business_num) < level){
+    if (debugger_get_business_level(debugger, business_num) < level) {
         return -1;
     }
 
@@ -230,10 +231,11 @@ int debugger_dbg_buf(debugger_t *debugger,
     char fmt_str[MAX_DBG_STR_LEN];
     char *level_str;
 
-    if(!debugger_is_business_switch_on(debugger, business_num)){
+    if (!debugger_is_business_switch_on(debugger, business_num)) {
         return -1;
     }
-    if(debugger_get_business_level(debugger, business_num) < level){
+
+    if (debugger_get_business_level(debugger, business_num) < level) {
         return -1;
     }
     debug_string_buf_to_str(buf, buf_len, buffer_str, MAX_BUFFER_STR_LEN);
@@ -263,6 +265,7 @@ debugger_t *debugger_creator(char *ini_file_name, uint8_t lock_type)
     int err;
 
     debugger =(debugger_t *)malloc(sizeof(debugger_t));
+    memset(debugger, 0, sizeof(debugger_t));
 
     debugger->d = d = iniparser_new(ini_file_name);
     memset(debugger->ini_file_name, 0, sizeof(debugger->ini_file_name));
@@ -270,10 +273,10 @@ debugger_t *debugger_creator(char *ini_file_name, uint8_t lock_type)
     memcpy(debugger->ini_file_name, ini_file_name, strlen(ini_file_name));
 
     type = iniparser_getint(d, (char *)"debugger:type", 0);
-    if(access(debugger->ini_file_name, F_OK)){
+    if (access(debugger->ini_file_name, F_OK)) {
         printf("ini file %s not exist\n", debugger->ini_file_name);
         f = fopen(debugger->ini_file_name, "w");
-        if(f == NULL){
+        if (f == NULL) {
             err = errno;
             perror("fopen");
             console_str("open ini file failed, errno=%d", err);
