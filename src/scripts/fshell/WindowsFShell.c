@@ -8,7 +8,7 @@
 
 #if (defined(WINDOWS_USER_MODE))
 #define _GNU_SOURCE
-#include <dl/dlfcn.h>
+#include <dlfcn.h>
 #include <libobject/core/String.h>
 #include "WindowsFShell.h"
 #include <libobject/mockery/mockery.h>
