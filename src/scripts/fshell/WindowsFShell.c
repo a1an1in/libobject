@@ -32,7 +32,7 @@ static int __deconstruct(WindowsFShell *shell)
         key = cur->get_kpointer(cur);
         value = cur->get_vpointer(cur);
         dbg_str(DBG_DETAIL, "windows fshell close lib:%s, handle:%p", key, value);
-        // todo ....
+        dlclose(value);
     }
 
     return 0;
@@ -46,13 +46,12 @@ static int __load(WindowsFShell *shell, char *lib_name, int flag)
     void *addr;
 
     TRY {
-        // todo ..
-        THROW(0);
-        // handle = dlopen(lib_name, flag);
+        handle = dlopen(lib_name, flag);
         THROW_IF(handle == NULL, -1);
 
         EXEC(map->add(map, lib_name, handle));
     } CATCH (ret) {
+        perror("err:");
     }
 
     return ret;
@@ -65,11 +64,9 @@ static int __unload(WindowsFShell *shell, char *lib_name, int flag)
     int ret;
 
     TRY {
-        THROW(0);
         EXEC(map->remove(map, lib_name, (void **)&handle));
         THROW_IF(handle == NULL, -1);
-        //todo ..
-        // EXEC(dlclose(handle));
+        EXEC(dlclose(handle));
     } CATCH (ret) {
     }
 
@@ -91,10 +88,9 @@ static int __get_func_addr(WindowsFShell *shell, char *lib_name, char *func_name
         /* find the address of function and data objects */
         *addr = dlsym(handle, func_name);
         dbg_str(DBG_VIP, "addr=%p", *addr);
-    } CATCH (ret) {
-    } FINALLY {
+    } CATCH (ret) { } FINALLY {
         if (handle != NULL)
-        dlclose(handle);
+            dlclose(handle);
     }
 
     return ret;
@@ -118,7 +114,9 @@ static int __get_func_name(WindowsFShell *shell, char *lib_name, void *addr, cha
         THROW_IF(ret == 0, -1);
 
         strncpy(name, dl.dli_sname, name_len - 1);
-    } CATCH (ret) {
+    } CATCH (ret) { } FINALLY {
+        if (handle != NULL)
+            dlclose(handle);
     }
 
     return ret;
@@ -148,7 +146,7 @@ static class_info_entry_t shell_class_info[] = {
     Init_Vfunc_Entry(4 , WindowsFShell, unload, __unload),
     Init_Vfunc_Entry(5 , WindowsFShell, get_func_addr, __get_func_addr),
     Init_Vfunc_Entry(6 , WindowsFShell, get_func_name, __get_func_name),
-    Init_Vfunc_Entry(7 , WindowsFShell, open_ui, __open_ui),
+    Init_Vfunc_Entry(7 , WindowsFShell, open_ui, NULL),
     Init_Vfunc_Entry(8 , WindowsFShell, run_func, NULL),
     Init_Vfunc_Entry(9 , WindowsFShell, is_statement, NULL),
     Init_End___Entry(10, WindowsFShell),
