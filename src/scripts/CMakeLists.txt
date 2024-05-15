@@ -13,7 +13,10 @@ file(GLOB MOUDLE_SRC
     ${MOUDLE_SOURCES}
 )
 
-add_library(${PROJECT_NAME} STATIC ${MOUDLE_SRC})
-# if ("${PLATFORM}" STREQUAL "windows")
-#     add_dependencies(${PROJECT_NAME} dl)
-# endif()
+if ("${PLATFORM}" STREQUAL "windows")
+    add_library(${PROJECT_NAME} SHARED ${MOUDLE_SRC})
+    add_dependencies(${PROJECT_NAME} object-core)
+    target_link_libraries(${PROJECT_NAME} object-concurrent object-argument object-stub object-core dl)
+else()
+    add_library(${PROJECT_NAME} STATIC ${MOUDLE_SRC})
+endif()

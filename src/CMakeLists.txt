@@ -19,7 +19,7 @@ if ("${PLATFORM}" STREQUAL "windows")
 elseif("${PLATFORM}" STREQUAL "mac")
     target_link_libraries(${PROJECT_NAME} ${ExternalLibs})
 else()
-    target_link_libraries(${PROJECT_NAME} ${ExternalLibs}  -Wl,--no-as-needed -lobject-testlib2 -Wl,--as-needed object-testlib)
+    target_link_libraries(${PROJECT_NAME} ${ExternalLibs}  -Wl,--as-needed -lobject-testlib2 -Wl,--as-needed object-testlib)
 endif()
 #add_dependencies(${PROJECT_NAME} object)
 

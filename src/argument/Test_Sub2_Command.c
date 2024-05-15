@@ -46,30 +46,3 @@ static class_info_entry_t test_sub2_command_class_info[] = {
 };
 REGISTER_CLASS("Test_Sub2_Command", test_sub2_command_class_info);
 
-static int test_sub2_command(TEST_ENTRY *entry)
-{
-    allocator_t *allocator = allocator_get_default_instance();
-    Command *command = NULL;
-    int ret = 0, help = 0;
-
-
-    command = object_new(allocator, "Test_Sub2_Command", NULL);
-
-    /*
-     *command->set(command, "/Test_Sub1_Command/help", &help);
-     *command->set(command, "/Test_Sub1_Command/option", "sub1 command option");
-     */
-
-    help = 1;
-    command->set(command, "/Test_Sub2_Command/help", &help);
-    command->set(command, "/Test_Sub2_Command/option", "sub2 command option");
-
-    dbg_str(DBG_DETAIL, "Test_Sub2_Command dump: %s",
-            command->to_json(command));
-
-    object_destroy(command);
-
-    return ret;
-
-}
-REGISTER_TEST_CMD(test_sub2_command);

@@ -73,6 +73,10 @@ static int __unload(WindowsFShell *shell, char *lib_name, int flag)
     return ret;
 }
 
+/* 
+ *window 只能从动态库能用dlopen， 不能读取链接的静态库，即使是生成bin时链接的静态库。
+ *所以，如果需要动态调用，则需要把被调用的函数编译成动态库。
+ */
 static int __get_func_addr(WindowsFShell *shell, char *lib_name, char *func_name, void **addr)
 {
     void *handle = NULL;

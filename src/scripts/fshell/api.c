@@ -5,11 +5,9 @@
  * @version 
  * @date 2023-04-03
  */
-#if (!defined(WINDOWS_USER_MODE))
+
 #include <stdlib.h>
 #include <signal.h>
-#include <sys/ptrace.h>
-#include <sys/user.h>
 #include <libobject/core/utils/string.h>
 #include <libobject/scripts/fshell/FShell.h>
 
@@ -20,6 +18,9 @@ int fsh_help()
     printf("fshell help\n");
 }
 
+#if (!defined(WINDOWS_USER_MODE))
+#include <sys/user.h>
+#include <sys/ptrace.h>
 int fsh_attach(char *pid)
 {
     int ret;
@@ -52,6 +53,7 @@ int fsh_dettach(char *pid)
 
     return ret;
 }
+#endif
 
 int fsh_quit()
 {
@@ -78,7 +80,7 @@ int fsh_printf(char *fmt, ...)
 
 int fsh_add(int a, int b)
 {
-    printf("fsh add, a:%d, b:%d, count:%d\n", a, b, a + b);
+    printf("fsh add, a:%d, b:%d, count:%d \n", a, b, a + b);
     return a + b;
 }
 
@@ -138,4 +140,3 @@ int fsh_call(void *p1, void *p2, void *p3, void *p4, void *p5,
 
 //     return ret;
 // }
-#endif

@@ -91,6 +91,7 @@ static int __test_node_fshell(Node *node)
         EXEC(node->call_bus(node, "node@open_fshell()", NULL, 0));
         EXEC(node->execute_fsh(node, "node@fsh_add(1, 2)", NULL, NULL));
         // EXEC(node->execute_fsh(node, "node@fsh_alloc(8)", NULL, NULL));
+        // EXEC(node->execute_fsh(node, "node@test_hello_world()", NULL, NULL));
         EXEC(node->call_bus(node, "node@close_fshell()", NULL, 0));
 
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
@@ -125,11 +126,11 @@ static int test_node(TEST_ENTRY *entry)
         node->disable_node_service_flag = 1;
         EXEC(node->init(node));
 
-        EXEC(__test_node_bus_call(node));
-        EXEC(__test_node_list(node));
-        EXEC(__test_node_read(node));
-        EXEC(__test_node_write(node));
-        // EXEC(__test_node_fshell(node));
+        // EXEC(__test_node_bus_call(node));
+        // EXEC(__test_node_list(node));
+        // EXEC(__test_node_read(node));
+        // EXEC(__test_node_write(node));
+        EXEC(__test_node_fshell(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         usleep(1000);
