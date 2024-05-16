@@ -18,13 +18,13 @@
 
 #define MAX_DBG_STR_LEN 1024 * 10
 
-enum debugger_type{
+enum debugger_type {
 	DEBUGGER_TYPE_CONSOLE = 0,
 	DEBUGGER_TYPE_LOG,
 	DEBUGGER_TYPE_NETWORK,
 };
 
-enum debug_level_enum{
+enum debug_level_enum {
     DBG_PANIC=0,	
     DBG_FATAL,	
     DBG_ERROR,	
@@ -44,29 +44,29 @@ typedef struct debugger debugger_t;
 typedef struct debugger_module debugger_module_t;
 
 
-struct debugger_opperations{
+struct debugger_opperations {
 	int (*dbg_string_vl)(debugger_t *debugger,size_t level,const char *fmt,va_list vl);
 	int (*dbg_string)(debugger_t *debugger,size_t level,const char *fmt,...);
 	void (*init)(debugger_t *debugger);
 	void (*destroy)(debugger_t *debugger);
 };
-struct debugger_module{
+struct debugger_module {
 	struct debugger_opperations dbg_ops;
 };
 
 
-struct debug_level_info{
+struct debug_level_info {
 #define MAX_PRINT_LEVEL_NAME_LEN 20
 	uint8_t color;
 	uint8_t level_str[MAX_PRINT_LEVEL_NAME_LEN];
 #undef MAX_PRINT_LEVEL_NAME_LEN 
 };
-struct debug_business{
+struct debug_business {
 	uint8_t business_switch;
 	uint8_t business_debug_level;
 };
 
-struct debugger{
+struct debugger {
 #define MAX_INI_FILE_NAME_LEN 50
 	debug_level_info_t debug_level_info[DBG_MAX_LEVEL];
 	uint8_t main_switch;
@@ -77,12 +77,12 @@ struct debugger{
 	struct debug_business debug_business[MAX_DEBUG_BUSINESS_NUM];
 	struct debugger_opperations *dbg_ops;
 	uint8_t lock_type;
-	union debugger_priv{
+	union debugger_priv {
 #if (!defined(WINDOWS_USER_MODE))
         debug_network_prive_t net;
 #endif
 		debug_log_prive_t log;
-	}priv;
+	} priv;
 	sync_lock_t lock;
 #undef MAX_INI_FILE_NAME_LEN
 };

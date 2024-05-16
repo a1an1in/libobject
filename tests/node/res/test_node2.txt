@@ -5,7 +5,7 @@
 #include <libobject/node/Node.h>
 #include <libobject/mockery/mockery.h>
 
-static int __test_node_bus_call(Node *node)
+static int __test_node_call_bus(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
     char method[1024] = "node@set_loglevel(1,2,3)";
@@ -70,7 +70,7 @@ static int test_node(TEST_ENTRY *entry)
         node->disable_node_service_flag = 1;
         EXEC(node->init(node));
 
-        // EXEC(__test_node_bus_call(node));
+        // EXEC(__test_node_call_bus(node));
         // EXEC(__test_node_list(node));
         EXEC(__test_node_read(node));
     } CATCH (ret) {} FINALLY {

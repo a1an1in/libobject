@@ -83,9 +83,10 @@ static int __loop(Node *node)
  * 1.如果有多个不同的object，客户端不知道客户使用的是哪个类型的object， 如果去
  *   bus查询，会比较麻烦， 还要把json转换成struct， 目前不支持这种转换， 如果
  *   要转Oject倒是容易，但是bus设计是在设计Object之前。 
- * 2.如果要提过多种不同的bus object class, 起始开发也有很大工作量， node 提供
- *   fshell的接口， 就不需要做额外的开发了， 直接就可以调用函数， 不用再对各种不同
+ * 2.如果要提供多种不同的bus object class, 有很大开发工作量，而且node 提供
+ *   fshell的接口，就不需要做额外的开发了， 直接就可以调用函数， 不用再对各种不同
  *   应用写不同bus接口了。
+ * 3.如果node之间调用不需要返回数据就不需要看开发新的接口，可以之间使用call_bus.
  */
 static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
 {
@@ -124,10 +125,10 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
 }
 
 /*
- * 这个不能复用bus_call, 因为execute不想把命令的参数也解析出来。如果加标记判断
- * 什么时候解析，会把bus_call搞复杂了。
+ * 这个不能复用call_bus, 因为execute不想把命令的参数也解析出来。如果加标记判断
+ * 什么时候解析，会把call_bus搞复杂了。
  */
-static int __execute_fsh(Node *node, char *code, void *out, uint32_t *out_len)
+static int __call_fsh(Node *node, char *code, void *out, uint32_t *out_len)
 {
     bus_t *bus;
     String *str = node->str;
@@ -381,7 +382,7 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(3 , Node, init, __init),
     Init_Nfunc_Entry(4 , Node, loop, __loop),
     Init_Nfunc_Entry(5 , Node, call_bus, __call_bus),
-    Init_Nfunc_Entry(6 , Node, execute_fsh, __execute_fsh),
+    Init_Nfunc_Entry(6 , Node, call_fsh, __call_fsh),
     Init_Nfunc_Entry(7 , Node, write, __write),
     Init_Nfunc_Entry(8 , Node, read, __read),
     Init_Nfunc_Entry(9 , Node, copy, __copy),
