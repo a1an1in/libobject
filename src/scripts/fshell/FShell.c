@@ -124,7 +124,7 @@ static int __run_func(FShell *shell, String *str)
                 arg[len - 1] = '\0';
                 par[i - 1] = arg + 1;
             } else if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
-                par[i - 1] = str_hex_to_int(arg);
+                par[i - 1] = str_hex_to_integer(arg);
                 dbg_str(DBG_DETAIL, "par i:%d value:%x", i - 1, par[i - 1]);
             } else {
                 par[i - 1] = atoi(arg);

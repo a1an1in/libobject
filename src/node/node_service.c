@@ -4,6 +4,7 @@
 #include <libobject/core/io/File.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/io/file_system_api.h>
+#include <libobject/core/utils/string.h>
 #include <libobject/node/Node.h>
 #include <libobject/scripts/fshell/api.h>
 
@@ -288,6 +289,67 @@ static int node_close_fshell(bus_object_t *obj, int argc,
 	return ret;
 }
 
+/* 因为alloc要返回地址， 如果在fshell里实现， 很难把地址传出来，
+ * 需要在node_cli 指定存储地址的空间， 这样使用会更复杂。 */
+static const struct blob_policy_s alloc_policy[] = { 
+    [0] = { .name = "size",  .type = BLOB_TYPE_UINT32 }, 
+    [1] = { .name = "name",  .type = BLOB_TYPE_STRING },
+};
+static int node_alloc(bus_object_t *obj, int argc, 
+                      struct blob_attr_s **args, 
+                      void *out, int *out_len)
+{
+    bus_t *bus;
+    allocator_t *allocator;
+    char *name;
+    void *addr;
+    int ret, size;
+
+    TRY {
+        size = blob_get_uint32(args[0]);
+        name = blob_get_string(args[1]);
+        bus = obj->bus;
+        allocator = bus->allocator;
+        addr = allocator_mem_alloc(allocator, size);
+
+        *out_len = 2 * sizeof(void *) + 3;
+        snprintf(out, *out_len, "0x%p", addr);
+        dbg_str(DBG_VIP, "node_alloc, name:%s size:%d addr:%s", name, size, out);
+    } CATCH (ret) {*out_len = 0;} FINALLY { }
+
+	return ret;
+}
+
+/* node bus 参数都是用字符串传入的， 所以addr 用字符传要方便一些。*/
+static const struct blob_policy_s free_policy[] = { 
+    [0] = { .name = "addr",  .type = BLOB_TYPE_STRING }, 
+    [1] = { .name = "name",  .type = BLOB_TYPE_STRING },
+};
+static int node_free(bus_object_t *obj, int argc, 
+                     struct blob_attr_s **args, 
+                     void *out, int *out_len)
+{
+    bus_t *bus;
+    allocator_t *allocator;
+    char *name;
+    char *addr;
+    long long a;
+    int ret, size;
+
+    TRY {
+        addr = blob_get_string(args[0]);
+        name = blob_get_string(args[1]);
+        bus = obj->bus;
+        allocator = bus->allocator;
+        a = str_hex_to_integer(addr);
+
+        dbg_str(DBG_VIP, "node_free, name:%s addr:%s, digital integer:%llx", name, addr, a);
+        allocator_mem_free(allocator, a);
+    } CATCH (ret) {*out_len = 0;} FINALLY { }
+
+	return ret;
+}
+
 static const struct bus_method node_service_methods[] = {
 	BUS_METHOD_WITHOUT_ARG("exit", node_exit, NULL),
     BUS_METHOD("test", node_test, test_policy),
@@ -296,8 +358,10 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("write_file", node_write_file, write_file_policy),
     BUS_METHOD("read_file", node_read_file, read_file_policy),
     BUS_METHOD_WITHOUT_ARG("open_fshell", node_open_fshell, NULL),
-    BUS_METHOD("exec_fshell", node_exec_fshell, exec_fshell_policy),
     BUS_METHOD_WITHOUT_ARG("close_fshell", node_close_fshell, NULL),
+    BUS_METHOD("exec_fshell", node_exec_fshell, exec_fshell_policy),
+    BUS_METHOD("alloc", node_alloc, alloc_policy),
+    BUS_METHOD("free", node_free, free_policy),
 };
 
 bus_object_t node_object = {

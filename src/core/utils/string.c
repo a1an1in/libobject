@@ -3,9 +3,9 @@
 #include <libobject/core/try.h>
 #include <libobject/core/utils/dbg/debug.h>
 
-long ex(long a, long b)
+long long ex(long long a, long long b)
 {
-    long d = 1;
+    uint64_t d = 1;
     int i;
 
     for (i = 0; i < b ; i++) {
@@ -15,9 +15,9 @@ long ex(long a, long b)
     return d;
 }
 
-long str_hex_to_int(char *str)
+long long str_hex_to_integer(char *str)
 {
-    long len, i, d, t = 0, count = 0;
+    long long len, i, d, t = 0, count = 0;
     char c;
 
     len = strlen(str);
@@ -37,7 +37,7 @@ long str_hex_to_int(char *str)
 
         t += ex(16, count++) * d;
     }
-    // printf("str_hex_to_int, str:%s, value:%lx\n", str, t);
+    // printf("str_hex_to_integer, str:%s, value:%llx\n", str, t);
 
     return t;
 }

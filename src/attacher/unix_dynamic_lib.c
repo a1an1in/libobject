@@ -168,7 +168,7 @@ int dl_get_dynamic_name(pid_t pid, void *func_addr, char *module_name, int len)
             p = line;
             for (p = strtok_r(p, "- ", &temp), i = 0; i < 2 && p != NULL;
                 p = strtok_r(NULL, "- ", &temp), i++) {
-                *(addr + i) = str_hex_to_int(p);
+                *(addr + i) = str_hex_to_integer(p);
                 // printf("tok:%s, i:%d, *(addr + i):%lx\n", p, i, *(addr + i));
             }
 
@@ -217,7 +217,7 @@ int dl_parse_dynamic_table(pid_t pid, Interval_Tree *tree)
             p = line;
             for (p = strtok_r(p, "- ", &temp), i = 0; i < 2 && p != NULL;
                 p = strtok_r(NULL, "- ", &temp), i++) {
-                *(addr + i) = str_hex_to_int(p);
+                *(addr + i) = str_hex_to_integer(p);
                 // printf("tok:%s, i:%d, *(addr + i):%lx\n", p, i, *(addr + i));
             }
 

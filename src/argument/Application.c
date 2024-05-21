@@ -69,7 +69,7 @@ static int __option_log_level_callback(Option *option, void *opaque)
         THROW_IF(option->value == NULL, -1);
 
         // value = atoi(STR2A(option->value));
-        value = str_hex_to_int(STR2A(option->value));
+        value = str_hex_to_integer(STR2A(option->value));
         bussiness_num = (value >> 4) & 0xffffff;
         level = value & 0xf;
 

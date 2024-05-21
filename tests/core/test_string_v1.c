@@ -1,17 +1,20 @@
 #include <stdio.h>
 #include <string.h>
+#include <libobject/core/utils/string.h>
 #include <libobject/mockery/mockery.h>
 
 static int test_string_v1_hex_to_int()
 {
-    char buf[1024] = "0x123";
-    int d;
-    int ret, expect = 0x123;
+    char buf[1024] = "0x123456789abc";
+    long long expect = 0x123456789abc, d;
+    int ret;
 
     TRY {
-        d = str_hex_to_int(buf);
+        d = str_hex_to_integer(buf);
         THROW_IF(d != expect, -1);
-    } CATCH (ret) {}
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "expect:%llx, real:%llx", expect, d);
+    }
 
     return ret;
 }

@@ -10,7 +10,7 @@
 #include <libobject/mockery/mockery.h>
 #include <libobject/stub/stub.h>
 
-extern int str_hex_to_int(char *str);
+extern int str_hex_to_integer(char *str);
 
 // test funcs
 static int test_funcA(int *a, int *b, int *c)
@@ -63,7 +63,7 @@ static int test_stub_add_stub_only1()
 }
 
 
-static int my_str_hex_to_int(char *s)
+static int my_str_hex_to_integer(char *s)
 {
     return 0xdead;
 }
@@ -77,8 +77,8 @@ static int test_stub_add_stub_only2()
     TRY {
         stub = stub_alloc();
         THROW_IF(stub == NULL, -1);
-        stub_add(stub, (void*)str_hex_to_int, (void*)my_str_hex_to_int);
-        ret = str_hex_to_int("0x1f");
+        stub_add(stub, (void*)str_hex_to_integer, (void*)my_str_hex_to_integer);
+        ret = str_hex_to_integer("0x1f");
         stub_remove(stub); 
         THROW_IF(ret != 0xdead, -1);
     } CATCH (ret) {} FINALLY {

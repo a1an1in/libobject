@@ -101,6 +101,27 @@ static int __test_node_call_fsh(Node *node)
     return ret;
 }
 
+static int __test_node_alloc(Node *node)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    char buffer[1024] = {0};
+    char cmd[1024] = {0};
+    int ret, len = sizeof(buffer);
+    
+    TRY {
+        EXEC(node->call_bus(node, "node@alloc(8, abc)", buffer, &len));
+        dbg_str(DBG_SUC, "buffer:%s, len:%d", buffer, len);
+        THROW_IF(len != 19 && len != 11, -1);
+        snprintf(cmd, 1024,"node@free(%s, abc)", buffer);
+        EXEC(node->call_bus(node, cmd, NULL, 0));
+
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
 static int test_node(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -130,7 +151,8 @@ static int test_node(TEST_ENTRY *entry)
         // EXEC(__test_node_list(node));
         // EXEC(__test_node_read(node));
         // EXEC(__test_node_write(node));
-        EXEC(__test_node_call_fsh(node));
+        EXEC(__test_node_alloc(node));
+        // EXEC(__test_node_call_fsh(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         usleep(1000);
