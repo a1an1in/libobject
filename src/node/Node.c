@@ -8,6 +8,7 @@
 
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/core/io/File.h>
+#include <libobject/core/utils/string.h>
 #include <libobject/node/Node.h>
 
 static int __construct(Node *node, char *init_str)
@@ -109,8 +110,12 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
         EXEC(node_find_method_argument_template(&node_object, allocator, method_name, &args, &argc));
         THROW_IF(count - 2 != argc, -1); /* 除去node 和 方法名 */
         for (i = 0; i < argc; i++) {
+            tmp = str->get_splited_cstr(str, 2 + i);
             if (args[i].type == ARG_TYPE_UINT32) {
                 args[i].value = atoi(str->get_splited_cstr(str, 2 + i));
+            } else if (args[i].type == ARG_TYPE_UINT64 && tmp[0] == '0' && (tmp[1] == 'x' || tmp[1] == 'X')) {
+                args[i].value = str_hex_to_integer(tmp);
+                dbg_str(DBG_INFO, "call_bus ARG_TYPE_UINT64:%p, tmp:%s", args[i].value, tmp);
             } else {
                 args[i].value = str->get_splited_cstr(str, 2 + i);
             }

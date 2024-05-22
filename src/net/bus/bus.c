@@ -166,6 +166,9 @@ int bus_convert_object_to_json(bus_t *bus, bus_object_t *obj, char *out)
             if (obj->methods[i].policy[j].type == BLOB_TYPE_UINT32) {
                 cjson_add_string_to_object(arg, "name", obj->methods[i].policy[j].name);
                 cjson_add_string_to_object(arg, "type", "BLOB_TYPE_UINT32");
+            } else if (obj->methods[i].policy[j].type == BLOB_TYPE_UINT64) {
+                cjson_add_string_to_object(arg, "name", obj->methods[i].policy[j].name);
+                cjson_add_string_to_object(arg, "type", "BLOB_TYPE_UINT64");
             } else if (obj->methods[i].policy[j].type == BLOB_TYPE_STRING) {
                 cjson_add_string_to_object(arg, "name", obj->methods[i].policy[j].name);
                 cjson_add_string_to_object(arg, "type", "BLOB_TYPE_STRING");
@@ -363,6 +366,8 @@ int bus_blob_add_args(blob_t *blob, int argc, bus_method_args_t *args)
                 blob_add_string(blob, (char *)args[i].name, args[i].value);
             } else if (args[i].type == ARG_TYPE_UINT32) {
                 blob_add_uint32(blob, (char *)args[i].name, (uint32_t)args[i].value);
+            } else if (args[i].type == ARG_TYPE_UINT64) {
+                blob_add_uint64(blob, (char *)args[i].name, (uint64_t)args[i].value);
             } else if (args[i].type == ARG_TYPE_INT32) {
                 blob_add_int32(blob, (char *)args[i].name, (int32_t)args[i].value);
             } else if (args[i].type == ARG_TYPE_BUFFER) {
@@ -529,6 +534,7 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
             
             if (req->opaque) {
                 memcpy(req->opaque, buffer, req->opaque_len);
+                 dbg_buf(DBG_VIP, "bus buffer:", buffer, req->opaque_len);
             }
             
             dbg_str(DBG_VIP, "method_name:%s, state:%d", req->method, req->state);

@@ -69,6 +69,7 @@ uint32_t blob_get_data_len(blob_attr_t *attr);
 uint8_t blob_get_uint8(blob_attr_t *attr);
 uint16_t blob_get_uint16(blob_attr_t *attr);
 uint32_t blob_get_uint32(blob_attr_t *attr);
+uint64_t blob_get_uint64(blob_attr_t *attr);
 int32_t blob_get_int32(blob_attr_t *attr);
 int blob_get_buffer(blob_attr_t *attr,uint8_t **out);
 char * blob_get_string(blob_attr_t *attr);

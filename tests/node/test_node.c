@@ -1,5 +1,6 @@
 #include <libobject/mockery/mockery.h>
 #include <libobject/node/Node.h>
+#include <libobject/core/utils/byteorder.h>
 #include <libobject/core/io/file_system_api.h>
 
 static int __test_node_call_bus(Node *node)
@@ -90,8 +91,6 @@ static int __test_node_call_fsh(Node *node)
     TRY {
         EXEC(node->call_bus(node, "node@open_fshell()", NULL, 0));
         EXEC(node->call_fsh(node, "node@fsh_add(1, 2)", NULL, NULL));
-        // EXEC(node->call_fsh(node, "node@fsh_alloc(8)", NULL, NULL));
-        // EXEC(node->call_fsh(node, "node@test_hello_world()", NULL, NULL));
         EXEC(node->call_bus(node, "node@close_fshell()", NULL, 0));
 
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
@@ -101,18 +100,19 @@ static int __test_node_call_fsh(Node *node)
     return ret;
 }
 
-static int __test_node_alloc(Node *node)
+static int __test_node_alloc_and_free(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
-    char buffer[1024] = {0};
+    void *addr = NULL;
     char cmd[1024] = {0};
-    int ret, len = sizeof(buffer);
+    int ret, len = sizeof(addr);
     
     TRY {
-        EXEC(node->call_bus(node, "node@alloc(8, abc)", buffer, &len));
-        dbg_str(DBG_SUC, "buffer:%s, len:%d", buffer, len);
-        THROW_IF(len != 19 && len != 11, -1);
-        snprintf(cmd, 1024,"node@free(%s, abc)", buffer);
+        EXEC(node->call_bus(node, "node@alloc(8, abc)", &addr, &len));
+        addr = byteorder_be64_to_cpu(&addr);
+        dbg_str(DBG_SUC, "node alloc addr:%p", addr);
+        THROW_IF(len != 8 && len != 4, -1);
+        snprintf(cmd, 1024, "node@free(0x%p, abc)", addr);
         EXEC(node->call_bus(node, cmd, NULL, 0));
 
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
@@ -151,7 +151,7 @@ static int test_node(TEST_ENTRY *entry)
         // EXEC(__test_node_list(node));
         // EXEC(__test_node_read(node));
         // EXEC(__test_node_write(node));
-        EXEC(__test_node_alloc(node));
+        EXEC(__test_node_alloc_and_free(node));
         // EXEC(__test_node_call_fsh(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);

@@ -246,6 +246,13 @@ uint32_t blob_get_uint32(blob_attr_t *attr)
     return be32_to_cpu(*body_addr);
 }
 
+uint64_t blob_get_uint64(blob_attr_t *attr)
+{
+    uint64_t *body_addr = (uint64_t*)blob_get_data(attr);
+
+    return be64_to_cpu(*body_addr);
+}
+
 int32_t blob_get_int32(blob_attr_t *attr)
 {
     int32_t *body_addr = (int32_t*)blob_get_data(attr);

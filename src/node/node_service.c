@@ -5,6 +5,7 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/core/utils/string.h>
+#include <libobject/core/utils/byteorder.h>
 #include <libobject/node/Node.h>
 #include <libobject/scripts/fshell/api.h>
 
@@ -312,17 +313,20 @@ static int node_alloc(bus_object_t *obj, int argc,
         allocator = bus->allocator;
         addr = allocator_mem_alloc(allocator, size);
 
-        *out_len = 2 * sizeof(void *) + 3;
-        snprintf(out, *out_len, "0x%p", addr);
-        dbg_str(DBG_VIP, "node_alloc, name:%s size:%d addr:%s", name, size, out);
+        dbg_str(DBG_VIP, "node_alloc, name:%s size:%d addr:%p", name, size, addr);
+
+        *out_len = sizeof(void *);
+        dbg_buf(DBG_VIP, "before addr:", &addr, 8);
+        addr = byteorder_cpu_to_be64(&addr);
+        dbg_buf(DBG_VIP, "after addr:", &addr, 8);
+        memcpy(out, &addr, sizeof(void *));
     } CATCH (ret) {*out_len = 0;} FINALLY { }
 
 	return ret;
 }
 
-/* node bus 参数都是用字符串传入的， 所以addr 用字符传要方便一些。*/
 static const struct blob_policy_s free_policy[] = { 
-    [0] = { .name = "addr",  .type = BLOB_TYPE_STRING }, 
+    [0] = { .name = "addr",  .type = BLOB_TYPE_UINT64 }, 
     [1] = { .name = "name",  .type = BLOB_TYPE_STRING },
 };
 static int node_free(bus_object_t *obj, int argc, 
@@ -337,14 +341,14 @@ static int node_free(bus_object_t *obj, int argc,
     int ret, size;
 
     TRY {
-        addr = blob_get_string(args[0]);
+        addr = blob_get_uint64(args[0]);
         name = blob_get_string(args[1]);
         bus = obj->bus;
         allocator = bus->allocator;
-        a = str_hex_to_integer(addr);
 
-        dbg_str(DBG_VIP, "node_free, name:%s addr:%s, digital integer:%llx", name, addr, a);
-        allocator_mem_free(allocator, a);
+        dbg_str(DBG_VIP, "node_free, name:%s addr:%p", name, addr);
+        allocator_mem_free(allocator, addr);
+        *out_len = 0;
     } CATCH (ret) {*out_len = 0;} FINALLY { }
 
 	return ret;
