@@ -21,10 +21,14 @@ struct Node_s {
 	int (*loop)(Node *node);
 	int (*call_bus)(Node *node, char *code, void *out, uint32_t *out_len);
 	int (*call_fsh)(Node *node, char *code, void *out, uint32_t *out_len);
-	int (*write)(Node *node, char *from, char *node_id, char *to);
-	int (*read)(Node *node, char *node_id, char *from, char *to);
+	int (*write_file)(Node *node, char *from, char *node_id, char *to);
+	int (*read_file)(Node *node, char *node_id, char *from, char *to);
 	int (*copy)(Node *node, char *from, char *to);
 	int (*list)(Node *node, char *node_id, char *path, Vector *vector);
+	int (*malloc)(Node *node, char *node_id, int size, char *name, void **addr);
+	int (*mfree)(Node *node, char *node_id, void *addr, char *name);
+	int (*mset)(Node *node, char *node_id, void *addr, int len, void *value, int value_len);
+	int (*mget)(Node *node, char *node_id, void *addr, int len, void *value, int *value_len);
 
 	bus_t *bus;
     busd_t *busd;

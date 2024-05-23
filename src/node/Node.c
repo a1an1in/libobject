@@ -9,6 +9,7 @@
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/core/io/File.h>
 #include <libobject/core/utils/string.h>
+#include <libobject/core/utils/byteorder.h>
 #include <libobject/node/Node.h>
 
 static int __construct(Node *node, char *init_str)
@@ -160,7 +161,7 @@ static int __call_fsh(Node *node, char *code, void *out, uint32_t *out_len)
     return ret;
 }
 
-static int __write(Node *node, char *from, char *node_id, char *to)
+static int __write_file(Node *node, char *from, char *node_id, char *to)
 {
     bus_t *bus;
     File *file = NULL;
@@ -206,7 +207,7 @@ static int __write(Node *node, char *from, char *node_id, char *to)
                 strcpy(buffer, to);
                 strcat(buffer, relative_path);
                 dbg_str(DBG_VIP, "dest file name:%s", buffer);
-                EXEC(node->write(node, fs_file_info->file_name, node_id, buffer))
+                EXEC(node->write_file(node, fs_file_info->file_name, node_id, buffer))
             }
         } else {
             dbg_str(DBG_VIP, "run at here, open file:%s", from);
@@ -233,7 +234,7 @@ static int __write(Node *node, char *from, char *node_id, char *to)
     return ret;
 }
 
-static int __read(Node *node, char *node_id, char *from, char *to)
+static int __read_file(Node *node, char *node_id, char *from, char *to)
 {
     bus_t *bus;
     File *file = NULL;
@@ -338,9 +339,9 @@ static int __copy(Node *node, char *from, char *to)
         dbg_str(DBG_VIP, "node copy, node:%s, from:%s, to:%s", node_id, from, to);
 
         if (read_flag == 1) {
-            EXEC(node->read(node, node_id, from , to));
+            EXEC(node->read_file(node, node_id, from , to));
         } else if (write_flag == 1) {
-            EXEC(node->write(node, from, node_id, to));
+            EXEC(node->write_file(node, from, node_id, to));
         } else {
             THROW(-1);
         }
@@ -380,6 +381,61 @@ static int __list(Node *node, char *node_id, char *path, Vector *vector)
     return ret;
 }
 
+static int __malloc(Node *node, char *node_id, int size, char *name, void **addr)
+{
+    char cmd[1024] = {0};
+    int ret, len = sizeof(addr);
+    
+    TRY {
+        snprintf(cmd, 1024, "node@malloc(%d, %s)", size, name);
+        EXEC(node->call_bus(node, cmd, addr, &len));
+        *addr = byteorder_be64_to_cpu(addr);
+        dbg_str(DBG_SUC, "node alloc addr:%p", *addr);
+        THROW_IF(len != 8 && len != 4, -1);
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
+static int __mfree(Node *node, char *node_id, void *addr, char *name)
+{
+    char cmd[1024] = {0};
+    int ret, len = sizeof(addr);
+    
+    TRY {
+        snprintf(cmd, 1024, "node@mfree(0x%p, %s)", addr, name);
+        EXEC(node->call_bus(node, cmd, NULL, 0));
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
+static int __mset(Node *node, char *node_id, void *addr, int offset, int addr_len, void *value, int value_len)
+{
+    char cmd[1024] = {0};
+    int ret;
+    
+    TRY {
+        snprintf(cmd, 1024, "node@mset(0x%p, %d, %d, 0x%p, %d)", addr, addr_len, addr_len, value, value_len);
+        EXEC(node->call_bus(node, cmd, NULL, 0));
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
+static int __mget(Node *node, char *node_id, void *addr, int offset, int addr_len, void *value, int *value_len)
+{
+    char cmd[1024] = {0};
+    int ret;
+    
+    TRY {
+        snprintf(cmd, 1024, "node@mget(0x%p, %d, %d, 0x%p, %d)", addr, offset, addr_len, value, *value_len);
+        EXEC(node->call_bus(node, cmd, NULL, 0));
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
 static class_info_entry_t node_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Node, construct, __construct),
@@ -388,11 +444,15 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(4 , Node, loop, __loop),
     Init_Nfunc_Entry(5 , Node, call_bus, __call_bus),
     Init_Nfunc_Entry(6 , Node, call_fsh, __call_fsh),
-    Init_Nfunc_Entry(7 , Node, write, __write),
-    Init_Nfunc_Entry(8 , Node, read, __read),
+    Init_Nfunc_Entry(7 , Node, write_file, __write_file),
+    Init_Nfunc_Entry(8 , Node, read_file, __read_file),
     Init_Nfunc_Entry(9 , Node, copy, __copy),
     Init_Nfunc_Entry(10, Node, list, __list),
-    Init_End___Entry(11, Node),
+    Init_Nfunc_Entry(11, Node, malloc, __malloc),
+    Init_Nfunc_Entry(12, Node, mfree, __mfree),
+    Init_Nfunc_Entry(13, Node, mset, __mset),
+    Init_Nfunc_Entry(14, Node, mget, __mget),
+    Init_End___Entry(15, Node),
 };
 REGISTER_CLASS("Node", node_class_info);
 

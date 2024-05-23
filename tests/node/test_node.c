@@ -1,6 +1,5 @@
 #include <libobject/mockery/mockery.h>
 #include <libobject/node/Node.h>
-#include <libobject/core/utils/byteorder.h>
 #include <libobject/core/io/file_system_api.h>
 
 static int __test_node_call_bus(Node *node)
@@ -41,7 +40,7 @@ static int __test_node_list(Node *node)
     return ret;
 }
 
-static int __test_node_read(Node *node)
+static int __test_node_read_file(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
     char from[1024] = "node:./tests/node/res/";
@@ -62,7 +61,7 @@ static int __test_node_read(Node *node)
     return ret;
 }
 
-static int __test_node_write(Node *node)
+static int __test_node_write_file(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
     char from[1024] = "./tests/node/res/";
@@ -100,24 +99,20 @@ static int __test_node_call_fsh(Node *node)
     return ret;
 }
 
-static int __test_node_alloc_and_free(Node *node)
+static int __test_node_malloc_and_free(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
     void *addr = NULL;
-    char cmd[1024] = {0};
-    int ret, len = sizeof(addr);
+    int ret;
     
     TRY {
-        EXEC(node->call_bus(node, "node@alloc(8, abc)", &addr, &len));
-        addr = byteorder_be64_to_cpu(&addr);
+        EXEC(node->malloc(node, "node", 8, "abc", &addr));
         dbg_str(DBG_SUC, "node alloc addr:%p", addr);
-        THROW_IF(len != 8 && len != 4, -1);
-        snprintf(cmd, 1024, "node@free(0x%p, abc)", addr);
-        EXEC(node->call_bus(node, cmd, NULL, 0));
+        EXEC(node->mfree(node, "node", addr, "abc"));
 
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
-    } CATCH (ret) {} FINALLY {}
+    } CATCH (ret) { } FINALLY {}
 
     return ret;
 }
@@ -149,9 +144,9 @@ static int test_node(TEST_ENTRY *entry)
 
         // EXEC(__test_node_call_bus(node));
         // EXEC(__test_node_list(node));
-        // EXEC(__test_node_read(node));
-        // EXEC(__test_node_write(node));
-        EXEC(__test_node_alloc_and_free(node));
+        // EXEC(__test_node_read_file(node));
+        // EXEC(__test_node_write_file(node));
+        EXEC(__test_node_malloc_and_free(node));
         // EXEC(__test_node_call_fsh(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);

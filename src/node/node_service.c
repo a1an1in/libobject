@@ -292,11 +292,11 @@ static int node_close_fshell(bus_object_t *obj, int argc,
 
 /* 因为alloc要返回地址， 如果在fshell里实现， 很难把地址传出来，
  * 需要在node_cli 指定存储地址的空间， 这样使用会更复杂。 */
-static const struct blob_policy_s alloc_policy[] = { 
+static const struct blob_policy_s malloc_policy[] = { 
     [0] = { .name = "size",  .type = BLOB_TYPE_UINT32 }, 
     [1] = { .name = "name",  .type = BLOB_TYPE_STRING },
 };
-static int node_alloc(bus_object_t *obj, int argc, 
+static int node_malloc(bus_object_t *obj, int argc, 
                       struct blob_attr_s **args, 
                       void *out, int *out_len)
 {
@@ -313,7 +313,7 @@ static int node_alloc(bus_object_t *obj, int argc,
         allocator = bus->allocator;
         addr = allocator_mem_alloc(allocator, size);
 
-        dbg_str(DBG_VIP, "node_alloc, name:%s size:%d addr:%p", name, size, addr);
+        dbg_str(DBG_VIP, "node_malloc, name:%s size:%d addr:%p", name, size, addr);
 
         *out_len = sizeof(void *);
         dbg_buf(DBG_VIP, "before addr:", &addr, 8);
@@ -325,11 +325,11 @@ static int node_alloc(bus_object_t *obj, int argc,
 	return ret;
 }
 
-static const struct blob_policy_s free_policy[] = { 
+static const struct blob_policy_s mfree_policy[] = { 
     [0] = { .name = "addr",  .type = BLOB_TYPE_UINT64 }, 
     [1] = { .name = "name",  .type = BLOB_TYPE_STRING },
 };
-static int node_free(bus_object_t *obj, int argc, 
+static int node_mfree(bus_object_t *obj, int argc, 
                      struct blob_attr_s **args, 
                      void *out, int *out_len)
 {
@@ -364,8 +364,8 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD_WITHOUT_ARG("open_fshell", node_open_fshell, NULL),
     BUS_METHOD_WITHOUT_ARG("close_fshell", node_close_fshell, NULL),
     BUS_METHOD("exec_fshell", node_exec_fshell, exec_fshell_policy),
-    BUS_METHOD("alloc", node_alloc, alloc_policy),
-    BUS_METHOD("free", node_free, free_policy),
+    BUS_METHOD("malloc", node_malloc, malloc_policy),
+    BUS_METHOD("mfree", node_mfree, mfree_policy),
 };
 
 bus_object_t node_object = {
