@@ -293,8 +293,9 @@ static int node_close_fshell(bus_object_t *obj, int argc,
 /* 因为alloc要返回地址， 如果在fshell里实现， 很难把地址传出来，
  * 需要在node_cli 指定存储地址的空间， 这样使用会更复杂。 */
 static const struct blob_policy_s malloc_policy[] = { 
-    [0] = { .name = "size",  .type = BLOB_TYPE_UINT32 }, 
-    [1] = { .name = "name",  .type = BLOB_TYPE_STRING },
+    [0] = { .name = "target_type",  .type = BLOB_TYPE_UINT32 }, 
+    [1] = { .name = "size",         .type = BLOB_TYPE_UINT32 }, 
+    [2] = { .name = "name",         .type = BLOB_TYPE_STRING },
 };
 static int node_malloc(bus_object_t *obj, int argc, 
                       struct blob_attr_s **args, 
@@ -304,11 +305,13 @@ static int node_malloc(bus_object_t *obj, int argc,
     allocator_t *allocator;
     char *name;
     void *addr;
+    target_type_t type;
     int ret, size;
 
     TRY {
-        size = blob_get_uint32(args[0]);
-        name = blob_get_string(args[1]);
+        type = blob_get_uint32(args[0]);
+        size = blob_get_uint32(args[1]);
+        name = blob_get_string(args[2]);
         bus = obj->bus;
         allocator = bus->allocator;
         addr = allocator_mem_alloc(allocator, size);
@@ -325,9 +328,10 @@ static int node_malloc(bus_object_t *obj, int argc,
 	return ret;
 }
 
-static const struct blob_policy_s mfree_policy[] = { 
-    [0] = { .name = "addr",  .type = BLOB_TYPE_UINT64 }, 
-    [1] = { .name = "name",  .type = BLOB_TYPE_STRING },
+static const struct blob_policy_s mfree_policy[] = {
+    [0] = { .name = "target_type",  .type = BLOB_TYPE_UINT32 }, 
+    [1] = { .name = "addr",         .type = BLOB_TYPE_UINT64 }, 
+    [2] = { .name = "name",         .type = BLOB_TYPE_STRING },
 };
 static int node_mfree(bus_object_t *obj, int argc, 
                      struct blob_attr_s **args, 
@@ -338,16 +342,83 @@ static int node_mfree(bus_object_t *obj, int argc,
     char *name;
     char *addr;
     long long a;
+    target_type_t type;
     int ret, size;
 
     TRY {
-        addr = blob_get_uint64(args[0]);
-        name = blob_get_string(args[1]);
+        type = blob_get_uint32(args[0]);
+        addr = blob_get_uint64(args[1]);
+        name = blob_get_string(args[2]);
         bus = obj->bus;
         allocator = bus->allocator;
 
         dbg_str(DBG_VIP, "node_free, name:%s addr:%p", name, addr);
         allocator_mem_free(allocator, addr);
+        *out_len = 0;
+    } CATCH (ret) {*out_len = 0;} FINALLY { }
+
+	return ret;
+}
+
+static const struct blob_policy_s mget_policy[] = {
+    [0] = { .name = "target_type", .type = BLOB_TYPE_UINT32 }, 
+    [1] = { .name = "addr",        .type = BLOB_TYPE_UINT64 },
+    [2] = { .name = "offset",      .type = BLOB_TYPE_UINT32 },
+    [3] = { .name = "capacity",    .type = BLOB_TYPE_UINT32 },
+};
+static int node_mget(bus_object_t *obj, int argc, 
+                     struct blob_attr_s **args, 
+                     void *out, int *out_len)
+{
+    bus_t *bus;
+    allocator_t *allocator;
+    char *addr;
+    target_type_t type;
+    int ret, size, offset, capacity;
+
+    TRY {
+        type = blob_get_uint32(args[0]);
+        addr = blob_get_uint64(args[1]);
+        offset = blob_get_uint32(args[2]);
+        capacity = blob_get_uint32(args[3]);
+        bus = obj->bus;
+        allocator = bus->allocator;
+
+        dbg_str(DBG_VIP, "node_mget, type:%d addr:%p, offset:%d, capacity:%d", type, addr, offset, capacity);
+        *out_len = 0;
+    } CATCH (ret) {*out_len = 0;} FINALLY { }
+
+	return ret;
+}
+
+static const struct blob_policy_s mset_policy[] = {
+    [0] = { .name = "target_type", .type = BLOB_TYPE_UINT32 }, 
+    [1] = { .name = "addr",        .type = BLOB_TYPE_UINT64 },
+    [2] = { .name = "offset",      .type = BLOB_TYPE_UINT32 },
+    [3] = { .name = "capacity",    .type = BLOB_TYPE_UINT32 },
+    [4] = { .name = "value",       .type = BLOB_TYPE_BUFFER }, 
+};
+static int node_mset(bus_object_t *obj, int argc, 
+                     struct blob_attr_s **args, 
+                     void *out, int *out_len)
+{
+    bus_t *bus;
+    allocator_t *allocator;
+    char *addr;
+    target_type_t type;
+    uint8_t *buffer;
+    int ret, size, offset, len, capacity;
+
+    TRY {
+        type = blob_get_uint32(args[0]);
+        addr = blob_get_uint64(args[1]);
+        offset = blob_get_uint32(args[2]);
+        capacity = blob_get_uint32(args[3]);
+        len = blob_get_buffer(args[4], &buffer);
+        bus = obj->bus;
+        allocator = bus->allocator;
+
+        dbg_str(DBG_VIP, "node_mset, type:%d addr:%p, offset:%d, capacity:%d, len:%d", type, addr, offset, capacity, len);
         *out_len = 0;
     } CATCH (ret) {*out_len = 0;} FINALLY { }
 
@@ -366,6 +437,8 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("exec_fshell", node_exec_fshell, exec_fshell_policy),
     BUS_METHOD("malloc", node_malloc, malloc_policy),
     BUS_METHOD("mfree", node_mfree, mfree_policy),
+    BUS_METHOD("mget", node_mget, mget_policy),
+    BUS_METHOD("mset", node_mset, mset_policy),
 };
 
 bus_object_t node_object = {

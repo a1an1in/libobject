@@ -117,6 +117,8 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
             } else if (args[i].type == ARG_TYPE_UINT64 && tmp[0] == '0' && (tmp[1] == 'x' || tmp[1] == 'X')) {
                 args[i].value = str_hex_to_integer(tmp);
                 dbg_str(DBG_INFO, "call_bus ARG_TYPE_UINT64:%p, tmp:%s", args[i].value, tmp);
+            } else if (args[i].type == ARG_TYPE_BUFFER) {
+                
             } else {
                 args[i].value = str->get_splited_cstr(str, 2 + i);
             }
@@ -381,13 +383,13 @@ static int __list(Node *node, char *node_id, char *path, Vector *vector)
     return ret;
 }
 
-static int __malloc(Node *node, char *node_id, int size, char *name, void **addr)
+static int __malloc(Node *node, char *node_id, target_type_t type, int size, char *name, void **addr)
 {
     char cmd[1024] = {0};
     int ret, len = sizeof(addr);
     
     TRY {
-        snprintf(cmd, 1024, "node@malloc(%d, %s)", size, name);
+        snprintf(cmd, 1024, "node@malloc(%d, %d, %s)", type, size, name);
         EXEC(node->call_bus(node, cmd, addr, &len));
         *addr = byteorder_be64_to_cpu(addr);
         dbg_str(DBG_SUC, "node alloc addr:%p", *addr);
@@ -397,40 +399,43 @@ static int __malloc(Node *node, char *node_id, int size, char *name, void **addr
     return ret;
 }
 
-static int __mfree(Node *node, char *node_id, void *addr, char *name)
+static int __mfree(Node *node, char *node_id, target_type_t type, void *addr, char *name)
 {
     char cmd[1024] = {0};
     int ret, len = sizeof(addr);
     
     TRY {
-        snprintf(cmd, 1024, "node@mfree(0x%p, %s)", addr, name);
+        snprintf(cmd, 1024, "node@mfree(%d, 0x%p, %s)", type, addr, name);
         EXEC(node->call_bus(node, cmd, NULL, 0));
     } CATCH (ret) {} FINALLY {}
 
     return ret;
 }
 
-static int __mset(Node *node, char *node_id, void *addr, int offset, int addr_len, void *value, int value_len)
+static int __mset(Node *node, char *node_id, target_type_t type, void *addr, int offset, int addr_len, void *value, int value_len)
 {
     char cmd[1024] = {0};
     int ret;
     
     TRY {
-        snprintf(cmd, 1024, "node@mset(0x%p, %d, %d, 0x%p, %d)", addr, addr_len, addr_len, value, value_len);
+        THROW_IF(value_len > addr_len, -1);
+        snprintf(cmd, 1024, "node@mset(%d, 0x%p, %d, %d, 0x%p:%d)", type, addr, offset, addr_len, value, value_len);
         EXEC(node->call_bus(node, cmd, NULL, 0));
     } CATCH (ret) {} FINALLY {}
 
     return ret;
 }
 
-static int __mget(Node *node, char *node_id, void *addr, int offset, int addr_len, void *value, int *value_len)
+static int __mget(Node *node, char *node_id, target_type_t type, void *addr, int offset, int addr_len, void *value, int *value_len)
 {
     char cmd[1024] = {0};
     int ret;
     
     TRY {
-        snprintf(cmd, 1024, "node@mget(0x%p, %d, %d, 0x%p, %d)", addr, offset, addr_len, value, *value_len);
+        THROW_IF(*value_len < addr_len, -1);
+        snprintf(cmd, 1024, "node@mget(%d, 0x%p, %d, %d)", type, addr, offset, addr_len);
         EXEC(node->call_bus(node, cmd, NULL, 0));
+        // get date from opaque...
     } CATCH (ret) {} FINALLY {}
 
     return ret;

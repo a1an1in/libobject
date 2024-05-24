@@ -9,6 +9,11 @@
 
 typedef struct Node_s Node;
 
+typedef enum target_type_e {
+	TARGET_TYPE_NODE = 0,
+	TARGET_TYPE_ATTACHER,
+} target_type_t;
+
 struct Node_s {
 	Obj parent;
 
@@ -25,10 +30,10 @@ struct Node_s {
 	int (*read_file)(Node *node, char *node_id, char *from, char *to);
 	int (*copy)(Node *node, char *from, char *to);
 	int (*list)(Node *node, char *node_id, char *path, Vector *vector);
-	int (*malloc)(Node *node, char *node_id, int size, char *name, void **addr);
-	int (*mfree)(Node *node, char *node_id, void *addr, char *name);
-	int (*mset)(Node *node, char *node_id, void *addr, int len, void *value, int value_len);
-	int (*mget)(Node *node, char *node_id, void *addr, int len, void *value, int *value_len);
+	int (*malloc)(Node *node, char *node_id, target_type_t type, int size, char *name, void **addr);
+	int (*mfree)(Node *node, char *node_id, target_type_t type, void *addr, char *name);
+	int (*mset)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int value_len);
+	int (*mget)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int *value_len);
 
 	bus_t *bus;
     busd_t *busd;

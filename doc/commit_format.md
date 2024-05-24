@@ -1,8 +1,8 @@
-[update:Node] 优化node alloc。
+[update:Node] 实现node。
 
 Description:
-node alloc返回地址，这样更符合使用习惯。
+node持续实现过程中。
 
 Major Changes:
-1. bus支持uint64_t参数。
-2. node alloc返回值有字符串改为地址。
+1. 实现malloc和mfree接口。
+2. 添加新接口测试用例。
