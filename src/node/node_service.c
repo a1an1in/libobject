@@ -303,9 +303,9 @@ static int node_malloc(bus_object_t *obj, int argc,
 {
     bus_t *bus;
     allocator_t *allocator;
-    char *name;
-    void *addr;
+    char *name, *addr;
     target_type_t type;
+    Node *node;
     int ret, size;
 
     TRY {
@@ -313,15 +313,13 @@ static int node_malloc(bus_object_t *obj, int argc,
         size = blob_get_uint32(args[1]);
         name = blob_get_string(args[2]);
         bus = obj->bus;
+        node = bus->opaque;
         allocator = bus->allocator;
         addr = allocator_mem_alloc(allocator, size);
-
         dbg_str(DBG_VIP, "node_malloc, name:%s size:%d addr:%p", name, size, addr);
 
         *out_len = sizeof(void *);
-        dbg_buf(DBG_VIP, "before addr:", &addr, 8);
         addr = byteorder_cpu_to_be64(&addr);
-        dbg_buf(DBG_VIP, "after addr:", &addr, 8);
         memcpy(out, &addr, sizeof(void *));
     } CATCH (ret) {*out_len = 0;} FINALLY { }
 
@@ -339,9 +337,8 @@ static int node_mfree(bus_object_t *obj, int argc,
 {
     bus_t *bus;
     allocator_t *allocator;
-    char *name;
-    char *addr;
-    long long a;
+    Node *node;
+    char *name, *addr;
     target_type_t type;
     int ret, size;
 
@@ -350,6 +347,7 @@ static int node_mfree(bus_object_t *obj, int argc,
         addr = blob_get_uint64(args[1]);
         name = blob_get_string(args[2]);
         bus = obj->bus;
+        node = bus->opaque;
         allocator = bus->allocator;
 
         dbg_str(DBG_VIP, "node_free, name:%s addr:%p", name, addr);
@@ -365,6 +363,7 @@ static const struct blob_policy_s mget_policy[] = {
     [1] = { .name = "addr",        .type = BLOB_TYPE_UINT64 },
     [2] = { .name = "offset",      .type = BLOB_TYPE_UINT32 },
     [3] = { .name = "capacity",    .type = BLOB_TYPE_UINT32 },
+    [4] = { .name = "len",         .type = BLOB_TYPE_UINT32 },
 };
 static int node_mget(bus_object_t *obj, int argc, 
                      struct blob_attr_s **args, 
@@ -374,18 +373,22 @@ static int node_mget(bus_object_t *obj, int argc,
     allocator_t *allocator;
     char *addr;
     target_type_t type;
-    int ret, size, offset, capacity;
+    Node *node;
+    int ret, size, offset, capacity, len;
 
     TRY {
         type = blob_get_uint32(args[0]);
         addr = blob_get_uint64(args[1]);
         offset = blob_get_uint32(args[2]);
         capacity = blob_get_uint32(args[3]);
+        len = blob_get_uint32(args[4]);
         bus = obj->bus;
+        node = bus->opaque;
         allocator = bus->allocator;
-
         dbg_str(DBG_VIP, "node_mget, type:%d addr:%p, offset:%d, capacity:%d", type, addr, offset, capacity);
-        *out_len = 0;
+
+        memcpy(out, addr, len);
+        *out_len = len;
     } CATCH (ret) {*out_len = 0;} FINALLY { }
 
 	return ret;
@@ -407,6 +410,7 @@ static int node_mset(bus_object_t *obj, int argc,
     char *addr;
     target_type_t type;
     uint8_t *buffer;
+    Node *node;
     int ret, size, offset, len, capacity;
 
     TRY {
@@ -415,12 +419,16 @@ static int node_mset(bus_object_t *obj, int argc,
         offset = blob_get_uint32(args[2]);
         capacity = blob_get_uint32(args[3]);
         len = blob_get_buffer(args[4], &buffer);
+    
         bus = obj->bus;
+        node = bus->opaque;
         allocator = bus->allocator;
+        THROW_IF(len > capacity || addr == NULL, -1);
 
         dbg_str(DBG_VIP, "node_mset, type:%d addr:%p, offset:%d, capacity:%d, len:%d", type, addr, offset, capacity, len);
-        *out_len = 0;
-    } CATCH (ret) {*out_len = 0;} FINALLY { }
+        dbg_buf(DBG_VIP, "node mset receive buffer:", buffer, len);
+        memcpy(addr + offset, buffer, len);
+    } CATCH (ret) { } FINALLY { *out_len = 0; }
 
 	return ret;
 }

@@ -15,16 +15,26 @@
 static int __construct(Node *node, char *init_str)
 {
     allocator_t *allocator = node->parent.allocator;
+    Map *map;
+    int trustee_flag = 1;
+    int value_type = VALUE_TYPE_STRUCT_POINTER;
 
     node->str = object_new(allocator, "String", NULL);
     node->busd = NULL;
     node->bus = NULL;
+
+    map = object_new(allocator, "RBTree_Map", NULL);
+    map->set_cmp_func(map, string_key_cmp_func);
+    map->set(map, "/Map/trustee_flag", &trustee_flag);
+    map->set(map, "/Map/value_type", &value_type);
+    node->variable_map = map;
     
     return 0;
 }
 
 static int __deconstruct(Node *node)
 {
+    object_destroy(node->variable_map);
     object_destroy(node->str);
     bus_destroy(node->bus);
 
@@ -94,7 +104,7 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
 {
     allocator_t *allocator = node->parent.allocator;
     char *method_name = NULL;
-    char *node_id = NULL, *tmp;
+    char *node_id = NULL, *tmp, *p;
     bus_method_args_t *args = NULL;
     String *str = node->str;
     int ret, argc, i, count;
@@ -118,15 +128,21 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
                 args[i].value = str_hex_to_integer(tmp);
                 dbg_str(DBG_INFO, "call_bus ARG_TYPE_UINT64:%p, tmp:%s", args[i].value, tmp);
             } else if (args[i].type == ARG_TYPE_BUFFER) {
-                
+                dbg_str(DBG_VIP, "call_bus ARG_TYPE_BUFFER value:%s", tmp);
+                p = strchr(tmp, ':');
+                THROW_IF(p == NULL, -1);
+                *p = '\0';
+                args[i].value = str_hex_to_integer(tmp);
+                args[i].len = atoi(p + 1);
             } else {
                 args[i].value = str->get_splited_cstr(str, 2 + i);
             }
         }
-        EXEC(bus_invoke_sync(node->bus, node_id, method_name, argc, args, out, out_len));
-        node_free_argument_template(allocator, args, argc);
+        EXEC(bus_invoke_sync(node->bus, node_id, method_name, argc, args, out, out_len)); 
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "call_bus argc:%d, count:%d", argc, count);
+    } FINALLY {
+        node_free_argument_template(allocator, args, argc);
     }
 
     return ret;
@@ -412,30 +428,29 @@ static int __mfree(Node *node, char *node_id, target_type_t type, void *addr, ch
     return ret;
 }
 
-static int __mset(Node *node, char *node_id, target_type_t type, void *addr, int offset, int addr_len, void *value, int value_len)
+static int __mset(Node *node, char *node_id, target_type_t type, void *addr, int offset, int capacity, void *value, int value_len)
 {
     char cmd[1024] = {0};
     int ret;
     
     TRY {
-        THROW_IF(value_len > addr_len, -1);
-        snprintf(cmd, 1024, "node@mset(%d, 0x%p, %d, %d, 0x%p:%d)", type, addr, offset, addr_len, value, value_len);
+        THROW_IF(value_len > capacity, -1);
+        snprintf(cmd, 1024, "node@mset(%d, 0x%p, %d, %d, 0x%p:%d)", type, addr, offset, capacity, value, value_len);
         EXEC(node->call_bus(node, cmd, NULL, 0));
     } CATCH (ret) {} FINALLY {}
 
     return ret;
 }
 
-static int __mget(Node *node, char *node_id, target_type_t type, void *addr, int offset, int addr_len, void *value, int *value_len)
+static int __mget(Node *node, char *node_id, target_type_t type, void *addr, int offset, int capacity, void *value, int *value_len)
 {
     char cmd[1024] = {0};
     int ret;
     
     TRY {
-        THROW_IF(*value_len < addr_len, -1);
-        snprintf(cmd, 1024, "node@mget(%d, 0x%p, %d, %d)", type, addr, offset, addr_len);
-        EXEC(node->call_bus(node, cmd, NULL, 0));
-        // get date from opaque...
+        THROW_IF(*value_len > capacity, -1);
+        snprintf(cmd, 1024, "node@mget(%d, 0x%p, %d, %d, %d)", type, addr, offset, capacity, *value_len);
+        EXEC(node->call_bus(node, cmd, value, value_len));
     } CATCH (ret) {} FINALLY {}
 
     return ret;
@@ -492,7 +507,7 @@ int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator
             (*args + i)->type = (policy + i)->type;
             (*args + i)->name = allocator_mem_alloc(allocator, strlen((policy + i)->name) + 1);
             strcpy((*args + i)->name, (policy + i)->name);
-            dbg_str(DBG_VIP, "method name:%s, type:%d", (policy + i)->name, (policy + i)->type);
+            dbg_str(DBG_INFO, "method name:%s, type:%d", (policy + i)->name, (policy + i)->type);
         }
         
      } CATCH (ret) {}

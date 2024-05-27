@@ -122,23 +122,24 @@ static int __test_node_mset_and_mget_from_node(Node *node)
     allocator_t *allocator = allocator_get_default_instance();
     void *addr = NULL;
     char *test_value = "hello world";
+    char *variable_name = "$test_abc";
     char buffer[1024] = {0};
-    int ret, len;
+    int ret, len = strlen(test_value);
     
     TRY {
         strcpy(buffer, "hello world");
-        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, 1024, "abc", &addr));
-        dbg_str(DBG_SUC, "node alloc addr:%p", addr);
+        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, 1024, variable_name, &addr));
 
         EXEC(node->mset(node, "node", TARGET_TYPE_NODE, addr, 0, 1024, test_value, strlen(test_value)));
+        memset(buffer, 0, sizeof(buffer));
         EXEC(node->mget(node, "node", TARGET_TYPE_NODE, addr, 0, 1024, buffer, &len));
         THROW_IF(len != strlen(test_value), -1);
         THROW_IF(strcmp(test_value, buffer) != 0, -1);
-
-        EXEC(node->mfree(node, "node", TARGET_TYPE_NODE, addr, "abc"));
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
-    } CATCH (ret) { } FINALLY {}
+    } CATCH (ret) { } FINALLY {
+        node->mfree(node, "node", TARGET_TYPE_NODE, addr, variable_name);
+    }
 
     return ret;
 }
@@ -172,8 +173,8 @@ static int test_node(TEST_ENTRY *entry)
         // EXEC(__test_node_list(node));
         // EXEC(__test_node_read_file(node));
         // EXEC(__test_node_write_file(node));
-        EXEC(__test_node_malloc_and_mfree_from_node(node));
-        // EXEC(__test_node_mset_and_mget_from_node(node));
+        // EXEC(__test_node_malloc_and_mfree_from_node(node));
+        EXEC(__test_node_mset_and_mget_from_node(node));
         // EXEC(__test_node_call_fsh(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);

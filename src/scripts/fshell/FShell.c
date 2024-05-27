@@ -37,16 +37,6 @@ static int __construct(FShell *shell, char *init_str)
     shell->map = map;
     shell->close_flag = 0;
 
-    /* 设置为alloc 类型的变量， shell变量不适合与object类型数据，
-     * 因为这个map的类型需要统一，二者如果有多个类型， 不太好分辨
-     * 是什么类型和需要用什么方法释放
-     **/
-    map = object_new(shell->parent.allocator, "RBTree_Map", NULL);
-    map->set_cmp_func(map, string_key_cmp_func);
-    map->set(map, "/Map/trustee_flag", &trustee_flag);
-    map->set(map, "/Map/value_type", &value_type);
-    shell->variable_map = map;
-
     sprintf(shell->prompt, "%s", "fshell$ ");
 
     return 0;
@@ -57,7 +47,6 @@ static int __deconstruct(FShell *shell)
     allocator_t *allocator = shell->parent.allocator;
 
     dbg_str(DBG_DETAIL, "fshell deconstruct in, shell->worker=%p", shell->worker);
-    object_destroy(shell->variable_map);
     object_destroy(shell->map);
     worker_destroy(shell->worker);
     dbg_str(DBG_DETAIL, "fshell deconstruct out");

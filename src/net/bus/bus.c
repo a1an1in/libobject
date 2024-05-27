@@ -462,7 +462,7 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
         req->opaque_len        = 0;
         req->opaque            = (uint8_t *)out_buf;
         req->opaque_buffer_len = (out_len == NULL) ? 0 : *out_len;
-        dbg_str(BUS_SUC, "bus_invoke_sync, opaque_buffer_len=%d", req->opaque_buffer_len);
+        dbg_str(BUS_INFO, "bus_invoke_sync, opaque_buffer_len=%d, out_len addr:%p", req->opaque_buffer_len, out_len);
 
         sprintf(buffer, "%s@%s", object_id, method);
         EXEC(map->add(map, buffer, req));

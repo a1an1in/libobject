@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/argument/Command.h>
 #include <libobject/core/String.h>
+#include <libobject/core/Map.h>
 #include <libobject/net/bus/bus.h>
 #include <libobject/net/bus/busd.h>
 
@@ -38,10 +39,16 @@ struct Node_s {
 	bus_t *bus;
     busd_t *busd;
 	char *host, *service;
-    int run_bus_deamon_flag; /* 1表示要运行bus deamon */
+	/* 1表示要运行bus deamon */
+    int run_bus_deamon_flag;
 	int disable_node_service_flag;
-    int node_flag; /* flag == 1 表示退出node */
+	/* flag == 1 表示退出node */
+    int node_flag; 
 	String *str;
+	/*
+	 * node分配的变量，node_cli可以共享，不允许名字重复。
+	 **/
+	Map *variable_map;
 };
 
 extern bus_object_t node_object;

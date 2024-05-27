@@ -21,6 +21,7 @@ macro (set_cmake_evironment_variable)
         -Wl,--whole-archive
             object-tests
             object-mockery
+            object-upgrader
             object-node 
             # object-compress 
             object-scripts 
@@ -68,6 +69,7 @@ macro (add_module_lists)
     list(APPEND module_lists "src/encoding")
     list(APPEND module_lists "src/net")
     list(APPEND module_lists "src/node")
+    list(APPEND module_lists "src/upgrader")
     list(APPEND module_lists "tests")
     list(APPEND module_lists "src/.")
     list(APPEND module_lists "3rd/test_lib")
