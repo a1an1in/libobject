@@ -106,6 +106,6 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/linux/bin/xtools mockery --log-level=0x16 test_write_file
 ./sysroot/linux/bin/xtools mockery --log-level=0x16 -f test_node
 
-./sysroot/windows/bin/xtools.exe mockery --log-level=0x16 -f test_node
+./sysroot/windows/bin/xtools.exe mockery --log-level=0x14 -f test_node
 
 ```

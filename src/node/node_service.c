@@ -298,14 +298,15 @@ static const struct blob_policy_s malloc_policy[] = {
     [2] = { .name = "name",         .type = BLOB_TYPE_STRING },
 };
 static int node_malloc(bus_object_t *obj, int argc, 
-                      struct blob_attr_s **args, 
-                      void *out, int *out_len)
+                       struct blob_attr_s **args, 
+                       void *out, int *out_len)
 {
     bus_t *bus;
     allocator_t *allocator;
     char *name, *addr;
     target_type_t type;
     Node *node;
+    Map *map;
     int ret, size;
 
     TRY {
@@ -316,6 +317,8 @@ static int node_malloc(bus_object_t *obj, int argc,
         node = bus->opaque;
         allocator = bus->allocator;
         addr = allocator_mem_alloc(allocator, size);
+        map = node->variable_map;
+        map->add(map, "$test_abc", addr);
         dbg_str(DBG_VIP, "node_malloc, name:%s size:%d addr:%p", name, size, addr);
 
         *out_len = sizeof(void *);
@@ -332,13 +335,14 @@ static const struct blob_policy_s mfree_policy[] = {
     [2] = { .name = "name",         .type = BLOB_TYPE_STRING },
 };
 static int node_mfree(bus_object_t *obj, int argc, 
-                     struct blob_attr_s **args, 
-                     void *out, int *out_len)
+                      struct blob_attr_s **args, 
+                      void *out, int *out_len)
 {
     bus_t *bus;
     allocator_t *allocator;
     Node *node;
-    char *name, *addr;
+    char *name, *addr, *search_addr = NULL;
+    Map *map;
     target_type_t type;
     int ret, size;
 
@@ -349,9 +353,19 @@ static int node_mfree(bus_object_t *obj, int argc,
         bus = obj->bus;
         node = bus->opaque;
         allocator = bus->allocator;
+        map = node->variable_map;
 
-        dbg_str(DBG_VIP, "node_free, name:%s addr:%p", name, addr);
-        allocator_mem_free(allocator, addr);
+        dbg_str(DBG_VIP, "node_free, name:%s", name);
+        if (strcmp(name, "NULL") != 0) {
+            map->search(map, name, &search_addr);
+            THROW_IF(search_addr == NULL, -1);
+            allocator_mem_free(allocator, search_addr);
+            dbg_str(DBG_VIP, "node_free, name:%s addr:%p", name, search_addr);
+        } else {
+            allocator_mem_free(allocator, addr);
+            dbg_str(DBG_VIP, "node_free, name:%s addr:%p", name, addr);
+        }
+        
         *out_len = 0;
     } CATCH (ret) {*out_len = 0;} FINALLY { }
 

@@ -421,7 +421,7 @@ static int __mfree(Node *node, char *node_id, target_type_t type, void *addr, ch
     int ret, len = sizeof(addr);
     
     TRY {
-        snprintf(cmd, 1024, "node@mfree(%d, 0x%p, %s)", type, addr, name);
+        snprintf(cmd, 1024, "node@mfree(%d, 0x%p, %s)", type, addr, name == NULL ? "NULL" : name);
         EXEC(node->call_bus(node, cmd, NULL, 0));
     } CATCH (ret) {} FINALLY {}
 
