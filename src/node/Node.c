@@ -126,7 +126,7 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
                 args[i].value = atoi(str->get_splited_cstr(str, 2 + i));
             } else if (args[i].type == ARG_TYPE_UINT64 && tmp[0] == '0' && (tmp[1] == 'x' || tmp[1] == 'X')) {
                 args[i].value = str_hex_to_integer(tmp);
-                dbg_str(DBG_INFO, "call_bus ARG_TYPE_UINT64:%p, tmp:%s", args[i].value, tmp);
+                dbg_str(DBG_INFO, "call_bus ARG_TYPE_UINT64:%p, hex string:%s", args[i].value, tmp);
             } else if (args[i].type == ARG_TYPE_BUFFER) {
                 dbg_str(DBG_VIP, "call_bus ARG_TYPE_BUFFER value:%s", tmp);
                 p = strchr(tmp, ':');
@@ -399,13 +399,15 @@ static int __list(Node *node, char *node_id, char *path, Vector *vector)
     return ret;
 }
 
-static int __malloc(Node *node, char *node_id, target_type_t type, int size, char *name, void **addr)
+static int __malloc(Node *node, char *node_id, target_type_t type, int size, char *class_name, char *name, void **addr)
 {
     char cmd[1024] = {0};
     int ret, len = sizeof(addr);
     
     TRY {
-        snprintf(cmd, 1024, "node@malloc(%d, %d, %s)", type, size, name);
+        snprintf(cmd, 1024, "node@malloc(%d, %d, %s, %s)", type, size, 
+                 class_name == NULL ? "null" : class_name, 
+                 name == NULL ? "null" : name);
         EXEC(node->call_bus(node, cmd, addr, &len));
         *addr = byteorder_be64_to_cpu(addr);
         dbg_str(DBG_SUC, "node alloc addr:%p", *addr);
@@ -421,7 +423,7 @@ static int __mfree(Node *node, char *node_id, target_type_t type, void *addr, ch
     int ret, len = sizeof(addr);
     
     TRY {
-        snprintf(cmd, 1024, "node@mfree(%d, 0x%p, %s)", type, addr, name == NULL ? "NULL" : name);
+        snprintf(cmd, 1024, "node@mfree(%d, 0x%p, %s)", type, addr, name == NULL ? "null" : name);
         EXEC(node->call_bus(node, cmd, NULL, 0));
     } CATCH (ret) {} FINALLY {}
 

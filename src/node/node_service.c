@@ -295,7 +295,8 @@ static int node_close_fshell(bus_object_t *obj, int argc,
 static const struct blob_policy_s malloc_policy[] = { 
     [0] = { .name = "target_type",  .type = BLOB_TYPE_UINT32 }, 
     [1] = { .name = "size",         .type = BLOB_TYPE_UINT32 }, 
-    [2] = { .name = "name",         .type = BLOB_TYPE_STRING },
+    [2] = { .name = "class_name",   .type = BLOB_TYPE_STRING },
+    [3] = { .name = "name",         .type = BLOB_TYPE_STRING },
 };
 static int node_malloc(bus_object_t *obj, int argc, 
                        struct blob_attr_s **args, 
@@ -303,7 +304,7 @@ static int node_malloc(bus_object_t *obj, int argc,
 {
     bus_t *bus;
     allocator_t *allocator;
-    char *name, *addr;
+    char *name, *class_name, *addr;
     target_type_t type;
     Node *node;
     Map *map;
@@ -312,14 +313,15 @@ static int node_malloc(bus_object_t *obj, int argc,
     TRY {
         type = blob_get_uint32(args[0]);
         size = blob_get_uint32(args[1]);
-        name = blob_get_string(args[2]);
+        class_name = blob_get_string(args[2]);
+        name = blob_get_string(args[3]);
         bus = obj->bus;
         node = bus->opaque;
         allocator = bus->allocator;
         addr = allocator_mem_alloc(allocator, size);
         map = node->variable_map;
         map->add(map, "$test_abc", addr);
-        dbg_str(DBG_VIP, "node_malloc, name:%s size:%d addr:%p", name, size, addr);
+        dbg_str(DBG_VIP, "node_malloc, name:%s class_name:%s size:%d addr:%p", name, class_name, size, addr);
 
         *out_len = sizeof(void *);
         addr = byteorder_cpu_to_be64(&addr);
@@ -331,7 +333,7 @@ static int node_malloc(bus_object_t *obj, int argc,
 
 static const struct blob_policy_s mfree_policy[] = {
     [0] = { .name = "target_type",  .type = BLOB_TYPE_UINT32 }, 
-    [1] = { .name = "addr",         .type = BLOB_TYPE_UINT64 }, 
+    [1] = { .name = "addr",         .type = BLOB_TYPE_UINT64 },
     [2] = { .name = "name",         .type = BLOB_TYPE_STRING },
 };
 static int node_mfree(bus_object_t *obj, int argc, 
@@ -356,7 +358,7 @@ static int node_mfree(bus_object_t *obj, int argc,
         map = node->variable_map;
 
         dbg_str(DBG_VIP, "node_free, name:%s", name);
-        if (strcmp(name, "NULL") != 0) {
+        if (strcmp(name, "null") != 0) {
             map->search(map, name, &search_addr);
             THROW_IF(search_addr == NULL, -1);
             allocator_mem_free(allocator, search_addr);

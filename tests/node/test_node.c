@@ -106,7 +106,7 @@ static int __test_node_malloc_and_mfree_from_node(Node *node)
     int ret;
     
     TRY {
-        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, 8, "abc", &addr));
+        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, 8, NULL, "abc", &addr));
         dbg_str(DBG_SUC, "node alloc addr:%p", addr);
         EXEC(node->mfree(node, "node", TARGET_TYPE_NODE, addr, "abc"));
 
@@ -128,7 +128,7 @@ static int __test_node_mset_and_mget_from_node(Node *node)
     
     TRY {
         strcpy(buffer, "hello world");
-        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, 1024, variable_name, &addr));
+        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, 1024, NULL, variable_name, &addr));
 
         EXEC(node->mset(node, "node", TARGET_TYPE_NODE, addr, 0, 1024, test_value, strlen(test_value)));
         memset(buffer, 0, sizeof(buffer));
