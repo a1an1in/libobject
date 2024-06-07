@@ -106,9 +106,9 @@ static int __test_node_malloc_and_mfree_from_node(Node *node)
     int ret;
     
     TRY {
-        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, 8, NULL, "abc", &addr));
+        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, "abc", 8, &addr));
         dbg_str(DBG_SUC, "node alloc addr:%p", addr);
-        EXEC(node->mfree(node, "node", TARGET_TYPE_NODE, addr, "abc"));
+        EXEC(node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, addr, "abc"));
 
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
@@ -128,8 +128,7 @@ static int __test_node_mset_and_mget_from_node(Node *node)
     
     TRY {
         strcpy(buffer, "hello world");
-        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, 1024, NULL, variable_name, &addr));
-
+        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, variable_name, 1024, &addr));
         EXEC(node->mset(node, "node", TARGET_TYPE_NODE, addr, 0, 1024, test_value, strlen(test_value)));
         memset(buffer, 0, sizeof(buffer));
         EXEC(node->mget(node, "node", TARGET_TYPE_NODE, addr, 0, 1024, buffer, &len));
@@ -138,7 +137,7 @@ static int __test_node_mset_and_mget_from_node(Node *node)
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
-        node->mfree(node, "node", TARGET_TYPE_NODE, addr, variable_name);
+        node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, addr, variable_name);
     }
 
     return ret;

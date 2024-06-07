@@ -33,6 +33,7 @@ struct stub_s {
     void *fn;
     unsigned int para_count;
     int area_flag;
+    void *opaque;
 #if (defined(WINDOWS_USER_MODE))
     unsigned char inst_backup[FLATJMPCODE_LENGTH + FLATJMPCMD_LENGTH];
 #else

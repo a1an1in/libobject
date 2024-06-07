@@ -399,15 +399,15 @@ static int __list(Node *node, char *node_id, char *path, Vector *vector)
     return ret;
 }
 
-static int __malloc(Node *node, char *node_id, target_type_t type, int size, char *class_name, char *name, void **addr)
+static int __malloc(Node *node, char *node_id, target_type_t type, int value_type, char *class_name, char *name, int size, void **addr)
 {
     char cmd[1024] = {0};
     int ret, len = sizeof(addr);
     
     TRY {
-        snprintf(cmd, 1024, "node@malloc(%d, %d, %s, %s)", type, size, 
+        snprintf(cmd, 1024, "node@malloc(%d, %d, %s, %s, %d)", type, value_type, 
                  class_name == NULL ? "null" : class_name, 
-                 name == NULL ? "null" : name);
+                 name == NULL ? "null" : name,  size);
         EXEC(node->call_bus(node, cmd, addr, &len));
         *addr = byteorder_be64_to_cpu(addr);
         dbg_str(DBG_SUC, "node alloc addr:%p", *addr);
@@ -417,13 +417,13 @@ static int __malloc(Node *node, char *node_id, target_type_t type, int size, cha
     return ret;
 }
 
-static int __mfree(Node *node, char *node_id, target_type_t type, void *addr, char *name)
+static int __mfree(Node *node, char *node_id, target_type_t type, int value_type, void *addr, char *name)
 {
     char cmd[1024] = {0};
     int ret, len = sizeof(addr);
     
     TRY {
-        snprintf(cmd, 1024, "node@mfree(%d, 0x%p, %s)", type, addr, name == NULL ? "null" : name);
+        snprintf(cmd, 1024, "node@mfree(%d, %d, 0x%p, %s)", type, value_type, addr, name == NULL ? "null" : name);
         EXEC(node->call_bus(node, cmd, NULL, 0));
     } CATCH (ret) {} FINALLY {}
 

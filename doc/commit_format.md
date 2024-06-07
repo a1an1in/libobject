@@ -4,4 +4,4 @@ Description:
 node持续实现过程中。
 
 Major Changes:
-1. node新增class_name for malloc。
+1. node新增value_type for malloc and free
