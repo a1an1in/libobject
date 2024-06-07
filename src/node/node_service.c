@@ -285,7 +285,9 @@ static int node_close_fshell(bus_object_t *obj, int argc,
         bus = obj->bus;
         object_destroy(bus->shell);
         bus->shell = NULL;
-    } CATCH (ret) {*out_len = 0;} FINALLY { }
+    } CATCH (ret) {} FINALLY {
+        *out_len = 0;
+     }
 
 	return ret;
 }

@@ -152,18 +152,23 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
  * 这个不能复用call_bus, 因为execute不想把命令的参数也解析出来。如果加标记判断
  * 什么时候解析，会把call_bus搞复杂了。
  */
-static int __call_fsh(Node *node, char *code, void *out, uint32_t *out_len)
+static int __call_fsh(Node *node, const char *fmt, ...)
 {
     bus_t *bus;
+    va_list ap;
     String *str = node->str;
     char *node_id, *command;
-    char buffer[1024] = {0};
+    char code[1024] = {0};
     bus_method_args_t args[1] = {
         [0] = {ARG_TYPE_STRING, "command", NULL}, 
     };
     int ret, count;
 
     TRY {
+        va_start(ap, fmt);
+        vsnprintf(code, MAX_DBG_STR_LEN, fmt, ap);
+        va_end(ap);
+
         EXEC(str->reset(str));
         str->assign(str, code);
         count = str->split(str, "[@]", -1);

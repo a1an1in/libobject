@@ -4,4 +4,5 @@ Description:
 node持续实现过程中。
 
 Major Changes:
-1. node新增value_type for malloc and free
+1. 更改call_fsh为可变参数。
+2. 新增node stub测试。

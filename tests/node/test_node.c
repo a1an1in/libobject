@@ -82,24 +82,7 @@ static int __test_node_write_file(Node *node)
     return ret;
 }
 
-static int __test_node_call_fsh(Node *node)
-{
-    allocator_t *allocator = allocator_get_default_instance();
-    int ret;
-    
-    TRY {
-        EXEC(node->call_bus(node, "node@open_fshell()", NULL, 0));
-        EXEC(node->call_fsh(node, "node@fsh_add(1, 2)", NULL, NULL));
-        EXEC(node->call_bus(node, "node@close_fshell()", NULL, 0));
-
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
-                __func__, extract_filename_from_path(__FILE__), __LINE__);
-    } CATCH (ret) {} FINALLY {}
-
-    return ret;
-}
-
-static int __test_node_malloc_and_mfree_from_node(Node *node)
+static int __test_node_malloc_and_mfree(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
     void *addr = NULL;
@@ -117,7 +100,7 @@ static int __test_node_malloc_and_mfree_from_node(Node *node)
     return ret;
 }
 
-static int __test_node_mset_and_mget_from_node(Node *node)
+static int __test_node_mset_and_mget(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
     void *addr = NULL;
@@ -138,6 +121,70 @@ static int __test_node_mset_and_mget_from_node(Node *node)
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
         node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, addr, variable_name);
+    }
+
+    return ret;
+}
+
+static int __test_node_call_fsh_case1(Node *node)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    int ret;
+    
+    TRY {
+        EXEC(node->call_bus(node, "node@open_fshell()", NULL, 0));
+        EXEC(node->call_fsh(node, "node@fsh_test_add_v1(%d, %d)", 1, 2));
+        EXEC(node->call_bus(node, "node@close_fshell()", NULL, 0));
+
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
+static int __test_node_call_fsh_case2(Node *node)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    void *addr = NULL;
+    char *variable_name1 = "$test_stub_v1";
+    char buffer[1024];
+    int ret, len = sizeof(int);
+    
+    TRY {
+        EXEC(node->call_bus(node, "node@open_fshell()", NULL, 0));
+        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, variable_name1, sizeof(int), &addr));
+        EXEC(node->call_fsh(node, "node@fsh_test_add_v2(%d, %d, 0x%p)", 1, 2, addr));
+        EXEC(node->mget(node, "node", TARGET_TYPE_NODE, addr, 0, sizeof(int), buffer, &len));
+        THROW_IF(*(uint32_t *)buffer != 3, -1);
+        EXEC(node->call_bus(node, "node@close_fshell()", NULL, 0));
+
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {
+        node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, addr, variable_name1);
+    }
+
+    return ret;
+}
+
+static int __test_node_stub(Node *node)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    void *addr = NULL;
+    char *variable_name1 = "$test_stub_v1";
+    int ret;
+    
+    TRY {
+        EXEC(node->call_bus(node, "node@open_fshell()", NULL, 0));
+        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, variable_name1, sizeof(void *), &addr));
+        EXEC(node->call_fsh(node, "node@fsh_test_add_v1(%d, %d)", 1, 2));
+        EXEC(node->call_bus(node, "node@close_fshell()", NULL, 0));
+
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {
+        node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, addr, variable_name1);
     }
 
     return ret;
@@ -172,9 +219,11 @@ static int test_node(TEST_ENTRY *entry)
         // EXEC(__test_node_list(node));
         // EXEC(__test_node_read_file(node));
         // EXEC(__test_node_write_file(node));
-        // EXEC(__test_node_malloc_and_mfree_from_node(node));
-        EXEC(__test_node_mset_and_mget_from_node(node));
-        // EXEC(__test_node_call_fsh(node));
+        // EXEC(__test_node_malloc_and_mfree(node));
+        // EXEC(__test_node_mset_and_mget(node));
+        // EXEC(__test_node_call_fsh_case1(node));
+        EXEC(__test_node_call_fsh_case2(node));
+        // EXEC(__test_node_stub(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         usleep(1000);

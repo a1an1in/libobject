@@ -78,12 +78,6 @@ int fsh_printf(char *fmt, ...)
     return 1;
 }
 
-int fsh_add(int a, int b)
-{
-    printf("fsh add, a:%d, b:%d, count:%d \n", a, b, a + b);
-    return a + b;
-}
-
 int fsh_exec(char *string)
 {
     int ret, len;
@@ -99,12 +93,6 @@ int fsh_exec(char *string)
     } CATCH (ret) { }
 
     return ret;
-}
-
-int test_hello()
-{
-    printf("hello world\n");
-    return 0;
 }
 
 int fsh_call(void *p1, void *p2, void *p3, void *p4, void *p5, 
@@ -126,17 +114,21 @@ int fsh_call(void *p1, void *p2, void *p3, void *p4, void *p5,
     return ret;
 }
 
-// int fsh_alloc(FShell *shell, int size, char *addr, int len)
-// {
-//     allocator_t *allocator = shell->parent.allocator;
-//     void *addr = NULL;
-//     int ret;
+int fsh_test_add_v1(int a, int b)
+{
+    printf("fsh add, a:%d, b:%d, count:%d \n", a, b, a + b);
+    return a + b;
+}
 
-//     TRY {
-//         addr = allocator_mem_zalloc(allocator, size);
-//         THROW_IF(addr == NULL, -1);
-//         snprintf(addr, len, "%p", addr);
-//     } CATCH (ret) {}
+int fsh_test_add_v2(int a, int b, int *r)
+{
+    printf("fsh add, a:%d, b:%d, count:%d \n", a, b, a + b);
+    *r = a + b;
+    return 1;
+}
 
-//     return ret;
-// }
+int test_hello()
+{
+    printf("hello world\n");
+    return 0;
+}

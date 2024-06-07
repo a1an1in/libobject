@@ -12,7 +12,7 @@
 
 static int __execute_command_action(Node *node, char *arg1, char *arg2)
 {
-    return TRY_EXEC(node->call_fsh(node, arg1, NULL, 0));
+    return TRY_EXEC(node->call_fsh(node, arg1));
 }
 
 static int __call_bus_command_action(Node *node, char *arg1, char *arg2)
@@ -191,7 +191,7 @@ static int __construct(Node_Cli_Command *command, char *init_str)
                                                     "set the executing code of bus, \n"
                   "                                ""eg: --call_bus=nodeid@set_loglevel(1,2,3).",
                   __option_call_bus_command_callback, command);
-    c->add_option(c, "--call_fsh", "-f", "", "set the executing code of fshell, eg, --call_fsh=fsh_add(1,2).", 
+    c->add_option(c, "--call_fsh", "-f", "", "set the executing code of fshell, eg, --call_fsh=fsh_test_add_v1(1,2).", 
                   __option_execute_command_callback, command);
     c->add_option(c, "--disable-node-service", "", "true", "disable node service for node cli.", 
                   __option_disable_node_service_callback, command);

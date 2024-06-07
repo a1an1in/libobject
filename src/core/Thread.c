@@ -142,6 +142,7 @@ static void __detach(Thread *thread)
 {
     if (thread->joinable) {
         pthread_detach(thread->tid);
+        thread->joinable = 0;
     }
 }
 

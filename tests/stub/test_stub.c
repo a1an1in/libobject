@@ -139,10 +139,14 @@ static int test_stub_add_hooks(TEST_ENTRY *entry)
         dbg_str(DBG_DETAIL, "stub:%p, g addr:%p", stub, &g);
 
         test_func(1, 2, 3, 4, 5, 6, &g);
+        THROW_IF(g != 7, -1);
         EXEC(stub_add_hooks(stub, (void *)test_func, (void *)print_inbound, (void *)target_func, (void *)print_outbound, 7));
         test_func(1, 2, 3, 4, 5, 6, &g);
+        THROW_IF(g != 8, -1);
         stub_remove_hooks(stub);
+        g = 7;
         test_func(1, 2, 3, 4, 5, 6, &g);
+        THROW_IF(g != 7, -1);
     } CATCH (ret) { } FINALLY {
         stub_free(stub);
     }
