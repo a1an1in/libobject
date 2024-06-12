@@ -27,3 +27,28 @@ int stub_remove_hooks(stub_t *stub)
 
     return stub_remove(stub);
 }
+
+int fsh_stub_alloc(stub_t **stub)
+{
+    stub_t * s;
+    int ret;
+
+    TRY {
+        THROW_IF(stub == NULL, -1);
+        s = stub_alloc();
+        THROW_IF(s == NULL, -1);
+        *stub = s;
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+int fsh_stub_free(stub_t *stub)
+{
+    return stub_free(stub);
+}
+
+int fsh_stub_remove_hooks(stub_t *stub)
+{
+    return stub_remove_hooks(stub);
+}
