@@ -480,6 +480,42 @@ static int node_mset(bus_object_t *obj, int argc,
 	return ret;
 }
 
+static const struct blob_policy_s degrade_pointer_policy[] = {
+    [0] = { .name = "target_type", .type = BLOB_TYPE_UINT32 }, 
+    [1] = { .name = "addr",        .type = BLOB_TYPE_UINT64 },
+};
+static int node_degrade_pointer(bus_object_t *obj, int argc, 
+                                struct blob_attr_s **args, 
+                                void *out, int *out_len)
+{
+    bus_t *bus;
+    allocator_t *allocator;
+    char **addr;
+    target_type_t type;
+    uint8_t *buffer;
+    Node *node;
+    void *value;
+    int ret, size, offset, len, capacity;
+
+    TRY {
+        type = blob_get_uint32(args[0]);
+        addr = blob_get_uint64(args[1]);
+    
+        bus = obj->bus;
+        node = bus->opaque;
+        allocator = bus->allocator;
+        THROW_IF(len > capacity || addr == NULL, -1);
+
+        addr = byteorder_be64_to_cpu(&addr);
+        value = *addr;
+        value = byteorder_cpu_to_be64(&value);
+        memcpy(out, &value, sizeof(void *));
+        *out_len = sizeof(void *);
+    } CATCH (ret) { *out_len = 0; } FINALLY { }
+
+	return ret;
+}
+
 static const struct bus_method node_service_methods[] = {
 	BUS_METHOD_WITHOUT_ARG("exit", node_exit, NULL),
     BUS_METHOD("test", node_test, test_policy),
@@ -494,6 +530,7 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("mfree", node_mfree, mfree_policy),
     BUS_METHOD("mget", node_mget, mget_policy),
     BUS_METHOD("mset", node_mset, mset_policy),
+    BUS_METHOD("degrade_pointer", node_degrade_pointer, degrade_pointer_policy),
 };
 
 bus_object_t node_object = {
