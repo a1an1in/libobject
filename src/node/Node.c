@@ -463,15 +463,17 @@ static int __mget(Node *node, char *node_id, target_type_t type, void *addr, int
     return ret;
 }
 
-static int __degrade_pointer(Node *node, char *node_id, target_type_t type, void *addr, void **dpointer)
+static int __get_pointer(Node *node, char *node_id, target_type_t type, void *addr, void **dpointer)
 {
     char cmd[1024] = {0};
-    int ret;
+    int ret, len;
     
     TRY {
         THROW_IF(addr == NULL || dpointer == NULL, -1);
-        snprintf(cmd, 1024, "node@degrade_pointer(%d, 0x%p)", type, addr);
-        EXEC(node->call_bus(node, cmd, dpointer, sizeof(void *)));
+        addr = byteorder_cpu_to_be64(&addr);
+        len = sizeof(void *);
+        snprintf(cmd, 1024, "node@get_pointer(%d, 0x%p)", type, addr);
+        EXEC(node->call_bus(node, cmd, dpointer, &len));
         *dpointer = byteorder_be64_to_cpu(dpointer);
     } CATCH (ret) {} FINALLY {}
 
@@ -494,7 +496,7 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(12, Node, mfree, __mfree),
     Init_Nfunc_Entry(13, Node, mset, __mset),
     Init_Nfunc_Entry(14, Node, mget, __mget),
-    Init_Nfunc_Entry(15, Node, degrade_pointer, __degrade_pointer),
+    Init_Nfunc_Entry(15, Node, get_pointer, __get_pointer),
     Init_End___Entry(16, Node),
 };
 REGISTER_CLASS("Node", node_class_info);

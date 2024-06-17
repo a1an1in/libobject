@@ -2,6 +2,8 @@
 #include <libobject/node/Node.h>
 #include <libobject/core/io/file_system_api.h>
 
+extern allocator_t *global_allocator_default;
+
 static int __test_node_call_bus(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -168,6 +170,22 @@ static int __test_node_call_fsh_case2(Node *node)
     return ret;
 }
 
+static int __test_node_get_pointer(Node *node)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    void *addr = NULL;
+    int ret;
+    
+    TRY {
+        EXEC(node->get_pointer(node, "node", TARGET_TYPE_NODE, &global_allocator_default, &addr));
+        THROW_IF(addr != global_allocator_default, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY { }
+
+    return ret;
+}
+
 static int __test_node_stub(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -223,7 +241,8 @@ static int test_node(TEST_ENTRY *entry)
         // EXEC(__test_node_mset_and_mget(node));
         // EXEC(__test_node_call_fsh_case1(node));
         // EXEC(__test_node_call_fsh_case2(node));
-        EXEC(__test_node_stub(node));
+        EXEC(__test_node_get_pointer(node));
+        // EXEC(__test_node_stub(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         usleep(1000);
