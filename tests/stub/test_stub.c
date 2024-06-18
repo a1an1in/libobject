@@ -121,7 +121,7 @@ static int target_func(int a, int b, int c, int d, int e, int f, int *g)
     return 1;
 }
 
-int print_outbound(int a, int b, int c, int d, int e, int f, int *g)
+static int print_outbound(int a, int b, int c, int d, int e, int f, int *g)
 {
     printf("outbound func of test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
     return 1;

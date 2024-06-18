@@ -43,7 +43,7 @@ struct Node_s {
 	int (*mfree)(Node *node, char *node_id, target_type_t type, int value_type, void *addr, char *name);
 	int (*mset)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int value_len);
 	int (*mget)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int *value_len);
-	int (*get_pointer)(Node *node, char *node_id, target_type_t type, void *addr, void **dpointer);
+	int (*mget_pointer)(Node *node, char *node_id, target_type_t type, void *addr, void **dpointer);
 
 	bus_t *bus;
     busd_t *busd;

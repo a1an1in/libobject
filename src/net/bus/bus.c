@@ -550,7 +550,8 @@ bus_get_method_handler(bus_object_t *obj, char *method)
     int i;
 
     for (i = 0; i < obj->n_methods; i++) {
-        if (!strncmp(obj->methods[i].name, method, strlen(obj->methods[i].name))) {
+        if (!strncmp(obj->methods[i].name, method, strlen(method)) && 
+            (strlen(method) == strlen(obj->methods[i].name))) {
             return obj->methods[i].handler;
         }
     }
@@ -564,7 +565,8 @@ bus_get_policy(bus_object_t *obj, char *method)
     int i;
 
     for (i = 0; i < obj->n_methods; i++) {
-        if (!strncmp(obj->methods[i].name, method, strlen(obj->methods[i].name))) {
+        if (!strncmp(obj->methods[i].name, method, strlen(method)) && 
+            (strlen(method) == strlen(obj->methods[i].name))) {
             return obj->methods[i].policy;
         }
     }
@@ -578,7 +580,8 @@ bus_get_n_policy(bus_object_t *obj, char *method)
     int i;
 
     for (i = 0; i < obj->n_methods; i++) {
-        if (!strncmp(obj->methods[i].name, method, strlen(obj->methods[i].name))) {
+        if (!strncmp(obj->methods[i].name, method, strlen(method)) && 
+            (strlen(method) == strlen(obj->methods[i].name))) {
             return obj->methods[i].n_policy;
         }
     }
@@ -681,7 +684,7 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
             policy = bus_get_policy(obj, method_name);
             n_policy = bus_get_n_policy(obj, method_name);
 
-            //dbg_str(BUS_DETAIL, "policy addr:%p, size=%d", policy, ARRAY_SIZE(policy));
+            dbg_str(BUS_DETAIL, "policy addr:%p, size=%d", policy, ARRAY_SIZE(policy));
             blob_parse_to_attr(policy, n_policy, tb, blob_get_data(args),
                                blob_get_data_len(args));
             ret = method(obj, argc, tb, buffer, &buffer_len);

@@ -483,13 +483,13 @@ static int node_mset(bus_object_t *obj, int argc,
 /* 注意：只能使用指针的地址获取指针。 没有复用mget是因为使用它获取多级指针
  * 对应的地址需要多一个node大小端类型的接口，而且单独一个接口用来取多级
  * 指针对应的地址也是必要的，需要合并简化操作。 */
-static const struct blob_policy_s get_pointer_policy[] = {
+static const struct blob_policy_s mget_pointer_policy[] = {
     [0] = { .name = "target_type", .type = BLOB_TYPE_UINT32 }, 
     [1] = { .name = "addr",        .type = BLOB_TYPE_UINT64 },
 };
-static int node_get_pointer(bus_object_t *obj, int argc, 
-                            struct blob_attr_s **args, 
-                            void *out, int *out_len)
+static int node_mget_pointer(bus_object_t *obj, int argc, 
+                             struct blob_attr_s **args, 
+                             void *out, int *out_len)
 {
     bus_t *bus;
     allocator_t *allocator;
@@ -534,7 +534,7 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("mfree", node_mfree, mfree_policy),
     BUS_METHOD("mget", node_mget, mget_policy),
     BUS_METHOD("mset", node_mset, mset_policy),
-    BUS_METHOD("get_pointer", node_get_pointer, get_pointer_policy),
+    BUS_METHOD("mget_pointer", node_mget_pointer, mget_pointer_policy),
 };
 
 bus_object_t node_object = {
