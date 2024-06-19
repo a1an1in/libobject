@@ -10,8 +10,15 @@
 #include <signal.h>
 #include <libobject/core/utils/string.h>
 #include <libobject/scripts/fshell/FShell.h>
+#include "libobject/stub/stub.h"
 
 extern FShell *g_shell;
+
+int test_hello()
+{
+    printf("hello world\n");
+    return 0;
+}
 
 int fsh_help()
 {
@@ -127,8 +134,34 @@ int fsh_test_add_v2(int a, int b, int *r)
     return 1;
 }
 
-int test_hello()
+int fsh_alloc_stub(stub_t **stub)
 {
-    printf("hello world\n");
-    return 0;
+    stub_t * s;
+    int ret;
+
+    TRY {
+        THROW_IF(stub == NULL, -1);
+        s = stub_alloc();
+        THROW_IF(s == NULL, -1);
+        *stub = s;
+        dbg_str(DBG_SUC, "fsh_alloc_stub stub:%p", s);
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+int fsh_free_stub(stub_t *stub)
+{
+    dbg_str(DBG_SUC, "fsh_free_stub stub:%p", stub);
+    return stub_free(stub);
+}
+
+int fsh_add_stub_hooks(stub_t *stub, void *shell, void *func, void *pre, void *new_fn, void *post, int para_count)
+{
+    return stub_add_hooks(stub, func, pre, new_fn, post, para_count);
+}
+
+int fsh_remove_stub_hooks(stub_t *stub)
+{
+    return stub_remove_hooks(stub);
 }

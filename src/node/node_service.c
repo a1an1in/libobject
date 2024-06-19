@@ -231,9 +231,11 @@ static int node_open_fshell(bus_object_t *obj, int argc,
 #endif
 
         bus->shell = shell;
-    } CATCH (ret) {} FINALLY {
-        *out_len = 0;
-    }
+        dbg_str(DBG_SUC, "node_open_fshell shell:%p", shell);
+        *out_len = sizeof(void *);
+        shell = byteorder_cpu_to_be64(&shell);
+        memcpy(out, &shell, sizeof(void *));
+    } CATCH (ret) {*out_len = 0;} FINALLY { }
 
 	return ret;
 }

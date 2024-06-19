@@ -148,6 +148,23 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
     return ret;
 }
 
+static int __open_fsh(Node *node, char *node_id, void **addr)
+{
+    void *shell;
+    char buffer[BLOB_BUFFER_MAX_SIZE];
+    int len, ret;
+    
+    TRY {
+        len = sizeof(void *);
+        snprintf(buffer, sizeof(buffer), "%s@open_fshell()", node_id);
+        EXEC(node->call_bus(node, buffer, &shell, &len));
+        shell = byteorder_be64_to_cpu(&shell);
+        *addr = shell;
+    } CATCH (ret) {}
+    
+    return ret;
+}
+
 /*
  * 这个不能复用call_bus, 因为execute不想把命令的参数也解析出来。如果加标记判断
  * 什么时候解析，会把call_bus搞复杂了。
@@ -179,6 +196,19 @@ static int __call_fsh(Node *node, const char *fmt, ...)
         command = str->get_splited_cstr(str, 1);
         args[0].value = command;
         EXEC(bus_invoke_sync(bus, node_id, "exec_fshell", ARRAY_SIZE(args), args, NULL, NULL));
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static int __close_fsh(Node *node, char *node_id)
+{
+    char buffer[BLOB_BUFFER_MAX_SIZE];
+    int ret;
+
+    TRY {
+        snprintf(buffer, sizeof(buffer), "%s@close_fshell()", node_id);
+        EXEC(node->call_bus(node, "node@close_fshell()", NULL, 0));
     } CATCH (ret) {}
 
     return ret;
@@ -487,17 +517,19 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(3 , Node, init, __init),
     Init_Nfunc_Entry(4 , Node, loop, __loop),
     Init_Nfunc_Entry(5 , Node, call_bus, __call_bus),
-    Init_Nfunc_Entry(6 , Node, call_fsh, __call_fsh),
-    Init_Nfunc_Entry(7 , Node, write_file, __write_file),
-    Init_Nfunc_Entry(8 , Node, read_file, __read_file),
-    Init_Nfunc_Entry(9 , Node, copy, __copy),
-    Init_Nfunc_Entry(10, Node, list, __list),
-    Init_Nfunc_Entry(11, Node, malloc, __malloc),
-    Init_Nfunc_Entry(12, Node, mfree, __mfree),
-    Init_Nfunc_Entry(13, Node, mset, __mset),
-    Init_Nfunc_Entry(14, Node, mget, __mget),
-    Init_Nfunc_Entry(15, Node, mget_pointer, __mget_pointer),
-    Init_End___Entry(16, Node),
+    Init_Nfunc_Entry(6 , Node, open_fsh, __open_fsh),
+    Init_Nfunc_Entry(7 , Node, call_fsh, __call_fsh),
+    Init_Nfunc_Entry(8 , Node, close_fsh, __close_fsh),
+    Init_Nfunc_Entry(9 , Node, write_file, __write_file),
+    Init_Nfunc_Entry(10, Node, read_file, __read_file),
+    Init_Nfunc_Entry(11, Node, copy, __copy),
+    Init_Nfunc_Entry(12, Node, list, __list),
+    Init_Nfunc_Entry(13, Node, malloc, __malloc),
+    Init_Nfunc_Entry(14, Node, mfree, __mfree),
+    Init_Nfunc_Entry(15, Node, mset, __mset),
+    Init_Nfunc_Entry(16, Node, mget, __mget),
+    Init_Nfunc_Entry(17, Node, mget_pointer, __mget_pointer),
+    Init_End___Entry(18, Node),
 };
 REGISTER_CLASS("Node", node_class_info);
 

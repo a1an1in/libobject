@@ -4,6 +4,5 @@ Description:
 node持续实现过程中, node stub通过测试。
 
 Major Changes:
-1. 更改get_pointer名字。
-2. 修复bus_get_method_handler问题， 没有比较名字长度。
-3. node_stub测试通过。
+1. 新增open_fsh和close_fsh, 因为需要回传shell地址。
+2. 将stub fsh api移至fshell api文件。

@@ -1,6 +1,7 @@
 #include <libobject/mockery/mockery.h>
 #include <libobject/node/Node.h>
 #include <libobject/core/io/file_system_api.h>
+#include <libobject/core/utils/byteorder.h>
 
 extern allocator_t *global_allocator_default;
 
@@ -214,22 +215,23 @@ static int print_outbound(int a, int b, int c, int d, int e, int f, int *g)
 static int __test_node_stub(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
-    void *addr = NULL, *stub_addr;
+    void *addr = NULL, *stub_addr, *shell = NULL;
     char *variable_name1 = "$test_stub_v1";
-    int g = 7;
+    int g = 7, len = sizeof(void *);
     int ret;
     
     TRY {
-        EXEC(node->call_bus(node, "node@open_fshell()", NULL, 0));
+        EXEC(node->open_fsh(node, "node", &shell));
+        dbg_str(DBG_SUC, "shell addr:%p", shell);
         EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, variable_name1, sizeof(void *), &addr));
         EXEC(node->call_fsh(node, "node@fsh_alloc_stub(0x%p)", addr));
         EXEC(node->mget_pointer(node, "node", TARGET_TYPE_NODE, addr, &stub_addr));
 
         test_func(1, 2, 3, 4, 5, 6, &g);
         THROW_IF(g != 7, -1);
-        EXEC(node->call_fsh(node, "node@fsh_add_stub_hooks(0x%p, 0x%p, 0x%p, 0x%p, 0x%p, %d)", 
-                            stub_addr, (void *)test_func, (void *)print_inbound, (void *)target_func, 
-                            (void *)print_outbound, 7));
+        EXEC(node->call_fsh(node, "node@fsh_add_stub_hooks(0x%p, 0x%p, 0x%p, 0x%p, 0x%p, 0x%p, %d)", 
+                            stub_addr, shell, (void *)test_func, (void *)print_inbound, 
+                            (void *)target_func, (void *)print_outbound, 7));
         test_func(1, 2, 3, 4, 5, 6, &g);
         THROW_IF(g != 8, -1);
         EXEC(node->call_fsh(node, "node@fsh_remove_stub_hooks(0x%p)", stub_addr));
@@ -238,7 +240,7 @@ static int __test_node_stub(Node *node)
         THROW_IF(g != 7, -1);
 
         EXEC(node->call_fsh(node, "node@fsh_free_stub(0x%p)", stub_addr));
-        EXEC(node->call_bus(node, "node@close_fshell()", NULL, 0));
+        EXEC(node->close_fsh(node, "node"));
 
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
