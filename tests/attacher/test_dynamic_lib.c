@@ -13,13 +13,13 @@
 #include <libobject/mockery/mockery.h>
 #include <libobject/attacher/dynamic_lib.h>
 
-extern int print_outbound(int a, int b, int c, int d, int e, int f, int *g);
+extern int test_print_outbound(int a, int b, int c, int d, int e, int f, int *g);
 extern int test_lib_hello_world();
 
 int test_get_func_addr(TEST_ENTRY *entry)
 {
-    char *func_name = "print_outbound";
-    void *expect_addr = print_outbound;
+    char *func_name = "test_print_outbound";
+    void *expect_addr = test_print_outbound;
     void *addr;
     int ret;
 

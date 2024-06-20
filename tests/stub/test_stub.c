@@ -11,6 +11,10 @@
 #include <libobject/stub/stub.h>
 
 extern int str_hex_to_integer(char *str);
+extern int test_print_inbound(int a, int b, int c, int d, int e, int f, int *g);
+extern int test_func(int a, int b, int c, int d, int e, int f, int *g);
+extern int test_target_func(int a, int b, int c, int d, int e, int f, int *g);
+extern int test_print_outbound(int a, int b, int c, int d, int e, int f, int *g);
 
 // test funcs
 static int test_funcA(int *a, int *b, int *c)
@@ -102,31 +106,6 @@ static int test_stub_add_stub_only(TEST_ENTRY *entry)
 }
 REGISTER_TEST_FUNC(test_stub_add_stub_only);
 
-static int print_inbound(int a, int b, int c, int d, int e, int f, int *g)
-{
-    printf("inbound func of test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-static int test_func(int a, int b, int c, int d, int e, int f, int *g)
-{
-    printf("original test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-static int target_func(int a, int b, int c, int d, int e, int f, int *g)
-{
-    *g = 8;
-    printf("target test_func which replaced the original test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-static int print_outbound(int a, int b, int c, int d, int e, int f, int *g)
-{
-    printf("outbound func of test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
-    return 1;
-}
-
 static int test_stub_add_hooks(TEST_ENTRY *entry)
 {
     stub_t *stub;
@@ -140,7 +119,7 @@ static int test_stub_add_hooks(TEST_ENTRY *entry)
 
         test_func(1, 2, 3, 4, 5, 6, &g);
         THROW_IF(g != 7, -1);
-        EXEC(stub_add_hooks(stub, (void *)test_func, (void *)print_inbound, (void *)target_func, (void *)print_outbound, 7));
+        EXEC(stub_add_hooks(stub, (void *)test_func, (void *)test_print_inbound, (void *)test_target_func, (void *)test_print_outbound, 7));
         test_func(1, 2, 3, 4, 5, 6, &g);
         THROW_IF(g != 8, -1);
         stub_remove_hooks(stub);

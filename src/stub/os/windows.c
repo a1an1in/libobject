@@ -79,7 +79,7 @@ int stub_parse_context(void *exec_code_addr, void *rsp)
     void **par_addr = (void **)(rsp + 6 * sizeof(void *));
     stub = area->stub;
 
-    dbg_str(DBG_DETAIL,"stub_parse_context, area:%p par_addr:%p, par_count:%d", area, par_addr, stub->para_count);
+    dbg_str(DBG_DETAIL,"stub_parse_context, area:%p, stub:%p, par_addr:%p, par_count:%d", area, stub, par_addr, stub->para_count);
     
     while(i < stub->para_count) {
         /* 
@@ -171,7 +171,6 @@ int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post
     memcpy(stub->area->exec_code, code, sizeof(code));
     VirtualProtect(stub->area, sizeof(stub_exec_area_t), oldProtect, &TempProtectVar);  //恢复保护属性
     printf("exec code addrs:%p\n", stub->area->exec_code);
-    printf("offset:%x\n", *addr);
 
     stub_add(stub, func, stub->area->exec_code);
     stub->pre = pre;
@@ -179,7 +178,7 @@ int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post
     stub->fn = func;
     stub->post = post;
     stub->para_count = para_count;
-    printf("pre:%p, func:%p, post:%p, stubed_func:%p\n", stub->pre, stub->new_fn, stub->post, stub->fn);
+    printf("pre:%p, func:%p, post:%p, stubed_func:%p, para_count:%d\n", stub->pre, stub->new_fn, stub->post, stub->fn, stub->para_count);
 
     return 0;
 }

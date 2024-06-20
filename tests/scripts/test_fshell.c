@@ -3,7 +3,6 @@
 #include <libobject/scripts/fshell/FShell.h>
 #include <libobject/mockery/mockery.h>
 
-extern int print_outbound(int a, int b, int c, int d, int e, int f, int *g);
 extern int test_hello_world();
 
 static int test_fshell_open()
@@ -47,7 +46,7 @@ static int test_fshell_get_addr()
         EXEC(shell->get_func_addr(shell, NULL, func_name, &addr));
         THROW_IF(addr == NULL, -1);
 
-        dbg_str(DBG_VIP, "addr:%p expec addr:%p", addr, expect_addr);
+        dbg_str(DBG_SUC, "addr:%p expec addr:%p", addr, expect_addr);
         addr();
         ret = test_hello_world();
 
