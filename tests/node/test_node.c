@@ -98,7 +98,7 @@ static int __test_node_malloc_and_mfree(Node *node)
     TRY {
         EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, "abc", 8, &addr));
         dbg_str(DBG_SUC, "node alloc addr:%p", addr);
-        EXEC(node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, addr, "abc"));
+        EXEC(node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, "abc"));
 
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
@@ -127,7 +127,7 @@ static int __test_node_mset_and_mget(Node *node)
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
-        node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, addr, variable_name);
+        node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, variable_name);
     }
 
     return ret;
@@ -169,7 +169,7 @@ static int __test_node_call_fsh_case2(Node *node)
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
-        node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, addr, variable_name1);
+        node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, variable_name1);
     }
 
     return ret;
@@ -194,24 +194,22 @@ static int __test_node_mget_pointer(Node *node)
 static int __test_node_stub(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
-    void *addr = NULL, *stub_addr, *shell = NULL;
+    void *stub_addr;
     char *variable_name1 = "$test_stub_v1";
     int g = 7, len = sizeof(void *);
     int ret;
     
     TRY {
-        EXEC(node->open_fsh(node, "node", &shell));
-        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, variable_name1, sizeof(void *), &addr));
-        EXEC(node->call_fsh(node, "%s@fsh_alloc_stub(0x%p)", "node", addr));
-        EXEC(node->mget_pointer(node, "node", TARGET_TYPE_NODE, addr, &stub_addr));
+        EXEC(node->call_bus(node, "node@open_fshell()", NULL, 0));
+        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_STUB_POINTER, NULL, variable_name1, 0, &stub_addr));
 
         /* 因为node 和 node cli 是在同一个进程中， 所有可以直接使用test_func测试，不需要调用node执行test_func。 */
         test_func(1, 2, 3, 4, 5, 6, &g);
         THROW_IF(g != 7, -1);
-        dbg_str(DBG_SUC, "test_node_stub, shell addr:%p, stub addr:%p", shell, stub_addr);
+        dbg_str(DBG_SUC, "test_node_stub, stub addr:%p", stub_addr);
 
-        EXEC(node->call_fsh(node, "%s@fsh_add_stub_hooks(0x%p, 0x%p, \"%s\", \"%s\", \"%s\", \"%s\", %d)", 
-                            "node", stub_addr, shell, "test_func", "test_print_inbound", 
+        EXEC(node->call_fsh(node, "%s@fsh_add_stub_hooks(0x%p, \"%s\", \"%s\", \"%s\", \"%s\", %d)", 
+                            "node", stub_addr, "test_func", "test_print_inbound", 
                             "test_target_func", "test_print_outbound", 7));
         test_func(1, 2, 3, 4, 5, 6, &g);
         THROW_IF(g != 8, -1);
@@ -220,15 +218,11 @@ static int __test_node_stub(Node *node)
         test_func(1, 2, 3, 4, 5, 6, &g);
         THROW_IF(g != 7, -1);
 
-        EXEC(node->call_fsh(node, "%s@fsh_free_stub(0x%p)", "node", stub_addr));
-        EXEC(node->close_fsh(node, "node"));
-
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
-    } CATCH (ret) {
-        node->call_fsh(node, "node@fsh_free_stub(0x%p)", stub_addr);
-    } FINALLY {
-        node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, addr, variable_name1);
+    } CATCH (ret) { } FINALLY {
+        node->mfree(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_STUB_POINTER, variable_name1);
+        node->call_bus(node, "node@close_fshell()", NULL, 0);
     }
 
     return ret;

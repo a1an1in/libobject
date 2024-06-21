@@ -156,7 +156,7 @@ int fsh_free_stub(stub_t *stub)
     return stub_free(stub);
 }
 
-int fsh_add_stub_hooks(stub_t *stub, FShell *shell, char *func_name, char *pre_name, char *new_fn_name, char *post_name, int para_count)
+int fsh_add_stub_hooks(FShell *shell, stub_t *stub, char *func_name, char *pre_name, char *new_fn_name, char *post_name, int para_count)
 {
     void *func, *pre, *new_fn, *post;
     int g = 7;

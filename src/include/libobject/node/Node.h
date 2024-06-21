@@ -20,7 +20,8 @@ typedef struct node_malloc_variable_info_s {
 	char name[32];
 	uint32_t value_type;
 	void *free_func;
-	char addr[0];
+	void *addr;
+	char value[0];
 } node_malloc_variable_info_t;
 
 struct Node_s {
@@ -34,15 +35,13 @@ struct Node_s {
 	int (*init)(Node *node);
 	int (*loop)(Node *node);
 	int (*call_bus)(Node *node, char *code, void *out, uint32_t *out_len);
-	int (*open_fsh)(Node *node, char *node_id, void **addr);
 	int (*call_fsh)(Node *node, const char *fmt, ...);
-	int (*close_fsh)(Node *node, char *node_id);
 	int (*write_file)(Node *node, char *from, char *node_id, char *to);
 	int (*read_file)(Node *node, char *node_id, char *from, char *to);
 	int (*copy)(Node *node, char *from, char *to);
 	int (*list)(Node *node, char *node_id, char *path, Vector *vector);
 	int (*malloc)(Node *node, char *node_id, target_type_t type, int value_type, char *class_name, char *name, int size, void **addr);
-	int (*mfree)(Node *node, char *node_id, target_type_t type, int value_type, void *addr, char *name);
+	int (*mfree)(Node *node, char *node_id, target_type_t type, int value_type, char *name);
 	int (*mset)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int value_len);
 	int (*mget)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int *value_len);
 	int (*mget_pointer)(Node *node, char *node_id, target_type_t type, void *addr, void **dpointer);

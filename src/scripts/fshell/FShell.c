@@ -86,7 +86,7 @@ static int __set_prompt(FShell *shell, char *prompt)
 static int __run_func(FShell *shell, String *str)
 {
     int ret, i, cnt, len;
-    char *arg;
+    char *arg, *func_name;
     fshell_func_t func = NULL;
     void *par[20] = {0};
 
@@ -95,9 +95,9 @@ static int __run_func(FShell *shell, String *str)
         cnt = str->split(str, "[,\t\n();]", -1);
 
         THROW_IF(cnt <= 0, 0);
-        arg = str->get_splited_cstr(str, 0);
-        dbg_str(DBG_VIP, "run at here, func name:%s", arg);
-        EXEC(shell->get_func_addr(shell, NULL, arg, &func));
+        func_name = str->get_splited_cstr(str, 0);
+        dbg_str(DBG_VIP, "run at here, func name:%s", func_name);
+        EXEC(shell->get_func_addr(shell, NULL, func_name, &func));
         THROW_IF(func == NULL, -1);
 
         for (i = 1; i < cnt; i++) {
@@ -121,10 +121,19 @@ static int __run_func(FShell *shell, String *str)
                 par[i - 1] = atoi(arg);
             }
         }
-        ret = func(par[0], par[1], par[2], par[3], par[4],
-                   par[5], par[6], par[7], par[8], par[9], 
-                   par[10], par[11], par[12], par[13], par[14],
-                   par[15], par[16], par[17], par[18], par[19]);
+
+        if (strcmp(func_name, "fsh_add_stub_hooks") == 0) {
+            ret = func(shell, par[0], par[1], par[2], par[3], par[4],
+                       par[5], par[6], par[7], par[8], par[9], 
+                       par[10], par[11], par[12], par[13], par[14],
+                       par[15], par[16], par[17], par[18]);
+        } else {
+            ret = func(par[0], par[1], par[2], par[3], par[4],
+                       par[5], par[6], par[7], par[8], par[9], 
+                       par[10], par[11], par[12], par[13], par[14],
+                       par[15], par[16], par[17], par[18], par[19]);
+        }
+
         dbg_str(DBG_DETAIL, "run func ret:%d", ret);
         THROW(ret);
     } CATCH (ret) { }

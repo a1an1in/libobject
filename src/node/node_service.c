@@ -232,10 +232,7 @@ static int node_open_fshell(bus_object_t *obj, int argc,
 
         bus->shell = shell;
         dbg_str(DBG_SUC, "node_open_fshell shell:%p", shell);
-        *out_len = sizeof(void *);
-        shell = byteorder_cpu_to_be64(&shell);
-        memcpy(out, &shell, sizeof(void *));
-    } CATCH (ret) {*out_len = 0;} FINALLY { }
+    } CATCH (ret) {} FINALLY { *out_len = 0; }
 
 	return ret;
 }
@@ -330,12 +327,17 @@ static int node_malloc(bus_object_t *obj, int argc,
         switch (value_type) {
             case VALUE_TYPE_ALLOC_POINTER: {
                 info = allocator_mem_alloc(allocator, sizeof(node_malloc_variable_info_t) + size);
-                addr = info->addr;
+                addr = info->value;
                 info->value_type = VALUE_TYPE_ALLOC_POINTER;
                 strcpy(info->name, name);
                 break;
             }
             case VALUE_TYPE_STUB_POINTER:
+                info = allocator_mem_alloc(allocator, sizeof(node_malloc_variable_info_t) + sizeof(void *));
+                EXEC(fsh_alloc_stub(&info->addr));
+                info->value_type = VALUE_TYPE_STUB_POINTER;
+                strcpy(info->name, name);
+                addr = info->addr;
                 break;
             case VALUE_TYPE_STRUCT_POINTER:
                 break;
@@ -344,7 +346,7 @@ static int node_malloc(bus_object_t *obj, int argc,
         }
         
         map = node->variable_map;
-        map->add(map, "$test_abc", info);
+        map->add(map, info->name, info);
         dbg_str(DBG_VIP, "node_malloc, name:%s class_name:%s size:%d addr:%p", name, class_name, size, addr);
 
         *out_len = sizeof(void *);
@@ -358,8 +360,7 @@ static int node_malloc(bus_object_t *obj, int argc,
 static const struct blob_policy_s mfree_policy[] = {
     [0] = { .name = "target_type",  .type = BLOB_TYPE_UINT32 },
     [1] = { .name = "value_type",   .type = BLOB_TYPE_UINT32 },
-    [2] = { .name = "addr",         .type = BLOB_TYPE_UINT64 },
-    [3] = { .name = "name",         .type = BLOB_TYPE_STRING },
+    [2] = { .name = "name",         .type = BLOB_TYPE_STRING },
 };
 static int node_mfree(bus_object_t *obj, int argc, 
                       struct blob_attr_s **args, 
@@ -368,7 +369,7 @@ static int node_mfree(bus_object_t *obj, int argc,
     bus_t *bus;
     allocator_t *allocator;
     Node *node;
-    char *name, *addr, *search_addr = NULL;
+    char *name, *search_addr = NULL;
     Map *map;
     uint32_t value_type;
     node_malloc_variable_info_t *info = NULL;
@@ -378,24 +379,27 @@ static int node_mfree(bus_object_t *obj, int argc,
     TRY {
         type = blob_get_uint32(args[0]);
         value_type = blob_get_uint32(args[1]);
-        addr = blob_get_uint64(args[2]);
-        name = blob_get_string(args[3]);
+        name = blob_get_string(args[2]);
         bus = obj->bus;
         node = bus->opaque;
         allocator = bus->allocator;
         map = node->variable_map;
+        dbg_str(DBG_VIP, "node_mfree, name:%s", name);
 
-        if (addr == NULL) {
-            THROW(-1);
-        }
+        THROW_IF(name == NULL, -1);
+        map->remove(map, name, &info);
+        THROW_IF(info == NULL, -1);
         
         switch (value_type) {
             case VALUE_TYPE_ALLOC_POINTER: {
-                dbg_str(DBG_VIP, "node_free, name:%s, addr:%p", name, addr);
+                dbg_str(DBG_VIP, "node_free alloc pointer, name:%s, addr:%p", name, info->value);
                 allocator_mem_free(allocator, info);
                 break;
             }
             case VALUE_TYPE_STUB_POINTER:
+                dbg_str(DBG_VIP, "node_free stub, name:%s, addr:%p", name, info->addr);
+                fsh_free_stub(info->addr);
+                allocator_mem_free(allocator, info);
                 break;
             default:
                 break;

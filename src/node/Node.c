@@ -452,13 +452,13 @@ static int __malloc(Node *node, char *node_id, target_type_t type, int value_typ
     return ret;
 }
 
-static int __mfree(Node *node, char *node_id, target_type_t type, int value_type, void *addr, char *name)
+static int __mfree(Node *node, char *node_id, target_type_t type, int value_type, char *name)
 {
     char cmd[1024] = {0};
-    int ret, len = sizeof(addr);
+    int ret;
     
     TRY {
-        snprintf(cmd, 1024, "node@mfree(%d, %d, 0x%p, %s)", type, value_type, addr, name == NULL ? "null" : name);
+        snprintf(cmd, 1024, "node@mfree(%d, %d, %s)", type, value_type, name == NULL ? "null" : name);
         EXEC(node->call_bus(node, cmd, NULL, 0));
     } CATCH (ret) {} FINALLY {}
 
@@ -517,19 +517,17 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(3 , Node, init, __init),
     Init_Nfunc_Entry(4 , Node, loop, __loop),
     Init_Nfunc_Entry(5 , Node, call_bus, __call_bus),
-    Init_Nfunc_Entry(6 , Node, open_fsh, __open_fsh),
-    Init_Nfunc_Entry(7 , Node, call_fsh, __call_fsh),
-    Init_Nfunc_Entry(8 , Node, close_fsh, __close_fsh),
-    Init_Nfunc_Entry(9 , Node, write_file, __write_file),
-    Init_Nfunc_Entry(10, Node, read_file, __read_file),
-    Init_Nfunc_Entry(11, Node, copy, __copy),
-    Init_Nfunc_Entry(12, Node, list, __list),
-    Init_Nfunc_Entry(13, Node, malloc, __malloc),
-    Init_Nfunc_Entry(14, Node, mfree, __mfree),
-    Init_Nfunc_Entry(15, Node, mset, __mset),
-    Init_Nfunc_Entry(16, Node, mget, __mget),
-    Init_Nfunc_Entry(17, Node, mget_pointer, __mget_pointer),
-    Init_End___Entry(18, Node),
+    Init_Nfunc_Entry(6 , Node, call_fsh, __call_fsh),
+    Init_Nfunc_Entry(7 , Node, write_file, __write_file),
+    Init_Nfunc_Entry(8 , Node, read_file, __read_file),
+    Init_Nfunc_Entry(9 , Node, copy, __copy),
+    Init_Nfunc_Entry(10, Node, list, __list),
+    Init_Nfunc_Entry(11, Node, malloc, __malloc),
+    Init_Nfunc_Entry(12, Node, mfree, __mfree),
+    Init_Nfunc_Entry(13, Node, mset, __mset),
+    Init_Nfunc_Entry(14, Node, mget, __mget),
+    Init_Nfunc_Entry(15, Node, mget_pointer, __mget_pointer),
+    Init_End___Entry(16, Node),
 };
 REGISTER_CLASS("Node", node_class_info);
 
