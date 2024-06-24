@@ -310,6 +310,7 @@ static int node_malloc(bus_object_t *obj, int argc,
     target_type_t type;
     uint32_t value_type;
     Node *node;
+    FShell *shell;
     Map *map;
     node_malloc_variable_info_t *info;
     int ret, size;
@@ -322,6 +323,8 @@ static int node_malloc(bus_object_t *obj, int argc,
         size = blob_get_uint32(args[4]);
         bus = obj->bus;
         node = bus->opaque;
+        shell = bus->shell;
+        map = shell->variable_map;
         allocator = bus->allocator;
 
         switch (value_type) {
@@ -329,6 +332,7 @@ static int node_malloc(bus_object_t *obj, int argc,
                 info = allocator_mem_alloc(allocator, sizeof(node_malloc_variable_info_t) + size);
                 addr = info->value;
                 info->value_type = VALUE_TYPE_ALLOC_POINTER;
+                info->addr = info->value; //记录分配给用户使用的地址。
                 strcpy(info->name, name);
                 break;
             }
@@ -345,7 +349,6 @@ static int node_malloc(bus_object_t *obj, int argc,
                 break;
         }
         
-        map = node->variable_map;
         map->add(map, info->name, info);
         dbg_str(DBG_VIP, "node_malloc, name:%s class_name:%s size:%d addr:%p", name, class_name, size, addr);
 
@@ -359,8 +362,7 @@ static int node_malloc(bus_object_t *obj, int argc,
 
 static const struct blob_policy_s mfree_policy[] = {
     [0] = { .name = "target_type",  .type = BLOB_TYPE_UINT32 },
-    [1] = { .name = "value_type",   .type = BLOB_TYPE_UINT32 },
-    [2] = { .name = "name",         .type = BLOB_TYPE_STRING },
+    [1] = { .name = "name",         .type = BLOB_TYPE_STRING },
 };
 static int node_mfree(bus_object_t *obj, int argc, 
                       struct blob_attr_s **args, 
@@ -369,28 +371,28 @@ static int node_mfree(bus_object_t *obj, int argc,
     bus_t *bus;
     allocator_t *allocator;
     Node *node;
+    FShell *shell;
     char *name, *search_addr = NULL;
     Map *map;
-    uint32_t value_type;
     node_malloc_variable_info_t *info = NULL;
     target_type_t type;
     int ret, size;
 
     TRY {
         type = blob_get_uint32(args[0]);
-        value_type = blob_get_uint32(args[1]);
-        name = blob_get_string(args[2]);
+        name = blob_get_string(args[1]);
         bus = obj->bus;
         node = bus->opaque;
+        shell = bus->shell;
+        map = shell->variable_map;
         allocator = bus->allocator;
-        map = node->variable_map;
         dbg_str(DBG_VIP, "node_mfree, name:%s", name);
 
         THROW_IF(name == NULL, -1);
         map->remove(map, name, &info);
         THROW_IF(info == NULL, -1);
         
-        switch (value_type) {
+        switch (info->value_type) {
             case VALUE_TYPE_ALLOC_POINTER: {
                 dbg_str(DBG_VIP, "node_free alloc pointer, name:%s, addr:%p", name, info->value);
                 allocator_mem_free(allocator, info);

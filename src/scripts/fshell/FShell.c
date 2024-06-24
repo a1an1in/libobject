@@ -37,6 +37,12 @@ static int __construct(FShell *shell, char *init_str)
     shell->map = map;
     shell->close_flag = 0;
 
+    map = object_new(allocator, "RBTree_Map", NULL);
+    map->set_cmp_func(map, string_key_cmp_func);
+    map->set(map, "/Map/trustee_flag", &trustee_flag);
+    map->set(map, "/Map/value_type", &value_type);
+    shell->variable_map = map;
+
     sprintf(shell->prompt, "%s", "fshell$ ");
 
     return 0;
@@ -47,6 +53,7 @@ static int __deconstruct(FShell *shell)
     allocator_t *allocator = shell->parent.allocator;
 
     dbg_str(DBG_DETAIL, "fshell deconstruct in, shell->worker=%p", shell->worker);
+    object_destroy(shell->variable_map);
     object_destroy(shell->map);
     worker_destroy(shell->worker);
     dbg_str(DBG_DETAIL, "fshell deconstruct out");
@@ -88,6 +95,8 @@ static int __run_func(FShell *shell, String *str)
     int ret, i, cnt, len;
     char *arg, *func_name;
     fshell_func_t func = NULL;
+    Map *map = shell->variable_map;
+    node_malloc_variable_info_t *info = NULL;
     void *par[20] = {0};
 
     TRY {
@@ -107,11 +116,17 @@ static int __run_func(FShell *shell, String *str)
                 dbg_str(DBG_DETAIL, "%d:%s", i, arg);
             }
             arg = str_trim(arg);
+            /* 参数加引号为表示字符串， 不加引号为数字或者变量名 */
             if (arg[0] == '"') {
                 len = strlen(arg);
                 THROW_IF(arg[len - 1] != '"', -1);
                 arg[len - 1] = '\0';
                 par[i - 1] = arg + 1;
+            } else if (arg[0] == '$') {//$表示这是一个变量的地址，需要从变量表里根据变量名查询得到地址
+                map->search(map, arg, &info);
+                THROW_IF(info == NULL, -1);
+                par[i - 1] = info->addr;
+                dbg_str(DBG_SUC, "run_func, transfer variable %s address %p", arg, info->addr);
             } else if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
                 par[i - 1] = str_hex_to_integer(arg);
                 dbg_str(DBG_DETAIL, "par i:%d value:%x", i - 1, par[i - 1]);

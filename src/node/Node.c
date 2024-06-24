@@ -22,19 +22,12 @@ static int __construct(Node *node, char *init_str)
     node->str = object_new(allocator, "String", NULL);
     node->busd = NULL;
     node->bus = NULL;
-
-    map = object_new(allocator, "RBTree_Map", NULL);
-    map->set_cmp_func(map, string_key_cmp_func);
-    map->set(map, "/Map/trustee_flag", &trustee_flag);
-    map->set(map, "/Map/value_type", &value_type);
-    node->variable_map = map;
     
     return 0;
 }
 
 static int __deconstruct(Node *node)
 {
-    object_destroy(node->variable_map);
     object_destroy(node->str);
     bus_destroy(node->bus);
 
@@ -452,13 +445,13 @@ static int __malloc(Node *node, char *node_id, target_type_t type, int value_typ
     return ret;
 }
 
-static int __mfree(Node *node, char *node_id, target_type_t type, int value_type, char *name)
+static int __mfree(Node *node, char *node_id, target_type_t type, char *name)
 {
     char cmd[1024] = {0};
     int ret;
     
     TRY {
-        snprintf(cmd, 1024, "node@mfree(%d, %d, %s)", type, value_type, name == NULL ? "null" : name);
+        snprintf(cmd, 1024, "node@mfree(%d, %s)", type, name == NULL ? "null" : name);
         EXEC(node->call_bus(node, cmd, NULL, 0));
     } CATCH (ret) {} FINALLY {}
 

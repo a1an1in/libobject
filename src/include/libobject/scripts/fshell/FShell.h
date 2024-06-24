@@ -9,6 +9,14 @@
 
 typedef struct FShell_s FShell;
 
+typedef struct node_malloc_variable_info_s {
+	char name[32];
+	uint32_t value_type;
+	void *free_func;
+	void *addr;
+	char value[0];
+} node_malloc_variable_info_t;
+
 struct FShell_s{
     Obj parent;
 
@@ -28,7 +36,8 @@ struct FShell_s{
     int (*set_prompt)(FShell *shell, char *prompt);
     int (*init)(FShell *shell);
 
-    Map *map;  //加载的外部库， value 是文件句柄，析构的时候会释放。。
+    Map *map;  //加载的外部库， value 是文件句柄，析构的时候会释放.
+	Map *variable_map; //fshell分配的变量，node_cli可以共享，不允许名字重复。
     Worker *worker;
     int close_flag;
     char prompt[20];

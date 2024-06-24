@@ -16,14 +16,6 @@ typedef enum target_type_e {
 	TARGET_TYPE_ATTACHER,
 } target_type_t;
 
-typedef struct node_malloc_variable_info_s {
-	char name[32];
-	uint32_t value_type;
-	void *free_func;
-	void *addr;
-	char value[0];
-} node_malloc_variable_info_t;
-
 struct Node_s {
 	Obj parent;
 
@@ -41,7 +33,7 @@ struct Node_s {
 	int (*copy)(Node *node, char *from, char *to);
 	int (*list)(Node *node, char *node_id, char *path, Vector *vector);
 	int (*malloc)(Node *node, char *node_id, target_type_t type, int value_type, char *class_name, char *name, int size, void **addr);
-	int (*mfree)(Node *node, char *node_id, target_type_t type, int value_type, char *name);
+	int (*mfree)(Node *node, char *node_id, target_type_t type, char *name);
 	int (*mset)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int value_len);
 	int (*mget)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int *value_len);
 	int (*mget_pointer)(Node *node, char *node_id, target_type_t type, void *addr, void **dpointer);
@@ -55,10 +47,6 @@ struct Node_s {
 	/* flag == 1 表示退出node */
     int node_flag; 
 	String *str;
-	/*
-	 * node分配的变量，node_cli可以共享，不允许名字重复。
-	 **/
-	Map *variable_map;
 };
 
 extern bus_object_t node_object;
