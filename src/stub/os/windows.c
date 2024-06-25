@@ -130,7 +130,7 @@ int stub_config_exec_area(stub_t *stub)
     
     VirtualProtect(stub->area, sizeof(stub_exec_area_t), PAGE_EXECUTE_READWRITE, &oldProtect);
     stub->area->stub = stub;
-    printf("stub area addr:%p\n", stub->area);
+    dbg_str(DBG_DETAIL,"stub area addr:%p\n", stub->area);
     stub->area_flag = 1;
     VirtualProtect(stub->area, sizeof(stub_exec_area_t), oldProtect, &TempProtectVar);  //恢复保护属性
 
@@ -170,7 +170,7 @@ int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post
     VirtualProtect(stub->area, sizeof(stub_exec_area_t), PAGE_EXECUTE_READWRITE, &oldProtect);
     memcpy(stub->area->exec_code, code, sizeof(code));
     VirtualProtect(stub->area, sizeof(stub_exec_area_t), oldProtect, &TempProtectVar);  //恢复保护属性
-    printf("exec code addrs:%p\n", stub->area->exec_code);
+    dbg_str(DBG_DETAIL,"exec code addrs:%p\n", stub->area->exec_code);
 
     stub_add(stub, func, stub->area->exec_code);
     stub->pre = pre;
@@ -178,7 +178,7 @@ int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post
     stub->fn = func;
     stub->post = post;
     stub->para_count = para_count;
-    printf("pre:%p, func:%p, post:%p, stubed_func:%p, para_count:%d\n", stub->pre, stub->new_fn, stub->post, stub->fn, stub->para_count);
+    dbg_str(DBG_INFO,"pre:%p, func:%p, post:%p, stubed_func:%p, para_count:%d\n", stub->pre, stub->new_fn, stub->post, stub->fn, stub->para_count);
 
     return 0;
 }

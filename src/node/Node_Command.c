@@ -26,7 +26,7 @@ static int __option_host_callback(Option *option, void *opaque)
     Node_Command *c = (Node_Command *)opaque;
     Node *n = c->node;
 
-    dbg_str(DBG_SUC,"option_host_action_callback:%s", STR2A(option->value));
+    dbg_str(DBG_VIP,"option_host_action_callback:%s", STR2A(option->value));
     n->host = STR2A(option->value);
 
     return 1;
@@ -37,7 +37,7 @@ static int __option_service_callback(Option *option, void *opaque)
     Node_Command *c = (Node_Command *)opaque;
     Node *n = c->node;
 
-    dbg_str(DBG_SUC,"option_service_action_callback:%s", STR2A(option->value));
+    dbg_str(DBG_VIP,"option_service_action_callback:%s", STR2A(option->value));
     n->service = STR2A(option->value);
 
     return 1;
@@ -56,7 +56,7 @@ static int __option_deamon_callback(Option *option, void *opaque)
     } else {
         n->run_bus_deamon_flag = 0;
     }
-    dbg_str(DBG_SUC, "set run_bus_deamon_flag:%d, option:%s", n->run_bus_deamon_flag, STR2A(option->value));
+    dbg_str(DBG_VIP, "set run_bus_deamon_flag:%d, option:%s", n->run_bus_deamon_flag, STR2A(option->value));
     
     return 1;
 }

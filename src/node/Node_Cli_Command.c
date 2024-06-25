@@ -59,7 +59,7 @@ struct node_command_s {
     [COMMAND_TYPE_COPY] = {COMMAND_TYPE_COPY, "copy", __copy_command_action},
     [COMMAND_TYPE_LIST] = {COMMAND_TYPE_LIST, "list", __list_command_action},
     [COMMAND_TYPE_BUS_CALL] = {COMMAND_TYPE_BUS_CALL, "call_bus", __call_bus_command_action},
-    [COMMAND_TYPE_EXECUTE] = {COMMAND_TYPE_EXECUTE, "call_fsh", __execute_command_action},
+    [COMMAND_TYPE_FSH_CALL] = {COMMAND_TYPE_FSH_CALL, "call_fsh", __execute_command_action},
     [COMMAND_TYPE_EXIT] = {COMMAND_TYPE_EXIT, "exit", NULL},
 };
 
@@ -116,7 +116,7 @@ static int __option_execute_command_callback(Option *option, void *opaque)
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
     dbg_str(DBG_SUC,"option_fshell_cmd_action_callback:%s", STR2A(option->value));
     c->arg1 = STR2A(option->value);
-    c->command_type = COMMAND_TYPE_EXECUTE;
+    c->command_type = COMMAND_TYPE_FSH_CALL;
 
     return 1;
 }

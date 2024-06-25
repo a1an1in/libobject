@@ -534,10 +534,10 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
             
             if (req->opaque) {
                 memcpy(req->opaque, buffer, req->opaque_len);
-                 dbg_buf(DBG_VIP, "bus buffer:", buffer, req->opaque_len);
+                 dbg_buf(BUS_VIP, "bus buffer:", buffer, req->opaque_len);
             }
             
-            dbg_str(DBG_VIP, "method_name:%s, state:%d", req->method, req->state);
+            dbg_str(BUS_VIP, "method_name:%s, state:%d", req->method, req->state);
         }
     }
 
@@ -600,7 +600,7 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
     uint32_t buffer_len, tmp_len;
     allocator_t *allocator = bus->allocator;
 
-    dbg_str(DBG_VIP, "bus_reply_forward_invoke, buf_len:%d", buf_len);
+    dbg_str(BUS_VIP, "bus_reply_forward_invoke, buf_len:%d", buf_len);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUS_REPLY_FORWARD_INVOKE;
@@ -772,7 +772,6 @@ int bus_destroy(bus_t *bus)
 
     object_destroy(bus->obj_map);
     object_destroy(bus->req_map);
-    object_destroy(bus->shell);
     blob_destroy(bus->blob);
     client_destroy(bus->client);
     allocator_mem_free(bus->allocator, bus);

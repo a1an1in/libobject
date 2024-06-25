@@ -20,7 +20,7 @@ static void __close_fshell_callback(void *arg)
     FShell *shell = (FShell *)arg;
 
     shell->close_flag = 1;
-    dbg_str(DBG_SUC, "close shel");
+    dbg_str(DBG_VIP, "close shel");
 
 }
 
@@ -98,14 +98,15 @@ static int __run_func(FShell *shell, String *str)
     Map *map = shell->variable_map;
     node_malloc_variable_info_t *info = NULL;
     void *par[20] = {0};
+    char *func_str[128];
 
     TRY {
         THROW_IF(str == NULL, -1);
+        strcpy(func_str, STR2A(str));
         cnt = str->split(str, "[,\t\n();]", -1);
 
         THROW_IF(cnt <= 0, 0);
         func_name = str->get_splited_cstr(str, 0);
-        dbg_str(DBG_VIP, "run at here, func name:%s", func_name);
         EXEC(shell->get_func_addr(shell, NULL, func_name, &func));
         THROW_IF(func == NULL, -1);
 
@@ -122,11 +123,15 @@ static int __run_func(FShell *shell, String *str)
                 THROW_IF(arg[len - 1] != '"', -1);
                 arg[len - 1] = '\0';
                 par[i - 1] = arg + 1;
-            } else if (arg[0] == '$') {//$表示这是一个变量的地址，需要从变量表里根据变量名查询得到地址
+            } else if (arg[0] == '#')
+            /* #表示这是一个变量的地址，需要从变量表里根据变量名查询得到地址, 
+             * shell会解析$符号， 所以使用#。
+             */
+            {
                 map->search(map, arg, &info);
                 THROW_IF(info == NULL, -1);
                 par[i - 1] = info->addr;
-                dbg_str(DBG_SUC, "run_func, transfer variable %s address %p", arg, info->addr);
+                dbg_str(DBG_INFO, "run_func, transfer variable %s address %p", arg, info->addr);
             } else if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
                 par[i - 1] = str_hex_to_integer(arg);
                 dbg_str(DBG_DETAIL, "par i:%d value:%x", i - 1, par[i - 1]);
@@ -149,7 +154,7 @@ static int __run_func(FShell *shell, String *str)
                        par[15], par[16], par[17], par[18], par[19]);
         }
 
-        dbg_str(DBG_DETAIL, "run func ret:%d", ret);
+        dbg_str(DBG_VIP, "fshell execute:%s, ret:%d", func_str, ret);
         THROW(ret);
     } CATCH (ret) { }
 

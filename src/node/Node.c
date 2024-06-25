@@ -30,6 +30,7 @@ static int __deconstruct(Node *node)
 {
     object_destroy(node->str);
     bus_destroy(node->bus);
+    object_destroy(node->shell);
 
     //需要等待客户端关闭连接， 然后服务器也处理关闭事务， 不然
     //如果server也同时销毁， 有可能会同时操作worker链表，导致异常。
@@ -50,7 +51,6 @@ static int __init(Node *node)
     int i, ret;
 
     TRY {
-        dbg_str(DBG_VIP, "node init in, obj addr:%p", &node_object);
         THROW_IF(node->host == NULL || node->service == NULL, -1);
 
         dbg_str(DBG_VIP, "node host:%s, service:%s", node->host, node->service);
@@ -67,10 +67,15 @@ static int __init(Node *node)
         node->bus = bus;
         bus->opaque = node;
         
-        if (node->disable_node_service_flag != 1)
+        if (node->disable_node_service_flag != 1) {
             bus_add_object(bus, &node_object);
-        
-        dbg_str(DBG_VIP, "node init out");
+
+#if (defined(WINDOWS_USER_MODE))
+            node->shell = object_new(allocator, "WindowsFShell", NULL);    
+#else  
+            node->shell = object_new(allocator, "UnixFShell", NULL);
+#endif
+        }
     } CATCH (ret) {}
 
     return ret;
@@ -437,8 +442,11 @@ static int __malloc(Node *node, char *node_id, target_type_t type, int value_typ
                  class_name == NULL ? "null" : class_name, 
                  name == NULL ? "null" : name,  size);
         EXEC(node->call_bus(node, cmd, addr, &len));
-        *addr = byteorder_be64_to_cpu(addr);
-        dbg_str(DBG_SUC, "node alloc addr:%p", *addr);
+
+        if (addr != NULL) {
+            *addr = byteorder_be64_to_cpu(addr);
+            dbg_str(DBG_SUC, "node alloc value_type:%d, name:%s, addr:%p", value_type, name, *addr);
+        }
         THROW_IF(len != 8 && len != 4, -1);
     } CATCH (ret) {} FINALLY {}
 
@@ -453,6 +461,7 @@ static int __mfree(Node *node, char *node_id, target_type_t type, char *name)
     TRY {
         snprintf(cmd, 1024, "node@mfree(%d, %s)", type, name == NULL ? "null" : name);
         EXEC(node->call_bus(node, cmd, NULL, 0));
+        dbg_str(DBG_SUC, "node free name:%s", name);
     } CATCH (ret) {} FINALLY {}
 
     return ret;

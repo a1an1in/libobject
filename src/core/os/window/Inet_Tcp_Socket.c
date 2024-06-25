@@ -59,7 +59,7 @@ static int __construct(Inet_Tcp_Socket *sk, char *init_str)
     }
 
     sk->parent.fd = fd;
-    dbg_str(DBG_VIP, "construct windows tcp socket, socket fd:%d", fd);
+    dbg_str(NET_VIP, "construct windows tcp socket, socket fd:%d", fd);
 
     return 1;
 }
@@ -186,12 +186,10 @@ static int __accept(Inet_Tcp_Socket *socket,
 
     TRY {
         fd = accept(socket->parent.fd, (struct sockaddr *)&cliaddr, &len);
-        dbg_str(DBG_SUC, "accept new fd:%d", fd);
+        dbg_str(NET_SUC, "accept new fd:%d", fd);
         THROW_IF(fd <= 1, -1);
     } CATCH (ret) {
         dbg_str(NET_ERROR, "socket accept error, err:%d", WSAGetLastError());
-        dbg_str(DBG_ERROR, "accept error, ret:%d, parent fd:%d, new fd:%d", 
-                ret, socket->parent.fd, fd);
         fd = ret;
     }
 

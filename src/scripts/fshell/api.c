@@ -123,13 +123,13 @@ int fsh_call(void *p1, void *p2, void *p3, void *p4, void *p5,
 
 int fsh_test_add_v1(int a, int b)
 {
-    printf("fsh add, a:%d, b:%d, count:%d \n", a, b, a + b);
+    dbg_str(DBG_INFO, "fsh add, a:%d, b:%d, count:%d", a, b, a + b);
     return a + b;
 }
 
 int fsh_test_add_v2(int a, int b, int *r)
 {
-    printf("fsh add, a:%d, b:%d, count:%d \n", a, b, a + b);
+    dbg_str(DBG_INFO, "fsh add, a:%d, b:%d, count:%d", a, b, a + b);
     *r = a + b;
     return 1;
 }
@@ -144,7 +144,7 @@ int fsh_alloc_stub(stub_t **stub)
         s = stub_alloc();
         THROW_IF(s == NULL, -1);
         *stub = s;
-        dbg_str(DBG_SUC, "fsh_alloc_stub stub:%p", s);
+        dbg_str(DBG_INFO, "fsh_alloc_stub stub:%p", s);
     } CATCH (ret) {}
 
     return ret;
@@ -152,7 +152,7 @@ int fsh_alloc_stub(stub_t **stub)
 
 int fsh_free_stub(stub_t *stub)
 {
-    dbg_str(DBG_SUC, "fsh_free_stub stub:%p", stub);
+    dbg_str(DBG_INFO, "fsh_free_stub stub:%p", stub);
     return stub_free(stub);
 }
 
@@ -200,25 +200,25 @@ int fsh_remove_stub_hooks(stub_t *stub)
 /* test funcs */
 int test_print_inbound(int a, int b, int c, int d, int e, int f, int *g)
 {
-    printf("inbound func of test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
+    dbg_str(DBG_INFO, "inbound func of test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d", a, b, c, d, e, f, *g);
     return 1;
 }
 
 int test_func(int a, int b, int c, int d, int e, int f, int *g)
 {
-    printf("original test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
+    dbg_str(DBG_INFO, "original test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d", a, b, c, d, e, f, *g);
     return 1;
 }
 
 int test_target_func(int a, int b, int c, int d, int e, int f, int *g)
 {
     *g = 8;
-    printf("target test_func which replaced the original test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
+    dbg_str(DBG_INFO, "target test_func which replaced the original test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d", a, b, c, d, e, f, *g);
     return 1;
 }
 
 int test_print_outbound(int a, int b, int c, int d, int e, int f, int *g)
 {
-    printf("outbound func of test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d\n", a, b, c, d, e, f, *g);
+    dbg_str(DBG_INFO, "outbound func of test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d", a, b, c, d, e, f, *g);
     return 1;
 }

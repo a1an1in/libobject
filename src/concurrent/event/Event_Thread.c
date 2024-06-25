@@ -70,9 +70,9 @@ static int __deconstrcut(Event_Thread *thread)
     thread->del_event(thread, event);
     object_destroy(thread->thread_service);
     object_destroy(thread->signal_service);
-    dbg_str(DBG_VIP,"Event thread destroy server sokcet");
+    dbg_str(EV_VIP,"Event thread destroy server sokcet");
     object_destroy(thread->s);
-    dbg_str(DBG_VIP,"Event thread destroy client sokcet");
+    dbg_str(EV_VIP,"Event thread destroy client sokcet");
     object_destroy(thread->c);
     object_destroy(thread->eb);
 #if (defined(WINDOWS_USER_MODE))
@@ -91,7 +91,7 @@ static int __add_event(Event_Thread *thread, event_t *event)
     if (event == NULL) {
         return -1;
     }
-    dbg_str(DBG_VIP, "event_thread, add_event fd=%d", event->ev_fd);
+    dbg_str(EV_VIP, "event_thread, add_event fd=%d", event->ev_fd);
 
     eb->add(eb, event);
 
@@ -111,7 +111,7 @@ static int __del_event(Event_Thread *thread, event_t *event)
         return -1;
     }
 
-    dbg_str(DBG_VIP, "event_thread, del_event fd=%d", event->ev_fd);
+    dbg_str(EV_VIP, "event_thread, del_event fd=%d", event->ev_fd);
     eb->del(eb, event);
 
     /* let the option take effect, not only update map, fresh the base
@@ -186,7 +186,7 @@ static void *__start_routine(void *arg)
     eb->loop(eb);
 
     et->flags = EVTHREAD_STATE_DESTROYED;
-    dbg_str(DBG_VIP,"Event Thread, out start routine");
+    dbg_str(EV_VIP,"Event Thread, out start routine");
 }
 
 static int __stop(Event_Thread *thread)
@@ -200,7 +200,7 @@ static int __stop(Event_Thread *thread)
         return -1;
     }
 
-    dbg_str(DBG_VIP,"Event Thread has been stopped!");
+    dbg_str(EV_VIP,"Event Thread has been stopped!");
 
     return 0;
 }

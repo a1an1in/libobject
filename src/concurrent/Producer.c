@@ -71,7 +71,7 @@ static int __add_worker(Producer *producer, void *worker)
         usleep(100000);
     }
 
-    dbg_str(DBG_VIP, "producer %p add worker, worker:%p, fd:%d",
+    dbg_str(CONCURRENT_VIP, "producer %p add worker, worker:%p, fd:%d",
             producer, worker, w->event.ev_fd);
 
     w->producer = producer;

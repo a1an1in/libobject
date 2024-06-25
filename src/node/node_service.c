@@ -207,36 +207,6 @@ static int node_list(bus_object_t *obj, int argc,
 	return ret;
 }
 
-/*
- * node 只会使用一个fshell， 所有可以把shell保存在bus中。
- */
-static int node_open_fshell(bus_object_t *obj, int argc, 
-                            struct blob_attr_s **args, 
-                            void *out, int *out_len)
-{
-    bus_t *bus;
-    void *shell = NULL;
-    allocator_t *allocator;
-    int ret;
-
-    TRY {
-        bus = obj->bus;
-        allocator = bus->allocator;
-
-        dbg_str(DBG_VIP, "node_open_fshell in");
-#if (defined(WINDOWS_USER_MODE))
-        shell = object_new(allocator, "WindowsFShell", NULL);    
-#else  
-        shell = object_new(allocator, "UnixFShell", NULL);
-#endif
-
-        bus->shell = shell;
-        dbg_str(DBG_SUC, "node_open_fshell shell:%p", shell);
-    } CATCH (ret) {} FINALLY { *out_len = 0; }
-
-	return ret;
-}
-
 static const struct blob_policy_s exec_fshell_policy[] = {
 	[0] = { .name = "command",  .type = BLOB_TYPE_STRING }, 
 };
@@ -257,36 +227,17 @@ static int node_exec_fshell(bus_object_t *obj, int argc,
         command = blob_get_string(args[0]);
         bus = obj->bus;
         allocator = bus->allocator;
-        shell = bus->shell;
         node = bus->opaque;
+        shell = node->shell;
         str = node->str;
 
-        dbg_str(DBG_VIP, "node_exec_fshell command:%s", command);
+        dbg_str(DBG_INFO, "node_exec_fshell command:%s", command);
         str->reset(str);
         str->assign(str, command);
         THROW(shell->run_func(shell, str));
     } CATCH (ret) {} FINALLY {
         *out_len = 0;
     }
-
-	return ret;
-}
-
-static int node_close_fshell(bus_object_t *obj, int argc, 
-                             struct blob_attr_s **args, 
-                             void *out, int *out_len)
-{
-    bus_t *bus;
-    int ret;
-
-    TRY {
-        dbg_str(DBG_VIP, "node_close_fshell in");
-        bus = obj->bus;
-        object_destroy(bus->shell);
-        bus->shell = NULL;
-    } CATCH (ret) {} FINALLY {
-        *out_len = 0;
-     }
 
 	return ret;
 }
@@ -323,7 +274,7 @@ static int node_malloc(bus_object_t *obj, int argc,
         size = blob_get_uint32(args[4]);
         bus = obj->bus;
         node = bus->opaque;
-        shell = bus->shell;
+        shell = node->shell;
         map = shell->variable_map;
         allocator = bus->allocator;
 
@@ -350,7 +301,7 @@ static int node_malloc(bus_object_t *obj, int argc,
         }
         
         map->add(map, info->name, info);
-        dbg_str(DBG_VIP, "node_malloc, name:%s class_name:%s size:%d addr:%p", name, class_name, size, addr);
+        dbg_str(DBG_VIP, "node_malloc, name:%s, class_name:%s, size:%d, addr:%p", name, class_name, size, addr);
 
         *out_len = sizeof(void *);
         addr = byteorder_cpu_to_be64(&addr);
@@ -383,10 +334,10 @@ static int node_mfree(bus_object_t *obj, int argc,
         name = blob_get_string(args[1]);
         bus = obj->bus;
         node = bus->opaque;
-        shell = bus->shell;
+        shell = node->shell;
         map = shell->variable_map;
         allocator = bus->allocator;
-        dbg_str(DBG_VIP, "node_mfree, name:%s", name);
+        dbg_str(DBG_DETAIL, "node_mfree, name:%s", name);
 
         THROW_IF(name == NULL, -1);
         map->remove(map, name, &info);
@@ -394,12 +345,12 @@ static int node_mfree(bus_object_t *obj, int argc,
         
         switch (info->value_type) {
             case VALUE_TYPE_ALLOC_POINTER: {
-                dbg_str(DBG_VIP, "node_free alloc pointer, name:%s, addr:%p", name, info->value);
+                dbg_str(DBG_VIP, "node_mfree alloc pointer, name:%s, addr:%p", name, info->value);
                 allocator_mem_free(allocator, info);
                 break;
             }
             case VALUE_TYPE_STUB_POINTER:
-                dbg_str(DBG_VIP, "node_free stub, name:%s, addr:%p", name, info->addr);
+                dbg_str(DBG_VIP, "node_mfree stub, name:%s, addr:%p", name, info->addr);
                 fsh_free_stub(info->addr);
                 allocator_mem_free(allocator, info);
                 break;
@@ -535,8 +486,6 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("list", node_list, list_policy),
     BUS_METHOD("write_file", node_write_file, write_file_policy),
     BUS_METHOD("read_file", node_read_file, read_file_policy),
-    BUS_METHOD_WITHOUT_ARG("open_fshell", node_open_fshell, NULL),
-    BUS_METHOD_WITHOUT_ARG("close_fshell", node_close_fshell, NULL),
     BUS_METHOD("exec_fshell", node_exec_fshell, exec_fshell_policy),
     BUS_METHOD("malloc", node_malloc, malloc_policy),
     BUS_METHOD("mfree", node_mfree, mfree_policy),

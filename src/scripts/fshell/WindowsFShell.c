@@ -87,11 +87,11 @@ static int __get_func_addr(WindowsFShell *shell, char *lib_name, char *func_name
         /* open the needed object */
         handle = dlopen(lib_name, RTLD_LOCAL | RTLD_LAZY);
         THROW_IF(handle == NULL, -1);
-        dbg_str(DBG_VIP, "handle=%p", handle);
+        dbg_str(DBG_INFO, "handle=%p", handle);
 
         /* find the address of function and data objects */
         *addr = dlsym(handle, func_name);
-        dbg_str(DBG_VIP, "addr=%p", *addr);
+        dbg_str(DBG_INFO, "addr=%p", *addr);
     } CATCH (ret) { } FINALLY {
         if (handle != NULL)
             dlclose(handle);

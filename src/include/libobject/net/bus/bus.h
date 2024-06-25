@@ -157,7 +157,6 @@ struct bus_s {
     uint8_t req_key_size;
     uint8_t req_bucket_size;
 	void *opaque;
-	void *shell;  //如果非空， bus会释放shell。
 };
 
 

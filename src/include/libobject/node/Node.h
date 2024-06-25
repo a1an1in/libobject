@@ -40,12 +40,12 @@ struct Node_s {
 
 	bus_t *bus;
     busd_t *busd;
+	void *shell; //fshell 对象。
 	char *host, *service;
-	/* 1表示要运行bus deamon */
-    int run_bus_deamon_flag;
-	int disable_node_service_flag;
-	/* flag == 1 表示退出node */
-    int node_flag; 
+	
+    int run_bus_deamon_flag; /* 1表示要运行bus deamon */
+	int disable_node_service_flag; //node cli 需要设置这个标记，不用启动服务。
+    int node_flag; /* flag == 1 表示退出node */
 	String *str;
 };
 
