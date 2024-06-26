@@ -30,5 +30,5 @@ static class_info_entry_t digest_class_info[] = {
     Init_Vfunc_Entry(8, Digest, final, NULL),
     Init_End___Entry(9, Digest),
 };
-REGISTER_CLASS("Digest", digest_class_info);
+REGISTER_CLASS(Digest, digest_class_info);
 

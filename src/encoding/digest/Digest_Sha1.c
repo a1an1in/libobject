@@ -65,7 +65,7 @@ static class_info_entry_t digest_class_info[] = {
     Init_Vfunc_Entry(7, Digest_Sha1, final, __final),
     Init_End___Entry(8, Digest_Sha1),
 };
-REGISTER_CLASS("Digest_Sha1", digest_class_info);
+REGISTER_CLASS(Digest_Sha1, digest_class_info);
 
 static int
 test_digest_sha1(TEST_ENTRY *entry, void *argc, void *argv)

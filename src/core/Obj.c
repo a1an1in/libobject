@@ -280,4 +280,4 @@ static class_info_entry_t obj_class_info[] = {
     [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "assign", __assign, sizeof(void *), offset_of_class(Obj, assign)}, 
     [8] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Obj", obj_class_info);
+REGISTER_CLASS(Obj, obj_class_info);

@@ -75,4 +75,4 @@ static class_info_entry_t concurent_class_info[] = {
     Init_Vfunc_Entry(6 , Inet_Tcp_Server, trustee, NULL),
     Init_End___Entry(7 , Inet_Tcp_Server),
 };
-REGISTER_CLASS("Inet_Tcp_Server", concurent_class_info);
+REGISTER_CLASS(Inet_Tcp_Server, concurent_class_info);

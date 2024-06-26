@@ -164,7 +164,7 @@ static class_info_entry_t object_cache_info[] = {
     Init_Vfunc_Entry(3 , Object_Cache, new, __new),
     Init_End___Entry(4 , Object_Cache),
 };
-REGISTER_CLASS("Object_Cache", object_cache_info);
+REGISTER_CLASS(Object_Cache, object_cache_info);
 
 #if 0
 static int test_object_cache_new()

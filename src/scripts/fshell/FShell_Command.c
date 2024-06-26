@@ -70,4 +70,4 @@ static class_info_entry_t FShell_Command_class_info[] = {
     Init_Vfunc_Entry(5, FShell_Command, run_command, __run_command),
     Init_End___Entry(6, FShell_Command),
 };
-REGISTER_APP_CMD("FShell_Command", FShell_Command_class_info);
+REGISTER_APP_CMD(FShell_Command, FShell_Command_class_info);

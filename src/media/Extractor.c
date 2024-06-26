@@ -189,4 +189,4 @@ static class_info_entry_t concurent_class_info[] = {
     [15] = {ENTRY_TYPE_END},
 };
 
-REGISTER_CLASS("Extractor",concurent_class_info);
+REGISTER_CLASS(Extractor,concurent_class_info);

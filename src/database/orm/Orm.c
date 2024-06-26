@@ -120,5 +120,5 @@ static class_info_entry_t orm_class_info[] = {
     Init_U32___Entry(15, Orm, default_conn_count, NULL),
     Init_End___Entry(16, Orm),
 };
-REGISTER_CLASS("Orm", orm_class_info);
+REGISTER_CLASS(Orm, orm_class_info);
 

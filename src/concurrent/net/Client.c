@@ -143,4 +143,4 @@ static class_info_entry_t client_class_info[] = {
     Init_Vfunc_Entry(9 , Client, trustee, __trustee),
     Init_End___Entry(10, Client),
 };
-REGISTER_CLASS("Client", client_class_info);
+REGISTER_CLASS(Client, client_class_info);

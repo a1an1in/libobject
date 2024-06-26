@@ -76,5 +76,5 @@ static class_info_entry_t user_model_class_info[] = {
     Init_Str___Entry(16, Test_User_Model, verification_code, NULL),
     Init_End___Entry(17, Test_User_Model),
 };
-REGISTER_CLASS("Test_User_Model", user_model_class_info);
+REGISTER_CLASS(Test_User_Model, user_model_class_info);
 

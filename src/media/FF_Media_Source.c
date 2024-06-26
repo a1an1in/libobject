@@ -391,7 +391,7 @@ static class_info_entry_t concurent_class_info[] = {
     [14] = {ENTRY_TYPE_FUNC_POINTER,"","get_bitrate_number",__get_bitrate_number,sizeof(void *)},
     [15] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("FF_Media_Source",concurent_class_info);
+REGISTER_CLASS(FF_Media_Source,concurent_class_info);
 
 static int hls_parse(void *base,int argc,char **argv) 
 {

@@ -177,7 +177,7 @@ static class_info_entry_t inet_udp_socket_class_info[] = {
     Init_Vfunc_Entry(13, Unix_Udp_Socket, setnonblocking, __setnonblocking),
     Init_End___Entry(14, Unix_Udp_Socket),
 };
-REGISTER_CLASS("Unix_Udp_Socket", inet_udp_socket_class_info);
+REGISTER_CLASS(Unix_Udp_Socket, inet_udp_socket_class_info);
 
 #if 0
 #define UNIX_CLIENT_PATH "/tmp/unix_client_01"

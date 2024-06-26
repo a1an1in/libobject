@@ -135,4 +135,4 @@ static class_info_entry_t interval_tree_class_info[] = {
     Init_Vfunc_Entry(6 , Interval_Tree, customize, __customize),
     Init_End___Entry(7 , Interval_Tree),
 };
-REGISTER_CLASS("Interval_Tree", interval_tree_class_info);
+REGISTER_CLASS(Interval_Tree, interval_tree_class_info);

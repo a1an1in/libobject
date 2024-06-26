@@ -370,4 +370,4 @@ static class_info_entry_t concurent_class_info[] = {
     Init_Str___Entry(12, Http_Server, service, NULL),
     Init_End___Entry(13, Http_Server),
 };
-REGISTER_CLASS("Http_Server",concurent_class_info);
+REGISTER_CLASS(Http_Server,concurent_class_info);

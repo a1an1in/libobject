@@ -47,4 +47,4 @@ static class_info_entry_t help_command_class_info[] = {
     Init_Vfunc_Entry(3, Help_Command, run_command, __run_command),
     Init_End___Entry(4, Help_Command),
 };
-REGISTER_APP_CMD("Help_Command", help_command_class_info);
+REGISTER_APP_CMD(Help_Command, help_command_class_info);

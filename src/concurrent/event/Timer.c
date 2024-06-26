@@ -100,5 +100,5 @@ static class_info_entry_t timer_class_info[] = {
     Init_Vfunc_Entry(9 , Timer, first, NULL),
     Init_End___Entry(10, Timer),
 };
-REGISTER_CLASS("Timer", timer_class_info);
+REGISTER_CLASS(Timer, timer_class_info);
 

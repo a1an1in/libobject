@@ -141,4 +141,4 @@ static class_info_entry_t list_class_info[] = {
     Init_U8____Entry(23, List, value_type, NULL),
     Init_End___Entry(24, List),
 };
-REGISTER_CLASS("List", list_class_info);
+REGISTER_CLASS(List, list_class_info);

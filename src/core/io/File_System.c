@@ -255,4 +255,4 @@ static class_info_entry_t file_system_class_info[] = {
     Init_Vfunc_Entry(11, File_System, rmdir, __rmdir),
     Init_End___Entry(12, File_System),
 };
-REGISTER_CLASS("File_System", file_system_class_info);
+REGISTER_CLASS(File_System, file_system_class_info);

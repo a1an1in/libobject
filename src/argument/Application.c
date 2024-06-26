@@ -193,7 +193,7 @@ static class_info_entry_t application_class_info[] = {
     Init_Nfunc_Entry(8, Application, help, NULL),
     Init_End___Entry(9, Application),
 };
-REGISTER_CLASS("Application", application_class_info);
+REGISTER_CLASS(Application, application_class_info);
 
 int app_register_cmd(char *cmd)
 {

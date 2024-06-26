@@ -48,5 +48,5 @@ static class_info_entry_t zcompress_class_info[] = {
     Init_Vfunc_Entry(4, LzmaCompress, uncompress_file, __uncompress_file),
     Init_End___Entry(5, LzmaCompress),
 };
-REGISTER_CLASS("LzmaCompress", zcompress_class_info);
+REGISTER_CLASS(LzmaCompress, zcompress_class_info);
 

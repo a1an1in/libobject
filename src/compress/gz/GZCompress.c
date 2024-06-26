@@ -147,6 +147,6 @@ static class_info_entry_t zcompress_class_info[] = {
     Init_Vfunc_Entry(6, GZCompress, uncompress_file, __uncompress_file),
     Init_End___Entry(7, GZCompress),
 };
-REGISTER_CLASS("GZCompress", zcompress_class_info);
+REGISTER_CLASS(GZCompress, zcompress_class_info);
 #endif // GZIP_H
 

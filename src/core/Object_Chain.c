@@ -74,5 +74,5 @@ static class_info_entry_t object_chain_class_info[] = {
     Init_Nfunc_Entry(3, Object_Chain, new, __new),
     Init_End___Entry(4, Object_Chain),
 };
-REGISTER_CLASS("Object_Chain", object_chain_class_info);
+REGISTER_CLASS(Object_Chain, object_chain_class_info);
 

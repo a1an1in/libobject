@@ -165,7 +165,7 @@ static class_info_entry_t http_client_class_info[] = {
     Init_OP____Entry(11, Http_Client, command, NULL),
     Init_End___Entry(12, Http_Client),
 };
-REGISTER_CLASS("Http_Client", http_client_class_info);
+REGISTER_CLASS(Http_Client, http_client_class_info);
 
 static int test_request_callback(Response *resp, void *arg)
 {

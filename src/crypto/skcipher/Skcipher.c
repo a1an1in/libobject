@@ -101,7 +101,7 @@ static class_info_entry_t sk_class_info[] = {
     Init_Vfunc_Entry(8, Skcipher, set_iv, __set_iv),
     Init_End___Entry(9, Skcipher),
 };
-REGISTER_CLASS("Skcipher", sk_class_info);
+REGISTER_CLASS(Skcipher, sk_class_info);
 
 static int
 test_skcipher_ecb_aes(TEST_ENTRY *entry, void *argc, void *argv)

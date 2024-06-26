@@ -232,4 +232,4 @@ static class_info_entry_t url_test_class_info[] = {
     Init_Vfunc_Entry(14, Url_Test, test_parse_fragment, __test_parse_fragment),
     Init_End___Entry(15, Url_Test),
 };
-REGISTER_CLASS("Url_Test", url_test_class_info);
+REGISTER_CLASS(Url_Test, url_test_class_info);

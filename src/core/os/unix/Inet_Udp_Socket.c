@@ -240,7 +240,7 @@ static class_info_entry_t inet_udp_socket_class_info[] = {
     Init_Vfunc_Entry(13, Inet_Udp_Socket, setnonblocking, __setnonblocking),
     Init_End___Entry(14, Inet_Udp_Socket),
 };
-REGISTER_CLASS("Inet_Udp_Socket", inet_udp_socket_class_info);
+REGISTER_CLASS(Inet_Udp_Socket, inet_udp_socket_class_info);
 
 #if 0
 void test_inet_udp_socket_send()

@@ -24,4 +24,4 @@ static class_info_entry_t module_class_info[] = {
     Init_Nfunc_Entry(2, Module, deconstruct, __deconstruct),
     Init_End___Entry(3, Module),
 };
-REGISTER_CLASS("Module", module_class_info);
+REGISTER_CLASS(Module, module_class_info);

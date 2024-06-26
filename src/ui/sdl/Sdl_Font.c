@@ -200,7 +200,7 @@ static class_info_entry_t font_class_info[] = {
     [11] = {ENTRY_TYPE_END}, 
 
 };
-REGISTER_CLASS("Sdl_Font", font_class_info);
+REGISTER_CLASS(Sdl_Font, font_class_info);
 
 void test_obj_sdl_font()
 {

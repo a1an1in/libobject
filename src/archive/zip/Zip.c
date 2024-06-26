@@ -701,4 +701,4 @@ static class_info_entry_t zip_class_info[] = {
     Init_Vfunc_Entry(7, Zip, save, __save),
     Init_End___Entry(8, Zip),
 };
-REGISTER_CLASS("Zip", zip_class_info);
+REGISTER_CLASS(Zip, zip_class_info);

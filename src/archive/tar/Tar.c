@@ -263,4 +263,4 @@ static class_info_entry_t tar_class_info[] = {
     Init_Vfunc_Entry(7, Tar, save, __save),
     Init_End___Entry(8, Tar),
 };
-REGISTER_CLASS("Tar", tar_class_info);
+REGISTER_CLASS(Tar, tar_class_info);

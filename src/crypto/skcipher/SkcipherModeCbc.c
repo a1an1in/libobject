@@ -143,4 +143,4 @@ static class_info_entry_t cipher_mode_Cbc_class_info[] = {
     Init_Vfunc_Entry(3, SkcipherModeCbc, create, __create),
     Init_End___Entry(4, SkcipherModeCbc),
 };
-REGISTER_CLASS("Cbc", cipher_mode_Cbc_class_info);
+REGISTER_CLASS(Cbc, cipher_mode_Cbc_class_info);

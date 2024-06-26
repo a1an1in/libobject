@@ -38,5 +38,5 @@ static class_info_entry_t field_class_info[] = {
     Init_Str___Entry(7, Field, constraint, NULL),
     Init_End___Entry(8, Field),
 };
-REGISTER_CLASS("Field", field_class_info);
+REGISTER_CLASS(Field, field_class_info);
 

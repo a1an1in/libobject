@@ -357,4 +357,4 @@ static class_info_entry_t mysql_test_class_info[] = {
     Init_Vfunc_Entry(13, Mysql_Test, test_query, __test_query),
     Init_End___Entry(14, Mysql_Test),
 };
-REGISTER_CLASS("Mysql_Test", mysql_test_class_info);
+REGISTER_CLASS(Mysql_Test, mysql_test_class_info);

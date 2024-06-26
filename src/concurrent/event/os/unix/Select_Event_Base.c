@@ -166,5 +166,5 @@ static class_info_entry_t select_base_class_info[] = {
     Init_Vfunc_Entry(6, Select_Base, dispatch, __dispatch),
     Init_End___Entry(7, Select_Base),
 };
-REGISTER_CLASS("Select_Base", select_base_class_info);
+REGISTER_CLASS(Select_Base, select_base_class_info);
 #endif

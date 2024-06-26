@@ -222,4 +222,4 @@ static class_info_entry_t mysql_class_info[] = {
     Init_Vfunc_Entry(12, Mysql, query, __query),
     Init_End___Entry(13, Mysql),
 };
-REGISTER_CLASS("Mysql", mysql_class_info);
+REGISTER_CLASS(Mysql, mysql_class_info);

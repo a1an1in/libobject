@@ -71,5 +71,5 @@ static class_info_entry_t inet_udp_v6_client_class_info[] = {
     Init_Nfunc_Entry(2 , Inet_Udp_V6_Client, deconstruct, __deconstrcut),
     Init_End___Entry(3 , Inet_Udp_V6_Client),
 };
-REGISTER_CLASS("Inet_Udp_V6_Client", inet_udp_v6_client_class_info);
+REGISTER_CLASS(Inet_Udp_V6_Client, inet_udp_v6_client_class_info);
 

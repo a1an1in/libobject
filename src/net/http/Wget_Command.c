@@ -178,7 +178,7 @@ static class_info_entry_t test_command_class_info[] = {
     Init_U32___Entry(5, Wget_Command, help, 0),
     Init_End___Entry(6, Wget_Command),
 };
-REGISTER_APP_CMD("Wget_Command", test_command_class_info);
+REGISTER_APP_CMD(Wget_Command, test_command_class_info);
 
 static int test_marshal_wget_command(TEST_ENTRY *entry)
 {

@@ -115,4 +115,4 @@ static class_info_entry_t cipher_mode_ecb_class_info[] = {
     Init_Vfunc_Entry(3, SkcipherModeEcb, create, __create),
     Init_End___Entry(4, SkcipherModeEcb),
 };
-REGISTER_CLASS("Ecb", cipher_mode_ecb_class_info);
+REGISTER_CLASS(Ecb, cipher_mode_ecb_class_info);

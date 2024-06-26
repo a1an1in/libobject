@@ -85,7 +85,7 @@ static class_info_entry_t dispatcher_class_info[] = {
     Init_Obj___Entry(0, Obj, obj),
     Init_End___Entry(1, Dispatcher),
 };
-REGISTER_CLASS("Dispatcher", dispatcher_class_info);
+REGISTER_CLASS(Dispatcher, dispatcher_class_info);
 
 void test_obj_dispatcher()
 {

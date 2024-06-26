@@ -77,7 +77,7 @@ static class_info_entry_t unix_cond_class_info[] = {
     Init_Vfunc_Entry(5, Unix_Condition, broadcast, __broadcast),
     Init_End___Entry(6, Unix_Condition),
 };
-REGISTER_CLASS("Unix_Condition", unix_cond_class_info);
+REGISTER_CLASS(Unix_Condition, unix_cond_class_info);
 
 
 /*

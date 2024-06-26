@@ -204,7 +204,7 @@ static class_info_entry_t image_class_info[] = {
     [9 ] = {ENTRY_TYPE_END}, 
 
 };
-REGISTER_CLASS("Sdl_Image", image_class_info);
+REGISTER_CLASS(Sdl_Image, image_class_info);
 
 static int sdl_image()
 {

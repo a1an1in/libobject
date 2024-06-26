@@ -1795,5 +1795,5 @@ static class_info_entry_t concurent_class_info[] = {
     [40] = {ENTRY_TYPE_VFUNC_POINTER, "", "check_loading", __check_loading, sizeof(void *)}, 
     [41] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("Player", concurent_class_info);
+REGISTER_CLASS(Player, concurent_class_info);
 

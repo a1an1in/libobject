@@ -619,4 +619,4 @@ static class_info_entry_t request_class_info[] = {
     Init_Vfunc_Entry(12, Request, get_cookie, __get_cookie),
     Init_End___Entry(13, Request),
 };
-REGISTER_CLASS("Request", request_class_info);
+REGISTER_CLASS(Request, request_class_info);

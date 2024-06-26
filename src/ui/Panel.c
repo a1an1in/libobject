@@ -85,7 +85,7 @@ static class_info_entry_t panel_class_info[] = {
     Init_Vfunc_Entry(5 , Panel, draw, __draw),
     Init_End___Entry(6 , Panel),
 };
-REGISTER_CLASS("Panel", panel_class_info);
+REGISTER_CLASS(Panel, panel_class_info);
 
 void test_ui_panel()
 {

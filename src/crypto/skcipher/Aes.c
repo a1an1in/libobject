@@ -397,4 +397,4 @@ static class_info_entry_t Aes_class_info[] = {
 	Init_Vfunc_Entry(6, Aes, get_block_size, __get_block_size),
     Init_End___Entry(7, Aes),
 };
-REGISTER_CLASS("Aes", Aes_class_info);
+REGISTER_CLASS(Aes, Aes_class_info);

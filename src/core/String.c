@@ -634,4 +634,4 @@ static class_info_entry_t string_class_info[] = {
     Init_Point_Entry(30, String, value, NULL), 
     Init_End___Entry(31, String), 
 };
-REGISTER_CLASS("String", string_class_info);
+REGISTER_CLASS(String, string_class_info);

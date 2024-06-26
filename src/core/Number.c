@@ -260,5 +260,5 @@ static class_info_entry_t number_class_info[] = {
     Init_Vfunc_Entry(19, Number, prime, __prime),
     Init_End___Entry(20, Number),
 };
-REGISTER_CLASS("Number", number_class_info);
+REGISTER_CLASS(Number, number_class_info);
 

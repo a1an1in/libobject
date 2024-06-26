@@ -101,4 +101,4 @@ static class_info_entry_t tbz_class_info[] = {
     Init_Vfunc_Entry(4, Tbz2, uncompress, __uncompress),
     Init_End___Entry(5, Tbz2),
 };
-REGISTER_CLASS("Tbz2", tbz_class_info);
+REGISTER_CLASS(Tbz2, tbz_class_info);

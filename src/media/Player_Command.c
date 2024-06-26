@@ -129,4 +129,4 @@ static class_info_entry_t player_command_class_info[] = {
     Init_Vfunc_Entry(5, Player_Command, run_command, __run_command),
     Init_End___Entry(6, Player_Command),
 };
-REGISTER_APP_CMD("Player_Command", player_command_class_info);
+REGISTER_APP_CMD(Player_Command, player_command_class_info);

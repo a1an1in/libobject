@@ -85,7 +85,7 @@ static class_info_entry_t iter_class_info[] = {
     Init_Vfunc_Entry(9 , Iterator, clear, NULL),
     Init_End___Entry(10, Iterator),
 };
-REGISTER_CLASS("Iterator", iter_class_info);
+REGISTER_CLASS(Iterator, iter_class_info);
 
 void test_obj_iter()
 {

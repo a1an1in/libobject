@@ -194,7 +194,7 @@ static int __wait(Turn_Udp_Client *turn, enum turn_status_e status, int time)
 }
 
 static class_info_entry_t turn_class_info[] = {
-    Init_Obj___Entry(0 , Turn::Turn_Client, parent),
+    Init_Obj___Entry(0 , Turn_Client, parent),
     Init_Nfunc_Entry(1 , Turn_Udp_Client, construct, __construct),
     Init_Nfunc_Entry(2 , Turn_Udp_Client, deconstruct, __deconstruct),
     Init_Vfunc_Entry(3 , Turn_Udp_Client, connect, __connect),
@@ -208,7 +208,7 @@ static class_info_entry_t turn_class_info[] = {
     Init_Vfunc_Entry(11, Turn_Udp_Client, wait, __wait),
     Init_End___Entry(12, Turn_Udp_Client),
 };
-REGISTER_CLASS("Turn::Turn_Udp_Client", turn_class_info);
+REGISTER_CLASS(Turn_Udp_Client, turn_class_info);
 
 static int __turn_client_resp_callback(void *task)
 {
@@ -269,7 +269,7 @@ static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
         arg.addr = addr;
         arg.lifetime = -1;
 
-        turn = object_new(allocator, "Turn::Turn_Udp_Client", NULL);
+        turn = object_new(allocator, "Turn_Udp_Client", NULL);
         EXEC(turn->connect(turn, "122.112.200.183", "3478"));
         EXEC(turn->generate_auth_code(turn, arg.user, arg.realm, arg.password, turn->auth_code, 16));
 

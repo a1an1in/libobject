@@ -99,7 +99,7 @@ static class_info_entry_t character_class_info[] = {
     Init_Nfunc_Entry(3 , Sdl_Character, load_character, __load_character),
     Init_End___Entry(4 , Sdl_Character),
 };
-REGISTER_CLASS("Sdl_Character", character_class_info);
+REGISTER_CLASS(Sdl_Character, character_class_info);
 
 int sdl_character()
 {

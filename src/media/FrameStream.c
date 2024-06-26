@@ -283,4 +283,4 @@ static class_info_entry_t concurent_class_info[] = {
     [13] = {ENTRY_TYPE_END},
 };
 
-REGISTER_CLASS("FrameStream",concurent_class_info);
+REGISTER_CLASS(FrameStream,concurent_class_info);

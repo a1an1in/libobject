@@ -129,7 +129,7 @@ static class_info_entry_t producer_class_info[] = {
     Init_Vfunc_Entry(8, Producer, close, __close),
     Init_End___Entry(9, Producer),
 };
-REGISTER_CLASS("Producer", producer_class_info);
+REGISTER_CLASS(Producer, producer_class_info);
 
 Producer *producer_get_default_instance()
 {

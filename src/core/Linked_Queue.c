@@ -195,4 +195,4 @@ static class_info_entry_t linked_queue_class_info[] = {
     Init_Vfunc_Entry(15, Linked_Queue, peek_back, __peek_back),
     Init_End___Entry(16, Linked_Queue),
 };
-REGISTER_CLASS("Linked_Queue", linked_queue_class_info);
+REGISTER_CLASS(Linked_Queue, linked_queue_class_info);

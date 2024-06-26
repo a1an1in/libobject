@@ -155,5 +155,5 @@ static class_info_entry_t shell_class_info[] = {
     Init_Vfunc_Entry(9 , WindowsFShell, is_statement, NULL),
     Init_End___Entry(10, WindowsFShell),
 };
-REGISTER_CLASS("WindowsFShell", shell_class_info);
+REGISTER_CLASS(WindowsFShell, shell_class_info);
 #endif

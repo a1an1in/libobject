@@ -204,7 +204,7 @@ static class_info_entry_t rbtree_timer_class_info[] = {
     Init_Vfunc_Entry(9 , Rbtree_Timer, first, __first),
     Init_End___Entry(10, Rbtree_Timer),
 };
-REGISTER_CLASS("Rbtree_Timer", rbtree_timer_class_info);
+REGISTER_CLASS(Rbtree_Timer, rbtree_timer_class_info);
 
 void test_obj_event_rbtree_timer()
 {

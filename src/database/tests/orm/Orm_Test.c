@@ -500,4 +500,4 @@ static class_info_entry_t orm_test_class_info[] = {
     Init_Vfunc_Entry(16, Orm_Test, test_drop, __test_drop),
     Init_End___Entry(17, Orm_Test),
 };
-REGISTER_CLASS("Orm_Test", orm_test_class_info);
+REGISTER_CLASS(Orm_Test, orm_test_class_info);

@@ -107,7 +107,7 @@ static class_info_entry_t worker_class_info[] = {
     Init_Vfunc_Entry(5 , Worker, resign, __resign),
     Init_End___Entry(6 , Worker),
 };
-REGISTER_CLASS("Worker", worker_class_info);
+REGISTER_CLASS(Worker, worker_class_info);
 
 static void
 test_timeout_cb(int fd, short event, void *arg)

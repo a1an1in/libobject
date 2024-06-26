@@ -220,4 +220,4 @@ static class_info_entry_t event_thread_class_info[] = {
     Init_Str___Entry(11, Event_Thread, signal_service, NULL),
     Init_End___Entry(12, Event_Thread),
 };
-REGISTER_CLASS("Event_Thread",event_thread_class_info);
+REGISTER_CLASS(Event_Thread, event_thread_class_info);

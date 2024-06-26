@@ -74,4 +74,4 @@ static class_info_entry_t module_test_class_info[] = {
     Init_Vfunc_Entry(6 , Module_Test, teardown, __teardown),
     Init_End___Entry(7 , Module_Test),
 };
-REGISTER_CLASS("Module_Test", module_test_class_info);
+REGISTER_CLASS(Module_Test, module_test_class_info);

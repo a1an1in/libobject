@@ -46,4 +46,4 @@ static class_info_entry_t Pipe_class_info[] = {
     Init_Vfunc_Entry(7 , Pipe, write, NULL),
     Init_End___Entry(8 , Pipe),
 };
-REGISTER_CLASS("Pipe", Pipe_class_info);
+REGISTER_CLASS(Pipe, Pipe_class_info);

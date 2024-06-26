@@ -236,5 +236,5 @@ static class_info_entry_t trie_class_info[] = {
     Init_Nfunc_Entry(7, Trie, delete, __delete),
     Init_End___Entry(8, Trie),
 };
-REGISTER_CLASS("Trie", trie_class_info);
+REGISTER_CLASS(Trie, trie_class_info);
 

@@ -291,5 +291,5 @@ static class_info_entry_t table_class_info[] = {
     Init_Vfunc_Entry(24, Table, search, __search),
     Init_End___Entry(25, Table),
 };
-REGISTER_CLASS("Table", table_class_info);
+REGISTER_CLASS(Table, table_class_info);
 

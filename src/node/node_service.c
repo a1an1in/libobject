@@ -263,7 +263,7 @@ static int node_malloc(bus_object_t *obj, int argc,
     Node *node;
     FShell *shell;
     Map *map;
-    node_malloc_variable_info_t *info;
+    fsh_malloc_variable_info_t *info;
     int ret, size;
 
     TRY {
@@ -280,7 +280,7 @@ static int node_malloc(bus_object_t *obj, int argc,
 
         switch (value_type) {
             case VALUE_TYPE_ALLOC_POINTER: {
-                info = allocator_mem_alloc(allocator, sizeof(node_malloc_variable_info_t) + size);
+                info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + size);
                 addr = info->value;
                 info->value_type = VALUE_TYPE_ALLOC_POINTER;
                 info->addr = info->value; //记录分配给用户使用的地址。
@@ -288,7 +288,7 @@ static int node_malloc(bus_object_t *obj, int argc,
                 break;
             }
             case VALUE_TYPE_STUB_POINTER:
-                info = allocator_mem_alloc(allocator, sizeof(node_malloc_variable_info_t) + sizeof(void *));
+                info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + sizeof(void *));
                 EXEC(fsh_alloc_stub(&info->addr));
                 info->value_type = VALUE_TYPE_STUB_POINTER;
                 strcpy(info->name, name);
@@ -325,7 +325,7 @@ static int node_mfree(bus_object_t *obj, int argc,
     FShell *shell;
     char *name, *search_addr = NULL;
     Map *map;
-    node_malloc_variable_info_t *info = NULL;
+    fsh_malloc_variable_info_t *info = NULL;
     target_type_t type;
     int ret, size;
 

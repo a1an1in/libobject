@@ -175,4 +175,4 @@ static class_info_entry_t map_class_info[] = {
     Init_Point_Entry(25, Map, value_free_callback, NULL),
     Init_End___Entry(26, Map),
 };
-REGISTER_CLASS("Map", map_class_info);
+REGISTER_CLASS(Map, map_class_info);

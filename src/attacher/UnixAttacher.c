@@ -253,6 +253,6 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry(17, UnixAttacher, stop, __stop),
     Init_End___Entry(18, UnixAttacher),
 };
-REGISTER_CLASS("UnixAttacher", attacher_class_info);
+REGISTER_CLASS(UnixAttacher, attacher_class_info);
 
 #endif

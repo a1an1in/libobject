@@ -8,14 +8,14 @@
 #include <libobject/core/utils/registry/registry.h>
 
 #define REGISTER_CLASS(class_name, class_info) \
-    __attribute__((constructor)) static void register_class()\
-    {\
-        ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, register class %s\n",\
-                     REGISTRY_CTOR_PRIORITY_REGISTER_CLASS, class_name);\
-        \
-        __register_ctor_func3(REGISTRY_CTOR_PRIORITY_REGISTER_CLASS,\
-                (int (*)(void *, void * , void *))class_deamon_register_class, NULL, class_name, class_info);\
-    }
+__attribute__((constructor)) static void register##class_name()\
+{\
+    ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, register class %s\n",\
+                  REGISTRY_CTOR_PRIORITY_REGISTER_CLASS, #class_name);\
+    \
+    __register_ctor_func3(REGISTRY_CTOR_PRIORITY_REGISTER_CLASS,\
+            (int (*)(void *, void * , void *))class_deamon_register_class, NULL, #class_name, class_info);\
+}
 
 typedef struct class_deamon_s{
 	allocator_t *allocator;

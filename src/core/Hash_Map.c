@@ -198,4 +198,4 @@ static class_info_entry_t hash_map_class_info[] = {
     Init_U16___Entry(14, Hash_Map, bucket_size, NULL),
     Init_End___Entry(15, Hash_Map),
 };
-REGISTER_CLASS("Hash_Map", hash_map_class_info);
+REGISTER_CLASS(Hash_Map, hash_map_class_info);

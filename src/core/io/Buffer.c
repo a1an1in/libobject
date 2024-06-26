@@ -320,4 +320,4 @@ static class_info_entry_t buffer_class_info[] = {
     Init_Vfunc_Entry(15, Buffer, get_free_capacity, __get_free_capacity),
     Init_End___Entry(16, Buffer),
 };
-REGISTER_CLASS("Buffer", buffer_class_info);
+REGISTER_CLASS(Buffer, buffer_class_info);

@@ -36,4 +36,4 @@ static class_info_entry_t version_command_class_info[] = {
     Init_Vfunc_Entry(3, Version_Command, run_command, __run_command),
     Init_End___Entry(4, Version_Command),
 };
-REGISTER_APP_CMD("Version_Command", version_command_class_info);
+REGISTER_APP_CMD(Version_Command, version_command_class_info);

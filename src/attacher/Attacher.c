@@ -343,5 +343,5 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry(22, Attacher, stop, NULL),
     Init_End___Entry(23, Attacher),
 };
-REGISTER_CLASS("Attacher", attacher_class_info);
+REGISTER_CLASS(Attacher, attacher_class_info);
 

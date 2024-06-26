@@ -36,4 +36,4 @@ static class_info_entry_t test_obj_class_info[] = {
     Init_U32___Entry(4, Simplest_Obj, help, 0),
     Init_End___Entry(5, Simplest_Obj),
 };
-REGISTER_CLASS("Simplest_Obj", test_obj_class_info);
+REGISTER_CLASS(Simplest_Obj, test_obj_class_info);

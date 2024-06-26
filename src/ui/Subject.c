@@ -96,4 +96,4 @@ static class_info_entry_t subject_class_info[] = {
     Init_Float_Entry(15, Subject, y_speed, NULL),
     Init_End___Entry(16, Subject),
 };
-REGISTER_CLASS("Subject", subject_class_info);
+REGISTER_CLASS(Subject, subject_class_info);

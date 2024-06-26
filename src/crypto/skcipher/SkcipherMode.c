@@ -15,4 +15,4 @@ static class_info_entry_t cipher_algo_class_info[] = {
     Init_Vfunc_Entry(3, SkcipherMode, create, NULL),
     Init_End___Entry(4, SkcipherMode),
 };
-REGISTER_CLASS("SkcipherMode", cipher_algo_class_info);
+REGISTER_CLASS(SkcipherMode, cipher_algo_class_info);

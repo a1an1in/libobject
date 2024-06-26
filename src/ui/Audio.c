@@ -135,7 +135,7 @@ static class_info_entry_t audio_class_info[] = {
     Init_Str___Entry(15, Audio, path, NULL),
     Init_End___Entry(16, Audio),
 };
-REGISTER_CLASS("Audio", audio_class_info);
+REGISTER_CLASS(Audio, audio_class_info);
 
 void test_obj_audio()
 {

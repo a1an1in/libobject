@@ -667,7 +667,7 @@ static class_info_entry_t sdl_event_class_info[] = {
     [6 ] = {ENTRY_TYPE_END}, 
 
 };
-REGISTER_CLASS("FF_Event", sdl_event_class_info);
+REGISTER_CLASS(FF_Event, sdl_event_class_info);
 extern char *gen_window_setting_str();
 static int sdl_event()
 {

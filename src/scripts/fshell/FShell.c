@@ -96,7 +96,7 @@ static int __run_func(FShell *shell, String *str)
     char *arg, *func_name;
     fshell_func_t func = NULL;
     Map *map = shell->variable_map;
-    node_malloc_variable_info_t *info = NULL;
+    fsh_malloc_variable_info_t *info = NULL;
     void *par[20] = {0};
     char *func_str[128];
 
@@ -193,5 +193,21 @@ static class_info_entry_t shell_class_info[] = {
     Init_Vfunc_Entry(11, FShell, init, __init),
     Init_End___Entry(12, FShell),
 };
-REGISTER_CLASS("FShell", shell_class_info);
+REGISTER_CLASS(FShell, shell_class_info);
 
+// static class_info_entry_t fsh_malloc_variable_info_struct_info[] = {
+//     Init_Obj___Entry(0 , Obj, parent),
+//     Init_Nfunc_Entry(1 , Fsh_Variable_Info, construct, __construct),
+//     Init_Nfunc_Entry(2 , Fsh_Variable_Info, deconstruct, __deconstruct),
+//     Init_Vfunc_Entry(3 , Fsh_Variable_Info, load, NULL),
+//     Init_Vfunc_Entry(4 , Fsh_Variable_Info, unload, NULL),
+//     Init_Vfunc_Entry(5 , Fsh_Variable_Info, get_func_addr, NULL),
+//     Init_Vfunc_Entry(6 , Fsh_Variable_Info, get_func_name, NULL),
+//     Init_Vfunc_Entry(7 , Fsh_Variable_Info, open_ui, NULL),
+//     Init_Vfunc_Entry(8 , Fsh_Variable_Info, set_prompt, __set_prompt),
+//     Init_Vfunc_Entry(9 , Fsh_Variable_Info, run_func, __run_func),
+//     Init_Vfunc_Entry(10, Fsh_Variable_Info, is_statement, __is_statement),
+//     Init_Vfunc_Entry(11, Fsh_Variable_Info, init, __init),
+//     Init_End___Entry(12, Fsh_Variable_Info),
+// };
+// REGISTER_CLASS(Fsh_Variable_Info, fsh_malloc_variable_info_struct_info);

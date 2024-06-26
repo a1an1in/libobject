@@ -112,7 +112,7 @@ static class_info_entry_t sdl_timer_class_info[] = {
     [7 ] = {ENTRY_TYPE_END}, 
 
 };
-REGISTER_CLASS("Sdl_Timer", sdl_timer_class_info);
+REGISTER_CLASS(Sdl_Timer, sdl_timer_class_info);
 
 static uint32_t test_sdl_timer_callback(uint32_t interval, void* param )
 {

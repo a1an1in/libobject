@@ -89,4 +89,4 @@ static class_info_entry_t array_stack_class_info[] = {
     Init_Vfunc_Entry(7, Array_Stack, count, __count),
     Init_End___Entry(8, Array_Stack),
 };
-REGISTER_CLASS("Array_Stack", array_stack_class_info);
+REGISTER_CLASS(Array_Stack, array_stack_class_info);

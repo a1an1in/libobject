@@ -279,5 +279,5 @@ static class_info_entry_t inet_tcp_socket_class_info[] = {
     Init_U32___Entry(16, Inet_Tcp_Socket, sub_socket_flag, 0),
     Init_End___Entry(17, Inet_Tcp_Socket),
 };
-REGISTER_CLASS("Inet_Tcp_Socket", inet_tcp_socket_class_info);
+REGISTER_CLASS(Inet_Tcp_Socket, inet_tcp_socket_class_info);
 #endif

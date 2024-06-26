@@ -229,4 +229,4 @@ static class_info_entry_t concurent_class_info[] = {
     [12] = {ENTRY_TYPE_FUNC_POINTER,"","clear",__clear,sizeof(void *)},
     [13] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("PacketStream",concurent_class_info);
+REGISTER_CLASS(PacketStream,concurent_class_info);

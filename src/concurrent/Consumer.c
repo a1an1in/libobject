@@ -83,7 +83,7 @@ static class_info_entry_t consumer_class_info[] = {
     Init_Obj___Entry(0, Obj, obj),
     Init_End___Entry(1, Consumer),
 };
-REGISTER_CLASS("Consumer", consumer_class_info);
+REGISTER_CLASS(Consumer, consumer_class_info);
 
 void test_obj_consumer()
 {

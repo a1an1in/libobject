@@ -63,7 +63,7 @@ static class_info_entry_t character_class_info[] = {
     Init_U32___Entry(7 , Character, code, NULL),
     Init_End___Entry(8 , Character),
 };
-REGISTER_CLASS("Character", character_class_info);
+REGISTER_CLASS(Character, character_class_info);
 
 void test_obj_character()
 {

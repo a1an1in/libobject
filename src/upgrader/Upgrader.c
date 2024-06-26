@@ -30,4 +30,4 @@ static class_info_entry_t upgrader_class_info[] = {
     Init_Nfunc_Entry(2, Upgrader, deconstruct, __deconstruct),
     Init_End___Entry(3, Upgrader),
 };
-REGISTER_CLASS("Upgrader", upgrader_class_info);
+REGISTER_CLASS(Upgrader, upgrader_class_info);

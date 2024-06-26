@@ -649,5 +649,5 @@ static class_info_entry_t conn_class_info[] = {
     Init_Vfunc_Entry(16, Orm_Conn, insert_or_update_table, __insert_or_update_table),
     Init_End___Entry(17, Orm_Conn),
 };
-REGISTER_CLASS("Orm_Conn", conn_class_info);
+REGISTER_CLASS(Orm_Conn, conn_class_info);
 

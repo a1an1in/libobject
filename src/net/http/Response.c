@@ -472,4 +472,4 @@ static class_info_entry_t response_class_info[] = {
     Init_Vfunc_Entry(10, Response, write, __write),
     Init_End___Entry(11, Response),
 };
-REGISTER_CLASS("Response", response_class_info);
+REGISTER_CLASS(Response, response_class_info);

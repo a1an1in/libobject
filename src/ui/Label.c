@@ -204,7 +204,7 @@ static class_info_entry_t label_class_info[] = {
     Init_U8____Entry(9 , Label, text_overflow_flag, NULL),
     Init_End___Entry(10, Label),
 };
-REGISTER_CLASS("Label", label_class_info);
+REGISTER_CLASS(Label, label_class_info);
 
 #if 1
 void gen_label_setting_str(int x, int y, int width, int height, char *name, void *out)

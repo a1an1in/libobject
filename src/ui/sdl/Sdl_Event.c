@@ -544,7 +544,7 @@ static class_info_entry_t sdl_event_class_info[] = {
     [6 ] = {ENTRY_TYPE_END}, 
 
 };
-REGISTER_CLASS("Sdl_Event", sdl_event_class_info);
+REGISTER_CLASS(Sdl_Event, sdl_event_class_info);
 
 int sdl_event()
 {

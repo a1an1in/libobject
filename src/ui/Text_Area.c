@@ -927,7 +927,7 @@ static class_info_entry_t text_area_class_info[] = {
     Init_Str___Entry(17, Text_Area, name, NULL),
     Init_End___Entry(18, Text_Area),
 };
-REGISTER_CLASS("Text_Area", text_area_class_info);
+REGISTER_CLASS(Text_Area, text_area_class_info);
 
 char *gen_text_area_setting_str()
 {

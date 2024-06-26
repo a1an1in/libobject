@@ -344,4 +344,4 @@ static class_info_entry_t archive_class_info[] = {
     Init_Vfunc_Entry(20, Archive, save, NULL),
     Init_End___Entry(21, Archive),
 };
-REGISTER_CLASS("Archive", archive_class_info);
+REGISTER_CLASS(Archive, archive_class_info);

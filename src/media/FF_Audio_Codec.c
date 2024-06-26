@@ -456,4 +456,4 @@ static class_info_entry_t concurent_class_info[] = {
     [10] = {ENTRY_TYPE_VFUNC_POINTER,"","close",__close,sizeof(void *)},
     [11] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("FF_Audio_Codec",concurent_class_info);
+REGISTER_CLASS(FF_Audio_Codec,concurent_class_info);

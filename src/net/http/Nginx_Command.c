@@ -108,4 +108,4 @@ static class_info_entry_t nginx_command_class_info[] = {
     Init_Nfunc_Entry(3, Nginx_Command, run_command, __run_command),
     Init_End___Entry(4, Nginx_Command),
 };
-REGISTER_APP_CMD("Nginx_Command", nginx_command_class_info);
+REGISTER_APP_CMD(Nginx_Command, nginx_command_class_info);

@@ -444,7 +444,7 @@ static class_info_entry_t sdl_grath_class_info[] = {
      *[21] = {ENTRY_TYPE_FUNC_POINTER, "", "write_text", __write_text, sizeof(void *)}, 
      */
 };
-REGISTER_CLASS("Sdl_Render", sdl_grath_class_info);
+REGISTER_CLASS(Sdl_Render, sdl_grath_class_info);
 
 void test_ui_sdl_grath()
 {

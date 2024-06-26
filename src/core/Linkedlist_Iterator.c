@@ -93,7 +93,7 @@ static class_info_entry_t hmap_iter_class_info[] = {
     Init_Vfunc_Entry(6, LList_Iterator, clear, __clear),
     Init_End___Entry(7, LList_Iterator),
 };
-REGISTER_CLASS("LList_Iterator", hmap_iter_class_info);
+REGISTER_CLASS(LList_Iterator, hmap_iter_class_info);
 
 void test_obj_linked_list_iter()
 {

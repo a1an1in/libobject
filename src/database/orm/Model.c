@@ -133,4 +133,4 @@ static class_info_entry_t user_model_class_info[] = {
     Init_Str___Entry(10, Model, table_class_name, NULL),
     Init_End___Entry(11, Model),
 };
-REGISTER_CLASS("Model", user_model_class_info);
+REGISTER_CLASS(Model, user_model_class_info);

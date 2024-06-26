@@ -507,7 +507,7 @@ static class_info_entry_t text_field_class_info[] = {
     Init_Str___Entry(11, Text_Field, name, NULL),
     Init_End___Entry(12, Text_Field),
 };
-REGISTER_CLASS("Text_Field", text_field_class_info);
+REGISTER_CLASS(Text_Field, text_field_class_info);
 
 char *gen_text_field_setting_str()
 {

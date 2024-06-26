@@ -42,4 +42,4 @@ static class_info_entry_t composite_obj_class_info[] = {
     Init_Vec___Entry(9 , Composite_Obj, vector, NULL, "Simplest_Obj"),
     Init_End___Entry(10, Composite_Obj),
 };
-REGISTER_CLASS("Composite_Obj", composite_obj_class_info);
+REGISTER_CLASS(Composite_Obj, composite_obj_class_info);

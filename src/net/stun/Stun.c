@@ -15,8 +15,8 @@ static int __construct(Stun *stun, char *init_str)
     int ret = 0;
 
     TRY {
-       stun->req = object_new(allocator, "Stun::Request", NULL);
-       stun->response = object_new(allocator, "Stun::Response", NULL);
+       stun->req = object_new(allocator, "Stun_Request", NULL);
+       stun->response = object_new(allocator, "Stun_Response", NULL);
        THROW_IF(stun->req == NULL || stun->response == NULL, -1);
 
     } CATCH (ret) {
@@ -50,7 +50,7 @@ static class_info_entry_t stun_class_info[] = {
     Init_Vfunc_Entry(6, Stun, set_read_post_callback, __set_read_post_callback),
     Init_End___Entry(7, Stun),
 };
-REGISTER_CLASS("Stun", stun_class_info);
+REGISTER_CLASS(Stun, stun_class_info);
 
 static int __parse_attrib_mapped_addr(stun_attrib_t *raw, stun_attrib_t *out)
 {

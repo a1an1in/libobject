@@ -77,4 +77,4 @@ static class_info_entry_t image_class_info[] = {
     Init_Vfunc_Entry(9 , Image, change_size, NULL),
     Init_End___Entry(10, Image),
 };
-REGISTER_CLASS("Image", image_class_info);
+REGISTER_CLASS(Image, image_class_info);

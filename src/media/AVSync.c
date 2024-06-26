@@ -260,4 +260,4 @@ static class_info_entry_t concurent_class_info[] = {
     [13] = {ENTRY_TYPE_VFUNC_POINTER,"","clear",__clear,sizeof(void *)},
     [14] = {ENTRY_TYPE_END},
 };  
-REGISTER_CLASS("AVSync", concurent_class_info);
+REGISTER_CLASS(AVSync, concurent_class_info);

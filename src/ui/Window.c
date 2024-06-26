@@ -239,5 +239,5 @@ static class_info_entry_t window_class_info[] = {
     Init_Point_Entry(41, Window, render, NULL),
     Init_End___Entry(42, Window),
 };
-REGISTER_CLASS("Window", window_class_info);
+REGISTER_CLASS(Window, window_class_info);
 

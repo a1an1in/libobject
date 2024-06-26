@@ -8,16 +8,27 @@
 #include <libobject/concurrent/worker_api.h>
 
 typedef struct FShell_s FShell;
+typedef struct Fsh_Malloc_Variable_Info_s Fsh_Variable_Info;
 
-typedef struct node_malloc_variable_info_s {
+typedef struct fsh_malloc_variable_info_s {
 	char name[32];
 	uint32_t value_type;
 	void *free_func;
 	void *addr;
 	char value[0];
-} node_malloc_variable_info_t;
+} fsh_malloc_variable_info_t;
 
-struct FShell_s{
+struct Fsh_Malloc_Variable_Info_s {
+    Obj parent;
+
+    int (*construct)(Fsh_Variable_Info *,char *);
+    int (*deconstruct)(Fsh_Variable_Info *);
+
+    int (*set)(Fsh_Variable_Info *, char *attrib, void *value);
+    void *(*get)(Fsh_Variable_Info *, char *attrib);
+};
+
+struct FShell_s {
     Obj parent;
 
     int (*construct)(FShell *,char *);

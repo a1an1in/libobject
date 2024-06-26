@@ -43,5 +43,5 @@ static class_info_entry_t test_user_table_class_info[] = {
     Init_Vfunc_Entry(8, Test_User_Table, get_model_name, NULL),
     Init_End___Entry(9, Test_User_Table),
 };
-REGISTER_CLASS("Test_User_Table", test_user_table_class_info);
+REGISTER_CLASS(Test_User_Table, test_user_table_class_info);
 

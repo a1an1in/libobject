@@ -26,8 +26,8 @@ static int __construct(Turn_Client *turn, char *init_str)
     int ret = 0;
 
     TRY {
-       turn->req = object_new(allocator, "Turn::Request", NULL);
-       turn->response = object_new(allocator, "Turn::Response", NULL);
+       turn->req = object_new(allocator, "Turn_Request", NULL);
+       turn->response = object_new(allocator, "Turn_Response", NULL);
        THROW_IF(turn->req == NULL || turn->response == NULL, -1);
 
        turn->digest = object_new(allocator, "Openssl::Digest_HmacSha1", NULL);
@@ -153,7 +153,7 @@ static class_info_entry_t turn_class_info[] = {
     Init_Vfunc_Entry(12, Turn_Client, set_method_policy, __set_method_policy),
     Init_End___Entry(13, Turn_Client),
 };
-REGISTER_CLASS("Turn::Turn_Client", turn_class_info);
+REGISTER_CLASS(Turn_Client, turn_class_info);
 
 static int __turn_allocate_post_callback(Response * response, void *opaque)
 {

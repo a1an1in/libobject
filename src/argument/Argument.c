@@ -39,4 +39,4 @@ static class_info_entry_t arg_class_info[] = {
     Init_U8____Entry(10, Argument, set_flag, NULL),
     Init_End___Entry(11, Argument),
 };
-REGISTER_CLASS("Argument", arg_class_info);
+REGISTER_CLASS(Argument, arg_class_info);

@@ -405,4 +405,4 @@ static class_info_entry_t ring_rb_class_info[] = {
     Init_Vfunc_Entry(14, Ring_Buffer, set_size, __set_size),
     Init_End___Entry(15, Ring_Buffer),
 };
-REGISTER_CLASS("Ring_Buffer",ring_rb_class_info);
+REGISTER_CLASS(Ring_Buffer, ring_rb_class_info);

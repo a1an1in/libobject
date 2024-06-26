@@ -81,5 +81,5 @@ static class_info_entry_t file_system_class_info[] = {
     Init_Vfunc_Entry(1 , Windows_File_System, mkdir, __mkdir),
     Init_End___Entry(2 , Windows_File_System),
 };
-REGISTER_CLASS("Windows_File_System", file_system_class_info);
+REGISTER_CLASS(Windows_File_System, file_system_class_info);
 #endif

@@ -300,7 +300,7 @@ static class_info_entry_t sdl_audio_class_info[] = {
     Init_Str___Entry(9 , Sdl_Audio, path, NULL),
     Init_End___Entry(10, Sdl_Audio),
 };
-REGISTER_CLASS("Sdl_Audio", sdl_audio_class_info);
+REGISTER_CLASS(Sdl_Audio, sdl_audio_class_info);
 
 void test_obj_sdl_audio()
 {

@@ -88,7 +88,7 @@ static class_info_entry_t stun_class_info[] = {
     Init_Vfunc_Entry(6, Stun_Udp, set_read_post_callback, NULL),
     Init_End___Entry(7, Stun_Udp),
 };
-REGISTER_CLASS("Stun_Udp", stun_class_info);
+REGISTER_CLASS(Stun_Udp, stun_class_info);
 
 static int __stun_client_resp_callback(void *task)
 {

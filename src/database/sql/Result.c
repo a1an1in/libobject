@@ -121,5 +121,5 @@ static class_info_entry_t result_class_info[] = {
     Init_Vfunc_Entry(10, Result, reset, __reset),
     Init_End___Entry(11, Result),
 };
-REGISTER_CLASS("Result", result_class_info);
+REGISTER_CLASS(Result, result_class_info);
 

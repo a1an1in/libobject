@@ -492,7 +492,7 @@ static class_info_entry_t component_class_info[] = {
     Init_Str___Entry(31, Component, name, NULL),
     Init_End___Entry(32, Component),
 };
-REGISTER_CLASS("Component", component_class_info);
+REGISTER_CLASS(Component, component_class_info);
 
 void test_ui_component()
 {

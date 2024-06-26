@@ -54,4 +54,4 @@ static class_info_entry_t option_class_info[] = {
     Init_U8____Entry(14, Option, multi_value_flag, NULL),
     Init_End___Entry(15, Option),
 };
-REGISTER_CLASS("Option", option_class_info);
+REGISTER_CLASS(Option, option_class_info);

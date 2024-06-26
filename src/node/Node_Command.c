@@ -90,4 +90,4 @@ static class_info_entry_t Node_Command_class_info[] = {
     Init_Vfunc_Entry(3, Node_Command, run_command, __run_command),
     Init_End___Entry(4, Node_Command),
 };
-REGISTER_APP_CMD("Node_Command", Node_Command_class_info);
+REGISTER_APP_CMD(Node_Command, Node_Command_class_info);

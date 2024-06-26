@@ -501,4 +501,4 @@ static class_info_entry_t concurent_class_info[] = {
     [26] = {ENTRY_TYPE_IFUNC_POINTER, "", "poll_event", NULL, sizeof(void *)}, 
     [27] = {ENTRY_TYPE_END}, 
 };
-REGISTER_CLASS("FF_Window", concurent_class_info);
+REGISTER_CLASS(FF_Window, concurent_class_info);

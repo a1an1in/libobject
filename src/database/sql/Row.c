@@ -67,5 +67,5 @@ static class_info_entry_t row_class_info[] = {
     Init_Nfunc_Entry(6, Row, reset, __reset),
     Init_End___Entry(7, Row),
 };
-REGISTER_CLASS("Row", row_class_info);
+REGISTER_CLASS(Row, row_class_info);
 

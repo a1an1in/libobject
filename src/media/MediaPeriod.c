@@ -106,4 +106,4 @@ static class_info_entry_t concurent_class_info[] = {
     [6 ] = {ENTRY_TYPE_FUNC_POINTER,"","get_url",__get_url,sizeof(void *)},
     [7 ] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("MediaPeriod",concurent_class_info);
+REGISTER_CLASS(MediaPeriod,concurent_class_info);

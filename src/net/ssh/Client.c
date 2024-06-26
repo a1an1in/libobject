@@ -24,5 +24,5 @@ static class_info_entry_t client_class_info[] = {
     Init_Nfunc_Entry(2, SSH_Client, deconstruct, __deconstruct),
     Init_End___Entry(3, SSH_Client),
 };
-REGISTER_CLASS("SSH_Client", client_class_info);
+REGISTER_CLASS(SSH_Client, client_class_info);
 

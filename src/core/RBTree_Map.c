@@ -241,4 +241,4 @@ static class_info_entry_t rbtree_map_class_info[] = {
     Init_End___Entry(17, RBTree_Map),
 };
 
-REGISTER_CLASS("RBTree_Map", rbtree_map_class_info);
+REGISTER_CLASS(RBTree_Map, rbtree_map_class_info);

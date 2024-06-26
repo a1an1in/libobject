@@ -105,5 +105,5 @@ static class_info_entry_t request_class_info[] = {
     Init_Nfunc_Entry(5, Request, clear, __clear),
     Init_End___Entry(6, Request),
 };
-REGISTER_CLASS("Turn::Request", request_class_info);
+REGISTER_CLASS(Turn_Request, request_class_info);
 

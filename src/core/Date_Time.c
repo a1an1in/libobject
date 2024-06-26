@@ -375,6 +375,6 @@ static class_info_entry_t module_class_info[] = {
     Init_Nfunc_Entry(22, Date_Time, zonetime2zonetime, __zonetime2zonetime),
     Init_End___Entry(23, Date_Time),
 };
-REGISTER_CLASS("Date_Time", module_class_info);
+REGISTER_CLASS(Date_Time, module_class_info);
 
 #endif

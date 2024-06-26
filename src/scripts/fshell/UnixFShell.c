@@ -180,5 +180,5 @@ static class_info_entry_t shell_class_info[] = {
     Init_Vfunc_Entry(9 , UnixFShell, is_statement, NULL),
     Init_End___Entry(10, UnixFShell),
 };
-REGISTER_CLASS("UnixFShell", shell_class_info);
+REGISTER_CLASS(UnixFShell, shell_class_info);
 #endif

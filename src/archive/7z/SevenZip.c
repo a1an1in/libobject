@@ -87,5 +87,5 @@ static class_info_entry_t fs_class_info[] = {
     Init_Vfunc_Entry(6, SevenZip, list, __list),
     Init_End___Entry(7, SevenZip),
 };
-REGISTER_CLASS("SevenZip", fs_class_info);
+REGISTER_CLASS(SevenZip, fs_class_info);
 

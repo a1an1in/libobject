@@ -213,4 +213,4 @@ static class_info_entry_t concurent_class_info[] = {
     [20] = {ENTRY_TYPE_VFUNC_POINTER,"","close",NULL,sizeof(void *)},
     [21] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Codec",concurent_class_info);
+REGISTER_CLASS(Codec,concurent_class_info);

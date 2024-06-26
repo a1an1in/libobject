@@ -495,7 +495,7 @@ static class_info_entry_t text_class_info[] = {
     Init_Point_Entry(10, Text, line_info, NULL),
     Init_End___Entry(11, Text),
 };
-REGISTER_CLASS("Text", text_class_info);
+REGISTER_CLASS(Text, text_class_info);
 
 void print_line_info(Iterator *iter)
 {

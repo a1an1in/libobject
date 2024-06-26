@@ -91,7 +91,7 @@ static class_info_entry_t event_class_info[] = {
     Init_Vfunc_Entry(5 , __Event, poll_event, NULL),
     Init_End___Entry(6 , __Event),
 };
-REGISTER_CLASS("__Event", event_class_info);
+REGISTER_CLASS(__Event, event_class_info);
 
 void test_obj_event()
 {

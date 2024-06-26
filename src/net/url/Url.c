@@ -372,5 +372,5 @@ static class_info_entry_t url_class_info[] = {
     Init_Vfunc_Entry(5, Url, reset, __reset),
     Init_End___Entry(6, Url),
 };
-REGISTER_CLASS("Url", url_class_info);
+REGISTER_CLASS(Url, url_class_info);
 

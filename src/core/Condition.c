@@ -46,4 +46,4 @@ static class_info_entry_t condition_class_info[] = {
     Init_Vfunc_Entry(5, Condition, broadcast, NULL),
     Init_End___Entry(6, Condition),
 };
-REGISTER_CLASS("Condition", condition_class_info);
+REGISTER_CLASS(Condition, condition_class_info);

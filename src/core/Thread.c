@@ -168,7 +168,7 @@ static class_info_entry_t thread_class_info[] = {
     Init_Vfunc_Entry(13, Thread, get_tid, __get_tid),
     Init_End___Entry(14, Thread),
 };
-REGISTER_CLASS("Thread", thread_class_info);
+REGISTER_CLASS(Thread, thread_class_info);
 
 #if 0
 

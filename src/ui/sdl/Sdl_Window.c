@@ -371,7 +371,7 @@ static class_info_entry_t sdl_window_class_info[] = {
     Init_Vfunc_Entry(27, Sdl_Window, restore_window, __restore_window),
     Init_End___Entry(28, Sdl_Window),
 };
-REGISTER_CLASS("Sdl_Window", sdl_window_class_info);
+REGISTER_CLASS(Sdl_Window, sdl_window_class_info);
 
 char *gen_window_setting_str()
 {

@@ -268,7 +268,7 @@ static class_info_entry_t container_class_info[] = {
     Init_U8____Entry(12, Container, map_type, NULL),
     Init_End___Entry(13, Container),
 };
-REGISTER_CLASS("Container", container_class_info);
+REGISTER_CLASS(Container, container_class_info);
 
 void test_ui_container()
 {

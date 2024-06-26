@@ -78,7 +78,7 @@ static class_info_entry_t class_info[] = {
     Init_Str___Entry(28, Render, name, NULL),
     Init_End___Entry(29, Render),
 };
-REGISTER_CLASS("Render", class_info);
+REGISTER_CLASS(Render, class_info);
 
 void test_ui_render()
 {

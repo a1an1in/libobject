@@ -268,7 +268,7 @@ static class_info_entry_t test_command_class_info[] = {
     Init_Vfunc_Entry(3, Mockery_Command, run_command, __run_command),
     Init_End___Entry(4, Mockery_Command),
 };
-REGISTER_APP_CMD("Mockery_Command", test_command_class_info);
+REGISTER_APP_CMD(Mockery_Command, test_command_class_info);
 
 int test_mockery_command(TEST_ENTRY *entry, int argc, char **argv)
 {

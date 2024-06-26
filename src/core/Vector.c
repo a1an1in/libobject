@@ -602,4 +602,4 @@ static class_info_entry_t vector_class_info[] = {
     Init_Point_Entry(34, Vector, value_new_callback, NULL),
     Init_End___Entry(35, Vector),
 };
-REGISTER_CLASS("Vector", vector_class_info);
+REGISTER_CLASS(Vector, vector_class_info);

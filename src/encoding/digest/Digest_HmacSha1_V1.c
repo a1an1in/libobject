@@ -62,7 +62,7 @@ static class_info_entry_t digest_class_info[] = {
     Init_Vfunc_Entry(8, Digest_HmacSha1, final, __final),
     Init_End___Entry(9, Digest_HmacSha1),
 };
-REGISTER_CLASS("Openssl::Digest_HmacSha1", digest_class_info);
+REGISTER_CLASS(Openssl::Digest_HmacSha1, digest_class_info);
 
 static int
 test_hmac_sha1_v1(TEST_ENTRY *entry, void *argc, void *argv)

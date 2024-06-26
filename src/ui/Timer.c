@@ -57,7 +57,7 @@ static class_info_entry_t timer_class_info[] = {
     Init_Vfunc_Entry(6 , __Timer, reuse, NULL),
     Init_End___Entry(7 , __Timer),
 };
-REGISTER_CLASS("__Timer", timer_class_info);
+REGISTER_CLASS(__Timer, timer_class_info);
 
 void test_obj_timer()
 {

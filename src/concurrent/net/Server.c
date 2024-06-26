@@ -260,4 +260,4 @@ static class_info_entry_t concurent_class_info[] = {
     Init_Vfunc_Entry(7 , Server, close_subsocket, __close_subsocket),
     Init_End___Entry(8 , Server),
 };
-REGISTER_CLASS("Server", concurent_class_info);
+REGISTER_CLASS(Server, concurent_class_info);

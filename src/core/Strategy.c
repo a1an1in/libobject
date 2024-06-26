@@ -24,5 +24,5 @@ static class_info_entry_t strategy_class_info[] = {
     Init_Nfunc_Entry(2, Strategy, deconstruct, __deconstruct),
     Init_End___Entry(3, Strategy),
 };
-REGISTER_CLASS("Strategy", strategy_class_info);
+REGISTER_CLASS(Strategy, strategy_class_info);
 

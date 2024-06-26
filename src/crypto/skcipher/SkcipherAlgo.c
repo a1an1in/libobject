@@ -201,7 +201,7 @@ static class_info_entry_t cipher_algo_class_info[] = {
     Init_Vfunc_Entry(9 , SkcipherAlgo, set_iv, __set_iv),
     Init_End___Entry(10, SkcipherAlgo),
 };
-REGISTER_CLASS("SkcipherAlgo", cipher_algo_class_info);
+REGISTER_CLASS(SkcipherAlgo, cipher_algo_class_info);
 
 static int
 test_aes(TEST_ENTRY *entry, void *argc, void *argv)

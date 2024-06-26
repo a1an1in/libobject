@@ -61,4 +61,4 @@ static class_info_entry_t cipher_algo_class_info[] = {
     Init_Vfunc_Entry(8, AkcipherDsa, compare_keys, __compare_keys),
     Init_End___Entry(9, AkcipherDsa),
 };
-REGISTER_CLASS("AkcipherDsa", cipher_algo_class_info);
+REGISTER_CLASS(AkcipherDsa, cipher_algo_class_info);

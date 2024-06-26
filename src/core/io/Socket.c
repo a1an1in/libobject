@@ -59,5 +59,5 @@ static class_info_entry_t socket_class_info[] = {
     Init_Point_Entry(19, Socket, remote_service, NULL),
     Init_End___Entry(20, Socket),
 };
-REGISTER_CLASS("Socket", socket_class_info);
+REGISTER_CLASS(Socket, socket_class_info);
 

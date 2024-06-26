@@ -20,6 +20,6 @@ static class_info_entry_t ak_class_info[] = {
     Init_Vfunc_Entry(8, Akcipher, compare_keys, NULL),
     Init_End___Entry(9, Akcipher),
 };
-REGISTER_CLASS("Akcipher", ak_class_info);
+REGISTER_CLASS(Akcipher, ak_class_info);
 
 

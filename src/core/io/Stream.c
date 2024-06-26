@@ -42,4 +42,4 @@ static class_info_entry_t stream_class_info[] = {
     Init_Vfunc_Entry(4 , Stream, write, NULL),
     Init_End___Entry(5 , Stream),
 };
-REGISTER_CLASS("Stream",stream_class_info);
+REGISTER_CLASS(Stream, stream_class_info);

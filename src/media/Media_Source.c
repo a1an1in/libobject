@@ -91,5 +91,5 @@ static class_info_entry_t concurent_class_info[] = {
     [11] = {ENTRY_TYPE_VFUNC_POINTER,"","isvalid_bitrate",NULL,sizeof(void *)},
     [12] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("Media_Source",concurent_class_info);
+REGISTER_CLASS(Media_Source,concurent_class_info);
 

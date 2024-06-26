@@ -234,4 +234,4 @@ static class_info_entry_t curl_command_class_info[] = {
     Init_U32___Entry(5, Curl_Command, help, 0),
     Init_End___Entry(6, Curl_Command),
 };
-REGISTER_APP_CMD("Curl_Command", curl_command_class_info);
+REGISTER_APP_CMD(Curl_Command, curl_command_class_info);

@@ -182,4 +182,4 @@ static class_info_entry_t llist_class_info[] = {
     Init_Vfunc_Entry(14, Linked_List, end, __end),
     Init_End___Entry(15, Linked_List),
 };
-REGISTER_CLASS("Linked_List", llist_class_info);
+REGISTER_CLASS(Linked_List, llist_class_info);

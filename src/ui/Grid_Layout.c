@@ -252,7 +252,7 @@ static class_info_entry_t grid_layout_class_info[] = {
     Init_U32___Entry(11, Grid_Layout, col_max, NULL),
     Init_End___Entry(12, Grid_Layout),
 };
-REGISTER_CLASS("Grid_Layout", grid_layout_class_info);
+REGISTER_CLASS(Grid_Layout, grid_layout_class_info);
 
 char *gen_grid_layout_setting_str(int x, int y, int width, int height, char *name, void *out)
 {

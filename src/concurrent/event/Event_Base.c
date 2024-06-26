@@ -271,7 +271,7 @@ static class_info_entry_t event_base_class_info[] = {
     Init_Str___Entry(13, Event_Base, signal_service, NULL),
     Init_End___Entry(14, Event_Base), 
 };
-REGISTER_CLASS("Event_Base", event_base_class_info);
+REGISTER_CLASS(Event_Base, event_base_class_info);
 
 void test_obj_eb()
 {

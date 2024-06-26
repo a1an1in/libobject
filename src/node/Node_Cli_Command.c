@@ -230,4 +230,4 @@ static class_info_entry_t node_cli_command_class_info[] = {
     Init_Vfunc_Entry(5, Node_Cli_Command, run_command, __run_command),
     Init_End___Entry(6, Node_Cli_Command),
 };
-REGISTER_APP_CMD("Node_Cli_Command", node_cli_command_class_info);
+REGISTER_APP_CMD(Node_Cli_Command, node_cli_command_class_info);

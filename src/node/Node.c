@@ -531,7 +531,7 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(15, Node, mget_pointer, __mget_pointer),
     Init_End___Entry(16, Node),
 };
-REGISTER_CLASS("Node", node_class_info);
+REGISTER_CLASS(Node, node_class_info);
 
 int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator, char *method_name, 
                                        bus_method_args_t **args, int *cnt)

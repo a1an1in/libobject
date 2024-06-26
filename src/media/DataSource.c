@@ -94,5 +94,5 @@ static class_info_entry_t concurent_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER,"","deconstruct",__deconstrcut,sizeof(void *)},
     [5 ] = {ENTRY_TYPE_END},
 };
-REGISTER_CLASS("DataSource",concurent_class_info);
+REGISTER_CLASS(DataSource,concurent_class_info);
 

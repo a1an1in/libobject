@@ -68,4 +68,4 @@ static class_info_entry_t mysql_class_info[] = {
     Init_Str___Entry(17, Sql, database_name, NULL),
     Init_End___Entry(18, Sql),
 };
-REGISTER_CLASS("Sql", mysql_class_info);
+REGISTER_CLASS(Sql, mysql_class_info);

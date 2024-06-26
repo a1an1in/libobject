@@ -112,5 +112,5 @@ static class_info_entry_t Windows_Pipe_class_info[] = {
     Init_Vfunc_Entry(7 , Windows_Pipe, write, __write),
     Init_End___Entry(8 , Windows_Pipe),
 };
-REGISTER_CLASS("Windows_Pipe", Windows_Pipe_class_info);
+REGISTER_CLASS(Windows_Pipe, Windows_Pipe_class_info);
 #endif

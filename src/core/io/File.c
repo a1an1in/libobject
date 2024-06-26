@@ -162,4 +162,4 @@ static class_info_entry_t file_class_info[] = {
     Init_Vfunc_Entry(13, File, seek, __seek),
     Init_End___Entry(14, File),
 };
-REGISTER_CLASS("File", file_class_info);
+REGISTER_CLASS(File, file_class_info);

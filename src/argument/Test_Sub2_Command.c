@@ -44,5 +44,5 @@ static class_info_entry_t test_sub2_command_class_info[] = {
     Init_U32___Entry(7, Test_Sub2_Command, help, 0),
     Init_End___Entry(8, Test_Sub2_Command),
 };
-REGISTER_CLASS("Test_Sub2_Command", test_sub2_command_class_info);
+REGISTER_CLASS(Test_Sub2_Command, test_sub2_command_class_info);
 

@@ -93,5 +93,5 @@ static class_info_entry_t concurent_class_info[] = {
     Init_Vfunc_Entry(7 , Publisher, connect_centor, __connect_centor),
     Init_End___Entry(8 , Publisher),
 };
-REGISTER_CLASS("Publisher", concurent_class_info);
+REGISTER_CLASS(Publisher, concurent_class_info);
 

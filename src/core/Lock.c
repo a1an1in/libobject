@@ -62,4 +62,4 @@ static class_info_entry_t lock_class_info[] = {
     Init_Vfunc_Entry(5 , Lock, unlock, NULL),
     Init_End___Entry(6 , Lock),
 };
-REGISTER_CLASS("Lock", lock_class_info);
+REGISTER_CLASS(Lock, lock_class_info);

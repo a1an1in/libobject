@@ -148,7 +148,7 @@ static class_info_entry_t button_class_info[] = {
     Init_Vfunc_Entry(13, Button, add_event_listener_cb, NULL),
     Init_End___Entry(14, Button),
 };
-REGISTER_CLASS("Button", button_class_info);
+REGISTER_CLASS(Button, button_class_info);
 
 static void *new_button(allocator_t *allocator, int x, int y, int width, int height, char *name)
 {

@@ -1,11 +1,8 @@
-[update:Node] 实现node。
+[update:core] 更改REGISTER_CLASS 宏参数。
 
 Description:
-node持续实现过程中, 优化node_cli使用的打桩函数。
+老的REGISTER_CLASS定义方式限制了一个文件只能定义一次宏，
+这次提交修改了这个约束。
 
 Major Changes:
-1. 去掉open_fsh 和close_fsh， node使用同一个shell，
-   没有必要每次打开，现在默认都是打开的。
-2. 将fshell从bus移动到node。
-3. 更改日志等级。
-4. 将$变量标志更换成#。
+1. 修改REGISTER_CLASS宏定义。

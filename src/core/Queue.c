@@ -220,4 +220,4 @@ static class_info_entry_t queue_class_info[] = {
     Init_U8____Entry(25, Queue, value_type, NULL),
     Init_End___Entry(26, Queue),
 };
-REGISTER_CLASS("Queue", queue_class_info);
+REGISTER_CLASS(Queue, queue_class_info);

@@ -100,4 +100,4 @@ static class_info_entry_t tgz_class_info[] = {
     Init_Vfunc_Entry(4, Tgz, uncompress, __uncompress),
     Init_End___Entry(5, Tgz),
 };
-REGISTER_CLASS("Tgz", tgz_class_info);
+REGISTER_CLASS(Tgz, tgz_class_info);
