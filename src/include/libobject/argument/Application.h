@@ -32,15 +32,15 @@ extern int app(int argc, char *argv[]);
 extern int app_register_cmd(char *cmd);
 
 #define REGISTER_APP_CMD(app_cmd_name, class_info) \
-    __attribute__((constructor)) static void register_app_cmd()\
+    __attribute__((constructor)) static void register_##app_cmd_name()\
     {\
         ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, register app cmd %s\n",\
-                     REGISTRY_CTOR_PRIORITY_REGISTER_APP_CMD, app_cmd_name);\
+                     REGISTRY_CTOR_PRIORITY_REGISTER_APP_CMD, #app_cmd_name);\
         \
         __register_ctor_func1(REGISTRY_CTOR_PRIORITY_REGISTER_APP_CMD,\
-                (int (*)(void *))app_register_cmd,  app_cmd_name);\
+                (int (*)(void *))app_register_cmd,  #app_cmd_name);\
         __register_ctor_func3(REGISTRY_CTOR_PRIORITY_REGISTER_CLASS,\
-                (int (*)(void *, void * , void *))class_deamon_register_class, NULL, app_cmd_name, class_info);\
+                (int (*)(void *, void * , void *))class_deamon_register_class, NULL, #app_cmd_name, class_info);\
     }
 
 

@@ -38,111 +38,56 @@
 #include <sys/types.h>     /* basic system data types */
 #include <signal.h>
 #include <libobject/core/utils/dbg/debug.h>
+#include <libobject/mockery/mockery.h>
 
+// int compute_slash_count(char *path)
+// {
+//     int i, len = strlen(path), cnt = 0;
 
-#define CHANNEL_USEABLE_MAX_COUNT 30
-uint8_t channel_resources[CHANNEL_USEABLE_MAX_COUNT] = {
-    1,6,11,
-    36,40,44,48,52,56,60,64,
-    100,104,108,112,116,120,124,128,132,136,140,
-    149,153,157,161,165};
+//     for (i = 0; i < len; i++) {
+//         if (path[i] == '/') {
+//             cnt++;
+//         }
+//     }
 
-struct channel_config{
-    uint8_t channel;
-    uint8_t usable_flag;
-}channel_cfg[CHANNEL_USEABLE_MAX_COUNT];
-#undef CHANNEL_USEABLE_MAX_COUNT
+//     return cnt;
+// }
 
-int get_channel_resource_index(uint8_t chan)
+int get_lookup_keys(char *str, char *res_name, int *lynx_index, int *fxb_index)
 {
-    int i = 0;
-    
-    if (chan == 0 || chan > 165)
+    int i, len, cnt = 0, ret;
+
+    if (str == NULL || res_name == NULL ||
+        lynx_index == NULL || fxb_index == NULL) {
         return -1;
+    }
 
-    for (i = 0; i < sizeof(channel_resources); i++) {
-        if (channel_resources[i] == chan) {
-            return i;
+    len = strlen(str);
+    for (i = 0; i < len; i++) {
+        if (str[i] == '/') {
+            cnt++;
         }
     }
+    if (cnt == 0) { return 0; }
 
-    return -1;
+    ret = sscanf(str,"%[a-z_0-9]/lynx_%d/fxb_%d", res_name, lynx_index, fxb_index);
+    if (ret == 0) {
+        return -1;
+    }
+
+    return 1;
 }
 
-int set_usable_flag(uint8_t chan) 
+int test_str_split2(TEST_ENTRY *entry)
 {
-    int index = 0;
+    int ret = 0;
+    char str[140] = "rx_iq_11/lynx_1/fxb_12";
+    char name[128];
+    int i, lynx_index = 0, fxb_index = 0;
 
-    index = get_channel_resource_index(chan);
-    if (index >= 0) {
-        channel_cfg[index].channel     = chan;
-        channel_cfg[index].usable_flag = 1;
-        dbg_str(DBG_DETAIL, "set flag, channel=%d", chan);
-    }
+    get_lookup_keys(str, name, &lynx_index, &fxb_index);
+    printf("name:%s, ly:%d, fxb:%d\n", name, lynx_index, fxb_index);
 
-    return 0;
+    return ret;
 }
-
-int init_channel_cfg()
-{
-    int i;
-
-    for (i = 0; i < sizeof(channel_resources); i++) {
-        channel_cfg[i].channel = channel_resources[i];
-        channel_cfg[i].usable_flag = 0;
-    }
-
-    return -1;
-}
-
-int set_exclusive_channel(uint8_t *excluded_chans)
-{
-    int i, j = 0;
-
-    for (i = 0; i < sizeof(channel_resources); i++) {
-        if (channel_cfg[i].usable_flag != 1) {
-            excluded_chans[j++] = channel_cfg[i].channel;
-        }
-    }
-
-    for (i = 0; i < sizeof(channel_resources); i++) {
-        if (channel_cfg[i].usable_flag == 1) {
-            dbg_str(DBG_DETAIL, "channel=%d is usable", channel_cfg[i].channel);
-        }
-    }
-
-    return j;
-}
-
-int get_exclude_channel(uint8_t *usable_chans, uint8_t *excluded_chans)
-{
-    uint8_t *chan = usable_chans;
-    int i, ret;
-
-    init_channel_cfg();
-
-    while (*chan != 0) {
-        set_usable_flag(*chan++); 
-    }
-
-    ret = set_exclusive_channel(excluded_chans);
-
-    for (i = 0; i < ret; i++) {
-        if (excluded_chans[i] != 0)
-            dbg_str(DBG_DETAIL, "channel=%d is excluded", excluded_chans[i]);
-    }
-    
-}
-
-int lab2()
-{
-    int i;
-    int channel;
-    uint8_t usable_chans[256] = {36,140,149};
-    uint8_t excluded_channels[256] = {0};
-
-    dbg_str(DBG_DETAIL,"lab2 test");
-
-    get_exclude_channel(usable_chans, excluded_channels);
-
-}
+REGISTER_TEST_CMD(test_str_split2);
