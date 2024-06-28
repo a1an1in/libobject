@@ -52,6 +52,12 @@ struct Fsh_Variable_Info_s {
 
     int (*set)(Fsh_Variable_Info *, char *attrib, void *value);
     void *(*get)(Fsh_Variable_Info *, char *attrib);
+
+    /* operation attribs */
+    void *new;
+    void *free;
+    void *to_json;
+    void *print;
 };
 
 typedef int (*fshell_func_t)(void * p1, void * p2, void * p3, void * p4, void * p5, 

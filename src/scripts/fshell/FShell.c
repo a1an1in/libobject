@@ -41,6 +41,7 @@ static int __construct(FShell *shell, char *init_str)
     map->set_cmp_func(map, string_key_cmp_func);
     map->set(map, "/Map/trustee_flag", &trustee_flag);
     map->set(map, "/Map/value_type", &value_type);
+    map->set(map, "/Map/class_name", "Fsh_Variable_Info");
     shell->variable_map = map;
 
     sprintf(shell->prompt, "%s", "fshell$ ");
@@ -195,8 +196,67 @@ static class_info_entry_t shell_class_info[] = {
 };
 REGISTER_CLASS(FShell, shell_class_info);
 
+int fsh_variable_info_new(allocator_t *allocator, cjson_t *c, void **value)
+{
+    fsh_malloc_variable_info_t *v;
+    int ret;
+
+    TRY {
+        v = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t));
+        *value = v;
+        while (c) {
+            // if (strcmp(c->string, "size") == 0) {
+            //     v->st.st_size = c->valueint;
+            // } else if (strcmp(c->string, "file_name") == 0) {
+            //     v->file_name = allocator_mem_alloc(allocator, strlen(c->valuestring) + 1);
+            //     strcpy(v->file_name, c->valuestring);
+            // } else {
+            //     dbg_str(DBG_VIP, "wrong value name:%s", c->string);
+            // }
+
+            c = c->next;
+        }
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+int fsh_variable_info_free(allocator_t *allocator, fsh_malloc_variable_info_t *info)
+{
+    allocator_mem_free(allocator, info);
+
+    return 1;
+}
+
+int fsh_variable_info_to_json(cjson_t *root, void *element)
+{
+    cjson_t *item = NULL;
+    // fs_file_info_t *o = (fs_file_info_t *)element;
+
+    // item = cjson_create_object();
+    // cjson_add_string_to_object(item, "file_name", o->file_name);
+    // cjson_add_number_to_object(item, "size", o->st.st_size);
+    // if (item != NULL) {
+    //     cjson_add_item_to_array(root, item);
+    // }
+
+    return 1;
+}
+
+int fsh_variable_info_print(int index, fsh_malloc_variable_info_t *info)
+{
+    dbg_str(DBG_INFO, "index:%d, file name:%s, value_type:%d, addr:%p", 
+            index, info->name, info->value_type, info->addr);
+
+    return 1;
+}
+
 static class_info_entry_t fsh_variable_info[] = {
-    Init_Obj___Entry(0 , Obj, parent),
-    Init_End___Entry(1 , Fsh_Variable_Info),
+    Init_Obj___Entry(0, Obj, parent),
+    Init_Point_Entry(1, Fsh_Variable_Info, new, fsh_variable_info_new),
+    Init_Point_Entry(2, Fsh_Variable_Info, free, fsh_variable_info_free),
+    Init_Point_Entry(3, Fsh_Variable_Info, to_json, fsh_variable_info_to_json),
+    Init_Point_Entry(4, Fsh_Variable_Info, print, fsh_variable_info_print),
+    Init_End___Entry(5, Fsh_Variable_Info),
 };
 REGISTER_CLASS(Fsh_Variable_Info, fsh_variable_info);

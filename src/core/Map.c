@@ -109,6 +109,7 @@ static int __reset(Map *map)
     Iterator *cur, *end;
     void *key, *value;
     void *element;
+    String **class_name;
 
     cur = map->begin(map);
     end = map->end(map);
@@ -117,20 +118,26 @@ static int __reset(Map *map)
         key = cur->get_kpointer(cur);
         map->remove(map, key, &element);
 
-        if (map->trustee_flag != 1) {
+        if (map->trustee_flag != 1 || element == NULL) {
             continue;
         }
 
-        if (map->value_type == VALUE_TYPE_OBJ_POINTER && element != NULL) {
+        if (map->value_type == VALUE_TYPE_OBJ_POINTER) {
             object_destroy(element);
-        } else if (map->value_type == VALUE_TYPE_STRING_POINTER && element != NULL) {
+        } else if (map->value_type == VALUE_TYPE_STRING_POINTER) {
             object_destroy(element);
-        } else if (map->value_type == VALUE_TYPE_ALLOC_POINTER && element != NULL) {
+        } else if (map->value_type == VALUE_TYPE_ALLOC_POINTER) {
             allocator_mem_free(map->obj.allocator, element);
-        } else if (map->value_type == VALUE_TYPE_STRUCT_POINTER && map->value_free_callback != NULL && element != NULL) {
-            map->value_free_callback(map->obj.allocator, element);   
-        } else if (map->value_type == VALUE_TYPE_STRUCT_POINTER && map->value_free_callback == NULL && element != NULL) {
-            allocator_mem_free(map->obj.allocator, element);
+        } else if (map->value_type == VALUE_TYPE_STRUCT_POINTER) {
+            class_name = map->get(map, "/Vector/class_name");
+            if (*class_name != NULL) {
+                dbg_str(DBG_SUC, "not support reset unkown pointer");
+            }
+            if (map->value_free_callback != NULL) {
+                map->value_free_callback(map->obj.allocator, element); 
+            } else (map->value_free_callback == NULLL) {
+                allocator_mem_free(map->obj.allocator, element);
+            }
         } else if (map->value_type >= VALUE_TYPE_MAX_TYPE) {
             dbg_str(DBG_WARN, "not support reset unkown pointer");
         }

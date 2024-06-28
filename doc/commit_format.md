@@ -6,4 +6,4 @@ Description:
 struct。
 
 Major Changes:
-1. 新增fsh_variable_info。
+1. 还没调试，提交修改。
