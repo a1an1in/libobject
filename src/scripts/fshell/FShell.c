@@ -223,7 +223,20 @@ int fsh_variable_info_new(allocator_t *allocator, cjson_t *c, void **value)
 
 int fsh_variable_info_free(allocator_t *allocator, fsh_malloc_variable_info_t *info)
 {
-    allocator_mem_free(allocator, info);
+    switch (info->value_type) {
+        case VALUE_TYPE_ALLOC_POINTER: {
+            dbg_str(DBG_VIP, "node_mfree alloc pointer, name:%s, addr:%p", info->name, info->value);
+            allocator_mem_free(allocator, info);
+            break;
+        }
+        case VALUE_TYPE_STUB_POINTER:
+            dbg_str(DBG_VIP, "node_mfree stub, name:%s, addr:%p", info->name, info->addr);
+            fsh_free_stub(info->addr);
+            allocator_mem_free(allocator, info);
+            break;
+        default:
+            break;
+    }
 
     return 1;
 }

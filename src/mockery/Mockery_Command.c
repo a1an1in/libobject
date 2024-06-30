@@ -2,6 +2,7 @@
 #include <string.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Vector.h>
+#include <libobject/core/Struct_Adapter.h>
 #include <libobject/argument/Application.h>
 #include <libobject/mockery/Mockery_Command.h>
 #include <libobject/mockery/mockery.h>
@@ -246,8 +247,7 @@ static int __construct(Mockery_Command *mockery, char *init_str)
     failed  = object_new(allocator, "Vector", NULL);
     failed->set(failed, "/Vector/trustee_flag", &trustee_flag);
     failed->set(failed, "/Vector/value_type", &value_type);
-    failed->set(failed, "/Vector/value_to_json_callback", mockery_result_struct_custom_to_json);
-    failed->set(failed, "/Vector/value_free_callback", mockery_result_struct_custom_free);
+    failed->set(failed, "/Vector/class_name", "Mockery_Result_Struct_Adapter");
 
     mockery->failed_cases = failed;
 
@@ -282,3 +282,12 @@ int test_mockery_command(TEST_ENTRY *entry, int argc, char **argv)
     return 1;
 }
 REGISTER_TEST_CMD(test_mockery_command);
+
+typedef Struct_Adapter Mockery_Result_Struct_Adapter;
+static class_info_entry_t mockery_result_stuct_adapter[] = {
+    Init_Obj___Entry(0, Obj, parent),
+    Init_Point_Entry(1, Mockery_Result_Struct_Adapter, free, mockery_result_struct_custom_free),
+    Init_Point_Entry(2, Mockery_Result_Struct_Adapter, to_json, mockery_result_struct_custom_to_json),
+    Init_End___Entry(3, Mockery_Result_Struct_Adapter),
+};
+REGISTER_CLASS(Mockery_Result_Struct_Adapter, mockery_result_stuct_adapter)

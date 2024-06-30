@@ -49,7 +49,7 @@ struct _map_s{
     uint8_t trustee_flag;
     uint8_t key_type, value_type;
     int (*value_free_callback)(allocator_t *allocator, void *value);
-    int (*key_free_callback)(allocator_t *allocator, void *value);
+    String *class_name; //用于释放对象或结构体
 };
 
 #endif

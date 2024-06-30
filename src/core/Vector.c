@@ -37,6 +37,7 @@
 #include <libobject/core/String.h>
 #include <libobject/core/try.h>
 #include <libobject/core/policy.h>
+#include <libobject/core/String.h>
 #include <libobject/argument/Command.h>
 
 /* 
@@ -211,6 +212,7 @@ static int __reset(Vector *vector)
     vector_pos_t pos, next;
     vector_t *v = vector->vector;
     void *element;
+    String **class_name;
     int index = 0;
 
     for (vector_begin(v, &pos), vector_pos_next(&pos, &next);
@@ -231,11 +233,21 @@ static int __reset(Vector *vector)
             object_destroy(element);
         } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER) {
             allocator_mem_free(vector->obj.allocator, element);
-        } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER && vector->value_free_callback != NULL && element != NULL) {
-            vector->value_free_callback(vector->obj.allocator, element);   
-        } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER && vector->value_free_callback == NULL && element != NULL) {
-            allocator_mem_free(vector->obj.allocator, element);
-        } else if (vector->value_type >= VALUE_TYPE_MAX_TYPE) {
+        } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER) {
+            class_name = vector->get(vector, "/Vector/class_name");
+            if (*class_name != NULL) {
+                int (*free_method)(allocator_t *, void *);
+                dbg_str(DBG_INFO, "vector strcut adapter class name:%s", STR2A(*class_name));
+                free_method = object_get_func_of_class(STR2A(*class_name), "free");
+                if (free_method == NULL) return -1;
+                free_method(vector->obj.allocator, element);
+                continue;
+            } else if (vector->value_free_callback != NULL) {
+                vector->value_free_callback(vector->obj.allocator, element);   
+            } else if (vector->value_free_callback == NULL) {
+                allocator_mem_free(vector->obj.allocator, element);
+            } else { }
+        }  else if (vector->value_type >= VALUE_TYPE_MAX_TYPE) {
             dbg_str(DBG_WARN, "not support reset unkown pointer:%d", vector->value_type);
         }
         element = NULL;
@@ -256,6 +268,7 @@ static char *__to_json(Obj *obj)
     int (*policy)(cjson_t *root, void *element);
     cjson_t *root;
     String *json = (String *)obj->json;
+    String **class_name;
     void *element = NULL;
     char *out;
     int index = 0;
@@ -284,7 +297,14 @@ static char *__to_json(Obj *obj)
 
         if (vector->value_type == VALUE_TYPE_STRUCT_POINTER) {
             //因为这个是定制化的、多变的， 没法加入g_vector_to_json_policy。
-            policy = vector->value_to_json_callback;
+            class_name = vector->get(vector, "/Vector/class_name");
+            if (*class_name != NULL) {
+                dbg_str(DBG_INFO, "vector strcut adapter class name:%s", STR2A(*class_name));
+                policy = object_get_func_of_class(STR2A(*class_name), "to_json");
+                if (policy == NULL) return -1;
+            } else {
+                policy = vector->value_to_json_callback;
+            }
         } else {
             policy = g_vector_to_json_policy[vector->value_type].policy;
         }
@@ -311,7 +331,7 @@ static char *__to_json(Obj *obj)
 static int __assign(Vector *vector, char *value)
 {
     allocator_t *allocator = vector->obj.allocator;
-    int (*new_value)(allocator_t *allocator, void *json, void **value);
+    int (*new_method)(allocator_t *allocator, cjson_t *c, void **value);
     cjson_t *c, *bak = NULL;
     void *o;
     char *out;
@@ -360,10 +380,17 @@ static int __assign(Vector *vector, char *value)
                 EXEC(vector->add(vector, o));
                 free(out);
             } else if ((c->type & CJSON_OBJECT) && (vector->value_type == VALUE_TYPE_STRUCT_POINTER)) {
+                sp2 = vector->get(vector, "/Vector/class_name");
                 value_type = VALUE_TYPE_STRUCT_POINTER;
-                new_value = vector->value_new_callback;
-                THROW_IF(new_value == NULL, -1);
-                EXEC(new_value(allocator, c->child, &o));
+                if (*sp2 != NULL) {
+                    dbg_str(DBG_INFO, "vector strcut adapter class name:%s", STR2A(*sp2));
+                    new_method = object_get_func_of_class(STR2A(*sp2), "new");
+                    if (new_method == NULL) return -1;
+                } else {
+                    new_method = vector->value_new_callback;
+                }
+                THROW_IF(new_method == NULL, -1);
+                EXEC(new_method(allocator, c->child, &o));
                 vector->add(vector, o);
             } else {
                 dbg_str(DBG_DETAIL, "vector assign, not supported %d now!", c->type);
@@ -463,6 +490,7 @@ static int __reset_from(Vector *vector, int index)
     vector_pos_t pos, next;
     vector_t *v = vector->vector;
     void *element;
+    String **class_name;
     int i = 0, end;
 
     end = vector->get_end_index(vector);
@@ -483,11 +511,21 @@ static int __reset_from(Vector *vector, int index)
             object_destroy(element);
         } else if (vector->value_type  == VALUE_TYPE_ALLOC_POINTER) {
             allocator_mem_free(vector->obj.allocator, element);
-        } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER && vector->value_free_callback != NULL && element != NULL) {
-            vector->value_free_callback(vector->obj.allocator, element);   
-        } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER && vector->value_free_callback == NULL && element != NULL) {
-            allocator_mem_free(vector->obj.allocator, element);
-        } else {
+        } else if (vector->value_type == VALUE_TYPE_STRUCT_POINTER) {
+            class_name = vector->get(vector, "/Vector/class_name");
+            if (*class_name != NULL) {
+                int (*free_method)(allocator_t *, void *);
+                dbg_str(DBG_SUC, "vector strcut adapter class name:%s", STR2A(*class_name));
+                free_method = object_get_func_of_class(STR2A(*class_name), "free");
+                if (free_method == NULL) return -1;
+                free_method(vector->obj.allocator, element);
+                continue;
+            } else if (vector->value_free_callback != NULL) {
+                vector->value_free_callback(vector->obj.allocator, element);   
+            } else if (vector->value_free_callback == NULL) {
+                allocator_mem_free(vector->obj.allocator, element);
+            } else { }
+        } else if (vector->value_type >= VALUE_TYPE_MAX_TYPE) {
             dbg_str(DBG_WARN, "not support reset unkown pointer");
         }
         element = NULL;
@@ -552,7 +590,7 @@ static int __copy(Vector *vector, Vector *out)
     return ret;
 }
 
-/* vector value类型如果是struct类型， 可以使用这个函数统一配置， 也可以通过set单独配置。*/
+/* vector value类型如果是struct类型而且只需释放函数，则可以使用这个函数配置， 否则使用class_name 配置struct adapter。*/
 static int __customize(Vector *vector, int value_type, int (*free_callback)(allocator_t *allocator, void *value))
 {
     int trustee_flag = 1;

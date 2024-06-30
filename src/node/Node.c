@@ -423,9 +423,7 @@ static int __list(Node *node, char *node_id, char *path, Vector *vector)
 
         vector->set(vector, "/Vector/value_type", &value_type);
         vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
-        vector->set(vector, "/Vector/value_to_json_callback", fs_file_info_struct_custom_to_json);
-        vector->set(vector, "/Vector/value_free_callback", fs_file_info_struct_custom_free);
-        vector->set(vector, "/Vector/value_new_callback", fs_file_info_struct_custom_new);
+        vector->set(vector, "/Vector/class_name", "Fs_File_Info_Struct_Adapter");
         vector->assign(vector, buffer);
     } CATCH (ret) {}
 

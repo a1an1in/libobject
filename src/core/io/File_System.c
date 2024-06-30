@@ -34,6 +34,8 @@
 #include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/io/File_System.h>
+#include <libobject/core/Struct_Adapter.h>
+#include <libobject/core/io/file_system_api.h>
 
 static int __get_mtime(File_System *fs, char *path, char *time, int time_max_len)
 {
@@ -256,3 +258,13 @@ static class_info_entry_t file_system_class_info[] = {
     Init_End___Entry(12, File_System),
 };
 REGISTER_CLASS(File_System, file_system_class_info);
+
+typedef Struct_Adapter Fs_File_Info_Struct_Adapter;
+static class_info_entry_t fs_file_info_stuct_adapter[] = {
+    Init_Obj___Entry(0, Obj, parent),
+    Init_Point_Entry(1, Fs_File_Info_Struct_Adapter, new, fs_file_info_struct_custom_new),
+    Init_Point_Entry(2, Fs_File_Info_Struct_Adapter, free, fs_file_info_struct_custom_free),
+    Init_Point_Entry(3, Fs_File_Info_Struct_Adapter, to_json, fs_file_info_struct_custom_to_json),
+    Init_End___Entry(4, Fs_File_Info_Struct_Adapter),
+};
+REGISTER_CLASS(Fs_File_Info_Struct_Adapter, fs_file_info_stuct_adapter)

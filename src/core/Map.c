@@ -32,6 +32,8 @@
 #include <stdio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/config.h>
+#include <libobject/core/object.h>
+#include <libobject/core/String.h>
 #include <libobject/core/Map.h>
 
 static int __construct(Map *map, char *init_str)
@@ -45,6 +47,7 @@ static int __deconstrcut(Map *map)
 {
     dbg_str(OBJ_DETAIL, "map deconstruct, map addr:%p", map);
 
+    object_destroy(map->class_name);
     return 1;
 }
 
@@ -129,13 +132,17 @@ static int __reset(Map *map)
         } else if (map->value_type == VALUE_TYPE_ALLOC_POINTER) {
             allocator_mem_free(map->obj.allocator, element);
         } else if (map->value_type == VALUE_TYPE_STRUCT_POINTER) {
-            class_name = map->get(map, "/Vector/class_name");
+            class_name = map->get(map, "/Map/class_name");
             if (*class_name != NULL) {
-                dbg_str(DBG_SUC, "not support reset unkown pointer");
-            }
-            if (map->value_free_callback != NULL) {
+                int (*free_method)(allocator_t *allocator, void *info);
+                dbg_str(DBG_SUC, "map strcut adapter class name:%s", STR2A(*class_name));
+                free_method = object_get_func_of_class(STR2A(*class_name), "free");
+                if (free_method == NULL) return -1;
+                free_method(map->obj.allocator, element);
+                continue;
+            } else if (map->value_free_callback != NULL) {
                 map->value_free_callback(map->obj.allocator, element); 
-            } else (map->value_free_callback == NULLL) {
+            } else if (map->value_free_callback == NULL) {
                 allocator_mem_free(map->obj.allocator, element);
             }
         } else if (map->value_type >= VALUE_TYPE_MAX_TYPE) {
@@ -180,6 +187,7 @@ static class_info_entry_t map_class_info[] = {
     Init_U8____Entry(23, Map, value_type, NULL),
     Init_U8____Entry(24, Map, key_type, NULL),
     Init_Point_Entry(25, Map, value_free_callback, NULL),
-    Init_End___Entry(26, Map),
+    Init_Str___Entry(26, Map, class_name, NULL),
+    Init_End___Entry(27, Map),
 };
 REGISTER_CLASS(Map, map_class_info);

@@ -1,7 +1,7 @@
-[update:node] 更新doc。
+[update:core] 新增struct adapter。
 
 Description:
 更新文件
 
 Major Changes:
-1. 更新test cmd文件。
+1. Vector和Map新增Struct Adapter。
