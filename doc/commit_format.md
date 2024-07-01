@@ -1,9 +1,7 @@
-[update:core] 新增struct operation类。
+[update:node] 更新doc。
 
 Description:
-现在对象处理struct结构体很不方便，需要传各种处理函数，
-所以像优化一下只要指定struct类型，然后后面对象就能处理
-struct。
+更新文件
 
 Major Changes:
-1. 还没调试，提交修改。
+1. 更新test cmd文件。
