@@ -1,7 +1,7 @@
-[update:core] 新增struct adapter。
+[update:doc] 更新doc文件。
 
 Description:
 更新文件
 
 Major Changes:
-1. Vector和Map新增Struct Adapter。
+1. doc。
