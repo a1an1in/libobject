@@ -1,7 +1,7 @@
-[update:doc] 更新doc文件。
+[update:doc] release 2.13.0.1 version。
 
 Description:
-更新文件
+node module has finished, release a official version
 
 Major Changes:
-1. doc。
+1. release new version.

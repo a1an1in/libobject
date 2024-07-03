@@ -423,7 +423,7 @@ static int __list(Node *node, char *node_id, char *path, Vector *vector)
 
         vector->set(vector, "/Vector/value_type", &value_type);
         vector->set(vector, "/Vector/trustee_flag", &trustee_flag);
-        vector->set(vector, "/Vector/class_name", "Fs_File_Info_Struct_Adapter");
+        vector->set(vector, "/Vector/class_name", "FS_File_Info_Struct_Adapter");
         vector->assign(vector, buffer);
     } CATCH (ret) {}
 
