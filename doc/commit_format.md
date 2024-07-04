@@ -1,7 +1,8 @@
-[update:doc] release 2.13.0.1 version。
+[update:net] 更改Nginx_Command类名为Httpd_Command。
 
 Description:
-node module has finished, release a official version
+Nginx_Command类名有点不太直观， 为了使工具更加通用，
+更改命令从nginx为httpd。
 
 Major Changes:
-1. release new version.
+1. 更改类名.

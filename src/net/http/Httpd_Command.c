@@ -10,7 +10,7 @@
 #include <libobject/argument/Argument.h>
 #include <libobject/net/http/Client.h>
 #include <libobject/net/url/Url.h>
-#include "Nginx_Command.h"
+#include "Httpd_Command.h"
 
 static int __handler_hello_world(Request *req, Response *res, void *opaque)
 {
@@ -56,7 +56,7 @@ static int __option_service_callback(Option *option, void *opaque)
     return server->set(server, "/Http_Server/service", STR2A(option->value));
 }
 
-static int __construct(Nginx_Command *command, char *init_str)
+static int __construct(Httpd_Command *command, char *init_str)
 {
     Http_Server *server;
     Command *c = (Command *)command;
@@ -72,13 +72,13 @@ static int __construct(Nginx_Command *command, char *init_str)
     c->add_option(c, "--host", "-h", "", "set server ip address", __option_host_callback, server);
     c->add_option(c, "--service", "-s", "", "set server ip port", __option_service_callback, server);
     
-    c->set(c, "/Command/name", "nginx");
+    c->set(c, "/Command/name", "httpd");
     c->set(c, "/Command/description", "nginx is mimic nginx and is used in much the same way.");
 
     return 0;
 }
 
-static int __deconstruct(Nginx_Command *command)
+static int __deconstruct(Httpd_Command *command)
 {
     if (command->server != NULL) {
         object_destroy(command->server);
@@ -87,7 +87,7 @@ static int __deconstruct(Nginx_Command *command)
     return 0;
 }
 
-static int __run_command(Nginx_Command *command)
+static int __run_command(Httpd_Command *command)
 {
     Http_Server *server = command->server;
     Command *c = (Command *)command;
@@ -101,11 +101,11 @@ static int __run_command(Nginx_Command *command)
     return 1;
 }
 
-static class_info_entry_t nginx_command_class_info[] = {
+static class_info_entry_t httpd_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
-    Init_Nfunc_Entry(1, Nginx_Command, construct, __construct),
-    Init_Nfunc_Entry(2, Nginx_Command, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, Nginx_Command, run_command, __run_command),
-    Init_End___Entry(4, Nginx_Command),
+    Init_Nfunc_Entry(1, Httpd_Command, construct, __construct),
+    Init_Nfunc_Entry(2, Httpd_Command, deconstruct, __deconstruct),
+    Init_Nfunc_Entry(3, Httpd_Command, run_command, __run_command),
+    Init_End___Entry(4, Httpd_Command),
 };
-REGISTER_APP_CMD(Nginx_Command, nginx_command_class_info);
+REGISTER_APP_CMD(Httpd_Command, httpd_command_class_info);
