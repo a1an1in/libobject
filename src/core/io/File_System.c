@@ -259,12 +259,12 @@ static class_info_entry_t file_system_class_info[] = {
 };
 REGISTER_CLASS(File_System, file_system_class_info);
 
-typedef Struct_Adapter FS_File_Info_Struct_Adapter;
+typedef Struct_Adapter FS_File_Info;
 static class_info_entry_t fs_file_info_stuct_adapter[] = {
     Init_Obj___Entry(0, Obj, parent),
-    Init_Point_Entry(1, FS_File_Info_Struct_Adapter, new, fs_file_info_struct_custom_new),
-    Init_Point_Entry(2, FS_File_Info_Struct_Adapter, free, fs_file_info_struct_custom_free),
-    Init_Point_Entry(3, FS_File_Info_Struct_Adapter, to_json, fs_file_info_struct_custom_to_json),
-    Init_End___Entry(4, FS_File_Info_Struct_Adapter),
+    Init_Point_Entry(1, FS_File_Info, new, fs_file_info_struct_custom_new),
+    Init_Point_Entry(2, FS_File_Info, free, fs_file_info_struct_custom_free),
+    Init_Point_Entry(3, FS_File_Info, to_json, fs_file_info_struct_custom_to_json),
+    Init_End___Entry(4, FS_File_Info),
 };
-REGISTER_CLASS(FS_File_Info_Struct_Adapter, fs_file_info_stuct_adapter)
+REGISTER_CLASS(FS_File_Info, fs_file_info_stuct_adapter)

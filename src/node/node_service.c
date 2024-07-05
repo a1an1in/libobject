@@ -191,7 +191,7 @@ static int node_list(bus_object_t *obj, int argc,
         list = object_new(allocator, "Vector", NULL);
         list->set(list, "/Vector/value_type", &value_type);
         list->set(list, "/Vector/trustee_flag", &trustee_flag);
-        list->set(list, "/Vector/class_name", "FS_File_Info_Struct_Adapter");
+        list->set(list, "/Vector/class_name", "FS_File_Info");
 
         count = fs_tree(path, list, -1);
         THROW_IF(count < 0, -1);
