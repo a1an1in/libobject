@@ -5,12 +5,12 @@
  * @version 
  * @date 2019-05-19
  */
-#include "Curl_Command.h"
-#include <libobject/net/http/Client.h>
 #include <libobject/core/io/File.h>
 #include <libobject/argument/Application.h>
 #include <libobject/argument/Argument.h>
 #include <libobject/net/url/Url.h>
+#include <libobject/net/http/Client.h>
+#include <libobject/net/http/Curl_Command.h>
 
 static char *__trim(char *str)
 {
@@ -104,7 +104,7 @@ static int __option_request_action_callback(Option *option, void *opaque)
 {
     Request *req = (Request *)opaque;
 
-    dbg_str(DBG_DETAIL,"set request method:%s", 
+    dbg_str(DBG_SUC, "set request method:%s", 
             option->value->get_cstr(option->value));
     req->set_method(req, option->value->get_cstr(option->value));
 }
@@ -121,7 +121,7 @@ static int __argument_url_action_callback(Argument *arg, void *opaque)
     req = client->get_request(client);
     chain = req->chain;
 
-    dbg_str(DBG_DETAIL,"url:%s", arg->value->get_cstr(arg->value));
+    dbg_str(DBG_SUC,"url:%s", arg->value->get_cstr(arg->value));
 
     url = chain->new(chain, "Url", NULL);
     url->parse(url, arg->value->get_cstr(arg->value));
@@ -188,11 +188,6 @@ static int __run_command(Command *command)
     Response *resp;
     int count;
 
-    /*
-     *command->run_option_actions(command);
-     *command->run_argument_actions(command);
-     */
-
     count = command->args->count(command->args);
     if (count != 1) {
         dbg_str(DBG_SUC,"curl command format err, need url");
@@ -220,7 +215,6 @@ static int __run_command(Command *command)
     while(resp != NULL && resp->end_flag != 1) {
         usleep(1000);
     }
-    dbg_str(DBG_SUC,"status code =%d", resp->status_code);
 
     return 1;
 }

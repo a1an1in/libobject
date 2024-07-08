@@ -287,6 +287,7 @@ static int __read_start_line(Response *response)
     buffer->read_to_string(buffer, str, len + 2);
 
     str->replace(str, "\r\n", "", -1);
+    dbg_str(DBG_SUC, "start line:%s", STR2A(str));
 
     cnt = str->split(str, " ", 2);
     if (cnt != 3) {
@@ -415,7 +416,7 @@ static int __write_headers(Response *response)
     Socket *socket;
 
     socket = response->socket;
-    b->printf(b, "%s %d %s\r\n", "HTTP/1.1", response->status_code, "");
+    b->printf(b, "%s %d %s\r\n", "HTTP/1.1", response->status_code, "x");
 
     cur = headers->begin(headers);
     end = headers->end(headers);

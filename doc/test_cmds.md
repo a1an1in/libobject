@@ -70,13 +70,6 @@ addr2line -f -e ./sysroot/linux/bin/xtools  libobject-core.so 0x152
 
 ```
 
-## net
-```
-ping6 2409:8c20:1833:1000::ad5:2cb5
-./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 mockery --log-level=0x6 test_client_udp_v6_recv
-./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x6 test_client_udp_v6_send
-```
-
 ## node
 ```
 /* test exit */
@@ -113,4 +106,13 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 
 ./sysroot/windows/bin/xtools.exe mockery --log-level=0x14 -f test_node
 
+```
+
+## net
+```
+ping6 2409:8c20:1833:1000::ad5:2cb5
+./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 mockery --log-level=0x6 test_client_udp_v6_recv
+./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x6 test_client_udp_v6_send
+./sysroot/windows/bin/xtools.exe mockery --log-level=0x14 -f test_http
+curl -X GET http://127.0.0.1:8081/api/hello_world
 ```

@@ -1,8 +1,8 @@
-[update:net] 更改Nginx_Command类名为Httpd_Command。
+[update:net] 增加http测试。
 
 Description:
-Nginx_Command类名有点不太直观， 为了使工具更加通用，
-更改命令从nginx为httpd。
+更新。
 
 Major Changes:
-1. 更改类名.
+1. 增加测试用例.
+2. 增加http no-loop标记。

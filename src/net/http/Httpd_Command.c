@@ -18,6 +18,8 @@ static int __handler_hello_world(Request *req, Response *res, void *opaque)
 
     res->set_header(res, "Content-Type", "application/json");
     res->set_body(res, body, strlen(body));
+    res->set_status_code(res, 200);
+    dbg_str(DBG_SUC,"run handler_hello_world");
 
     return 0;
 }
@@ -56,6 +58,16 @@ static int __option_service_callback(Option *option, void *opaque)
     return server->set(server, "/Http_Server/service", STR2A(option->value));
 }
 
+static int __option_no_loop_callback(Option *option, void *opaque)
+{
+    Httpd_Command *c = (Httpd_Command *)opaque;
+
+    c->loop_flag = 0;
+    dbg_str(DBG_SUC,"run option_no_loop_callback");
+
+    return 1;
+}
+
 static int __construct(Httpd_Command *command, char *init_str)
 {
     Http_Server *server;
@@ -64,12 +76,14 @@ static int __construct(Httpd_Command *command, char *init_str)
     server = object_new(c->parent.allocator, "Http_Server", NULL);
     server->set(server, "/Http_Server/root", "./webroot");
     command->server = server;
+    command->loop_flag = 1;
 
     server->register_handler(server, "GET", "/api/hello_world", __handler_hello_world, command);
 
     c->add_option(c, "--version", "-v", "false", "display version", __option_version_callback, server);
     c->add_option(c, "--root", "-r", "", "designate config file path", __option_root_callback, server);
     c->add_option(c, "--host", "-h", "", "set server ip address", __option_host_callback, server);
+    c->add_option(c, "--no-loop", "", "", "don't loop httpd", __option_no_loop_callback, command);
     c->add_option(c, "--service", "-s", "", "set server ip port", __option_service_callback, server);
     
     c->set(c, "/Command/name", "httpd");
@@ -96,7 +110,9 @@ static int __run_command(Httpd_Command *command)
     server->set(server, "service", "8081");
     server->start(server);
 
-    sleep(60 * 60);
+    if (command->loop_flag == 1) {
+        sleep(60 * 60);
+    }
 
     return 1;
 }

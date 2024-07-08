@@ -21,6 +21,7 @@ struct Httpd_Command_s{
     void * (*run_command)(Httpd_Command *command);
 
     Http_Server *server;
+	int loop_flag;
 };
 
 #endif
