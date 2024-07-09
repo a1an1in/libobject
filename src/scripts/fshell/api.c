@@ -20,15 +20,36 @@ int test_hello()
     return 0;
 }
 
-int fsh_help()
+/* test funcs */
+int test_print_inbound(int a, int b, int c, int d, int e, int f, int *g)
 {
-    printf("fshell help\n");
+    dbg_str(DBG_INFO, "inbound func of test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d", a, b, c, d, e, f, *g);
+    return 1;
+}
+
+int test_func(int a, int b, int c, int d, int e, int f, int *g)
+{
+    dbg_str(DBG_INFO, "original test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d", a, b, c, d, e, f, *g);
+    return 1;
+}
+
+int test_target_func(int a, int b, int c, int d, int e, int f, int *g)
+{
+    *g = 8;
+    dbg_str(DBG_INFO, "target test_func which replaced the original test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d", a, b, c, d, e, f, *g);
+    return 1;
+}
+
+int test_print_outbound(int a, int b, int c, int d, int e, int f, int *g)
+{
+    dbg_str(DBG_INFO, "outbound func of test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d", a, b, c, d, e, f, *g);
+    return 1;
 }
 
 #if (!defined(WINDOWS_USER_MODE))
 #include <sys/user.h>
 #include <sys/ptrace.h>
-int fsh_attach(char *pid)
+int fsh_attach(FShell *shell, char *pid)
 {
     int ret;
     pid_t tpid;
@@ -45,7 +66,7 @@ int fsh_attach(char *pid)
     return ret;
 }
 
-int fsh_dettach(char *pid)
+int fsh_dettach(FShell *shell, char *pid)
 {
     int ret;
     pid_t tpid;
@@ -62,17 +83,20 @@ int fsh_dettach(char *pid)
 }
 #endif
 
-int fsh_quit()
+int fsh_help(FShell *shell)
 {
-    FShell *shell = g_shell;
+    printf("fshell help\n");
+}
 
+int fsh_quit(FShell *shell)
+{
     shell->close_flag = 1;
     printf("fshell quit ok.\n");
 
     return 1; 
 }
 
-int fsh_printf(char *fmt, ...)
+int fsh_printf(FShell *shell, char *fmt, ...)
 {
     va_list ap;
 
@@ -85,7 +109,7 @@ int fsh_printf(char *fmt, ...)
     return 1;
 }
 
-int fsh_exec(char *string)
+int fsh_exec(FShell *shell, char *string)
 {
     int ret, len;
 
@@ -102,12 +126,11 @@ int fsh_exec(char *string)
     return ret;
 }
 
-int fsh_call(void *p1, void *p2, void *p3, void *p4, void *p5, 
+int fsh_call(FShell *shell, void *p1, void *p2, void *p3, void *p4, void *p5, 
              void *p6, void *p7, void *p8, void *p9, void *p10,
              void *p11, void *p12, void *p13, void *p14, void *p15, 
-             void *p16, void *p17, void *p18, void *p19, void *p20)
+             void *p16, void *p17, void *p18, void *p19)
 {
-    FShell *shell = g_shell;
     fshell_func_t func = NULL;
     int ret;
 
@@ -115,26 +138,26 @@ int fsh_call(void *p1, void *p2, void *p3, void *p4, void *p5,
         printf("fsh call:%s\n", (char *)p1);
         EXEC(shell->get_func_addr(shell, NULL, (char *)p1, &func));
         EXEC(func(p2, p3, p3, p5, p6, p7, p8, p9, p10, p11, 
-                  p12, p13, p14, p15, p16, p17, p18, p19, p20, 0));
+                  p12, p13, p14, p15, p16, p17, p18, p19, 0, 0));
     } CATCH (ret) { }
 
-    return ret;
+    return ret; 
 }
 
-int fsh_test_add_v1(int a, int b)
+int fsh_test_add_v1(FShell *shell, int a, int b)
 {
     dbg_str(DBG_INFO, "fsh add, a:%d, b:%d, count:%d", a, b, a + b);
     return a + b;
 }
 
-int fsh_test_add_v2(int a, int b, int *r)
+int fsh_test_add_v2(FShell *shell, int a, int b, int *r)
 {
     dbg_str(DBG_INFO, "fsh add, a:%d, b:%d, count:%d", a, b, a + b);
     *r = a + b;
     return 1;
 }
 
-int fsh_alloc_stub(stub_t **stub)
+int fsh_alloc_stub(FShell *shell, stub_t **stub)
 {
     stub_t * s;
     int ret;
@@ -150,7 +173,7 @@ int fsh_alloc_stub(stub_t **stub)
     return ret;
 }
 
-int fsh_free_stub(stub_t *stub)
+int fsh_free_stub(FShell *shell, stub_t *stub)
 {
     dbg_str(DBG_INFO, "fsh_free_stub stub:%p", stub);
     return stub_free(stub);
@@ -192,33 +215,8 @@ int fsh_add_stub_hooks(FShell *shell, stub_t *stub, char *func_name, char *pre_n
     return ret;
 }
 
-int fsh_remove_stub_hooks(stub_t *stub)
+int fsh_remove_stub_hooks(FShell *shell, stub_t *stub)
 {
     return stub_remove_hooks(stub);
 }
 
-/* test funcs */
-int test_print_inbound(int a, int b, int c, int d, int e, int f, int *g)
-{
-    dbg_str(DBG_INFO, "inbound func of test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-int test_func(int a, int b, int c, int d, int e, int f, int *g)
-{
-    dbg_str(DBG_INFO, "original test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-int test_target_func(int a, int b, int c, int d, int e, int f, int *g)
-{
-    *g = 8;
-    dbg_str(DBG_INFO, "target test_func which replaced the original test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d", a, b, c, d, e, f, *g);
-    return 1;
-}
-
-int test_print_outbound(int a, int b, int c, int d, int e, int f, int *g)
-{
-    dbg_str(DBG_INFO, "outbound func of test_func, a:%d, b:%d, c:%d, d:%d, e:%d, f:%d, g:%d", a, b, c, d, e, f, *g);
-    return 1;
-}

@@ -416,7 +416,7 @@ static int __write_headers(Response *response)
     Socket *socket;
 
     socket = response->socket;
-    b->printf(b, "%s %d %s\r\n", "HTTP/1.1", response->status_code, "x");
+    b->printf(b, "%s %d %s\r\n", "HTTP/1.1", response->status_code, "n/a");
 
     cur = headers->begin(headers);
     end = headers->end(headers);

@@ -289,7 +289,7 @@ static int node_malloc(bus_object_t *obj, int argc,
             }
             case VALUE_TYPE_STUB_POINTER:
                 info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + sizeof(void *));
-                EXEC(fsh_alloc_stub(&info->addr));
+                EXEC(fsh_alloc_stub(shell, &info->addr));
                 info->value_type = VALUE_TYPE_STUB_POINTER;
                 strcpy(info->name, name);
                 addr = info->addr;
@@ -351,7 +351,7 @@ static int node_mfree(bus_object_t *obj, int argc,
             }
             case VALUE_TYPE_STUB_POINTER:
                 dbg_str(DBG_VIP, "node_mfree stub, name:%s, addr:%p", name, info->addr);
-                fsh_free_stub(info->addr);
+                fsh_free_stub(shell, info->addr);
                 allocator_mem_free(allocator, info);
                 break;
             default:

@@ -143,7 +143,7 @@ static int __run_func(FShell *shell, String *str)
             }
         }
 
-        if (strcmp(func_name, "fsh_add_stub_hooks") == 0) {
+        if (strncmp(func_name, "fsh_", strlen("fsh_")) == 0) {
             ret = func(shell, par[0], par[1], par[2], par[3], par[4],
                        par[5], par[6], par[7], par[8], par[9], 
                        par[10], par[11], par[12], par[13], par[14],
@@ -231,7 +231,7 @@ int fsh_variable_info_free(allocator_t *allocator, fsh_malloc_variable_info_t *i
         }
         case VALUE_TYPE_STUB_POINTER:
             dbg_str(DBG_VIP, "node_mfree stub, name:%s, addr:%p", info->name, info->addr);
-            fsh_free_stub(info->addr);
+            fsh_free_stub(NULL, info->addr);
             allocator_mem_free(allocator, info);
             break;
         default:
