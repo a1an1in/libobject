@@ -5,10 +5,11 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
 #include <libobject/core/Vector.h>
+#include <libobject/core/Struct_Adapter.h>
 #include <libobject/concurrent/worker_api.h>
 
 typedef struct FShell_s FShell;
-typedef struct Fsh_Variable_Info_s Fsh_Variable_Info;
+typedef Struct_Adapter Fsh_Variable_Info;
 
 typedef struct fsh_malloc_variable_info_s {
 	char name[32];
@@ -44,25 +45,12 @@ struct FShell_s {
     char prompt[20];
 };
 
-struct Fsh_Variable_Info_s {
-    Obj parent;
-
-    int (*construct)(Fsh_Variable_Info *,char *);
-    int (*deconstruct)(Fsh_Variable_Info *);
-
-    int (*set)(Fsh_Variable_Info *, char *attrib, void *value);
-    void *(*get)(Fsh_Variable_Info *, char *attrib);
-
-    /* operation attribs */
-    void *new;
-    void *free;
-    void *to_json;
-    void *print;
-};
-
 typedef int (*fshell_func_t)(void * p1, void * p2, void * p3, void * p4, void * p5, 
                              void * p6, void * p7, void * p8, void * p9, void * p10,
                              void * p11, void * p12, void * p13, void * p14, void * p15, 
                              void * p16, void * p17, void * p18, void * p19, void * p20);
+
+int fsh_variable_info_alloc(allocator_t *allocator, uint32_t value_type, char *class_name, uint32_t size, char *name, void **value);
+int fsh_variable_info_free(allocator_t *allocator, fsh_malloc_variable_info_t *info);
 
 #endif

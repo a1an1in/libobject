@@ -96,7 +96,7 @@ static int __test_node_malloc_and_mfree(Node *node)
     int ret;
     
     TRY {
-        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, "abc", 8, &addr));
+        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, "#abc", 8, &addr));
         dbg_str(DBG_SUC, "node alloc addr:%p", addr);
         EXEC(node->mfree(node, "node", TARGET_TYPE_NODE, "abc"));
 
@@ -112,7 +112,7 @@ static int __test_node_mset_and_mget(Node *node)
     allocator_t *allocator = allocator_get_default_instance();
     void *addr = NULL;
     char *test_value = "hello world";
-    char *variable_name = "$test_abc";
+    char *variable_name = "#test_abc";
     char buffer[1024] = {0};
     int ret, len = strlen(test_value);
     

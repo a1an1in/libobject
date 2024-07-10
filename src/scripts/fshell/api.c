@@ -157,6 +157,7 @@ int fsh_test_add_v2(FShell *shell, int a, int b, int *r)
     return 1;
 }
 
+/* 为了与fsh_add_stub_hooks 保持一致新， stub的其余接口也新增了fshell 参数 */
 int fsh_alloc_stub(FShell *shell, stub_t **stub)
 {
     stub_t * s;
@@ -219,4 +220,3 @@ int fsh_remove_stub_hooks(FShell *shell, stub_t *stub)
 {
     return stub_remove_hooks(stub);
 }
-

@@ -16,6 +16,7 @@ struct Struct_Adapter_s {
 
     /* operation attribs */
     void *new;
+    void *alloc;
     void *free;
     void *to_json;
     void *print;

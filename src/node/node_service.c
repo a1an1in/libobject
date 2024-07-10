@@ -278,29 +278,10 @@ static int node_malloc(bus_object_t *obj, int argc,
         map = shell->variable_map;
         allocator = bus->allocator;
 
-        switch (value_type) {
-            case VALUE_TYPE_ALLOC_POINTER: {
-                info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + size);
-                addr = info->value;
-                info->value_type = VALUE_TYPE_ALLOC_POINTER;
-                info->addr = info->value; //记录分配给用户使用的地址。
-                strcpy(info->name, name);
-                break;
-            }
-            case VALUE_TYPE_STUB_POINTER:
-                info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + sizeof(void *));
-                EXEC(fsh_alloc_stub(shell, &info->addr));
-                info->value_type = VALUE_TYPE_STUB_POINTER;
-                strcpy(info->name, name);
-                addr = info->addr;
-                break;
-            case VALUE_TYPE_STRUCT_POINTER:
-                break;
-            default:
-                break;
-        }
-        
+        EXEC(fsh_variable_info_alloc(allocator, value_type, class_name, size, name, &info));
+        addr = info->addr;
         map->add(map, info->name, info);
+        
         dbg_str(DBG_VIP, "node_malloc, name:%s, class_name:%s, size:%d, addr:%p", name, class_name, size, addr);
 
         *out_len = sizeof(void *);
@@ -342,24 +323,8 @@ static int node_mfree(bus_object_t *obj, int argc,
         THROW_IF(name == NULL, -1);
         map->remove(map, name, &info);
         THROW_IF(info == NULL, -1);
-        
-        switch (info->value_type) {
-            case VALUE_TYPE_ALLOC_POINTER: {
-                dbg_str(DBG_VIP, "node_mfree alloc pointer, name:%s, addr:%p", name, info->value);
-                allocator_mem_free(allocator, info);
-                break;
-            }
-            case VALUE_TYPE_STUB_POINTER:
-                dbg_str(DBG_VIP, "node_mfree stub, name:%s, addr:%p", name, info->addr);
-                fsh_free_stub(shell, info->addr);
-                allocator_mem_free(allocator, info);
-                break;
-            default:
-                break;
-        }
-        
-        *out_len = 0;
-    } CATCH (ret) {*out_len = 0;} FINALLY { }
+        EXEC(fsh_variable_info_free(allocator, info));
+    } CATCH (ret) { } FINALLY { *out_len = 0; }
 
 	return ret;
 }

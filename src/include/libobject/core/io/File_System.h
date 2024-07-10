@@ -8,8 +8,10 @@
 #include <sys/time.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/Vector.h>
+#include <libobject/core/Struct_Adapter.h>
 
 typedef struct file_system_s File_System;
+typedef Struct_Adapter FS_File_Info;
 
 #if (defined(WINDOWS_USER_MODE))
 typedef unsigned long long uint64_t;

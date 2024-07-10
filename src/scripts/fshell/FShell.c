@@ -221,6 +221,41 @@ int fsh_variable_info_new(allocator_t *allocator, cjson_t *c, void **value)
     return ret;
 }
 
+int fsh_variable_info_alloc(allocator_t *allocator, uint32_t value_type, char *class_name, uint32_t size, char *name, void **value)
+{
+    fsh_malloc_variable_info_t *info;
+    int ret;
+
+    TRY {
+        switch (value_type) {
+            case VALUE_TYPE_ALLOC_POINTER: {
+                info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + size);
+                info->value_type = VALUE_TYPE_ALLOC_POINTER;
+                info->addr = info->value; //记录分配给用户使用的地址。
+                strcpy(info->name, name);
+                break;
+            }
+            case VALUE_TYPE_STUB_POINTER:
+                info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + sizeof(void *));
+                EXEC(fsh_alloc_stub(NULL, &info->addr));
+                info->value_type = VALUE_TYPE_STUB_POINTER;
+                strcpy(info->name, name);
+                break;
+            case VALUE_TYPE_OBJ_POINTER:
+                // info->addr
+                break;
+            case VALUE_TYPE_STRUCT_POINTER:
+                break;
+            default:
+                break;
+        }
+        *value = info;
+
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 int fsh_variable_info_free(allocator_t *allocator, fsh_malloc_variable_info_t *info)
 {
     switch (info->value_type) {
@@ -234,6 +269,8 @@ int fsh_variable_info_free(allocator_t *allocator, fsh_malloc_variable_info_t *i
             fsh_free_stub(NULL, info->addr);
             allocator_mem_free(allocator, info);
             break;
+        case VALUE_TYPE_OBJ_POINTER:
+            object_destroy(info->addr);
         default:
             break;
     }
@@ -266,10 +303,11 @@ int fsh_variable_info_print(int index, fsh_malloc_variable_info_t *info)
 
 static class_info_entry_t fsh_variable_info[] = {
     Init_Obj___Entry(0, Obj, parent),
-    Init_Point_Entry(1, Fsh_Variable_Info, new, fsh_variable_info_new),
-    Init_Point_Entry(2, Fsh_Variable_Info, free, fsh_variable_info_free),
-    Init_Point_Entry(3, Fsh_Variable_Info, to_json, fsh_variable_info_to_json),
-    Init_Point_Entry(4, Fsh_Variable_Info, print, fsh_variable_info_print),
-    Init_End___Entry(5, Fsh_Variable_Info),
+    Init_Point_Entry(1, Struct_Adapter, new, fsh_variable_info_new),
+    Init_Point_Entry(2, Struct_Adapter, alloc, fsh_variable_info_alloc),
+    Init_Point_Entry(3, Struct_Adapter, free, fsh_variable_info_free),
+    Init_Point_Entry(4, Struct_Adapter, to_json, fsh_variable_info_to_json),
+    Init_Point_Entry(5, Struct_Adapter, print, fsh_variable_info_print),
+    Init_End___Entry(6, Struct_Adapter),
 };
 REGISTER_CLASS(Fsh_Variable_Info, fsh_variable_info);
