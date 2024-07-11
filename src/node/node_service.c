@@ -396,7 +396,8 @@ static int node_mset(bus_object_t *obj, int argc,
         allocator = bus->allocator;
         THROW_IF(len > capacity || addr == NULL, -1);
 
-        dbg_str(DBG_VIP, "node_mset, type:%d addr:%p, offset:%d, capacity:%d, len:%d", type, addr, offset, capacity, len);
+        dbg_str(DBG_VIP, "node_mset, type:%d addr:%p, offset:%d, capacity:%d, len:%d", 
+                type, addr, offset, capacity, len);
         dbg_buf(DBG_VIP, "node mset receive buffer:", buffer, len);
         memcpy(addr + offset, buffer, len);
     } CATCH (ret) { } FINALLY { *out_len = 0; }

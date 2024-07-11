@@ -91,6 +91,21 @@ static int __set_prompt(FShell *shell, char *prompt)
     return 0;
 }
 
+static int __convert_object_method_paramaters(FShell *shell, String *str)
+{
+    int ret, start, len;
+    char *regex = "(#[a-z0-9A-Z._-]+)";
+    char variable_name[32];
+
+    TRY {
+        EXEC(str->get_substring(str, regex, 0, &start, &len));
+        strncpy(variable_name, STR2A(str) + start, len);
+        str->replace(str, variable_name, "0x123", 1);
+    } CATCH (ret) { } {}
+
+    return ret;
+}
+
 static int __run_func(FShell *shell, String *str)
 {
     int ret, i, cnt, len;
@@ -99,7 +114,7 @@ static int __run_func(FShell *shell, String *str)
     Map *map = shell->variable_map;
     fsh_malloc_variable_info_t *info = NULL;
     void *par[20] = {0};
-    char *func_str[128];
+    char func_str[128];
 
     TRY {
         THROW_IF(str == NULL, -1);
@@ -118,8 +133,10 @@ static int __run_func(FShell *shell, String *str)
                 dbg_str(DBG_DETAIL, "%d:%s", i, arg);
             }
             arg = str_trim(arg);
+
+            if (arg[0] == '"')
             /* 参数加引号为表示字符串， 不加引号为数字或者变量名 */
-            if (arg[0] == '"') {
+            {
                 len = strlen(arg);
                 THROW_IF(arg[len - 1] != '"', -1);
                 arg[len - 1] = '\0';
@@ -143,11 +160,21 @@ static int __run_func(FShell *shell, String *str)
             }
         }
 
-        if (strncmp(func_name, "fsh_", strlen("fsh_")) == 0) {
+        if (strncmp(func_name, "fsh_", strlen("fsh_")) == 0)
+        /* fsh_ 打头的函数， 第一个参数为shell， 其余的参数往后移 */
+        {
             ret = func(shell, par[0], par[1], par[2], par[3], par[4],
                        par[5], par[6], par[7], par[8], par[9], 
                        par[10], par[11], par[12], par[13], par[14],
                        par[15], par[16], par[17], par[18]);
+        } else if (strncmp(func_name, "object_call_method", strlen("object_call_method")) == 0)
+        /* 调用object method格式为method_name<arg1:arg2:arg3:...> */
+        {
+            char method[64];
+            strcpy(method, par[1]);
+            str->assign(str, method);
+            EXEC(__convert_object_method_paramaters(shell, str));
+            dbg_str(DBG_SUC, "method:%s", STR2A(str));
         } else {
             ret = func(par[0], par[1], par[2], par[3], par[4],
                        par[5], par[6], par[7], par[8], par[9], 
@@ -237,12 +264,15 @@ int fsh_variable_info_alloc(allocator_t *allocator, uint32_t value_type, char *c
             }
             case VALUE_TYPE_STUB_POINTER:
                 info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + sizeof(void *));
-                EXEC(fsh_alloc_stub(NULL, &info->addr));
+                info->addr = stub_alloc();
                 info->value_type = VALUE_TYPE_STUB_POINTER;
                 strcpy(info->name, name);
                 break;
             case VALUE_TYPE_OBJ_POINTER:
-                // info->addr
+                info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + sizeof(void *));
+                info->addr = object_new(allocator, class_name, NULL);
+                info->value_type = VALUE_TYPE_OBJ_POINTER;
+                strcpy(info->name, name);
                 break;
             case VALUE_TYPE_STRUCT_POINTER:
                 break;
@@ -266,11 +296,15 @@ int fsh_variable_info_free(allocator_t *allocator, fsh_malloc_variable_info_t *i
         }
         case VALUE_TYPE_STUB_POINTER:
             dbg_str(DBG_VIP, "node_mfree stub, name:%s, addr:%p", info->name, info->addr);
-            fsh_free_stub(NULL, info->addr);
+            stub_free(info->addr);
             allocator_mem_free(allocator, info);
             break;
         case VALUE_TYPE_OBJ_POINTER:
+            dbg_str(DBG_SUC, "node_mfree object, name:%s, addr:%p", info->name, info->addr);
             object_destroy(info->addr);
+            allocator_mem_free(allocator, info);
+        case VALUE_TYPE_STRUCT_POINTER:
+            break;
         default:
             break;
     }

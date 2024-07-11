@@ -472,6 +472,31 @@ static int test_string_v2_replace_case1()
     return ret;
 }
 
+static int test_string_v2_replace_case2()
+{
+    String *string;
+    allocator_t *allocator = allocator_get_default_instance();
+    char *test1 = "<1:#abc:2:\"abc\">";
+    char *test2 = "<1:0x123:2:\"abc\">";
+    char *regex = ":(#[a-z0-9A-Z._-]+):";
+    char buffer[32];
+    int ret, start, len;
+
+    TRY {
+        string = object_new(allocator, "String", NULL);
+        string->assign(string, test1);
+        EXEC(string->get_substring(string, regex, 0, &start, &len));
+        strncpy(buffer, test1 + start, len);
+        string->replace(string, buffer, "0x123", 1);
+
+        THROW_IF(strcmp(string->get_cstr(string), test2) != 0, -1);
+    } CATCH (ret) {} FINALLY {
+        object_destroy(string);
+    }
+
+    return ret;
+}
+
 static int test_string_v2_replace(TEST_ENTRY *entry)
 {
     int ret;
@@ -479,6 +504,7 @@ static int test_string_v2_replace(TEST_ENTRY *entry)
     TRY {
         EXEC(test_string_v2_replace_case0());
         EXEC(test_string_v2_replace_case1());
+        EXEC(test_string_v2_replace_case2());
     } CATCH (ret) {}
 
     return ret;

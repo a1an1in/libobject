@@ -27,9 +27,10 @@ int object_dump(void *obj, char *type_name, char *buf, int max_len);
 void *object_new(allocator_t *allocator, const char *type, char *config);
 int object_destroy(void *obj);
 int object_override(void *obj, char *func_name, void *value);
-void *object_get_func_of_class(char *class_name, char *func_name);
+void *object_get_member_of_class(char *class_name, char *func_name);
 void *object_get_progeny_class_first_normal_func(char *sub_class_name, char *root_class_name, char *func_name);
 void *object_get_progeny_class_last_reimplement_func(char *start_type_name, char *end_type_name, char *method_name);
+int object_call_method(void *object, char *func_str);
 
 #define OBJECT_ALLOC(alloc, type)                                                   \
 ({                                                                                  \

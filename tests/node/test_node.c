@@ -98,7 +98,7 @@ static int __test_node_malloc_and_mfree(Node *node)
     TRY {
         EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, "#abc", 8, &addr));
         dbg_str(DBG_SUC, "node alloc addr:%p", addr);
-        EXEC(node->mfree(node, "node", TARGET_TYPE_NODE, "abc"));
+        EXEC(node->mfree(node, "node", TARGET_TYPE_NODE, "#abc"));
 
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
@@ -137,7 +137,7 @@ static int __test_node_call_fsh(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
     void *addr = NULL;
-    char *variable_name1 = "$test_stub_v1";
+    char *variable_name1 = "#test_stub_v1";
     char buffer[1024];
     int ret, len = sizeof(int);
     
@@ -205,6 +205,31 @@ static int __test_node_stub(Node *node)
     return ret;
 }
 
+static int __test_node_run_httpd(Node *node)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    char *object_name = "#test_httpd";
+    char *method = "set_args<command:2:#abc:3>";
+    void *addr = NULL;
+    int ret; 
+    
+    TRY {
+        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_OBJ_POINTER, "Httpd_Command", object_name, 8, &addr));
+        dbg_str(DBG_SUC, "node alloc addr:%p", addr);
+        EXEC(node->call_fsh(node, "%s@object_call_method(%s, \"%s\")", "node", object_name, method));
+        // command->set_args(command, 2, (char **)argv);
+        // command->parse_args(command);
+        // EXEC(command->run_option_actions(command));
+        // EXEC(command->run_command(command));
+        EXEC(node->mfree(node, "node", TARGET_TYPE_NODE, object_name));
+
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) { } FINALLY {}
+
+    return ret;
+}
+
 static int test_node(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -239,6 +264,7 @@ static int test_node(TEST_ENTRY *entry)
         EXEC(__test_node_call_fsh(node));
         EXEC(__test_node_mget_pointer(node));
         EXEC(__test_node_stub(node));
+        EXEC(__test_node_run_httpd(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         usleep(1000);

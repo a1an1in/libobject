@@ -659,7 +659,7 @@ void *object_get_progeny_class_first_normal_func(char *sub_class_name, char *roo
     return NULL;
 }
 
-void *object_get_func_of_class(char *class_name, char *func_name)
+void *object_get_member_of_class(char *class_name, char *func_name)
 {
     class_info_entry_t *entry;
     class_deamon_t *deamon;
@@ -679,7 +679,7 @@ void *object_get_func_of_class(char *class_name, char *func_name)
             }
         }
     } CATCH (ret) {
-        dbg_str(OBJ_ERROR, "object_get_func_of_class, class_name:%s func_name:%s",
+        dbg_str(OBJ_ERROR, "object_get_member_of_class, class_name:%s func_name:%s",
                 class_name, func_name);
     }
 
@@ -734,5 +734,14 @@ int object_destroy(void *obj)
         }
     } CATCH (ret) {}
 
+    return ret;
+}
+
+
+int object_call_method(void *object, char *func_str)
+{
+    int ret;
+
+    dbg_str(DBG_SUC, "object_call_method object:%p, method:%s", object, func_str);
     return ret;
 }

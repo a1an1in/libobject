@@ -1,9 +1,8 @@
-[update:fsh] 修复fshell api 第一个参数类型。
+[update:node] 重构重构node_malloc和node_mfree。
 
 Description:
-因为有的api可能需要fsh参数，所以默认将fshell api第一个
-参数改为fshell。
+重构node_malloc和node_mfree，复用Struct_Adapter的方法。
 
 Major Changes:
-1. 更改fshell api 参数.
-2. 修复reponse startline 第三个字段。
+1. 新增Struct_Adapter alloc方法.
+2. 重构node_malloc和node_mfree，复用fsh_variable_info方法。

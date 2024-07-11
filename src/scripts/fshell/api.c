@@ -126,24 +126,6 @@ int fsh_exec(FShell *shell, char *string)
     return ret;
 }
 
-int fsh_call(FShell *shell, void *p1, void *p2, void *p3, void *p4, void *p5, 
-             void *p6, void *p7, void *p8, void *p9, void *p10,
-             void *p11, void *p12, void *p13, void *p14, void *p15, 
-             void *p16, void *p17, void *p18, void *p19)
-{
-    fshell_func_t func = NULL;
-    int ret;
-
-    TRY {
-        printf("fsh call:%s\n", (char *)p1);
-        EXEC(shell->get_func_addr(shell, NULL, (char *)p1, &func));
-        EXEC(func(p2, p3, p3, p5, p6, p7, p8, p9, p10, p11, 
-                  p12, p13, p14, p15, p16, p17, p18, p19, 0, 0));
-    } CATCH (ret) { }
-
-    return ret; 
-}
-
 int fsh_test_add_v1(FShell *shell, int a, int b)
 {
     dbg_str(DBG_INFO, "fsh add, a:%d, b:%d, count:%d", a, b, a + b);
@@ -180,7 +162,8 @@ int fsh_free_stub(FShell *shell, stub_t *stub)
     return stub_free(stub);
 }
 
-int fsh_add_stub_hooks(FShell *shell, stub_t *stub, char *func_name, char *pre_name, char *new_fn_name, char *post_name, int para_count)
+int fsh_add_stub_hooks(FShell *shell, stub_t *stub, char *func_name, char *pre_name, 
+                       char *new_fn_name, char *post_name, int para_count)
 {
     void *func, *pre, *new_fn, *post;
     int g = 7;
