@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <libobject/argument/Command.h>
 #include <libobject/core/String.h>
+#include <libobject/net/http/Client.h>
 
 typedef struct Wget_Command_s Wget_Command;
 
@@ -23,6 +24,7 @@ struct Wget_Command_s{
     String *append_output;
     String *input_file;
     String *bind_address;
+    Http_Client *client;
     int help;
     int tries;
 };

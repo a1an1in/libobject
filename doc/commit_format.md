@@ -1,8 +1,9 @@
-[update:node] 重构重构node_malloc和node_mfree。
+[update:fshell] 新增node调用对象方法实现。
 
 Description:
-重构node_malloc和node_mfree，复用Struct_Adapter的方法。
+更新修改。
 
 Major Changes:
-1. 新增Struct_Adapter alloc方法.
-2. 重构node_malloc和node_mfree，复用fsh_variable_info方法。
+1. 新增node_call_fshell_object_method
+2. 新增test_http_wget和test_node_call_fsh_object_method用例。
+3. 删除不用的代码。

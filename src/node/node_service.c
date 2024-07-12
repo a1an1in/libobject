@@ -207,11 +207,11 @@ static int node_list(bus_object_t *obj, int argc,
 	return ret;
 }
 
-static const struct blob_policy_s exec_fshell_policy[] = {
+static const struct blob_policy_s call_fshell_policy[] = {
 	[0] = { .name = "command",  .type = BLOB_TYPE_STRING }, 
 };
 
-static int node_exec_fshell(bus_object_t *obj, int argc, 
+static int node_call_fshell(bus_object_t *obj, int argc, 
                             struct blob_attr_s **args, 
                             void *out, int *out_len)
 {
@@ -231,10 +231,43 @@ static int node_exec_fshell(bus_object_t *obj, int argc,
         shell = node->shell;
         str = node->str;
 
-        dbg_str(DBG_INFO, "node_exec_fshell command:%s", command);
+        dbg_str(DBG_INFO, "node_call_fshell command:%s", command);
         str->reset(str);
         str->assign(str, command);
         THROW(shell->run_func(shell, str));
+    } CATCH (ret) {} FINALLY {
+        *out_len = 0;
+    }
+
+	return ret;
+}
+
+static const struct blob_policy_s call_fshell_object_method_policy[] = {
+	[0] = { .name = "command",  .type = BLOB_TYPE_STRING }, 
+};
+
+static int node_call_fshell_object_method(bus_object_t *obj, int argc, 
+                                          struct blob_attr_s **args, 
+                                          void *out, int *out_len)
+{
+    bus_t *bus;
+    char *command;
+    FShell *shell;
+    String *str;
+    Node *node;
+    int ret;
+
+    TRY {
+        command = blob_get_string(args[0]);
+        bus = obj->bus;
+        node = bus->opaque;
+        shell = node->shell;
+        str = node->str;
+
+        dbg_str(DBG_INFO, "node_call_fshell_object_method command:%s", command);
+        str->reset(str);
+        str->assign(str, command);
+        THROW(shell->run_object_func(shell, str));
     } CATCH (ret) {} FINALLY {
         *out_len = 0;
     }
@@ -452,7 +485,8 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("list", node_list, list_policy),
     BUS_METHOD("write_file", node_write_file, write_file_policy),
     BUS_METHOD("read_file", node_read_file, read_file_policy),
-    BUS_METHOD("exec_fshell", node_exec_fshell, exec_fshell_policy),
+    BUS_METHOD("call_fshell", node_call_fshell, call_fshell_policy),
+    BUS_METHOD("call_fshell_object_method", node_call_fshell_object_method, call_fshell_object_method_policy),
     BUS_METHOD("malloc", node_malloc, malloc_policy),
     BUS_METHOD("mfree", node_mfree, mfree_policy),
     BUS_METHOD("mget", node_mget, mget_policy),

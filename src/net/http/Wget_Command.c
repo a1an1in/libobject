@@ -5,15 +5,15 @@
  * @version 
  * @date 2019-05-19
  */
-#include "Wget_Command.h"
-#include <libobject/net/http/Client.h>
+
 #include <libobject/core/io/File.h>
 #include <libobject/argument/Application.h>
 #include <libobject/argument/Argument.h>
 #include <libobject/net/url/Url.h>
 #include <libobject/mockery/mockery.h>
+#include <libobject/net/http/Wget_Command.h>
 
-//test command: ./sysroot/mac/bin/cean wget http://mirror.hust.edu.cn/gnu/hello/hello-1.3.tar.gz
+//test command: ./sysroot/mac/bin/xtools wget http://mirror.hust.edu.cn/gnu/hello/hello-1.3.tar.gz
 
 static int __get_output_document_name(Command *command, String *file);
 
@@ -28,8 +28,7 @@ static int __wget_request_callback(Response *resp, void *arg)
 
     output_document = object_new(command->parent.allocator, "String", NULL);
     __get_output_document_name(command, output_document);
-    dbg_str(DBG_DETAIL,"output_document:%s",
-            output_document->get_cstr(output_document));
+    dbg_str(DBG_DETAIL,"output_document:%s", output_document->get_cstr(output_document));
 
     path = object_new(allocator, "String", NULL);
     path->assign(path, "./");
@@ -71,8 +70,8 @@ static int __deconstruct(Command *command)
 {
     Wget_Command *test_command = (Wget_Command *)command;
 
-    if (test_command->output_file != NULL)
-        object_destroy(test_command->output_file);
+    object_destroy(test_command->output_file);
+    object_destroy(test_command->client);
 
     return 0;
 }
@@ -112,6 +111,7 @@ static int __run_command(Command *command)
     Argument *arg;
     allocator_t *allocator = command->parent.allocator;
     Http_Client *client;
+    Wget_Command *wget_command = (Wget_Command *)command;
     Request *req;
     Response *response;
     char *remote_host;
@@ -120,8 +120,8 @@ static int __run_command(Command *command)
     char *uri;
 
     count = command->args->count(command->args);
-
     dbg_str(DBG_SUC,"arg count =%d", count);
+    
     if (count == 1) {
         arg = command->get_argment(command, 0);
         if (arg != NULL) {
@@ -138,6 +138,7 @@ static int __run_command(Command *command)
     }
 
     client = object_new(allocator, "Http_Client", NULL);
+    wget_command->client = client;
     req = client->get_request(client);
     client->set(client, "remote_host", remote_host);
     client->set(client, "remote_service", remote_service);
@@ -153,8 +154,7 @@ static int __run_command(Command *command)
     req->set_header(req, "Connection", "Keep-Alive");
 
     dbg_str(DBG_SUC,"request opaque=%p",  client);
-    client->request(client, (int (*)(void *, void *))
-                            __wget_request_callback, client);
+    client->request(client, (int (*)(void *, void *))__wget_request_callback, client);
 
     response = client->get_response(client);
     while(response != NULL && response->end_flag != 1) {
@@ -164,7 +164,6 @@ static int __run_command(Command *command)
     if (url != NULL) {
         object_destroy(url);
     }
-    object_destroy(client);
 
     return 1;
 }
@@ -179,57 +178,3 @@ static class_info_entry_t test_command_class_info[] = {
     Init_End___Entry(6, Wget_Command),
 };
 REGISTER_APP_CMD(Wget_Command, test_command_class_info);
-
-static int test_marshal_wget_command(TEST_ENTRY *entry)
-{
-    allocator_t *allocator = allocator_get_default_instance();
-    Command *command = NULL;
-    Command *subcmd1 = NULL;
-    Command *subcmd2 = NULL;
-    int ret = 0, help = 0;
-
-    dbg_str(DBG_DETAIL, "allocator addr:%p", allocator);
-
-    command = object_new(allocator, "Wget_Command", NULL);
-
-    help = 0;
-    command->set(command, "/Wget_Command/help", &help);
-    command->set(command, "/Wget_Command/output_file", "test command option");
-
-    dbg_str(DBG_DETAIL, "Wget_Command dump: %s", command->to_json(command));
-
-    object_destroy(command);
-
-    ret = 1;
-
-    return ret;
-
-}
-REGISTER_TEST_CMD(test_marshal_wget_command);
-
-static int test_unmarshal_wget_command(TEST_ENTRY *entry)
-{
-    allocator_t *allocator = allocator_get_default_instance();
-    Command *command = NULL;
-    Command *subcmd1 = NULL;
-    Command *subcmd2 = NULL;
-    int ret = 0, help = 0;
-    char *init_data = "\
-        {\
-            \"Wget_Command\": {\
-                \"output_file\": \"test cmd option\",\
-                \"help\": 1\
-            }\
-        }";
-
-    dbg_str(DBG_DETAIL, "allocator addr:%p", allocator);
-
-    command = object_new(allocator, "Wget_Command", init_data);
-
-    dbg_str(DBG_DETAIL, "Wget_Command dump: %s", command->to_json(command));
-
-    object_destroy(command);
-
-    return 1;
-}
-REGISTER_TEST_CMD(test_unmarshal_wget_command);

@@ -736,12 +736,3 @@ int object_destroy(void *obj)
 
     return ret;
 }
-
-
-int object_call_method(void *object, char *func_str)
-{
-    int ret;
-
-    dbg_str(DBG_SUC, "object_call_method object:%p, method:%s", object, func_str);
-    return ret;
-}

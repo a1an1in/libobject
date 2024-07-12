@@ -117,4 +117,6 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x20017 --host=127.0.0.1 --service=12345 --deamon=t
 ./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_bus "node@mfree(0, #test_stub_name1)"
+
+./sysroot/windows/bin/xtools wget http://mirrors.hust.edu.cn/gnu/hello/hello-1.3.tar.gz
 ```

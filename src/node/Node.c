@@ -1,6 +1,17 @@
 /**
  * @file node.c
- * @Synopsis  
+ * @Synopsis
+ *  node的设计是为了抽象通信节点，主要职责是：
+ *  1.node通过node deamon使任意两个node能够正常通信， 不需要再设计通信协议， 
+ *    可以相互传输json，然后可以很方便的反序列化成对应的结构体。
+ *  2.支持node文件互传。
+ *  3.支持调用远端node的常规函数或者对象方法。
+ *  4.支持版本检测和自动升级。
+ *  5.支持节点状态检测。
+ *  6.stub和attancher动态调试。
+ *  7.动态部署服务。
+ *  8.分布式应用基础。
+ *  node相当于构建了两个端点的基础设置，不用再重复关心这些节点涉及的同类问题。
  * @author alan lin
  * @version 
  * @date 2024-02-18
@@ -146,26 +157,12 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
     return ret;
 }
 
-static int __open_fsh(Node *node, char *node_id, void **addr)
-{
-    void *shell;
-    char buffer[BLOB_BUFFER_MAX_SIZE];
-    int len, ret;
-    
-    TRY {
-        len = sizeof(void *);
-        snprintf(buffer, sizeof(buffer), "%s@open_fshell()", node_id);
-        EXEC(node->call_bus(node, buffer, &shell, &len));
-        shell = byteorder_be64_to_cpu(&shell);
-        *addr = shell;
-    } CATCH (ret) {}
-    
-    return ret;
-}
-
 /*
- * 这个不能复用call_bus, 因为execute不想把命令的参数也解析出来。如果加标记判断
+ * 注意：
+ * 1.这个不能复用call_bus, 因为execute不想把命令的参数也解析出来。如果加标记判断
  * 什么时候解析，会把call_bus搞复杂了。
+ * 2.call fsh不知道哪些函数需要回传什么特定的数据， 所以设计只能回传return value。
+ * 如果需要调用的同时回传数据，请可以使用call_bus或者结合使用call_fsh和mget。
  */
 static int __call_fsh(Node *node, const char *fmt, ...)
 {
@@ -193,20 +190,41 @@ static int __call_fsh(Node *node, const char *fmt, ...)
         node_id = str->get_splited_cstr(str, 0);
         command = str->get_splited_cstr(str, 1);
         args[0].value = command;
-        EXEC(bus_invoke_sync(bus, node_id, "exec_fshell", ARRAY_SIZE(args), args, NULL, NULL));
+        EXEC(bus_invoke_sync(bus, node_id, "call_fshell", ARRAY_SIZE(args), args, NULL, NULL));
     } CATCH (ret) {}
 
     return ret;
 }
 
-static int __close_fsh(Node *node, char *node_id)
+static int __call_fsh_object_method(Node *node, const char *fmt, ...)
 {
-    char buffer[BLOB_BUFFER_MAX_SIZE];
-    int ret;
+    bus_t *bus;
+    va_list ap;
+    String *str = node->str;
+    char *node_id, *command;
+    char code[1024] = {0};
+    bus_method_args_t args[1] = {
+        [0] = {ARG_TYPE_STRING, "command", NULL}, 
+    };
+    int ret, count;
 
     TRY {
-        snprintf(buffer, sizeof(buffer), "%s@close_fshell()", node_id);
-        EXEC(node->call_bus(node, "node@close_fshell()", NULL, 0));
+        va_start(ap, fmt);
+        vsnprintf(code, MAX_DBG_STR_LEN, fmt, ap);
+        va_end(ap);
+
+        EXEC(str->reset(str));
+        str->assign(str, code);
+        count = str->split(str, "[@]", -1);
+        THROW_IF(count != 2, -1);
+        bus = node->bus;
+
+        node_id = str->get_splited_cstr(str, 0);
+        command = str->get_splited_cstr(str, 1);
+        args[0].value = command;
+
+        // object_call_method
+        EXEC(bus_invoke_sync(bus, node_id, "call_fshell_object_method", ARRAY_SIZE(args), args, NULL, NULL));
     } CATCH (ret) {}
 
     return ret;
@@ -518,16 +536,17 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(4 , Node, loop, __loop),
     Init_Nfunc_Entry(5 , Node, call_bus, __call_bus),
     Init_Nfunc_Entry(6 , Node, call_fsh, __call_fsh),
-    Init_Nfunc_Entry(7 , Node, write_file, __write_file),
-    Init_Nfunc_Entry(8 , Node, read_file, __read_file),
-    Init_Nfunc_Entry(9 , Node, copy, __copy),
-    Init_Nfunc_Entry(10, Node, list, __list),
-    Init_Nfunc_Entry(11, Node, malloc, __malloc),
-    Init_Nfunc_Entry(12, Node, mfree, __mfree),
-    Init_Nfunc_Entry(13, Node, mset, __mset),
-    Init_Nfunc_Entry(14, Node, mget, __mget),
-    Init_Nfunc_Entry(15, Node, mget_pointer, __mget_pointer),
-    Init_End___Entry(16, Node),
+    Init_Nfunc_Entry(7 , Node, call_fsh_object_method, __call_fsh_object_method),
+    Init_Nfunc_Entry(8 , Node, write_file, __write_file),
+    Init_Nfunc_Entry(9 , Node, read_file, __read_file),
+    Init_Nfunc_Entry(10, Node, copy, __copy),
+    Init_Nfunc_Entry(11, Node, list, __list),
+    Init_Nfunc_Entry(12, Node, malloc, __malloc),
+    Init_Nfunc_Entry(13, Node, mfree, __mfree),
+    Init_Nfunc_Entry(14, Node, mset, __mset),
+    Init_Nfunc_Entry(15, Node, mget, __mget),
+    Init_Nfunc_Entry(16, Node, mget_pointer, __mget_pointer),
+    Init_End___Entry(17, Node),
 };
 REGISTER_CLASS(Node, node_class_info);
 
