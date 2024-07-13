@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <libobject/core/utils/string.h>
 #include <libobject/concurrent/Worker.h>
+#include <libobject/stub/stub.h>
 #include <libobject/scripts/fshell/FShell.h>
 #include <libobject/scripts/fshell/api.h>
 
@@ -216,11 +217,10 @@ static int __run_object_func(FShell *shell, String *str)
         o = par[0];
         func = object_get_member_of_class(o->name, method_name);
         THROW_IF(func == NULL, -1);
-        ret = func(par[0], par[1], par[2], par[3], par[4],
-                   par[5], par[6], par[7], par[8], par[9], 
-                   par[10], par[11], par[12], par[13], par[14],
-                   par[15], par[16], par[17], par[18], par[19]);
-        THROW(ret);
+        func(par[0], par[1], par[2], par[3], par[4],
+             par[5], par[6], par[7], par[8], par[9], 
+             par[10], par[11], par[12], par[13], par[14],
+             par[15], par[16], par[17], par[18], par[19]);
     } CATCH (ret) {} FINALLY {}
 
 	return ret;
@@ -303,6 +303,7 @@ int fsh_variable_info_alloc(allocator_t *allocator, uint32_t value_type, char *c
             case VALUE_TYPE_STUB_POINTER:
                 info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + sizeof(void *));
                 info->addr = stub_alloc();
+                dbg_str(DBG_SUC, "node stub alloc %s:%p", name, info->addr);
                 info->value_type = VALUE_TYPE_STUB_POINTER;
                 strcpy(info->name, name);
                 break;
@@ -334,7 +335,7 @@ int fsh_variable_info_free(allocator_t *allocator, fsh_malloc_variable_info_t *i
             break;
         }
         case VALUE_TYPE_STUB_POINTER:
-            dbg_str(DBG_VIP, "node_mfree stub, name:%s, addr:%p", info->name, info->addr);
+            dbg_str(DBG_SUC, "node_mfree stub, name:%s, addr:%p", info->name, info->addr);
             stub_free(info->addr);
             allocator_mem_free(allocator, info);
             break;

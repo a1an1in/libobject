@@ -30,7 +30,7 @@ static int __construct(Turn_Client *turn, char *init_str)
        turn->response = object_new(allocator, "Turn_Response", NULL);
        THROW_IF(turn->req == NULL || turn->response == NULL, -1);
 
-       turn->digest = object_new(allocator, "Openssl::Digest_HmacSha1", NULL);
+       turn->digest = object_new(allocator, "Openssl_Digest_HmacSha1", NULL);
 
        turn->nonce = allocator_mem_zalloc(allocator, 150);
 

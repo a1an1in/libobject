@@ -105,6 +105,7 @@ addr2line -f -e ./sysroot/linux/bin/xtools  libobject-core.so 0x152
 ./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_bus "node@mfree(0, #test_v1)"
 
 ./sysroot/windows/bin/xtools.exe mockery --log-level=0x14 -f test_node
+./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_node
 
 ```
 

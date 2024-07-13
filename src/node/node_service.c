@@ -456,7 +456,7 @@ static int node_mget_pointer(bus_object_t *obj, int argc,
     uint8_t *buffer;
     Node *node;
     void *value;
-    int ret, size, offset, len, capacity;
+    int ret, size, offset;
 
     TRY {
         type = blob_get_uint32(args[0]);
@@ -465,7 +465,7 @@ static int node_mget_pointer(bus_object_t *obj, int argc,
         bus = obj->bus;
         node = bus->opaque;
         allocator = bus->allocator;
-        THROW_IF(len > capacity || addr == NULL, -1);
+        THROW_IF(addr == NULL, -1);
 
         addr = byteorder_be64_to_cpu(&addr);
         value = *addr;

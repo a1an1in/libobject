@@ -1,9 +1,9 @@
-[update:fshell] 新增node调用对象方法实现。
+[bugfix:NA] 修复node在linux运行错误。
 
 Description:
-更新修改。
+之前node是在windows环境开发的， 还没在linux运行过，
+修复linux运行bug。
 
 Major Changes:
-1. 新增node_call_fshell_object_method
-2. 新增test_http_wget和test_node_call_fsh_object_method用例。
-3. 删除不用的代码。
+1. 修复Fshell没有包含stub.h导致获取的地址是32bit的，导致段错误。
+2. 修复Openssl::Digest_HmacSha1, 替换::为_。
