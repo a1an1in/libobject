@@ -17,10 +17,10 @@ endmacro()
 
 macro (build_windows_dl)
     if(EXISTS ${PROJECT_SOURCE_DIR}/sysroot/windows/lib/libdl.dll.a)
-        return()
+        # return()
     endif()
     if ("${PLATFORM}" STREQUAL "windows")
-        if(EXISTS ${PROJECT_SOURCE_DIR}/3rd/libobject)
+        if(EXISTS ${PROJECT_SOURCE_DIR}/3rd/windows-dl)
             message("rebuild windows-dl")
             ExternalProject_Add(windows-dl
                 SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/windows-dl
@@ -35,6 +35,24 @@ macro (build_windows_dl)
     endif()
 endmacro()
 
+macro (build_mysql)
+    # if(EXISTS ${PROJECT_SOURCE_DIR}/sysroot/windows/lib/libdl.dll.a)
+    #     return()
+    # endif()
+
+    if(EXISTS ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c)
+        message("rebuild mysql")
+        ExternalProject_Add(mysql-connector-c
+            SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c
+            CMAKE_ARGS ${BUILD_EXTERNAL_ARGS})
+    else ()
+        message("git clone and build mysql")
+        ExternalProject_Add(mysql-connector-c
+            SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c
+            GIT_REPOSITORY git@github.com:a1an1in/mysql-connector-c.git
+            CMAKE_ARGS ${BUILD_EXTERNAL_ARGS})
+    endif()
+endmacro()
 
 # file(GLOB_RECURSE LIBOBJECT ${CMAKE_INSTALL_PREFIX}/lib/libobject.*)
 # if ("${LIBOBJECT}" STREQUAL "")
@@ -44,3 +62,4 @@ endmacro()
 # endif()
 
 build_windows_dl()
+build_mysql()
