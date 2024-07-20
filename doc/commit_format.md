@@ -1,9 +1,8 @@
-[bugfix:NA] 修复node在linux运行错误。
+[update:NA] 开发插件。
 
 Description:
-之前node是在windows环境开发的， 还没在linux运行过，
-修复linux运行bug。
+增加插件机制，目前只是添加了模版。
 
 Major Changes:
-1. 修复Fshell没有包含stub.h导致获取的地址是32bit的，导致段错误。
-2. 修复Openssl::Digest_HmacSha1, 替换::为_。
+1. 添加Test_Plugin模块。
+2. 将mysql-connector-c添加为子模块。

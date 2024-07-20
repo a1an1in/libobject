@@ -39,6 +39,7 @@ bin/linux
 bin/mac
 lib/
 3rd/test_python/__pycache__/
+3rd/mysql-connector-c
 sysroot/
 .idea
 cmake-build-debug/
