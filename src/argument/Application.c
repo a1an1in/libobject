@@ -22,6 +22,7 @@ static char *app_commands[MAX_APP_COMMANDS_COUNT];
 static int app_command_count;
 #undef MAX_APP_COMMANDS_COUNT
 
+Application *global_app;
 
 static int __option_set_event_thread_service_callback(Option *option, void *opaque)
 {
@@ -89,6 +90,13 @@ static int __option_log_level_callback(Option *option, void *opaque)
     return ret;
 }
 
+static int __option_root_callback(Option *option, void *opaque)
+{
+    Application *app = (Application *)opaque;
+
+    return app->set(app, "/Application/root", STR2A(option->value));
+}
+
 static int __construct(Application *app, char *init_str)
 {
     Command *command = (Command *)app;
@@ -103,12 +111,14 @@ static int __construct(Application *app, char *init_str)
                         __option_help_callback, app);
     command->add_option(command, "--log-level", "", "5", "setting log display level, the default value is 6.",
                         __option_log_level_callback, app);
+    command->add_option(command, "--root", "-r", "~/.xtools", "config xtool work space", __option_root_callback, app);
 
     return 0;
 }
 
 static int __deconstruct(Application *app)
 {
+    object_destroy(app->root);
     return 0;
 }
 
@@ -136,7 +146,6 @@ static int __run(Application *app, int argc, char *argv[])
         EXEC(command->run_command(command)); 
 
         default_subcmd = app->get_subcommand(app, "help");
-        default_subcmd->opaque = app;
         subcmd = command->selected_subcommand;
         if (subcmd == NULL) {
             subcmd = default_subcmd;
@@ -182,16 +191,18 @@ static int __run_command(Application *app)
 }
 
 static class_info_entry_t application_class_info[] = {
-    Init_Obj___Entry(0, Command, parent),
-    Init_Nfunc_Entry(1, Application, construct, __construct),
-    Init_Nfunc_Entry(2, Application, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Application, add_subcommand, NULL),
-    Init_Vfunc_Entry(4, Application, get_subcommand, NULL),
-    Init_Vfunc_Entry(5, Application, to_json, NULL),
-    Init_Nfunc_Entry(6, Application, run, __run),
-    Init_Nfunc_Entry(7, Application, run_command, __run_command),
-    Init_Nfunc_Entry(8, Application, help, NULL),
-    Init_End___Entry(9, Application),
+    Init_Obj___Entry(0 , Command, parent),
+    Init_Nfunc_Entry(1 , Application, construct, __construct),
+    Init_Nfunc_Entry(2 , Application, deconstruct, __deconstruct),
+    Init_Vfunc_Entry(3 , Application, set, NULL),
+    Init_Vfunc_Entry(4 , Application, add_subcommand, NULL),
+    Init_Vfunc_Entry(5 , Application, get_subcommand, NULL),
+    Init_Vfunc_Entry(6 , Application, to_json, NULL),
+    Init_Nfunc_Entry(7 , Application, run, __run),
+    Init_Nfunc_Entry(8 , Application, run_command, __run_command),
+    Init_Nfunc_Entry(9 , Application, help, NULL),
+    Init_Str___Entry(10, Application, root, NULL),
+    Init_End___Entry(11, Application),
 };
 REGISTER_CLASS(Application, application_class_info);
 
@@ -254,6 +265,7 @@ int app(int argc, char *argv[])
     TRY {
         EXEC(libobject_init());
         app = object_new(NULL, "Application", NULL);
+        global_app = app;
         EXEC(app->run(app, argc, argv));
     } CATCH (ret) {} FINALLY {
         object_destroy(app);
@@ -264,4 +276,8 @@ int app(int argc, char *argv[])
     return ret;
 }
 
+Application *get_global_application()
+{
+    return global_app;
+}
 

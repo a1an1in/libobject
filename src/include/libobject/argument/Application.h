@@ -26,10 +26,12 @@ struct Application_s{
     /*attribs*/
     int argc;
     char **argv;
+    String *root;
 };
 
 extern int app(int argc, char *argv[]);
 extern int app_register_cmd(char *cmd);
+extern Application *get_global_application();
 
 #define REGISTER_APP_CMD(app_cmd_name, class_info) \
     __attribute__((constructor)) static void register_##app_cmd_name()\

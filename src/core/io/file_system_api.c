@@ -300,3 +300,38 @@ int fs_tree(char *path, Vector *vector, int depth)
 
     return ret;
 }
+
+int fs_gethome(char *path, int max_len)
+{
+    const char *home = getenv("HOME");
+    int len;
+
+    len = strlen(home);
+    max_len = max_len > len ? len : max_len;
+    strncpy(path, home, len);
+
+    return 1;
+}
+
+int fs_expand_path(char *path, int max_len)
+{
+    char tmp[128] = {0}, *search = NULL;
+    String *string = NULL;
+    allocator_t *allocator = globle_file_system->obj.allocator;
+    int ret;
+
+    TRY {
+        search = strchr(path, '~');
+        if (search != NULL) {
+            string = object_new(allocator, "String", NULL);
+            string->assign(string, path);
+            fs_gethome(tmp, 128);
+            string->replace(string, "~", tmp, 1);
+            strncpy(path, STR2A(string), max_len);
+        }
+    } CATCH (ret) {} FINALLY {
+        object_destroy(string);
+    }
+
+    return ret;
+}

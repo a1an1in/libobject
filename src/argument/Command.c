@@ -500,7 +500,7 @@ static int __run_argument_actions(Command *command)
     return 0;
 }
 
-static int __action(Command *command)
+static int __run_command(Command *command)
 {
     return 0;
 }
@@ -694,7 +694,7 @@ static class_info_entry_t command_class_info[] = {
     Init_Vfunc_Entry(9 , Command, get_option, __get_option),
     Init_Vfunc_Entry(10, Command, add_argument, __add_argument),
     Init_Vfunc_Entry(11, Command, get_argment, __get_argment),
-    Init_Vfunc_Entry(12, Command, run_command, __action),
+    Init_Vfunc_Entry(12, Command, run_command, __run_command),
     Init_Vfunc_Entry(13, Command, run_option_actions, __run_option_actions),
     Init_Vfunc_Entry(14, Command, run_argument_actions, __run_argument_actions),
     Init_Vfunc_Entry(15, Command, set_args, __set_args),

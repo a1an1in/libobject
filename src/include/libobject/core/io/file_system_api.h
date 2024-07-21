@@ -27,5 +27,7 @@ extern int fs_file_info_struct_custom_to_json(cjson_t *root, void *element);
 extern int fs_file_info_struct_custom_free(allocator_t *allocator, fs_file_info_t *info);
 extern int fs_file_info_struct_custom_new(allocator_t *allocator, cjson_t *c, void **value);
 extern int fs_file_info_struct_custom_print(int index, fs_file_info_t *info);
+extern int fs_gethome(char *path, int max_len);
+extern int fs_expand_path(char *path, int max_len);
 
 #endif

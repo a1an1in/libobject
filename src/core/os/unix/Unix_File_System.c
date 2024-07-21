@@ -44,26 +44,32 @@
 #include <libobject/core/String.h>
 #include "Unix_File_System.h"
 
+extern int fs_gethome(char *path, int max_len);
+
 static int __mkdir(Unix_File_System *fs, char *path, mode_t mode)
 {
     String *string;
     allocator_t *allocator = fs->parent.obj.allocator;
     char *p, *tmp;
+    int path_len;
     int ret, cnt, i;
 
     TRY {
         string = object_new(allocator, "String", NULL);
-        string->assign(string, path);  
-        tmp = allocator_mem_alloc(allocator, strlen(path));
+        string->assign(string, path);
+        path_len = strlen(path);
+        tmp = allocator_mem_alloc(allocator, path_len * 2);
 
         cnt = string->split(string, "/", -1);
 
         for (i = 0; i < cnt; i++) {
             p = string->get_splited_cstr(string, i);
             THROW_IF(p == NULL, -1);
-            if (i == 0) {
+            if (i == 0 && strncmp(p, ".", strlen(p)) == 0) {
                 strcpy(tmp, p);
-            } else{
+            } else if (i == 0 && strncmp(p, "~", strlen(p)) == 0) {
+                fs_gethome(tmp, path_len);
+            } else {
                 strcat(tmp, "/");
                 strcat(tmp, p);
             }
