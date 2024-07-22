@@ -33,6 +33,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/io/File.h>
+#include <libobject/core/io/file_system_api.h>
 #include <errno.h>
 
 static int __construct(File *file,char *init_str)
@@ -55,10 +56,18 @@ static int __deconstruct(File *file)
 static int __open(File *file, char *path, char *mode)
 {
     allocator_t *allocator = file->parent.obj.allocator;
-    int ret = 1;
+    char tmp[128] = {0};
+    int ret = 1, len;
 
     TRY {
-        file->f = fopen(path, mode);
+        if (path[0] == '~') {
+            fs_gethome(tmp, 128);
+            len = strlen(tmp);
+            strncpy(tmp + len, path + 1, 128 - len);
+        } else {
+            strncpy(tmp, path, 128);
+        }
+        file->f = fopen(tmp, mode);
         THROW_IF(file->f == NULL, -1);
 
         if (file->name == NULL) {
@@ -68,9 +77,9 @@ static int __open(File *file, char *path, char *mode)
         }
         
         THROW_IF(file->name == NULL, -1);
-        file->name->assign(file->name, path);
+        file->name->assign(file->name, tmp);
     } CATCH (ret) {
-        dbg_str(IO_ERROR,"file open error, path:%s, error str:%s", path, strerror(errno));
+        dbg_str(IO_ERROR,"file open error, path:%s, error str:%s", tmp, strerror(errno));
     }
 
     return ret;

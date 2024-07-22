@@ -62,4 +62,4 @@ endmacro()
 # endif()
 
 build_windows_dl()
-build_mysql()
+# build_mysql()

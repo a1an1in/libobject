@@ -1,9 +1,8 @@
 [update:NA] 开发插件。
 
 Description:
-增加插件机制，目前只是添加了模版。
+httpd实现插件机制，添加插件配置文件。
 
 Major Changes:
-1. xtools 添加app root。
-2. 新增fs_gethome。
-3. fs_mkdir支持～和.符号。
+1. fs_is_exist和File::open支持~符号。
+2. httpd command新增load_plugins.

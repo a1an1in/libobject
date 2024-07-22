@@ -1,0 +1,10 @@
+[{
+    "class_name": "Test_Plugin",
+    "config": {
+        "Command": {
+            "name": "test_plugin"
+        },
+        "option": "test command option",
+        "help": 0
+    }
+}]

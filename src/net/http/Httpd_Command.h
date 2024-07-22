@@ -19,6 +19,7 @@ struct Httpd_Command_s{
 
 	/*virtual methods reimplement*/
     void * (*run_command)(Httpd_Command *command);
+	int (*load_plugins)(Httpd_Command *command);
 
     Http_Server *server;
 	int loop_flag;

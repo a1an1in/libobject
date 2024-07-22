@@ -84,9 +84,7 @@ static int __construct(Httpd_Command *command, char *init_str)
 
 static int __deconstruct(Httpd_Command *command)
 {
-    if (command->server != NULL) {
-        object_destroy(command->server);
-    }
+    object_destroy(command->server);
 
     return 0;
 }
@@ -107,6 +105,8 @@ static int __run_command(Httpd_Command *command)
         dbg_str(DBG_SUC,"httpd root:%s", path);
         fs_mkdir(path, 0777);
 
+        EXEC(command->load_plugins(command));
+
         // dbg_str(DBG_SUC,"httpd webroot:%s", STR2A(app->root));
         server->set(server, "host", "127.0.0.1");
         server->set(server, "service", "8081");
@@ -120,11 +120,55 @@ static int __run_command(Httpd_Command *command)
     return ret;
 }
 
+static int __load_plugins(Httpd_Command *command)
+{
+    Application *app;
+    allocator_t *allocator;
+    File *file;
+    char path[128] = {0}, content[4096] = {0};
+    char *out;
+    cjson_t *root, *item, *name, *config;
+    int ret, array_size = 0, i;
+
+    TRY {
+        app = get_global_application();
+        snprintf(path, 128, "%s/%s/configs.json", STR2A(app->root), "httpd/plugins");
+
+        if (!fs_is_exist(path)) { return 0; }
+        dbg_str(DBG_SUC,"httpd root:%s", path);
+        allocator = command->parent.parent.allocator;
+        file = object_new(allocator, "File", NULL);
+        file->open(file, path, "r+");
+        memset(content, 0, sizeof(content));
+        ret = file->read(file, content, sizeof(content));
+        dbg_str(DBG_FATAL,"ret:%d, len:%d", ret, strlen(content));
+        dbg_str(DBG_FATAL,"json:%s", content);
+
+        root = cjson_parse(content);
+        array_size = cjson_get_array_size(root);
+
+        for (i = 0; i < array_size; i++) {
+            // item = cjson_get_object_item(root, i);
+            // name = cjson_get_object_item(item, "class_name");
+            // config = cjson_get_object_item(item, "config");
+            // out = cjson_print(config);
+            // dbg_str(DBG_FATAL,"name:%s, config:%s", name->valuestring, out);
+            // free(out);
+        }
+    } CATCH (ret) {} FINALLY {
+        object_destroy(file);
+        cjson_delete(root);
+    }
+
+    return ret;
+}
+
 static class_info_entry_t httpd_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Httpd_Command, construct, __construct),
     Init_Nfunc_Entry(2, Httpd_Command, deconstruct, __deconstruct),
     Init_Nfunc_Entry(3, Httpd_Command, run_command, __run_command),
-    Init_End___Entry(4, Httpd_Command),
+    Init_Vfunc_Entry(4, Httpd_Command, load_plugins, __load_plugins),
+    Init_End___Entry(5, Httpd_Command),
 };
 REGISTER_APP_CMD(Httpd_Command, httpd_command_class_info);

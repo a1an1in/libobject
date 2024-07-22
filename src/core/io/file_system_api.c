@@ -153,7 +153,17 @@ int fs_rmdir(char *path)
 
 int fs_is_exist(char *path)
 {
-    if (access(path, 0) < 0) {
+    char tmp[128] = {0};
+    int len;
+
+    if (path[0] == '~') {
+        fs_gethome(tmp, 128);
+        len = strlen(tmp);
+        strncpy(tmp + len, path + 1, 128 - len);
+    } else {
+        strncpy(tmp, path, 128);
+    }
+    if (access(tmp, 0) < 0) {
         return 0;
     } else {
         return 1;
