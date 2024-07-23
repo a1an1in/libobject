@@ -19,6 +19,7 @@ macro (set_cmake_evironment_variable)
     SET (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
     SET (ExternalLibs ${ExternalLibs} 
         -Wl,--whole-archive
+            object-plugin-test
             object-tests
             object-mockery
             object-upgrader

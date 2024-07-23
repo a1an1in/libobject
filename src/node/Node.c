@@ -16,7 +16,7 @@
  * @version 
  * @date 2024-02-18
  */
-
+#include <libobject/argument/Application.h>
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/core/io/File.h>
 #include <libobject/core/utils/string.h>
@@ -41,7 +41,7 @@ static int __deconstruct(Node *node)
 {
     object_destroy(node->str);
     bus_destroy(node->bus);
-    object_destroy(node->shell);
+    // object_destroy(node->shell); //fshell is release at application.
 
     //需要等待客户端关闭连接， 然后服务器也处理关闭事务， 不然
     //如果server也同时销毁， 有可能会同时操作worker链表，导致异常。
@@ -57,6 +57,7 @@ static int __deconstruct(Node *node)
 static int __init(Node *node)
 {
     allocator_t *allocator = node->parent.allocator;
+    Application *app;
     bus_t *bus = NULL;
     busd_t *busd = NULL;
     int i, ret;
@@ -81,11 +82,13 @@ static int __init(Node *node)
         if (node->disable_node_service_flag != 1) {
             bus_add_object(bus, &node_object);
 
-#if (defined(WINDOWS_USER_MODE))
-            node->shell = object_new(allocator, "WindowsFShell", NULL);    
-#else  
-            node->shell = object_new(allocator, "UnixFShell", NULL);
-#endif
+// #if (defined(WINDOWS_USER_MODE))
+//             node->shell = object_new(allocator, "WindowsFShell", NULL);    
+// #else  
+//             node->shell = object_new(allocator, "UnixFShell", NULL);
+// #endif
+            app = get_global_application();
+            node->shell = app->fshell;
         }
     } CATCH (ret) {}
 

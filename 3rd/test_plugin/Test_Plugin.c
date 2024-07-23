@@ -27,8 +27,7 @@ static int __deconstruct(Command *command)
 {
     Test_Plugin *plugin = (Test_Plugin *)command;
 
-    if (plugin->option != NULL)
-        object_destroy(plugin->option);
+    object_destroy(plugin->option);
 
     return 0;
 }

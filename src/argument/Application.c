@@ -100,6 +100,12 @@ static int __option_root_callback(Option *option, void *opaque)
 static int __construct(Application *app, char *init_str)
 {
     Command *command = (Command *)app;
+    allocator_t *allocator = command->parent.allocator;
+    int value_type = VALUE_TYPE_OBJ_POINTER;
+    uint8_t trustee_flag = 1;
+    Map *plugins;
+
+    /* 1.add help infos */
     command->set(command, "/Command/name", "xtools");
     command->add_option(command, "--event-thread-service", "", "11110", "event-thread-service address",
                         __option_set_event_thread_service_callback, NULL);
@@ -113,12 +119,22 @@ static int __construct(Application *app, char *init_str)
                         __option_log_level_callback, app);
     command->add_option(command, "--root", "-r", "~/.xtools", "config xtool work space", __option_root_callback, app);
 
+    /* 2.construct plugins vector */
+    plugins = object_new(allocator, "RBTree_Map", NULL);
+    plugins->set_cmp_func(plugins, string_key_cmp_func);
+    plugins->set(plugins, "/Map/value_type", &value_type);
+    plugins->set(plugins, "/Map/trustee_flag", &trustee_flag);
+    app->plugins = plugins;
+
     return 0;
 }
 
 static int __deconstruct(Application *app)
 {
     object_destroy(app->root);
+    object_destroy(app->plugins);
+    object_destroy(app->fshell);
+
     return 0;
 }
 
@@ -169,6 +185,7 @@ static int __run_command(Application *app)
 {
     Command *command = (Command *)app;
     Option *option;
+    allocator_t *allocator = command->parent.allocator;
     char *event_thread_service, *event_signal_service;
     int ret;
 
@@ -184,10 +201,22 @@ static int __run_command(Application *app)
 #if (!defined(MAC_USER_MODE))
         EXEC(stub_admin_init_default_instance());
 #endif
-    } CATCH (ret) {
-    }
+#if (defined(WINDOWS_USER_MODE))
+        app->fshell = object_new(allocator, "WindowsFShell", NULL);    
+#else  
+        app->fshell = object_new(allocator, "UnixFShell", NULL);
+#endif
+    } CATCH (ret) { }
 
     return 0;
+}
+
+static int __add_plugin(Application *app, void *plugin)
+{
+    Map *plugins = app->plugins;
+    Command *command = (Command *)plugin;
+
+    return TRY_EXEC(plugins->add(plugins, STR2A(command->name), plugin));
 }
 
 static class_info_entry_t application_class_info[] = {
@@ -201,8 +230,9 @@ static class_info_entry_t application_class_info[] = {
     Init_Nfunc_Entry(7 , Application, run, __run),
     Init_Nfunc_Entry(8 , Application, run_command, __run_command),
     Init_Nfunc_Entry(9 , Application, help, NULL),
-    Init_Str___Entry(10, Application, root, NULL),
-    Init_End___Entry(11, Application),
+    Init_Nfunc_Entry(10, Application, add_plugin, __add_plugin),
+    Init_Str___Entry(11, Application, root, NULL),
+    Init_End___Entry(12, Application),
 };
 REGISTER_CLASS(Application, application_class_info);
 
@@ -217,13 +247,13 @@ int libobject_init()
     int ret;
 
     TRY {
-        #if (defined(WINDOWS_USER_MODE))
-            WSADATA wsa_data;
-            if (WSAStartup(MAKEWORD(2, 1), &wsa_data)) {
-                dbg_str(NET_ERROR, "WSAStartup error");
-                return -1;
-            }
-        #endif
+#if (defined(WINDOWS_USER_MODE))
+        WSADATA wsa_data;
+        if (WSAStartup(MAKEWORD(2, 1), &wsa_data)) {
+            dbg_str(NET_ERROR, "WSAStartup error");
+            return -1;
+        }
+#endif
 
         EXEC(execute_ctor_funcs());
         EXEC(fs_init());
@@ -245,9 +275,9 @@ int libobject_destroy()
         EXEC(event_base_destroy_default_instance());
         EXEC(producer_destroy_default_instance());
 
-        #if (defined(WINDOWS_USER_MODE))
-            WSACleanup();
-        #endif
+#if (defined(WINDOWS_USER_MODE))
+        WSACleanup();
+#endif
 
         EXEC(fs_destroy());
         EXEC(execute_dtor_funcs());

@@ -2,6 +2,7 @@
 #define __APPLICATION_H__
 
 #include <stdio.h>
+#include <libobject/core/Map.h>
 #include <libobject/argument/Command.h>
 #include <libobject/core/String.h>
 
@@ -22,11 +23,14 @@ struct Application_s{
     int (*run)(Application *, int argc, char *argv[]);
     int (*run_command)(Application *);
     int (*help)(Application *);
+    int (*add_plugin)(Application *app, void *plugin);
 
     /*attribs*/
     int argc;
     char **argv;
     String *root;
+    Map *plugins;
+    void *fshell;
 };
 
 extern int app(int argc, char *argv[]);

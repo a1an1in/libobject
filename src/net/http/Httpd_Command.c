@@ -127,6 +127,7 @@ static int __load_plugins(Httpd_Command *command)
     File *file;
     char path[128] = {0}, content[4096] = {0};
     char *out;
+    Command *plugin;
     cjson_t *root, *item, *name, *config;
     int ret, array_size = 0, i;
 
@@ -141,8 +142,6 @@ static int __load_plugins(Httpd_Command *command)
         file->open(file, path, "r+");
         ret = file->read(file, content, sizeof(content));
         memset(content + ret, 0, sizeof(content) - ret);
-        dbg_str(DBG_FATAL,"ret:%d, len:%d", ret, strlen(content));
-        dbg_str(DBG_FATAL,"json:%s", content);
 
         root = cjson_parse(content);
         array_size = cjson_get_array_size(root);
@@ -152,7 +151,11 @@ static int __load_plugins(Httpd_Command *command)
             name = cjson_get_object_item(item, "class_name");
             config = cjson_get_object_item(item, "config");
             out = cjson_print(config);
-            dbg_str(DBG_FATAL,"name:%s, config:%s", name->valuestring, out);
+            plugin = object_new(allocator, name->valuestring, out);
+            CONTINUE_IF(plugin == NULL);
+            dbg_str(DBG_INFO,"load plugin name:%s", STR2A(plugin->name));
+            dbg_str(DBG_DETAIL,"load plugin json configs:%s", out);
+            EXEC(app->add_plugin(app, plugin));
             free(out);
         }
     } CATCH (ret) {} FINALLY {
