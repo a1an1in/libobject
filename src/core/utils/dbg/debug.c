@@ -52,6 +52,7 @@
 #include <libobject/core/utils/dbg/debug_string.h>
 #include <libobject/attrib_priority.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/core/io/file_system_api.h>
 
 debugger_t *debugger_gp;
 debugger_module_t debugger_modules[MAX_DEBUGGER_MODULES_NUM];
@@ -301,26 +302,25 @@ debugger_t *debugger_creator(char *ini_file_name, uint8_t lock_type)
 
 int debugger_constructor()
 {
-    char *file_name;
+    char file_name[128];
+    const char *home = getenv("HOME");
+
     ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, construct debugger\n", 
                  REGISTRY_CTOR_PRIORITY_DEBUGGER);
-
 #if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
-    file_name = "/tmp/dbg.ini";
-
-    debugger_gp = debugger_creator(file_name, PTHREAD_MUTEX_LOCK);
-    debugger_init(debugger_gp);
-
+    snprintf(file_name, sizeof(file_name), "%s/%s", home, ".xtools");
+    mkdir(file_name, 0x777);
 #elif defined(ANDROID_USER_MODE)
-    /*
-     *file_name = "/storage/sdcard/dbg.ini";
-     */
+    snprintf(file_name, sizeof(file_name), "/storage/sdcard/.xtools");
+    mkdir(file_name, 0x777);
 #else
-    file_name= "dbg.ini";
+    snprintf(file_name, sizeof(file_name), "%s/%s", home, ".xtools");
+    mkdir(file_name);
+#endif
 
+    strcat(file_name, "/dbg.ini");
     debugger_gp = debugger_creator(file_name, PTHREAD_MUTEX_LOCK);
     debugger_init(debugger_gp);
-#endif
 
     return 0;
 }

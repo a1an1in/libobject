@@ -139,8 +139,8 @@ static int __load_plugins(Httpd_Command *command)
         allocator = command->parent.parent.allocator;
         file = object_new(allocator, "File", NULL);
         file->open(file, path, "r+");
-        memset(content, 0, sizeof(content));
         ret = file->read(file, content, sizeof(content));
+        memset(content + ret, 0, sizeof(content) - ret);
         dbg_str(DBG_FATAL,"ret:%d, len:%d", ret, strlen(content));
         dbg_str(DBG_FATAL,"json:%s", content);
 
@@ -148,12 +148,12 @@ static int __load_plugins(Httpd_Command *command)
         array_size = cjson_get_array_size(root);
 
         for (i = 0; i < array_size; i++) {
-            // item = cjson_get_object_item(root, i);
-            // name = cjson_get_object_item(item, "class_name");
-            // config = cjson_get_object_item(item, "config");
-            // out = cjson_print(config);
-            // dbg_str(DBG_FATAL,"name:%s, config:%s", name->valuestring, out);
-            // free(out);
+            item = cjson_get_object_item(root, i);
+            name = cjson_get_object_item(item, "class_name");
+            config = cjson_get_object_item(item, "config");
+            out = cjson_print(config);
+            dbg_str(DBG_FATAL,"name:%s, config:%s", name->valuestring, out);
+            free(out);
         }
     } CATCH (ret) {} FINALLY {
         object_destroy(file);
