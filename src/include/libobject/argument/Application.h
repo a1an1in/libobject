@@ -23,7 +23,7 @@ struct Application_s{
     int (*run)(Application *, int argc, char *argv[]);
     int (*run_command)(Application *);
     int (*help)(Application *);
-    int (*add_plugin)(Application *app, void *plugin);
+    int (*load_plugin)(Application *app, char *name, char *path, char *json, void *opaque);
 
     /*attribs*/
     int argc;

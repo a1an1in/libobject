@@ -5,12 +5,13 @@
  * @version 
  * @date 2019-06-19
  */
-
+#include <dlfcn.h>
 #include <libobject/argument/Application.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/try.h>
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/concurrent/Producer.h>
+#include <libobject/scripts/fshell/FShell.h>
 #include <libobject/version.h>
 
 #if (defined(WINDOWS_USER_MODE))
@@ -211,12 +212,20 @@ static int __run_command(Application *app)
     return 0;
 }
 
-static int __add_plugin(Application *app, void *plugin)
+static int __load_plugin(Application *app, char *name, char *path, char *json, void *opaque)
 {
     Map *plugins = app->plugins;
-    Command *command = (Command *)plugin;
+    allocator_t *allocator = app->parent.parent.allocator;
+    FShell *shell = app->fshell;
+    char *lib_name  = "./sysroot/windows/lib/libobject-plugin-test.dll";
+    int ret;
 
-    return TRY_EXEC(plugins->add(plugins, STR2A(command->name), plugin));
+    TRY {
+        dbg_str(DBG_VIP, "load plugin, name:%s, path:%s, json:%s", name, path, json);
+        EXEC(shell->load(shell, lib_name, RTLD_LOCAL | RTLD_LAZY));
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
 }
 
 static class_info_entry_t application_class_info[] = {
@@ -230,7 +239,7 @@ static class_info_entry_t application_class_info[] = {
     Init_Nfunc_Entry(7 , Application, run, __run),
     Init_Nfunc_Entry(8 , Application, run_command, __run_command),
     Init_Nfunc_Entry(9 , Application, help, NULL),
-    Init_Nfunc_Entry(10, Application, add_plugin, __add_plugin),
+    Init_Nfunc_Entry(10, Application, load_plugin, __load_plugin),
     Init_Str___Entry(11, Application, root, NULL),
     Init_End___Entry(12, Application),
 };

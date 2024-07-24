@@ -6,7 +6,6 @@
  * @date 2024-07-20
  */
 #include <libobject/argument/Application.h>
-#include <libobject/mockery/mockery.h>
 #include "Test_Plugin.h"
 
 static int __construct(Command *command, char *init_str)
@@ -17,8 +16,6 @@ static int __construct(Command *command, char *init_str)
     command->set(command, "/Test_Plugin/help", &help);
     command->set(command, "/Test_Plugin/option", "test command option");
     command->set(command, "/Command/name", "test_plugin");
-
-    dbg_str(DBG_FATAL, "command json:%s", command->to_json(command));
 
     return 0;
 }
@@ -36,7 +33,7 @@ static void *__get_value(Command *command,char *command_name, char *flag_name)
 {
 }
 
-static class_info_entry_t Test_Plugin_class_info[] = {
+static class_info_entry_t test_plugin_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Test_Plugin, construct, __construct),
     Init_Nfunc_Entry(2, Test_Plugin, deconstruct, __deconstruct),
@@ -45,5 +42,4 @@ static class_info_entry_t Test_Plugin_class_info[] = {
     Init_U32___Entry(5, Test_Plugin, help, 0),
     Init_End___Entry(6, Test_Plugin),
 };
-REGISTER_APP_CMD(Test_Plugin, Test_Plugin_class_info);
-
+REGISTER_CLASS(Test_Plugin, test_plugin_class_info);

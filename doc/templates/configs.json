@@ -1,5 +1,6 @@
 [{
     "class_name": "Test_Plugin",
+    "path": "/c/Users/86158/workspace/others/xtools/sysroot/windows/lib/libobject-plugin-test.dll",
     "config": {
         "Command": {
             "name": "test_plugin"

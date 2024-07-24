@@ -128,7 +128,7 @@ static int __load_plugins(Httpd_Command *command)
     char path[128] = {0}, content[4096] = {0};
     char *out;
     Command *plugin;
-    cjson_t *root, *item, *name, *config;
+    cjson_t *root, *item, *name, *config, *plugin_path;
     int ret, array_size = 0, i;
 
     TRY {
@@ -150,12 +150,9 @@ static int __load_plugins(Httpd_Command *command)
             item = cjson_get_object_item(root, i);
             name = cjson_get_object_item(item, "class_name");
             config = cjson_get_object_item(item, "config");
+            plugin_path = cjson_get_object_item(item, "path");
             out = cjson_print(config);
-            plugin = object_new(allocator, name->valuestring, out);
-            CONTINUE_IF(plugin == NULL);
-            dbg_str(DBG_INFO,"load plugin name:%s", STR2A(plugin->name));
-            dbg_str(DBG_DETAIL,"load plugin json configs:%s", out);
-            EXEC(app->add_plugin(app, plugin));
+            EXEC(app->load_plugin(app, name->valuestring, plugin_path->valuestring, out, command));
             free(out);
         }
     } CATCH (ret) {} FINALLY {
