@@ -112,6 +112,25 @@ int class_deamon_register_class(class_deamon_t *class_deamon,
     return map_insert(class_deamon->map, class_name, class_info_addr);
 }
 
+int class_deamon_deregister_class(class_deamon_t *class_deamon, char *class_name)
+{
+    map_iterator_t it;
+    int ret;
+
+    if (class_deamon == NULL) {
+        class_deamon = class_deamon_get_global_class_deamon();
+    }
+
+    ret = map_search(class_deamon->map, class_name, &it);
+    if (ret != 1) {
+        dbg_str(DBG_WARN, "deregister class %s doesn't exists, please check!!!", class_name);
+        return -1;
+    }
+
+    dbg_str(DBG_WARN, "deregister class %s", class_name);
+    return map_del(class_deamon->map, &it);
+}
+
 void * class_deamon_search_class(class_deamon_t *class_deamon, char *class_name)
 {
     map_iterator_t it;

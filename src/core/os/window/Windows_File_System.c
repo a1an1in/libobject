@@ -72,7 +72,9 @@ static int __mkdir(Windows_File_System *fs, char *path, mode_t mode)
             dbg_str(DBG_VIP, "mkdir %d:%s", i, tmp);
             EXEC(mkdir(tmp));
         }
-    } CATCH (ret) {} FINALLY {
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "mkdir %s", path);
+    } FINALLY {
         object_destroy(string);
         allocator_mem_free(allocator, tmp);
     }

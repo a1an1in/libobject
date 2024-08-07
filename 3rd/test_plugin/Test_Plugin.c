@@ -42,4 +42,5 @@ static class_info_entry_t test_plugin_class_info[] = {
     Init_U32___Entry(5, Test_Plugin, help, 0),
     Init_End___Entry(6, Test_Plugin),
 };
-REGISTER_CLASS(Test_Plugin, test_plugin_class_info);
+PLUGIN_REGISTER_CLASS(Test_Plugin, test_plugin_class_info);
+PLUGIN_DEREGISTER_CLASS(Test_Plugin);
