@@ -496,9 +496,9 @@ static class_info_entry_t concurent_class_info[] = {
     [21] = {ENTRY_TYPE_VFUNC_POINTER, "", "create_event", __create_event, sizeof(void *)}, 
     [22] = {ENTRY_TYPE_VFUNC_POINTER, "", "destroy_event", __destroy_event, sizeof(void *)}, 
     [23] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_player", __add_player, sizeof(void *)}, 
-    [24] = {ENTRY_TYPE_IFUNC_POINTER, "", "add_component", NULL, sizeof(void *)}, 
-    [25] = {ENTRY_TYPE_IFUNC_POINTER, "", "update_window", NULL, sizeof(void *)}, 
-    [26] = {ENTRY_TYPE_IFUNC_POINTER, "", "poll_event", NULL, sizeof(void *)}, 
+    [24] = {ENTRY_TYPE_VFUNC_POINTER, "", "add_component", NULL, sizeof(void *)}, 
+    [25] = {ENTRY_TYPE_VFUNC_POINTER, "", "update_window", NULL, sizeof(void *)}, 
+    [26] = {ENTRY_TYPE_VFUNC_POINTER, "", "poll_event", NULL, sizeof(void *)}, 
     [27] = {ENTRY_TYPE_END}, 
 };
 REGISTER_CLASS(FF_Window, concurent_class_info);

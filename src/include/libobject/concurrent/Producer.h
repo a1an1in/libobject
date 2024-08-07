@@ -16,10 +16,10 @@ struct producer_s{
 
 	int (*construct)(Producer *,char *init_str);
 	int (*deconstruct)(Producer *);
-	int (*set)(Producer *, char *attrib, void *value);
-    void *(*get)(void *obj, char *attrib);
 
 	/*virtual methods reimplement*/
+    int (*set)(Producer *, char *attrib, void *value);
+    void *(*get)(void *obj, char *attrib);
     int (*add_worker)(Producer *, void *);
     int (*del_worker)(Producer *, void *);
     int (*add_dispatcher)(Producer *, void *);

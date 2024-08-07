@@ -37,6 +37,7 @@
 #include <libobject/mockery/mockery.h>
 #include <libobject/core/Date_Time.h>
 
+#if (!defined(WINDOWS_USER_MODE))
 static int test_datetime_assign(TEST_ENTRY *entry)
 {
     int ret;
@@ -453,3 +454,4 @@ static int test_datetime_zonetime2local_case2(TEST_ENTRY *entry)
 }
 REGISTER_TEST_FUNC(test_datetime_zonetime2local_case2);
 
+#endif

@@ -114,7 +114,7 @@ static class_info_entry_t response_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
     Init_Nfunc_Entry(1, Response, construct, __construct),
     Init_Nfunc_Entry(2, Response, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, Response, read, __read),
+    Init_Vfunc_Entry(3, Response, read, __read),
     Init_End___Entry(4, Response),
 };
 REGISTER_CLASS(Stun_Response, response_class_info);

@@ -199,7 +199,7 @@ static class_info_entry_t image_class_info[] = {
     [4 ] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *)}, 
     [5 ] = {ENTRY_TYPE_FUNC_POINTER, "", "load_image", __load_image, sizeof(void *)}, 
     [6 ] = {ENTRY_TYPE_FUNC_POINTER, "", "draw", __draw, sizeof(void *)}, 
-    [7 ] = {ENTRY_TYPE_IFUNC_POINTER, "", "set_size", NULL, sizeof(void *)}, 
+    [7 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "set_size", NULL, sizeof(void *)}, 
     [8 ] = {ENTRY_TYPE_VFUNC_POINTER, "", "change_size", __change_size, sizeof(void *)}, 
     [9 ] = {ENTRY_TYPE_END}, 
 

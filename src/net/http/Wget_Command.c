@@ -172,7 +172,7 @@ static class_info_entry_t test_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Wget_Command, construct, __construct),
     Init_Nfunc_Entry(2, Wget_Command, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, Wget_Command, run_command, __run_command),
+    Init_Vfunc_Entry(3, Wget_Command, run_command, __run_command),
     Init_Str___Entry(4, Wget_Command, output_file, NULL),
     Init_U32___Entry(5, Wget_Command, help, 0),
     Init_End___Entry(6, Wget_Command),

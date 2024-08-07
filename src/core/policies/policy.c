@@ -177,7 +177,6 @@ obj_set_policy_t g_obj_set_policy[ENTRY_TYPE_MAX_TYPE] = {
     [ENTRY_TYPE_NORMAL_POINTER] = {.policy = __obj_set_pointer_policy},
     [ENTRY_TYPE_FUNC_POINTER]   = {.policy = __obj_set_pointer_policy},
     [ENTRY_TYPE_VFUNC_POINTER]  = {.policy = __obj_set_pointer_policy},
-    [ENTRY_TYPE_IFUNC_POINTER]  = {.policy = __obj_set_pointer_policy},
     [ENTRY_TYPE_OBJ_POINTER]    = {.policy = __obj_set_pointer_policy},
 };
 

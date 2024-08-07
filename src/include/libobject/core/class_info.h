@@ -31,7 +31,6 @@ enum class_info_type_e{
 	ENTRY_TYPE_NORMAL_POINTER,
 	ENTRY_TYPE_FUNC_POINTER,/*normal func pointer*/
 	ENTRY_TYPE_VFUNC_POINTER,/*virtual func pointer*/
-	ENTRY_TYPE_IFUNC_POINTER,/*inherit from ...*/
 	ENTRY_TYPE_OBJ_POINTER,
 	ENTRY_TYPE_END,
 	ENTRY_TYPE_MAX_TYPE,

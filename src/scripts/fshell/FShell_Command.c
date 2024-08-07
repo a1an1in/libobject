@@ -65,8 +65,8 @@ static class_info_entry_t FShell_Command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, FShell_Command, construct, __construct),
     Init_Nfunc_Entry(2, FShell_Command, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, FShell_Command, set, NULL),
-    Init_Nfunc_Entry(4, FShell_Command, get, NULL),
+    Init_Vfunc_Entry(3, FShell_Command, set, NULL),
+    Init_Vfunc_Entry(4, FShell_Command, get, NULL),
     Init_Vfunc_Entry(5, FShell_Command, run_command, __run_command),
     Init_End___Entry(6, FShell_Command),
 };

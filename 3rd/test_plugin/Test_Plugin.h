@@ -15,6 +15,7 @@ struct Test_Plugin_s{
     int (*set)(Command *command, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     char *(*to_json)(void *obj); 
+    int (*run_command)(Command *);
 
     /*virtual methods reimplement*/
     void * (*get_value)(Command *command,char *command_name, char *flag_name);

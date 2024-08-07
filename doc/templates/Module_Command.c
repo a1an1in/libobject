@@ -43,8 +43,8 @@ static class_info_entry_t module_command_class_info[] = {
     Init_Obj___Entry(0, Command, parent),
     Init_Nfunc_Entry(1, Module_Command, construct, __construct),
     Init_Nfunc_Entry(2, Module_Command, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, Module_Command, set, NULL),
-    Init_Nfunc_Entry(4, Module_Command, get, NULL),
+    Init_Vfunc_Entry(3, Module_Command, set, NULL),
+    Init_Vfunc_Entry(4, Module_Command, get, NULL),
     Init_Vfunc_Entry(5, Module_Command, run_command, __run_command),
     Init_End___Entry(6, Module_Command),
 };

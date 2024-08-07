@@ -158,7 +158,7 @@ static int test_object_override_virtual_funcs(TEST_ENTRY *entry)
 }
 REGISTER_TEST_FUNC(test_object_override_virtual_funcs);
 
-static int test_object_get_progeny_class_first_normal_func(TEST_ENTRY *entry)
+static int test_object_get_progeny_class_first_private_func(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
     void *func;
@@ -167,7 +167,7 @@ static int test_object_get_progeny_class_first_normal_func(TEST_ENTRY *entry)
 
     TRY {
         o = object_new(allocator, "Composite_Obj", NULL);
-        func = object_get_progeny_class_first_normal_func("Composite_Obj", "Obj", "construct");
+        func = object_get_progeny_class_first_private_func("Composite_Obj", "Obj", "construct");
         THROW_IF(func == NULL, -1);
         THROW_IF(func != o->construct, -1);
     } CATCH (ret) {} FINALLY {
@@ -176,4 +176,4 @@ static int test_object_get_progeny_class_first_normal_func(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_object_get_progeny_class_first_normal_func);
+REGISTER_TEST_FUNC(test_object_get_progeny_class_first_private_func);

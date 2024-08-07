@@ -167,7 +167,6 @@ static void *__get(Obj *obj, char *attrib)
             case ENTRY_TYPE_NORMAL_POINTER:
             case ENTRY_TYPE_FUNC_POINTER:
             case ENTRY_TYPE_VFUNC_POINTER:
-            case ENTRY_TYPE_IFUNC_POINTER:
             case ENTRY_TYPE_OBJ_POINTER:
                 {
                     addr = (base + entry->offset);

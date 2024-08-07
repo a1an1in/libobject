@@ -73,7 +73,7 @@ static int __open(Archive *archive, char *archive_name, char *mode)
         EXEC(file->open(file, archive_name, mode));
         
         /* 这里去调用子类的方法 */
-        func = object_get_progeny_class_first_normal_func(((Obj *)archive)->target_name, "Archive", "open");
+        func = object_get_progeny_class_first_private_func(((Obj *)archive)->target_name, "Archive", "open");
         if (func != NULL) {
             EXEC(func(archive, archive_name, mode));
         }

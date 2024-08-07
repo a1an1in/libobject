@@ -17,14 +17,14 @@ __attribute__((constructor)) static void register##class_name()\
             (int (*)(void *, void * , void *))class_deamon_register_class, NULL, #class_name, class_info);\
 }
 
-#define PLUGIN_REGISTER_CLASS(class_name, class_info) \
+#define PLUGIN_DEFINE_CLASS_REGISTER(class_name, class_info) \
 __attribute__((constructor)) static void register##class_name()\
 {\
 	printf("plugin register class, name:%s, addr:%p\n", #class_name, class_info);\
 	class_deamon_register_class(NULL, #class_name, class_info);\
 }
 
-#define PLUGIN_DEREGISTER_CLASS(class_name) \
+#define PLUGIN_DEFINE_CLASS_DEREGISTER(class_name) \
 __attribute__((destructor)) static void deregister##class_name()\
 {\
 	class_deamon_deregister_class(NULL, #class_name);\

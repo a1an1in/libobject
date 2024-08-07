@@ -217,13 +217,18 @@ static int __load_plugin(Application *app, char *name, char *path, char *json, v
     Map *plugins = app->plugins;
     allocator_t *allocator = app->parent.parent.allocator;
     FShell *shell = app->fshell;
-    char *lib_name  = "./sysroot/windows/lib/libobject-plugin-test.dll";
+    Command *c;
+    // char *lib_name  = "./sysroot/windows/lib/libobject-plugin-test.dll";
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "load plugin, name:%s, path:%s, json:%s", name, path, json);
-        EXEC(shell->load(shell, lib_name, RTLD_LOCAL | RTLD_LAZY));
-    } CATCH (ret) {} FINALLY {}
+        // dbg_str(DBG_VIP, "load plugin, name:%s, path:%s, json:%s", name, path, json);
+        EXEC(shell->load(shell, path, RTLD_LOCAL | RTLD_LAZY));
+        c = object_new(allocator, name, json);
+        EXEC(c->run_command(c));
+    } CATCH (ret) {} FINALLY {
+        object_destroy(c);
+    }
 
     return ret;
 }
@@ -236,10 +241,10 @@ static class_info_entry_t application_class_info[] = {
     Init_Vfunc_Entry(4 , Application, add_subcommand, NULL),
     Init_Vfunc_Entry(5 , Application, get_subcommand, NULL),
     Init_Vfunc_Entry(6 , Application, to_json, NULL),
-    Init_Nfunc_Entry(7 , Application, run, __run),
-    Init_Nfunc_Entry(8 , Application, run_command, __run_command),
-    Init_Nfunc_Entry(9 , Application, help, NULL),
-    Init_Nfunc_Entry(10, Application, load_plugin, __load_plugin),
+    Init_Vfunc_Entry(7 , Application, run, __run),
+    Init_Vfunc_Entry(8 , Application, run_command, __run_command),
+    Init_Vfunc_Entry(9 , Application, help, NULL),
+    Init_Vfunc_Entry(10, Application, load_plugin, __load_plugin),
     Init_Str___Entry(11, Application, root, NULL),
     Init_End___Entry(12, Application),
 };

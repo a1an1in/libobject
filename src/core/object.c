@@ -38,8 +38,8 @@
 #include <libobject/core/Object_Cache.h>
 
 void * 
-__object_get_normal_func_of_class(void *class_info_addr, 
-                                  char *func_pointer_name)
+__object_get_private_func_of_class(void *class_info_addr, 
+                                   char *func_pointer_name)
 {
     class_info_entry_t *entry = (class_info_entry_t *)class_info_addr;
     int i, ret;
@@ -195,9 +195,7 @@ __object_inherit_funcs(void *obj, void *class_info)
         THROW_IF(set == NULL, -1);
 
         for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-            if (entry[i].value == NULL && (entry[i].type == ENTRY_TYPE_IFUNC_POINTER || 
-                                           entry[i].type == ENTRY_TYPE_FUNC_POINTER  || 
-                                           entry[i].type == ENTRY_TYPE_VFUNC_POINTER)) 
+            if (entry[i].value == NULL && entry[i].type == ENTRY_TYPE_VFUNC_POINTER) 
             {
                 method = __object_get_ancestor_class_func(class_info, entry[i].value_name);
                 if (method != NULL)
@@ -232,7 +230,7 @@ int __object_override_virtual_func(void *obj,
 
         for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
             if (entry[i].type == ENTRY_TYPE_VFUNC_POINTER){
-                reimplement_func = object_get_progeny_class_last_reimplement_func(type_name, cur_type_name, entry[i].value_name);
+                reimplement_func = object_get_progeny_class_last_reimplement_virtual_func(type_name, cur_type_name, entry[i].value_name);
                 if (reimplement_func != NULL)
                     set(obj, (char *)entry[i].value_name, reimplement_func);
             }
@@ -419,7 +417,7 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
         class_info = class_deamon_search_class(deamon, (char *)cur_type_name);
         THROW_IF(class_info == NULL, -1);
 
-        construct = __object_get_normal_func_of_class(class_info, "construct");
+        construct = __object_get_private_func_of_class(class_info, "construct");
         entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
 
         dbg_str(OBJ_DETAIL, "obj_class addr:%p", class_info);
@@ -484,8 +482,7 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
             cjson_add_item_to_object(object, entry[i].type_name, item);
             __object_dump(obj, entry[i].type_name, item);
         } else if (entry[i].type == ENTRY_TYPE_FUNC_POINTER  || 
-                   entry[i].type == ENTRY_TYPE_VFUNC_POINTER || 
-                   entry[i].type == ENTRY_TYPE_IFUNC_POINTER) {
+                   entry[i].type == ENTRY_TYPE_VFUNC_POINTER) {
         } else {
             strcpy(o->target_name, type_name);
             dbg_str(OBJ_WARN, "get:%p, __get:%p", get, o->get);
@@ -584,7 +581,7 @@ int object_override(void *obj, char *func_name, void *value)
     return __object_override_virtual_funcs(obj, ((Obj *)obj)->name, func_name, value); 
 }
 
-void *object_get_progeny_class_last_reimplement_func(char *start_type_name, char *end_type_name, char *method_name)
+void *object_get_progeny_class_last_reimplement_virtual_func(char *start_type_name, char *end_type_name, char *method_name)
 {
     class_info_entry_t *entry;
     class_deamon_t *deamon;
@@ -602,8 +599,7 @@ void *object_get_progeny_class_last_reimplement_func(char *start_type_name, char
             super_class_name = entry[0].type_name;
         }
         for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-            if ((entry[i].type == ENTRY_TYPE_FUNC_POINTER || 
-                 entry[i].type == ENTRY_TYPE_VFUNC_POINTER) && 
+            if ((entry[i].type == ENTRY_TYPE_VFUNC_POINTER) && 
                 strcmp(entry[i].value_name, method_name) == 0) {
                 if (entry[i].value == NULL) {
                     break;
@@ -613,7 +609,7 @@ void *object_get_progeny_class_last_reimplement_func(char *start_type_name, char
             }
         }   
 
-        return object_get_progeny_class_last_reimplement_func(super_class_name, end_type_name, method_name);
+        return object_get_progeny_class_last_reimplement_virtual_func(super_class_name, end_type_name, method_name);
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "method_name:%s, start_type_name:%s, end_type_name:%s",
                 method_name, start_type_name, end_type_name);
@@ -622,7 +618,7 @@ void *object_get_progeny_class_last_reimplement_func(char *start_type_name, char
     return NULL;
 }
 
-void *object_get_progeny_class_first_normal_func(char *sub_class_name, char *root_class_name, char *func_name)
+void *object_get_progeny_class_first_private_func(char *sub_class_name, char *root_class_name, char *func_name)
 {
     class_info_entry_t *entry = NULL;
     class_deamon_t *deamon;
@@ -639,7 +635,7 @@ void *object_get_progeny_class_first_normal_func(char *sub_class_name, char *roo
         }
 
         if (entry[0].type == ENTRY_TYPE_OBJ) {
-            func = object_get_progeny_class_first_normal_func(entry[0].type_name, root_class_name, func_name);
+            func = object_get_progeny_class_first_private_func(entry[0].type_name, root_class_name, func_name);
             if (func != NULL) {
                 return func;
             }
@@ -653,7 +649,7 @@ void *object_get_progeny_class_first_normal_func(char *sub_class_name, char *roo
             }
         }  
     } CATCH (ret) {
-        dbg_str(OBJ_ERROR, "object_get_progeny_class_first_normal_func, func_name:%s", func_name);
+        dbg_str(OBJ_ERROR, "object_get_progeny_class_first_private_func, func_name:%s", func_name);
     }
 
     return NULL;
@@ -695,7 +691,7 @@ int __object_destroy(void *obj, char *type_name)
 
     deamon      = class_deamon_get_global_class_deamon();
     class_info  = class_deamon_search_class(deamon, (char *)type_name);
-    deconstruct = __object_get_normal_func_of_class(class_info, "deconstruct");
+    deconstruct = __object_get_private_func_of_class(class_info, "deconstruct");
     entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
 
     if (deconstruct != NULL) 

@@ -1,10 +1,11 @@
 [update:NA] 开发插件。
 
 Description:
-持续更新插件实现, 修复插件内注册class会导致段错误问题。
-因为在释放plugin class时前面已经把plugin释放了，所以
-需要的单独的plugin class的注册和注销宏。
+持续更新插件实现, 修改object，以前Init_Nfunc_Entry和Init_Vfunc_Entry
+处于混用的状态。 现在约束Init_Nfunc_Entry为私有函数， 不能覆盖和继承，
+Init_Vfunc_Entry为虚函数， 可以覆盖和继承。 
 
 Major Changes:
-1. 新增PLUGIN_REGISTER_CLASS，PLUGIN_DEREGISTER_CLASS。
-2. 新增class_deamon_deregister_class。
+1. 去掉ENTRY_TYPE_IFUNC_POINTER类型，ENTRY_TYPE_VFUNC_POINTER 才支持继承和覆盖。
+2. 将很多不规范的使用的宏Init_Nfunc_Entry改为Init_Vfunc_Entry
+3. load_plugin支持运行插件。

@@ -183,8 +183,8 @@ static int __set_cmp_func(Map *map, void *func)
 static class_info_entry_t hash_map_class_info[] = {
     Init_Obj___Entry(0 , Map, map),
     Init_Nfunc_Entry(1 , Hash_Map, construct, __construct),
-    Init_Nfunc_Entry(3 , Hash_Map, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(2 , Hash_Map, reconstruct, __reconstruct),
+    Init_Nfunc_Entry(2 , Hash_Map, deconstruct, __deconstruct),
+    Init_Vfunc_Entry(3 , Hash_Map, reconstruct, __reconstruct),
     Init_Vfunc_Entry(4 , Hash_Map, add, __add),
     Init_Vfunc_Entry(5 , Hash_Map, search, __search),
     Init_Vfunc_Entry(6 , Hash_Map, remove, __remove),

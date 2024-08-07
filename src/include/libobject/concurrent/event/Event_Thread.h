@@ -23,12 +23,12 @@ struct event_thread_s{
 
     int (*construct)(Event_Thread *,char *init_str);
     int (*deconstruct)(Event_Thread *);
+
+    /*inherited methods*/
     int (*set)(Event_Thread *, char *attrib, void *value);
     void *(*get)(void *obj, char *attrib);
     int (*add_event)(Event_Thread *, void *event);
     int (*del_event)(Event_Thread *, void *event);
-
-    /*inherited methods*/
     int (*start)(Event_Thread *);
     void (*stop)(Event_Thread*);
     int (*set_start_routine)(Event_Thread *, void *);

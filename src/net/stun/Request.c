@@ -95,8 +95,8 @@ static class_info_entry_t request_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
     Init_Nfunc_Entry(1, Request, construct, __construct),
     Init_Nfunc_Entry(2, Request, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, Request, set_attrib, __set_attrib),
-    Init_Nfunc_Entry(4, Request, set_head, __set_head),
+    Init_Vfunc_Entry(3, Request, set_attrib, __set_attrib),
+    Init_Vfunc_Entry(4, Request, set_head, __set_head),
     Init_End___Entry(5, Request),
 };
 REGISTER_CLASS(Stun_Request, request_class_info);
