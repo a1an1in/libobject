@@ -694,6 +694,7 @@ int __object_destroy(void *obj, char *type_name)
     deconstruct = __object_get_private_func_of_class(class_info, "deconstruct");
     entry_of_parent_class = __object_get_entry_of_parent_class(class_info);
 
+    /* 先执行子类析构，再执行父类析构 */
     if (deconstruct != NULL) 
         deconstruct(obj);
 

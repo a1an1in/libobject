@@ -19,7 +19,6 @@ macro (set_cmake_evironment_variable)
     SET (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
     SET (ExternalLibs ${ExternalLibs} 
         -Wl,--whole-archive
-            object-test-plugin
             object-tests
             object-mockery
             object-drivers
@@ -69,7 +68,7 @@ macro (add_module_lists)
     list(APPEND module_lists "3rd/test_process")
     list(APPEND module_lists "3rd/test_lib")
     list(APPEND module_lists "3rd/test_lib2")
-    list(APPEND module_lists "3rd/test_plugin")
+    list(APPEND module_lists "3rd/test_http_plugin")
     
     #list(APPEND module_lists "src/media")
     #list(APPEND module_lists "src/ui")

@@ -10,7 +10,7 @@
 #include <libobject/argument/Argument.h>
 #include <libobject/net/http/Client.h>
 #include <libobject/net/url/Url.h>
-#include "Httpd_Command.h"
+#include <libobject/net/http/Httpd_Command.h>
 
 static int __handler_hello_world(Request *req, Response *res, void *opaque)
 {

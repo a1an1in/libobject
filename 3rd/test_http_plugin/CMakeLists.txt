@@ -1,4 +1,4 @@
-project(object-plugin-test)
+project(object-http-plugin-test)
 
 file(GLOB_RECURSE MOUDLE_HEADERS
     "*.h"

@@ -20,7 +20,7 @@ __attribute__((constructor)) static void register##class_name()\
 #define PLUGIN_DEFINE_CLASS_REGISTER(class_name, class_info) \
 __attribute__((constructor)) static void register##class_name()\
 {\
-	printf("plugin register class, name:%s, addr:%p\n", #class_name, class_info);\
+	dbg_str(DBG_INFO, "plugin register class, name:%s, addr:%p", #class_name, class_info);\
 	class_deamon_register_class(NULL, #class_name, class_info);\
 }
 

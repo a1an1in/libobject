@@ -91,6 +91,7 @@ __add_subcommand(Command *command, void *command_name)
 
     c = object_new(command->parent.allocator, command_name, NULL);
     if (c != NULL) {
+        c->opaque = command;
         ret = subcommands->add(subcommands, c);
     } else {
         ret = -1;

@@ -14,14 +14,6 @@ static int __run_command(Command *command)
     char **argv;
     Application *app = (Application *)command->opaque;
 
-    printf("help command\n");
-
-    // argc = command->argc;
-    // argv = command->argv;
-
-    // for (i = 0; i < argc; i++) {
-    //     printf("argv[%d]: %s\n", i, argv[i]);
-    // }
     app->help(app);
 
     return 1;

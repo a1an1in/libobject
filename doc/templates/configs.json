@@ -1,9 +1,9 @@
 [{
-    "class_name": "Test_Plugin",
-    "path": "/c/Users/86158/workspace/others/xtools/sysroot/windows/lib/libobject-plugin-test.dll",
+    "class_name": "Test_Http_Plugin",
+    "path": "./sysroot/windows/lib/libobject-http-plugin-test.dll",
     "config": {
         "Command": {
-            "name": "test_plugin"
+            "name": "Test_Http_Plugin"
         },
         "option": "test command option",
         "help": 0

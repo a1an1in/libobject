@@ -218,17 +218,24 @@ static int __load_plugin(Application *app, char *name, char *path, char *json, v
     allocator_t *allocator = app->parent.parent.allocator;
     FShell *shell = app->fshell;
     Command *c;
-    // char *lib_name  = "./sysroot/windows/lib/libobject-plugin-test.dll";
     int ret;
 
     TRY {
-        // dbg_str(DBG_VIP, "load plugin, name:%s, path:%s, json:%s", name, path, json);
+        dbg_str(DBG_VIP, "load plugin, plugin class name:%s, path:%s", name, path);
+        dbg_str(DBG_INFO, "load plugin, json:%s", json);
         EXEC(shell->load(shell, path, RTLD_LOCAL | RTLD_LAZY));
         c = object_new(allocator, name, json);
+        /* http plugin 需要http server， 所有通过opaque传入。 */
+        c->opaque = opaque;
+
+        /* 插件单独放在app的plugins Map里， 没有放到command的submodule里面，是因为：
+         * 1. 区分plugin和sub command两个概念。plugin是sub command功能的拓展。
+         * 2. Application是Command的子类， 会先释放shell（释放plugin）， 然后在
+         *    Command父类释放plugin会导致找不到插件类。
+         */
+        plugins->add(plugins, STR2A(c->name), c);
         EXEC(c->run_command(c));
-    } CATCH (ret) {} FINALLY {
-        object_destroy(c);
-    }
+    } CATCH (ret) {} FINALLY {}
 
     return ret;
 }
