@@ -11,6 +11,7 @@
 #include <libobject/net/http/Client.h>
 #include <libobject/net/url/Url.h>
 #include <libobject/net/http/Httpd_Command.h>
+#include <libobject/concurrent/event_api.h>
 
 static int __handler_hello_world(Request *req, Response *res, void *opaque)
 {
@@ -91,6 +92,7 @@ static int __deconstruct(Httpd_Command *command)
 
 static int __run_command(Httpd_Command *command)
 {
+    struct event_base *event_base;
     Http_Server *server = command->server;
     Command *c = (Command *)command;
     char path[128] = {0};
@@ -113,8 +115,12 @@ static int __run_command(Httpd_Command *command)
         server->start(server);
 
         if (command->loop_flag == 1) {
-            sleep(60 * 60);
+            event_base = event_base_get_default_instance();
+            while (event_base->eb->break_flag == 0) {
+                sleep(1);
+            }
         }
+
     } CATCH (ret) {} FINALLY {}
 
     return ret;
@@ -147,11 +153,12 @@ static int __load_plugins(Httpd_Command *command)
         array_size = cjson_get_array_size(root);
 
         for (i = 0; i < array_size; i++) {
-            item = cjson_get_object_item(root, i);
+            item = cjson_get_array_item(root, i);
             name = cjson_get_object_item(item, "class_name");
             config = cjson_get_object_item(item, "config");
             plugin_path = cjson_get_object_item(item, "path");
             out = cjson_print(config);
+            dbg_str(DBG_VIP, "http load plugin:%s", name->valuestring);
             EXEC(app->load_plugin(app, name->valuestring, plugin_path->valuestring, out, command));
             free(out);
         }

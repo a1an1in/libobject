@@ -73,7 +73,7 @@ macro (add_module_lists)
     list(APPEND module_lists "tests")
     list(APPEND module_lists "src/.")
     list(APPEND module_lists "3rd/test_lib")
-    list(APPEND module_lists "3rd/test_http_plugin")
+    list(APPEND module_lists "3rd/http_plugin_test")
     add_subdirectories("${module_lists}")
 endmacro()
 

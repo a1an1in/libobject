@@ -87,6 +87,8 @@ int class_deamon_init(class_deamon_t *class_deamon)
     }
 
     map_set(class_deamon->map, "key_cmp_func", (void *)string_key_cmp_func);
+    // int key_type = 1;
+    // map_set(class_deamon->map, "key_type", (void *)&key_type);
     map_init(class_deamon->map);
 
     return 1;

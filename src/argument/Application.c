@@ -295,7 +295,7 @@ int libobject_destroy()
 #endif
         EXEC(event_base_destroy_default_instance());
         EXEC(producer_destroy_default_instance());
-
+        
 #if (defined(WINDOWS_USER_MODE))
         WSACleanup();
 #endif

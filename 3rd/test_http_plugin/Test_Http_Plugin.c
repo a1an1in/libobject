@@ -50,7 +50,7 @@ static int __run_command(Command *command)
 
     TRY {
         dbg_str(DBG_VIP, "test plugin run, help:%d!", ((Test_Http_Plugin *)command)->help);
-        server->register_handler(server, "GET", "/api/test_http_plugin", __handler_test_http_plugin, command);
+        // server->register_handler(server, "GET", "/api/test_http_plugin", __handler_test_http_plugin, command);
     } CATCH (ret) { }
 
     return 0;
@@ -66,5 +66,4 @@ static class_info_entry_t Test_Http_Plugin_class_info[] = {
     Init_U32___Entry(6, Test_Http_Plugin, help, 0),
     Init_End___Entry(7, Test_Http_Plugin),
 };
-PLUGIN_DEFINE_CLASS_REGISTER(Test_Http_Plugin, Test_Http_Plugin_class_info);
-PLUGIN_DEFINE_CLASS_DEREGISTER(Test_Http_Plugin);
+PLUGIN_REGISTER_CLASS(Test_Http_Plugin, Test_Http_Plugin_class_info);
