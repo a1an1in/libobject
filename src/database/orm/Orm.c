@@ -34,24 +34,12 @@ static int __construct(Orm *orm, char *init_str)
 
 static int __deconstruct(Orm *orm)
 {
-    if (orm->host)
-        object_destroy(orm->host);
-
-    if (orm->user)
-        object_destroy(orm->user);
-
-    if (orm->password)
-        object_destroy(orm->password);
-
-    if (orm->port)
-        object_destroy(orm->port);
-
-    if (orm->database_name)
-        object_destroy(orm->database_name);
-    
-    if (orm->conns) {
-        object_destroy(orm->conns);
-    }
+    object_destroy(orm->host);
+    object_destroy(orm->user);
+    object_destroy(orm->password);
+    object_destroy(orm->port);
+    object_destroy(orm->database_name);
+    object_destroy(orm->conns);
 
     return 1;
 }

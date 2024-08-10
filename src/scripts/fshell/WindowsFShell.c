@@ -20,19 +20,20 @@ static int __construct(WindowsFShell *shell, char *init_str)
 
 static int __deconstruct(WindowsFShell *shell)
 {
-    Map *map = shell->parent.map;
+    Map *map = shell->parent.lib_map;
 
     Iterator *cur, *end;
-    void *key, *value;
+    void *key;
+    fsh_lib_info_t *info;
 
     cur = map->begin(map);
     end = map->end(map);
 
     for (; !end->equal(end, cur); cur->next(cur)) {
         key = cur->get_kpointer(cur);
-        value = cur->get_vpointer(cur);
-        dbg_str(DBG_DETAIL, "windows fshell close lib:%s, handle:%p", key, value);
-        dlclose(value);
+        info = cur->get_vpointer(cur);
+        dbg_str(DBG_DETAIL, "windows fshell close lib:%s, handle:%p", key, info->handle);
+        dlclose(info->handle);
     }
 
     return 0;
@@ -41,7 +42,8 @@ static int __deconstruct(WindowsFShell *shell)
 static int __load(WindowsFShell *shell, char *lib_name, int flag)
 {
     void *handle;
-    Map *map = shell->parent.map;
+    Map *map = shell->parent.lib_map;
+    fsh_lib_info_t *info;
     int ret;
     void *addr;
 
@@ -49,7 +51,11 @@ static int __load(WindowsFShell *shell, char *lib_name, int flag)
         handle = dlopen(lib_name, flag);
         THROW_IF(handle == NULL, -1);
 
-        EXEC(map->add(map, lib_name, handle));
+        info = allocator_mem_alloc(shell->parent.parent.allocator, sizeof(fsh_lib_info_t));
+        strcpy(info->path, lib_name);
+        info->handle = handle;
+
+        EXEC(map->add(map, info->path, info));
     } CATCH (ret) {
         perror("err:");
     }
@@ -59,16 +65,15 @@ static int __load(WindowsFShell *shell, char *lib_name, int flag)
 
 static int __unload(WindowsFShell *shell, char *lib_name, int flag)
 {
-    void *handle = NULL;
+    fsh_lib_info_t *info;
     Map *map = shell->parent.map;
     int ret;
 
     TRY {
-        EXEC(map->remove(map, lib_name, (void **)&handle));
-        THROW_IF(handle == NULL, -1);
-        EXEC(dlclose(handle));
-    } CATCH (ret) {
-    }
+        EXEC(map->remove(map, lib_name, (void **)&info));
+        THROW_IF(info == NULL, -1);
+        EXEC(dlclose(info->handle));
+    } CATCH (ret) { }
 
     return ret;
 }

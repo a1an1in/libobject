@@ -31,7 +31,10 @@ static int __construct(Command *command, char *init_str)
 static int __deconstruct(Command *command)
 {
     Test_Http_Plugin *plugin = (Test_Http_Plugin *)command;
+    Httpd_Command *httpd = (Httpd_Command *)(command->opaque);
+    Http_Server *server = httpd->server;
 
+    server->deregister_handler(server, "GET", "/api/test_http_plugin");
     object_destroy(plugin->option);
 
     return 0;
@@ -50,7 +53,7 @@ static int __run_command(Command *command)
 
     TRY {
         dbg_str(DBG_VIP, "test plugin run, help:%d!", ((Test_Http_Plugin *)command)->help);
-        // server->register_handler(server, "GET", "/api/test_http_plugin", __handler_test_http_plugin, command);
+        server->register_handler(server, "GET", "/api/test_http_plugin", __handler_test_http_plugin, command);
     } CATCH (ret) { }
 
     return 0;

@@ -30,17 +30,21 @@ static int __construct(FShell *shell, char *init_str)
     Map *map;
     struct event *signal;
     int trustee_flag = 1;
-    int value_type = VALUE_TYPE_STRUCT_POINTER;
+    int value_type;
     allocator_t *allocator = shell->parent.allocator;
 
     map = object_new(shell->parent.allocator, "RBTree_Map", NULL);
     map->set_cmp_func(map, string_key_cmp_func);
-    shell->map = map;
+    map->set(map, "/Map/trustee_flag", &trustee_flag);
+    value_type = VALUE_TYPE_ALLOC_POINTER;
+    map->set(map, "/Map/value_type", &value_type);
+    shell->lib_map = map;
     shell->close_flag = 0;
 
     map = object_new(allocator, "RBTree_Map", NULL);
     map->set_cmp_func(map, string_key_cmp_func);
     map->set(map, "/Map/trustee_flag", &trustee_flag);
+    value_type = VALUE_TYPE_STRUCT_POINTER;
     map->set(map, "/Map/value_type", &value_type);
     map->set(map, "/Map/class_name", "Fsh_Variable_Info");
     shell->variable_map = map;
@@ -56,7 +60,7 @@ static int __deconstruct(FShell *shell)
 
     dbg_str(DBG_DETAIL, "fshell deconstruct in, shell->worker=%p", shell->worker);
     object_destroy(shell->variable_map);
-    object_destroy(shell->map);
+    object_destroy(shell->lib_map);
     worker_destroy(shell->worker);
     dbg_str(DBG_DETAIL, "fshell deconstruct out");
 

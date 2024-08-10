@@ -298,10 +298,10 @@ __register_handler(Http_Server *server,
     handler_t *h = NULL;
 
     if (strcmp(method, "GET") == 0) {
-        dbg_str(DBG_SUC, "register get handler:%s", path);
+        dbg_str(DBG_INFO, "register get handler:%s", path);
         map = server->get_handlers;
     } else if (strcmp(method, "POST") == 0) {
-        dbg_str(DBG_SUC, "register post handler:%s", path);
+        dbg_str(DBG_INFO, "register post handler:%s", path);
         map = server->post_handlers;
     } else {
         map = server->other_handlers;
@@ -317,6 +317,35 @@ __register_handler(Http_Server *server,
 
     dbg_str(NET_DETAIL, "register_handler map addr:%p, map trustee_flag=%d, map count:%d, method:%s path:%s",
             map, map->trustee_flag, map->count(map), method, path);
+
+    return 1;
+}
+
+
+/* 注意如果插件有注册handler， 插件unload前必须去登记， 否则销毁handler map是会出现访问不存在的地址从而导致段错误。 */
+static int __deregister_handler(Http_Server *server, char *method, char *path)
+{
+    Map *map = NULL;
+    handler_t *h = NULL;
+    void *element = NULL;
+    int ret;
+
+    if (strcmp(method, "GET") == 0) {
+        dbg_str(DBG_INFO, "deregister get handler:%s", path);
+        map = server->get_handlers;
+    } else if (strcmp(method, "POST") == 0) {
+        dbg_str(DBG_INFO, "deregister post handler:%s", path);
+        map = server->post_handlers;
+    } else {
+        map = server->other_handlers;
+    }
+
+    ret = map->remove(map, path, &element);
+    if (ret < 0) {
+        return -1;
+    }
+    dbg_str(DBG_VIP, "deregister handler:%s, element:%p", path, element);
+    allocator_mem_free(server->obj.allocator, element);
 
     return 1;
 }
@@ -365,9 +394,10 @@ static class_info_entry_t concurent_class_info[] = {
     Init_Vfunc_Entry(7 , Http_Server, override_inner_handler, __override_inner_handler),
     Init_Vfunc_Entry(8 , Http_Server, response, __response),
     Init_Vfunc_Entry(9 , Http_Server, start, __start),
-    Init_Str___Entry(10, Http_Server, root, NULL),
-    Init_Str___Entry(11, Http_Server, host, NULL),
-    Init_Str___Entry(12, Http_Server, service, NULL),
-    Init_End___Entry(13, Http_Server),
+    Init_Vfunc_Entry(10, Http_Server, deregister_handler, __deregister_handler),
+    Init_Str___Entry(11, Http_Server, root, NULL),
+    Init_Str___Entry(12, Http_Server, host, NULL),
+    Init_Str___Entry(13, Http_Server, service, NULL),
+    Init_End___Entry(14, Http_Server),
 };
-REGISTER_CLASS(Http_Server,concurent_class_info);
+REGISTER_CLASS(Http_Server, concurent_class_info);

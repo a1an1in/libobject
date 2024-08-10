@@ -26,6 +26,7 @@ struct http_server_s{
     int (*start)(Http_Server *);
     int (*process_request)(Http_Server *hs, Request *r);
     int (*register_handler)(Http_Server *hs, char *method, char *path, int (*handler)(Request *, Response *, void *), void *opaque);
+    int (*deregister_handler)(Http_Server *hs, char *method, char *path);
     int (*response)(Http_Server *hs, Request *req, Response *res);
     int (*override_inner_handler)(Http_Server *server, char *key, int (*handler)(Request *, Response *, void *));
 

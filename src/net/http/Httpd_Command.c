@@ -157,6 +157,8 @@ static int __load_plugins(Httpd_Command *command)
             name = cjson_get_object_item(item, "class_name");
             config = cjson_get_object_item(item, "config");
             plugin_path = cjson_get_object_item(item, "path");
+
+            if (!fs_is_exist(plugin_path->valuestring)) continue;
             out = cjson_print(config);
             dbg_str(DBG_VIP, "http load plugin:%s", name->valuestring);
             EXEC(app->load_plugin(app, name->valuestring, plugin_path->valuestring, out, command));
