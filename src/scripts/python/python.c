@@ -1,4 +1,4 @@
-#if (defined(LINUX_USER_MODE))
+#if 0
 #include <Python.h>
 #include <libobject/core/try.h>
 #include <libobject/mockery/mockery.h>
