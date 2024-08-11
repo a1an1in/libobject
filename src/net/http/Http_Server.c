@@ -288,11 +288,10 @@ static int __process_request(Http_Server *server, Request *r)
     return ret;
 }
 
-static int 
-__register_handler(Http_Server *server,
-                   char *method, char *path,
-                   int (*handler)(Request *, Response *, void *),
-                   void *opaque)
+static int __register_handler(Http_Server *server,
+                              char *method, char *path,
+                              int (*handler)(Request *, Response *, void *),
+                              void *opaque)
 {
     Map *map = NULL;
     handler_t *h = NULL;
@@ -344,7 +343,7 @@ static int __deregister_handler(Http_Server *server, char *method, char *path)
     if (ret < 0) {
         return -1;
     }
-    dbg_str(DBG_VIP, "deregister handler:%s, element:%p", path, element);
+
     allocator_mem_free(server->obj.allocator, element);
 
     return 1;

@@ -221,8 +221,8 @@ static int __load_plugin(Application *app, char *name, char *path, char *json, v
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "load plugin, plugin class name:%s, path:%s", name, path);
-        dbg_str(DBG_INFO, "load plugin, json:%s", json);
+        dbg_str(DBG_VIP, "application load plugin, plugin class name:%s, path:%s", name, path);
+        dbg_str(DBG_INFO, "application load plugin, json:%s", json);
         EXEC(shell->load(shell, path, RTLD_LOCAL | RTLD_LAZY));
         c = object_new(allocator, name, json);
         /* http plugin 需要http server， 所有通过opaque传入。 */
@@ -234,6 +234,7 @@ static int __load_plugin(Application *app, char *name, char *path, char *json, v
          *    Command父类释放plugin会导致找不到插件类。
          */
         plugins->add(plugins, STR2A(c->name), c);
+        dbg_str(DBG_VIP, "application run plugin %s.", name);
         EXEC(c->run_command(c));
     } CATCH (ret) {} FINALLY {}
 

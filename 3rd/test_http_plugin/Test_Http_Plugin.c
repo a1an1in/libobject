@@ -34,6 +34,7 @@ static int __deconstruct(Command *command)
     Httpd_Command *httpd = (Httpd_Command *)(command->opaque);
     Http_Server *server = httpd->server;
 
+    dbg_str(DBG_VIP, "http test plugin deregistered handlers from http server!");
     server->deregister_handler(server, "GET", "/api/test_http_plugin");
     object_destroy(plugin->option);
 
@@ -54,6 +55,7 @@ static int __run_command(Command *command)
     TRY {
         dbg_str(DBG_VIP, "test plugin run, help:%d!", ((Test_Http_Plugin *)command)->help);
         server->register_handler(server, "GET", "/api/test_http_plugin", __handler_test_http_plugin, command);
+        dbg_str(DBG_VIP, "http test plugin registered handlers to http server!");
     } CATCH (ret) { }
 
     return 0;

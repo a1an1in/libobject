@@ -160,7 +160,6 @@ static int __load_plugins(Httpd_Command *command)
 
             if (!fs_is_exist(plugin_path->valuestring)) continue;
             out = cjson_print(config);
-            dbg_str(DBG_VIP, "http load plugin:%s", name->valuestring);
             EXEC(app->load_plugin(app, name->valuestring, plugin_path->valuestring, out, command));
             free(out);
         }

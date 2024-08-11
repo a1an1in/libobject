@@ -35,8 +35,6 @@ static int __deconstruct(UnixFShell *shell)
         dlclose(info->handle);
     }
 
-    dbg_str(DBG_VIP, "unixfshell deconstruct out");
-
     return 0;
 }
 
@@ -51,7 +49,6 @@ static int __load(UnixFShell *shell, char *lib_name, int flag)
     TRY {
         handle = dlopen(lib_name, flag);
         THROW_IF(handle == NULL, -1);
-        dbg_str(DBG_VIP, "load lib handler:%p", handle);
 
         info = allocator_mem_alloc(shell->parent.parent.allocator, sizeof(fsh_lib_info_t));
         strcpy(info->path, lib_name);
