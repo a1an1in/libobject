@@ -4,7 +4,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/mockery/mockery.h>
 
-static int test_mysql(TEST_ENTRY *entry, void *argc, void *argv)
+static int test_mysql_demo(TEST_ENTRY *entry, void *argc, void *argv)
 {
     MYSQL mysql;
     MYSQL_RES *result;
@@ -83,4 +83,4 @@ static int test_mysql(TEST_ENTRY *entry, void *argc, void *argv)
 
     return EXIT_SUCCESS;
 }
-REGISTER_TEST_CMD(test_mysql);
+// REGISTER_TEST_CMD(test_mysql_demo);

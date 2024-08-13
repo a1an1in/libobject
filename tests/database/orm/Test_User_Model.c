@@ -19,32 +19,15 @@ static int __construct(Test_User_Model *model, char *init_str)
 
 static int __deconstruct(Test_User_Model *model)
 {
-    if (model->id)
-        object_destroy(model->id);
-
-    if (model->nickname)
-        object_destroy(model->nickname);
-
-    if (model->mobile)
-        object_destroy(model->mobile);
-
-    if (model->password)
-        object_destroy(model->password);
-
-    if (model->age)
-        object_destroy(model->age);
-
-    if (model->signature)
-        object_destroy(model->signature);
-
-    if (model->portrait_url)
-        object_destroy(model->portrait_url);
-
-    if (model->email)
-        object_destroy(model->email);
-
-    if (model->count)
-        object_destroy(model->count);
+    object_destroy(model->id);
+    object_destroy(model->nickname);
+    object_destroy(model->mobile);
+    object_destroy(model->password);
+    object_destroy(model->age);
+    object_destroy(model->signature);
+    object_destroy(model->portrait_url);
+    object_destroy(model->email);
+    object_destroy(model->count);
 
     return 0;
 }

@@ -35,6 +35,7 @@ static int __open(Orm_Conn *conn, char *host,
     int ret;
 
     TRY {
+        THROW_IF(conn == NULL, -1);
         sql = object_new(conn->parent.allocator, "Mysql", NULL);
         THROW_IF(sql == NULL, -1);
 
@@ -99,21 +100,21 @@ static int __insert_model(Orm_Conn *conn, Model *model)
             THROW_IF((entry = object_get_entry_of_class(model_name, column)) == NULL, -1);
             if (entry->type <= ENTRY_TYPE_UN64 && entry->type >= ENTRY_TYPE_INT8_T) {
                 int value;
-                (*((Number **)member))->get_value((*((Number **)member)), NUMBER_TYPE_SIGNED_INT, &value);
+                (*((Number **)member))->get_value((*((Number **)member)), &value, NULL);
                 sql_values->format(sql_values, 1024, "%d", value);
-                dbg_str(DB_DETAIL, "column:%s value:%d", column, value);
+                dbg_str(DB_DETAIL, "i:%d column:%s value:%d", i, column, value);
             } else if(entry->type == ENTRY_TYPE_STRING) {
                 char *value;
                 value = STR2A((*((String **)member)));
                 if (strlen(value) == 0) continue;
                 sql_values->format(sql_values, 1024, "'%s'", value);
-                dbg_str(DB_DETAIL, "column:%s value:%s", column, value);
+                dbg_str(DB_DETAIL, "i:%d column:%s value:%s", i, column, value);
             } else if(entry->type == ENTRY_TYPE_VECTOR) {
                 Vector *value;
                 value = *((Vector **)member);
                 CONTINUE_IF(value == NULL);
                 sql_values->format(sql_values, 1024, "'%s'", value->to_json(value));
-                dbg_str(DB_DETAIL, "column:%s value:%s", column, value->to_json(value));
+                dbg_str(DB_DETAIL, "i:%d column:%s value:%s", i, column, value->to_json(value));
             } else {
                 dbg_str(DB_ERROR, "entry type:%d, model name:%s column_name_cstr :%s",
                         entry->type, ((Obj *)model)->name, column);
@@ -555,7 +556,7 @@ static int __insert_or_update_model(Orm_Conn *conn, Model *model)
             THROW_IF((entry = object_get_entry_of_class(model_name, column)) == NULL, -1);
             if (entry->type <= ENTRY_TYPE_UN64 && entry->type >= ENTRY_TYPE_INT8_T) {
                 int value;
-                (*((Number **)member))->get_value((*((Number **)member)), NUMBER_TYPE_SIGNED_INT, &value);
+                (*((Number **)member))->get_value((*((Number **)member)), &value, NULL);
                 sql_values->format(sql_values, 1024, "%d", value);
                 dbg_str(DB_DETAIL, "column:%s value:%d", column, value);
             } else if(entry->type == ENTRY_TYPE_STRING) {

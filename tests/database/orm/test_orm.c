@@ -35,51 +35,12 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Array_Stack.h>
+#include <libobject/database/orm/Orm.h>
 #include <libobject/mockery/mockery.h>
-#include "Orm_Test.h"
 #include "Test_User_Model.h"
 
-static int __construct(Orm_Test *test, char *init_str)
+static int __test_orm_create_table(Orm *orm)
 {
-    Orm *orm; 
-
-    orm = object_new(test->parent.obj.allocator, "Orm", NULL);
-
-    orm->set(orm, "host", "127.0.0.1");
-    orm->set(orm, "user", "root");
-    orm->set(orm, "password", "123456");
-    orm->set(orm, "database_name", "test");
-
-    orm->run(orm);
-
-    test->orm = orm;
-
-    return 0;
-}
-
-static int __deconstruct(Orm_Test *test)
-{
-    Orm *orm = test->orm; 
-
-    if (test->orm)
-        object_destroy(test->orm);
-
-    return 0;
-}
-
-static int __setup(Orm_Test *test, char *init_str)
-{
-    return 1;
-}
-
-static int __teardown(Orm_Test *test)
-{
-    return 1;
-}
-
-static int __test_create(Orm_Test *test)
-{
-    Orm *orm = test->orm; 
     Orm_Conn *conn;
     int ret;
 
@@ -88,13 +49,14 @@ static int __test_create(Orm_Test *test)
         ret = conn->create_table(conn, "Test_User_Table"); /* 专用于测试创建表 */
     }
     orm->add_conn(orm, conn);
+    dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
 
     return ret;
 }
 
-static int __test_insert_table(Orm_Test *test)
+static int __test_orm_insert_table(Orm *orm)
 {
-    Orm *orm = test->orm; 
     Orm_Conn *conn;
     Test_User_Model *user;
     Table *table;
@@ -117,13 +79,14 @@ static int __test_insert_table(Orm_Test *test)
     orm->add_conn(orm, conn);
 
     object_destroy(table);
+    dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
 
     return 1;
 }
 
-static int __test_del(Orm_Test *test)
+static int __test_orm_del_table(Orm *orm)
 {
-    Orm *orm = test->orm; 
     Orm_Conn *conn;
     int ret = 1;
 
@@ -133,14 +96,14 @@ static int __test_del(Orm_Test *test)
     }
     orm->add_conn(orm, conn);
 
-    dbg_str(DBG_DETAIL, "ret = %d", ret);
+    dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
 
     return ret;
 }
 
-static int __test_update_model(Orm_Test *test)
+static int __test_orm_update_model(Orm *orm)
 {
-    Orm *orm = test->orm;
     Orm_Conn *conn;
     Test_User_Model *user;
     Test_User_Model *test_user;
@@ -191,9 +154,9 @@ static int __test_update_model(Orm_Test *test)
         table->peek_at_model(table, 0, (void **)&test_user);
         dbg_str(DBG_DETAIL, "user:%s", test_user->to_json(test_user));
         THROW_IF(strcmp(STR2A(test_user->mobile), "15440129083") != 0, -1);
-    } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-    } FINALLY {
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) { } FINALLY {
         object_destroy(user);
         object_destroy(table);
         orm->add_conn(orm, conn);
@@ -202,9 +165,8 @@ static int __test_update_model(Orm_Test *test)
     return ret;
 }
 
-static int __test_update_json(Orm_Test *test)
+static int __test_orm_update_model_with_json(Orm *orm)
 {
-    Orm *orm = test->orm;
     Orm_Conn *conn;
     Test_User_Model *user;
     Test_User_Model *test_user;
@@ -257,9 +219,9 @@ static int __test_update_json(Orm_Test *test)
         table->peek_at_model(table, 0, (void **)&test_user);
         dbg_str(DBG_DETAIL, "user:%s", test_user->to_json(test_user));
         THROW_IF(strcmp(STR2A(test_user->mobile), "15440129083") != 0, -1);
-    } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-    } FINALLY {
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) { } FINALLY {
         object_destroy(user);
         object_destroy(table);
         orm->add_conn(orm, conn);
@@ -268,9 +230,8 @@ static int __test_update_json(Orm_Test *test)
     return ret;
 }
 
-static int __test_query_table(Orm_Test *test)
+static int __test_orm_query_table(Orm *orm)
 {
-    Orm *orm = test->orm; 
     Orm_Conn *conn;
     Table *table;
     int count, i, expect_count = 1, ret = 1;
@@ -304,9 +265,9 @@ static int __test_query_table(Orm_Test *test)
         }
 
         THROW_IF(count != expect_count, -1);
-    } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-    } FINALLY {
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) { } FINALLY {
         object_destroy(table);
         orm->add_conn(orm, conn);
     }
@@ -314,9 +275,8 @@ static int __test_query_table(Orm_Test *test)
     return ret;
 }
 
-static int __test_query_model(Orm_Test *test)
+static int __test_orm_query_model(Orm *orm)
 {
-    Orm *orm = test->orm; 
     Orm_Conn *conn;
     int count, i, expect_count = 1, ret = 1;
     Test_User_Model *user = NULL;
@@ -342,8 +302,9 @@ static int __test_query_model(Orm_Test *test)
 
         conn->query_model(conn, (Model *)user, "select * from test_user_table where mobile=%s;", "13440129081");
         THROW_IF(strcmp(STR2A(user->nickname), "user2") != 0, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         dbg_str(DBG_ERROR, "user:%s", user->to_json(user));
     } FINALLY {
         if (user != NULL) {
@@ -367,9 +328,8 @@ static int __table_element_cmp(void *element, void *key)
     return 0;
 }
 
-static int __test_merge_table(Orm_Test *test)
+static int __test_orm_merge_table(Orm *orm)
 {
-    Orm *orm = test->orm; 
     Orm_Conn *conn;
     Table *table;
     int i, expect_count = 1, ret = 1;
@@ -398,8 +358,9 @@ static int __test_merge_table(Orm_Test *test)
 
         table->peek_at_model(table, 0, (void **)&user);
         THROW_IF(NUM2S32(user->count) != 44, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
         json = table->to_json(table);
         dbg_str(DBG_ERROR, "json:%s", json);
     } FINALLY {
@@ -409,9 +370,8 @@ static int __test_merge_table(Orm_Test *test)
     return ret;
 }
 
-static int __test_insert_or_update_table(Orm_Test *test)
+static int __test_orm_insert_or_update_table(Orm *orm)
 {
-    Orm *orm = test->orm; 
     Orm_Conn *conn;
     int count, i, expect_count = 1, ret = 1, id = 0;
     Test_User_Model *user = NULL, *user2;
@@ -455,9 +415,9 @@ static int __test_insert_or_update_table(Orm_Test *test)
         EXEC(conn->query_model(conn, (Model *)user, "select * from test_user_table where nickname='%s';", "user1"));
         dbg_str(DBG_DETAIL, "json:%s", user->to_json(user));
         THROW_IF(strcmp(STR2A(user->mobile), "13440129083") != 0, -1);
-    } CATCH (ret) {
-        TEST_SET_RESULT(test, ERROR_FUNC(), ERROR_LINE(), ERROR_CODE());
-    } FINALLY {
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) { } FINALLY {
         object_destroy(table);
         orm->add_conn(orm, conn);
     }
@@ -465,9 +425,8 @@ static int __test_insert_or_update_table(Orm_Test *test)
     return ret;
 }
 
-static int __test_drop(Orm_Test *test)
+static int test_orm_drop_test_table(Orm *orm)
 {
-    Orm *orm = test->orm; 
     Orm_Conn *conn;
     int ret;
 
@@ -477,27 +436,40 @@ static int __test_drop(Orm_Test *test)
     }
     orm->add_conn(orm, conn);
 
+
     return ret;
 }
 
-static class_info_entry_t orm_test_class_info[] = {
-    Init_Obj___Entry(0 , Test, parent),
-    Init_Nfunc_Entry(1 , Orm_Test, construct, __construct),
-    Init_Nfunc_Entry(2 , Orm_Test, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3 , Orm_Test, set, NULL),
-    Init_Vfunc_Entry(4 , Orm_Test, get, NULL),
-    Init_Vfunc_Entry(5 , Orm_Test, setup, __setup),
-    Init_Vfunc_Entry(6 , Orm_Test, teardown, __teardown),
-    Init_Vfunc_Entry(7 , Orm_Test, test_create, __test_create),
-    Init_Vfunc_Entry(8 , Orm_Test, test_insert_table, __test_insert_table),
-    Init_Vfunc_Entry(9 , Orm_Test, test_del, __test_del),
-    Init_Vfunc_Entry(10, Orm_Test, test_update_model, __test_update_model),
-    Init_Vfunc_Entry(11, Orm_Test, test_update_json, __test_update_json),
-    Init_Vfunc_Entry(12, Orm_Test, test_query_table, __test_query_table),
-    Init_Vfunc_Entry(13, Orm_Test, test_query_model, __test_query_model),
-    Init_Vfunc_Entry(14, Orm_Test, test_merge_table, __test_merge_table),
-    Init_Vfunc_Entry(15, Orm_Test, test_insert_or_update_table, __test_insert_or_update_table),
-    Init_Vfunc_Entry(16, Orm_Test, test_drop, __test_drop),
-    Init_End___Entry(17, Orm_Test),
-};
-REGISTER_CLASS(Orm_Test, orm_test_class_info);
+static int test_orm(TEST_ENTRY *entry)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+	Orm *orm; 
+    int ret;
+    
+    TRY {
+        orm = object_new(allocator, "Orm", NULL);
+
+        orm->set(orm, "host", "139.159.231.27");
+        orm->set(orm, "user", "root");
+        orm->set(orm, "password", "123456");
+        orm->set(orm, "database_name", "test");
+        EXEC(orm->run(orm));
+
+        EXEC(__test_orm_create_table(orm));
+        EXEC(__test_orm_insert_table(orm));
+        EXEC(__test_orm_del_table(orm));
+        EXEC(__test_orm_update_model(orm));
+        EXEC(__test_orm_update_model_with_json(orm));
+        EXEC(__test_orm_query_table(orm));
+        EXEC(__test_orm_query_model(orm));
+        EXEC(__test_orm_merge_table(orm));
+        EXEC(__test_orm_insert_or_update_table(orm));
+
+    } CATCH (ret) {} FINALLY {
+        test_orm_drop_test_table(orm);
+        object_destroy(orm);
+    }
+
+    return ret;
+}
+REGISTER_TEST_CMD(test_orm);

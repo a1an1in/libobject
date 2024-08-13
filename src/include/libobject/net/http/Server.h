@@ -40,7 +40,7 @@ struct http_server_s{
     String *service;
 };
 
-#define MAX_FILE_LEN 1024
+#define MAX_FILE_NAME_LEN 1024
 
 typedef enum form_data_type_e {
     E_FORM_DATA_TYPE_IMAGE = 0,

@@ -209,8 +209,6 @@ segment_signal_cb(int fd, short event_res, void *arg)
 
     dbg_str(DBG_FATAL, "segment_signal_cb, signal no:%d", event->ev_fd);
     eb->break_flag = 1;
-
-    exit(0);
 }
 
 int set_segment_signal(Event_Base* eb)

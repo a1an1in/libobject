@@ -89,11 +89,12 @@ __get_value(Number *number, void *value, int *len)
     int type;
 
     TRY {
-        THROW_IF(*len < number->size || value == NULL || number == NULL, -1);
+        THROW_IF(value == NULL || number == NULL, -1);
         type = number->get_type(number);
 
         if (type == NUMBER_TYPE_OBJ_BIG_NUMBER) {
             THROW_IF(number->big_number_data == NULL, -1);
+            THROW_IF(len == NULL, -1);
             memcpy(value, number->big_number_data, number->size);
             *len = number->size;
         } else {

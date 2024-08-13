@@ -160,14 +160,14 @@ static int __deconstruct(Http_Server *server)
 static int __process_static_request(Http_Server *server, Request *r, Response *resp)
 {
     struct stat st;
-    char filename[MAX_FILE_LEN];
+    char filename[MAX_FILE_NAME_LEN];
     FILE *file = NULL;
     int ret = 1;
 
     TRY {
         dbg_str(NET_VIP, "process_static_request, method:%s, uri:%s", r->method, r->uri);
 
-        snprintf(filename, MAX_FILE_LEN, "%s%s", 
+        snprintf(filename, MAX_FILE_NAME_LEN, "%s%s", 
                 server->root->get_cstr(server->root),
                 (char *)r->uri);
 

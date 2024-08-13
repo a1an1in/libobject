@@ -57,18 +57,17 @@ static int __run(Orm *orm)
     char *host, *user, *password, *database_name;
     int ret;
 
-    conn_count = orm->default_conn_count;
-    host = orm->host->get_cstr(orm->host);
-    user = orm->user->get_cstr(orm->user);
-    password = orm->password->get_cstr(orm->password);
-    database_name = orm->database_name->get_cstr(orm->database_name);
+    TRY {
+        conn_count = orm->default_conn_count;
 
-    dbg_str(DB_DETAIL, "conn_count=%d", conn_count);
-    for (i = 0; i < conn_count; i++) {
-        conn = object_new(allocator, "Orm_Conn", NULL);
-        conn->open(conn, host, user, password, database_name);
-        orm->conns->add_back(orm->conns, conn);
-    }
+        dbg_str(DB_INFO, "conn_count=%d", conn_count);
+        for (i = 0; i < conn_count; i++) {
+            conn = object_new(allocator, "Orm_Conn", NULL);
+            orm->conns->add_back(orm->conns, conn);
+            EXEC(conn->open(conn, STR2A(orm->host), STR2A(orm->user), 
+                            STR2A(orm->password), STR2A(orm->database_name)));
+        }
+    } CATCH (ret) { }
 
     return ret;
 }

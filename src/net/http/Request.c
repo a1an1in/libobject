@@ -183,9 +183,9 @@ static int __get_request_type(Request *request)
 {
     struct stat st;
     Http_Server *server = (Http_Server *)request->server;
-    char filename[MAX_FILE_LEN];
+    char filename[MAX_FILE_NAME_LEN];
 
-    snprintf(filename, MAX_FILE_LEN, "%s%s", 
+    snprintf(filename, MAX_FILE_NAME_LEN, "%s%s", 
              server->root->get_cstr(server->root),
              (char *)request->uri);
 
@@ -257,8 +257,8 @@ static int __read_form_data(Request *request)
     Http_Server *server = (Http_Server *)request->server;
     char *dir_name[E_FORM_DATA_TYPE_UNKNOW] = { "image", "video" };
     char *regex = "filename=\"([a-z0-9A-Z_.,!&=-]+)\"";
-    char filename[MAX_FILE_LEN] = {0};
-    char path[MAX_FILE_LEN] = {0};
+    char filename[MAX_FILE_NAME_LEN] = {0};
+    char path[MAX_FILE_NAME_LEN] = {0};
     int len, start = 0, ret = 1;
     String *str;
     File *file;
@@ -277,7 +277,7 @@ static int __read_form_data(Request *request)
 
             if (str->equal(str, "\r\n") == 1) {
                 len = buffer->get_needle_offset(buffer, "\r\n--", 4);
-                snprintf(path + strlen(path), MAX_FILE_LEN, "/%s", filename);
+                snprintf(path + strlen(path), MAX_FILE_NAME_LEN, "/%s", filename);
                 dbg_str(NET_SUC, "write file len:%d, path:%s", len, path);
                 EXEC(file->open(file, path, "w+"));
                 file->write(file, buffer->addr + buffer->r_offset, len);
@@ -292,13 +292,13 @@ static int __read_form_data(Request *request)
                 EXEC(str->get_substring(str, regex, 0, &start, &len));
                 THROW_IF(start > str->get_len(str), -1);
                 str->value[start + len] = '\0';
-                snprintf(filename, MAX_FILE_LEN, "%s", str->value + start);
+                snprintf(filename, MAX_FILE_NAME_LEN, "%s", str->value + start);
                 dbg_str(NET_SUC, "form data filename:%s", filename);
             } else if (strstr(STR2A(str), "content-type") != NULL) {
                 dbg_str(NET_SUC, "Line:%s", STR2A(str));
                 form_data_type = __get_multipart_form_data_type(str);
                 THROW_IF(form_data_type == E_FORM_DATA_TYPE_UNKNOW, -1);
-                snprintf(path, MAX_FILE_LEN, "%s/%s", STR2A(server->root), dir_name[form_data_type]);
+                snprintf(path, MAX_FILE_NAME_LEN, "%s/%s", STR2A(server->root), dir_name[form_data_type]);
                 dbg_str(NET_SUC, "path:%s", path);
                 ret = file->is_exist(file, path);
                 if (ret == 0) {
