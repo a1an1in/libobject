@@ -113,7 +113,6 @@ static int __deconstruct(Request *request)
     headers->search(headers, "connection", (void **)&value);
     if (value != NULL &&(strcmp(value, "close") == 0)) {
         Server *s = server->s;
-        dbg_str(DBG_ERROR, "found Connection header:%s", value);
         s->close_subsocket(s, request->socket);
         request->socket = NULL;
     }

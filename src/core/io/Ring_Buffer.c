@@ -56,7 +56,7 @@ static int __construct(Ring_Buffer *rb,char *init_str)
 
     rb->r_offset = 0;
     rb->w_offset = 0;
-    rb->last_operation_flag = 0;
+    rb->last_operation_flag = BUFFER_NA_OPERATION;
 
     return 0;
 }
@@ -66,6 +66,7 @@ static int __deconstrcut(Ring_Buffer *rb)
     allocator_t *allocator = ((Obj *)rb)->allocator;
 
     dbg_str(IO_DETAIL,"rb deconstruct,rb addr:%p",rb);
+    rb->last_operation_flag = BUFFER_NA_OPERATION;
     allocator_mem_free(allocator, rb->addr);
 
     return 0;
@@ -192,10 +193,10 @@ static int __read_to_buffer(Ring_Buffer *rb, Buffer *buffer, int len)
 {
     int l = 0;
 
-    if (rb->last_operation_flag != BUFFER_WRITE_OPERATION &&
+    if (rb->last_operation_flag == BUFFER_READ_OPERATION &&
         rb->w_offset == rb->r_offset) {
         l = 0;
-        dbg_str(IO_WARN, "ring buffer read to buffer, rb is nil");
+        dbg_str(IO_INFO, "ring buffer read to buffer, rb is nil");
         goto end;
     } else if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
         rb->w_offset == rb->r_offset) {

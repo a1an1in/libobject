@@ -10,8 +10,9 @@
 
 typedef struct ring_buffer_s Ring_Buffer;
 
-enum ring_buffer_operation_flag_s{
-    BUFFER_WRITE_OPERATION = 1,
+enum ring_buffer_operation_flag_s {
+    BUFFER_NA_OPERATION = 0,
+    BUFFER_WRITE_OPERATION,
     BUFFER_READ_OPERATION,
 };
 

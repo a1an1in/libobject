@@ -86,18 +86,9 @@ int __get_row_count(Result *result)
 
 int __get_column_count(Result *result)
 {
-    int row_count, ret = 0;
-    Vector *rows = result->rows;
-    Row *row;
+    Vector *columns = result->columns;
 
-    row_count = result->rows->count(result->rows);
-
-    rows->peek_at(rows, 0, (void **)&row);
-    if (row) {
-        ret = row->get_column_count(row);
-    }
-
-    return ret;
+    return columns->count(columns);
 }
 
 int __reset(Result *result)

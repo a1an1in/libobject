@@ -110,8 +110,12 @@ static int __run_command(Httpd_Command *command)
         EXEC(command->load_plugins(command));
 
         // dbg_str(DBG_SUC,"httpd webroot:%s", STR2A(app->root));
-        server->set(server, "host", "127.0.0.1");
-        server->set(server, "service", "8081");
+        if (server->host == NULL) {
+            server->set(server, "host", "127.0.0.1");
+        }
+        if (server->service == NULL) {
+            server->set(server, "service", "8081");
+        }
         server->start(server);
 
         if (command->loop_flag == 1) {

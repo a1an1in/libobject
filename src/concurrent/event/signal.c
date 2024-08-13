@@ -75,7 +75,7 @@ static void signal_handler(int sig)
     if (sig == SIGSEGV) {
 #if (!defined(WINDOWS_USER_MODE))
         print_backtrace();
-        sleep(1);
+        exit(0);
 #endif 
     }
 

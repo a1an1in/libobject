@@ -1,8 +1,10 @@
 [update:NA] 开发插件。
 
 Description:
-暂时取得python scripts部分代码， 在运行paddlefish时，会报找不到
-python库到问题，目前这部分没有使用，还在验证阶段。
+联合paddlefish plugin调试， 优化代码。
 
 Major Changes:
-1. 去掉python库引用。
+1. 加上app root路径拓展。
+2. 文件open支持更长文件名。
+3. Ring Bufffer增加BUFFER_NA_OPERATION。
+4. httpd host service增加配置默认值条件。

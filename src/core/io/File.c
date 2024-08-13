@@ -56,16 +56,16 @@ static int __deconstruct(File *file)
 static int __open(File *file, char *path, char *mode)
 {
     allocator_t *allocator = file->parent.obj.allocator;
-    char tmp[128] = {0};
+    char tmp[1024] = {0};
     int ret = 1, len;
 
     TRY {
         if (path[0] == '~') {
-            fs_gethome(tmp, 128);
+            fs_gethome(tmp, 1024);
             len = strlen(tmp);
-            strncpy(tmp + len, path + 1, 128 - len);
+            strncpy(tmp + len, path + 1, 1024 - len);
         } else {
-            strncpy(tmp, path, 128);
+            strncpy(tmp, path, 1024);
         }
         file->f = fopen(tmp, mode);
         THROW_IF(file->f == NULL, -1);

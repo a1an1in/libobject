@@ -192,6 +192,8 @@ static int __run_command(Application *app)
 
     TRY {
         dbg_str(DBG_VIP, "run Application command");
+        fs_expand_path(STR2A(app->root), app->root->value_max_len);
+
         option = command->get_option(command, "--event-thread-service");
         event_thread_service = STR2A(option->value);
         option = command->get_option(command, "--event-signal-service");
