@@ -134,7 +134,7 @@ static int __test_orm_update_model(Orm *orm)
         THROW_IF(count < 1, -1);
         table->peek_at_model(table, 0, (void **)&test_user);
         dbg_str(DBG_DETAIL, "user:%s", test_user->to_json(test_user));
-        id = NUM2S32(test_user->id);
+        id = test_user->id;
         dbg_str(DBG_DETAIL, "update user Id:%d", id);
 
         /* update */
@@ -198,7 +198,7 @@ static int __test_orm_update_model_with_json(Orm *orm)
         THROW_IF(count < 1, -1);
         table->peek_at_model(table, 0, (void **)&test_user);
         dbg_str(DBG_DETAIL, "user:%s", test_user->to_json(test_user));
-        id = NUM2S32(test_user->id);
+        id = test_user->id;
         dbg_str(DBG_DETAIL, "update user Id:%d", id);
 
         /* update */
@@ -357,7 +357,7 @@ static int __test_orm_merge_table(Orm *orm)
         EXEC(table->merge(table, __table_element_cmp));
 
         table->peek_at_model(table, 0, (void **)&user);
-        THROW_IF(NUM2S32(user->count) != 44, -1);
+        THROW_IF(user->count != 44, -1);
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {

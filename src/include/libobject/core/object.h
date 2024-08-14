@@ -17,7 +17,7 @@
 
 class_info_entry_t * __object_get_entry_of_class(void *class_info, char *entry_name);
 class_info_entry_t * __object_get_entry_of_parent_class(void *class_info_addr);
-void * __object_get_ancestor_class_func(void *class_info_addr, char *func_name);
+void * __object_get_lastest_vitual_func(void *class_info_addr, char *func_name);
 
 class_info_entry_t * object_get_subclass_info(void *class_info_addr);
 class_info_entry_t *object_get_entry_of_class(char *class_name, char *entry_name);
@@ -29,7 +29,7 @@ int object_destroy(void *obj);
 int object_override(void *obj, char *func_name, void *value);
 void *object_get_member_of_class(char *class_name, char *func_name);
 void *object_get_progeny_class_first_private_func(char *sub_class_name, char *root_class_name, char *func_name);
-void *object_get_progeny_class_last_reimplement_virtual_func(char *start_type_name, char *end_type_name, char *method_name);
+void *object_get_lastest_virtual_func(char *start_type_name, char *end_type_name, char *method_name);
 int object_call_method(void *object, char *func_str);
 
 #define OBJECT_ALLOC(alloc, type)                                                   \

@@ -23,15 +23,15 @@ struct Test_User_Model_s{
     int (*add)(Model *dst, Model *src);
 
     /*attribs*/
-    Number *id;
+    uint32_t id;
     String *table_class_name;
     String *nickname;
     String *mobile;
     String *password;
     String *signature;
     String *portrait_url;
-    Number *age;
-    Number *count;
+    uint32_t age;
+    uint32_t count;
     String *sex;
     String *email;
     String *balance;

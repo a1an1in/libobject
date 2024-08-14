@@ -98,7 +98,10 @@ static int __insert_model(Orm_Conn *conn, Model *model)
             }
 
             THROW_IF((entry = object_get_entry_of_class(model_name, column)) == NULL, -1);
-            if (entry->type <= ENTRY_TYPE_UN64 && entry->type >= ENTRY_TYPE_INT8_T) {
+            if (entry->type <= ENTRY_TYPE_UINT64_T && entry->type >= ENTRY_TYPE_INT8_T) {
+                sql_values->format(sql_values, 1024, "%lld", *(int64_t *)member);
+                dbg_str(DB_DETAIL, "i:%d column:%s value:%lld", i, column, *(int64_t *)member);
+            } else if (entry->type <= ENTRY_TYPE_UN64 && entry->type >= ENTRY_TYPE_SN8) {
                 int value;
                 (*((Number **)member))->get_value((*((Number **)member)), &value, NULL);
                 sql_values->format(sql_values, 1024, "%d", value);
@@ -554,7 +557,10 @@ static int __insert_or_update_model(Orm_Conn *conn, Model *model)
             }
 
             THROW_IF((entry = object_get_entry_of_class(model_name, column)) == NULL, -1);
-            if (entry->type <= ENTRY_TYPE_UN64 && entry->type >= ENTRY_TYPE_INT8_T) {
+            if (entry->type <= ENTRY_TYPE_UINT64_T && entry->type >= ENTRY_TYPE_INT8_T) {
+                sql_values->format(sql_values, 1024, "%lld", *(int64_t *)member);
+                dbg_str(DB_DETAIL, "column:%s value:%lld", column, *(int64_t *)member);
+            } else if (entry->type <= ENTRY_TYPE_UN64 && entry->type >= ENTRY_TYPE_SN8) {
                 int value;
                 (*((Number **)member))->get_value((*((Number **)member)), &value, NULL);
                 sql_values->format(sql_values, 1024, "%d", value);

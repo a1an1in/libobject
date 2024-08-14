@@ -54,7 +54,7 @@ static int __to_json__(void *obj, char *type_name, cjson_t *object)
         entry  = (class_info_entry_t *) 
                  class_deamon_search_class(deamon, (char *)type_name);
 
-        get = __object_get_ancestor_class_func(entry, (char *)"get");
+        get = __object_get_lastest_vitual_func(entry, (char *)"get");
         THROW_IF(get == NULL, -1);
 
         for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
