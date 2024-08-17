@@ -18,13 +18,8 @@ static int __construct(Composite_Obj *obj, char *init_str)
 
 static int __deconstruct(Composite_Obj *obj)
 {
-
-    if (obj->name != NULL)
-        object_destroy(obj->name);
-    if (obj->vector != NULL)
-        object_destroy(obj->vector);
-    if (obj->num != NULL)
-        object_destroy(obj->num);
+    object_destroy(obj->name);
+    object_destroy(obj->vector);
 
     return 0;
 }
@@ -37,8 +32,8 @@ static class_info_entry_t composite_obj_class_info[] = {
     Init_Vfunc_Entry(4 , Composite_Obj, get, NULL),
     Init_Vfunc_Entry(5 , Composite_Obj, to_json, NULL),
     Init_Str___Entry(6 , Composite_Obj, name, NULL),
-    Init_U32___Entry(7 , Composite_Obj, help, 0),
-    Init_SN32__Entry(8 , Composite_Obj, num, 0),
+    Init_S32___Entry(7 , Composite_Obj, help, 0),
+    Init_U32___Entry(8 , Composite_Obj, num, 0),
     Init_Vec___Entry(9 , Composite_Obj, vector, NULL, "Simplest_Obj"),
     Init_End___Entry(10, Composite_Obj),
 };

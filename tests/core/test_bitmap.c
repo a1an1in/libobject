@@ -9,7 +9,7 @@
 static int test_bitmap() 
 {
     allocator_t *allocator = allocator_get_default_instance();
-    bit_map_t *bitmap;
+    bitmap_t *bitmap;
     int ret;
 
     TRY {

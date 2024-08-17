@@ -27,13 +27,8 @@ static int __construct(Result *result, char *init_str)
 
 static int __deconstruct(Result *result)
 {
-    if (result->rows != NULL) {
-        object_destroy(result->rows);
-    }
-
-    if (result->columns != NULL) {
-        object_destroy(result->columns);
-    }
+    object_destroy(result->rows);
+    object_destroy(result->columns);
 
     return 0;
 }

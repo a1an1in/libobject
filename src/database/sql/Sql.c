@@ -22,26 +22,13 @@ static int __construct(Sql *sql, char *init_str)
 
 static int __deconstruct(Sql *sql)
 {
-    if (sql->host)
-        object_destroy(sql->host);
-
-    if (sql->user)
-        object_destroy(sql->user);
-
-    if (sql->password)
-        object_destroy(sql->password);
-
-    if (sql->port)
-        object_destroy(sql->port);
-
-    if (sql->database_name)
-        object_destroy(sql->database_name);
-
-    if (sql->result) 
-        object_destroy(sql->result);
-
-    if (sql->cache)
-        object_destroy(sql->cache);
+    object_destroy(sql->host);
+    object_destroy(sql->user);
+    object_destroy(sql->password);
+    object_destroy(sql->port);
+    object_destroy(sql->database_name);
+    object_destroy(sql->result);
+    object_destroy(sql->cache);
 
     return 0;
 }

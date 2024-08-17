@@ -5,6 +5,7 @@
 #include <libobject/core/object.h>
 #include <libobject/core/value_type.h>
 #include <libobject/core/try.h>
+#include <libobject/core/utils/json/cjson.h>
 
 #define MAX_CLASS_NAME_LEN 25
 
@@ -19,7 +20,7 @@ struct obj_s {
     void *(*get)(Obj *obj, char *attrib);
     char *(*to_json)(Obj *obj); 
     int (*assign)(Obj *obj, char *value); 
-    char *(*reset)(Obj *obj); 
+    int (*reset)(Obj *obj); 
     int (*set_target_name)(Obj *obj, char *);
 
     char name[MAX_CLASS_NAME_LEN];
@@ -27,5 +28,16 @@ struct obj_s {
     void *cache;
     void *json;
 };
+
+typedef struct obj_set_policy_s {
+    int (*policy)(Obj *obj, class_info_entry_t *entry, void *value);
+} obj_set_policy_t;
+
+typedef struct obj_to_json_policy_s {
+    int (*policy)(cjson_t *json, char *name, void *value);
+} obj_to_json_policy_t;
+
+extern obj_to_json_policy_t g_obj_to_json_policy[ENTRY_TYPE_MAX_TYPE];
+extern obj_set_policy_t g_obj_set_policy[ENTRY_TYPE_MAX_TYPE];
 
 #endif

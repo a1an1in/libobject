@@ -8,7 +8,6 @@
 
 #include <libobject/database/orm/Orm_Conn.h>
 #include <libobject/database/sql/Sql.h>
-#include <libobject/core/Number.h>
 #include <libobject/core/try.h>
 #include <libobject/database/orm/Model.h>
 
@@ -88,24 +87,22 @@ static int __insert_model(Orm_Conn *conn, Model *model)
         for (i = 0; i < meta_count; i++) {
             meta_info->peek_at(meta_info, i, (void **)&field);
             CONTINUE_IF(field == NULL);
+
             type = field->type;
             column = STR2A(field->name);
+            entry = object_get_entry_of_class(model_name, column);
+            THROW_IF(entry == NULL, -1);
+            ret = bitmap_get(model->bitmap, entry->index);
+            CONTINUE_IF(ret != 1);          
             member = model->get(model, column);
-            THROW_IF(member == NULL, -1);
-            CONTINUE_IF(*member == NULL);
+
             if (set_flag == 1) {
                 sql_values->append(sql_values, ", ", -1);
             }
 
-            THROW_IF((entry = object_get_entry_of_class(model_name, column)) == NULL, -1);
             if (entry->type <= ENTRY_TYPE_UINT64_T && entry->type >= ENTRY_TYPE_INT8_T) {
-                sql_values->format(sql_values, 1024, "%lld", *(int64_t *)member);
-                dbg_str(DB_DETAIL, "i:%d column:%s value:%lld", i, column, *(int64_t *)member);
-            } else if (entry->type <= ENTRY_TYPE_UN64 && entry->type >= ENTRY_TYPE_SN8) {
-                int value;
-                (*((Number **)member))->get_value((*((Number **)member)), &value, NULL);
-                sql_values->format(sql_values, 1024, "%d", value);
-                dbg_str(DB_DETAIL, "i:%d column:%s value:%d", i, column, value);
+                sql_values->format(sql_values, 1024, "%ld", *(int32_t *)member);
+                dbg_str(DB_DETAIL, "i:%d column:%s value:%ld", i, column, *(int32_t *)member);
             } else if(entry->type == ENTRY_TYPE_STRING) {
                 char *value;
                 value = STR2A((*((String **)member)));
@@ -224,18 +221,24 @@ static int __update_model(Orm_Conn *conn, Model *model)
 
         for (i = 0; i < meta_count; i++) {
             CONTINUE_IF2(meta_info->peek_at(meta_info, i, (void **)&field), field == NULL);
-            CONTINUE_IF2((member = model->get(model, STR2A(field->name))), *member == NULL);
+            entry = object_get_entry_of_class(model_name, STR2A(field->name));
+            THROW_IF(entry == NULL, -1);
+
+            ret = bitmap_get(model->bitmap, entry->index);
+            CONTINUE_IF(ret != 1);          
+            member = model->get(model, STR2A(field->name));
+
             if (i == 0) {
-                sql_where->format(sql_where, 1024, "%s=%d", STR2A(field->name), NUM2S32((*((Number **)member))));
+                sql_where->format(sql_where, 1024, "%s=%ld", STR2A(field->name), (*((uint32_t *)member)));
                 continue;
             }
             if (set_flag == 1) {
                 sql_set->append(sql_set, ", ", -1);
             }
 
-            THROW_IF((entry = object_get_entry_of_class(model_name, STR2A(field->name))) == NULL, -1);
-            if (entry->type <= ENTRY_TYPE_UN64 && entry->type >= ENTRY_TYPE_INT8_T) {
-                sql_set->format(sql_set, 1024, "%s=%d", STR2A(field->name), NUM2S32((*((Number **)member))));
+            
+            if (entry->type <= ENTRY_TYPE_UINT64_T && entry->type >= ENTRY_TYPE_INT8_T) {
+                sql_set->format(sql_set, 1024, "%s=%ld", STR2A(field->name), (*((uint32_t *)member)));
             } else if(entry->type == ENTRY_TYPE_STRING) {
                 sql_set->format(sql_set, 1024, "%s='%s'", STR2A(field->name), STR2A((*((String **)member))));
             } else if(entry->type == ENTRY_TYPE_VECTOR) {
@@ -508,7 +511,7 @@ static int __drop_table(Orm_Conn *conn, char *table_class_name)
 
     table = object_new(allocator, table_class_name, NULL);
     table_name = table->get_table_name(table);
-    sprintf(sql_statement, "DROP TABLE %s", table_name);
+    sprintf(sql_statement, "DROP TABLE IF EXISTS %s", table_name);
 
     ret = sql->drop_table(sql, sql_statement);
     object_destroy(table);
@@ -550,21 +553,20 @@ static int __insert_or_update_model(Orm_Conn *conn, Model *model)
             CONTINUE_IF(field == NULL);
             type = field->type;
             column = STR2A(field->name);
-            THROW_IF((member = model->get(model, column)) == NULL, -1);
-            CONTINUE_IF(*member == NULL);
+
+            entry = object_get_entry_of_class(model_name, STR2A(field->name));
+            THROW_IF(entry == NULL, -1);
+            ret = bitmap_get(model->bitmap, entry->index);
+            CONTINUE_IF(ret != 1);          
+            member = model->get(model, STR2A(field->name));
+
             if (set_flag == 1) {
                 sql_values->append(sql_values, ", ", -1);
             }
 
-            THROW_IF((entry = object_get_entry_of_class(model_name, column)) == NULL, -1);
             if (entry->type <= ENTRY_TYPE_UINT64_T && entry->type >= ENTRY_TYPE_INT8_T) {
                 sql_values->format(sql_values, 1024, "%lld", *(int64_t *)member);
                 dbg_str(DB_DETAIL, "column:%s value:%lld", column, *(int64_t *)member);
-            } else if (entry->type <= ENTRY_TYPE_UN64 && entry->type >= ENTRY_TYPE_SN8) {
-                int value;
-                (*((Number **)member))->get_value((*((Number **)member)), &value, NULL);
-                sql_values->format(sql_values, 1024, "%d", value);
-                dbg_str(DB_DETAIL, "column:%s value:%d", column, value);
             } else if(entry->type == ENTRY_TYPE_STRING) {
                 char *value;
                 value = STR2A((*((String **)member)));

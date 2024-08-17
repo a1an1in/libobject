@@ -23,9 +23,7 @@ static int __construct(Row *row, char *init_str)
 
 static int __deconstruct(Row *row)
 {
-    if (row->data != NULL) {
-        object_destroy(row->data);
-    }
+    object_destroy(row->data);
 
     return 0;
 }
@@ -61,10 +59,10 @@ static class_info_entry_t row_class_info[] = {
     Init_Obj___Entry(0, Obj, parent),
     Init_Nfunc_Entry(1, Row, construct, __construct),
     Init_Nfunc_Entry(2, Row, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3, Row, get_column, __get_column),
-    Init_Nfunc_Entry(4, Row, set_column, __set_column),
-    Init_Nfunc_Entry(5, Row, get_column_count, __get_column_count),
-    Init_Nfunc_Entry(6, Row, reset, __reset),
+    Init_Vfunc_Entry(3, Row, get_column, __get_column),
+    Init_Vfunc_Entry(4, Row, set_column, __set_column),
+    Init_Vfunc_Entry(5, Row, get_column_count, __get_column_count),
+    Init_Vfunc_Entry(6, Row, reset, __reset),
     Init_End___Entry(7, Row),
 };
 REGISTER_CLASS(Row, row_class_info);

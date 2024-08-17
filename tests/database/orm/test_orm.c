@@ -35,6 +35,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/Array_Stack.h>
+#include <libobject/core/utils/data_structure/bitmap.h>
 #include <libobject/database/orm/Orm.h>
 #include <libobject/mockery/mockery.h>
 #include "Test_User_Model.h"
@@ -55,230 +56,10 @@ static int __test_orm_create_table(Orm *orm)
     return ret;
 }
 
-static int __test_orm_insert_table(Orm *orm)
+static int __test_orm_model_operations(Orm *orm)
 {
     Orm_Conn *conn;
-    Test_User_Model *user;
-    Table *table;
-    int age = 22;
-
-    dbg_str(DBG_DETAIL, "test_insert_table");
-    user = object_new(orm->parent.allocator, "Test_User_Model", NULL);
-    user->set(user, "nickname", "user1");
-    user->set(user, "mobile", "13440129080");
-    user->set(user, "password", "123456");
-    user->set(user, "age", &age);
-
-    table = object_new(orm->parent.allocator, "Test_User_Table", NULL);
-    table->add_model(table, user);
-
-    conn = orm->get_conn(orm);
-    if (conn) {
-        conn->insert_table(conn, table);
-    }
-    orm->add_conn(orm, conn);
-
-    object_destroy(table);
-    dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
-                __func__, extract_filename_from_path(__FILE__), __LINE__);
-
-    return 1;
-}
-
-static int __test_orm_del_table(Orm *orm)
-{
-    Orm_Conn *conn;
-    int ret = 1;
-
-    conn = orm->get_conn(orm);
-    if (conn) {
-        ret = conn->del(conn, "DELETE FROM test_user_table");
-    }
-    orm->add_conn(orm, conn);
-
-    dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
-                __func__, extract_filename_from_path(__FILE__), __LINE__);
-
-    return ret;
-}
-
-static int __test_orm_update_model(Orm *orm)
-{
-    Orm_Conn *conn;
-    Test_User_Model *user;
-    Test_User_Model *test_user;
-    allocator_t * allocator = orm->parent.allocator;
-    Table *table;
-    int age = 22;
-    int id = 6;
-    int ret = 1;
-    int count;
-    
-    TRY {
-        dbg_str(DBG_DETAIL, "test_insert_table");
-        table = object_new(allocator, "Test_User_Table", NULL);
-        user = object_new(allocator, "Test_User_Model", NULL);
-        conn = orm->get_conn(orm);
-        EXEC(conn->del(conn, "DELETE FROM test_user_table"));
-
-        /* add */
-        user->set(user, "nickname", "user1");
-        user->set(user, "mobile", "13440129082");
-        user->set(user, "password", "123456");
-        user->set(user, "age", &age);
-        EXEC(conn->insert_model(conn, (Model *)user));
-
-        /* query */
-        conn->query_table(conn, table, "select * from test_user_table where mobile='13440129082';");
-        count = table->count_model(table);
-        THROW_IF(count < 1, -1);
-        table->peek_at_model(table, 0, (void **)&test_user);
-        dbg_str(DBG_DETAIL, "user:%s", test_user->to_json(test_user));
-        id = test_user->id;
-        dbg_str(DBG_DETAIL, "update user Id:%d", id);
-
-        /* update */
-        user->set(user, "id", &id);
-        user->set(user, "nickname", "user1");
-        user->set(user, "mobile", "15440129083");
-        user->set(user, "password", "123456");
-        user->set(user, "age", &age);
-        EXEC(conn->update_model(conn, (Model *)user));
-
-        /* query */
-        table->reset(table);
-        conn->query_table(conn, table, "select * from test_user_table where mobile='15440129083';");
-        count = table->count_model(table);
-        dbg_str(DBG_DETAIL, "query row count:%d", count);
-        THROW_IF(count != 1, -1);
-        table->peek_at_model(table, 0, (void **)&test_user);
-        dbg_str(DBG_DETAIL, "user:%s", test_user->to_json(test_user));
-        THROW_IF(strcmp(STR2A(test_user->mobile), "15440129083") != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
-                __func__, extract_filename_from_path(__FILE__), __LINE__);
-    } CATCH (ret) { } FINALLY {
-        object_destroy(user);
-        object_destroy(table);
-        orm->add_conn(orm, conn);
-    }
-
-    return ret;
-}
-
-static int __test_orm_update_model_with_json(Orm *orm)
-{
-    Orm_Conn *conn;
-    Test_User_Model *user;
-    Test_User_Model *test_user;
-    allocator_t * allocator = orm->parent.allocator;
-    Table *table;
-    int age = 22;
-    int id = 6;
-    int ret = 1;
-    int count;
-    
-    TRY {
-        dbg_str(DBG_DETAIL, "test_insert_table");
-        table = object_new(allocator, "Test_User_Table", NULL);
-        user = object_new(allocator, "Test_User_Model", NULL);
-        conn = orm->get_conn(orm);
-        ret = conn->del(conn, "DELETE FROM test_user_table");
-
-        /* add */
-        user->set(user, "nickname", "user1");
-        user->set(user, "mobile", "13440129082");
-        user->set(user, "password", "123456");
-        user->set(user, "age", &age);
-        dbg_str(DBG_DETAIL, "user:%s", user->to_json(user));
-        EXEC(conn->insert_model(conn, (Model *)user));
-
-        /* query */
-        conn->query_table(conn, table, "select * from test_user_table where mobile='13440129082';");
-        count = table->count_model(table);
-        THROW_IF(count < 1, -1);
-        table->peek_at_model(table, 0, (void **)&test_user);
-        dbg_str(DBG_DETAIL, "user:%s", test_user->to_json(test_user));
-        id = test_user->id;
-        dbg_str(DBG_DETAIL, "update user Id:%d", id);
-
-        /* update */
-        user->set(user, "id", &id);
-        user->set(user, "nickname", "user1");
-        user->set(user, "mobile", "15440129083");
-        user->set(user, "password", "123456");
-        user->set(user, "age", &age);
-        EXEC(conn->update(conn, "Test_User_Model", user->to_json(user)));
-        dbg_str(DBG_DETAIL, "user:%s", user->to_json(user));
-
-        /* query */
-        table->reset(table);
-        conn->query_table(conn, table, "select * from test_user_table where mobile='15440129083';");
-        count = table->count_model(table);
-        dbg_str(DBG_DETAIL, "query row count:%d", count);
-        THROW_IF(count != 1, -1);
-        table->peek_at_model(table, 0, (void **)&test_user);
-        dbg_str(DBG_DETAIL, "user:%s", test_user->to_json(test_user));
-        THROW_IF(strcmp(STR2A(test_user->mobile), "15440129083") != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
-                __func__, extract_filename_from_path(__FILE__), __LINE__);
-    } CATCH (ret) { } FINALLY {
-        object_destroy(user);
-        object_destroy(table);
-        orm->add_conn(orm, conn);
-    }
-
-    return ret;
-}
-
-static int __test_orm_query_table(Orm *orm)
-{
-    Orm_Conn *conn;
-    Table *table;
-    int count, i, expect_count = 1, ret = 1;
-    Test_User_Model *user;
-    int age = 22;
-
-    TRY {
-        conn = orm->get_conn(orm);
-        if (conn == NULL) return 0;
-        THROW_IF(conn == NULL, -1);
-        EXEC(conn->del(conn, "DELETE FROM test_user_table"));
-
-        user = object_new(orm->parent.allocator, "Test_User_Model", NULL);
-        table = object_new(orm->parent.allocator, "Test_User_Table", NULL);
-
-        user->set(user, "nickname", "user2");
-        user->set(user, "mobile", "13440129081");
-        user->set(user, "password", "123456");
-        user->set(user, "age", &age);
-
-        conn->insert_model(conn, (Model *)user);
-        conn->query_table(conn, table, "select * from test_user_table;");
-        count = table->count_model(table);
-
-        object_destroy(user);
-        dbg_str(DBG_DETAIL, "model count=%d", count);
-        for (i = 0; i < count; i++) {
-            table->peek_at_model(table, i, (void **)&user);
-            dbg_str(DBG_DETAIL, "user:%s", user->to_json(user));
-            user = NULL;
-        }
-
-        THROW_IF(count != expect_count, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
-                __func__, extract_filename_from_path(__FILE__), __LINE__);
-    } CATCH (ret) { } FINALLY {
-        object_destroy(table);
-        orm->add_conn(orm, conn);
-    }
-
-    return ret;
-}
-
-static int __test_orm_query_model(Orm *orm)
-{
-    Orm_Conn *conn;
-    int count, i, expect_count = 1, ret = 1;
+    int count, i, expect_count = 1, ret = 1, id = 0;
     Test_User_Model *user = NULL;
     int age = 22;
 
@@ -286,31 +67,126 @@ static int __test_orm_query_model(Orm *orm)
         conn = orm->get_conn(orm);
         THROW_IF(conn == NULL, -1);
         EXEC(conn->del(conn, "DELETE FROM test_user_table"));
-        user = object_new(orm->parent.allocator, "Test_User_Model", NULL);
+        user  = object_new(orm->parent.allocator, "Test_User_Model", NULL);
 
-        user->set(user, "nickname", "user2");
+        /* 新增 */
+        user->set(user, "nickname", "user1");
         user->set(user, "mobile", "13440129081");
         user->set(user, "password", "123456");
         user->set(user, "age", &age);
         conn->insert_model(conn, (Model *)user);
 
-        user->set(user, "nickname", "user3");
+        user->set(user, "nickname", "user2");
         user->set(user, "mobile", "13440129082");
         user->set(user, "password", "123456");
         user->set(user, "age", &age);
         conn->insert_model(conn, (Model *)user);
 
-        conn->query_model(conn, (Model *)user, "select * from test_user_table where mobile=%s;", "13440129081");
-        THROW_IF(strcmp(STR2A(user->nickname), "user2") != 0, -1);
+        /* 验证是否新增成功 */
+        EXEC(conn->query_model(conn, (Model *)user, "select * from test_user_table where nickname='%s';", "user1"));
+        dbg_str(DBG_DETAIL, "json:%s", user->to_json(user));
+        THROW_IF(strcmp(STR2A(user->mobile), "13440129081") != 0, -1);
+
+        /* update */
+        user->set(user, "nickname", "user1");
+        user->set(user, "mobile", "15440129083");
+        user->set(user, "password", "123456");
+        user->set(user, "age", &age);
+        EXEC(conn->update_model(conn, (Model *)user));
+
+        /* 验证是否修改成功 */
+        EXEC(conn->query_model(conn, (Model *)user, "select * from test_user_table where nickname='%s';", "user1"));
+        dbg_str(DBG_DETAIL, "json:%s", user->to_json(user));
+        THROW_IF(strcmp(STR2A(user->mobile), "15440129083") != 0, -1);
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
-    } CATCH (ret) {
-        dbg_str(DBG_ERROR, "user:%s", user->to_json(user));
-    } FINALLY {
-        if (user != NULL) {
-            object_destroy(user);
-        }
+
+        /* 测试update with json */
+        user->set(user, "nickname", "user1");
+        user->set(user, "mobile", "15440129084");
+        user->set(user, "password", "123456");
+        user->set(user, "age", &age);
+        EXEC(conn->update(conn, "Test_User_Model", user->to_json(user)));
+
+        /* 验证是否修改成功 */
+        EXEC(conn->query_model(conn, (Model *)user, "select * from test_user_table where nickname='%s';", "user1"));
+        THROW_IF(strcmp(STR2A(user->mobile), "15440129084") != 0, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+
+    } CATCH (ret) { } FINALLY {
+        object_destroy(user);
         orm->add_conn(orm, conn);
+    }
+
+    return ret;
+}
+
+static int __test_orm_table_operations(Orm *orm)
+{
+    Orm_Conn *conn;
+    Test_User_Model *user;
+    Test_User_Model *test_user;
+    Table *table = NULL;
+    int age = 22;
+    int ret, count;
+
+    TRY {
+        dbg_str(DBG_DETAIL, "test_insert_table");
+        user = object_new(orm->parent.allocator, "Test_User_Model", NULL);
+        user->set(user, "nickname", "user1");
+        user->set(user, "mobile", "13440129080");
+        user->set(user, "password", "123456");
+        user->set(user, "age", &age);
+ 
+        table = object_new(orm->parent.allocator, "Test_User_Table", NULL);
+        table->add_model(table, user);
+        conn = orm->get_conn(orm);
+
+        /* 清空表 */
+        EXEC(conn->del(conn, "DELETE FROM test_user_table"));
+
+        /* 新增*/
+        EXEC(conn->insert_table(conn, table));
+        table->reset(table); //释放table， 后面要用空的table去查询以验证。
+
+        /* 查询 */
+        conn->query_table(conn, table, "select * from test_user_table where mobile='13440129080';");
+        count = table->count_model(table);
+        THROW_IF(count != 1, -1);
+        table->peek_at_model(table, 0, (void **)&test_user);
+        THROW_IF(strcmp("user1", STR2A(test_user->nickname)) != 0, -1);
+        table->reset(table); //释放table， 后面要用空的table去查询以验证。
+
+        /* 修改 */
+        user = object_new(orm->parent.allocator, "Test_User_Model", NULL);
+        user->set(user, "nickname", "user1");
+        user->set(user, "mobile", "13440129084");
+        user->set(user, "password", "123456");
+        user->set(user, "age", &age);
+        table->add_model(table, user);
+        EXEC(conn->insert_or_update_table(conn, table));
+        table->reset(table); //释放table， 后面要用空的table去查询以验证。
+
+        /* 验证是否修改成功 */
+        conn->query_table(conn, table, "select * from test_user_table where mobile='13440129084';");
+        count = table->count_model(table);
+        THROW_IF(count != 1, -1);
+        table->peek_at_model(table, 0, (void **)&test_user);
+        THROW_IF(strcmp("user1", STR2A(test_user->nickname)) != 0, -1);
+        table->reset(table); //释放table， 后面要用空的table去查询以验证。
+
+        /* 删除 */
+        EXEC(conn->del(conn, "DELETE FROM test_user_table"));
+        conn->query_table(conn, table, "select * from test_user_table where mobile='13440129080';");
+        count = table->count_model(table);
+        THROW_IF(count != 0, -1);
+    
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                    __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {
+        orm->add_conn(orm, conn);
+        object_destroy(table);
     }
 
     return ret;
@@ -370,61 +246,6 @@ static int __test_orm_merge_table(Orm *orm)
     return ret;
 }
 
-static int __test_orm_insert_or_update_table(Orm *orm)
-{
-    Orm_Conn *conn;
-    int count, i, expect_count = 1, ret = 1, id = 0;
-    Test_User_Model *user = NULL, *user2;
-    Table *table;
-    int age = 22;
-
-    TRY {
-        conn = orm->get_conn(orm);
-        THROW_IF(conn == NULL, -1);
-        EXEC(conn->del(conn, "DELETE FROM test_user_table"));
-        user  = object_new(orm->parent.allocator, "Test_User_Model", NULL);
-        user2 = object_new(orm->parent.allocator, "Test_User_Model", NULL);
-        table = object_new(orm->parent.allocator, "Test_User_Table", NULL);
-
-        user->set(user, "nickname", "user1");
-        user->set(user, "mobile", "13440129081");
-        user->set(user, "password", "123456");
-        user->set(user, "age", &age);
-        conn->insert_model(conn, (Model *)user);
-
-        user->set(user, "nickname", "user2");
-        user->set(user, "mobile", "13440129082");
-        user->set(user, "password", "123456");
-        user->set(user, "age", &age);
-        conn->insert_model(conn, (Model *)user);
-
-        user->set(user, "nickname", "user1");
-        user->set(user, "mobile", "13440129083");
-        user->set(user, "password", "123456");
-        user->set(user, "age", &age);
-        user->set(user, "id", &id);
-        table->add_model(table, user);
-
-        user2->set(user2, "nickname", "user2");
-        user2->set(user2, "mobile", "13440129084");
-        user2->set(user2, "password", "123456");
-        user2->set(user2, "age", &age);
-        table->add_model(table, user2);
-        EXEC(conn->insert_or_update_table(conn, table));
-
-        EXEC(conn->query_model(conn, (Model *)user, "select * from test_user_table where nickname='%s';", "user1"));
-        dbg_str(DBG_DETAIL, "json:%s", user->to_json(user));
-        THROW_IF(strcmp(STR2A(user->mobile), "13440129083") != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
-                __func__, extract_filename_from_path(__FILE__), __LINE__);
-    } CATCH (ret) { } FINALLY {
-        object_destroy(table);
-        orm->add_conn(orm, conn);
-    }
-
-    return ret;
-}
-
 static int test_orm_drop_test_table(Orm *orm)
 {
     Orm_Conn *conn;
@@ -456,15 +277,9 @@ static int test_orm(TEST_ENTRY *entry)
         EXEC(orm->run(orm));
 
         EXEC(__test_orm_create_table(orm));
-        EXEC(__test_orm_insert_table(orm));
-        EXEC(__test_orm_del_table(orm));
-        EXEC(__test_orm_update_model(orm));
-        EXEC(__test_orm_update_model_with_json(orm));
-        EXEC(__test_orm_query_table(orm));
-        EXEC(__test_orm_query_model(orm));
+        EXEC(__test_orm_model_operations(orm));
+        EXEC(__test_orm_table_operations(orm));;
         EXEC(__test_orm_merge_table(orm));
-        EXEC(__test_orm_insert_or_update_table(orm));
-
     } CATCH (ret) {} FINALLY {
         test_orm_drop_test_table(orm);
         object_destroy(orm);

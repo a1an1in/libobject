@@ -14,15 +14,16 @@ typedef struct {
     allocator_t *allocator;
     uint32_t *bits; // 使用32位整数作为位图的单元
     uint32_t size;  // 位图的大小（以位为单位）
-} bit_map_t;
+} bitmap_t;
 
-bit_map_t *bitmap_alloc(allocator_t *allocator);
-int bitmap_init(bit_map_t *bitmap, uint32_t size); 
-int bitmap_set(bit_map_t *bitmap, uint32_t pos);
-int bitmap_clear(bit_map_t *bitmap, uint32_t pos); 
-int bitmap_get(bit_map_t *bitmap, uint32_t pos);
-int bitmap_print(bit_map_t *bitmap);
-int bitmap_destroy(bit_map_t *bitmap); 
+bitmap_t *bitmap_alloc(allocator_t *allocator);
+int bitmap_init(bitmap_t *bitmap, uint32_t size); 
+int bitmap_set(bitmap_t *bitmap, uint32_t pos);
+int bitmap_clear(bitmap_t *bitmap, uint32_t pos); 
+int bitmap_reset(bitmap_t *bitmap);
+int bitmap_get(bitmap_t *bitmap, uint32_t pos);
+int bitmap_print(bitmap_t *bitmap);
+int bitmap_destroy(bitmap_t *bitmap); 
 
 
 #endif

@@ -5,11 +5,11 @@
 #include <libobject/core/utils/data_structure/bitmap.h>
 #include <libobject/core/utils/dbg/debug.h>
 
-bit_map_t *bitmap_alloc(allocator_t *allocator) 
+bitmap_t *bitmap_alloc(allocator_t *allocator) 
 {
-    bit_map_t *bitmap;
+    bitmap_t *bitmap;
 
-    bitmap = (bit_map_t *)allocator_mem_alloc(allocator, sizeof(bit_map_t));
+    bitmap = (bitmap_t *)allocator_mem_zalloc(allocator, sizeof(bitmap_t));
     if (bitmap == NULL) { // 检查内存分配是否成功
         perror("Failed to allocate memory for bitmap");
         return NULL;
@@ -20,7 +20,7 @@ bit_map_t *bitmap_alloc(allocator_t *allocator)
 }
 
 // 初始化位图
-int bitmap_init(bit_map_t *bitmap, uint32_t size) 
+int bitmap_init(bitmap_t *bitmap, uint32_t size) 
 {
     uint32_t array_size = size / 32 + 1; // 计算所需的数组大小，每个uint32_t可以存储32位
 
@@ -29,17 +29,35 @@ int bitmap_init(bit_map_t *bitmap, uint32_t size)
         perror("Failed to allocate memory for bitmap bits");
         return -1;
     }
-    
+
     bitmap->size = size; // 设置位图的大小
+
     return 1; // 返回初始化后的位图结构
 }
- 
-// 设置位图中某一位的值（将其置为1）
-int bitmap_set(bit_map_t *bitmap, uint32_t pos) 
+
+// 获取位图中某一位的值
+int bitmap_get(bitmap_t *bitmap, uint32_t pos) 
 {
     uint32_t index, bit;
 
     if (bitmap == NULL || pos >= bitmap->size) { // 检查位图结构是否有效，以及位置是否超出范围
+        return -1; // 如果无效，则返回0
+    }
+    
+    index = pos / 32; // 计算位于数组中的索引
+    bit = pos % 32; // 计算在uint32_t中的位偏移量
+    // dbg_str(DBG_VIP, "bitmap get, pos:%d, index:%d, bit:%d", pos, index, bit);
+    
+    return (bitmap->bits[index] & (1U << bit)) != 0; // 返回指定位置的位的值（0或1）
+}
+
+// 设置位图中某一位的值（将其置为1）
+int bitmap_set(bitmap_t *bitmap, uint32_t pos) 
+{
+    uint32_t index, bit, ret;
+
+    if (bitmap == NULL || pos >= bitmap->size) { // 检查位图结构是否有效，以及位置是否超出范围
+        dbg_str(DBG_ERROR, "bitmap:%p, pos:%d", bitmap, pos);
         return -1; // 如果无效，则直接返回
     }
     
@@ -48,14 +66,17 @@ int bitmap_set(bit_map_t *bitmap, uint32_t pos)
     
     bitmap->bits[index] |= (1U << bit); // 将指定位置的位设置为1
 
-    return 1;
+    ret = bitmap_get(bitmap, pos);
+ 
+    return ret == 1 ? 1 : 0;
 }
  
 // 清除位图中某一位的值（将其置为0）
-int bitmap_clear(bit_map_t *bitmap, uint32_t pos) 
+int bitmap_clear(bitmap_t *bitmap, uint32_t pos) 
 {
     uint32_t index, bit;
 
+    dbg_str(DBG_FATAL, "xxxxxx run at here");
     if (bitmap == NULL || pos >= bitmap->size) { // 检查位图结构是否有效，以及位置是否超出范围
         return -1; // 如果无效，则直接返回
     }
@@ -67,31 +88,33 @@ int bitmap_clear(bit_map_t *bitmap, uint32_t pos)
 
     return 1;
 }
- 
-// 获取位图中某一位的值
-int bitmap_get(bit_map_t *bitmap, uint32_t pos) 
+
+// 清除位图中某一位的值（将其置为0）
+int bitmap_reset(bitmap_t *bitmap) 
 {
     uint32_t index, bit;
 
-    if (bitmap == NULL || pos >= bitmap->size) { // 检查位图结构是否有效，以及位置是否超出范围
-        return -1; // 如果无效，则返回0
+    if (bitmap == NULL) { // 检查位图结构是否有效，以及位置是否超出范围
+        return -1; // 如果无效，则直接返回
     }
     
-    index = pos / 32; // 计算位于数组中的索引
-    bit = pos % 32; // 计算在uint32_t中的位偏移量
-    
-    return (bitmap->bits[index] & (1U << bit)) != 0; // 返回指定位置的位的值（0或1）
+    // memset(bitmap->bits, 0, bitmap->size);
+
+    return 1;
 }
- 
+
 // 打印输出位图的内容
-int bitmap_print(bit_map_t *bitmap) {
+int bitmap_print(bitmap_t *bitmap) 
+{
+    int i = 0;
+
     if (bitmap == NULL) { // 检查位图结构是否有效
-        printf("bit_map_t is NULL.\n");
+        printf("bitmap_t is NULL.\n");
         return -1;
     }
     
-    printf("bit_map contents:\n");
-    for (uint32_t i = 0; i < bitmap->size; ++i) { // 遍历位图的每一位
+    printf("bit_map contents: addr:%p\n", bitmap->bits);
+    for (i = 0; i < bitmap->size; ++i) { // 遍历位图的每一位
         printf("%d ", bitmap_get(bitmap, i)); // 获取并输出当前位的值
         
         // 每输出32位换行，以便于查看
@@ -105,7 +128,7 @@ int bitmap_print(bit_map_t *bitmap) {
 }
  
 // 释放位图内存
-int bitmap_destroy(bit_map_t *bitmap) 
+int bitmap_destroy(bitmap_t *bitmap) 
 {
     if (bitmap == NULL) { // 检查位图结构是否有效
         return -1;

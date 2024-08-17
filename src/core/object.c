@@ -74,7 +74,8 @@ void * __object_get_lastest_vitual_func(void *class_info_addr,
         THROW_IF(class_info_addr == 0, -1);
 
         for (i = 0; entry[i].type != ENTRY_TYPE_END; i++) {
-            if (strcmp((char *)entry[i].value_name, func_name) == 0 && entry[i].value != NULL) {
+            if (strcmp((char *)entry[i].value_name, func_name) == 0 && entry[i].value != NULL && 
+                entry[i].type == ENTRY_TYPE_VFUNC_POINTER) {
                 return entry[i].value;
             }
         }   
@@ -235,7 +236,6 @@ int __object_init(void *obj, char *cur_type_name, char *type_name)
 
         strcpy(o->target_name, cur_type_name);
         EXEC(__object_init_funcs(obj, class_info));
-
         if (entry_of_parent_class != NULL) {
             EXEC(__object_inherit_funcs(obj, class_info));
         }
@@ -387,7 +387,8 @@ void * object_new(allocator_t *allocator, const char *type, char *config)
             config = NULL;
             assign_flag = 1;
         }
-
+        
+        /* 需要先配置，再初始化，初始化会依赖前面的配置 */
         EXEC(object_set(o, (char *)type, config));
         EXEC(object_init(o, (char *)type));
 
@@ -535,7 +536,7 @@ int object_destroy(void *obj)
 
             ret = map->search(map, o->name, (void **)&list);
             THROW_IF(ret != 1, -1);
-
+            dbg_str(OBJ_INFO, "object destroy cache, obj name:%s", o->name)
             o->reset(o);
             list->add(list, o);
         } else {
@@ -592,7 +593,6 @@ void *object_get_lastest_virtual_func(char *start_class_name, char *end_class_na
 
     TRY {
         THROW_IF(start_class_name == NULL, -1);
-        THROW_IF(strcmp(start_class_name, end_class_name) == 0, 0);
 
         deamon = class_deamon_get_global_class_deamon();
         entry  = (class_info_entry_t *)class_deamon_search_class(deamon, 
@@ -610,6 +610,8 @@ void *object_get_lastest_virtual_func(char *start_class_name, char *end_class_na
                 }
             }
         }   
+
+        THROW_IF(strcmp(start_class_name, end_class_name) == 0, 0);
 
         return object_get_lastest_virtual_func(super_class_name, end_class_name, method_name);
     } CATCH (ret) {
@@ -690,7 +692,7 @@ class_info_entry_t *object_get_entry_of_class(char *class_name, char *entry_name
         info = (class_info_entry_t *) class_deamon_search_class(deamon, class_name);
         THROW_IF(info == NULL, -1);
         entry = __object_get_entry_of_class(info, entry_name);
-        THROW_IF(entry == NULL, -1);
+        THROW_IF(entry == NULL, NULL);
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "class_name:%s, entry_name:%s", class_name, entry_name);
     }

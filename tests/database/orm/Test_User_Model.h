@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <libobject/core/Obj.h>
 #include <libobject/core/String.h>
-#include <libobject/core/Number.h>
 #include <libobject/database/orm/Model.h>
 
 typedef struct Test_User_Model_s Test_User_Model;

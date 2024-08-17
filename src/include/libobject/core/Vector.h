@@ -60,4 +60,10 @@ struct _vector_s{
     int (*value_new_callback)(allocator_t *allocator, void *json, void **value);
 };
 
+typedef struct vector_to_json_policy_s {
+    int (*policy)(cjson_t *root, void *element);
+} vector_to_json_policy_t;
+
+extern vector_to_json_policy_t g_vector_to_json_policy[ENTRY_TYPE_MAX_TYPE];
+
 #endif
