@@ -66,7 +66,7 @@ static int __load(WindowsFShell *shell, char *lib_name, int flag)
 static int __unload(WindowsFShell *shell, char *lib_name, int flag)
 {
     fsh_lib_info_t *info;
-    Map *map = shell->parent.map;
+    Map *map = shell->parent.lib_map;
     int ret;
 
     TRY {

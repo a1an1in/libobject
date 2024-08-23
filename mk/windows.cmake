@@ -11,6 +11,7 @@ macro (set_cmake_evironment_variable)
 
     INCLUDE_DIRECTORIES(
         C:/mingw64/include
+        C:/mingw64/x86_64-w64-mingw32/include
         ${PROJECT_SOURCE_DIR}/src/include
         ${CMAKE_INSTALL_PREFIX}/include)
 
@@ -73,7 +74,7 @@ macro (add_module_lists)
     list(APPEND module_lists "tests")
     list(APPEND module_lists "src/.")
     list(APPEND module_lists "3rd/test_lib")
-    list(APPEND module_lists "3rd/http_plugin_test")
+    list(APPEND module_lists "3rd/test_http_plugin")
     add_subdirectories("${module_lists}")
 endmacro()
 
