@@ -29,6 +29,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+
+#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE))
 #include <stdio.h>
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
@@ -230,3 +232,4 @@ static int test_mysql(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_CMD(test_mysql);
+#endif

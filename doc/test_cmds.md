@@ -106,9 +106,11 @@ addr2line -e ./sysroot/linux/bin/xtools 0xaeba2
 ./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_bus "node@mfree(0, #test_stub_name1)"
 ./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_bus "node@mfree(0, #test_v1)"
 
+/* test run node command */
+./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 run "node@help"
+
 ./sysroot/windows/bin/xtools.exe mockery --log-level=0x14 -f test_node
 ./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_node
-
 ```
 
 ## net

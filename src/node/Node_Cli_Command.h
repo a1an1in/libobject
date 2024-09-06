@@ -15,6 +15,7 @@ enum command_type_e {
     COMMAND_TYPE_LIST,
     COMMAND_TYPE_EXIT,
     COMMAND_TYPE_FSH_CALL,
+    COMMAND_TYPE_RUN,
     COMMAND_TYPE_MAX
 };
 

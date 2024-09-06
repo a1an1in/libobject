@@ -10,7 +10,7 @@
 #include <libobject/core/io/file_system_api.h>
 #include "Node_Cli_Command.h"
 
-static int __execute_command_action(Node *node, char *arg1, char *arg2)
+static int __call_fsh_command_action(Node *node, char *arg1, char *arg2)
 {
     return TRY_EXEC(node->call_fsh(node, arg1));
 }
@@ -51,6 +51,27 @@ static int __list_command_action(Node *node, char *arg1, char *arg2)
     return ret;
 }
 
+static int __run_node_command_action(Node *node, char *arg1, char *arg2)
+{
+    allocator_t *allocator = node->parent.allocator;
+    char *node_id, *command_name;
+    String *str = node->str;
+    int ret, count;
+
+    TRY {
+        EXEC(str->reset(str));
+        str->assign(str, arg1);
+        count = str->split(str, "[,@ \t\n;]", -1);
+        THROW_IF(count < 2, -1);
+
+        node_id = str->get_splited_cstr(str, 0);
+        command_name = str->get_splited_cstr(str, 1);
+        dbg_str(DBG_VIP, "node_id:%s command_name:%s", node_id, command_name);
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
 struct node_command_s {
     int type;
     char *command_name;
@@ -59,7 +80,8 @@ struct node_command_s {
     [COMMAND_TYPE_COPY] = {COMMAND_TYPE_COPY, "copy", __copy_command_action},
     [COMMAND_TYPE_LIST] = {COMMAND_TYPE_LIST, "list", __list_command_action},
     [COMMAND_TYPE_BUS_CALL] = {COMMAND_TYPE_BUS_CALL, "call_bus", __call_bus_command_action},
-    [COMMAND_TYPE_FSH_CALL] = {COMMAND_TYPE_FSH_CALL, "call_fsh", __execute_command_action},
+    [COMMAND_TYPE_FSH_CALL] = {COMMAND_TYPE_FSH_CALL, "call_fsh", __call_fsh_command_action},
+    [COMMAND_TYPE_RUN] = {COMMAND_TYPE_RUN, "run", __run_node_command_action},
     [COMMAND_TYPE_EXIT] = {COMMAND_TYPE_EXIT, "exit", NULL},
 };
 

@@ -244,7 +244,7 @@ static int test_node(TEST_ENTRY *entry)
         deamon->run_bus_deamon_flag = 1;
         EXEC(deamon->init(deamon));
 
-        /* 构造测试node */
+        /* 构造node cli, 不需要node service */
         node = object_new(allocator, "Node", NULL);
         THROW_IF(node == NULL, -1);
         node->host = deamon_host;
