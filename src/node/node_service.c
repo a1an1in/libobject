@@ -33,7 +33,7 @@ static int node_exit(bus_object_t *obj, int argc,
     Node *node = bus->opaque;
 
     *out_len = 0;
-    node->node_flag = 1;
+    node->node_exit_flag = 1;
     dbg_str(DBG_VIP, "exit node!");
     
 	return 1;
@@ -495,7 +495,6 @@ static const struct bus_method node_service_methods[] = {
 };
 
 bus_object_t node_object = {
-	.id        = (char *)"node",
     .cname     = (char *)"node_service", 
 	.methods   = (struct bus_method *)node_service_methods,
 	.n_methods = ARRAY_SIZE(node_service_methods),

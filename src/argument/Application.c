@@ -204,6 +204,9 @@ static int __run_command(Application *app)
 #if (!defined(MAC_USER_MODE))
         EXEC(stub_admin_init_default_instance());
 #endif
+
+        /* 之前fshell是在node中构造的，但是后面发现其它模块也需要，比如需要fshell load
+         * 插件，所以fshell在更上层的application构造 */
 #if (defined(WINDOWS_USER_MODE))
         app->fshell = object_new(allocator, "WindowsFShell", NULL);    
 #else  

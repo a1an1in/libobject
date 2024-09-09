@@ -21,6 +21,7 @@
 #include <libobject/core/io/File.h>
 #include <libobject/core/utils/string.h>
 #include <libobject/core/utils/byteorder.h>
+#include <libobject/encoding/Digest.h>
 #include <libobject/node/Node.h>
 
 static int __construct(Node *node, char *init_str)
@@ -41,7 +42,6 @@ static int __deconstruct(Node *node)
 {
     object_destroy(node->str);
     bus_destroy(node->bus);
-    // object_destroy(node->shell); //fshell is release at application.
 
     //需要等待客户端关闭连接， 然后服务器也处理关闭事务， 不然
     //如果server也同时销毁， 有可能会同时操作worker链表，导致异常。
@@ -60,6 +60,7 @@ static int __init(Node *node)
     Application *app;
     bus_t *bus = NULL;
     busd_t *busd = NULL;
+    Digest *digest;
     int i, ret;
 
     TRY {
@@ -78,15 +79,19 @@ static int __init(Node *node)
         THROW_IF(bus == NULL, -1);
         node->bus = bus;
         bus->opaque = node;
-        
-        if (node->disable_node_service_flag != 1) {
-            bus_add_object(bus, &node_object);
 
-// #if (defined(WINDOWS_USER_MODE))
-//             node->shell = object_new(allocator, "WindowsFShell", NULL);    
-// #else  
-//             node->shell = object_new(allocator, "UnixFShell", NULL);
-// #endif
+        if (node->disable_node_service_flag != 1) {
+            if (node->node_id != NULL) {
+                memcpy(&node_object.id, node->node_id, strlen(node->node_id));
+            } else {
+                // if (node->disable_node_digest_id_flag != 1) {
+                //     digest = object_new(allocator, "Digest_Sha1", NULL);
+                //     digest->init(digest);
+                //     digest->update(digest, "test", strlen("test"));
+                //     digest->final(digest, &node_object.id, 20);
+                // }
+            }
+            bus_add_object(bus, &node_object);
             app = get_global_application();
             node->shell = app->fshell;
         }
@@ -97,7 +102,7 @@ static int __init(Node *node)
 
 static int __loop(Node *node)
 {
-    do { sleep(1); } while (node->node_flag != 1);
+    do { sleep(1); } while (node->node_exit_flag != 1);
     dbg_str(DBG_VIP, "node loop out");
     return 0;
 }

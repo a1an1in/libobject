@@ -242,6 +242,8 @@ static int test_node(TEST_ENTRY *entry)
         deamon->host = deamon_host;
         deamon->service = deamon_srv;
         deamon->run_bus_deamon_flag = 1;
+        /* 为了测试方便需要固定node id */
+        deamon->node_id = "node";
         EXEC(deamon->init(deamon));
 
         /* 构造node cli, 不需要node service */

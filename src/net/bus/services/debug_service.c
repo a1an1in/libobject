@@ -38,7 +38,6 @@ static const struct bus_method test_methods[] = {
 };
 
 static bus_object_t debug_object = {
-	.id        = (char *)"debug", 
 	.methods   = (struct bus_method *)test_methods, 
 	.n_methods = ARRAY_SIZE(test_methods), 
 };
@@ -59,7 +58,7 @@ static void bus_debug_service()
                      deamon_host, 
                      deamon_srv, 
                      CLIENT_TYPE_INET_TCP);
-
+    memcpy(debug_object.id, "debug", strlen("debug"));
 	bus_add_object(bus, &debug_object);
 
 }

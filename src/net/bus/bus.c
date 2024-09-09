@@ -194,7 +194,7 @@ int bus_add_object(bus_t *bus, bus_object_t *obj)
     char object_infos[BLOB_BUFFER_MAX_SIZE] = {0};
     uint32_t buffer_len;
 
-    dbg_str(BUS_DETAIL, "bus_add_object, obj addr:%p", obj);
+    dbg_str(DBG_VIP, "bus_add_object, object_id:%s, object cname:%s", obj->id, obj->cname);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUS_REQ_ADD_OBJECT;
@@ -472,10 +472,10 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
 
         while(req->state == 0xfffe) usleep(100);
 
-        dbg_str(BUS_VIP, "bus_invoke_sync, return state=%d, opaque_len:%d", req->state, req->opaque_len);
-        dbg_buf(BUS_DETAIL, "opaque:", req->opaque, req->opaque_len);
+        dbg_str(BUS_VIP, "bus_invoke_sync, return state=%d, opaque:%p, opaque_len:%d", req->state, req->opaque, req->opaque_len);
 
         if (out_buf != NULL) {
+            dbg_buf(BUS_DETAIL, "opaque:", req->opaque, req->opaque_len);
             *out_len = req->opaque_len;
         }
 

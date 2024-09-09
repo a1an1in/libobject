@@ -54,7 +54,6 @@ static const struct bus_method test_methods[] = {
 };
 
 static bus_object_t test_object = {
-	.id        = (char *)"test",
     .cname     = (char *)"bus_test_class", 
 	.methods   = (struct bus_method *)test_methods,
 	.n_methods = ARRAY_SIZE(test_methods),
@@ -140,13 +139,14 @@ static int test_bus()
         THROW_IF(bus == NULL, -1);
 
         dbg_str(DBG_VIP, "bus add object");
+        memcpy(test_object.id, "test", strlen("test"));
         bus_add_object(bus, &test_object);
 
         EXEC(__test_bus_invoke_sync());
         EXEC(__test_bus_lookup_sync());
-        usleep(1000); 
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);
+        usleep(1000); 
         busd_destroy(busd);
     }
 

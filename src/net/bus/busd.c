@@ -61,7 +61,6 @@ void busd_release_object(void *key, void *element)
     struct busd_object *obj = (struct busd_object *)element;
     allocator_t *allocator = obj->allocator;
 
-    allocator_mem_free(allocator, obj->id);
     allocator_mem_free(allocator, obj->infos);
     allocator_mem_free(allocator, obj);
 }
@@ -160,7 +159,6 @@ busd_create_bus_object(busd_t *busd, char *object_id, blob_attr_t *attr, int fd)
     object_infos   = blob_get_string(attr);
     obj->fd        = fd;
     obj->allocator = allocator;
-    obj->id        = (char *)allocator_mem_zalloc(allocator, strlen(object_id) + 1);
     strncpy(obj->id, object_id, strlen(object_id));
 
     dbg_str(BUS_INFO, "busd_create_bus_object, obj:%p, fd:%d", obj, fd);

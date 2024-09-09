@@ -7,6 +7,8 @@
 #include <libobject/core/Map.h>
 #include <libobject/concurrent/net/Server.h>
 
+#define BUSD_OBJECT_ID_LEN 21
+
 enum {
 	BUSD_OBJID,
 	BUSD_OBJINFOS,
@@ -37,7 +39,7 @@ typedef struct busd_s {
 } busd_t;
 
 typedef struct busd_object {
-	char *id;
+	char id[BUSD_OBJECT_ID_LEN];
 	char *infos;
     int fd;
     allocator_t *allocator;

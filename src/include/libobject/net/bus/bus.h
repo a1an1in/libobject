@@ -6,6 +6,8 @@
 #include <libobject/concurrent/work_task.h>
 #include <libobject/concurrent/net/api.h>
 
+#define BUS_OBJECT_ID_LEN 21
+
 enum {
 	BUS_OBJID,
 	BUS_OBJINFOS,
@@ -49,7 +51,6 @@ typedef int (*bus_cmd_callback)(bus_t *bus,  blob_attr_t **attr);
 	.policy = NULL,\
 	.n_policy = 0,\
 }
-
 
 enum bus_method_arg_type_e {       
     ARG_TYPE_UNSPEC,  
@@ -124,7 +125,7 @@ struct bus_method {
 
 struct bus_object_s {
 	char *cname;
-	char *id;
+	char id[BUS_OBJECT_ID_LEN];
 	char *path;
 	struct bus_method *methods;
 	int n_methods;
