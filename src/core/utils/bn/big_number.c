@@ -394,3 +394,21 @@ int bn_prime(uint8_t *dest, int dest_len, int *dest_size, int bits)
 {
 
 }
+
+int bn_to_hex_str(uint8_t *src, int src_len, char *dest, int *dest_len)
+{
+    int i, len;
+    int ret;
+
+    TRY {
+        len = *dest_len;
+        THROW_IF(src == NULL || dest == NULL || dest_len == NULL, -1);
+        THROW_IF(len < src_len, -1);
+        for (i = 0; i < src_len; i++) {
+            snprintf(dest + strlen(dest), len - strlen(dest), "%x", src[i]);
+        }
+        *dest_len = strlen(dest);
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}

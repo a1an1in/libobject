@@ -193,7 +193,11 @@ static int node_list(bus_object_t *obj, int argc,
         list->set(list, "/Vector/trustee_flag", &trustee_flag);
         list->set(list, "/Vector/class_name", "FS_File_Info");
 
-        count = fs_tree(path, list, -1);
+        if (fs_is_directory(path) == 1) {
+            count = fs_tree(path, list, -1);
+        } else {
+            count = fs_list(path, list);
+        }
         THROW_IF(count < 0, -1);
         dbg_str(DBG_VIP, "node_list json:%s", list->to_json(list));
         len = strlen(list->to_json(list));

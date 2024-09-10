@@ -60,7 +60,9 @@ static int __init(Node *node)
     Application *app;
     bus_t *bus = NULL;
     busd_t *busd = NULL;
-    Digest *digest;
+    Digest *digest = NULL;
+    uint8_t dest[20] = {0}, size;
+    char buffer[32] = {0};
     int i, ret;
 
     TRY {
@@ -84,18 +86,23 @@ static int __init(Node *node)
             if (node->node_id != NULL) {
                 memcpy(&node_object.id, node->node_id, strlen(node->node_id));
             } else {
-                // if (node->disable_node_digest_id_flag != 1) {
-                //     digest = object_new(allocator, "Digest_Sha1", NULL);
-                //     digest->init(digest);
-                //     digest->update(digest, "test", strlen("test"));
-                //     digest->final(digest, &node_object.id, 20);
-                // }
+                /* 先生成一个随机数， 然后再用sha1生成一个长度固定的id */
+                EXEC(bn_rand(dest, sizeof(dest), &size, 160, 0, 0));
+                digest = object_new(allocator, "Digest_Sha1", NULL);
+                digest->init(digest);
+                digest->update(digest, dest, size);
+                digest->final(digest, buffer, 20);
+                size = 41;
+                EXEC(bn_to_hex_str(buffer, 20, &node_object.id, &size));
             }
             bus_add_object(bus, &node_object);
-            app = get_global_application();
-            node->shell = app->fshell;
         }
-    } CATCH (ret) {}
+
+        app = get_global_application();
+        node->shell = app->fshell;
+    } CATCH (ret) {} FINALLY {
+        object_destroy(digest);
+    }
 
     return ret;
 }
@@ -298,7 +305,7 @@ static int __write_file(Node *node, char *from, char *node_id, char *to)
                 args[2].len = read_len;
                 dbg_str(DBG_VIP, "read %s, offset:%d, read size:%d, read len:%d", 
                         from, offset, buffer_size, read_len);
-                EXEC(bus_invoke_sync(bus, "node", "write_file", ARRAY_SIZE(args), args, NULL, NULL));
+                EXEC(bus_invoke_sync(bus, node_id, "write_file", ARRAY_SIZE(args), args, NULL, NULL));
                 offset += read_len;
             }
             file->close(file);
@@ -355,10 +362,20 @@ static int __read_file(Node *node, char *node_id, char *from, char *to)
             size = fs_file_info->st.st_size;
             dbg_str(DBG_VIP, "read index: %d, file name:%s, size:%d", i, fs_file_info->file_name, size);
             
-            EXEC(fs_get_relative_path(fs_file_info->file_name, from, &relative_path));
-            memset(buffer, 0, sizeof(buffer));
-            strcpy(buffer, to);
-            strcat(buffer, relative_path);
+            if (strcmp(fs_file_info->file_name, from) == 0 && count == 1)
+            /* 说明read操作只是读一个文件*/
+            {
+                /* 如果读文件， 要求to里面指定文件名 */
+                strcpy(buffer, to);
+            } else
+            /* 说明read操作是读一个目录 */
+            {
+                EXEC(fs_get_relative_path(fs_file_info->file_name, from, &relative_path));
+                memset(buffer, 0, sizeof(buffer));
+                strcpy(buffer, to);
+                strcat(buffer, relative_path);
+            }
+            
             dbg_str(DBG_VIP, "dest file name:%s", buffer);
 
             if (!fs_is_exist(buffer)) {
@@ -370,7 +387,7 @@ static int __read_file(Node *node, char *node_id, char *from, char *to)
                 args[1].value = offset;
                 args[2].value = (size - j * read_size) > read_size ? read_size : (size - j * read_size);
                 
-                EXEC(bus_invoke_sync(bus, "node", "read_file", ARRAY_SIZE(args), args, buffer, &args[2].value));
+                EXEC(bus_invoke_sync(bus, node_id, "read_file", ARRAY_SIZE(args), args, buffer, &args[2].value));
                 dbg_str(DBG_VIP, "read %s, offset:%d, read size:%d, read len:%d", 
                         from, offset, read_size, args[2].value);
                 
@@ -397,14 +414,14 @@ static int __copy(Node *node, char *from, char *to)
     int ret;
 
     TRY {
-        if ((p1 = strchr(from, ':')) != NULL) {
+        if ((p1 = strchr(from, '@')) != NULL) {
             read_flag = 1;
             node_id = from;
             *p1 = '\0';
             from = p1 + 1;
         }
 
-        if ((p2 = strchr(to, ':')) != NULL) {
+        if ((p2 = strchr(to, '@')) != NULL) {
             THROW_IF(read_flag == 1, -1);
             write_flag = 1;
             node_id = to;

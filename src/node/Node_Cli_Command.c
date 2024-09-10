@@ -35,7 +35,7 @@ static int __list_command_action(Node *node, char *arg1, char *arg2)
     int ret;
 
     TRY {
-        if ((path = strchr(arg1, ':')) != NULL) {
+        if ((path = strchr(arg1, '@')) != NULL) {
             node_id = arg1;
             *path = '\0';
             path = path + 1;

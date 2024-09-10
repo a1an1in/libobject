@@ -84,15 +84,20 @@ addr2line -e ./sysroot/linux/bin/xtools 0xaeba2
 ./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x20016 test_node_invoke_exit
 
 /* test node cli */
-./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x20017 --host=127.0.0.1 --service=12345 --deamon=t
+./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=127.0.0.1 --service=12345 --deamon=t
 ./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 --call_bus="node@set_loglevel(1,2,3)"
 ./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 call_bus "node@set_loglevel(1,2,3)"
 ./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 call_bus "node@exit()"
-./sysroot/linux/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 copy ./tests/node/test_node.txt "node:./tests/node/output/write/test_node.txt"
-./sysroot/linux/bin/xtools node_cli --log-level=0x20019 --host=127.0.0.1 --service=12345 copy ./tests/node/test_node.c "node:./tests/node/output/write/test_node.c"
-./sysroot/linux/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 copy ./tests/node/ "node:./tests/node/output/write/"
+./sysroot/linux/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 copy ./tests/node/test_node.txt "node@./tests/node/output/write/test_node.txt"
+./sysroot/linux/bin/xtools node_cli --log-level=0x20019 --host=127.0.0.1 --service=12345 copy ./tests/node/test_node.c "node@./tests/node/output/write/test_node.c"
+./sysroot/linux/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 copy ./tests/node/ "node@./tests/node/output/write/"
 ./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 call_bus "node@list(./tests/node/)"
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 list node:./tests/node/
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 list node@./tests/node/
+
+./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=127.0.0.1 --service=12345 --deamon=t
+./sysroot/windows/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 list e4173cf2de237b6b7e3a71d750da7f5beeaccacc@./tests/node/
+./sysroot/windows/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 copy ./tests/node/test_node.c 6412d2f9da5b8f54dbbdcec82ac563489f5cb62@./tests/node/output/write/test_node.c
+./sysroot/windows/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 copy 6412d2f9da5b8f54dbbdcec82ac563489f5cb62@./tests/node/res/test_node.txt ./tests/node/output/read/test_node.txt
 
 /* test stub */
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=127.0.0.1 --service=12345 --deamon=t

@@ -250,20 +250,28 @@ int fs_rmfile(char *path)
 int fs_list(char *path, Vector *vector)
 {
     int ret, len;
+    allocator_t *allocator = globle_file_system->obj.allocator;
+    fs_file_info_t *info;
     char tmp[1024] = {0};
 
     TRY {
         strcpy(tmp, path);
         len = strlen(tmp);
-        THROW_IF((fs_is_directory(path) == 0), 0);
 
-        if (path[len - 1] != '/') {
-            strcat(tmp, "/");
-            dbg_str(DBG_INFO, "path:%s", tmp);
+        if (fs_is_directory(path) == 0) {
+            info = allocator_mem_alloc(allocator, sizeof(fs_file_info_t));
+            info->file_name = allocator_mem_zalloc(allocator, strlen(path));
+            strcpy(info->file_name, path);
+            vector->add(vector, info);
+        } else {
+            if (path[len - 1] != '/') {
+                strcat(tmp, "/");
+                dbg_str(DBG_INFO, "path:%s", tmp);
+            }
+            EXEC(ret = globle_file_system->list(globle_file_system, tmp, vector));
         }
 
         EXEC(vector->customize(vector, VALUE_TYPE_STRUCT_POINTER, fs_file_info_struct_custom_free));
-        EXEC(ret = globle_file_system->list(globle_file_system, tmp, vector));
         EXEC(vector->for_each(vector, fs_file_info_struct_custom_get_stat));
         THROW(ret);
     } CATCH (ret) {}

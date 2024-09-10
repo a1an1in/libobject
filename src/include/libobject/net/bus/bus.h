@@ -6,7 +6,7 @@
 #include <libobject/concurrent/work_task.h>
 #include <libobject/concurrent/net/api.h>
 
-#define BUS_OBJECT_ID_LEN 21
+#define BUS_OBJECT_ID_LEN 41
 
 enum {
 	BUS_OBJID,

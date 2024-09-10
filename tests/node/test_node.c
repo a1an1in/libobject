@@ -50,7 +50,25 @@ static int __test_node_list(Node *node)
 static int __test_node_read_file(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
-    char from[1024] = "node:./tests/node/res/";
+    char from[1024] = "node@./tests/node/res/test_node.txt";
+    char to[1024] = "./tests/node/output/read/test_node.txt";
+    int ret;
+    
+    TRY {
+        EXEC(fs_rmdir("./tests/node/output/read/"));
+        EXEC(node->copy(node, from, to));
+        THROW_IF(assert_file_equal("./tests/node/res/test_node.txt", to) != 1, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
+static int __test_node_read_files(Node *node)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    char from[1024] = "node@./tests/node/res/";
     char to[1024] = "./tests/node/output/read/";
     int ret;
     
@@ -72,7 +90,26 @@ static int __test_node_write_file(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
     char from[1024] = "./tests/node/res/";
-    char to[1024] = "node:./tests/node/output/write/";
+    char to[1024] = "node@./tests/node/output/write/";
+    int ret;
+    
+    TRY {
+        EXEC(fs_rmdir("./tests/node/output/write/"));
+        EXEC(node->copy(node, from, to));
+        THROW_IF(assert_file_equal("./tests/node/res/test_node.txt", "./tests/node/output/write/test_node.txt") != 1, -1);
+        THROW_IF(assert_file_equal("./tests/node/res/test_node2.txt", "./tests/node/output/write/test_node2.txt") != 1, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
+static int __test_node_write_files(Node *node)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    char from[1024] = "./tests/node/res/";
+    char to[1024] = "node@./tests/node/output/write/";
     int ret;
     
     TRY {
@@ -257,7 +294,9 @@ static int test_node(TEST_ENTRY *entry)
         EXEC(__test_node_call_bus(node));
         EXEC(__test_node_list(node));
         EXEC(__test_node_read_file(node));
+        EXEC(__test_node_read_files(node));
         EXEC(__test_node_write_file(node));
+        EXEC(__test_node_write_files(node));
         EXEC(__test_node_malloc_and_mfree(node));
         EXEC(__test_node_mset_and_mget(node));
         EXEC(__test_node_call_fsh(node));

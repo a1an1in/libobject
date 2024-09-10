@@ -7,7 +7,7 @@
 #include <libobject/core/Map.h>
 #include <libobject/concurrent/net/Server.h>
 
-#define BUSD_OBJECT_ID_LEN 21
+#define BUSD_OBJECT_ID_LEN 41
 
 enum {
 	BUSD_OBJID,
