@@ -106,23 +106,56 @@ function do_release {
         exit 1
     fi
 
-    if [ ! -f "src/include/version.h" ];then
+    if [ ! -f "src/include/libobject/version.h" ];then
         exit 1
     fi
     
-    file_name=$(get_release_package_name paddlefish_linux src/include/version.h)
+    file_name=$(get_release_package_name xtools src/include/libobject/version.h)
     echo "file_name:$file_name"
-    if [ -f package/$file_name ]; then
+    if [ -f packages/$file_name ]; then
         exit 0
     elif [ ! -n $file_name ]; then
         exit 1
     fi
 
-    mkdir -p package/paddlefish
-    cp -rf sysroot/linux/* package/paddlefish/
-    cd package
-    tar -zcvf $file_name paddlefish
-    rm -rf paddlefish
+    mkdir -p packages/xtools
+    cp -rf sysroot/linux/* packages/xtools/
+    cd packages
+    tar -zcvf $file_name xtools/*
+    rm -rf xtools
+
+    return 0
+}
+
+function do_deploy {
+    if [[ $OPTION_PLATFORM == "linux" ]]; then
+        echo "do deploy package on linux"
+        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "mkdir -p $OPTION_TO_PATH"; then
+            echo "uploading images failed!"
+            exit 1
+        fi
+
+        echo "copy package to $OPTION_IP:$OPTION_TO_PATH ..."
+        if ! $expect_command_prefix "scp" $OPTION_PACKAGE_PATH "root@$OPTION_IP:$OPTION_TO_PATH"; then
+            echo "uploading images failed!"
+            exit 1
+        fi
+
+        echo "mkdir ~/.xtools/sysroot/"
+        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "mkdir -p ~/.xtools/sysroot/"; then
+            echo "uploading images failed!"
+            exit 1
+        fi
+
+        echo "expand $(basename $OPTION_PACKAGE_PATH) to working dir ..."
+        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "tar -zxvf $OPTION_TO_PATH/$(basename $OPTION_PACKAGE_PATH) -C ~/.xtools/sysroot --strip-components 1"; then
+            echo "uploading images failed!"
+            exit 1
+        fi
+    else
+        OPTION_HELP="true"
+        return 0;
+    fi
 
     return 0
 }
@@ -256,6 +289,8 @@ cat << EOF
     ./devops.sh build --platform=linux
     ./devops.sh build --platform=windows
     ./devops.sh docker --install --platform=linux    #install docker at linux platform
+    ./devops.sh release -p=linux
+    ./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_v2.13.0.442.tar.gz
     
 EOF
 }

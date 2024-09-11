@@ -43,11 +43,6 @@ function parse_args { # Read commande line arguments and update global vairbles
                 OPTION_HELP=""
                 shift # past argument
                 ;;
-            --db-ip=*)
-                OPTION_DB_IP="${i#*=}"
-                OPTION_HELP=""
-                shift # past argument
-                ;;
             --remove=*)
                 OPTION_NAME="${i#*=}"
                 OPTION_REMOVE=true
@@ -65,11 +60,21 @@ function parse_args { # Read commande line arguments and update global vairbles
                 OPTION_HELP=""
                 shift # past argument
                 ;;
+            --host=*)
+                OPTION_IP="${i#*=}"
+                OPTION_HELP=""
+                shift # past argument=value
+                ;;
+            --to=*)
+                OPTION_TO_PATH="${i#*=}"
+                OPTION_HELP=""
+                shift # past argument
+                ;;  
             --package-path=*)
                 OPTION_PACKAGE_PATH="${i#*=}"
                 OPTION_HELP=""
                 shift # past argument
-                ;;
+                ;; 
             *)
                 error_msg="Unknown option $i"
                 OPTION_HELP="true"
@@ -80,6 +85,11 @@ function parse_args { # Read commande line arguments and update global vairbles
 }
 
 function process_args {
+    if command -v expect > /dev/null && command -v ./scripts/expect.sh > /dev/null ; then
+        echo "find auto exec command"
+        expect_command_prefix="./scripts/expect.sh Alan@123"
+    fi
+
     if [[ $CMD_NAME == "build" ]]; then
         do_build
     elif [[ $CMD_NAME == "release" ]]; then
@@ -104,7 +114,7 @@ function process_args {
             OPTION_HELP="true"
         fi
     elif [[ $CMD_NAME == "deploy" ]]; then
-        do_help
+        do_deploy
         exit 0
     elif [[ $CMD_NAME == "test" ]]; then
         do_test

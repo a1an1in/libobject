@@ -130,3 +130,11 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 
 ./sysroot/windows/bin/xtools wget http://mirrors.hust.edu.cn/gnu/hello/hello-1.3.tar.gz
 ```
+
+## deploy
+```
+export LD_LIBRARY_PATH=~/.xtools/sysroot/lib:$LD_LIBRARY_PATH
+ldconfig
+./sysroot/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=0.0.0.0 --service=12345 --deamon=t
+
+```
