@@ -144,7 +144,7 @@ static int node_read_file(bus_object_t *obj, int argc,
         filename = blob_get_string(args[0]);
         offset = blob_get_uint32(args[1]);
         len = blob_get_uint32(args[2]);
-        dbg_str(DBG_VIP, "file name:%s, data len:%d, offset:%d", filename, len, offset);
+        dbg_str(DBG_VIP, "node_read file name:%s, data len:%d, offset:%d", filename, len, offset);
 
         THROW_IF(!fs_is_exist(filename), -1);
 
@@ -186,7 +186,6 @@ static int node_list(bus_object_t *obj, int argc,
         THROW_IF(!fs_is_exist(path), -1);
         bus = obj->bus;
         allocator = bus->allocator;
-        dbg_str(DBG_VIP, "node_list path:%s", path);
 
         list = object_new(allocator, "Vector", NULL);
         list->set(list, "/Vector/value_type", &value_type);
@@ -199,7 +198,8 @@ static int node_list(bus_object_t *obj, int argc,
             count = fs_list(path, list);
         }
         THROW_IF(count < 0, -1);
-        dbg_str(DBG_VIP, "node_list json:%s", list->to_json(list));
+        dbg_str(DBG_VIP, "node_list path:%s, count:%d", path, count);
+        dbg_str(DBG_DETAIL, "node_list json:%s", list->to_json(list));
         len = strlen(list->to_json(list));
         memcpy(out, list->to_json(list), len);
         *out_len = len;

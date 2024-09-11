@@ -364,7 +364,7 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
         dbg_str(BUS_DETAIL, "invoke args");
         args = attr[BUSD_INVOKE_ARGS];
     }
-    dbg_str(BUS_SUC, "busd_handle_invoke_method, object_id:%s, method:%s, obj fd:%d, obj addr:%p", object_id, method, obj->fd, obj);
+    dbg_str(DBG_VIP, "busd_handle_invoke_method, object_id:%s, method:%s, object fd:%d", object_id, method, obj->fd);
     busd_forward_invoke(busd, fd, obj->fd, object_id, method, argc, args);
 
     return 0;

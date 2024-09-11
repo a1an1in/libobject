@@ -134,7 +134,7 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
     int ret, argc, i, count;
 
     TRY {
-        dbg_str(DBG_VIP, "call_bus in, code:%s", code);
+        dbg_str(DBG_VIP, "call_bus %s", code);
         EXEC(str->reset(str));
         str->assign(str, code);
         count = str->split(str, "[,@ \t\n();]", -1);
@@ -198,6 +198,7 @@ static int __call_fsh(Node *node, const char *fmt, ...)
 
         EXEC(str->reset(str));
         str->assign(str, code);
+        dbg_str(DBG_VIP, "call_fsh %s", code);
         count = str->split(str, "[@]", -1);
         THROW_IF(count != 2, -1);
         bus = node->bus;
@@ -230,6 +231,7 @@ static int __call_fsh_object_method(Node *node, const char *fmt, ...)
 
         EXEC(str->reset(str));
         str->assign(str, code);
+        dbg_str(DBG_VIP, "call_fsh_object_method %s", code);
         count = str->split(str, "[@]", -1);
         THROW_IF(count != 2, -1);
         bus = node->bus;
@@ -238,7 +240,6 @@ static int __call_fsh_object_method(Node *node, const char *fmt, ...)
         command = str->get_splited_cstr(str, 1);
         args[0].value = command;
 
-        // object_call_method
         EXEC(bus_invoke_sync(bus, node_id, "call_fshell_object_method", ARRAY_SIZE(args), args, NULL, NULL));
     } CATCH (ret) {}
 
@@ -266,7 +267,6 @@ static int __write_file(Node *node, char *from, char *node_id, char *to)
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "node write in");
         THROW_IF(node == NULL || node_id == NULL, -1);
         THROW_IF(from == NULL || to == NULL, -1);
         THROW_IF(!fs_is_exist(from), -1);
@@ -277,7 +277,6 @@ static int __write_file(Node *node, char *from, char *node_id, char *to)
             list = object_new(allocator, "Vector", NULL);
             count = fs_tree(from, list, -1);
             THROW_IF(count < 0, -1);
-            // fs_print_file_info_list(list);
 
             for (i = 0; i < count; i++) {
                 EXEC(list->peek_at(list, i, &fs_file_info));
@@ -290,21 +289,19 @@ static int __write_file(Node *node, char *from, char *node_id, char *to)
                 
                 strcpy(buffer, to);
                 strcat(buffer, relative_path);
-                dbg_str(DBG_VIP, "dest file name:%s", buffer);
                 EXEC(node->write_file(node, fs_file_info->file_name, node_id, buffer))
             }
         } else {
-            dbg_str(DBG_VIP, "run at here, open file:%s", from);
             file = object_new(allocator, "File", NULL);
             EXEC(file->open(file, from, "r+"));
             size = fs_get_size(from);
-            dbg_str(DBG_VIP, "run at here, size=%d, num:%d", size, size / buffer_size);
+            dbg_str(DBG_VIP, "node %s write %s size:%d num:%d", node_id, to, size, size / buffer_size);
             for (j = 0; j <= (size / buffer_size); j++) {
                 read_len = file->read(file, buffer, buffer_size);
                 args[1].value = offset;
                 args[2].len = read_len;
-                dbg_str(DBG_VIP, "read %s, offset:%d, read size:%d, read len:%d", 
-                        from, offset, buffer_size, read_len);
+                dbg_str(DBG_VIP, "node %s write %s, offset:%d, read size:%d, read len:%d", 
+                        node_id, to, offset, buffer_size, read_len);
                 EXEC(bus_invoke_sync(bus, node_id, "write_file", ARRAY_SIZE(args), args, NULL, NULL));
                 offset += read_len;
             }
@@ -338,7 +335,6 @@ static int __read_file(Node *node, char *node_id, char *from, char *to)
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "node read in");
         THROW_IF(node == NULL || node_id == NULL, -1);
         THROW_IF(from == NULL || to == NULL, -1);
 
@@ -360,7 +356,7 @@ static int __read_file(Node *node, char *node_id, char *from, char *to)
             if ((fs_file_info->file_name[file_name_len - 1] == '.')) continue;
             
             size = fs_file_info->st.st_size;
-            dbg_str(DBG_VIP, "read index: %d, file name:%s, size:%d", i, fs_file_info->file_name, size);
+            dbg_str(DBG_VIP, "node %s read %s index: %d, size:%d", node_id, fs_file_info->file_name, i, size);
             
             if (strcmp(fs_file_info->file_name, from) == 0 && count == 1)
             /* 说明read操作只是读一个文件*/
@@ -387,9 +383,9 @@ static int __read_file(Node *node, char *node_id, char *from, char *to)
                 args[1].value = offset;
                 args[2].value = (size - j * read_size) > read_size ? read_size : (size - j * read_size);
                 
+                dbg_str(DBG_VIP, "node %s read %s, offset:%d, read size:%d, read len:%d", 
+                        node_id, from, offset, read_size, args[2].value);
                 EXEC(bus_invoke_sync(bus, node_id, "read_file", ARRAY_SIZE(args), args, buffer, &args[2].value));
-                dbg_str(DBG_VIP, "read %s, offset:%d, read size:%d, read len:%d", 
-                        from, offset, read_size, args[2].value);
                 
                 EXEC(file->seek(file, offset, SEEK_SET));
                 EXEC(file->write(file, buffer, (int)args[2].value));
@@ -430,11 +426,12 @@ static int __copy(Node *node, char *from, char *to)
         }
         THROW_IF(p1 == NULL && p2 == NULL, -1);
         THROW_IF(p1 != NULL && p2 != NULL, -1);
-        dbg_str(DBG_VIP, "node copy, node:%s, from:%s, to:%s", node_id, from, to);
 
         if (read_flag == 1) {
+            dbg_str(DBG_VIP, "node copy, read from:%s@%s to:%s", node_id, from, to);
             EXEC(node->read_file(node, node_id, from , to));
         } else if (write_flag == 1) {
+            dbg_str(DBG_VIP, "node copy, write from:%s to:%s@%s", from, node_id, to);
             EXEC(node->write_file(node, from, node_id, to));
         } else {
             THROW(-1);
@@ -454,8 +451,6 @@ static int __list(Node *node, char *node_id, char *path, Vector *vector)
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "node list node_id:%s, path:%s", node_id, path);
-
         THROW_IF(path == NULL, -1);
         snprintf(buffer, sizeof(buffer), "%s@list(%s)", node_id, path);
         EXEC(node->call_bus(node, buffer, buffer, &len));
@@ -585,7 +580,7 @@ int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator
     TRY {
         THROW_IF(obj == NULL || method_name == NULL || args == NULL, -1);
 
-        dbg_str(DBG_VIP, "node_find_method_argument_template, method_name:%s", method_name);
+        dbg_str(DBG_DETAIL, "node_find_method_argument_template, method_name:%s", method_name);
         method = obj->methods;
         n_methods = obj->n_methods;
 
@@ -606,7 +601,7 @@ int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator
             (*args + i)->type = (policy + i)->type;
             (*args + i)->name = allocator_mem_alloc(allocator, strlen((policy + i)->name) + 1);
             strcpy((*args + i)->name, (policy + i)->name);
-            dbg_str(DBG_INFO, "method name:%s, type:%d", (policy + i)->name, (policy + i)->type);
+            dbg_str(DBG_DETAIL, "paramter name:%s, type:%d", (policy + i)->name, (policy + i)->type);
         }
         
      } CATCH (ret) {}

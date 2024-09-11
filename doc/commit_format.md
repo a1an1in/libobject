@@ -1,10 +1,9 @@
 [update:NA] 开发node。
 
 Description:
-目前node已经支持动态node id, 可以实际运用了。
+修复bus_invoke_sync错误， 优化node日志。
 
 Major Changes:
-1. node支持20字节sha1 node id。
-2. 修改node copy指定node id。
-2. 修改node copy以支持拷贝目录和文件.
-4. 更改node copy 远端node id分隔符为@。
+1. 修复bus bug， bus_handle_invoke_reply request 
+   state赋值太早， 导致bus_invoke_sync有可能会段错误。
+2. 优化node相关日志。

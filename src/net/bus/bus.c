@@ -466,13 +466,13 @@ bus_invoke_sync(bus_t *bus, char *object_id, char *method,
 
         sprintf(buffer, "%s@%s", object_id, method);
         EXEC(map->add(map, buffer, req));
-        dbg_str(BUS_SUC, "bus_invoke_sync, req count=%d", map->count(map));
+        dbg_str(BUS_INFO, "bus_invoke_sync, req count=%d", map->count(map));
 
         EXEC(bus_invoke(bus, object_id, method, argc, args));
 
         while(req->state == 0xfffe) usleep(100);
 
-        dbg_str(BUS_VIP, "bus_invoke_sync, return state=%d, opaque:%p, opaque_len:%d", req->state, req->opaque, req->opaque_len);
+        dbg_str(BUS_VIP, "bus_invoke_sync method:%s, return state=%d, opaque:%p, opaque_len:%d", method, req->state, req->opaque, req->opaque_len);
 
         if (out_buf != NULL) {
             dbg_buf(BUS_DETAIL, "opaque:", req->opaque, req->opaque_len);
@@ -524,7 +524,6 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
         sprintf(key, "%s@%s", object_id, method_name);
         ret = map->search(map, key, (void **)&req);
         if (ret > 0) {
-            req->state = state;
             if (req->opaque_buffer_len < buffer_len) {
                 req->opaque_len = req->opaque_buffer_len;
                 dbg_str(BUS_WARN, "opaque buffer is too small, please check, opaque_buffer_len:%d, buffer_len:%d", req->opaque_buffer_len, buffer_len);
@@ -536,8 +535,8 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
                 memcpy(req->opaque, buffer, req->opaque_len);
                  dbg_buf(BUS_VIP, "bus buffer:", buffer, req->opaque_len);
             }
-            
-            dbg_str(BUS_VIP, "method_name:%s, state:%d", req->method, req->state);
+            req->state = state;
+            dbg_str(BUS_INFO, "method_name:%s, state:%d", req->method, req->state);
         }
     }
 
