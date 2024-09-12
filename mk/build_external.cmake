@@ -36,21 +36,21 @@ macro (build_windows_dl)
 endmacro()
 
 macro (build_mysql)
-    # if(EXISTS ${PROJECT_SOURCE_DIR}/sysroot/windows/lib/libdl.dll.a)
-    #     return()
-    # endif()
-
-    if(EXISTS ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c)
-        message("rebuild mysql")
-        ExternalProject_Add(mysql-connector-c
-            SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c
-            CMAKE_ARGS ${BUILD_EXTERNAL_ARGS})
-    else ()
-        message("git clone and build mysql")
-        ExternalProject_Add(mysql-connector-c
-            SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c
-            GIT_REPOSITORY git@github.com:a1an1in/mysql-connector-c.git
-            CMAKE_ARGS ${BUILD_EXTERNAL_ARGS})
+    if ("${PLATFORM}" STREQUAL "linux")
+        if(EXISTS ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c)
+            message("rebuild mysql")
+            ExternalProject_Add(mysql-connector-c
+                PREFIX mysql-connector-c
+                SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c
+                CMAKE_ARGS ${BUILD_EXTERNAL_ARGS})
+        else ()
+            message("git clone and build mysql")
+            ExternalProject_Add(mysql-connector-c
+                PREFIX mysql-connector-c
+                SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c
+                GIT_REPOSITORY git@github.com:a1an1in/mysql-connector-c.git
+                CMAKE_ARGS ${BUILD_EXTERNAL_ARGS})
+        endif()
     endif()
 endmacro()
 
@@ -61,5 +61,30 @@ endmacro()
 #     MESSAGE("-- libobject path is ${LIBOBJECT}")
 # endif()
 
+macro (build_openssl)
+    if ("${PLATFORM}" STREQUAL "linux")
+        if(EXISTS ${PROJECT_SOURCE_DIR}/3rd/openssl)
+            message("rebuild openssl")
+            ExternalProject_Add(openssl 
+                PREFIX openssl
+                SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/openssl
+                #BINARY_DIR ${PROJECT_SOURCE_DIR}/build/3rd
+                CONFIGURE_COMMAND ./Configure --prefix=${CMAKE_INSTALL_PREFIX}
+                BUILD_COMMAND make VERBOSE=1
+                BUILD_IN_SOURCE TRUE)
+        else ()
+            message("git clone and build openssl")
+            ExternalProject_Add(openssl
+                PREFIX openssl
+                SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/openssl
+                GIT_REPOSITORY git@github.com:a1an1in/openssl.git
+                CONFIGURE_COMMAND ./config --prefix=${CMAKE_INSTALL_PREFIX}
+                BUILD_COMMAND make VERBOSE=1
+                BUILD_IN_SOURCE TRUE)
+        endif()
+    endif()
+endmacro()
+
 build_windows_dl()
-# build_mysql()
+build_openssl()
+build_mysql()
