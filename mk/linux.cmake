@@ -4,7 +4,8 @@ macro (set_cmake_evironment_variable)
     endif ()
     LINK_DIRECTORIES(/usr/local/lib 
         /usr/lib
-        ${CMAKE_INSTALL_PREFIX}/lib)
+        ${CMAKE_INSTALL_PREFIX}/lib
+        ${CMAKE_INSTALL_PREFIX}/lib64)
 
     INCLUDE_DIRECTORIES(
         /usr/include

@@ -1,10 +1,7 @@
-[update:NA] 新增openssl。
+[update:NA] node。
 
 Description:
-因为程序运行时经常报找不到相应的动态库， 即使安装也会
-因版本号不对不能使用， 所以尝试将依赖的动态库自己编译
-放到sysroot， 目前只是在linux环境上测试， 有部分三分
-库好像在windows编译有点困难。
+xtools已经可以部署到远端正常运行， 修改动态库依赖问题。
 
 Major Changes:
-1. 新增openssl。
+1. 修改linux链接目录。
