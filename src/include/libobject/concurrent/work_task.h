@@ -6,13 +6,15 @@
 #include <libobject/core/utils/alloc/allocator.h>
 #include <libobject/core/io/Socket.h>
 
+#define WORKER_TASK_MAX_BUF_LEN 1024 * 10
+
 typedef struct work_task_s{
     void *buf;
     int buf_len;
     int fd;
     void *socket;
     void *opaque;
-    void *request;
+    void *cache;
     allocator_t *allocator;
     short event;
 } work_task_t;

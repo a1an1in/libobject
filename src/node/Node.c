@@ -21,6 +21,7 @@
 #include <libobject/core/io/File.h>
 #include <libobject/core/utils/string.h>
 #include <libobject/core/utils/byteorder.h>
+#include <libobject/concurrent/event_api.h>
 #include <libobject/encoding/Digest.h>
 #include <libobject/node/Node.h>
 
@@ -109,8 +110,12 @@ static int __init(Node *node)
 
 static int __loop(Node *node)
 {
-    do { sleep(1); } while (node->node_exit_flag != 1);
+    struct event_base *event_base;
+
+    event_base = event_base_get_default_instance();
+    do { sleep(1); } while (node->node_exit_flag != 1 && event_base->eb->break_flag != 1);
     dbg_str(DBG_VIP, "node loop out");
+
     return 0;
 }
 

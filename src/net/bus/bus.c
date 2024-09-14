@@ -36,6 +36,7 @@
 #include <libobject/core/utils/config.h>
 #include <libobject/core/Hash_Map.h>
 #include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/io/Buffer.h>
 #include <libobject/net/bus/bus.h>
 
 static const blob_policy_t bus_attribs[] = {
@@ -590,7 +591,7 @@ bus_get_n_policy(bus_object_t *obj, char *method)
 
 int 
 bus_reply_forward_invoke(bus_t *bus, char *object_id,
-                         char *method_name, int ret, char *buf,
+                         char *method_name, int state, char *buf,
                          int buf_len, int src_fd)
 {
     bus_reqhdr_t hdr;
@@ -608,7 +609,7 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
     blob_add_table_start(blob, (char *)"reply_forward_invoke"); {
         blob_add_string(blob, (char *)"object_id", object_id);
         blob_add_string(blob, (char *)"invoke_method", method_name);
-        blob_add_uint32(blob, (char *)"state", ret);
+        blob_add_uint32(blob, (char *)"state", state);
         blob_add_buffer(blob, (char *)"opaque", (uint8_t *)buf, buf_len);
         blob_add_uint32(blob, (char *)"source_fd", src_fd);
     }
@@ -713,36 +714,59 @@ static int bus_process_receiving_data_callback(void *task)
     bus_cmd_callback cb = NULL;
     work_task_t *t = (work_task_t *)task;
     bus_t *bus = (bus_t *)t->opaque;
-    int len;
+    allocator_t *allocator = bus->allocator;
+    Buffer *buffer;
+    int len, buffer_len, blob_table_len, ret;
 
-    dbg_str(BUS_DETAIL, "bus_process_receiving_data_callback");
-    dbg_buf(BUS_DETAIL, "task buffer:", t->buf, t->buf_len);
+    TRY {
+        THROW_IF(t->buf_len == 0, 0);
+        dbg_buf(BUS_DETAIL, "bus receive:", t->buf, t->buf_len);
 
-    hdr = (bus_reqhdr_t *)t->buf;
-    blob_attr = (blob_attr_t *)(t->buf + sizeof(bus_reqhdr_t));
+        /* 1.将数据写入cache */
+        if (t->cache == NULL) {
+            t->cache = object_new(allocator, "Buffer", NULL);
+            dbg_str(BUS_DETAIL, "new buffer");
+        }
+        buffer = t->cache;
+        buffer_len = buffer->get_len(buffer);
+        dbg_str(BUS_DETAIL, "buffer len:%d", buffer_len);
+        buffer->write(buffer, t->buf, t->buf_len);
+        buffer_len = buffer->get_len(buffer);
+    
+        /* 2.判断数据类型 */
+        hdr = (bus_reqhdr_t *)buffer->addr;
+        dbg_str(BUS_DETAIL, "buffer len:%d type:%x", buffer_len, hdr->type);
+        THROW_IF(hdr->type > __BUS_REQ_LAST, -1);
 
-    if (hdr->type > __BUS_REQ_LAST) {
-        dbg_str(BUS_WARN, "bus receive err proto type");
-        return -1;
-    } 
+        /* 3.获取blob table和table len， 如果Cache的数据不够blob table的长度，
+         *   说明数据有可能有分片，需要返回直到收集完全后往后处理。 */
+        blob_attr = (blob_attr_t *)((char *)buffer->addr + sizeof(bus_reqhdr_t));
+        blob_table_len = blob_get_len(blob_attr);
+        THROW_IF(buffer_len - sizeof(bus_reqhdr_t) < blob_table_len, 0);
 
-    cb = handlers[hdr->type];
+        /* 4.获取table内容的长度和内容首地址 */
+        len = blob_get_data_len(blob_attr);
+        blob_attr =(blob_attr_t*) blob_get_data(blob_attr);
 
-    len = blob_get_data_len(blob_attr);
-    blob_attr =(blob_attr_t*) blob_get_data(blob_attr);
-
-    dbg_str(BUS_DETAIL, "bus_attribs size:%d", ARRAY_SIZE(bus_attribs));
-
-    blob_parse_to_attr(bus_attribs, 
-                       ARRAY_SIZE(bus_attribs), 
-                       tb, 
-                       blob_attr, 
-                       len);
-
-    cb(bus, tb);
-
-    dbg_str(BUS_DETAIL, "process_rcv end");
-    return 0;
+        /* 5.解析bus attribs */
+        EXEC(blob_parse_to_attr(bus_attribs, 
+                                ARRAY_SIZE(bus_attribs), 
+                                tb, 
+                                blob_attr, 
+                                len));
+        /* 6.调用相应回调处理数据 */
+        cb = handlers[hdr->type];
+        THROW_IF(cb == NULL, -1);
+        EXEC(cb(bus, tb));
+    } CATCH (ret) {} FINALLY {
+        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t)) {
+            object_destroy(buffer);
+            t->cache = NULL;
+            dbg_str(BUS_DETAIL, "release task cache");
+        }
+    }
+    
+    return ret;
 }
 
 bus_t * bus_create(allocator_t *allocator, 

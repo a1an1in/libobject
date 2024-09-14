@@ -146,17 +146,11 @@ static Worker *__get_worker(Server *server)
         worker = object_new(allocator, "Worker", NULL);
         dbg_str(NET_VIP, "get_worker, alloc a new worker:%p", worker);
 
-#define TASK_MAX_BUF_LEN 1024 * 10
-        task = work_task_alloc(allocator, TASK_MAX_BUF_LEN);
-#undef TASK_MAX_BUF_LEN
-        worker->task = (void *)task;
-
         socket = object_new(allocator, "Inet_Tcp_Socket", init);//in order to close fd
         THROW_IF(socket == NULL, -1);
         worker->socket = socket;
 
     } CATCH (ret) {
-        work_task_free(task);
         object_destroy(worker);
         object_destroy(socket);
         worker = NULL;

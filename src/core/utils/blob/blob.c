@@ -293,7 +293,6 @@ int blob_parse_to_attr(const struct blob_policy_s *policy,
                policy[i].name, strlen(policy[i].name))) 
             {
                 tb[i] = (blob_attr_t *)pos;
-                dbg_str(BUS_DETAIL, "found policy %d, name=%s", i, policy[i].name);
             }
         }
     }

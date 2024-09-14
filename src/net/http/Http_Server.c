@@ -50,20 +50,20 @@ static int __http_server_callback(void *task)
     int len = 0, ret, read_ret = 0;
 
     if (t->buf_len <= 0) {
-        object_destroy(t->request);
-        t->request = NULL;
+        object_destroy(t->cache);
+        t->cache = NULL;
         return 0;
     }
 
-    if (t->request == NULL) {
+    if (t->cache == NULL) {
         dbg_str(NET_SUC,"http request start");
         req = object_new(allocator, "Request", NULL);
         req->status = STATUS_INIT;
         req->server = server;
-        t->request = req;
+        t->cache = req;
     } else {
         dbg_str(NET_SUC,"http request continue");
-        req = t->request;
+        req = t->cache;
     }
 
     while (len != t->buf_len) {
@@ -85,13 +85,13 @@ static int __http_server_callback(void *task)
         req->socket = t->socket;
         server->process_request(server, req);
         object_destroy(req);
-        t->request = NULL;
+        t->cache = NULL;
 
         dbg_str(NET_SUC,"http request end");
     } else if (read_ret < 0) {
         dbg_str(NET_ERROR,"http request error end, ret=%d", read_ret);
         object_destroy(req);
-        t->request = NULL;
+        t->cache = NULL;
         //... response error
     }
 

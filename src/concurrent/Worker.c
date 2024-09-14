@@ -38,8 +38,11 @@
 
 static int __construct(Worker *worker, char *init_str)
 {
+    allocator_t *allocator = worker->obj.allocator;
+
     dbg_str(EV_DETAIL, "worker construct, worker addr:%p", worker);
     worker->flags = 0;
+    worker->task = work_task_alloc(allocator, WORKER_TASK_MAX_BUF_LEN);
 
     return 0;
 }
@@ -48,6 +51,7 @@ static int __deconstrcut(Worker *worker)
 {
     dbg_str(EV_DETAIL, "worker deconstruct, worker addr:%p", worker);
     worker->resign(worker);
+    work_task_free(worker->task);
 
     return 0;
 }

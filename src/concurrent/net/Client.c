@@ -82,10 +82,9 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
     Worker *worker = (Worker *)arg;
     Client *client = (Client *)worker->opaque;
     Socket *socket = client->socket;
-#define EV_CALLBACK_MAX_BUF_LEN 1024 * 10
-    char buf[EV_CALLBACK_MAX_BUF_LEN];
-    int  buf_len = EV_CALLBACK_MAX_BUF_LEN, len = 0;
-#undef EV_CALLBACK_MAX_BUF_LEN
+    char buf[WORKER_TASK_MAX_BUF_LEN];
+    int  buf_len = sizeof(buf), len = 0;
+    work_task_t *task = worker->task;
     int ret;
 
     TRY {
@@ -97,18 +96,13 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
         }
 
         if (worker->work_callback != NULL && worker->work_callback && len > 0) {
-            work_task_t *task;
-            task = work_task_alloc(worker->obj.allocator, len + 1);
-            THROW_IF(task == NULL, -1);
             memcpy(task->buf, buf, len);
             task->buf_len = len;
             task->fd = fd;
             task->opaque  = client->opaque;
             worker->work_callback(task);
-            work_task_free(task);
         }
-    } CATCH (ret) {
-    }
+    } CATCH (ret) { }
 
     return ret;
 }

@@ -37,6 +37,7 @@
 #include <libobject/core/utils/miscellany/buffer.h>
 #include <libobject/core/utils/config.h>
 #include <libobject/core/Hash_Map.h>
+#include <libobject/core/io/Buffer.h>
 
 static const struct blob_policy_s busd_attribs[] = {
     [BUSD_OBJID]          = { .name = "object_id",      .type = BLOB_TYPE_STRING },
@@ -197,7 +198,7 @@ int busd_reply_add_object(busd_t *busd, int state, char *object_id, int fd)
            blob_get_len((blob_attr_t *)blob->head));
     buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
-    dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
+    dbg_buf(BUS_DETAIL, "busd send:", buffer, buffer_len);
 
     send(fd, buffer, buffer_len, 0);  
 
@@ -320,7 +321,7 @@ busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd,
            blob_get_len((blob_attr_t *)blob->head));
     buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
-    dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
+    dbg_buf(BUS_DETAIL, "busd send:", buffer, buffer_len);
 
     send(dest_fd, buffer, buffer_len, 0);  
 
@@ -455,33 +456,60 @@ static int busd_process_receiving_data_callback(void *task)
     blob_attr_t *tb[__BUSD_MAX];
     busd_cmd_callback cb = NULL;
     busd_t *busd = (busd_t *)t->opaque;
-    int len;
+    allocator_t *allocator = busd->allocator;
+    Buffer *buffer;
+    int len, buffer_len, blob_table_len, ret;
 
-    if (t->buf_len == 0) return 0;
+    TRY {
+        THROW_IF(t->buf_len == 0, 0);
+        dbg_buf(BUS_DETAIL, "busd receive:", (uint8_t *)t->buf, t->buf_len);
 
-    hdr = (bus_reqhdr_t *)t->buf;
-    blob_attr = (blob_attr_t *)(t->buf + sizeof(bus_reqhdr_t));
+        /* 1.将数据写入cache */
+        if (t->cache == NULL) {
+            t->cache = object_new(allocator, "Buffer", NULL);
+            dbg_str(BUS_DETAIL, "new buffer");
+        }
+        buffer = t->cache;
+        buffer->write(buffer, t->buf, t->buf_len);
+        buffer_len = buffer->get_len(buffer);
+    
+        /* 2.判断数据类型 */
+        hdr = (bus_reqhdr_t *)buffer->addr;
+        THROW_IF(hdr->type > __BUS_REQ_LAST, -1);
 
-    if (hdr->type > __BUS_REQ_LAST) {
-        dbg_str(BUS_WARN, "busd receive err proto type");
-        return -1;
-    } 
+        /* 3.获取blob table和table len， 如果Cache的数据不够blob table的长度，
+         *   说明数据有可能有分片，需要返回直到收集完全后往后处理。 */
+        blob_attr = (blob_attr_t *)((char *)buffer->addr + sizeof(bus_reqhdr_t));
+        blob_table_len = blob_get_len(blob_attr);
+        THROW_IF(buffer_len - sizeof(bus_reqhdr_t) < blob_table_len, 0);
+        
+        /* 4.获取table 长度和内容的首地址 */
+        len = blob_get_data_len(blob_attr);
+        blob_attr =(blob_attr_t*) blob_get_data(blob_attr);
 
-    cb = handlers[hdr->type];
+        dbg_str(BUS_DETAIL, "busd receive, blob expect blob_table_len:%d, buffer len:%d, head len:%d, receive len:%d", 
+                blob_table_len, buffer_len, sizeof(bus_reqhdr_t), t->buf_len);
 
-    len = blob_get_data_len(blob_attr);
-    blob_attr =(blob_attr_t*) blob_get_data(blob_attr);
-    dbg_buf(BUS_DETAIL, "rcv oject:", (uint8_t *)blob_attr, len);
+        /* 5.解析bus attribs */
+        EXEC(blob_parse_to_attr(busd_attribs, 
+                                ARRAY_SIZE(busd_attribs), 
+                                tb, 
+                                blob_attr, 
+                                len));
 
-    blob_parse_to_attr(busd_attribs, 
-                       ARRAY_SIZE(busd_attribs), 
-                       tb, 
-                       blob_attr, 
-                       len);
+        /* 6.调用相应回调处理数据 */
+        cb = handlers[hdr->type];
+        THROW_IF(cb == NULL, -1);
+        EXEC(cb(busd, tb, t->fd));
+    } CATCH (ret) {} FINALLY {
+        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t)) {
+            object_destroy(buffer);
+            t->cache = NULL;
+            dbg_str(BUS_DETAIL, "release task cache");
+        }
+    }
 
-    cb(busd, tb, t->fd);
-
-    return 0;
+    return ret;
 }
 
 busd_t *busd_create(allocator_t *allocator, 
