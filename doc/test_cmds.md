@@ -137,21 +137,24 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./devops.sh build --platform=windows
 ./devops.sh docker --install --platform=linux    #install docker at linux platform
 ./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_v2.13.0.524.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.1.3.tar.gz
 
 export LD_LIBRARY_PATH=~/.xtools/sysroot/lib:~/.xtools/sysroot/lib64:$LD_LIBRARY_PATH
 ldconfig
 
 ~/.xtools/sysroot/bin/xtools node --log-level=0x20017 --host=0.0.0.0 --service=12345 --deamon=t
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x20017 --host=139.159.231.27 --service=12345
-./sysroot/linux/bin/xtools --log-level=0x20017 node_cli --host=139.159.231.27 --service=12345 list 0626b03b9a4f87d11f8a78fd8a01b8a31899227c@./tests/node/
+./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 node --log-level=0x20017 --host=139.159.231.27 --service=12345
+./sysroot/linux/bin/xtools --log-level=0x20017 node_cli --host=139.159.231.27 --service=12345 list 0eb2817333f1e7497ccd50a0a937df906accc2f4@./tests/node/
 
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x17 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/linux/bin/xtools --log-level=0x20017 node_cli --host=127.0.0.1 --service=12345 list 0626b03b9a4f87d11f8a78fd8a01b8a31899227c@./tests/node/
+./sysroot/linux/bin/xtools --log-level=0x20017 node_cli --host=127.0.0.1 --service=12345 list a25a334ce14dd61180add7969fb7ad2a1791a9c6@./tests/node/
 
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
-./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 4dc071e7fe1c16aa9d3fad263a174d4a2fd92@./tests/node/
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 list 88ab73581929bf4d1df3cd3dec51f2fd2b9369b5@./tests/node/
+./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list a613960018e975bd3464093221277a4d1e356439@./tests/node/
+./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 7e39ea1ea8c626a9405034db30e8fe07770e6b29@./tests/node/
 
+object_id:a613960018e975bd3464093221277a4d1e356439
+object_id:7e39ea1ea8c626a9405034db30e8fe07770e6b29
 ./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_node
 ```

@@ -109,21 +109,18 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
     if (event & EV_READ) {
         len = socket->recv(socket, task->buf, task->buf_len, 0);
 
+        if (worker->work_callback) {
+            task->buf_len = len;
+            worker->work_callback(task);
+            task->buf_len = len_bak;
+        }
+
         if (len <= 0) {
             dbg_str(NET_SUC, "tcp subsocket ev callback, fd:%d recv len=%d, event=%d, which means connect is closed by peer",
                     fd, len, event);
-            task->buf_len = len;
-            worker->work_callback(task); //end request
-            task->buf_len = len_bak;
             server->close_subsocket(server, worker->socket);
-            return 1;
+            return -1;
         }
-    }
-
-    if (worker->work_callback && len) {
-        task->buf_len = len;
-        worker->work_callback(task);
-        task->buf_len = len_bak;
     }
 
     return 0;

@@ -230,21 +230,14 @@ int bus_handle_add_object_reply(bus_t *bus, blob_attr_t **attr)
 {
     int state;
 
-    dbg_str(BUS_DETAIL, "bus_handle_add_object_reply");
-
     if (attr[BUS_STATE]) {
         state = blob_get_uint32(attr[BUS_STATE]);
-        dbg_str(BUS_DETAIL, "state=%d", state);
-    }
-
-    if (attr[BUS_OBJID]) {
-        dbg_str(BUS_DETAIL, "object_id:%s", blob_get_string(attr[BUS_OBJID]));
     }
 
     if ( state == 1) {
-        dbg_str(BUS_SUC, "bus add obj success");
+        dbg_str(BUS_SUC, "bus_handle_add_object_reply, add obj success, object_id:%d", blob_get_string(attr[BUS_OBJID]));
     } else {
-        dbg_str(BUS_ERROR, "bus add obj failed");
+        dbg_str(BUS_ERROR, "bus_handle_add_object_reply, bus add obj failed");
         //..... del the obj
     }
 
@@ -504,22 +497,18 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
 
     if (attr[BUS_STATE]) {
         state = blob_get_uint32(attr[BUS_STATE]);
-        dbg_str(BUS_DETAIL, "state:%d", state);
     }
     if (attr[BUS_OBJID]) {
         object_id = blob_get_string(attr[BUS_OBJID]);
-        dbg_str(BUS_DETAIL, "object_id:%s", object_id);
     }
     if (attr[BUS_INVOKE_METHOD]) {
         method_name = blob_get_string(attr[BUS_INVOKE_METHOD]);
-        dbg_str(BUS_DETAIL, "method name:%s", method_name);
     }
     if (attr[BUS_OPAQUE]) {
         buffer_len = blob_get_buffer(attr[BUS_OPAQUE], (uint8_t**)&buffer);
-        dbg_buf(BUS_DETAIL, "bus_handle_invoke_reply, buffer:", (uint8_t *)buffer, buffer_len);
     }
 
-    dbg_str(BUS_SUC, "bus_handle_invoke_reply, object_id:%s, method:%s", object_id, method_name);
+    dbg_str(BUS_SUC, "bus_handle_invoke_reply, object_id:%s, method:%s, state:%d", object_id, method_name, state);
 
     if (method_name != NULL) {
         sprintf(key, "%s@%s", object_id, method_name);
@@ -534,10 +523,9 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
             
             if (req->opaque) {
                 memcpy(req->opaque, buffer, req->opaque_len);
-                 dbg_buf(BUS_VIP, "bus buffer:", buffer, req->opaque_len);
+                 dbg_buf(BUS_DETAIL, "bus buffer:", buffer, req->opaque_len);
             }
             req->state = state;
-            dbg_str(BUS_INFO, "method_name:%s, state:%d", req->method, req->state);
         }
     }
 
@@ -600,7 +588,8 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
     uint32_t buffer_len, tmp_len;
     allocator_t *allocator = bus->allocator;
 
-    dbg_str(BUS_VIP, "bus_reply_forward_invoke, buf_len:%d", buf_len);
+    dbg_str(BUS_VIP, "bus_reply_forward_invoke, object_id:%s, method_name:%s, state:%d, src_fd:%d", 
+            object_id, method_name, state, src_fd);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUS_REPLY_FORWARD_INVOKE;
@@ -654,27 +643,20 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
     char buffer[BLOB_BUFFER_MAX_SIZE];
     int ret, buffer_len = 9;
 
-    dbg_str(BUS_DETAIL, "bus_handle_forward_invoke");
-
     if (attr[BUS_INVOKE_SRC_FD]) {
         src_fd = blob_get_uint32(attr[BUS_INVOKE_SRC_FD]);
-        dbg_str(BUS_DETAIL, "invoke src fd:%d", src_fd);
     }
     if (attr[BUS_INVOKE_METHOD]) {
         method_name = blob_get_string(attr[BUS_INVOKE_METHOD]);
-        dbg_str(BUS_DETAIL, "invoke method_name:%s", method_name);
     }
     if (attr[BUS_INVOKE_ARGC]) {
         argc = blob_get_uint8(attr[BUS_INVOKE_ARGC]);
-        dbg_str(BUS_DETAIL, "invoke argc=%d", argc);
     }
     if (attr[BUS_INVOKE_ARGS]) {
-        dbg_str(BUS_DETAIL, "invoke args");
         args = attr[BUS_INVOKE_ARGS];
     }
     if (attr[BUS_OBJID]) {
         object_id = blob_get_string(attr[BUS_OBJID]);
-        dbg_str(BUS_DETAIL, "object_id:%s", object_id);
     }
 
     if (method_name != NULL) {
@@ -684,7 +666,6 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
             policy = bus_get_policy(obj, method_name);
             n_policy = bus_get_n_policy(obj, method_name);
 
-            dbg_str(BUS_DETAIL, "policy addr:%p, size=%d", policy, ARRAY_SIZE(policy));
             blob_parse_to_attr(policy, n_policy, tb, blob_get_data(args),
                                blob_get_data_len(args));
             ret = method(obj, argc, tb, buffer, &buffer_len);
@@ -693,6 +674,8 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
             } 
             bus_reply_forward_invoke(bus, object_id, method_name, ret,
                                      buffer, buffer_len, src_fd);
+        } else {
+            dbg_str(BUS_DETAIL, "bus_handle_forward_invoke can't find object_id:%s", object_id);
         }
     }
 
@@ -725,7 +708,7 @@ static int bus_process_receiving_data_callback(void *task)
         /* 1.将数据写入cache */
         if (t->cache == NULL) {
             t->cache = object_new(allocator, "Buffer", NULL);
-            dbg_str(BUS_DETAIL, "new buffer");
+            dbg_str(BUS_DETAIL, "new a cache for the task");
         }
         buffer = t->cache;
         buffer_len = buffer->get_len(buffer);

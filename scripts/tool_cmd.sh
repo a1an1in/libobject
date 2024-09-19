@@ -110,7 +110,7 @@ function do_release {
         exit 1
     fi
     
-    file_name=$(get_release_package_name xtools src/include/libobject/version.h)
+    file_name=$(get_release_package_name xtools_linux src/include/libobject/version.h)
     echo "file_name:$file_name"
     if [ -f packages/$file_name ]; then
         exit 0

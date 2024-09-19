@@ -39,7 +39,7 @@ blob_t *blob_create(allocator_t *allocator)
     blob_t *b;
 
     if((b = (blob_t *)allocator_mem_alloc(allocator, sizeof(blob_t))) == NULL){
-        dbg_str(DBG_DETAIL, "allocator_mem_alloc");
+        dbg_str(BUS_ERROR, "allocator_mem_alloc");
         return NULL;
     }
 
@@ -82,7 +82,7 @@ int blob_reset(blob_t *blob)
 
 int blob_destroy(blob_t *blob)
 {
-    dbg_str(DBG_DETAIL, "blob_destroy");
+    dbg_str(BUS_DETAIL, "blob_destroy");
     array_stack_destroy(blob->tbl_stack);
     allocator_mem_free(blob->allocator, blob->head);
     allocator_mem_free(blob->allocator, blob);
@@ -102,7 +102,7 @@ int blob_add(blob_t *blob, uint8_t type, char *name, void *value, uint16_t value
     if(name != NULL){
         strncpy((char *)(new_attrib->value), (char *) name, name_len);
         /*
-         *dbg_buf(DBG_DETAIL, "add name:", (char *)(new_attrib->value), name_len);
+         *dbg_buf(BUS_DETAIL, "add name:", (char *)(new_attrib->value), name_len);
          */
     }
 
@@ -162,7 +162,7 @@ int blob_add_table_start(blob_t *blob, char *name)
 {
     blob_attr_t *new_table = (blob_attr_t *)blob->tail;
 
-    dbg_str(DBG_DETAIL, "blob_add_table_start, push addr:%p", new_table);
+    dbg_str(BUS_DETAIL, "blob_add_table_start, push addr:%p", new_table);
     /*
      *array_stack_push(blob->tbl_stack, &new_table);
      */
@@ -178,7 +178,7 @@ int blob_add_table_end(blob_t *blob)
 
     array_stack_pop(blob->tbl_stack, (void **)&table_start);
 
-    dbg_str(DBG_DETAIL, "blob_add_table_end, pop addr:%p", table_start);
+    dbg_str(BUS_DETAIL, "blob_add_table_end, pop addr:%p", table_start);
 
     table_len = blob->tail - table_start;
 
@@ -396,7 +396,7 @@ void test_blob()
                        (uint32_t)(blob->tail - blob->head)) ;
 
     if (tb[FOO_TABLE] != NULL) {
-        dbg_str(DBG_DETAIL, "name :%s", blob_get_name(tb[FOO_TABLE]));
+        dbg_str(BUS_DETAIL, "name :%s", blob_get_name(tb[FOO_TABLE]));
         blob_attr_t *tb2[10];
         blob_attr_t *attr = (blob_attr_t *)blob_get_data(tb[FOO_TABLE]);
         int len = blob_get_data_len(tb[FOO_TABLE]);

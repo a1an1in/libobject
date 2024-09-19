@@ -299,7 +299,7 @@ busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd,
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_SUC, "busd_forward_invoke, object_id:%s, method:%s, dest_fd:%d", object_id, method, dest_fd);
+    dbg_str(BUS_SUC, "busd_forward_invoke, object_id:%s, method:%s, source_fd:%d, dest_fd:%d", object_id, method, src_fd, dest_fd);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUSD_FORWARD_INVOKE;
@@ -342,7 +342,6 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
 
     if (attr[BUSD_OBJID]) {
         object_id = blob_get_string(attr[BUSD_OBJID]);
-        dbg_str(BUS_DETAIL, "invoke object_id:%s", object_id);
         if (object_id != NULL) {
             ret = map->search(map, object_id, (void **)&obj);
             if (ret <= 0) {
@@ -354,18 +353,15 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
     }
 
     if (attr[BUSD_INVOKE_METHORD]) {
-        dbg_str(BUS_DETAIL, "invoke method:%s", blob_get_string(attr[BUSD_INVOKE_METHORD]));
         method = blob_get_string(attr[BUSD_INVOKE_METHORD]);
     }
     if (attr[BUSD_INVOKE_ARGC]) {
         argc = blob_get_uint8(attr[BUSD_INVOKE_ARGC]); 
-        dbg_str(BUS_DETAIL, "invoke argc:%d", argc);
     }
     if (attr[BUSD_INVOKE_ARGS]) {
-        dbg_str(BUS_DETAIL, "invoke args");
         args = attr[BUSD_INVOKE_ARGS];
     }
-    dbg_str(DBG_VIP, "busd_handle_invoke_method, object_id:%s, method:%s, object fd:%d", object_id, method, obj->fd);
+
     busd_forward_invoke(busd, fd, obj->fd, object_id, method, argc, args);
 
     return 0;
@@ -379,7 +375,9 @@ int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, ui
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_SUC, "busd_reply_invoke, object_id:%s, method:%s", object_id, method);
+    dbg_str(BUS_SUC, "busd_reply_invoke, object_id:%s, method:%s, state:%d, source_fd:%d", 
+            object_id, method, state, source_fd);
+
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUSD_REPLY_INVOKE;
@@ -399,7 +397,7 @@ int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, ui
            blob_get_len((blob_attr_t *)blob->head));
     buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
-    dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
+    dbg_buf(BUS_DETAIL, "busd send:", buffer, buffer_len);
 
     send(source_fd, buffer, buffer_len, 0);  
 
@@ -417,25 +415,20 @@ int busd_handle_forward_invoke_reply(busd_t *busd, blob_attr_t **attr, int fd)
 
     if (attr[BUSD_STATE]) {
         state = blob_get_uint32(attr[BUSD_STATE]); 
-        dbg_str(BUS_DETAIL, "forward invoke reply state=%d", state);
     }
     if (attr[BUSD_INVOKE_METHORD]) {
         method = blob_get_string(attr[BUSD_INVOKE_METHORD]); 
-        dbg_str(BUS_DETAIL, "method:%s", method);
     }
     if (attr[BUSD_OBJID]) {
         object_id = blob_get_string(attr[BUSD_OBJID]); 
-        dbg_str(BUS_DETAIL, "object_id:%s", object_id);
     }
     if (attr[BUSD_INVOKE_SRC_FD]) {
         src_fd = blob_get_uint32(attr[BUSD_INVOKE_SRC_FD]); 
-        dbg_str(BUS_DETAIL, "source fd=%d", src_fd);
     }
     if (attr[BUSD_OPAQUE]) {
         buffer_len = blob_get_buffer(attr[BUSD_OPAQUE], &buffer);
-        dbg_buf(BUS_DETAIL, "busd_handle_forward_invoke_reply, buffer:", buffer, buffer_len);
     }
-    dbg_str(BUS_SUC, "busd_handle_forward_invoke_reply, object_id:%s, method:%s", object_id, method);
+
     busd_reply_invoke(busd, object_id, method, state, buffer, buffer_len, src_fd);
 
     return 0;
@@ -461,7 +454,7 @@ static int busd_process_receiving_data_callback(void *task)
     int len, buffer_len, blob_table_len, ret;
 
     TRY {
-        THROW_IF(t->buf_len == 0, 0);
+        THROW_IF(t->buf_len <= 0, 0);
         dbg_buf(BUS_DETAIL, "busd receive:", (uint8_t *)t->buf, t->buf_len);
 
         /* 1.将数据写入cache */
