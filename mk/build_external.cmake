@@ -40,13 +40,11 @@ macro (build_mysql)
         if(EXISTS ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c)
             message("rebuild mysql")
             ExternalProject_Add(mysql-connector-c
-                PREFIX mysql-connector-c
                 SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c
                 CMAKE_ARGS ${BUILD_EXTERNAL_ARGS})
         else ()
             message("git clone and build mysql")
             ExternalProject_Add(mysql-connector-c
-                PREFIX mysql-connector-c
                 SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c
                 GIT_REPOSITORY git@github.com:a1an1in/mysql-connector-c.git
                 CMAKE_ARGS ${BUILD_EXTERNAL_ARGS})

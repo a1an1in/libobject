@@ -73,8 +73,8 @@ busd_t * busd_alloc(allocator_t *allocator)
     blob_t *blob;
 
     d = (busd_t *)allocator_mem_alloc(allocator, sizeof(busd_t));
-    if ( d == NULL) {
-        dbg_str(BUS_DETAIL, "allocator_mem_alloc");
+    if (d == NULL) {
+        dbg_str(BUS_ERROR, "allocator_mem_alloc");
         return NULL;
     }
 
@@ -120,7 +120,7 @@ int busd_init(busd_t *busd,
         }
         busd->server_host = server_host;
         busd->server_srv  = server_srv;
-        dbg_str(BUS_DETAIL, "busd:%p", busd);
+        dbg_str(BUS_DETAIL, "busd_init, busd:%p", busd);
 
         busd->server= server(busd->allocator, 
                             busd->server_sk_type, 
@@ -162,12 +162,9 @@ busd_create_bus_object(busd_t *busd, char *object_id, blob_attr_t *attr, int fd)
     obj->allocator = allocator;
     strncpy(obj->id, object_id, strlen(object_id));
 
-    dbg_str(BUS_INFO, "busd_create_bus_object, obj:%p, fd:%d", obj, fd);
-
     obj->infos = (char *)allocator_mem_zalloc(allocator, strlen(object_infos));
     strncpy(obj->infos, object_infos, strlen(object_infos));
-
-    busd_dump_object(obj);
+    // busd_dump_object(obj);
 
     return obj;
 }
@@ -180,7 +177,7 @@ int busd_reply_add_object(busd_t *busd, int state, char *object_id, int fd)
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_SUC, "busd_reply_add_object");
+    dbg_str(BUS_SUC, "busd_reply_add_object, object_id:%s, state:%d, fd:%d", object_id, state, fd);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUSD_REPLY_ADD_OBJECT;
@@ -211,18 +208,14 @@ int busd_handle_add_object(busd_t *busd, blob_attr_t **attr, int fd)
     Map *map = busd->obj_map;
     char *object_id;
     int state = -1;
-    dbg_str(BUS_DETAIL, "ubusd_handle_add_object, fd:%d", fd);
 
     if (attr[BUSD_OBJID]) {
         object_id = blob_get_string(attr[BUSD_OBJID]);
-        dbg_str(BUS_DETAIL, "add object_id:%s", blob_get_string(attr[BUSD_OBJID]));
     }
     if (attr[BUSD_OBJINFOS]) {
-        dbg_str(BUS_DETAIL, "add object infos");
         obj = busd_create_bus_object(busd, blob_get_string(attr[BUSD_OBJID]), 
                                      attr[BUSD_OBJINFOS], fd);
         if (obj != NULL) {
-            dbg_str(BUS_DETAIL, "insert obj:%s:%p", obj->id, obj);
             map->add(map, obj->id, obj);
             state = 1;
         }
@@ -274,7 +267,6 @@ int busd_handle_lookup_object(busd_t *busd, blob_attr_t **attr, int fd)
 
     if (attr[BUSD_OBJID]) {
         char *key = blob_get_string(attr[BUSD_OBJID]);
-        dbg_str(BUS_VIP, "busd_handle_lookup_object object_id:%s", key);
         if (key != NULL) {
             ret = map->search(map, key, (void **)&obj);
             if (ret > 0) {
@@ -367,7 +359,7 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
     return 0;
 }
 
-int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, uint8_t *opaque, int opaque_len, int source_fd)
+int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, uint8_t *opaque, int opaque_len, int source_fd, int dest_fd)
 {
     bus_reqhdr_t hdr;
     blob_t *blob = busd->blob;
@@ -375,8 +367,8 @@ int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, ui
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_SUC, "busd_reply_invoke, object_id:%s, method:%s, state:%d, source_fd:%d", 
-            object_id, method, state, source_fd);
+    dbg_str(BUS_SUC, "busd_reply_invoke, object_id:%s, method:%s, state:%d, source_fd:%d, dest_fd:%d", 
+            object_id, method, state, source_fd, dest_fd);
 
     memset(&hdr, 0, sizeof(hdr));
 
@@ -399,7 +391,7 @@ int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, ui
 
     dbg_buf(BUS_DETAIL, "busd send:", buffer, buffer_len);
 
-    send(source_fd, buffer, buffer_len, 0);  
+    send(dest_fd, buffer, buffer_len, 0);  
 
     return 0;
 }
@@ -429,7 +421,7 @@ int busd_handle_forward_invoke_reply(busd_t *busd, blob_attr_t **attr, int fd)
         buffer_len = blob_get_buffer(attr[BUSD_OPAQUE], &buffer);
     }
 
-    busd_reply_invoke(busd, object_id, method, state, buffer, buffer_len, src_fd);
+    busd_reply_invoke(busd, object_id, method, state, buffer, buffer_len, fd, src_fd);
 
     return 0;
 }
@@ -495,8 +487,8 @@ static int busd_process_receiving_data_callback(void *task)
         THROW_IF(cb == NULL, -1);
         EXEC(cb(busd, tb, t->fd));
     } CATCH (ret) {} FINALLY {
-        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t)) {
-            object_destroy(buffer);
+        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t) || t->buf_len <= 0) {
+            object_destroy(t->cache);
             t->cache = NULL;
             dbg_str(BUS_DETAIL, "release task cache");
         }

@@ -235,7 +235,7 @@ int bus_handle_add_object_reply(bus_t *bus, blob_attr_t **attr)
     }
 
     if ( state == 1) {
-        dbg_str(BUS_SUC, "bus_handle_add_object_reply, add obj success, object_id:%d", blob_get_string(attr[BUS_OBJID]));
+        dbg_str(BUS_SUC, "bus_handle_add_object_reply, add obj success, object_id:%s", blob_get_string(attr[BUS_OBJID]));
     } else {
         dbg_str(BUS_ERROR, "bus_handle_add_object_reply, bus add obj failed");
         //..... del the obj
@@ -702,7 +702,7 @@ static int bus_process_receiving_data_callback(void *task)
     int len, buffer_len, blob_table_len, ret;
 
     TRY {
-        THROW_IF(t->buf_len == 0, 0);
+        THROW_IF(t->buf_len <= 0, 0);
         dbg_buf(BUS_DETAIL, "bus receive:", t->buf, t->buf_len);
 
         /* 1.将数据写入cache */

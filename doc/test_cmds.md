@@ -137,12 +137,13 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./devops.sh build --platform=windows
 ./devops.sh docker --install --platform=linux    #install docker at linux platform
 ./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.1.3.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.1.7.tar.gz
 
 export LD_LIBRARY_PATH=~/.xtools/sysroot/lib:~/.xtools/sysroot/lib64:$LD_LIBRARY_PATH
 ldconfig
 
 ~/.xtools/sysroot/bin/xtools node --log-level=0x20017 --host=0.0.0.0 --service=12345 --deamon=t
+nohup ~/.xtools/sysroot/bin/xtools node --log-level=0x20017 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x20017 --host=139.159.231.27 --service=12345
 ./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 node --log-level=0x20017 --host=139.159.231.27 --service=12345
 ./sysroot/linux/bin/xtools --log-level=0x20017 node_cli --host=139.159.231.27 --service=12345 list 0eb2817333f1e7497ccd50a0a937df906accc2f4@./tests/node/
@@ -152,9 +153,8 @@ ldconfig
 
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list a613960018e975bd3464093221277a4d1e356439@./tests/node/
-./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 7e39ea1ea8c626a9405034db30e8fe07770e6b29@./tests/node/
+./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list e7b98b53cc3f9ecae04f308ad280f722fd0a0506@./tests/node/
 
-object_id:a613960018e975bd3464093221277a4d1e356439
-object_id:7e39ea1ea8c626a9405034db30e8fe07770e6b29
+object_id:e7b98b53cc3f9ecae04f308ad280f722fd0a0506
 ./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_node
 ```

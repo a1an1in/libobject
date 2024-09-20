@@ -162,10 +162,6 @@ int blob_add_table_start(blob_t *blob, char *name)
 {
     blob_attr_t *new_table = (blob_attr_t *)blob->tail;
 
-    dbg_str(BUS_DETAIL, "blob_add_table_start, push addr:%p", new_table);
-    /*
-     *array_stack_push(blob->tbl_stack, &new_table);
-     */
     array_stack_push(blob->tbl_stack, new_table);
 
     return blob_add(blob, BLOB_TYPE_TABLE, name, NULL, 0);
@@ -177,9 +173,6 @@ int blob_add_table_end(blob_t *blob)
     uint16_t table_len;
 
     array_stack_pop(blob->tbl_stack, (void **)&table_start);
-
-    dbg_str(BUS_DETAIL, "blob_add_table_end, pop addr:%p", table_start);
-
     table_len = blob->tail - table_start;
 
     ((blob_attr_t *)table_start)->len = cpu_to_be16(table_len);
@@ -286,7 +279,7 @@ int blob_parse_to_attr(const struct blob_policy_s *policy,
     int i;
     blob_attr_t *pos, *head = (blob_attr_t *)data;
 
-    dbg_str(BUS_DETAIL, "policy count=%d", policy_count);
+    // dbg_str(BUS_DETAIL, "policy count=%d", policy_count);
     blob_for_each_attr(pos, head, len){
         for(i = 0; i < policy_count; i++) {
             if(!strncmp(blob_get_name((blob_attr_t *)pos), 
