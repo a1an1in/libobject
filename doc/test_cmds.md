@@ -153,8 +153,9 @@ nohup ~/.xtools/sysroot/bin/xtools node --log-level=0x20017 --host=0.0.0.0 --ser
 
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list a613960018e975bd3464093221277a4d1e356439@./tests/node/
-./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list e7b98b53cc3f9ecae04f308ad280f722fd0a0506@./tests/node/
+./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 55b781d4d15e7b244ec551622b2149c96fbbb22a@./tests/node/
 
 object_id:e7b98b53cc3f9ecae04f308ad280f722fd0a0506
 ./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_node
+
 ```

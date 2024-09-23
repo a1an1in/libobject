@@ -1,8 +1,7 @@
-[update:node] 优化代码。
+[update:node] 调试代码。
 
 Description:
-。
+调试linux环境node service异常掉线问题， 还没定位到问题。
 
 Major Changes:
-1. 优化Server.c。
-2. 优化bus和busd日志。
+1. no chagnes。
