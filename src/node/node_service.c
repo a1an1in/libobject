@@ -199,7 +199,7 @@ static int node_list(bus_object_t *obj, int argc,
         }
         THROW_IF(count < 0, -1);
         dbg_str(DBG_VIP, "node_list path:%s, count:%d", path, count);
-        dbg_str(DBG_DETAIL, "node_list json:%s", list->to_json(list));
+        // dbg_str(DBG_DETAIL, "node_list json:%s", list->to_json(list));
         len = strlen(list->to_json(list));
         memcpy(out, list->to_json(list), len);
         *out_len = len;

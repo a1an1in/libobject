@@ -742,7 +742,7 @@ static int bus_process_receiving_data_callback(void *task)
         THROW_IF(cb == NULL, -1);
         EXEC(cb(bus, tb));
     } CATCH (ret) {} FINALLY {
-        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t)) {
+        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t) || t->buf_len <= 0) {
             object_destroy(buffer);
             t->cache = NULL;
             dbg_str(BUS_DETAIL, "release task cache");

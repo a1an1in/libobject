@@ -92,11 +92,11 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
             len = socket->recv(socket, buf, buf_len, 0);
 
         if (len <= 0) {
-            //dbg_str(DBG_ERROR, "client ev_callback error, fd:%d, len=%d", fd, len);
+            dbg_str(DBG_ERROR, "client ev_callback error, fd:%d, len=%d", fd, len);
         }
 
-        if (worker->work_callback != NULL && worker->work_callback && len > 0) {
-            memcpy(task->buf, buf, len);
+        if (worker->work_callback != NULL) {
+            if (len > 0) memcpy(task->buf, buf, len);
             task->buf_len = len;
             task->fd = fd;
             task->opaque  = client->opaque;

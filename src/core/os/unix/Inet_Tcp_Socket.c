@@ -38,6 +38,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <netinet/tcp.h>
 #include <fcntl.h> 
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
@@ -144,12 +145,12 @@ static int __listen(Inet_Tcp_Socket *socket, int backlog)
 {
     int ret;
 
-    if (listen(socket->parent.fd, backlog) == -1) {
-        perror("listen error");
-        return -1;
-    }
+    TRY {
+        ret = listen(socket->parent.fd, backlog);
+        THROW_IF(ret < 0, -1);
+    } CATCH (ret) {}
 
-    return 1;
+    return ret;
 }
 
 static int __connect(Inet_Tcp_Socket *socket, char *host, char *service)
@@ -300,6 +301,27 @@ static int __setnonblocking(Inet_Tcp_Socket *socket)
     return 1;
 }
 
+static int __setkeepalive(Inet_Tcp_Socket *socket, int keep_alive, int keep_idle, int keep_intvl, int keep_cnt)
+{
+    int ret;
+
+    TRY {
+        ret = setsockopt(socket->parent.fd, SOL_SOCKET, SO_KEEPALIVE, (void *)&keep_alive, sizeof(keep_alive));
+        THROW_IF(ret != 0, -1);
+    
+        ret = setsockopt(socket->parent.fd, SOL_TCP, TCP_KEEPIDLE, (void*)&keep_idle, sizeof(keep_idle));
+        THROW_IF(ret != 0, -1);
+
+        ret = setsockopt(socket->parent.fd, SOL_TCP, TCP_KEEPINTVL, (void *)&keep_intvl, sizeof(keep_intvl));
+        THROW_IF(ret != 0, -1);
+    
+        ret = setsockopt(socket->parent.fd, SOL_TCP, TCP_KEEPCNT, (void *)&keep_cnt, sizeof(keep_cnt));
+        THROW_IF(ret != 0, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 static class_info_entry_t inet_tcp_socket_class_info[] = {
     Init_Obj___Entry(0 , Socket, parent),
     Init_Nfunc_Entry(1 , Inet_Tcp_Socket, construct, __construct),
@@ -317,8 +339,9 @@ static class_info_entry_t inet_tcp_socket_class_info[] = {
     Init_Vfunc_Entry(13, Inet_Tcp_Socket, getsockopt, __getsockopt),
     Init_Vfunc_Entry(14, Inet_Tcp_Socket, setsockopt, __setsockopt),
     Init_Vfunc_Entry(15, Inet_Tcp_Socket, setnonblocking, __setnonblocking),
-    Init_U32___Entry(16, Inet_Tcp_Socket, sub_socket_flag, 0),
-    Init_End___Entry(17, Inet_Tcp_Socket),
+    Init_Vfunc_Entry(16, Inet_Tcp_Socket, setkeepalive, __setkeepalive),
+    Init_U32___Entry(17, Inet_Tcp_Socket, sub_socket_flag, 0),
+    Init_End___Entry(18, Inet_Tcp_Socket),
 };
 REGISTER_CLASS(Inet_Tcp_Socket, inet_tcp_socket_class_info);
 

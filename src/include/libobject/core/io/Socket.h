@@ -40,6 +40,14 @@ struct socket_s{
     int (*setsockopt)(Socket *socket, sockoptval *val);
     int (*setnonblocking)(Socket *socket);
 
+    /* 
+     * keep_alive可以是双向的，即客户端可以主动给服务器发，或服务器主动给客户端发送。在使能了SO_KEEPALIVE后，即启用了保活机制。
+     * keep_idle, 当客户端与服务器没有交互数据达到TCP_KEEPIDLE的空闲时间后，TCP将会给对方发送探测包。
+     * keep_intvl, 如果上一次的探测包没有得到响应，那么将用TCP_KEEPINTVL作为下一次的探测包间隔。
+     * keep_cnt, 当连续发送了TCP_KEEPCNT次数的探测包都未收到响应后，本地将会释放当前连接资源，并且通知应用层连接断开。
+     */
+    int (*setkeepalive)(Socket *socket, int keep_alive, int keep_idle, int keep_intvl, int keep_cnt);
+
     int fd;
     char *local_host;
     char *local_service;

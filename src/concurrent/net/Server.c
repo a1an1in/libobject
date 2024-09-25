@@ -205,6 +205,7 @@ static int __trustee(Server *server, void *work_callback, void *opaque)
         server->opaque = opaque;
         socket->setnonblocking(socket);
         EXEC(socket->listen(socket, 1024));
+        EXEC(socket->setkeepalive(socket, 1, 60, 30, 3));
         worker->opaque = server;
         worker->assign(worker, fd, EV_READ | EV_PERSIST, NULL, 
                        (void *)__listenfd_ev_callback, worker, work_callback);

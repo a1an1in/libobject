@@ -31,6 +31,7 @@ struct inet_tcp_socket_s{
     int (*getsockopt)(Inet_Tcp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setsockopt)(Inet_Tcp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setnonblocking)(Inet_Tcp_Socket *socket);
+    int (*setkeepalive)(Inet_Tcp_Socket *socket, int keep_alive, int keep_idle, int keep_intvl, int keep_cnt);
 
     int sub_socket_flag;
 };
