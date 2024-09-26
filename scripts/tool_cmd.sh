@@ -129,29 +129,52 @@ function do_release {
 
 function do_deploy {
     if [[ $OPTION_PLATFORM == "linux" ]]; then
-        echo "do deploy package on linux"
+        echo "1.kill running xtools progess ..."
+        ret=$($expect_command_prefix "ssh" "root@$OPTION_IP" "ps -aux|grep "xtools" | grep -v grep | awk '{print \$2}'")
+        ret=$(echo "$ret" | tr -d '\r')
+        ret=$(echo "$ret" | awk 'NR >=3 {print $1}')
+        echo "ret:" $ret
+
+        array=(`echo $ret` )  
+        for element in "${array[@]}"
+        do
+            if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "kill -9" "$element"; then
+                echo "kill xtools process failed!"
+                exit 1
+            fi
+            echo "kill running xtools progess id: $element success"
+        done
+
+        echo "2.mkdir packages: $OPTION_TO_PATH"
         if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "mkdir -p $OPTION_TO_PATH"; then
             echo "uploading images failed!"
             exit 1
         fi
 
-        echo "copy package to $OPTION_IP:$OPTION_TO_PATH ..."
+        echo "3.copy package to $OPTION_IP:$OPTION_TO_PATH ..."
         if ! $expect_command_prefix "scp" $OPTION_PACKAGE_PATH "root@$OPTION_IP:$OPTION_TO_PATH"; then
             echo "uploading images failed!"
             exit 1
         fi
 
-        echo "mkdir ~/.xtools/sysroot/"
-        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "mkdir -p ~/.xtools/sysroot/"; then
+        echo "4.mkdir ~/.xtools/sysroot/"
+        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "rm -rf ~/.xtools/sysroot/ && mkdir -p ~/.xtools/sysroot/"; then
             echo "uploading images failed!"
             exit 1
         fi
 
-        echo "expand $(basename $OPTION_PACKAGE_PATH) to working dir ..."
+        echo "5.expand $(basename $OPTION_PACKAGE_PATH) to working dir ..."
         if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "tar -zxvf $OPTION_TO_PATH/$(basename $OPTION_PACKAGE_PATH) -C ~/.xtools/sysroot --strip-components 1"; then
             echo "uploading images failed!"
             exit 1
         fi
+
+        echo "6.run xtools program"
+        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "{ export LD_LIBRARY_PATH=~/.xtools/sysroot/lib:~/.xtools/sysroot/lib64:\$LD_LIBRARY_PATH&&nohup ~/.xtools/sysroot/bin/xtools node --log-level=0x20017 --host=0.0.0.0 --service=12345 --deamon=t; } >~/.xtools/logs 2>&1 &"; then
+            echo "run xtools program failed!"
+            exit 1
+        fi
+        echo "7.deploy xtools success!"
     else
         OPTION_HELP="true"
         return 0;
