@@ -177,7 +177,7 @@ int busd_reply_add_object(busd_t *busd, int state, char *object_id, int fd)
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_SUC, "busd_reply_add_object, object_id:%s, state:%d, fd:%d", object_id, state, fd);
+    dbg_str(BUS_VIP, "busd_reply_add_object, object_id:%s, state:%d, fd:%d", object_id, state, fd);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUSD_REPLY_ADD_OBJECT;
@@ -291,7 +291,7 @@ busd_forward_invoke(busd_t *busd, int src_fd, int dest_fd,
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_SUC, "busd_forward_invoke, object_id:%s, method:%s, source_fd:%d, dest_fd:%d", object_id, method, src_fd, dest_fd);
+    dbg_str(BUS_VIP, "busd_forward_invoke, object_id:%s, method:%s, source_fd:%d, dest_fd:%d", object_id, method, src_fd, dest_fd);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUSD_FORWARD_INVOKE;
@@ -367,7 +367,7 @@ int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, ui
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_SUC, "busd_reply_invoke, object_id:%s, method:%s, state:%d, source_fd:%d, dest_fd:%d", 
+    dbg_str(BUS_VIP, "busd_reply_invoke, object_id:%s, method:%s, state:%d, source_fd:%d, dest_fd:%d", 
             object_id, method, state, source_fd, dest_fd);
 
     memset(&hdr, 0, sizeof(hdr));

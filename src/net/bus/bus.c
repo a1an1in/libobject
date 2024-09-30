@@ -197,9 +197,9 @@ int bus_add_object(bus_t *bus, bus_object_t *obj)
 
     dbg_str(DBG_VIP, "bus_add_object, object_id:%s, object cname:%s", obj->id, obj->cname);
     memset(&hdr, 0, sizeof(hdr));
+    memcpy(bus->bus_object_id, obj->id, BUS_OBJECT_ID_LEN);
 
     hdr.type = BUS_REQ_ADD_OBJECT;
-
     bus_convert_object_to_json(bus, obj, object_infos);
     dbg_str(BUS_DETAIL, "object_infos:%s", object_infos);
     
@@ -235,6 +235,7 @@ int bus_handle_add_object_reply(bus_t *bus, blob_attr_t **attr)
     }
 
     if ( state == 1) {
+        bus->bus_object_added_flag = 1;
         dbg_str(BUS_SUC, "bus_handle_add_object_reply, add obj success, object_id:%s", blob_get_string(attr[BUS_OBJID]));
     } else {
         dbg_str(BUS_ERROR, "bus_handle_add_object_reply, bus add obj failed");
@@ -260,9 +261,6 @@ int bus_lookup(bus_t *bus, char *key)
     }
     blob_add_table_end(blob);
 
-    /*
-     *dbg_str(BUS_DETAIL, "run at here");
-     */
     memcpy(buffer, &hdr, sizeof(hdr));
     buffer_len = sizeof(hdr);
     /*
@@ -698,7 +696,7 @@ static int bus_process_receiving_data_callback(void *task)
     work_task_t *t = (work_task_t *)task;
     bus_t *bus = (bus_t *)t->opaque;
     allocator_t *allocator = bus->allocator;
-    Buffer *buffer;
+    Buffer *buffer = NULL;
     int len, buffer_len, blob_table_len, ret;
 
     TRY {

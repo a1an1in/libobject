@@ -157,6 +157,8 @@ struct bus_s {
 	Map *req_map;
     uint8_t req_key_size;
     uint8_t req_bucket_size;
+	char bus_object_id[BUS_OBJECT_ID_LEN];  //用于断链后恢复
+	uint8_t bus_object_added_flag;
 	void *opaque;
 };
 

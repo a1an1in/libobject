@@ -138,21 +138,24 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 
 ./devops.sh build --platform=linux
 ./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.1.31.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.1.32.tar.gz
 
 export LD_LIBRARY_PATH=~/.xtools/sysroot/lib:~/.xtools/sysroot/lib64:$LD_LIBRARY_PATH
 ldconfig
 
 nohup ~/.xtools/sysroot/bin/xtools node --log-level=0x30017 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30017 --host=139.159.231.27 --service=12345
-./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 82da5e9c727c3354e536dc1965a2e13c75e248f6@/root/.xtools/packages
-./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 4e35653990bb5c6de910dc706194b3a7ad43ec56@./tests/node/
+./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 14618cb64be02c6744ca9d6ee8a2ef449bbc219e@/root/.xtools/packages
+./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 62fffbedc737f176f61635a8220d84f704c12420@./tests/node/
+./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 62fffbedc737f176f61635a8220d84f704c12420@./tests/node/
 
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list a613960018e975bd3464093221277a4d1e356439@/root/.xtools/packages
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 55b781d4d15e7b244ec551622b2149c96fbbb22a@./tests/node/
 
-object_id:4e35653990bb5c6de910dc706194b3a7ad43ec56
+object_id:4f4118e9ce5f48692dd92c911365aff3b5e856e8
+object_id:62fffbedc737f176f61635a8220d84f704c12420
+69cdbe428e2945224aceafd0bd8aff1fa9a5fcc0
 ./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_node
 
 ```

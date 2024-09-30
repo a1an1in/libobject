@@ -69,7 +69,6 @@ static int __init(Node *node)
     TRY {
         THROW_IF(node->host == NULL || node->service == NULL, -1);
 
-        dbg_str(DBG_VIP, "node host:%s, service:%s", node->host, node->service);
         if (node->run_bus_deamon_flag == 1) {
             busd = busd_create(allocator, node->host,
                                node->service, SERVER_TYPE_INET_TCP);

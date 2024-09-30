@@ -170,7 +170,7 @@ function do_deploy {
         fi
 
         echo "6.run xtools program"
-        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "{ export LD_LIBRARY_PATH=~/.xtools/sysroot/lib:~/.xtools/sysroot/lib64:\$LD_LIBRARY_PATH&&nohup ~/.xtools/sysroot/bin/xtools node --log-level=0x20017 --host=0.0.0.0 --service=12345 --deamon=t; } >~/.xtools/logs 2>&1 &"; then
+        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "{ export LD_LIBRARY_PATH=~/.xtools/sysroot/lib:~/.xtools/sysroot/lib64:\$LD_LIBRARY_PATH&&nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools --log-level=0x20015 node --host=0.0.0.0 --service=12345 --deamon=t; } >~/.xtools/logs 2>&1 &"; then
             echo "run xtools program failed!"
             exit 1
         fi
