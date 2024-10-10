@@ -3,6 +3,7 @@
 
 #include <libobject/core/utils/blob/blob.h>
 #include <libobject/core/Map.h>
+#include <libobject/concurrent/Worker.h>
 #include <libobject/concurrent/work_task.h>
 #include <libobject/concurrent/net/api.h>
 
@@ -149,6 +150,8 @@ struct bus_s {
     char *server_host;
     char *server_srv;
     blob_t *blob;
+	Worker *timer_worker;
+	struct timeval ev_tv;
 
 	Map *obj_map;
     uint8_t key_size;
@@ -159,6 +162,7 @@ struct bus_s {
     uint8_t req_bucket_size;
 	char bus_object_id[BUS_OBJECT_ID_LEN];  //用于断链后恢复
 	uint8_t bus_object_added_flag;
+	uint8_t bus_object_off_line_flag;
 	void *opaque;
 };
 

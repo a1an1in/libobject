@@ -133,11 +133,18 @@ int bus_send(bus_t *bus,
     return ret;
 }
 
-int __bus_add_obj(bus_t *bus, bus_object_t *obj)
+int bus_save_obj(bus_t *bus, bus_object_t *obj)
 {
     Map *map = bus->obj_map;
+    int ret;
 
-    return map->add(map, obj->id, obj);
+    TRY {
+        ret = map->contain_key(map, obj->id);
+        THROW_IF(ret == 1, 0);  // 如果已经存在就不添加，恢复bus obj的时候有可能出现。
+        map->add(map, obj->id, obj);
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 int bus_convert_object_to_json(bus_t *bus, bus_object_t *obj, char *out)
@@ -220,7 +227,7 @@ int bus_add_object(bus_t *bus, bus_object_t *obj)
     dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
     bus_send(bus, buffer, buffer_len);
 
-    __bus_add_obj(bus, obj);
+    bus_save_obj(bus, obj);
     obj->bus = bus;
 
     return 0;
@@ -740,14 +747,53 @@ static int bus_process_receiving_data_callback(void *task)
         THROW_IF(cb == NULL, -1);
         EXEC(cb(bus, tb));
     } CATCH (ret) {} FINALLY {
-        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t) || t->buf_len <= 0) {
+        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t) || (t->buf_len <= 0)) {
             object_destroy(buffer);
             t->cache = NULL;
             dbg_str(BUS_DETAIL, "release task cache");
         }
+
+        /* 如果是bus service断链了，需要恢复*/
+        if ((t->buf_len <= 0) && (bus->bus_object_added_flag == 1)) {
+            bus->bus_object_off_line_flag = 1;
+            // client_revoke(bus->client);
+            client_destroy(bus->client);
+            bus->client = NULL;
+        }
     }
     
     return ret;
+}
+
+int bus_obj_map_add_obj_foreach_callback(void *key, void *element, void *arg)
+{
+    bus_t *bus = (bus_t *)arg;
+    int ret;
+
+    TRY {
+        if (element != NULL) bus_add_object(bus, element);
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static void bus_timer_callback(void *task)
+{
+    bus_t *bus = (bus_t *)task;
+    Map *map = bus->obj_map;
+    int ret;
+    
+    TRY {
+        THROW_IF(bus->bus_object_off_line_flag != 1, 0);
+
+        dbg_str(DBG_INFO, "bus_timer_callback have detected the object_id:%s offline", bus->bus_object_id);
+        bus->client = client(bus->allocator,  bus->client_sk_type, bus->server_host, bus->server_srv);
+        EXEC(client_connect(bus->client, bus->server_host, bus->server_srv));
+        EXEC(client_trustee(bus->client, NULL, bus_process_receiving_data_callback, bus));
+
+        map->for_each_arg(map, bus_obj_map_add_obj_foreach_callback, bus); // 断链后重新添加obj
+        bus->bus_object_off_line_flag = 0;
+    } CATCH (ret) {}
 }
 
 bus_t * bus_create(allocator_t *allocator, 
@@ -756,6 +802,7 @@ bus_t * bus_create(allocator_t *allocator,
                    char *socket_type)
 {
     bus_t *bus = NULL;
+    struct timeval *ev_tv;
     int ret;
     
     TRY {
@@ -765,6 +812,12 @@ bus_t * bus_create(allocator_t *allocator,
         bus_set(bus, "client_sk_type", socket_type, 0);
 
         EXEC(bus_init(bus, server_host, server_srv, bus_process_receiving_data_callback));
+
+        /* 构造一个定时器， 如果bus是service， 则会60 * 2秒尝试恢复链接， 后面会用退避算法优化这个定时器时间。 */
+        ev_tv = &bus->ev_tv;
+        ev_tv->tv_sec  = 60 * 2;
+        ev_tv->tv_usec = 0;
+        bus->timer_worker = timer_worker(allocator, EV_READ | EV_PERSIST, ev_tv, bus_timer_callback, bus);
     } CATCH (ret) { bus = NULL; }
 
     return bus;
@@ -778,6 +831,7 @@ int bus_destroy(bus_t *bus)
     object_destroy(bus->req_map);
     blob_destroy(bus->blob);
     client_destroy(bus->client);
+    client_destroy(bus->timer_worker);
     allocator_mem_free(bus->allocator, bus);
 
     return 1;

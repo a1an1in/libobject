@@ -143,10 +143,9 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 export LD_LIBRARY_PATH=~/.xtools/sysroot/lib:~/.xtools/sysroot/lib64:$LD_LIBRARY_PATH
 ldconfig
 
-nohup ~/.xtools/sysroot/bin/xtools node --log-level=0x30017 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
-./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30017 --host=139.159.231.27 --service=12345
-./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 14618cb64be02c6744ca9d6ee8a2ef449bbc219e@/root/.xtools/packages
-./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 62fffbedc737f176f61635a8220d84f704c12420@./tests/node/
+nohup ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
+./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30016 --host=139.159.231.27 --service=12345
+./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 69cdbe428e2945224aceafd0bd8aff1fa9a5fcc0@/root/.xtools/packages
 ./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 62fffbedc737f176f61635a8220d84f704c12420@./tests/node/
 
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345

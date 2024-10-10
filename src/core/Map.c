@@ -53,6 +53,7 @@ static int __deconstrcut(Map *map)
 
 static int __contain_key(Map *map, void *key)
 {
+    return map->search(map, key, NULL);
 }
 
 static int __contain_value(Map *map, void *value)
@@ -168,7 +169,7 @@ static class_info_entry_t map_class_info[] = {
     Init_Vfunc_Entry(4 , Map, set, NULL),
     Init_Vfunc_Entry(5 , Map, get, NULL),
     Init_Vfunc_Entry(6 , Map, add, NULL),
-    Init_Vfunc_Entry(7 , Map, contain_key, NULL),
+    Init_Vfunc_Entry(7 , Map, contain_key, __contain_key),
     Init_Vfunc_Entry(8 , Map, contain_value, NULL),
     Init_Vfunc_Entry(9 , Map, contain_key_and_value, NULL),
     Init_Vfunc_Entry(10, Map, search, NULL),
