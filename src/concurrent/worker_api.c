@@ -50,7 +50,6 @@ signal_worker_cb(int fd, short event, void *arg)
     return;
 }
 
-struct timeval lasttime;
 static void
 timer_worker_timeout_cb(int fd, short event, void *arg)
 {
@@ -59,12 +58,12 @@ timer_worker_timeout_cb(int fd, short event, void *arg)
     double elapsed;
 
     gettimeofday(&newtime, NULL);
-    timeval_sub(&newtime, &lasttime, &difference);
+    timeval_sub(&newtime, &worker->lasttime, &difference);
 
     elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
-    lasttime = newtime;
+    worker->lasttime = newtime;
 
-    dbg_str(DBG_SUC, "timeout_cb called at %d: %.3f seconds elapsed.", 
+    dbg_str(DBG_INFO, "timeout_cb called at %d: %.3f seconds elapsed.", 
             (int)newtime.tv_sec, elapsed);
     dbg_str(DBG_DETAIL, "arg addr:%p", arg);
     worker->work_callback(worker->opaque);
@@ -122,6 +121,7 @@ Worker *timer_worker(allocator_t *allocator, int ev_events,
     worker->assign(worker, -1, ev_events, ev_tv, 
                    timer_worker_timeout_cb, worker, 
                    work_callback);
+    gettimeofday(&worker->lasttime, NULL);
     worker->enroll(worker, producer);
 
     return worker;

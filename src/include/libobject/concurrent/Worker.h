@@ -33,6 +33,7 @@ struct worker_s{
     void *task;
     Socket *socket;
     int flags;
+    struct timeval lasttime;  //定时器用于记录上次运行worker的时间。
 };
 
 #endif

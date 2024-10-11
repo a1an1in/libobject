@@ -169,6 +169,35 @@ busd_create_bus_object(busd_t *busd, char *object_id, blob_attr_t *attr, int fd)
     return obj;
 }
 
+int busd_release_bus_object(busd_t *busd, int fd)
+{
+    Map *map = busd->obj_map;
+    struct busd_object *obj;
+    Iterator *cur, *end;
+    allocator_t *allocator;
+    void *key, *value;
+    int ret;
+
+    TRY {
+        cur = map->begin(map);
+        end = map->end(map);
+
+        for (; !end->equal(end, cur); cur->next(cur)) {
+            key = cur->get_kpointer(cur);
+            value = cur->get_vpointer(cur);
+            obj = (struct busd_object *)value;
+            if (obj->fd != fd) continue;
+            EXEC(map->remove(map, obj->id, NULL));
+            dbg_str(BUS_VIP, "busd release service, object_id:%s, fd:%d", obj->id, fd);
+            allocator = obj->allocator;
+            allocator_mem_free(allocator, obj->infos);
+            allocator_mem_free(allocator, obj);
+        }
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 int busd_reply_add_object(busd_t *busd, int state, char *object_id, int fd)
 {
     bus_reqhdr_t hdr;
@@ -490,7 +519,12 @@ static int busd_process_receiving_data_callback(void *task)
         if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t) || t->buf_len <= 0) {
             object_destroy(t->cache);
             t->cache = NULL;
-            dbg_str(BUS_DETAIL, "release task cache");
+            dbg_str(BUS_DETAIL, "busd release task cache");
+        }
+
+        /* 检测到bus service异常，需要释放bus obj */
+        if (t->buf_len <= 0) {
+            busd_release_bus_object(busd, t->fd);
         }
     }
 

@@ -27,12 +27,12 @@ int test_peroid_timer_worker(TEST_ENTRY *entry)
     TRY {
         sleep(1);
 
-        gettimeofday(&lasttime, NULL);
         ev_tv.tv_sec  = 2;
         ev_tv.tv_usec = 0;
 
         dbg_str(DBG_INFO, "opaque addr:%p", &ev_tv);
         worker = timer_worker(allocator, EV_READ | EV_PERSIST, &ev_tv, test_work_callback, &ev_tv);
+        gettimeofday(&worker->lasttime, NULL);
 
         sleep(10);
         THROW_IF(peroid_timer_counter < 4, -1);

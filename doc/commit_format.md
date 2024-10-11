@@ -1,8 +1,8 @@
-[update:bus] 新增bus断链后恢复机制。
+[update:bus] 新增bus断链后busd清理机制。
 
 Description:
-如果busd掉线后，所有的bus都需要重启才能恢复正常。
-这样就会在实际使用的出现问题， 所以新增bus恢复机制。
+之前busd没有bus处理掉线情况， 这样会导致不可用的
+服务越来越多。
 
 Major Changes:
-1. 新增定时器, 断链后恢复bus service。
+1. busd清理关闭的服务。

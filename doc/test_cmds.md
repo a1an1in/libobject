@@ -148,6 +148,9 @@ nohup ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --ser
 ./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 69cdbe428e2945224aceafd0bd8aff1fa9a5fcc0@/root/.xtools/packages
 ./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 62fffbedc737f176f61635a8220d84f704c12420@./tests/node/
 
+./sysroot/linux/bin/xtools node --log-level=0x30016 --host=127.0.0.1 --service=12345 --deamon=t
+./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30016 --host=127.0.0.1 --service=12345
+
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list a613960018e975bd3464093221277a4d1e356439@/root/.xtools/packages
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 55b781d4d15e7b244ec551622b2149c96fbbb22a@./tests/node/
