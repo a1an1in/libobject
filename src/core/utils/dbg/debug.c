@@ -55,6 +55,10 @@
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/io/file_system_api.h>
 
+#if (defined(WINDOWS_USER_MODE))
+#include <windows.h>
+#endif
+
 debugger_t *debugger_gp;
 debugger_module_t debugger_modules[MAX_DEBUGGER_MODULES_NUM];
 
@@ -192,8 +196,6 @@ int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt,
     uint8_t level = dbg_switch & 0xff;
     char fmt_str[MAX_DBG_STR_LEN] = {0};
     char *level_str;
-    struct timeval tv;
-    struct tm *local_time;
     char *time_str[20] = {0};
 
     /* business print switch */
@@ -211,13 +213,25 @@ int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt,
     va_end(ap);
     level_str = (char *)debugger_get_level_str(debugger, level);
 
+#if (defined(WINDOWS_USER_MODE))
+    SYSTEMTIME local_time;
+    GetLocalTime(&local_time);
+    sprintf(time_str,"%d-%02d-%02d %02d:%02d:%02d %03ldms", 
+            local_time.wYear, local_time.wMonth, 
+            local_time.wDay, local_time.wHour, 
+            local_time.wMinute, local_time.wSecond,
+            local_time.wMilliseconds);
+#else
+    struct tm *local_time;
+    struct timeval tv;
     gettimeofday(&tv, NULL);
     local_time = localtime(&tv.tv_sec);
-    sprintf(time_str,"%d-%d-%d %d:%d:%d %ld.%03ld", 
+    sprintf(time_str,"%d-%02d-%02d %02d:%02d:%02d %03ld.%03ldms", 
             local_time->tm_year + 1900, local_time->tm_mon + 1, 
             local_time->tm_mday, local_time->tm_hour, 
             local_time->tm_min, local_time->tm_sec,
             tv.tv_usec / 1000, tv.tv_usec % 1000);
+#endif
 
     ret = debugger->dbg_ops->dbg_string(debugger,
                                         level,
@@ -245,6 +259,7 @@ int debugger_dbg_buf(debugger_t *debugger,
     char buffer_str[MAX_BUFFER_STR_LEN] = {0};
     char fmt_str[MAX_DBG_STR_LEN];
     char *level_str;
+    char *time_str[20] = {0};
 
     if (!debugger_is_business_switch_on(debugger, business_num)) {
         return -1;
@@ -259,9 +274,30 @@ int debugger_dbg_buf(debugger_t *debugger,
     va_end(ap);
     level_str = (char*)debugger_get_level_str(debugger, level);
 
+#if (defined(WINDOWS_USER_MODE))
+    SYSTEMTIME local_time;
+    GetLocalTime(&local_time);
+    sprintf(time_str,"%d-%02d-%02d %02d:%02d:%02d %03ldms", 
+            local_time.wYear, local_time.wMonth, 
+            local_time.wDay, local_time.wHour, 
+            local_time.wMinute, local_time.wSecond,
+            local_time.wMilliseconds);
+#else
+    struct tm *local_time;
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    local_time = localtime(&tv.tv_sec);
+    sprintf(time_str,"%d-%02d-%02d %02d:%02d:%02d %03ld.%03ldms", 
+            local_time->tm_year + 1900, local_time->tm_mon + 1, 
+            local_time->tm_mday, local_time->tm_hour, 
+            local_time->tm_min, local_time->tm_sec,
+            tv.tv_usec / 1000, tv.tv_usec % 1000);
+#endif
+
     ret = debugger->dbg_ops->dbg_string(debugger, 
                                         level, 
-                                        "[%s]--[%s%s]--%s", 
+                                        "[%s, %s]--[%s%s]--%s",
+                                        time_str,
                                         level_str, 
                                         const_str, 
                                         buffer_str, 
