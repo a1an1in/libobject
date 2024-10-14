@@ -47,6 +47,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 #include <libobject/basic_types.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/dbg/debug_string.h>
@@ -81,14 +82,14 @@ void debugger_set_level_info(debugger_t *debugger,
 }
 void debugger_set_level_infos(debugger_t *debugger)
 {
-    debugger_set_level_info(debugger, DBG_PANIC,     (DBG_PANIC_COLOR),    "DBG_PANIC");
-    debugger_set_level_info(debugger, DBG_FATAL,     (DBG_FATAL_COLOR),    "DBG_FATAL");
-    debugger_set_level_info(debugger, DBG_ERROR,     (DBG_ERROR_COLOR),    "DBG_ERROR");
-    debugger_set_level_info(debugger, DBG_WARN,      (DBG_WARN_COLOR),     "DBG_WARN");
-    debugger_set_level_info(debugger, DBG_SUC,       (DBG_SUC_COLOR),      "DBG_SUC");
-    debugger_set_level_info(debugger, DBG_VIP,       (DBG_VIP_COLOR),      "DBG_VIP");
-    debugger_set_level_info(debugger, DBG_INFO,      (DBG_INFO_COLOR),     "DBG_INFO");
-    debugger_set_level_info(debugger, DBG_DETAIL,    (DBG_DETAIL_COLOR),   "DBG_DETAIL");
+    debugger_set_level_info(debugger, DBG_PANIC,     (DBG_PANIC_COLOR),    "PANIC");
+    debugger_set_level_info(debugger, DBG_FATAL,     (DBG_FATAL_COLOR),    "FATAL");
+    debugger_set_level_info(debugger, DBG_ERROR,     (DBG_ERROR_COLOR),    "ERROR");
+    debugger_set_level_info(debugger, DBG_WARN,      (DBG_WARN_COLOR),     "WARN");
+    debugger_set_level_info(debugger, DBG_SUC,       (DBG_SUC_COLOR),      "SUC");
+    debugger_set_level_info(debugger, DBG_VIP,       (DBG_VIP_COLOR),      "VIP");
+    debugger_set_level_info(debugger, DBG_INFO,      (DBG_INFO_COLOR),     "INFO");
+    debugger_set_level_info(debugger, DBG_DETAIL,    (DBG_DETAIL_COLOR),   "DETAIL");
 }
 uint8_t debugger_get_level_color(debugger_t *debugger, uint32_t level)
 {
@@ -191,6 +192,9 @@ int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt,
     uint8_t level = dbg_switch & 0xff;
     char fmt_str[MAX_DBG_STR_LEN] = {0};
     char *level_str;
+    struct timeval tv;
+    struct tm *local_time;
+    char *time_str[20] = {0};
 
     /* business print switch */
     if (!debugger_is_business_switch_on(debugger, business_num)) {
@@ -206,9 +210,19 @@ int debugger_dbg_str(debugger_t *debugger, uint32_t dbg_switch, const char *fmt,
     vsnprintf(fmt_str, MAX_DBG_STR_LEN, fmt, ap);
     va_end(ap);
     level_str = (char *)debugger_get_level_str(debugger, level);
+
+    gettimeofday(&tv, NULL);
+    local_time = localtime(&tv.tv_sec);
+    sprintf(time_str,"%d-%d-%d %d:%d:%d %ld.%03ld", 
+            local_time->tm_year + 1900, local_time->tm_mon + 1, 
+            local_time->tm_mday, local_time->tm_hour, 
+            local_time->tm_min, local_time->tm_sec,
+            tv.tv_usec / 1000, tv.tv_usec % 1000);
+
     ret = debugger->dbg_ops->dbg_string(debugger,
                                         level,
-                                        "[%s]--%s",
+                                        "[%s, %s]-%s",
+                                        time_str,
                                         level_str,
                                         fmt_str);
     sync_unlock(&debugger->lock);
