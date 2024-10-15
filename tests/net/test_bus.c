@@ -20,8 +20,6 @@ static int test_hello(bus_object_t *obj,
     char *content;
     int id;
 
-    dbg_str(DBG_SUC,"run test hello");
-
     id = blob_get_uint32(args[0]);
     content = blob_get_string(args[1]);
 
@@ -82,7 +80,9 @@ static int __test_bus_invoke_sync()
 
         EXEC(bus_invoke_sync(bus, "test", "hello", 2, args, out, &out_len));
         dbg_buf(DBG_VIP, "return buffer:", (uint8_t *)out, out_len);
-        THROW_IF(assert_equal(out, expert_buffer, sizeof(expert_buffer)) != 1, 0);
+        THROW_IF(assert_equal(out, expert_buffer, sizeof(expert_buffer)) != 1, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);
     }
@@ -90,7 +90,7 @@ static int __test_bus_invoke_sync()
     return ret;
 }
 
-static int __test_bus_lookup_sync()
+static int __test_bus_lookup_one_sync()
 {
     allocator_t *allocator = allocator_get_default_instance();
     bus_t *bus;
@@ -101,13 +101,38 @@ static int __test_bus_lookup_sync()
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "test_bus_client");
-
         bus = bus_create(allocator, deamon_host, deamon_srv, CLIENT_TYPE_INET_TCP);
         THROW_IF(bus == NULL, -1);
         bus_lookup_sync(bus, "test", out, &out_len);
 
-        THROW_IF(strstr(out, "test") == NULL, 0);
+        THROW_IF(strstr(out, "test") == NULL, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {
+        bus_destroy(bus);
+    }
+	
+    return ret;
+}
+
+static int __test_bus_lookup_all_sync()
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    bus_t *bus;
+    char *deamon_host = "127.0.0.1";
+    char *deamon_srv  = "12345";
+	char out[1024];
+    int out_len = 1024;
+    int ret;
+
+    TRY {
+        bus = bus_create(allocator, deamon_host, deamon_srv, CLIENT_TYPE_INET_TCP);
+        THROW_IF(bus == NULL, -1);
+        bus_lookup_sync(bus, "all", out, &out_len);
+
+        THROW_IF(strstr(out, "all") == NULL, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);
     }
@@ -128,22 +153,20 @@ static int test_bus()
     
     TRY {
         sleep(1);
-        dbg_str(DBG_VIP,"test create busd_daemon");
         busd = busd_create(allocator, deamon_host,
                            deamon_srv, SERVER_TYPE_INET_TCP);
         THROW_IF(busd == NULL, -1);
 
-        dbg_str(DBG_VIP,"test create bus service");
         bus = bus_create(allocator, deamon_host,
                          deamon_srv, CLIENT_TYPE_INET_TCP);
         THROW_IF(bus == NULL, -1);
 
-        dbg_str(DBG_VIP, "bus add object");
         memcpy(test_object.id, "test", strlen("test"));
         bus_add_object(bus, &test_object);
 
         EXEC(__test_bus_invoke_sync());
-        EXEC(__test_bus_lookup_sync());
+        // EXEC(__test_bus_lookup_one_sync());
+        EXEC(__test_bus_lookup_all_sync());
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);
         usleep(1000); 

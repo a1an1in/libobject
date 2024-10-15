@@ -63,7 +63,7 @@ timer_worker_timeout_cb(int fd, short event, void *arg)
     elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
     worker->lasttime = newtime;
 
-    dbg_str(DBG_INFO, "timeout_cb called at %d: %.3f seconds elapsed.", 
+    dbg_str(DBG_DETAIL, "timeout_cb called at %d: %.3f seconds elapsed.", 
             (int)newtime.tv_sec, elapsed);
     dbg_str(DBG_DETAIL, "arg addr:%p", arg);
     worker->work_callback(worker->opaque);

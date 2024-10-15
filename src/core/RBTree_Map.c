@@ -148,7 +148,7 @@ static int __search_all_same_key(Map *map, void *key, List *list)
             value  = mnode->value;
             list->add(list, value);
             __find_same_key_node(rbtree_map, node->rb_left, key_cmp_func , key, list);
-            __find_same_key_node(rbtree_map, node->rb_right, key_cmp_func,  key, list);
+            __find_same_key_node(rbtree_map, node->rb_right, key_cmp_func, key, list);
             break;
         }
     }

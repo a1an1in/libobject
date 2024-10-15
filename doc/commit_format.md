@@ -1,8 +1,9 @@
-[update:bus] 新增bus断链后busd清理机制。
+[update:node] 新增node查询service。
 
 Description:
-之前busd没有bus处理掉线情况， 这样会导致不可用的
-服务越来越多。
+目前node不能查询service，导致不知道当前哪些服务在运行，
+调试非常不方便，所以需要新增这个特性。
 
 Major Changes:
-1. busd清理关闭的服务。
+1. 优化dbg。
+2. 新增部分node查询service实现， 目前还未通过测试。

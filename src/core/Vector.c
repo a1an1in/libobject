@@ -236,7 +236,7 @@ static int __reset(Vector *vector)
             class_name = vector->get(vector, "/Vector/class_name");
             if (*class_name != NULL) {
                 int (*free_method)(allocator_t *, void *);
-                dbg_str(DBG_DETAIL, "vector strcut adapter class name:%s", STR2A(*class_name));
+                // dbg_str(DBG_DETAIL, "vector strcut adapter class name:%s", STR2A(*class_name));
                 free_method = object_get_member_of_class(STR2A(*class_name), "free");
                 if (free_method == NULL) return -1;
                 free_method(vector->obj.allocator, element);
@@ -298,7 +298,7 @@ static char *__to_json(Obj *obj)
             //因为这个是定制化的、多变的， 没法加入g_vector_to_json_policy。
             class_name = vector->get(vector, "/Vector/class_name");
             if (*class_name != NULL) {
-                dbg_str(DBG_INFO, "vector strcut adapter class name:%s", STR2A(*class_name));
+                // dbg_str(DBG_INFO, "vector strcut adapter class name:%s", STR2A(*class_name));
                 policy = object_get_member_of_class(STR2A(*class_name), "to_json");
                 if (policy == NULL) return -1;
             } else {
@@ -382,7 +382,7 @@ static int __assign(Vector *vector, char *value)
                 sp2 = vector->get(vector, "/Vector/class_name");
                 value_type = VALUE_TYPE_STRUCT_POINTER;
                 if (*sp2 != NULL) {
-                    dbg_str(DBG_DETAIL, "vector strcut adapter class name:%s", STR2A(*sp2));
+                    // dbg_str(DBG_DETAIL, "vector strcut adapter class name:%s", STR2A(*sp2));
                     new_method = object_get_member_of_class(STR2A(*sp2), "new");
                     if (new_method == NULL) return -1;
                 } else {

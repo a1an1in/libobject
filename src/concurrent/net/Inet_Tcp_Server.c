@@ -40,12 +40,12 @@ static int __construct(Inet_Tcp_Server *server, char *init_str)
     allocator_t *allocator = server->parent.obj.allocator;
     int opt = 1;
 
-    dbg_str(NET_DETAIL, "Inet_Tcp_Server construct, server addr:%p", server);
     server->parent.socket = object_new(allocator, "Inet_Tcp_Socket", NULL);
     if (server->parent.socket == NULL) {
         dbg_str(NET_ERROR, "new Inet_Udp_Socket error");
         return -1;
     }
+    dbg_str(DBG_VIP, "Inet_Tcp_Server construct, server fd:%d", server->parent.socket->fd);
 
     server->parent.worker = object_new(allocator, "Worker", NULL);
     if (server->parent.worker == NULL) {

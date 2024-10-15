@@ -136,28 +136,31 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./devops.sh build --platform=windows
 ./devops.sh docker --install --platform=linux    #install docker at linux platform
 
-./devops.sh build --platform=linux
-./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.1.32.tar.gz
-
 export LD_LIBRARY_PATH=~/.xtools/sysroot/lib:~/.xtools/sysroot/lib64:$LD_LIBRARY_PATH
 ldconfig
 
+0.mockery 测试
+./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_node
+
+1.本地测试
+./sysroot/linux/bin/xtools --event-thread-service=11111 --event-signal-service=11112 node --log-level=0x30016 --host=127.0.0.1 --service=12345 --deamon=t
+./sysroot/linux/bin/xtools --event-thread-service=11121 --event-signal-service=11122 node --log-level=0x30016 --host=127.0.0.1 --service=12345
+
+2.线上测试
+./devops.sh build --platform=linux
+./devops.sh release -p=linux
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.14.tar.gz
+
 nohup ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30016 --host=139.159.231.27 --service=12345
-./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 69cdbe428e2945224aceafd0bd8aff1fa9a5fcc0@/root/.xtools/packages
-./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 62fffbedc737f176f61635a8220d84f704c12420@./tests/node/
-
-./sysroot/linux/bin/xtools node --log-level=0x30016 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30016 --host=127.0.0.1 --service=12345
+./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 0c4fd7b4ee0e73f4318d1ccee7ac41a8ab77ffd5@/root/.xtools/packages
+./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 48f29a4cea9e07ec417f2cd8b5bbeb7959c68b6f@./tests/node/
 
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list a613960018e975bd3464093221277a4d1e356439@/root/.xtools/packages
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 55b781d4d15e7b244ec551622b2149c96fbbb22a@./tests/node/
 
-object_id:4f4118e9ce5f48692dd92c911365aff3b5e856e8
-object_id:62fffbedc737f176f61635a8220d84f704c12420
-69cdbe428e2945224aceafd0bd8aff1fa9a5fcc0
-./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_node
-
+object_id:0ee9e556f0abe5bc4fb31779bfdcb3426b0b9484
+object_id:dc2cb3a1a31c4a49499dfa30891fe31ff92b32d1
+./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_bus
 ```

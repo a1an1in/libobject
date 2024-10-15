@@ -174,9 +174,7 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
         THROW_IF((new_worker = __get_worker(server)) == NULL, -1);
         new_socket = new_worker->socket;
         new_socket->fd = new_fd;
-
-        dbg_str(NET_VIP, "listenfd_ev_callback, new fd = %d, sizeof(worker)=%d, sizeof(socket)=%d",
-                new_socket->fd, sizeof(Worker), sizeof(Socket));
+        dbg_str(DBG_VIP, "listenfd_ev_callback, new fd = %d", new_socket->fd);
 
         new_worker->opaque = server;
         new_worker->assign(new_worker, new_socket->fd, EV_READ | EV_PERSIST, NULL, 

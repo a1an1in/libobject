@@ -262,41 +262,54 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
     uint8_t buffer[BLOB_BUFFER_MAX_SIZE];
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
+    Map *map = busd->obj_map;
+    int ret;
 
-    dbg_str(BUS_VIP, "busd_reply_lookup_object, object_id:%s, fd:%d", obj->id, fd);
-    memset(&hdr, 0, sizeof(hdr));
+    TRY {
+        memset(&hdr, 0, sizeof(hdr));
+        hdr.type = BUSD_REPLY_LOOKUP;
 
-    hdr.type = BUSD_REPLY_LOOKUP;
+        blob_reset(blob);
+        blob_add_table_start(blob, (char *)"lookup_reply");
+        if (obj == NULL) {
+            blob_add_string(blob, (char *)"object_id", "all");
+            blob_add_string(blob, (char *)"object_infos", "hello world all");
+        } else {
+            dbg_str(BUS_VIP, "busd_reply_lookup_object, object_id:%s, fd:%d", obj->id, fd);
+            blob_add_string(blob, (char *)"object_id", obj->id);
+            blob_add_string(blob, (char *)"object_infos", obj->infos);
+        }
+        blob_add_table_end(blob);
 
-    blob_reset(blob);
-    blob_add_table_start(blob, (char *)"lookup_reply"); {
-        blob_add_string(blob, (char *)"object_id", obj->id);
-        blob_add_string(blob, (char *)"object_infos", obj->infos);
-    }
-    blob_add_table_end(blob);
+        memcpy(buffer, &hdr, sizeof(hdr));
+        buffer_len = sizeof(hdr);
+        memcpy(buffer + buffer_len, (uint8_t *)blob->head,
+            blob_get_len((blob_attr_t *)blob->head));
+        buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
-    memcpy(buffer, &hdr, sizeof(hdr));
-    buffer_len = sizeof(hdr);
-    memcpy(buffer + buffer_len, (uint8_t *)blob->head,
-           blob_get_len((blob_attr_t *)blob->head));
-    buffer_len += blob_get_len((blob_attr_t *)blob->head);
+        dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
+        send(fd, buffer, buffer_len, 0);
+    } CATCH (ret) {}
 
-    dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
-
-    send(fd, buffer, buffer_len, 0);  
-
-    return 0;
+    return ret;
 }
 
 int busd_handle_lookup_object(busd_t *busd, blob_attr_t **attr, int fd)
 {
     struct busd_object *obj = NULL;
     Map *map = busd->obj_map;
+    char *key;
     int ret;
 
-    if (attr[BUSD_OBJID]) {
-        char *key = blob_get_string(attr[BUSD_OBJID]);
-        if (key != NULL) {
+    TRY {
+        THROW_IF(attr[BUSD_OBJID] == NULL, -1);
+        key = blob_get_string(attr[BUSD_OBJID]);
+        THROW_IF(key == NULL, -1);
+
+        if (strcmp(key, "all") == 0) {
+            dbg_str(BUS_INFO, "busd_handle_lookup_object all");
+            busd_reply_lookup_object(busd, NULL, fd);
+        } else {
             ret = map->search(map, key, (void **)&obj);
             if (ret > 0) {
                 dbg_str(BUS_DETAIL, "obj addr:%p", obj);
@@ -304,9 +317,9 @@ int busd_handle_lookup_object(busd_t *busd, blob_attr_t **attr, int fd)
                 busd_reply_lookup_object(busd, obj, fd);
             }
         }
-    }
+    } CATCH (ret) {}
 
-    return 0;
+    return ret;
 }
 
 int 
@@ -476,7 +489,7 @@ static int busd_process_receiving_data_callback(void *task)
 
     TRY {
         THROW_IF(t->buf_len <= 0, 0);
-        dbg_buf(BUS_DETAIL, "busd receive:", (uint8_t *)t->buf, t->buf_len);
+        dbg_buf(BUS_INFO, "busd receive:", (uint8_t *)t->buf, t->buf_len);
 
         /* 1.将数据写入cache */
         if (t->cache == NULL) {
@@ -495,7 +508,8 @@ static int busd_process_receiving_data_callback(void *task)
          *   说明数据有可能有分片，需要返回直到收集完全后往后处理。 */
         blob_attr = (blob_attr_t *)((char *)buffer->addr + sizeof(bus_reqhdr_t));
         blob_table_len = blob_get_len(blob_attr);
-        THROW_IF(buffer_len - sizeof(bus_reqhdr_t) < blob_table_len, 0);
+        THROW_IF(buffer_len - sizeof(bus_reqhdr_t) < blob_table_len, 0); //数据没有收齐，返回等待下一次读信号。
+        THROW_IF(blob_table_len < buffer_len - sizeof(bus_reqhdr_t), -1); //数据异常，接受到比期望多的数据。
         
         /* 4.获取table 长度和内容的首地址 */
         len = blob_get_data_len(blob_attr);
@@ -515,15 +529,17 @@ static int busd_process_receiving_data_callback(void *task)
         cb = handlers[hdr->type];
         THROW_IF(cb == NULL, -1);
         EXEC(cb(busd, tb, t->fd));
-    } CATCH (ret) {} FINALLY {
-        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t) || t->buf_len <= 0) {
+    } CATCH (ret) { 
+        dbg_str(BUS_ERROR, "busd_process_receiving_data_callback error, task fd:%d, buf_len:%d", t->fd, t->buf_len);
+    } FINALLY {
+        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t) || t->buf_len <= 0 || ret < 0) {
             object_destroy(t->cache);
             t->cache = NULL;
-            dbg_str(BUS_DETAIL, "busd release task cache");
         }
 
         /* 检测到bus service异常，需要释放bus obj */
         if (t->buf_len <= 0) {
+            dbg_str(BUS_INFO, "busd release bus object, task fd:%d, ret:%d, buf_len:%d", t->fd, ret, t->buf_len);
             busd_release_bus_object(busd, t->fd);
         }
     }
