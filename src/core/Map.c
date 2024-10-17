@@ -161,6 +161,62 @@ static int __destroy(Map *map)
     dbg_str(OBJ_DETAIL, "Map destroy");
 }
 
+static char *__to_json(Map *map)
+{
+    int (*policy)(cjson_t *root, void *element);
+    Iterator *cur, *end;
+    void *key, *value;
+    cjson_t *root;
+    String *json = (String *)map->obj.json;
+    String **class_name;
+    void *element = NULL;
+    char *out;
+    int index = 0;
+    int ret = 0;
+
+    TRY {
+        if (json == NULL) {
+            json = object_new(map->obj.allocator, "String", NULL);
+            map->obj.json = json;
+        } else {
+            json->reset(json);
+        }
+
+        cur = map->begin(map), end = map->end(map);
+        root = cjson_create_array();
+
+        for (; !end->equal(end, cur); cur->next(cur)) {
+            key = cur->get_kpointer(cur);
+            element = cur->get_vpointer(cur);
+            if (element == NULL) {continue;}
+
+            if (map->value_type == VALUE_TYPE_STRUCT_POINTER) {
+                //因为这个是定制化的、多变的， 没法加入g_vector_to_json_policy。
+                class_name = map->get(map, "/Map/class_name");
+                THROW_IF(*class_name == NULL, -1);
+                policy = object_get_member_of_class(STR2A(*class_name), "to_json");
+            } else if (map->value_type == VALUE_TYPE_STRING_POINTER || map->value_type == VALUE_TYPE_OBJ_POINTER){
+                policy = g_map_to_json_policy[map->value_type].policy;
+            } else {
+                dbg_str(DBG_ERROR, "map not supported to_json value_type:%d", map->value_type);
+                THROW(-1);
+            }
+            
+            if (policy == NULL) { continue; }
+            EXEC(policy(root, element));
+            element = NULL;
+        }
+
+        out = cjson_print(root);
+        json->assign(json, out);
+    } CATCH (ret) {} FINALLY {
+        cjson_delete(root);
+        free(out);
+    }
+
+    return ret < 0 ? NULL: json->get_cstr(json);
+}
+
 static class_info_entry_t map_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , Map, construct, __construct),
@@ -183,12 +239,44 @@ static class_info_entry_t map_class_info[] = {
     Init_Vfunc_Entry(18, Map, destroy, __destroy),
     Init_Vfunc_Entry(19, Map, count, NULL),
     Init_Vfunc_Entry(20, Map, reset, __reset),
-    Init_Vfunc_Entry(21, Map, set_cmp_func, NULL),
-    Init_U8____Entry(22, Map, trustee_flag, NULL),
-    Init_U8____Entry(23, Map, value_type, NULL),
-    Init_U8____Entry(24, Map, key_type, NULL),
-    Init_Point_Entry(25, Map, value_free_callback, NULL),
-    Init_Str___Entry(26, Map, class_name, NULL),
-    Init_End___Entry(27, Map),
+    Init_Vfunc_Entry(21, Map, to_json, __to_json),
+    Init_Vfunc_Entry(22, Map, set_cmp_func, NULL),
+    Init_U8____Entry(23, Map, trustee_flag, NULL),
+    Init_U8____Entry(24, Map, value_type, NULL),
+    Init_U8____Entry(25, Map, key_type, NULL),
+    Init_Point_Entry(26, Map, value_free_callback, NULL),
+    Init_Str___Entry(27, Map, class_name, NULL),
+    Init_End___Entry(28, Map),
 };
 REGISTER_CLASS(Map, map_class_info);
+
+static int __map_to_json_string_policy(cjson_t *root, void *element)
+{
+    cjson_t *item = NULL;
+    String *s = (String *)element;
+
+    item = cjson_create_string(s->get_cstr(s));
+    if (item != NULL) {
+        cjson_add_item_to_array(root, item);
+    }
+
+    return 1;
+}
+
+static int __map_to_json_object_pointer_policy(cjson_t *root, void *element)
+{
+    cjson_t *item = NULL;
+    Obj *o = (Obj *)element;
+
+    item = cjson_parse(o->to_json(o));
+    if (item != NULL) {
+        cjson_add_item_to_array(root, item);
+    }
+
+    return 1;
+}
+
+map_to_json_policy_t g_map_to_json_policy[ENTRY_TYPE_MAX_TYPE] = {
+    [VALUE_TYPE_STRING_POINTER] = {.policy = __map_to_json_string_policy},
+    [VALUE_TYPE_OBJ_POINTER]    = {.policy = __map_to_json_object_pointer_policy},
+};

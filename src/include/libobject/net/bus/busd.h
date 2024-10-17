@@ -5,6 +5,7 @@
 #include <libobject/core/utils/data_structure/vector.h>
 #include <libobject/core/utils/blob/blob.h>
 #include <libobject/core/Map.h>
+#include <libobject/core/Struct_Adapter.h>
 #include <libobject/concurrent/net/Server.h>
 
 #define BUSD_OBJECT_ID_LEN 41
@@ -24,6 +25,8 @@ enum {
 typedef struct busd_task_s {
     int fd;
 } busd_task_t;
+
+typedef Struct_Adapter Busd_Object_Struct_Adapter;
 
 typedef struct busd_s {
     allocator_t *allocator;

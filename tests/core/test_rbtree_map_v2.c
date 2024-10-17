@@ -36,6 +36,7 @@
 #include <libobject/core/Linked_List.h>
 #include <libobject/core/Array_Stack.h>
 #include <libobject/core/Map.h>
+#include <libobject/net/bus/busd.h>
 #include <libobject/mockery/mockery.h>
 
 struct test{
@@ -471,3 +472,102 @@ static int test_rbtree_map_v2_search_all_int_key(TEST_ENTRY *entry)
     return ret;
 }
 REGISTER_TEST_FUNC(test_rbtree_map_v2_search_all_int_key);
+
+static int test_rbtree_map_v2_to_json_for_string(TEST_ENTRY *entry)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    Map *map;
+    String *t0, *t1, *t2, *t3, *t4, *t5;
+    char *json;
+    int count, expect_count = 0, expect_alloc_count;
+    int trustee_flag = 1;
+    int value_type = VALUE_TYPE_STRING_POINTER;
+    char *expect = "[\"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\"]";
+    int ret = 0;
+
+    TRY {
+        map = object_new(allocator, "RBTree_Map", NULL);
+        expect_alloc_count = allocator->alloc_count;
+
+        t0 = object_new(allocator, "String", "Monday");
+        t1 = object_new(allocator, "String", "Tuesday");
+        t2 = object_new(allocator, "String", "Wednesday");
+        t3 = object_new(allocator, "String", "Thursday");
+        t4 = object_new(allocator, "String", "Friday");
+        t5 = object_new(allocator, "String", "Saturday");
+
+        map->set(map, "/Map/trustee_flag", &trustee_flag);
+        map->set(map, "/Map/value_type", &value_type);
+        map->add(map, "test0", t0);
+        map->add(map, "test1", t1);
+        map->add(map, "test2", t2);
+        map->add(map, "test3", t3);
+        map->add(map, "test4", t4);
+        map->add(map, "test5", t5);
+        
+        json = map->to_json(map);
+        dbg_str(DBG_VIP, "map to json:%s", json);
+        THROW_IF(strcmp(json, expect) != 0, -1);
+    } CATCH (ret) {} FINALLY {
+        object_destroy(map);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_rbtree_map_v2_to_json_for_string);
+
+static int test_rbtree_map_v2_to_json_for_struct(TEST_ENTRY *entry)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    Map *map;
+    struct busd_object t1, t2, t3, t4, t5;
+    int count, expect_count = 0, expect_alloc_count;
+    int value_type = VALUE_TYPE_STRUCT_POINTER;
+    String *s1, *s2;
+    char *expect = "[{\"id\":\"1\",\"infos\":\"hello1\",\"fd\":2},\
+                     {\"id\":\"2\",\"infos\":\"hello2\",\"fd\":3},\
+                     {\"id\":\"3\",\"infos\":\"hello3\",\"fd\":4},\
+                     {\"id\":\"4\",\"infos\":\"hello4\",\"fd\":5},\
+                     {\"id\":\"5\",\"infos\":\"hello5\",\"fd\":6}]";
+    int ret = 0;
+
+    TRY {
+        map = object_new(allocator, "RBTree_Map", NULL);
+
+        t1.id[0] = '1', t1.fd = 1, t1.infos = "hello1";
+        t2.id[0] = '2', t2.fd = 2, t2.infos = "hello2";
+        t3.id[0] = '3', t3.fd = 3, t3.infos = "hello3";
+        t4.id[0] = '4', t4.fd = 4, t4.infos = "hello4";
+        t5.id[0] = '5', t5.fd = 5, t5.infos = "hello5";
+
+        map->set(map, "/Map/value_type", &value_type);
+        map->set(map, "/Map/class_name", "Busd_Object_Struct_Adapter");
+        map->add(map, "test1", &t1);
+        map->add(map, "test2", &t2);
+        map->add(map, "test3", &t3);
+        map->add(map, "test4", &t4);
+        map->add(map, "test5", &t5);
+
+        s1 = object_new(allocator, "String", map->to_json(map));
+        s1->replace(s1, "\t", "", -1);
+        s1->replace(s1, "\r", "", -1);
+        s1->replace(s1, "\n", "", -1);
+
+        s2 = object_new(allocator, "String", map->to_json(map));
+        s2->replace(s2, "\t", "", -1);
+        s2->replace(s2, "\r", "", -1);
+        s2->replace(s2, "\n", "", -1);
+
+        SET_CATCH_STR_PARS(STR2A(s1), STR2A(s2));
+        THROW_IF(strcmp(STR2A(s1), STR2A(s2)) != 0, -1);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "test_rbtree_map_v2_to_json_for_struct error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
+    } FINALLY {
+        object_destroy(s1);
+        object_destroy(s2);
+        object_destroy(map);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_rbtree_map_v2_to_json_for_struct);

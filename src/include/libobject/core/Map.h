@@ -39,6 +39,7 @@ struct _map_s{
     int (*destroy)(Map *map);
     int (*count)(Map *map);
     int (*reset)(Map *map);
+    char *(*to_json)(Map *map);
     Iterator *(*begin)(Map *map);
     Iterator *(*end)(Map *map);
 
@@ -51,5 +52,11 @@ struct _map_s{
     int (*value_free_callback)(allocator_t *allocator, void *value);
     String *class_name; //用于释放对象或结构体
 };
+
+typedef struct map_to_json_policy_s {
+    int (*policy)(cjson_t *root, void *element);
+} map_to_json_policy_t;
+
+extern map_to_json_policy_t g_map_to_json_policy[ENTRY_TYPE_MAX_TYPE];
 
 #endif

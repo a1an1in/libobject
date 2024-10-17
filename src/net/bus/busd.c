@@ -367,38 +367,38 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
     struct busd_object *obj = NULL;
     Map *map = busd->obj_map;
     char *key;
-    int ret;
     uint8_t *p = NULL;
-    char *method;
+    char *method = NULL;
     char *object_id = NULL;
     blob_attr_t *args = NULL;
     int argc = 0; 
+    int ret;
 
-    if (attr[BUSD_OBJID]) {
-        object_id = blob_get_string(attr[BUSD_OBJID]);
-        if (object_id != NULL) {
-            ret = map->search(map, object_id, (void **)&obj);
-            if (ret <= 0) {
-                int cnt = map->count(map);
-                dbg_str(BUS_DETAIL, "not found object :%s, ret:%d, cnt:%d", object_id, ret, cnt);
-                return -1;
-            }
-        } 
+    TRY {
+        if (attr[BUSD_OBJID]) {
+            object_id = blob_get_string(attr[BUSD_OBJID]);
+        }
+        if (attr[BUSD_INVOKE_METHORD]) {
+            method = blob_get_string(attr[BUSD_INVOKE_METHORD]);
+        }
+        if (attr[BUSD_INVOKE_ARGC]) {
+            argc = blob_get_uint8(attr[BUSD_INVOKE_ARGC]); 
+        }
+        if (attr[BUSD_INVOKE_ARGS]) {
+            args = attr[BUSD_INVOKE_ARGS];
+        }
+
+        THROW_IF(object_id == NULL, -1);
+        ret = map->search(map, object_id, (void **)&obj);
+        THROW_IF(ret <= 0, -1);
+
+        EXEC(busd_forward_invoke(busd, fd, obj->fd, object_id, method, argc, args));
+    } CATCH (ret) {
+        dbg_str(BUS_ERROR, "busd_handle_invoke_method error, src fd:%d, dest fd:%d, object:%s, method:%s", 
+                fd, obj != NULL ? obj->fd : 0, object_id != NULL ? object_id : "na", method != NULL ? method : "na");
     }
 
-    if (attr[BUSD_INVOKE_METHORD]) {
-        method = blob_get_string(attr[BUSD_INVOKE_METHORD]);
-    }
-    if (attr[BUSD_INVOKE_ARGC]) {
-        argc = blob_get_uint8(attr[BUSD_INVOKE_ARGC]); 
-    }
-    if (attr[BUSD_INVOKE_ARGS]) {
-        args = attr[BUSD_INVOKE_ARGS];
-    }
-
-    busd_forward_invoke(busd, fd, obj->fd, object_id, method, argc, args);
-
-    return 0;
+    return ret;
 }
 
 int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, uint8_t *opaque, int opaque_len, int source_fd, int dest_fd)
@@ -539,7 +539,6 @@ static int busd_process_receiving_data_callback(void *task)
 
         /* 检测到bus service异常，需要释放bus obj */
         if (t->buf_len <= 0) {
-            dbg_str(BUS_INFO, "busd release bus object, task fd:%d, ret:%d, buf_len:%d", t->fd, ret, t->buf_len);
             busd_release_bus_object(busd, t->fd);
         }
     }

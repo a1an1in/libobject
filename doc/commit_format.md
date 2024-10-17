@@ -1,9 +1,8 @@
-[update:node] 新增node查询service。
+[update:map] 新增map to_json 方法， 支持struct。
 
 Description:
-目前node不能查询service，导致不知道当前哪些服务在运行，
-调试非常不方便，所以需要新增这个特性。
+扩展map to_json方法，busd 查询需要这个方法。
 
 Major Changes:
-1. 优化dbg。
-2. 新增部分node查询service实现， 目前还未通过测试。
+1. 实现map to json。
+2. add map string 和struct的测试用例。
