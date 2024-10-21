@@ -432,7 +432,7 @@ int sdl_window()
 
 #if 1
 
-    dbg_str(DBG_SUC, "test_ui_sdl_window begin alloc count =%d", allocator->alloc_count);
+    dbg_str(DBG_VIP, "test_ui_sdl_window begin alloc count =%d", allocator->alloc_count);
     window  = OBJECT_NEW(allocator, Sdl_Window, c->buf);
     r       = window->render;
 
@@ -464,7 +464,7 @@ int sdl_window()
      *pause();
      */
     object_destroy(window);
-    dbg_str(DBG_SUC, "test_ui_sdl_window end alloc count =%d", allocator->alloc_count);
+    dbg_str(DBG_VIP, "test_ui_sdl_window end alloc count =%d", allocator->alloc_count);
 
 #endif
     cfg_destroy(c);

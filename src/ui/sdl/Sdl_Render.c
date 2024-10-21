@@ -392,7 +392,7 @@ static void *__create_yuvtexture(Sdl_Render *render, int w, int h)
      *                         SDL_TEXTUREACCESS_STREAMING, w, h);
      */
 
-    dbg_str(DBG_SUC, "Sdl_Render create_yuvtexture, fmt=%x", SDL_PIXELFORMAT_IYUV);
+    dbg_str(DBG_VIP, "Sdl_Render create_yuvtexture, fmt=%x", SDL_PIXELFORMAT_IYUV);
     texture =  SDL_CreateTexture(render->sdl_render, SDL_PIXELFORMAT_IYUV,
                              SDL_TEXTUREACCESS_STREAMING, w, h);
     /*

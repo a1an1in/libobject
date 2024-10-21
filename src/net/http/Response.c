@@ -287,7 +287,7 @@ static int __read_start_line(Response *response)
     buffer->read_to_string(buffer, str, len + 2);
 
     str->replace(str, "\r\n", "", -1);
-    dbg_str(DBG_SUC, "start line:%s", STR2A(str));
+    dbg_str(DBG_VIP, "start line:%s", STR2A(str));
 
     cnt = str->split(str, " ", 2);
     if (cnt != 3) {

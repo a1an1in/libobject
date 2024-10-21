@@ -101,7 +101,7 @@ int fsh_printf(FShell *shell, char *fmt, ...)
     va_list ap;
 
     printf("fsh_printf, fmt:%s\n", fmt);
-    dbg_buf(DBG_SUC, "fmt:", fmt, strlen(fmt));
+    dbg_buf(DBG_VIP, "fmt:", fmt, strlen(fmt));
     va_start(ap, fmt);
     vprintf(fmt, ap);
     va_end(ap);

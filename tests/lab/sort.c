@@ -59,7 +59,7 @@ int test_bubble_sort(TEST_ENTRY *entry)
 
     ret = assert_equal(array, expect, sizeof(array));
     if (ret == 1) {
-        dbg_str(DBG_SUC, "sucess"); 
+        dbg_str(DBG_VIP, "sucess"); 
     }
 
     return ret;
@@ -97,7 +97,7 @@ int test_selection_sort(TEST_ENTRY *entry)
 
     ret = assert_equal(array, expect, sizeof(array));
     if (ret == 1) {
-        dbg_str(DBG_SUC, "sucess"); 
+        dbg_str(DBG_VIP, "sucess"); 
     }
 
     return ret;
@@ -128,7 +128,7 @@ int test_insertion_sort(TEST_ENTRY *entry)
 
     ret = assert_equal(array, expect, sizeof(array));
     if (ret == 1) {
-        dbg_str(DBG_SUC, "sucess"); 
+        dbg_str(DBG_VIP, "sucess"); 
     }
 
     return ret;
@@ -200,7 +200,7 @@ int test_merge_sort(TEST_ENTRY *entry)
 
     ret = assert_equal(array, expect, sizeof(array));
     if (ret == 1) {
-        dbg_str(DBG_SUC, "sucess"); 
+        dbg_str(DBG_VIP, "sucess"); 
     }
 
     return ret;

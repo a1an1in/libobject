@@ -127,7 +127,7 @@ test_timeout_cb(int fd, short event, void *arg)
     elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
     lasttime = newtime;
 
-    dbg_str(DBG_SUC, "timeout_cb called at %d: %.3f seconds elapsed.", 
+    dbg_str(DBG_VIP, "timeout_cb called at %d: %.3f seconds elapsed.", 
             (int)newtime.tv_sec, elapsed);
     dbg_str(DBG_DETAIL, "arg addr:%p", arg);
     worker->work_callback(NULL);
@@ -135,7 +135,7 @@ test_timeout_cb(int fd, short event, void *arg)
 
 static void test_work_callback(void *task)
 {
-    dbg_str(DBG_SUC, "process timer task");
+    dbg_str(DBG_VIP, "process timer task");
 }
 void test_obj_worker()
 {

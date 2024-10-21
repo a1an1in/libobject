@@ -18,7 +18,7 @@ signal_cb(int fd, short event_res, void *arg)
 {
     struct event *event = (struct event *)arg;
 
-    dbg_str(DBG_SUC, "signal_cb, signal no:%d, arg=%p", event->ev_fd, event->ev_arg);
+    dbg_str(DBG_VIP, "signal_cb, signal no:%d, arg=%p", event->ev_fd, event->ev_arg);
 }
 
 static void
@@ -26,7 +26,7 @@ signal_cb2(int fd, short event_res, void *arg)
 {
     struct event *event = (struct event *)arg;
 
-    dbg_str(DBG_SUC, "signal_cb2, signal no:%d, arg=%p", event->ev_fd, event->ev_arg);
+    dbg_str(DBG_VIP, "signal_cb2, signal no:%d, arg=%p", event->ev_fd, event->ev_arg);
 }
 
 static void
@@ -34,7 +34,7 @@ signal_cb3(int fd, short event_res, void *arg)
 {
     struct event *event = (struct event *)arg;
 
-    dbg_str(DBG_SUC, "signal_cb3, signal no:%d, arg=%p", event->ev_fd, event->ev_arg);
+    dbg_str(DBG_VIP, "signal_cb3, signal no:%d, arg=%p", event->ev_fd, event->ev_arg);
 }
 
 static int test_signal(TEST_ENTRY *entry, void *argc, void *argv)

@@ -19,7 +19,7 @@ static int create_pipe(int fds[2])
 
 static void test_work_callback(void *task)
 {
-    dbg_str(DBG_SUC, "test_work_callback");
+    dbg_str(DBG_VIP, "test_work_callback");
 }
 
 static void

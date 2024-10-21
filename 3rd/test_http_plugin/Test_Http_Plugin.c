@@ -18,7 +18,7 @@ static int __handler_test_http_plugin(Request *req, Response *res, void *opaque)
     res->set_header(res, "Content-Type", "application/json");
     res->set_body(res, body, strlen(body));
     res->set_status_code(res, 200);
-    dbg_str(DBG_SUC,"run handler_test_http_plugin");
+    dbg_str(DBG_VIP,"run handler_test_http_plugin");
 
     return 0;
 }

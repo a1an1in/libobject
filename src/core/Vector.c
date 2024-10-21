@@ -514,7 +514,7 @@ static int __reset_from(Vector *vector, int index)
             class_name = vector->get(vector, "/Vector/class_name");
             if (*class_name != NULL) {
                 int (*free_method)(allocator_t *, void *);
-                dbg_str(DBG_SUC, "vector strcut adapter class name:%s", STR2A(*class_name));
+                dbg_str(DBG_VIP, "vector strcut adapter class name:%s", STR2A(*class_name));
                 free_method = object_get_member_of_class(STR2A(*class_name), "free");
                 if (free_method == NULL) return -1;
                 free_method(vector->obj.allocator, element);

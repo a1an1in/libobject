@@ -56,7 +56,7 @@ int execute_test_funcs(Mockery_Command *command)
                         element->func_name, element->file, element->line);
                 failed->add(failed, element);    
             } else {
-                dbg_str(DBG_SUC, "test suc, func_name = %s,  file = %s, line = %d", 
+                dbg_str(DBG_VIP, "test suc, func_name = %s,  file = %s, line = %d", 
                         element->func_name, element->file, element->line);
                 free(element);
             }
@@ -103,7 +103,7 @@ int execute_designated_func(Mockery_Command *command, char *func_name, int arg1,
             dbg_str(DBG_ERROR, "command failed, func_name = %s,  file = %s, line = %d", 
                     element->func_name, element->file, element->line);
         } else {
-            dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+            dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                     element->func_name, element->file, element->line);
         }
         free(element);
@@ -153,7 +153,7 @@ int execute_designated_cmd(Mockery_Command *command, char *func_name, int arg1, 
             dbg_str(DBG_ERROR, "command failed, func_name = %s,  file = %s, line = %d", 
                     element->func_name, element->file, element->line);
         } else {
-            dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+            dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                     element->func_name, element->file, element->line);
         }
         free(element);
@@ -186,7 +186,7 @@ static int __run_command(Mockery_Command *command)
         execute_designated_cmd(command, command->func_name, command->argc, command->argv);
     }
 
-    dbg_str(DBG_SUC, "mockery %s end", command->func_name);
+    dbg_str(DBG_VIP, "mockery %s end", command->func_name);
     debugger_set_all_businesses_level(debugger_gp, 1, 4);
 
     return 1;
@@ -212,7 +212,7 @@ static int __argument_action_callback(Argument *argu, void *opaque)
         command->argument_flag = 1;
         command->func_name = STR2A(argu->value);
         cnt = command->parent.args->count(command->parent.args);
-        // dbg_str(DBG_SUC,"argument_action_callback:%s, args count:%d", STR2A(argu->value), cnt);
+        // dbg_str(DBG_VIP,"argument_action_callback:%s, args count:%d", STR2A(argu->value), cnt);
 
         for (i = 0; i < cnt; i++) {
             a = command->parent.get_argment(&command->parent, i);
@@ -222,7 +222,7 @@ static int __argument_action_callback(Argument *argu, void *opaque)
             arg = STR2A(a->value);
             THROW_IF(arg == NULL, -1);
             argv[i] = arg;
-            // dbg_str(DBG_SUC,"arg :%s", arg);  
+            // dbg_str(DBG_VIP,"arg :%s", arg);  
         }
         command->argc = cnt;
     } CATCH (ret) {}
@@ -274,9 +274,9 @@ int test_mockery_command(TEST_ENTRY *entry, int argc, char **argv)
 {
     int len, i;
 
-    dbg_str(DBG_SUC, "test_mockery_command");
+    dbg_str(DBG_VIP, "test_mockery_command");
     for (i = 0; i < argc; i++) {
-        dbg_str(DBG_SUC, "argc:%d, par i:%d value:%s", argc, i, argv[i]);
+        dbg_str(DBG_VIP, "argc:%d, par i:%d value:%s", argc, i, argv[i]);
     }
 
     return 1;

@@ -18,7 +18,7 @@ static int __test_node_call_bus(Node *node)
     TRY {
         EXEC((ret = node->call_bus(node, method, NULL, 0)));
         THROW_IF(ret != 1, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY { }
 
@@ -38,7 +38,7 @@ static int __test_node_list(Node *node)
         EXEC(node->list(node, "node", path, list));
         list->for_each(list, fs_file_info_struct_custom_print);
         THROW_IF(list->count(list) != 4, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
         object_destroy(list);
@@ -58,7 +58,7 @@ static int __test_node_read_file(Node *node)
         EXEC(fs_rmdir("./tests/node/output/read/"));
         EXEC(node->copy(node, from, to));
         THROW_IF(assert_file_equal("./tests/node/res/test_node.txt", to) != 1, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {}
 
@@ -79,7 +79,7 @@ static int __test_node_read_files(Node *node)
         strcat(from, "test_node2.txt");
         strcat(to, "test_node2.txt");
         THROW_IF(assert_file_equal(from, to) != 1, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {}
 
@@ -98,7 +98,7 @@ static int __test_node_write_file(Node *node)
         EXEC(node->copy(node, from, to));
         THROW_IF(assert_file_equal("./tests/node/res/test_node.txt", "./tests/node/output/write/test_node.txt") != 1, -1);
         THROW_IF(assert_file_equal("./tests/node/res/test_node2.txt", "./tests/node/output/write/test_node2.txt") != 1, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {}
 
@@ -119,7 +119,7 @@ static int __test_node_write_files(Node *node)
         strcpy(to, "./tests/node/output/write/");
         strcat(to, "test_node2.txt");
         THROW_IF(assert_file_equal(from, to) != 1, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {}
 
@@ -134,10 +134,10 @@ static int __test_node_malloc_and_mfree(Node *node)
     
     TRY {
         EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, "#abc", 8, &addr));
-        dbg_str(DBG_SUC, "node alloc addr:%p", addr);
+        dbg_str(DBG_VIP, "node alloc addr:%p", addr);
         EXEC(node->mfree(node, "node", TARGET_TYPE_NODE, "#abc"));
 
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {}
 
@@ -161,7 +161,7 @@ static int __test_node_mset_and_mget(Node *node)
         EXEC(node->mget(node, "node", TARGET_TYPE_NODE, addr, 0, 1024, buffer, &len));
         THROW_IF(len != strlen(test_value), -1);
         THROW_IF(strcmp(test_value, buffer) != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
         node->mfree(node, "node", TARGET_TYPE_NODE, variable_name);
@@ -184,7 +184,7 @@ static int __test_node_call_fsh(Node *node)
         EXEC(node->mget(node, "node", TARGET_TYPE_NODE, addr, 0, sizeof(int), buffer, &len));
         THROW_IF(*(uint32_t *)buffer != 3, -1);
 
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
         node->mfree(node, "node", TARGET_TYPE_NODE, variable_name1);
@@ -203,10 +203,10 @@ static int __test_node_call_fsh_object_method(Node *node)
     
     TRY {
         EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_OBJ_POINTER, "String", object_name, 8, &str));
-        dbg_str(DBG_SUC, "node alloc object addr:%p", str);
+        dbg_str(DBG_VIP, "node alloc object addr:%p", str);
         EXEC(node->call_fsh_object_method(node, "%s@assign(%s, \"%s\")", "node", object_name, expect));
         THROW_IF(strncmp(expect, STR2A(str), strlen(expect)) != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
         node->mfree(node, "node", TARGET_TYPE_NODE, object_name);
@@ -224,7 +224,7 @@ static int __test_node_mget_pointer(Node *node)
     TRY {
         EXEC(node->mget_pointer(node, "node", TARGET_TYPE_NODE, &global_allocator_default, &addr));
         THROW_IF(addr != global_allocator_default, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY { }
 
@@ -255,7 +255,7 @@ static int __test_node_stub(Node *node)
         test_func(1, 2, 3, 4, 5, 6, &g);
         THROW_IF(g != 7, -1);
 
-        dbg_str(DBG_SUC, "command suc, func_name = %s, file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s, file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
         node->mfree(node, "node", TARGET_TYPE_NODE, stub_name);

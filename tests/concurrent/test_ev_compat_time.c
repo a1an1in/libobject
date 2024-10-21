@@ -25,7 +25,7 @@ timeout_cb(int fd, short event, void *arg)
     elapsed  = difference.tv_sec + (difference.tv_usec / 1.0e6);
     lasttime = newtime;
 
-    dbg_str(DBG_SUC,"timeout_cb called at %d: %.3f seconds elapsed.",
+    dbg_str(DBG_VIP,"timeout_cb called at %d: %.3f seconds elapsed.",
             (int)newtime.tv_sec, elapsed);
 }
 

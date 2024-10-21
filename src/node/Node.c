@@ -485,7 +485,7 @@ static int __malloc(Node *node, char *node_id, target_type_t type, int value_typ
 
         if (addr != NULL) {
             *addr = byteorder_be64_to_cpu(addr);
-            dbg_str(DBG_SUC, "node alloc value_type:%d, name:%s, addr:%p", value_type, name, *addr);
+            dbg_str(DBG_VIP, "node alloc value_type:%d, name:%s, addr:%p", value_type, name, *addr);
         }
         THROW_IF(len != 8 && len != 4, -1);
     } CATCH (ret) {} FINALLY {}
@@ -501,7 +501,7 @@ static int __mfree(Node *node, char *node_id, target_type_t type, char *name)
     TRY {
         snprintf(cmd, 1024, "node@mfree(%d, %s)", type, name == NULL ? "null" : name);
         EXEC(node->call_bus(node, cmd, NULL, 0));
-        dbg_str(DBG_SUC, "node free name:%s", name);
+        dbg_str(DBG_VIP, "node free name:%s", name);
     } CATCH (ret) {} FINALLY {}
 
     return ret;

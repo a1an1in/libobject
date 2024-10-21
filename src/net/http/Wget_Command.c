@@ -34,9 +34,9 @@ static int __wget_request_callback(Response *resp, void *arg)
     path->assign(path, "./");
     path->append(path, output_document->get_cstr(output_document), -1);
 
-    dbg_str(DBG_SUC,"request callback run, arg=%p", arg);
-    dbg_str(DBG_SUC,"status code =%d", resp->status_code);
-    dbg_str(DBG_SUC,"output file =%s", output_document->get_cstr(output_document));
+    dbg_str(DBG_VIP,"request callback run, arg=%p", arg);
+    dbg_str(DBG_VIP,"status code =%d", resp->status_code);
+    dbg_str(DBG_VIP,"output file =%s", output_document->get_cstr(output_document));
     printf("status code =%d, output file =%s\n", resp->status_code, STR2A(output_document));
 
     file = object_new(allocator, "File", NULL);
@@ -120,12 +120,12 @@ static int __run_command(Command *command)
     char *uri;
 
     count = command->args->count(command->args);
-    dbg_str(DBG_SUC,"arg count =%d", count);
+    dbg_str(DBG_VIP,"arg count =%d", count);
     
     if (count == 1) {
         arg = command->get_argment(command, 0);
         if (arg != NULL) {
-            dbg_str(DBG_SUC,"url:%s", arg->value->get_cstr(arg->value));
+            dbg_str(DBG_VIP,"url:%s", arg->value->get_cstr(arg->value));
             url = object_new(allocator, "Url", NULL);
             url->parse(url, arg->value->get_cstr(arg->value));
             url->info(url);
@@ -133,7 +133,7 @@ static int __run_command(Command *command)
             uri = url->path->get_cstr(url->path);
         }
     } else {
-        dbg_str(DBG_SUC,"wget command format err, need url");
+        dbg_str(DBG_VIP,"wget command format err, need url");
         return -1;
     }
 
@@ -153,7 +153,7 @@ static int __run_command(Command *command)
     req->set_header(req, "Accept-Encoding", "identity");
     req->set_header(req, "Connection", "Keep-Alive");
 
-    dbg_str(DBG_SUC,"request opaque=%p",  client);
+    dbg_str(DBG_VIP,"request opaque=%p",  client);
     client->request(client, (int (*)(void *, void *))__wget_request_callback, client);
 
     response = client->get_response(client);

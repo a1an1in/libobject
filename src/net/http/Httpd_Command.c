@@ -20,7 +20,7 @@ static int __handler_hello_world(Request *req, Response *res, void *opaque)
     res->set_header(res, "Content-Type", "application/json");
     res->set_body(res, body, strlen(body));
     res->set_status_code(res, 200);
-    dbg_str(DBG_SUC,"run handler_hello_world");
+    dbg_str(DBG_VIP,"run handler_hello_world");
 
     return 0;
 }
@@ -29,14 +29,14 @@ static int __option_version_callback(Option *option, void *opaque)
 {
     Http_Server *server = (Http_Server *)opaque;
 
-    dbg_str(DBG_SUC,"option_version_action_callback:%s", "version:0.0.1");
+    dbg_str(DBG_VIP,"option_version_action_callback:%s", "version:0.0.1");
 }
 
 static int __option_host_callback(Option *option, void *opaque)
 {
     Http_Server *server = (Http_Server *)opaque;
 
-    dbg_str(DBG_SUC,"option_host_action_callback:%s", STR2A(option->value));
+    dbg_str(DBG_VIP,"option_host_action_callback:%s", STR2A(option->value));
 
     return server->set(server, "/Http_Server/host", STR2A(option->value));
 }
@@ -45,7 +45,7 @@ static int __option_service_callback(Option *option, void *opaque)
 {
     Http_Server *server = (Http_Server *)opaque;
 
-    dbg_str(DBG_SUC,"option_host_action_callback:%s", STR2A(option->value));
+    dbg_str(DBG_VIP,"option_host_action_callback:%s", STR2A(option->value));
 
     return server->set(server, "/Http_Server/service", STR2A(option->value));
 }
@@ -55,7 +55,7 @@ static int __option_no_loop_callback(Option *option, void *opaque)
     Httpd_Command *c = (Httpd_Command *)opaque;
 
     c->loop_flag = 0;
-    dbg_str(DBG_SUC,"run option_no_loop_callback");
+    dbg_str(DBG_VIP,"run option_no_loop_callback");
 
     return 1;
 }
@@ -104,12 +104,12 @@ static int __run_command(Httpd_Command *command)
         snprintf(path, 128, "%s/%s", STR2A(app->root), "httpd/webroot");
         server->set(server, "/Http_Server/root", path);
         snprintf(path, 128, "%s/%s", STR2A(app->root), "httpd/plugins");
-        dbg_str(DBG_SUC,"httpd root:%s", path);
+        dbg_str(DBG_VIP,"httpd root:%s", path);
         fs_mkdir(path, 0777);
 
         EXEC(command->load_plugins(command));
 
-        // dbg_str(DBG_SUC,"httpd webroot:%s", STR2A(app->root));
+        // dbg_str(DBG_VIP,"httpd webroot:%s", STR2A(app->root));
         if (server->host == NULL) {
             server->set(server, "host", "127.0.0.1");
         }
@@ -146,7 +146,7 @@ static int __load_plugins(Httpd_Command *command)
         snprintf(path, 128, "%s/%s/configs.json", STR2A(app->root), "httpd/plugins");
 
         if (!fs_is_exist(path)) { return 0; }
-        dbg_str(DBG_SUC,"httpd root:%s", path);
+        dbg_str(DBG_VIP,"httpd root:%s", path);
         allocator = command->parent.parent.allocator;
         file = object_new(allocator, "File", NULL);
         file->open(file, path, "r+");

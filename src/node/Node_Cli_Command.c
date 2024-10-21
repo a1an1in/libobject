@@ -106,7 +106,7 @@ static int __option_host_callback(Option *option, void *opaque)
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
     Node *n = c->node;
 
-    dbg_str(DBG_SUC,"option_host_action_callback:%s", STR2A(option->value));
+    dbg_str(DBG_VIP,"option_host_action_callback:%s", STR2A(option->value));
     n->host = STR2A(option->value);
 
     return 1;
@@ -117,7 +117,7 @@ static int __option_service_callback(Option *option, void *opaque)
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
     Node *n = c->node;
 
-    dbg_str(DBG_SUC,"option_service_action_callback:%s", STR2A(option->value));
+    dbg_str(DBG_VIP,"option_service_action_callback:%s", STR2A(option->value));
     n->service = STR2A(option->value);
 
     return 1;
@@ -126,7 +126,7 @@ static int __option_service_callback(Option *option, void *opaque)
 static int __option_call_bus_command_callback(Option *option, void *opaque)
 {
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
-    dbg_str(DBG_SUC,"option_bus_cmd_action_callback:%s", STR2A(option->value));
+    dbg_str(DBG_VIP,"option_bus_cmd_action_callback:%s", STR2A(option->value));
     c->arg1 = STR2A(option->value);
     c->command_type = COMMAND_TYPE_BUS_CALL;
 
@@ -136,7 +136,7 @@ static int __option_call_bus_command_callback(Option *option, void *opaque)
 static int __option_execute_command_callback(Option *option, void *opaque)
 {
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
-    dbg_str(DBG_SUC,"option_fshell_cmd_action_callback:%s", STR2A(option->value));
+    dbg_str(DBG_VIP,"option_fshell_cmd_action_callback:%s", STR2A(option->value));
     c->arg1 = STR2A(option->value);
     c->command_type = COMMAND_TYPE_FSH_CALL;
 
@@ -148,7 +148,7 @@ static int __option_disable_node_service_callback(Option *option, void *opaque)
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
     Node *n = c->node;
 
-    dbg_str(DBG_SUC,"disable_node_service: %s", STR2A(option->value));
+    dbg_str(DBG_VIP,"disable_node_service: %s", STR2A(option->value));
     if ((strcmp(STR2A(option->value), "true") == 0) ||
         (strcmp(STR2A(option->value), "True") == 0) ||
         (strcmp(STR2A(option->value), "T") == 0) ||
@@ -166,7 +166,7 @@ static int __argument_arg0_action_callback(Argument *arg, void *opaque)
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
     int i, ret;
 
-    dbg_str(DBG_SUC,"argument arg0:%s", STR2A(arg->value));
+    dbg_str(DBG_VIP,"argument arg0:%s", STR2A(arg->value));
 
     for (i = 0; i < COMMAND_TYPE_MAX; i++) {
         if (node_command_table[i].command_name == NULL) continue;
@@ -183,7 +183,7 @@ static int __argument_arg1_action_callback(Argument *arg, void *opaque)
 {
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
 
-    dbg_str(DBG_SUC,"argument arg1:%s", STR2A(arg->value));
+    dbg_str(DBG_VIP,"argument arg1:%s", STR2A(arg->value));
     c->arg1 = STR2A(arg->value);
 
     return 0;
@@ -193,7 +193,7 @@ static int __argument_arg2_action_callback(Argument *arg, void *opaque)
 {
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
 
-    dbg_str(DBG_SUC,"argument arg2:%s", STR2A(arg->value));
+    dbg_str(DBG_VIP,"argument arg2:%s", STR2A(arg->value));
     c->arg2 = STR2A(arg->value);
 
     return 0;

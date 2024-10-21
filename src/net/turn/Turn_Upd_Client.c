@@ -83,7 +83,7 @@ __allocate_address(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
     int ret;
 
     TRY {
-        dbg_str(DBG_SUC, "allocate_address");
+        dbg_str(DBG_VIP, "allocate_address");
         THROW_IF(arg == NULL, -1);
         SET_CATCH_INT_PARS(arg->nonce_len, 0);
         THROW_IF(arg->nonce_len > 128, -1);
@@ -129,7 +129,7 @@ __create_permission(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg)
         THROW_IF(arg == NULL, -1);
         THROW_IF(nonce == NULL, -1);
 
-        dbg_str(DBG_SUC, "create_permission");
+        dbg_str(DBG_VIP, "create_permission");
         req->clear(req);
         req->set_head(req, STUN_QUEST | TURN_METHOD_CREATEPERMISSION, 0, 0x2112A442);
 
@@ -162,7 +162,7 @@ __send_indication(Turn_Udp_Client *turn, allocate_address_reqest_arg_t *arg, uin
     int ret;
 
     TRY {
-        dbg_str(DBG_SUC, "send indication");
+        dbg_str(DBG_VIP, "send indication");
         req->clear(req);
         req->set_head(req, STUN_INDICATION | TURN_METHOD_SEND, 0, 0x2112A442);
 

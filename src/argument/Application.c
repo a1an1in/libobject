@@ -27,13 +27,13 @@ Application *global_app;
 
 static int __option_set_event_thread_service_callback(Option *option, void *opaque)
 {
-    dbg_str(DBG_SUC,"option_set_event_thread_service_callback:%s", STR2A(option->value));
+    dbg_str(DBG_VIP,"option_set_event_thread_service_callback:%s", STR2A(option->value));
     return 1;
 }
 
 static int __option_set_event_signal_service_callback(Option *option, void *opaque)
 {
-    dbg_str(DBG_SUC,"option_set_event_signal_service_callback:%s", STR2A(option->value));
+    dbg_str(DBG_VIP,"option_set_event_signal_service_callback:%s", STR2A(option->value));
     return 1;
 }
 
@@ -51,7 +51,7 @@ static int __option_help_callback(Option *option, void *opaque)
     Application *app = (Application *)opaque;
 
     if (option->set_flag == 1) {
-        dbg_str(DBG_SUC,"xtools help");
+        dbg_str(DBG_VIP,"xtools help");
         app->help(app);            
         printf("Run 'xtools COMMAND --help' for more information on a command.\n\n");
         exit(0);

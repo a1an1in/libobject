@@ -107,7 +107,7 @@ static void move_cursor_right(Component *component)
         cursor->offset++;
     } else if (cursor->x + cursor->width == line_info->line_lenth)
     {
-        dbg_str(DBG_SUC, "move cursor to adding char field");
+        dbg_str(DBG_VIP, "move cursor to adding char field");
         c               = ' ';
         character       = (Character *)r->font->ascii[c].character;
         cursor->c       = c;
@@ -276,7 +276,7 @@ static int __construct(Text_Field *ta, char *init_str)
     allocator_t *allocator = ((Obj *)ta)->allocator;
     cursor_t *cursor       = &ta->cursor;
 
-    dbg_str(DBG_SUC, "ta construct");
+    dbg_str(DBG_VIP, "ta construct");
 
     ta->string             = OBJECT_NEW(allocator, String, NULL);
     ta->string->assign(ta->string, "hello world!");
@@ -304,7 +304,7 @@ static int __construct(Text_Field *ta, char *init_str)
 
 static int __deconstrcut(Text_Field *ta)
 {
-    dbg_str(DBG_SUC, "ta deconstruct");
+    dbg_str(DBG_VIP, "ta deconstruct");
 
     object_destroy(ta->string);
     object_destroy(ta->text);
@@ -322,7 +322,7 @@ static int __load_resources(Component *component, void *window)
     Text *text    = ta->text;
     Character *character;
 
-    dbg_str(DBG_SUC, "%s load load_resources", component->name);
+    dbg_str(DBG_VIP, "%s load load_resources", component->name);
 
     ta->window          = window;
 

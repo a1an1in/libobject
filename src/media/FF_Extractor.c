@@ -241,7 +241,7 @@ static int __seek(Extractor *extractor)
     int64_t duration;
 
     duration = player->get_duration(player);
-    dbg_str(DBG_SUC,"seek to %lld, duration=%lld",
+    dbg_str(DBG_VIP,"seek to %lld, duration=%lld",
             player->seek_timestamp,
             duration);
     if (player->seek_timestamp > duration || player->seek_timestamp < 0) {
@@ -270,11 +270,11 @@ static int __seek(Extractor *extractor)
 #else
         extractor->seek_timestamp = (int64_t)((float)player->seek_timestamp/av_q2d(extractor->audio_stream->time_base));
         uint64_t duration_timestamp = (int64_t)(duration/av_q2d(extractor->audio_stream->time_base));
-        dbg_str(DBG_SUC,"timebase den=%d num=%d", extractor->audio_stream->time_base.den, extractor->audio_stream->time_base.num);
-        dbg_str(DBG_SUC,"seek timestamp=%lld, duration_timestamp=%lld", 
+        dbg_str(DBG_VIP,"timebase den=%d num=%d", extractor->audio_stream->time_base.den, extractor->audio_stream->time_base.num);
+        dbg_str(DBG_VIP,"seek timestamp=%lld, duration_timestamp=%lld", 
                 extractor->seek_timestamp,
                 duration_timestamp);
-        dbg_str(DBG_SUC,"seek timestamp=%d, duration_timestamp=%d", 
+        dbg_str(DBG_VIP,"seek timestamp=%d, duration_timestamp=%d", 
                 extractor->seek_timestamp,
                 duration_timestamp);
 
@@ -353,7 +353,7 @@ static int __open(Extractor *extractor)
     char *url;
 
     url = media_period->get_url(media_period);
-    dbg_str(DBG_SUC,"open extractor, url:%s", url);
+    dbg_str(DBG_VIP,"open extractor, url:%s", url);
 
     format_ctx = avformat_alloc_context();
 
@@ -402,15 +402,15 @@ static int __open(Extractor *extractor)
         dbg_str(DBG_DETAIL,"audio_codec_ctx=%p.", ff_extractor->audio_codec_ctx);
     }
 
-    dbg_str(DBG_SUC,"video_codec_id=%d audio_codec_id=%d.",
+    dbg_str(DBG_VIP,"video_codec_id=%d audio_codec_id=%d.",
             ff_extractor->video_codec_ctx->codec_id,
             ff_extractor->audio_codec_ctx->codec_id);
 
-    dbg_str(DBG_SUC,"video_stream_index=%d audio_stream_index=%d.",
+    dbg_str(DBG_VIP,"video_stream_index=%d audio_stream_index=%d.",
             extractor->video_stream_index,
             extractor->audio_stream_index);
 
-    dbg_str(DBG_SUC,"video time_base: %lf  audio time_base: %lf",
+    dbg_str(DBG_VIP,"video time_base: %lf  audio time_base: %lf",
             av_q2d(extractor->video_stream->time_base),
             av_q2d(extractor->audio_stream->time_base));
 
@@ -422,7 +422,7 @@ static int __open(Extractor *extractor)
         extractor->audio_stream->start_time = 0;
     }
 
-    dbg_str(DBG_SUC,"video start_time: %lf  audio start_time: %lf",
+    dbg_str(DBG_VIP,"video start_time: %lf  audio start_time: %lf",
             (extractor->video_stream->start_time) 
             * av_q2d(extractor->audio_stream->time_base),
             (extractor->audio_stream->start_time)
@@ -430,7 +430,7 @@ static int __open(Extractor *extractor)
 
     ff_extractor->format_ctx = format_ctx;
 
-    dbg_str(DBG_SUC,"open extractor out");
+    dbg_str(DBG_VIP,"open extractor out");
 
     return 0;
 }
@@ -442,7 +442,7 @@ static int __close(Extractor *extractor)
     PacketStream *audio_stream = NULL;
     Player * player = extractor->player;
 
-    dbg_str(DBG_SUC,"close extractor");
+    dbg_str(DBG_VIP,"close extractor");
     video_stream = extractor->video_packet_stream;
     audio_stream = extractor->audio_packet_stream;
 

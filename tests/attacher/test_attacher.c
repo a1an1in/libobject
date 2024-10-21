@@ -37,7 +37,7 @@ static int test_attacher_get_function_address(TEST_ENTRY *entry, int argc, void 
     pid_t pid;
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher");
+        dbg_str(DBG_VIP, "test_attacher");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -65,7 +65,7 @@ static int test_attacher_call_address_without_pars(TEST_ENTRY *entry, int argc, 
     pid_t pid;
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_address_without_pars");
+        dbg_str(DBG_VIP, "test_attacher_call_address_without_pars");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -99,7 +99,7 @@ static int test_attacher_call_address_with_value_pars(TEST_ENTRY *entry, int arg
     long long pars[8] = {1, 2, 3, 4, 5, 6, 0xf1f1f1f1f1f1f1f1, 0xf2};
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_with_pars");
+        dbg_str(DBG_VIP, "test_attacher_call_with_pars");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -132,7 +132,7 @@ static int test_attacher_call_address_malloc(TEST_ENTRY *entry, int argc, void *
     long long pars[1] = {8};
 
     TRY {
-        dbg_str(DBG_SUC, "test_lib_hello_world_with_pointer_pars");
+        dbg_str(DBG_VIP, "test_lib_hello_world_with_pointer_pars");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -168,7 +168,7 @@ static int test_attacher_call_address_with_pointer_pars(TEST_ENTRY *entry, int a
     attacher_paramater_t pars[2] = {{"test1", 8}, {"test2", 8}};
 
     TRY {
-        dbg_str(DBG_SUC, "test_lib_hello_world_with_pointer_pars");
+        dbg_str(DBG_VIP, "test_lib_hello_world_with_pointer_pars");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -201,7 +201,7 @@ static int test_attacher_call_from_lib(TEST_ENTRY *entry, int argc, void **argv)
     attacher_paramater_t pars[2] = {{"test1", 6}, {"test2", 6}};
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
+        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -232,7 +232,7 @@ static int test_attacher_call_from_lib2(TEST_ENTRY *entry, int argc, void **argv
     attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
+        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -263,7 +263,7 @@ static int test_attacher_add_lib(TEST_ENTRY *entry, int argc, void **argv)
     pid_t pid;
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
+        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -297,7 +297,7 @@ static int test_attacher_remove_lib(TEST_ENTRY *entry, int argc, void **argv)
     pid_t pid;
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
+        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -331,7 +331,7 @@ static int test_attacher_call_from_adding_lib(TEST_ENTRY *entry, int argc, void 
     pid_t pid;
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
+        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -362,7 +362,7 @@ static int test_attacher_read_data(TEST_ENTRY *entry, int argc, void **argv)
     char buffer[1024] = {0};
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
+        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -396,7 +396,7 @@ static int test_attacher_call_stub(TEST_ENTRY *entry, int argc, void **argv)
     attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
+        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
@@ -437,7 +437,7 @@ static int test_attacher_call_directly(TEST_ENTRY *entry, int argc, void **argv)
     attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_from_lib");
+        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
         dbg_str(DBG_VIP, "argc:%d", argc);
         for (int i = 0; i < argc; i++) {
             dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);

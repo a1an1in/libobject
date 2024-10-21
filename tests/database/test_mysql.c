@@ -74,7 +74,7 @@ static int __test_mysql_insert_and_del(Mysql *mysql)
         dbg_str(DBG_DETAIL, "mobile row count=%d, after del", ret);
         expect_ret = 0;
         THROW_IF(ret != expect_ret, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {}
 
@@ -116,7 +116,7 @@ static int __test_mysql_update(Mysql *mysql)
         dbg_str(DBG_DETAIL, "mobile row count=%d, after del", ret);
         expect_ret = 1;
         THROW_IF(ret != expect_ret, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
         /*del*/
@@ -177,7 +177,7 @@ static int __test_mysql_query(Mysql *mysql)
         }
 
         THROW_IF(ret != row_count, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {}
     

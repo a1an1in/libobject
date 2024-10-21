@@ -59,7 +59,7 @@ int __handler_get_directory_list(Request *req, Response *res, void *opaque)
              server->root->get_cstr(server->root),
              (char *)req->uri);
 
-    dbg_str(DBG_SUC, "handler_directory_request, dir path:%s", path);
+    dbg_str(DBG_VIP, "handler_directory_request, dir path:%s", path);
 
     count = fs_count_list(path);
     if (count < 0) return -1;

@@ -190,7 +190,7 @@ static void __on_key_text_pressed(Window *window, char c, void *render)
 
                 duration = player->get_duration(player);
                 ret = player->get_position(player);
-                dbg_str(DBG_SUC,"play position:%d, duration=%d", ret, duration);
+                dbg_str(DBG_VIP,"play position:%d, duration=%d", ret, duration);
             }
             break;
         case '5':
@@ -201,18 +201,18 @@ static void __on_key_text_pressed(Window *window, char c, void *render)
                  *int ret = 630;
                  */
                 ret  += (seek_count + 1) * 100;
-                dbg_str(DBG_SUC,"seek to :%ds", ret);
+                dbg_str(DBG_VIP,"seek to :%ds", ret);
                 ret = player->seek_to(player, ret);
                 player->start(player);
 
                 seek_count++;
                 /*
                  *ret = player->get_position(player);
-                 *dbg_str(DBG_SUC,"play position:%d", ret);
+                 *dbg_str(DBG_VIP,"play position:%d", ret);
                  */
 #else
                 int ret = 630;
-                dbg_str(DBG_SUC,"seek to :%ds", ret);
+                dbg_str(DBG_VIP,"seek to :%ds", ret);
                 ret = player->seek_to(player, ret);
                 player->start(player);
 #endif
@@ -234,10 +234,10 @@ static void __on_key_text_pressed(Window *window, char c, void *render)
                         600, 400,
                         data, &len);
                 if (ret < 0) {
-                    dbg_str(DBG_SUC,"get_rgb_from_current_frame err");
+                    dbg_str(DBG_VIP,"get_rgb_from_current_frame err");
                 } else {
-                    dbg_str(DBG_SUC,"total len=%d, linesize=%d", ret, len);
-                    dbg_buf(DBG_SUC,"rbg data:", (unsigned char *)data, 10);
+                    dbg_str(DBG_VIP,"total len=%d, linesize=%d", ret, len);
+                    dbg_buf(DBG_VIP,"rbg data:", (unsigned char *)data, 10);
                 }
             }
             break;
@@ -278,7 +278,7 @@ static void __on_key_up_pressed(FF_Window *window, void *render)
     FF_Window *w   = (FF_Window *)window;
     Player *player = w->player;
 
-    dbg_str(DBG_SUC, "key_up_pressed");
+    dbg_str(DBG_VIP, "key_up_pressed");
 
 }
 
@@ -287,7 +287,7 @@ static void __on_key_down_pressed(FF_Window *window, void *render)
     FF_Window *w   = (FF_Window *)window;
     Player *player = w->player;
 
-    dbg_str(DBG_SUC, "key_down_pressed");
+    dbg_str(DBG_VIP, "key_down_pressed");
 
 }
 
@@ -297,10 +297,10 @@ static void __on_key_left_pressed(FF_Window *window, void *render)
     Player *player = w->player;
     int ret;
 
-    dbg_str(DBG_SUC, "key_right_pressed");
+    dbg_str(DBG_VIP, "key_right_pressed");
     ret = player->get_position(player);
 
-    dbg_str(DBG_SUC,"seek, play position:%d", ret);
+    dbg_str(DBG_VIP,"seek, play position:%d", ret);
 
     ret -= 10;
     if (ret <= 0) {
@@ -318,12 +318,12 @@ static void __on_key_right_pressed(FF_Window *window, void *render)
     int ret;
     int duration;
 
-    dbg_str(DBG_SUC, "key_right_pressed");
+    dbg_str(DBG_VIP, "key_right_pressed");
 
     ret = player->get_position(player);
     duration = player->get_duration(player);
 
-    dbg_str(DBG_SUC,"seek, play position:%d", ret);
+    dbg_str(DBG_VIP,"seek, play position:%d", ret);
 
     ret += 10;
     if (ret > duration) {
@@ -364,10 +364,10 @@ static void __on_mouse_pressed(Window *window, void *event, void *win)
     static uint64_t last_mouse_left_click;
     static uint64_t cur_mouse_left_click;
 
-    dbg_str(DBG_SUC, "on_mouse_pressed");
+    dbg_str(DBG_VIP, "on_mouse_pressed");
     if (e->button.button == SDL_BUTTON_LEFT) {
         cur_mouse_left_click = av_gettime_relative();
-        dbg_str(DBG_SUC, "last_mouse_left_click = %u, cur_mouse_left_click=%u, diff =%u",
+        dbg_str(DBG_VIP, "last_mouse_left_click = %u, cur_mouse_left_click=%u, diff =%u",
                 last_mouse_left_click,
                 cur_mouse_left_click,
                 cur_mouse_left_click - last_mouse_left_click);
@@ -379,11 +379,11 @@ static void __on_mouse_pressed(Window *window, void *event, void *win)
                                   &window->screen_width,
                                   &window->screen_height);
                 player->clear_state(player, STATE_FULLSCREEN);
-                dbg_str(DBG_SUC, "left mouse dobule clicked, exit full_screen");
+                dbg_str(DBG_VIP, "left mouse dobule clicked, exit full_screen");
             } else {
                 window->full_screen(window);
                 player->set_state(player, STATE_FULLSCREEN);
-                dbg_str(DBG_SUC, "left mouse dobule clicked, full_screen");
+                dbg_str(DBG_VIP, "left mouse dobule clicked, full_screen");
             }
             last_mouse_left_click = 0;
         } else {
@@ -430,7 +430,7 @@ static void __on_window_resized(FF_Window *window, void *event, void *win)
     __Event *e           = (__Event *)event;
     Render *r            = w->render;
 
-    dbg_str(DBG_SUC, "EVENT: window id %d, resized to %dx%d",
+    dbg_str(DBG_VIP, "EVENT: window id %d, resized to %dx%d",
             e->windowid, e->data1, e->data2);
 
     w->screen_width = e->data1;

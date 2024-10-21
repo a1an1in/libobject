@@ -39,7 +39,7 @@
 
 static char *__to_json_new(Obj *obj) 
 {
-    dbg_str(DBG_SUC, "new to json");
+    dbg_str(DBG_VIP, "new to json");
 }
 
 static int test_object_marshal(TEST_ENTRY *entry)

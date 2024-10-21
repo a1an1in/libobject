@@ -136,7 +136,7 @@ static void *__get(Codec *obj, char *attrib)
 
 static int __thread_callback(void *arg)
 {
-    dbg_str(DBG_SUC, "run at here");
+    dbg_str(DBG_VIP, "run at here");
 }
 
 

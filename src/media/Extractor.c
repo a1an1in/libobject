@@ -128,7 +128,7 @@ static void *__get(Extractor *obj, char *attrib)
 
 static int __thread_callback(void *arg)
 {
-    dbg_str(DBG_SUC, "run at here");
+    dbg_str(DBG_VIP, "run at here");
 }
 
 static int __set_data_source(Extractor *extractor, void *data_source)
@@ -146,7 +146,7 @@ static int __run(Extractor *extractor)
     Player *player = (Player *)extractor->player;
     Thread *thread =  extractor->thread;
 
-    dbg_str(DBG_SUC, "Extractor");
+    dbg_str(DBG_VIP, "Extractor");
 
     thread->set_start_routine(thread, extractor->thread_callback);
     thread->set_start_arg(thread, extractor);

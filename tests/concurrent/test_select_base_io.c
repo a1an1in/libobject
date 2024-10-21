@@ -15,7 +15,7 @@ static void test_ev_callback(int fd, short events, void *arg)
     char buf[255];
     int len;
 
-    dbg_str(DBG_SUC,"hello world, event");
+    dbg_str(DBG_VIP,"hello world, event");
     len = read(fd, buf, sizeof(buf) - 1);
 
     if (len == -1) {
@@ -68,7 +68,7 @@ int test_event_io()
     cjson_t *root, *e, *s;
     event_t event;
 
-    dbg_str(DBG_SUC,"Event IO, in test");
+    dbg_str(DBG_VIP,"Event IO, in test");
     socket = create_fifo((char *)"event.fifo");
 
     eb = OBJECT_NEW(allocator, Select_Base, NULL);
@@ -88,9 +88,9 @@ int test_event_io()
 
     eb->add(eb, &event);
 
-    dbg_str(DBG_SUC,"Event IO, loop before");
+    dbg_str(DBG_VIP,"Event IO, loop before");
     eb->loop(eb);
-    dbg_str(DBG_SUC,"Event IO, out loop");
+    dbg_str(DBG_VIP,"Event IO, out loop");
     object_destroy(eb);
     /*
      *pause();

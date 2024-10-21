@@ -251,7 +251,7 @@ static int __loop(Event_Base *eb)
         __process_timeout_events(eb);
     }
 
-    dbg_str(DBG_SUC, "break Event_Base loop");
+    dbg_str(DBG_VIP, "break Event_Base loop");
 }
 
 static class_info_entry_t event_base_class_info[] = {

@@ -102,9 +102,9 @@ static int __run_command(Player_Command *command)
 {
     Command *c = (Command *)command;
 
-    dbg_str(DBG_SUC, "player command");
+    dbg_str(DBG_VIP, "player command");
     player(c->argc - 1, c->argv + 1);
-    dbg_str(DBG_SUC, "player command end");
+    dbg_str(DBG_VIP, "player command end");
 
     return 1;
 }

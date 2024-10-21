@@ -55,7 +55,7 @@ static int __deconstrcut(Image *image)
 
 static int __load_image(Image *image, void *path)
 {
-    dbg_str(DBG_SUC, "image load image");
+    dbg_str(DBG_VIP, "image load image");
 }
 
 static void __set_size(Image *image, int width, int height)

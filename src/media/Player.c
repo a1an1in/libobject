@@ -72,7 +72,7 @@ static int __construct(Player *player,char *init_str)
     char buf[2048];
     struct event_base* base = event_base_get_default_instance();
 
-    dbg_str(DBG_SUC,"construct player in");
+    dbg_str(DBG_VIP,"construct player in");
 
     /* Initalize one event */
     event_assign(&player->out_event, base, SIGQUIT, EV_SIGNAL|EV_PERSIST,
@@ -106,7 +106,7 @@ static int __construct(Player *player,char *init_str)
 
     __clear_player_state(player);
 
-    dbg_str(DBG_SUC,"construct player out");
+    dbg_str(DBG_VIP,"construct player out");
     return 0;
 }
 
@@ -116,7 +116,7 @@ static int __deconstrcut(Player *player)
     Component *c = (Component *)image;
     Render *r = c->render;
 
-    dbg_str(DBG_SUC,"deconstruct player in");
+    dbg_str(DBG_VIP,"deconstruct player in");
 
     if (player->texture) {
         r->destroy_texture(r, player->texture);
@@ -140,7 +140,7 @@ static int __deconstrcut(Player *player)
     pthread_mutex_destroy(&player->mutex );
     pthread_cond_destroy(&player->condition );
 
-    dbg_str(DBG_SUC,"deconstruct player out");
+    dbg_str(DBG_VIP,"deconstruct player out");
     return 0;
 }
 
@@ -268,7 +268,7 @@ static void __open_audio_device(Player *player)
     Audio *audio = player->audio;
     Codec *audio_codec = player->audio_codec;
 
-    dbg_str(DBG_SUC,
+    dbg_str(DBG_VIP,
             "open audio device: freq=%d, format=%d, channel_num=%d",
             audio_codec->audio_freq,
             audio_codec->audio_format,
@@ -365,7 +365,7 @@ static int __open(Player *player, char *url)
     media_source->init(media_source, url);
     url = media_source->get_url(media_source);
 
-    dbg_str(DBG_SUC,"open url:%s",url);
+    dbg_str(DBG_VIP,"open url:%s",url);
 
     player->sync->clear(player->sync);
 
@@ -382,7 +382,7 @@ static int __close(Player *player)
     Codec *video_codec         = player->video_codec;
     Codec *audio_codec         = player->audio_codec;
     
-    dbg_str(DBG_SUC,"close player in 1");
+    dbg_str(DBG_VIP,"close player in 1");
 
     player->set_state(player,STATE_CLOSE);
 
@@ -396,7 +396,7 @@ static int __close(Player *player)
     player->clear_state(player,STATE_CLOSE);
     player->clear_state(player,STATE_LOADING);
     
-    dbg_str(DBG_SUC,"close player out");
+    dbg_str(DBG_VIP,"close player out");
 
     return 0;
 }
@@ -413,7 +413,7 @@ static int __init(Player *player)
     Media_Source *media_source = player->media_source;
     char *url;
 
-    dbg_str(DBG_SUC,"init player in");
+    dbg_str(DBG_VIP,"init player in");
 
     video_codec->set(video_codec, "extractor", extractor);
     video_codec->set_player(video_codec, player);
@@ -439,7 +439,7 @@ static int __init(Player *player)
      *player->set_state(player,STATE_STOPPING);
      */
 
-    dbg_str(DBG_SUC,"init player out");
+    dbg_str(DBG_VIP,"init player out");
 
     return 0;
 }
@@ -489,7 +489,7 @@ static int __stop(Player *player)
 
 static int __exit(Player *player)
 {
-    dbg_str(DBG_SUC,"exit player");
+    dbg_str(DBG_VIP,"exit player");
 
     player->set_state(player, STATE_CLOSE);
     player->set_state(player, STATE_EXIT);
@@ -531,7 +531,7 @@ static int __seek_to(Player *player, int position)
 
     usleep(500000);
 
-    dbg_str(DBG_SUC,"seek to %d", position);
+    dbg_str(DBG_VIP,"seek to %d", position);
     player->seek_timestamp = (int64_t)position; 
 
     player->sync->clear(player->sync);
@@ -834,7 +834,7 @@ static int __draw_current_image(Player *player)
     int count = 0; //test
     int ret = 0;
 
-    dbg_str(DBG_SUC, "draw_current_image");
+    dbg_str(DBG_VIP, "draw_current_image");
 
     __calculate_display_rect(&rect,
                              0, //int win_x,
@@ -856,7 +856,7 @@ static int __draw_current_image(Player *player)
         r->clear(r);
         r->draw_texture(r, rect.x, rect.y, rect.width, rect.height, texture);  
         r->present(r);
-        dbg_str(DBG_SUC,
+        dbg_str(DBG_VIP,
                 "drawing current frame texture, x=%d, y=%d, width=%d, "
                 "height=%d",
                 rect.x, rect.y, rect.width, rect.height);
@@ -990,7 +990,7 @@ __wait_if_true(Player *player,
         if (first_flag) {
             for (i  = 0; i < condition_cnt; i++) {
                 if (player->is_state(player, conditions[i])) {
-                    dbg_str(DBG_SUC,"%s is waiting state is not :%s",
+                    dbg_str(DBG_VIP,"%s is waiting state is not :%s",
                             (char *)who, player->state_to_str(player, conditions[i]));
                 }
             }
@@ -1643,7 +1643,7 @@ static int __print(Player *player)
     FrameStream *vfs     = video_codec->video_frame_stream;
 
     int ret = 0;
-    dbg_str(DBG_SUC, "state_idle = %d, "
+    dbg_str(DBG_VIP, "state_idle = %d, "
                      "state_opening = %d, "
                      "state_opened = %d, "
                      "state_extractor_eof = %d, "
@@ -1672,7 +1672,7 @@ static int __print(Player *player)
                      player->state_screensize_changed,
                      player->state_loading);
 
-    dbg_str(DBG_SUC, "state_extractor_ready = %d, "
+    dbg_str(DBG_VIP, "state_extractor_ready = %d, "
                      "state_audio_codec_ready = %d, "
                      "state_video_codec_ready = %d", 
                      player->state_extractor_ready,
@@ -1680,7 +1680,7 @@ static int __print(Player *player)
                      player->state_video_codec_ready);
 
 
-    dbg_str(DBG_SUC, "state_audio_packet_queue_empty = %d, " 
+    dbg_str(DBG_VIP, "state_audio_packet_queue_empty = %d, " 
                      "state_audio_frame_queue_empty = %d, " 
                      "state_video_packet_queue_empty = %d, " 
                      "state_video_frame_queue_empty = %d, " 
@@ -1697,7 +1697,7 @@ static int __print(Player *player)
                      player->state_video_packet_queue_full, 
                      player->state_video_frame_queue_full);
 
-    dbg_str(DBG_SUC, "state_extractor_stopped = %d, "
+    dbg_str(DBG_VIP, "state_extractor_stopped = %d, "
                      "state_audio_codec_stopped = %d, "
                      "state_video_codec_stopped = %d, " 
                      "state_stopping = %d, " 
@@ -1708,15 +1708,15 @@ static int __print(Player *player)
                      player->state_stopping, 
                      player->state_stopped); 
 
-    dbg_str(DBG_SUC, "vps size=%d, aps size=%d",
+    dbg_str(DBG_VIP, "vps size=%d, aps size=%d",
                      vps->size(vps),
                      aps->size(aps));
 
-    dbg_str(DBG_SUC, "vfs size=%d, afs size=%d",
+    dbg_str(DBG_VIP, "vfs size=%d, afs size=%d",
                      vfs->size(vfs),
                      afs->size(afs));
 
-    dbg_str(DBG_SUC, "video_current_timestamp :%lf audio_current_timestamp:%lf ",
+    dbg_str(DBG_VIP, "video_current_timestamp :%lf audio_current_timestamp:%lf ",
                      player->sync->get_video_clock(player->sync),
                      player->sync->get_audio_clock(player->sync));
 

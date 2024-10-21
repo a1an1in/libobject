@@ -125,7 +125,7 @@ __request(Http_Client *hc, int (*request_cb)(void *, void *), void *arg)
         c = client(allocator, CLIENT_TYPE_INET_TCP, 
                    (char *)"127.0.0.1", (char *)"19924");
 
-        dbg_str(DBG_SUC,"http client connect to remote_host:%s remote_service:%s",
+        dbg_str(DBG_VIP,"http client connect to remote_host:%s remote_service:%s",
                 hc->remote_host, hc->remote_service);
 
         ret = client_connect(c, hc->remote_host, hc->remote_service);
@@ -134,7 +134,7 @@ __request(Http_Client *hc, int (*request_cb)(void *, void *), void *arg)
             goto end;
         }
         client_trustee(c, NULL, __http_client_response_callback, arg);
-        dbg_str(DBG_SUC,"run at here");
+        dbg_str(DBG_VIP,"run at here");
 
         req->socket = c->socket;
         req->write(req);

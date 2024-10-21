@@ -339,7 +339,7 @@ static int __seek(Codec *codec)
     FF_Extractor *ff_extractor = (FF_Extractor *)player->extractor;
     FrameStream *stream        = codec->audio_frame_stream;
 
-    dbg_str(DBG_SUC, "seek audio codec");
+    dbg_str(DBG_VIP, "seek audio codec");
 
     stream->clear(stream);
     avcodec_flush_buffers(ff_extractor->audio_codec_ctx);
@@ -359,7 +359,7 @@ static int __open(Codec *codec)
     Player *player             = (Player *)codec->player;
     AVCodec			*inner_codec;
 
-    dbg_str(DBG_SUC,"open audio codec, codec_id=%d", 
+    dbg_str(DBG_VIP,"open audio codec, codec_id=%d", 
             codec_ctx->codec_id);
 
     inner_codec = avcodec_find_decoder(codec_ctx->codec_id);
@@ -402,7 +402,7 @@ static int __close(Codec *codec)
     FrameStream * stream       = codec->audio_frame_stream;
     Player *player             = (Player *)codec->player;
 
-    dbg_str(DBG_SUC,"close audio codec");
+    dbg_str(DBG_VIP,"close audio codec");
 
     stream->clear(stream);
     player->clear_state(player,STATE_AUDIO_FRAME_QUEUE_FULL);

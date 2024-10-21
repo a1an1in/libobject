@@ -20,10 +20,10 @@ static int __run_command(Command *command)
     dbg_str(DBG_DETAIL, "fshell run");
 
     count = command->args->count(command->args);
-    dbg_str(DBG_SUC,"arg count =%d", count);
+    dbg_str(DBG_VIP,"arg count =%d", count);
     if (count > 1) {
         arg = command->get_argment(command, 0);
-        dbg_str(DBG_SUC,"arg0:%s", arg->value->get_cstr(arg->value));
+        dbg_str(DBG_VIP,"arg0:%s", arg->value->get_cstr(arg->value));
     }
     shell->init(shell);
     shell->open_ui(shell);

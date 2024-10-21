@@ -307,14 +307,14 @@ int fsh_variable_info_alloc(allocator_t *allocator, uint32_t value_type, char *c
             case VALUE_TYPE_STUB_POINTER:
                 info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + sizeof(void *));
                 info->addr = stub_alloc();
-                dbg_str(DBG_SUC, "node stub alloc %s:%p", name, info->addr);
+                dbg_str(DBG_VIP, "node stub alloc %s:%p", name, info->addr);
                 info->value_type = VALUE_TYPE_STUB_POINTER;
                 strcpy(info->name, name);
                 break;
             case VALUE_TYPE_OBJ_POINTER:
                 info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + sizeof(void *));
                 info->addr = object_new(allocator, class_name, NULL);
-                dbg_str(DBG_SUC, "node alloc object %s:%p", ((Obj *)info->addr)->name, info->addr);
+                dbg_str(DBG_VIP, "node alloc object %s:%p", ((Obj *)info->addr)->name, info->addr);
                 info->value_type = VALUE_TYPE_OBJ_POINTER;
                 strcpy(info->name, name);
                 break;
@@ -339,12 +339,12 @@ int fsh_variable_info_free(allocator_t *allocator, fsh_malloc_variable_info_t *i
             break;
         }
         case VALUE_TYPE_STUB_POINTER:
-            dbg_str(DBG_SUC, "node_mfree stub, name:%s, addr:%p", info->name, info->addr);
+            dbg_str(DBG_VIP, "node_mfree stub, name:%s, addr:%p", info->name, info->addr);
             stub_free(info->addr);
             allocator_mem_free(allocator, info);
             break;
         case VALUE_TYPE_OBJ_POINTER:
-            dbg_str(DBG_SUC, "node_mfree object, name:%s, addr:%p", info->name, info->addr);
+            dbg_str(DBG_VIP, "node_mfree object, name:%s, addr:%p", info->name, info->addr);
             object_destroy(info->addr);
             allocator_mem_free(allocator, info);
         case VALUE_TYPE_STRUCT_POINTER:

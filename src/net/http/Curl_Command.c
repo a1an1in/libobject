@@ -31,8 +31,8 @@ static int __curl_request_callback(Response *resp, void *arg)
     Http_Client *client = (Http_Client *)arg;
     allocator_t *allocator = resp->obj.allocator;
 
-    dbg_str(DBG_SUC,"curl request callback");
-    dbg_str(DBG_SUC,"status code =%d", resp->status_code);
+    dbg_str(DBG_VIP,"curl request callback");
+    dbg_str(DBG_VIP,"status code =%d", resp->status_code);
     dbg_str(DBG_DETAIL,"body:%s", resp->get_body(resp));
     resp->end_flag = 1;
 
@@ -87,24 +87,24 @@ static int __option_header_action_callback(Option *option, void *opaque)
 
 static int __option_head_action_callback(Option *option, void *opaque)
 {
-    dbg_str(DBG_SUC,"option_head_action_callback");
+    dbg_str(DBG_VIP,"option_head_action_callback");
 }
 
 static int __option_output_action_callback(Option *option, void *opaque)
 {
-    dbg_str(DBG_SUC,"option_output_action_callback");
+    dbg_str(DBG_VIP,"option_output_action_callback");
 }
 
 static int __option_range_action_callback(Option *option, void *opaque)
 {
-    dbg_str(DBG_SUC,"option_range_action_callback");
+    dbg_str(DBG_VIP,"option_range_action_callback");
 }
 
 static int __option_request_action_callback(Option *option, void *opaque)
 {
     Request *req = (Request *)opaque;
 
-    dbg_str(DBG_SUC, "set request method:%s", 
+    dbg_str(DBG_VIP, "set request method:%s", 
             option->value->get_cstr(option->value));
     req->set_method(req, option->value->get_cstr(option->value));
 }
@@ -121,7 +121,7 @@ static int __argument_url_action_callback(Argument *arg, void *opaque)
     req = client->get_request(client);
     chain = req->chain;
 
-    dbg_str(DBG_SUC,"url:%s", arg->value->get_cstr(arg->value));
+    dbg_str(DBG_VIP,"url:%s", arg->value->get_cstr(arg->value));
 
     url = chain->new(chain, "Url", NULL);
     url->parse(url, arg->value->get_cstr(arg->value));
@@ -190,11 +190,11 @@ static int __run_command(Command *command)
 
     count = command->args->count(command->args);
     if (count != 1) {
-        dbg_str(DBG_SUC,"curl command format err, need url");
+        dbg_str(DBG_VIP,"curl command format err, need url");
         return -1;
     }
 
-    dbg_str(DBG_SUC,"arg count =%d", count);
+    dbg_str(DBG_VIP,"arg count =%d", count);
 
     client = curl->client;
     req = client->get_request(client);

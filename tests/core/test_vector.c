@@ -121,7 +121,7 @@ static int test_vector_to_json_case1()
         vector->add_at(vector, 5, 5);
 
         THROW_IF(strcmp(vector->to_json(vector), result) != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s, file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s, file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
         object_destroy(vector);
@@ -169,7 +169,7 @@ static int test_vector_to_json_case2()
         dbg_str(DBG_DETAIL, "result: %s", result);
 
         THROW_IF(strcmp(vector->to_json(vector), result) != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s, file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s, file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
         object_destroy(vector);
@@ -220,7 +220,7 @@ static int test_vector_to_json_case3()
 
         SET_CATCH_STR_PARS(string->get_cstr(string), init_data);
         THROW_IF(strcmp(string->get_cstr(string), init_data) != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s, file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s, file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "test_vector_to_json_case3 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
@@ -263,7 +263,7 @@ static int test_vector_to_json_case4()
 
         SET_CATCH_STR_PARS(string->get_cstr(string), init_data);
         THROW_IF(strcmp(string->get_cstr(string), init_data) != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s, file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s, file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "test_vector_to_json_case3 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
@@ -306,7 +306,7 @@ static int test_vector_to_json_case5()
 
         SET_CATCH_STR_PARS(string->get_cstr(string), init_data);
         THROW_IF(strcmp(string->get_cstr(string), init_data) != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s, file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s, file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "test_vector_to_json_case3 error, par1=%s, par2=%s", ERROR_PTR_PAR1(), ERROR_PTR_PAR2());
@@ -350,7 +350,7 @@ static int test_vector_assign_case1()
         vector->assign(vector,  init_data);
 
         THROW_IF(strcmp(vector->to_json(vector), init_data) != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s, file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s, file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
         object_destroy(vector);
@@ -376,7 +376,7 @@ static int test_vector_assign_case2()
 
         dbg_str(DBG_DETAIL, "Vector dump: %s", vector->to_json(vector));
         THROW_IF(strcmp(vector->to_json(vector), init_data) != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s, file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s, file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
         object_destroy(vector);
@@ -409,7 +409,7 @@ static int test_vector_assign_case3()
         string->replace(string, "\n", "", -1);
 
         THROW_IF(strcmp(string->get_cstr(string), init_data) != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s, file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s, file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
         object_destroy(string);
@@ -444,7 +444,7 @@ static int test_vector_assign_case4()
         string->replace(string, "\n", "", -1);
 
         THROW_IF(strcmp(string->get_cstr(string), init_data) != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s, file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s, file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
         object_destroy(string);
@@ -477,7 +477,7 @@ static int test_vector_assign_case5()
         string->replace(string, "\n", "", -1);
 
         THROW_IF(strcmp(string->get_cstr(string), init_data) != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s, file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s, file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
         object_destroy(string);

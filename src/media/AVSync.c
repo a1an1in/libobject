@@ -43,7 +43,7 @@ static int __construct(AVSync * avsync,char *init_str)
     char buf[2048];
     avsync->audio_codec = NULL; 
     avsync->video_codec = NULL; 
-    dbg_str(DBG_SUC,"avsync construct,avsync addr:%p",avsync);
+    dbg_str(DBG_VIP,"avsync construct,avsync addr:%p",avsync);
 
     avsync->audio_mutex= object_new(allocator, "Mutex_Lock", NULL);
     avsync->video_mutex= object_new(allocator, "Mutex_Lock", NULL);

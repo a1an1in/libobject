@@ -166,7 +166,7 @@ static int __turn_allocate_post_callback(Response * response, void *opaque)
             turn->status = TURN_STATUS_ALLOC_ERROR;
             memcpy(turn->nonce, response->attribs.nonce, response->attribs.nonce->len + 4);
         } else if ((response->header->msgtype & 0x110) == 0x100) {
-            dbg_str(DBG_SUC, "allocation success");
+            dbg_str(DBG_VIP, "allocation success");
             turn->status = TURN_STATUS_ALLOC_SUC;
         }
     } CATCH (ret) {
@@ -182,12 +182,12 @@ static int __turn_create_permisson_post_callback(Response * response, void *opaq
     int ret;
 
     TRY {
-        dbg_str(DBG_SUC, "__turn_create_permisson_post_callback");
+        dbg_str(DBG_VIP, "__turn_create_permisson_post_callback");
         if ((response->header->msgtype & 0x118) == 0x118) {
             turn->status = TURN_STATUS_PERMISION_ERROR;
         } else if ((response->header->msgtype & 0x118) == 0x108) {
             turn->status = TURN_STATUS_PERMISION_SUC;
-            dbg_str(DBG_SUC, "TURN_STATUS_PERMISION_SUC");
+            dbg_str(DBG_VIP, "TURN_STATUS_PERMISION_SUC");
         }
     } CATCH (ret) {
     }
@@ -204,9 +204,9 @@ static int __turn_data_indication_post_callback(Response * response, void *opaqu
 
     TRY {
         data = response->attribs.data;
-        dbg_str(DBG_SUC, "__turn_data_indication_post_callback");
-        dbg_str(DBG_SUC, "recv ind data:%s", data->value);
-        dbg_buf(DBG_SUC, "recv ind data:", data->value, data->len);
+        dbg_str(DBG_VIP, "__turn_data_indication_post_callback");
+        dbg_str(DBG_VIP, "recv ind data:%s", data->value);
+        dbg_buf(DBG_VIP, "recv ind data:", data->value, data->len);
     } CATCH (ret) {
     }
 

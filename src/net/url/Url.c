@@ -83,7 +83,7 @@ static int __parse_scheme(Url *url)
     cnt = scheme->split(scheme, (char *)"/", 1);
     user = (String *)object_new(allocator, (char *)"String", NULL);
     if (cnt == 2) {
-        dbg_str(DBG_SUC, "scheme:%s", scheme->get_cstr(scheme));
+        dbg_str(DBG_VIP, "scheme:%s", scheme->get_cstr(scheme));
         url->scheme = scheme;
         user->assign(user, scheme->get_splited_cstr(scheme, 1));
     } else {
@@ -110,24 +110,24 @@ static int __parse_user_and_password(Url *url)
     password = (String *)object_new(allocator, (char *)"String", NULL);
     cnt= user->split(user, (char *)"@", 1);
     if (cnt == 2) {
-        dbg_str(DBG_SUC, "user:%s", user->get_cstr(user));
-        dbg_str(DBG_SUC, "host:%s",user->get_splited_cstr(user, 1));
+        dbg_str(DBG_VIP, "user:%s", user->get_cstr(user));
+        dbg_str(DBG_VIP, "host:%s",user->get_splited_cstr(user, 1));
         host->assign(host, user->get_splited_cstr(user, 1));
 
         cnt= user->split(user, (char *)":", 1);
         if (cnt == 2) {
             password->assign(password, user->get_splited_cstr(user, 1));
-            dbg_str(DBG_SUC, "password:%s",user->get_splited_cstr(user, 1));
+            dbg_str(DBG_VIP, "password:%s",user->get_splited_cstr(user, 1));
             url->password = password;
         } else {
             object_destroy(password);
         }
     } else {
-        dbg_str(DBG_SUC, "host:%s",user->get_splited_cstr(user, 0));
+        dbg_str(DBG_VIP, "host:%s",user->get_splited_cstr(user, 0));
         host->assign(host, user->get_splited_cstr(user, 0));
         object_destroy(user);
         object_destroy(password);
-        dbg_str(DBG_SUC, "destroy user");
+        dbg_str(DBG_VIP, "destroy user");
         dbg_str(DBG_DETAIL, "user addr:%p", url->user);
         url->user = NULL;
         dbg_str(DBG_DETAIL, "user addr:%p", url->user);
@@ -154,13 +154,13 @@ static int __parse_host(Url *url)
     cnt= host->split(host, (char *)":", 1);
     if (cnt == 2) {
         port->assign(port, host->get_splited_cstr(host, 1));
-        dbg_str(DBG_SUC, "port:%s",host->get_splited_cstr(host, 1));
+        dbg_str(DBG_VIP, "port:%s",host->get_splited_cstr(host, 1));
         url->port = port;
         cnt= port->split(port, (char *)"/", 1);
         if (cnt == 2) {
             path->assign(path, "/");
             path->append(path, port->get_splited_cstr(port, 1), -1);
-            dbg_str(DBG_SUC, "path:%s",port->get_splited_cstr(port, 1));
+            dbg_str(DBG_VIP, "path:%s",port->get_splited_cstr(port, 1));
             url->path = path;
         } else {
             object_destroy(path);
@@ -172,7 +172,7 @@ static int __parse_host(Url *url)
         if (cnt == 2) {
             path->assign(path, "/");
             path->append(path, host->get_splited_cstr(host, 1), -1);
-            dbg_str(DBG_SUC, "path:%s",host->get_splited_cstr(host, 1));
+            dbg_str(DBG_VIP, "path:%s",host->get_splited_cstr(host, 1));
             url->host = host;
         } else {
             object_destroy(path);
@@ -201,7 +201,7 @@ static int __parse_path(Url *url)
     /*parse path*/
     cnt= path->split(path, (char *)"[?]", 1);
     if (cnt == 2) {
-        dbg_str(DBG_SUC, "path:%s", path->get_cstr(path));
+        dbg_str(DBG_VIP, "path:%s", path->get_cstr(path));
         query->assign(query, path->get_splited_cstr(path, 1));
         url->query = query;
         return 1;
@@ -227,13 +227,13 @@ static int __parse_query(Url *url)
 
     cnt= query->split(query, (char *)"#", 1);
     if (cnt == 2) {
-        dbg_str(DBG_SUC, "query:%s", query->get_cstr(query));
-        dbg_str(DBG_SUC, "fragment:%s", query->get_splited_cstr(query, 1));
+        dbg_str(DBG_VIP, "query:%s", query->get_cstr(query));
+        dbg_str(DBG_VIP, "fragment:%s", query->get_splited_cstr(query, 1));
         fragment->assign(fragment, query->get_splited_cstr(query, 1));
         url->query = query;
         url->fragment= fragment;
     } else {
-        dbg_str(DBG_SUC, "query:%s", query->get_cstr(query));
+        dbg_str(DBG_VIP, "query:%s", query->get_cstr(query));
         object_destroy(fragment);
     }
 

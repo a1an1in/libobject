@@ -50,7 +50,7 @@ static int __test_orm_create_table(Orm *orm)
         ret = conn->create_table(conn, "Test_User_Table"); /* 专用于测试创建表 */
     }
     orm->add_conn(orm, conn);
-    dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+    dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
 
     return ret;
@@ -98,7 +98,7 @@ static int __test_orm_model_operations(Orm *orm)
         EXEC(conn->query_model(conn, (Model *)user, "select * from test_user_table where nickname='%s';", "user1"));
         dbg_str(DBG_DETAIL, "json:%s", user->to_json(user));
         THROW_IF(strcmp(STR2A(user->mobile), "15440129083") != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
 
         /* 测试update with json */
@@ -111,7 +111,7 @@ static int __test_orm_model_operations(Orm *orm)
         /* 验证是否修改成功 */
         EXEC(conn->query_model(conn, (Model *)user, "select * from test_user_table where nickname='%s';", "user1"));
         THROW_IF(strcmp(STR2A(user->mobile), "15440129084") != 0, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
 
     } CATCH (ret) { } FINALLY {
@@ -182,7 +182,7 @@ static int __test_orm_table_operations(Orm *orm)
         count = table->count_model(table);
         THROW_IF(count != 0, -1);
     
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                     __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
         orm->add_conn(orm, conn);
@@ -234,7 +234,7 @@ static int __test_orm_merge_table(Orm *orm)
 
         table->peek_at_model(table, 0, (void **)&user);
         THROW_IF(user->count != 44, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {
         json = table->to_json(table);

@@ -83,7 +83,7 @@ static int __construct(Label *label, char *init_str)
 
     cursor->x                 = 0;
     cursor->y                 = 0;
-    dbg_str(DBG_SUC, "width=%d, height=%d", ((Subject *)label)->width, ((Subject *)label)->height);
+    dbg_str(DBG_VIP, "width=%d, height=%d", ((Subject *)label)->width, ((Subject *)label)->height);
 
     return 0;
 }
@@ -272,7 +272,7 @@ int label()
     object_dump(window, "Sdl_Window", buf, 2048);
     dbg_str(DBG_DETAIL, "Window dump: %s", buf);
 
-    dbg_str(DBG_SUC, "test_ui_label begin alloc count =%d", allocator->alloc_count);
+    dbg_str(DBG_VIP, "test_ui_label begin alloc count =%d", allocator->alloc_count);
     subject = new_label(allocator, 0, 0, 80, 20, "label");
 
     object_dump(subject, "Label", buf, 2048);
@@ -287,7 +287,7 @@ int label()
 
     event->poll_event(event, window);
 
-    dbg_str(DBG_SUC, "test_ui_label end alloc count =%d", allocator->alloc_count);
+    dbg_str(DBG_VIP, "test_ui_label end alloc count =%d", allocator->alloc_count);
 
     object_destroy(window);
 }

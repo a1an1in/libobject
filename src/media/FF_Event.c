@@ -493,10 +493,10 @@ static int __poll_event(__Event *event, void *window)
                     200, 100,
                     data, &len);
             if (ret < 0) {
-                dbg_str(DBG_SUC,"get_rgb_from_current_frame err");
+                dbg_str(DBG_VIP,"get_rgb_from_current_frame err");
             } else {
-                dbg_str(DBG_SUC,"total len=%d, linesize=%d", ret, len);
-                dbg_buf(DBG_SUC,"rbg data:", data, 10);
+                dbg_str(DBG_VIP,"total len=%d, linesize=%d", ret, len);
+                dbg_buf(DBG_VIP,"rbg data:", data, 10);
             }
 #endif
         }

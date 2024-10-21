@@ -22,7 +22,7 @@ static int set_debug(bus_object_t *obj,
     db_switch    = blob_get_uint32(args[1]);
     db_level     = blob_get_uint32(args[2]);
 
-    dbg_str(DBG_SUC, "set debug, bussiness=%d, switch=%d, level=%d", 
+    dbg_str(DBG_VIP, "set debug, bussiness=%d, switch=%d, level=%d", 
             db_bussiness, db_switch, db_level);
 
     debugger_set_business(debugger_gp, db_bussiness, db_switch, db_level);

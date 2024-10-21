@@ -136,7 +136,7 @@ static int __reset(Map *map)
             class_name = map->get(map, "/Map/class_name");
             if (*class_name != NULL) {
                 int (*free_method)(allocator_t *allocator, void *info);
-                dbg_str(DBG_SUC, "map strcut adapter class name:%s", STR2A(*class_name));
+                dbg_str(DBG_VIP, "map strcut adapter class name:%s", STR2A(*class_name));
                 free_method = object_get_member_of_class(STR2A(*class_name), "free");
                 if (free_method == NULL) return -1;
                 free_method(map->obj.allocator, element);

@@ -187,7 +187,7 @@ static int __init(Sdl_Audio *sdl_audio)
     Audio *audio = (Audio *)sdl_audio;
 	SDL_AudioSpec wanted_spec;
 
-    dbg_str(DBG_SUC, "sdl audio initing. freq=%d, format=%d, channel_num=%d",
+    dbg_str(DBG_VIP, "sdl audio initing. freq=%d, format=%d, channel_num=%d",
             audio->freq, audio->format, audio->channel_num); 
 #if 1
 	wanted_spec.freq     = audio->freq;
@@ -223,7 +223,7 @@ static int __init(Sdl_Audio *sdl_audio)
 	SDL_AudioSpec *wanted_spec = &sdl_audio->wanted_spec;
 	SDL_AudioSpec *spec = &sdl_audio->spec;
 
-    dbg_str(DBG_SUC, "sdl audio initing."); 
+    dbg_str(DBG_VIP, "sdl audio initing."); 
 	wanted_spec->freq     = audio->freq;
 	wanted_spec->format   = AUDIO_S16SYS;
     /*
@@ -280,9 +280,9 @@ static int __pause(Sdl_Audio *sdl_audio)
 
 static int __close(Sdl_Audio *sdl_audio)
 {
-    dbg_str(DBG_SUC, "sdl close audio in."); 
+    dbg_str(DBG_VIP, "sdl close audio in."); 
     SDL_CloseAudioDevice(sdl_audio->dev_id);
-    dbg_str(DBG_SUC, "sdl close audio out"); 
+    dbg_str(DBG_VIP, "sdl close audio out"); 
 
     return 1;
 }

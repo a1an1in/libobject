@@ -251,7 +251,7 @@ static Argument *__get_argment(Command *command, int index)
             command->add_argument(command, "", "", NULL, command);
             args->peek_at(args, index, (void **)&arg);
             THROW_IF(arg == NULL, -1);
-            dbg_str(DBG_SUC, "arg addr %p", arg);
+            dbg_str(DBG_VIP, "arg addr %p", arg);
         }
     } CATCH (ret) { arg = NULL; }
 

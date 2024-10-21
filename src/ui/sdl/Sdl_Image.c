@@ -105,7 +105,7 @@ static int __load_image(Image *image, void *path)
 {
     Sdl_Image *i   = (Sdl_Image *)image;
 
-    dbg_str(DBG_SUC, "Sdl_Render load image");
+    dbg_str(DBG_VIP, "Sdl_Render load image");
 
     image->path->assign(image->path, path);
     if (i->surface != NULL) {
@@ -124,7 +124,7 @@ static int __draw(Image *image, void *render)
     Sdl_Image *si  = (Sdl_Image *)image;
     Sdl_Render *r = (Sdl_Render *)render;
 
-    dbg_str(DBG_SUC, "%s draw", ((Obj *)image)->name);
+    dbg_str(DBG_VIP, "%s draw", ((Obj *)image)->name);
 
     if (si->texture == NULL && si->surface != NULL) {
         si->texture = SDL_CreateTextureFromSurface(r->sdl_render, si->surface);

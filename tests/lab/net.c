@@ -85,7 +85,7 @@ int test_mystr_split(TEST_ENTRY *entry)
     int count, i;
     int *array;
 
-    dbg_str(DBG_SUC, "test str split");
+    dbg_str(DBG_VIP, "test str split");
     count = mystr_split(str, " ", &out);
 
     array = malloc(sizeof(int) * (count - 1));

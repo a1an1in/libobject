@@ -506,7 +506,7 @@ static int __update_texture2(Codec *codec, void *texture)
         return 0;
     }
 
-    dbg_str(DBG_SUC,"update video texture, video frame size :%d  ",
+    dbg_str(DBG_VIP,"update video texture, video frame size :%d  ",
             frame_stream->size(frame_stream));
 
     frame_stream->remove_frame(frame_stream, &frame);
@@ -725,7 +725,7 @@ __get_rgb_from_current_frame(Codec *codec,
         goto err_scale;
     }
 
-    dbg_str(DBG_SUC, "dst_bufsize=%d",dst_bufsize);
+    dbg_str(DBG_VIP, "dst_bufsize=%d",dst_bufsize);
     memcpy(data, dst_data[0], dst_linesize[0]);
     *len = dst_linesize[0];
     ret = dst_bufsize;
@@ -756,7 +756,7 @@ static int __seek(Codec *codec)
     AVCodecContext	*codec_ctx = ff_extractor->video_codec_ctx;
     FrameStream * stream = codec->video_frame_stream;
      
-    dbg_str(DBG_SUC, "seek video codec");
+    dbg_str(DBG_VIP, "seek video codec");
 
     stream->clear(stream);
     avcodec_flush_buffers(codec_ctx);
@@ -777,7 +777,7 @@ static int __open(Codec *codec)
     Player *player  = (Player *)codec->player;
 	AVCodec			*inner_codec;
 
-    dbg_str(DBG_SUC,"open video codec, codec_id=%d",
+    dbg_str(DBG_VIP,"open video codec, codec_id=%d",
             codec_ctx->codec_id);
 
 	inner_codec = avcodec_find_decoder(codec_ctx->codec_id);
@@ -813,7 +813,7 @@ static int __close(Codec *codec)
     FrameStream * stream = codec->video_frame_stream;
     AVFrame *out_frame = ff_codec->out_frame;
      
-    dbg_str(DBG_SUC,"close video codec");
+    dbg_str(DBG_VIP,"close video codec");
 
     stream->clear(stream);
     player->clear_state(player,STATE_VIDEO_FRAME_QUEUE_FULL);

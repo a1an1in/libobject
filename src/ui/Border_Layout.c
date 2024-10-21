@@ -314,7 +314,7 @@ static int __add_component(Container *obj, void *pos, void *component)
                 l->blocks[BORDER_LAYOUT_SOUTH].height     = 0;
                 l->height_ratio_of_center_to_layout       = (float) (1.0 - l->height_ratio_of_north_to_layout -
                                                             l->height_ratio_of_south_to_layout);
-                dbg_str(DBG_SUC, "south set 0");
+                dbg_str(DBG_VIP, "south set 0");
                 break;
             default:
                 return -1;
@@ -524,7 +524,7 @@ static void draw_border(Component *component, void *render)
                         s->x + l->layout_width, 
                         s->y + l->blocks[BORDER_LAYOUT_NORTH].height + l->blocks[BORDER_LAYOUT_CENTER].height);
     /*
-     *dbg_str(DBG_SUC, "width=%d, height=%d", l->layout_width, l->layout_height);
+     *dbg_str(DBG_VIP, "width=%d, height=%d", l->layout_width, l->layout_height);
      */
 
     if (l->blocks[BORDER_LAYOUT_WEST].width != 0)

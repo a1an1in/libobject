@@ -88,7 +88,7 @@ static int __deconstrcut(Grid_Layout *grid_layout)
 {
     allocator_t *allocator = ((Obj *)grid_layout)->allocator;
 
-    dbg_str(DBG_SUC, "grid_layout deconstruct");
+    dbg_str(DBG_VIP, "grid_layout deconstruct");
 
     allocator_mem_free(allocator, grid_layout->row_height);
     allocator_mem_free(allocator, grid_layout->col_width);
@@ -141,7 +141,7 @@ static int __add_component(Container *obj, void *pos, void *component)
     position.x = get_x_axis_of_current_grid(l) + l->hgap;
     position.y = get_y_axis_of_current_grid(l) + l->vgap;
 
-    dbg_str(DBG_SUC, "position x=%d, y=%d", position.x, position.y);
+    dbg_str(DBG_VIP, "position x=%d, y=%d", position.x, position.y);
     container->update_component_position(c, &position);
 
     map->add(map, c->name->get_cstr(c->name), c);
@@ -192,7 +192,7 @@ static void draw_grids(Component *component, void *render)
     int i;
     position_t start, end;
 
-    dbg_str(DBG_SUC, "draw_grids");
+    dbg_str(DBG_VIP, "draw_grids");
 
     /*draw row lines*/
     r->set_color(r, 0x0, 0x0, 0x0, 0xff);
@@ -228,7 +228,7 @@ static int __draw(Component *component, void *render)
     Container *container = (Container *)component;
     Render *r             = (Render *)render;
 
-    dbg_str(DBG_SUC, "%s draw", ((Obj *)component)->name);
+    dbg_str(DBG_VIP, "%s draw", ((Obj *)component)->name);
 
     /*draw grids*/
     draw_grids(component, render);
