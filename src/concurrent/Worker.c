@@ -50,6 +50,7 @@ static int __construct(Worker *worker, char *init_str)
 static int __deconstrcut(Worker *worker)
 {
     dbg_str(EV_DETAIL, "worker deconstruct, worker addr:%p", worker);
+    /* socket 在更上层分配和释放， 因为不是所有的workder都会使用socket */
     worker->resign(worker);
     work_task_free(worker->task);
 

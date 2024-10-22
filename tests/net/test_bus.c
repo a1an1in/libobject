@@ -74,12 +74,12 @@ static int __test_bus_invoke_sync()
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "test_bus_invoke_sync");
+        dbg_str(DBG_INFO, "test_bus_invoke_sync");
         bus = bus_create(allocator, deamon_host, deamon_srv, CLIENT_TYPE_INET_TCP);
         THROW_IF(bus == NULL, -1);
 
         EXEC(bus_invoke_sync(bus, "test", "hello", 2, args, out, &out_len));
-        dbg_buf(DBG_VIP, "return buffer:", (uint8_t *)out, out_len);
+        dbg_buf(DBG_INFO, "return buffer:", (uint8_t *)out, out_len);
         THROW_IF(assert_equal(out, expert_buffer, sizeof(expert_buffer)) != 1, -1);
         dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
@@ -129,8 +129,9 @@ static int __test_bus_lookup_all_sync()
         bus = bus_create(allocator, deamon_host, deamon_srv, CLIENT_TYPE_INET_TCP);
         THROW_IF(bus == NULL, -1);
         bus_lookup_sync(bus, "all", out, &out_len);
+        dbg_str(DBG_VIP, "out:%s", out);
 
-        THROW_IF(strstr(out, "all") == NULL, -1);
+        THROW_IF(strstr(out, "test") == NULL, -1);
         dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
@@ -165,7 +166,7 @@ static int test_bus()
         bus_add_object(bus, &test_object);
 
         EXEC(__test_bus_invoke_sync());
-        // EXEC(__test_bus_lookup_one_sync());
+        EXEC(__test_bus_lookup_one_sync());
         EXEC(__test_bus_lookup_all_sync());
     } CATCH (ret) {} FINALLY {
         bus_destroy(bus);

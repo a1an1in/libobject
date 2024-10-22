@@ -13,7 +13,7 @@ int busd_object_struct_custom_to_json(cjson_t *root, void *element)
     item = cjson_create_object();
 
     cjson_add_string_to_object(item, "id", o->id);
-    cjson_add_string_to_object(item, "infos", o->infos);
+    // cjson_add_string_to_object(item, "infos", o->infos);
     cjson_add_number_to_object(item, "fd", o->fd);
     if (item != NULL) {
         cjson_add_item_to_array(root, item);

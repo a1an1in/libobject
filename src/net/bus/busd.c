@@ -112,6 +112,8 @@ int busd_init(busd_t *busd,
               int (*process_server_task_cb)(void *task))
 {
     Map *map;
+    int value_type = VALUE_TYPE_STRUCT_POINTER;
+    int trustee_flag = 1;
     int ret; 
 
     TRY {
@@ -135,6 +137,9 @@ int busd_init(busd_t *busd,
         THROW_IF(busd->obj_map == NULL, -1);
         map = busd->obj_map;
         map->set_cmp_func(map, string_key_cmp_func);
+        map->set(map, "/Map/value_type", &value_type);
+        map->set(map, "/Map/trustee_flag", &trustee_flag);
+        map->set(map, "/Map/class_name", "Busd_Object_Struct_Adapter");
     } CATCH (ret) {}
 
     return ret;
@@ -263,6 +268,7 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
     Map *map = busd->obj_map;
+    char *json;
     int ret;
 
     TRY {
@@ -273,7 +279,8 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
         blob_add_table_start(blob, (char *)"lookup_reply");
         if (obj == NULL) {
             blob_add_string(blob, (char *)"object_id", "all");
-            blob_add_string(blob, (char *)"object_infos", "hello world all");
+            json = map->to_json(map);
+            blob_add_string(blob, (char *)"object_infos", json);
         } else {
             dbg_str(BUS_VIP, "busd_reply_lookup_object, object_id:%s, fd:%d", obj->id, fd);
             blob_add_string(blob, (char *)"object_id", obj->id);

@@ -42,7 +42,6 @@ static void __release_working_worker(void *element)
 
     dbg_str(NET_VIP, "release_working_worker:%p", worker);
     worker->resign(worker);
-    work_task_free(worker->task);
     object_destroy(worker->socket);
     object_destroy(worker);
 }
@@ -51,7 +50,7 @@ static void __release_leisure_worker(void *element)
 {
     Worker *worker = (Worker *)element;
 
-    work_task_free(worker->task);
+    dbg_str(NET_VIP, "release_leisure_worker:%p", worker);
     object_destroy(worker->socket);
     object_destroy(worker);
 }
@@ -174,7 +173,7 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
         THROW_IF((new_worker = __get_worker(server)) == NULL, -1);
         new_socket = new_worker->socket;
         new_socket->fd = new_fd;
-        dbg_str(DBG_VIP, "listenfd_ev_callback, new fd = %d", new_socket->fd);
+        dbg_str(DBG_INFO, "listenfd_ev_callback, new fd = %d", new_socket->fd);
 
         new_worker->opaque = server;
         new_worker->assign(new_worker, new_socket->fd, EV_READ | EV_PERSIST, NULL, 

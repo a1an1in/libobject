@@ -44,7 +44,7 @@ void *client(allocator_t *allocator, char *type,
     Client *client = NULL;
 
     //there may add id_str check....
-    dbg_str(DBG_VIP,"client, type:%s, host:%s, service:%s", type, host, service);
+    dbg_str(DBG_INFO,"client, type:%s, host:%s, service:%s", type, host, service);
     if (!strcmp(type,CLIENT_TYPE_INET_UDP)) {
         client = OBJECT_NEW(allocator, Inet_Udp_Client, NULL);
         if (service != NULL) client->bind(client, host, service); 
