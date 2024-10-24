@@ -552,6 +552,27 @@ static int __mget_pointer(Node *node, char *node_id, target_type_t type, void *a
     return ret;
 }
 
+static int __lookup(Node *node, char *node_id, Vector *vector)
+{
+    allocator_t *allocator = node->parent.allocator;
+    char out[1024 * 5] = {0};
+    int out_len = 1024 * 5;
+    int value_type = VALUE_TYPE_STRUCT_POINTER;
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "lookup in");
+        EXEC(bus_lookup_sync(node->bus, node_id, out, &out_len));
+        vector->reset(vector);
+        vector->set(vector, "/Vector/value_type", &value_type);
+        vector->set(vector, "/Vector/class_name", "Busd_Object_Struct_Adapter");
+        vector->assign(vector, out);
+        vector->print(vector);
+    } CATCH (ret) {} FINALLY {}
+
+    return 0;
+}
+
 static class_info_entry_t node_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Node, construct, __construct),
@@ -570,7 +591,8 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(14, Node, mset, __mset),
     Init_Nfunc_Entry(15, Node, mget, __mget),
     Init_Nfunc_Entry(16, Node, mget_pointer, __mget_pointer),
-    Init_End___Entry(17, Node),
+    Init_Nfunc_Entry(17, Node, lookup, __lookup),
+    Init_End___Entry(18, Node),
 };
 REGISTER_CLASS(Node, node_class_info);
 

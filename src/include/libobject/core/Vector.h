@@ -45,6 +45,7 @@ struct _vector_s{
     int (*filter)(Vector *vector, int (*condition)(void *element, void *cond), void *cond, Vector *out);
     int (*copy)(Vector *vector, Vector *out);
     int (*customize)(Vector *tree, int value_type, int (*value_free_callback)(allocator_t *allocator, void *value));
+    int (*print)(Vector *obj);
 
     /*attribs*/
     vector_t *vector;

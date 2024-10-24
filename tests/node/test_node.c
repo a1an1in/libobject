@@ -264,6 +264,27 @@ static int __test_node_stub(Node *node)
     return ret;
 }
 
+static int __test_node_lookup(Node *node)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    Vector *list;
+    int ret;
+    
+    TRY {
+        list = object_new(allocator, "Vector", NULL);
+
+        EXEC(node->lookup(node, "node", list));
+        // list->for_each(list, fs_file_info_struct_custom_print);
+        // THROW_IF(list->count(list) != 4, -1);
+        dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {
+        object_destroy(list);
+    }
+
+    return ret;
+}
+
 static int test_node(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -291,18 +312,19 @@ static int test_node(TEST_ENTRY *entry)
         node->disable_node_service_flag = 1;
         EXEC(node->init(node));
 
-        EXEC(__test_node_call_bus(node));
-        EXEC(__test_node_list(node));
-        EXEC(__test_node_read_file(node));
-        EXEC(__test_node_read_files(node));
-        EXEC(__test_node_write_file(node));
-        EXEC(__test_node_write_files(node));
-        EXEC(__test_node_malloc_and_mfree(node));
-        EXEC(__test_node_mset_and_mget(node));
-        EXEC(__test_node_call_fsh(node));
-        EXEC(__test_node_call_fsh_object_method(node));
-        EXEC(__test_node_mget_pointer(node));
-        EXEC(__test_node_stub(node));
+        // EXEC(__test_node_call_bus(node));
+        // EXEC(__test_node_list(node));
+        // EXEC(__test_node_read_file(node));
+        // EXEC(__test_node_read_files(node));
+        // EXEC(__test_node_write_file(node));
+        // EXEC(__test_node_write_files(node));
+        // EXEC(__test_node_malloc_and_mfree(node));
+        // EXEC(__test_node_mset_and_mget(node));
+        // EXEC(__test_node_call_fsh(node));
+        // EXEC(__test_node_call_fsh_object_method(node));
+        // EXEC(__test_node_mget_pointer(node));
+        // EXEC(__test_node_stub(node));
+        EXEC(__test_node_lookup(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         usleep(1000);

@@ -290,4 +290,4 @@ static class_info_entry_t mockery_result_stuct_adapter[] = {
     Init_Point_Entry(2, Mockery_Result_Struct_Adapter, to_json, mockery_result_struct_custom_to_json),
     Init_End___Entry(3, Mockery_Result_Struct_Adapter),
 };
-REGISTER_CLASS(Mockery_Result_Struct_Adapter, mockery_result_stuct_adapter)
+REGISTER_CLASS(Mockery_Result_Struct_Adapter, mockery_result_stuct_adapter);

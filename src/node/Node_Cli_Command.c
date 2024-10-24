@@ -72,6 +72,23 @@ static int __run_node_command_action(Node *node, char *arg1, char *arg2)
     return ret;
 }
 
+static int __lookup_command_action(Node *node, char *arg1, char *arg2)
+{
+    Vector *list;
+    allocator_t *allocator = node->parent.allocator;
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "lookup_command_action, arg1:%s", arg1);
+        list = object_new(allocator, "Vector", NULL);
+        EXEC(node->lookup(node, arg1, list));
+    } CATCH (ret) {} FINALLY {
+        object_destroy(list);
+    }
+
+    return ret;
+}
+
 struct node_command_s {
     int type;
     char *command_name;
@@ -83,6 +100,7 @@ struct node_command_s {
     [COMMAND_TYPE_FSH_CALL] = {COMMAND_TYPE_FSH_CALL, "call_fsh", __call_fsh_command_action},
     [COMMAND_TYPE_RUN] = {COMMAND_TYPE_RUN, "run", __run_node_command_action},
     [COMMAND_TYPE_EXIT] = {COMMAND_TYPE_EXIT, "exit", NULL},
+    [COMMAND_TYPE_LOOKUP] = {COMMAND_TYPE_LOOKUP, "lookup", __lookup_command_action},
 };
 
 static int __run_command(Node_Cli_Command *command)

@@ -149,12 +149,13 @@ ldconfig
 2.线上测试
 ./devops.sh build --platform=linux
 ./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.49.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.75.tar.gz
 
 nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30016 --host=139.159.231.27 --service=12345
 ./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 8dbfb5f2e674dddcb82acc2e67eba709c9479761@/root/.xtools/packages
-./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 95e65ce282ed6e8d4e10b3ef46f0ea19f94ca373@./tests/node/
+./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 57cf9ac7ab0dbf349545a9f756ebe01e375ee60a@./tests/node/
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
 
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 7917ec7c24809a2d718eeea06273d47f8fc9c3e7@/root/.xtools/packages
@@ -162,6 +163,8 @@ nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --hos
 
 object_id:0ee9e556f0abe5bc4fb31779bfdcb3426b0b9484
 object_id:dc2cb3a1a31c4a49499dfa30891fe31ff92b32d1
+object_id:57cf9ac7ab0dbf349545a9f756ebe01e375ee60a
 ./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_bus
 ./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_rbtree_map_v2_to_json
+./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=139.159.231.27 --service=12345 lookup all
 ```

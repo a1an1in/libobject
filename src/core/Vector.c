@@ -321,6 +321,48 @@ static char *__to_json(Obj *obj)
     return json->get_cstr(json);
 }
 
+static int __print(Vector *vector)
+{
+    Obj *obj = (Obj *)vector;
+    vector_pos_t pos, next;
+    vector_t *v = vector->vector;
+    int (*policy)(int index, void *element);
+    String **class_name;
+    void *element = NULL;
+    int index = 0;
+    int ret;
+
+    TRY {
+        THROW_IF(vector->value_type > ENTRY_TYPE_MAX_TYPE, -1);
+
+        for (vector_begin(v, &pos), vector_pos_next(&pos, &next);
+            !vector_pos_equal(&pos, &v->end);
+            pos = next, vector_pos_next(&pos, &next)) {
+            element = NULL;
+            vector->peek_at(vector, index++, (void **)&element);
+            
+            if ((vector->value_type == VALUE_TYPE_OBJ_POINTER || 
+                vector->value_type == VALUE_TYPE_STRING_POINTER) &&
+                (element == NULL)) {continue;}
+
+            if (vector->value_type == VALUE_TYPE_STRUCT_POINTER) {
+                //因为这个是定制化的、多变的， 没法加入g_vector_to_json_policy。
+                class_name = vector->get(vector, "/Vector/class_name");
+                THROW_IF(class_name == NULL, -1);
+                policy = object_get_member_of_class(STR2A(*class_name), "print");
+                THROW_IF(policy == NULL, -1);
+            } else {
+                policy == NULL;
+            }
+            
+            THROW_IF(policy == NULL, -1);
+            EXEC(policy(index, element));
+        }
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 /* 
  * 如果new的时候传入了init_data, object会调用这个assign函数，但是如果数据类型是object，
  * 则assign只能默认是VALUE_TYPE_OBJ_POINTERT类型， 因为这时对象刚建好，还没配置value类型。
@@ -629,15 +671,16 @@ static class_info_entry_t vector_class_info[] = {
     Init_Vfunc_Entry(24, Vector, add_vector, __add_vector),
     Init_Vfunc_Entry(25, Vector, copy, __copy),
     Init_Vfunc_Entry(26, Vector, customize, __customize),
-    Init_U32___Entry(27, Vector, value_size, NULL),
-    Init_U8____Entry(28, Vector, value_type, NULL),
-    Init_U32___Entry(29, Vector, capacity, NULL),
-    Init_Str___Entry(30, Vector, class_name, NULL),
-    Init_U8____Entry(31, Vector, trustee_flag, 0),
-    Init_Point_Entry(32, Vector, value_free_callback, NULL),
-    Init_Point_Entry(33, Vector, value_to_json_callback, NULL),
-    Init_Point_Entry(34, Vector, value_new_callback, NULL),
-    Init_End___Entry(35, Vector),
+    Init_Vfunc_Entry(27, Vector, print, __print),
+    Init_U32___Entry(28, Vector, value_size, NULL),
+    Init_U8____Entry(29, Vector, value_type, NULL),
+    Init_U32___Entry(30, Vector, capacity, NULL),
+    Init_Str___Entry(31, Vector, class_name, NULL),
+    Init_U8____Entry(32, Vector, trustee_flag, 0),
+    Init_Point_Entry(33, Vector, value_free_callback, NULL),
+    Init_Point_Entry(34, Vector, value_to_json_callback, NULL),
+    Init_Point_Entry(35, Vector, value_new_callback, NULL),
+    Init_End___Entry(36, Vector),
 };
 REGISTER_CLASS(Vector, vector_class_info);
 
