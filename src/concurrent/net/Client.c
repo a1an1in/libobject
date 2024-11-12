@@ -121,7 +121,7 @@ static int __trustee(Client *client, struct timeval *tv,
     worker->assign(worker, fd, EV_READ | EV_PERSIST, tv, 
                    (void *)__ev_callback, worker, work_callback);
     worker->enroll(worker, producer);
-    socket->setkeepalive(socket, 1, 60 * 2, 30, 3);
+    //socket->setkeepalive(socket, 1, 60, 30, 3);
 
     return 0;
 }

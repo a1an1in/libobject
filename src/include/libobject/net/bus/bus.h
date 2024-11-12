@@ -19,6 +19,7 @@ enum {
 	BUS_INVOKE_METHOD,
 	BUS_INVOKE_ARGC,
 	BUS_INVOKE_ARGS,
+	BUS_TIME,
 	__BUS_MAX
 };
 
@@ -89,6 +90,7 @@ enum bus_communication_type {
 	BUS_REQ_DATA,
 	/* ping request */
 	BUS_REQ_PING,
+	BUSD_REPLY_PONG,
 	/* look up one or more objects */
 	BUS_REQ_LOOKUP,
 	BUSD_REPLY_LOOKUP,

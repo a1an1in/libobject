@@ -1,8 +1,9 @@
-[update:node] 新增node lookup命令。
+[update:bus] 新增ping/pong for bus。
 
 Description:
-方便node cli查询node service。
+bus新增保活协议，tcp自带的keeplive不能保证server是活的，
+即使busd认为object service掉线了， client也能收到keeplive
+应答，所以一直不能访问service。
 
 Major Changes:
-1. vector新增print。
-2. node cli新增lookup busd服务命令。
+1. 新增ping/pong协议。

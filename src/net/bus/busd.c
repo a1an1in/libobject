@@ -47,7 +47,8 @@ static const struct blob_policy_s busd_attribs[] = {
     [BUSD_INVOKE_ARGS]    = { .name = "invoke_args",    .type = BLOB_TYPE_STRING }, 
     [BUSD_STATE]          = { .name = "state",          .type = BLOB_TYPE_UINT32 }, 
     [BUSD_OPAQUE]         = { .name = "opaque",         .type = BLOB_TYPE_UINT32 }, 
-    [BUSD_INVOKE_SRC_FD]  = { .name = "source_fd",      .type = BLOB_TYPE_UINT32 }, 
+    [BUSD_INVOKE_SRC_FD]  = { .name = "source_fd",      .type = BLOB_TYPE_UINT32 },
+    [BUSD_TIME]           = { .name = "time",           .type = BLOB_TYPE_UINT64 }, 
 };
 
 int busd_dump_object(struct busd_object *obj)
@@ -475,11 +476,50 @@ int busd_handle_forward_invoke_reply(busd_t *busd, blob_attr_t **attr, int fd)
     return 0;
 }
 
+int busd_handle_ping(busd_t *busd, blob_attr_t **attr, int fd)
+{
+    struct busd_object *obj;
+    Map *map = busd->obj_map;
+    blob_t *blob = busd->blob;
+    uint32_t time;
+    bus_reqhdr_t hdr;
+    uint8_t buffer[BLOB_BUFFER_MAX_SIZE];
+    uint32_t buffer_len;
+    int ret;
+
+    TRY {
+        THROW_IF(attr[BUSD_TIME] == NULL, -1);
+
+        memset(&hdr, 0, sizeof(hdr));
+        hdr.type = BUSD_REPLY_PONG;
+
+        time = blob_get_uint32(attr[BUSD_TIME]);
+        blob_reset(blob);
+        blob_add_table_start(blob, (char *)"TTL"); {
+            blob_add_uint32(blob, (char *)"time", time);
+        }
+        blob_add_table_end(blob);
+
+        memcpy(buffer, &hdr, sizeof(hdr));
+        buffer_len = sizeof(hdr);
+        memcpy(buffer + buffer_len, (uint8_t *)blob->head,
+            blob_get_len((blob_attr_t *)blob->head));
+        buffer_len += blob_get_len((blob_attr_t *)blob->head);
+
+        dbg_buf(BUS_DETAIL, "busd send:", buffer, buffer_len);
+
+        send(fd, buffer, buffer_len, 0); 
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 static busd_cmd_callback handlers[__BUS_REQ_LAST] = {
     [BUS_REQ_ADD_OBJECT]       = busd_handle_add_object, 
     [BUS_REQ_LOOKUP]           = busd_handle_lookup_object, 
     [BUS_REQ_INVOKE]           = busd_handle_invoke_method, 
     [BUS_REPLY_FORWARD_INVOKE] = busd_handle_forward_invoke_reply, 
+    [BUS_REQ_PING]             = busd_handle_ping,
 };
 
 static int busd_process_receiving_data_callback(void *task)
@@ -528,7 +568,7 @@ static int busd_process_receiving_data_callback(void *task)
         /* 5.解析bus attribs */
         EXEC(blob_parse_to_attr(busd_attribs, 
                                 ARRAY_SIZE(busd_attribs), 
-                                tb, 
+                                tb,
                                 blob_attr, 
                                 len));
 

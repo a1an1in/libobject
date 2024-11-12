@@ -19,6 +19,7 @@ enum {
     BUSD_STATE,
     BUSD_OPAQUE,
     BUSD_INVOKE_SRC_FD,
+    BUSD_TIME,
 	__BUSD_MAX
 };
 

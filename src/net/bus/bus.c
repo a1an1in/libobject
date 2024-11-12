@@ -49,6 +49,7 @@ static const blob_policy_t bus_attribs[] = {
     [BUS_INVOKE_METHOD] = { .name = "invoke_method",  .type = BLOB_TYPE_STRING }, 
     [BUS_INVOKE_ARGC]   = { .name = "invoke_argc",    .type = BLOB_TYPE_UINT32 }, 
     [BUS_INVOKE_ARGS]   = { .name = "invoke_args",    .type = BLOB_TYPE_TABLE }, 
+    [BUS_TIME]          = { .name = "time",           .type = BLOB_TYPE_UINT64 }, 
 };
 
 bus_t * bus_alloc(allocator_t *allocator)
@@ -687,11 +688,54 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
     return 0;
 }
 
+int bus_ping(bus_t *bus)
+{
+    bus_reqhdr_t hdr;
+    blob_t *blob = bus->blob;
+    uint8_t buffer[BLOB_BUFFER_MAX_SIZE];
+    uint32_t buffer_len;
+
+    memset(&hdr, 0, sizeof(hdr));
+    hdr.type = BUS_REQ_PING;
+
+    memcpy(buffer, &hdr, sizeof(hdr));
+    buffer_len = sizeof(hdr);
+
+    blob_reset(blob);
+    blob_add_table_start(blob, (char *)"TTL"); {
+        blob_add_uint32(blob, (char *)"time", 9);
+    }
+    blob_add_table_end(blob);
+
+    memcpy(buffer + buffer_len, (uint8_t *)blob->head, 
+           blob_get_len((blob_attr_t *)blob->head));
+    buffer_len += blob_get_len((blob_attr_t *)blob->head);
+
+    dbg_buf(DBG_VIP, "bus send ping:", buffer, buffer_len);
+    bus_send(bus, buffer, buffer_len);
+
+    return 0;
+}
+
+int bus_handle_pong_reply(bus_t *bus, blob_attr_t **attr)
+{
+    uint32_t time;
+
+    if (attr[BUS_TIME]) {
+        time = blob_get_uint32(attr[BUS_TIME]);
+    }
+    bus->bus_object_off_line_flag = 0;
+    dbg_str(DBG_VIP, "bus_handle_pong_reply, time:%d", time);
+
+    return 0;
+}
+
 static bus_cmd_callback handlers[__BUS_REQ_LAST] = {
     [BUSD_REPLY_ADD_OBJECT] = bus_handle_add_object_reply, 
     [BUSD_REPLY_LOOKUP]     = bus_handle_lookup_object_reply, 
     [BUSD_REPLY_INVOKE]     = bus_handle_invoke_reply, 
     [BUSD_FORWARD_INVOKE]   = bus_handle_forward_invoke, 
+    [BUSD_REPLY_PONG]       = bus_handle_pong_reply, 
 };
 
 static int bus_process_receiving_data_callback(void *task)
@@ -708,7 +752,7 @@ static int bus_process_receiving_data_callback(void *task)
 
     TRY {
         THROW_IF(t->buf_len <= 0, 0);
-        dbg_buf(BUS_DETAIL, "bus receive:", t->buf, t->buf_len);
+        dbg_buf(BUS_VIP, "bus receive:", t->buf, t->buf_len);
 
         /* 1.将数据写入cache */
         if (t->cache == NULL) {
@@ -747,7 +791,7 @@ static int bus_process_receiving_data_callback(void *task)
         THROW_IF(cb == NULL, -1);
         EXEC(cb(bus, tb));
     } CATCH (ret) {} FINALLY {
-        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t) || (t->buf_len <= 0)) {
+        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t) || (t->buf_len <= 0) || ret < 0) {
             object_destroy(buffer);
             t->cache = NULL;
             dbg_str(BUS_DETAIL, "release task cache");
@@ -784,15 +828,18 @@ static void bus_timer_callback(void *task)
     int ret;
     
     TRY {
-        THROW_IF(bus->bus_object_off_line_flag != 1, 0);
+        if (bus->bus_object_off_line_flag == 1) {
+            dbg_str(DBG_INFO, "bus_timer_callback have detected the object_id:%s offline", bus->bus_object_id);
+            bus->client = client(bus->allocator,  bus->client_sk_type, bus->server_host, bus->server_srv);
+            EXEC(client_connect(bus->client, bus->server_host, bus->server_srv));
+            EXEC(client_trustee(bus->client, NULL, bus_process_receiving_data_callback, bus));
 
-        dbg_str(DBG_INFO, "bus_timer_callback have detected the object_id:%s offline", bus->bus_object_id);
-        bus->client = client(bus->allocator,  bus->client_sk_type, bus->server_host, bus->server_srv);
-        EXEC(client_connect(bus->client, bus->server_host, bus->server_srv));
-        EXEC(client_trustee(bus->client, NULL, bus_process_receiving_data_callback, bus));
-
-        map->for_each_arg(map, bus_obj_map_add_obj_foreach_callback, bus); // 断链后重新添加obj
-        bus->bus_object_off_line_flag = 0;
+            map->for_each_arg(map, bus_obj_map_add_obj_foreach_callback, bus); // 断链后重新添加obj
+            bus->bus_object_off_line_flag = 0;
+        } else {
+            EXEC(bus_ping(bus));
+        }
+        
     } CATCH (ret) {}
 }
 
@@ -815,7 +862,7 @@ bus_t * bus_create(allocator_t *allocator,
 
         /* 构造一个定时器， 如果bus是service， 则会60 * 2秒尝试恢复链接， 后面会用退避算法优化这个定时器时间。 */
         ev_tv = &bus->ev_tv;
-        ev_tv->tv_sec  = 60 * 2;
+        ev_tv->tv_sec = 60;
         ev_tv->tv_usec = 0;
         bus->timer_worker = timer_worker(allocator, EV_READ | EV_PERSIST, ev_tv, bus_timer_callback, bus);
     } CATCH (ret) { bus = NULL; }

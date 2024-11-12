@@ -306,6 +306,7 @@ static int __setkeepalive(Inet_Tcp_Socket *socket, int keep_alive, int keep_idle
     int ret;
 
     TRY {
+        dbg_str(DBG_VIP, "setkeepalive fd:%d keep_alive:%d, keep_idle:%d", socket->parent.fd, keep_alive, keep_idle)
         ret = setsockopt(socket->parent.fd, SOL_SOCKET, SO_KEEPALIVE, (void *)&keep_alive, sizeof(keep_alive));
         THROW_IF(ret != 0, -1);
     
