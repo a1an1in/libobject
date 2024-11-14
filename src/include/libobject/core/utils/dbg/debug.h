@@ -210,7 +210,7 @@ extract_filename_from_path(const char *macro)
     #ifdef OPEN_DEBUG
     	#define dbg_str(debug_switch,fmt,args...)\
     		debugger_dbg_str(debugger_gp,\
-                    debug_switch,"[" fmt "]--[%s:%d]",\
+                    debug_switch,"[" fmt "]-[%s:%d]",\
                     ##args,\
                     extract_filename_from_path(__FILE__),\
                     __LINE__);
@@ -230,7 +230,7 @@ extract_filename_from_path(const char *macro)
 #define OPEN_CONSOLE_DEBUG
 #ifdef OPEN_CONSOLE_DEBUG
 	#define console_str(fmt,args...)\
-		printf("[" fmt "]--[%s:%d]\n",##args,__FILE__, __LINE__);
+		printf("[" fmt "]-[%s:%d]\n",##args,__FILE__, __LINE__);
 #else
 #endif
 

@@ -90,7 +90,7 @@ void debugger_set_level_infos(debugger_t *debugger)
     debugger_set_level_info(debugger, DBG_FATAL,     (DBG_FATAL_COLOR),    "FATAL");
     debugger_set_level_info(debugger, DBG_ERROR,     (DBG_ERROR_COLOR),    "ERROR");
     debugger_set_level_info(debugger, DBG_WARN,      (DBG_WARN_COLOR),     "WARN");
-    debugger_set_level_info(debugger, DBG_VIP,       (DBG_VIP_COLOR),      "SUC");
+    debugger_set_level_info(debugger, DBG_SUC,       (DBG_VIP_COLOR),      "WIP");
     debugger_set_level_info(debugger, DBG_VIP,       (DBG_VIP_COLOR),      "VIP");
     debugger_set_level_info(debugger, DBG_INFO,      (DBG_INFO_COLOR),     "INFO");
     debugger_set_level_info(debugger, DBG_DETAIL,    (DBG_DETAIL_COLOR),   "DETAIL");
@@ -296,7 +296,7 @@ int debugger_dbg_buf(debugger_t *debugger,
 
     ret = debugger->dbg_ops->dbg_string(debugger, 
                                         level, 
-                                        "[%s, %s]--[%s%s]--%s",
+                                        "[%s, %s]-[%s%s]-%s",
                                         time_str,
                                         level_str, 
                                         const_str, 

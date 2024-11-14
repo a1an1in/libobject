@@ -156,15 +156,17 @@ sudo tcpdump -i enp0s17  port 12345
 nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30016 --host=139.159.231.27 --service=12345
 ./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 8dbfb5f2e674dddcb82acc2e67eba709c9479761@/root/.xtools/packages
-./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list f163ca514b4f346c9bd39ea4fc17b82216a0fa25@./tests/node/
+./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 8c7175239264424728f8ce9cafcea56a609233a9@./tests/node/
+./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 9642a3c6dcc64bc451eba2a0da492e53178466f4@./tests/node/
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
 
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 7917ec7c24809a2d718eeea06273d47f8fc9c3e7@/root/.xtools/packages
-./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 55b781d4d15e7b244ec551622b2149c96fbbb22a@./tests/node/
+./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 9642a3c6dcc64bc451eba2a0da492e53178466f4@./tests/node/
+./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=139.159.231.27 --service=12345 lookup all
 
 ./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_bus
 ./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_rbtree_map_v2_to_json
-./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=139.159.231.27 --service=12345 lookup all
-id:f163ca514b4f346c9bd39ea4fc17b82216a0fa25
+
+
 ```
