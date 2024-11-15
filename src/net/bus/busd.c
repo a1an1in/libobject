@@ -269,6 +269,7 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
     Map *map = busd->obj_map;
+    cjson_t *root;
     char *json;
     int ret;
 
@@ -285,10 +286,16 @@ int busd_reply_lookup_object(busd_t *busd, struct busd_object *obj, int fd)
         } else {
             dbg_str(BUS_VIP, "busd_reply_lookup_object, object_id:%s, fd:%d", obj->id, fd);
             blob_add_string(blob, (char *)"object_id", obj->id);
-            blob_add_string(blob, (char *)"object_infos", obj->infos);
+            root = cjson_create_array();
+            busd_object_struct_custom_to_json(root, obj);
+            json = cjson_print(root);
+            blob_add_string(blob, (char *)"object_infos", json);
+            cjson_delete(root);
+            free(json);
         }
         blob_add_table_end(blob);
 
+        memset(buffer, 0, sizeof(buffer));
         memcpy(buffer, &hdr, sizeof(hdr));
         buffer_len = sizeof(hdr);
         memcpy(buffer + buffer_len, (uint8_t *)blob->head,

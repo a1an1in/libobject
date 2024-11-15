@@ -1,7 +1,7 @@
-[update:dbg] 更改debug。
+[update:node] fix lookup one node service。
 
 Description:
-优化debug。
+查询一个node， 也需要返回数组。
 
 Major Changes:
-1. 更新修改。
+1. fix lookup issue for node。

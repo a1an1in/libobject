@@ -274,8 +274,7 @@ static int __test_node_lookup(Node *node)
         list = object_new(allocator, "Vector", NULL);
 
         EXEC(node->lookup(node, "node", list));
-        // list->for_each(list, fs_file_info_struct_custom_print);
-        // THROW_IF(list->count(list) != 4, -1);
+        THROW_IF(list->count(list) != 1, -1);
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
@@ -324,7 +323,7 @@ static int test_node(TEST_ENTRY *entry)
         EXEC(__test_node_call_fsh_object_method(node));
         EXEC(__test_node_mget_pointer(node));
         EXEC(__test_node_stub(node));
-        // EXEC(__test_node_lookup(node));
+        EXEC(__test_node_lookup(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         usleep(1000);
