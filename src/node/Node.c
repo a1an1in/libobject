@@ -250,7 +250,7 @@ static int __call_fsh_object_method(Node *node, const char *fmt, ...)
     return ret;
 }
 
-static int __write_file(Node *node, char *from, char *node_id, char *to)
+static int __fwrite(Node *node, char *from, char *node_id, char *to)
 {
     bus_t *bus;
     File *file = NULL;
@@ -293,7 +293,7 @@ static int __write_file(Node *node, char *from, char *node_id, char *to)
                 
                 strcpy(buffer, to);
                 strcat(buffer, relative_path);
-                EXEC(node->write_file(node, fs_file_info->file_name, node_id, buffer))
+                EXEC(node->fwrite(node, fs_file_info->file_name, node_id, buffer))
             }
         } else {
             file = object_new(allocator, "File", NULL);
@@ -319,7 +319,7 @@ static int __write_file(Node *node, char *from, char *node_id, char *to)
     return ret;
 }
 
-static int __read_file(Node *node, char *node_id, char *from, char *to)
+static int __fread(Node *node, char *node_id, char *from, char *to)
 {
     bus_t *bus;
     File *file = NULL;
@@ -346,7 +346,7 @@ static int __read_file(Node *node, char *node_id, char *from, char *to)
         bus = node->bus;
 
         list = object_new(allocator, "Vector", NULL);
-        EXEC(node->list(node, node_id, from, list));
+        EXEC(node->flist(node, node_id, from, list));
         count = list->count(list);
         THROW_IF(count < 0, -1);
         file = object_new(allocator, "File", NULL);
@@ -407,7 +407,7 @@ static int __read_file(Node *node, char *node_id, char *from, char *to)
     return ret;
 }
 
-static int __copy(Node *node, char *from, char *to)
+static int __fcopy(Node *node, char *from, char *to)
 {
     char *p1, *p2, *node_id;
     int read_flag = 0, write_flag = 0;
@@ -433,10 +433,10 @@ static int __copy(Node *node, char *from, char *to)
 
         if (read_flag == 1) {
             dbg_str(DBG_VIP, "node copy, read from:%s@%s to:%s", node_id, from, to);
-            EXEC(node->read_file(node, node_id, from , to));
+            EXEC(node->fread(node, node_id, from , to));
         } else if (write_flag == 1) {
             dbg_str(DBG_VIP, "node copy, write from:%s to:%s@%s", from, node_id, to);
-            EXEC(node->write_file(node, from, node_id, to));
+            EXEC(node->fwrite(node, from, node_id, to));
         } else {
             THROW(-1);
         }
@@ -445,7 +445,7 @@ static int __copy(Node *node, char *from, char *to)
     return ret;
 }
 
-static int __list(Node *node, char *node_id, char *path, Vector *vector)
+static int __flist(Node *node, char *node_id, char *path, Vector *vector)
 {
     int value_type = VALUE_TYPE_STRUCT_POINTER;
     uint8_t trustee_flag = 1;
@@ -582,10 +582,10 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(5 , Node, call_bus, __call_bus),
     Init_Nfunc_Entry(6 , Node, call_fsh, __call_fsh),
     Init_Nfunc_Entry(7 , Node, call_fsh_object_method, __call_fsh_object_method),
-    Init_Nfunc_Entry(8 , Node, write_file, __write_file),
-    Init_Nfunc_Entry(9 , Node, read_file, __read_file),
-    Init_Nfunc_Entry(10, Node, copy, __copy),
-    Init_Nfunc_Entry(11, Node, list, __list),
+    Init_Nfunc_Entry(8 , Node, fwrite, __fwrite),
+    Init_Nfunc_Entry(9 , Node, fread, __fread),
+    Init_Nfunc_Entry(10, Node, fcopy, __fcopy),
+    Init_Nfunc_Entry(11, Node, flist, __flist),
     Init_Nfunc_Entry(12, Node, malloc, __malloc),
     Init_Nfunc_Entry(13, Node, mfree, __mfree),
     Init_Nfunc_Entry(14, Node, mset, __mset),

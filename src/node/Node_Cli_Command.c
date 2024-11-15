@@ -22,7 +22,7 @@ static int __call_bus_command_action(Node *node, char *arg1, char *arg2)
 
 static int __copy_command_action(Node *node, char *arg1, char *arg2)
 {
-    return TRY_EXEC(node->copy(node, arg1, arg2));
+    return TRY_EXEC(node->fcopy(node, arg1, arg2));
 }
 
 static int __list_command_action(Node *node, char *arg1, char *arg2)
@@ -41,7 +41,7 @@ static int __list_command_action(Node *node, char *arg1, char *arg2)
             path = path + 1;
         }
         list = object_new(allocator, "Vector", NULL);
-        EXEC(node->list(node, node_id, path, list));
+        EXEC(node->flist(node, node_id, path, list));
 
         list->for_each(list, fs_file_info_struct_custom_print);
     } CATCH (ret) {} FINALLY {
