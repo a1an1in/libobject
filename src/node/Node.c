@@ -141,7 +141,7 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
         dbg_str(DBG_VIP, "call_bus %s", code);
         EXEC(str->reset(str));
         str->assign(str, code);
-        count = str->split(str, "[,@ \t\n();]", -1);
+        count = str->split(str, "[,@ \t\n(){};]", -1);
         THROW_IF(count < 2, -1);
 
         node_id = str->get_splited_cstr(str, 0);
@@ -203,7 +203,7 @@ static int __call_fsh(Node *node, const char *fmt, ...)
         EXEC(str->reset(str));
         str->assign(str, code);
         dbg_str(DBG_VIP, "call_fsh %s", code);
-        count = str->split(str, "[@]", -1);
+        count = str->split(str, "[@{}]", -1);
         THROW_IF(count != 2, -1);
         bus = node->bus;
 
@@ -573,6 +573,41 @@ static int __lookup(Node *node, char *node_id, Vector *vector)
     return 0;
 }
 
+static int __execute(Node *node, const char *fmt, ...)
+{
+    bus_t *bus;
+    va_list ap;
+    String *str = node->str;
+    char *node_id, *command;
+    char code[1024] = {0};
+    char cmd[128] = {0};
+    bus_method_args_t args[1] = {
+        [0] = {ARG_TYPE_STRING, "command", NULL}, 
+    };
+    int ret, count;
+
+    TRY {
+        va_start(ap, fmt);
+        vsnprintf(code, MAX_DBG_STR_LEN, fmt, ap);
+        va_end(ap);
+
+        EXEC(str->reset(str));
+        str->assign(str, code);
+        dbg_str(DBG_VIP, "node execute %s", code);
+        count = str->split(str, "[@{}]", -1);
+        THROW_IF(count != 2, -1);
+        bus = node->bus;
+
+        node_id = str->get_splited_cstr(str, 0);
+        command = str->get_splited_cstr(str, 1);
+        snprintf(cmd, sizeof(cmd), "fsh_exec(\"%s\")", command);
+        args[0].value = cmd;
+        EXEC(bus_invoke_sync(bus, node_id, "call_fshell", ARRAY_SIZE(args), args, NULL, NULL));
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 static class_info_entry_t node_class_info[] = {
     Init_Obj___Entry(0 , Obj, parent),
     Init_Nfunc_Entry(1 , Node, construct, __construct),
@@ -592,7 +627,8 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(15, Node, mget, __mget),
     Init_Nfunc_Entry(16, Node, mget_pointer, __mget_pointer),
     Init_Nfunc_Entry(17, Node, lookup, __lookup),
-    Init_End___Entry(18, Node),
+    Init_Nfunc_Entry(18, Node, execute, __execute),
+    Init_End___Entry(19, Node),
 };
 REGISTER_CLASS(Node, node_class_info);
 

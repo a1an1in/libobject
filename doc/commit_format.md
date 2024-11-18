@@ -1,7 +1,8 @@
-[update:node] fix lookup one node service。
+[update:node] 实现调用远程命令。
 
 Description:
-查询一个node， 也需要返回数组。
+node执行远端命令也是一个重要需求， 允许node使用系统
+上现存命令， 可以极大扩大node的能力。
 
 Major Changes:
-1. fix lookup issue for node。
+1. node 新增exec命令。

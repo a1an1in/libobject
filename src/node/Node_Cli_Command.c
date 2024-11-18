@@ -51,27 +51,6 @@ static int __list_command_action(Node *node, char *arg1, char *arg2)
     return ret;
 }
 
-static int __run_node_command_action(Node *node, char *arg1, char *arg2)
-{
-    allocator_t *allocator = node->parent.allocator;
-    char *node_id, *command_name;
-    String *str = node->str;
-    int ret, count;
-
-    TRY {
-        EXEC(str->reset(str));
-        str->assign(str, arg1);
-        count = str->split(str, "[,@ \t\n;]", -1);
-        THROW_IF(count < 2, -1);
-
-        node_id = str->get_splited_cstr(str, 0);
-        command_name = str->get_splited_cstr(str, 1);
-        dbg_str(DBG_VIP, "node_id:%s command_name:%s", node_id, command_name);
-    } CATCH (ret) {} FINALLY {}
-
-    return ret;
-}
-
 static int __lookup_command_action(Node *node, char *arg1, char *arg2)
 {
     Vector *list;
@@ -89,18 +68,24 @@ static int __lookup_command_action(Node *node, char *arg1, char *arg2)
     return ret;
 }
 
+static int __execute_command_action(Node *node, char *arg1, char *arg2)
+{
+    dbg_str(DBG_VIP, "__execute_command_action, arg1:%s", arg1);
+    return TRY_EXEC(node->execute(node, arg1));
+}
+
 struct node_command_s {
     int type;
     char *command_name;
     int (*action)(Node *node, char *arg1, char *arg2);
 } node_command_table[COMMAND_TYPE_MAX] = {
-    [COMMAND_TYPE_COPY] = {COMMAND_TYPE_COPY, "copy", __copy_command_action},
-    [COMMAND_TYPE_LIST] = {COMMAND_TYPE_LIST, "list", __list_command_action},
     [COMMAND_TYPE_BUS_CALL] = {COMMAND_TYPE_BUS_CALL, "call_bus", __call_bus_command_action},
     [COMMAND_TYPE_FSH_CALL] = {COMMAND_TYPE_FSH_CALL, "call_fsh", __call_fsh_command_action},
-    [COMMAND_TYPE_RUN] = {COMMAND_TYPE_RUN, "run", __run_node_command_action},
     [COMMAND_TYPE_EXIT] = {COMMAND_TYPE_EXIT, "exit", NULL},
+    [COMMAND_TYPE_COPY] = {COMMAND_TYPE_COPY, "copy", __copy_command_action},
+    [COMMAND_TYPE_LIST] = {COMMAND_TYPE_LIST, "list", __list_command_action},
     [COMMAND_TYPE_LOOKUP] = {COMMAND_TYPE_LOOKUP, "lookup", __lookup_command_action},
+    [COMMAND_TYPE_EXEC] = {COMMAND_TYPE_EXEC, "execute", __execute_command_action},
 };
 
 static int __run_command(Node_Cli_Command *command)

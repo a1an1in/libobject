@@ -58,7 +58,7 @@ static int __deconstruct(FShell *shell)
 {
     allocator_t *allocator = shell->parent.allocator;
 
-    dbg_str(DBG_DETAIL, "fshell deconstruct in, shell->worker=%p", shell->worker);
+    dbg_str(DBG_DETAIL, "fshell deconstruct in");
     object_destroy(shell->variable_map);
     object_destroy(shell->lib_map);
     worker_destroy(shell->worker);

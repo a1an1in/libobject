@@ -711,7 +711,7 @@ int bus_ping(bus_t *bus)
            blob_get_len((blob_attr_t *)blob->head));
     buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
-    dbg_buf(DBG_VIP, "bus send ping:", buffer, buffer_len);
+    dbg_buf(BUS_DETAIL, "bus send ping:", buffer, buffer_len);
     bus_send(bus, buffer, buffer_len);
 
     return 0;
@@ -725,7 +725,7 @@ int bus_handle_pong_reply(bus_t *bus, blob_attr_t **attr)
         time = blob_get_uint32(attr[BUS_TIME]);
     }
     bus->bus_object_off_line_flag = 0;
-    dbg_str(DBG_VIP, "bus_handle_pong_reply, time:%d", time);
+    dbg_str(DBG_VIP, "bus_handle_pong_reply, time:%d", 0);
 
     return 0;
 }
@@ -752,7 +752,8 @@ static int bus_process_receiving_data_callback(void *task)
 
     TRY {
         THROW_IF(t->buf_len <= 0, 0);
-        dbg_buf(BUS_VIP, "bus receive:", t->buf, t->buf_len);
+        if (t->buf_len > 2 && ((char *)t->buf)[1] != 4)
+            dbg_buf(BUS_VIP, "bus receive:", t->buf, t->buf_len);
 
         /* 1.将数据写入cache */
         if (t->cache == NULL) {

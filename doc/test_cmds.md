@@ -72,7 +72,16 @@ addr2line -e ./sysroot/linux/bin/xtools 0xaeba2
 
 ```
 
-## node
+## net tools
+```
+ping6 2409:8c20:1833:1000::ad5:2cb5
+./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 mockery --log-level=0x6 test_client_udp_v6_recv
+./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x6 test_client_udp_v6_send
+./sysroot/windows/bin/xtools.exe mockery --log-level=0x14 -f test_http
+./sysroot/windows/bin/xtools wget http://mirrors.hust.edu.cn/gnu/hello/hello-1.3.tar.gz
+```
+
+## node 本地测试
 ```
 /* test exit */
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x17 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
@@ -118,20 +127,7 @@ addr2line -e ./sysroot/linux/bin/xtools 0xaeba2
 ./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_node
 ```
 
-## net
-```
-ping6 2409:8c20:1833:1000::ad5:2cb5
-./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 mockery --log-level=0x6 test_client_udp_v6_recv
-./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 mockery --log-level=0x6 test_client_udp_v6_send
-./sysroot/windows/bin/xtools.exe mockery --log-level=0x14 -f test_http
-
-./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x20017 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_bus "node@mfree(0, #test_stub_name1)"
-
-./sysroot/windows/bin/xtools wget http://mirrors.hust.edu.cn/gnu/hello/hello-1.3.tar.gz
-```
-
-## deploy
+## node 线上测试
 ```
 ./devops.sh build --platform=windows
 ./devops.sh docker --install --platform=linux    #install docker at linux platform
@@ -139,34 +135,28 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 export LD_LIBRARY_PATH=~/.xtools/sysroot/lib:~/.xtools/sysroot/lib64:$LD_LIBRARY_PATH
 ldconfig
 
-0.mockery 测试
-./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_node
-
-1.本地测试
-./sysroot/linux/bin/xtools --event-thread-service=11111 --event-signal-service=11112 node --log-level=0x30016 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/linux/bin/xtools --event-thread-service=11121 --event-signal-service=11122 node --log-level=0x30016 --host=127.0.0.1 --service=12345
-
-2.线上测试
+1 部署
 tcpdump -i eth0  port 12345
 sudo tcpdump -i enp0s17  port 12345
 ./devops.sh build --platform=linux
 ./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.86.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.125.tar.gz
 
+2 linux 测试
 nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30016 --host=139.159.231.27 --service=12345
-./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 8dbfb5f2e674dddcb82acc2e67eba709c9479761@/root/.xtools/packages
-./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 8c7175239264424728f8ce9cafcea56a609233a9@./tests/node/
-./sysroot/linux/bin/xtools --log-level=0x28017 node_cli --host=139.159.231.27 --service=12345 list 9642a3c6dcc64bc451eba2a0da492e53178466f4@./tests/node/
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list 8dbfb5f2e674dddcb82acc2e67eba709c9479761@/root/.xtools/packages
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list 8c7175239264424728f8ce9cafcea56a609233a9@./tests/node/
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list 9642a3c6dcc64bc451eba2a0da492e53178466f4@./tests/node/
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus ec52cbeaa14dd3898941f21a923924c59d7a4b4a@{"set_loglevel(1,2,3)"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh ec52cbeaa14dd3898941f21a923924c59d7a4b4a@{"test_hello()"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x16 execute ec52cbeaa14dd3898941f21a923924c59d7a4b4a@{"ls -l"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
 
+3 windows 测试
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 7917ec7c24809a2d718eeea06273d47f8fc9c3e7@/root/.xtools/packages
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 9642a3c6dcc64bc451eba2a0da492e53178466f4@./tests/node/
 ./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=139.159.231.27 --service=12345 lookup all
-
-./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_bus
-./sysroot/linux/bin/xtools mockery --log-level=0x17 -f test_rbtree_map_v2_to_json
-
 
 ```
