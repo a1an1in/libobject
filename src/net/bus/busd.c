@@ -37,7 +37,7 @@
 #include <libobject/core/utils/miscellany/buffer.h>
 #include <libobject/core/utils/config.h>
 #include <libobject/core/Hash_Map.h>
-#include <libobject/core/io/Buffer.h>
+#include <libobject/core/io/Ring_Buffer.h>
 
 static const struct blob_policy_s busd_attribs[] = {
     [BUSD_OBJID]          = { .name = "object_id",      .type = BLOB_TYPE_STRING },
@@ -538,8 +538,9 @@ static int busd_process_receiving_data_callback(void *task)
     busd_cmd_callback cb = NULL;
     busd_t *busd = (busd_t *)t->opaque;
     allocator_t *allocator = busd->allocator;
-    Buffer *buffer;
-    int len, buffer_len, blob_table_len, ret;
+    Ring_Buffer *rb;
+    char buffer[BLOB_BUFFER_MAX_SIZE];
+    int len, buffer_len, blob_table_len = 0, ret;
 
     TRY {
         THROW_IF(t->buf_len <= 0, 0);
@@ -547,46 +548,61 @@ static int busd_process_receiving_data_callback(void *task)
 
         /* 1.将数据写入cache */
         if (t->cache == NULL) {
-            t->cache = object_new(allocator, "Buffer", NULL);
+            t->cache = object_new(allocator, "Ring_Buffer", NULL);
+            rb = t->cache;
+            rb->set_size(rb, BLOB_BUFFER_MAX_SIZE);
             dbg_str(BUS_DETAIL, "new buffer");
+        } else {
+            rb = t->cache;
         }
-        buffer = t->cache;
-        buffer->write(buffer, t->buf, t->buf_len);
-        buffer_len = buffer->get_len(buffer);
-    
-        /* 2.判断数据类型 */
-        hdr = (bus_reqhdr_t *)buffer->addr;
-        THROW_IF(hdr->type > __BUS_REQ_LAST, -1);
-
-        /* 3.获取blob table和table len， 如果Cache的数据不够blob table的长度，
-         *   说明数据有可能有分片，需要返回直到收集完全后往后处理。 */
-        blob_attr = (blob_attr_t *)((char *)buffer->addr + sizeof(bus_reqhdr_t));
-        blob_table_len = blob_get_len(blob_attr);
-        THROW_IF(buffer_len - sizeof(bus_reqhdr_t) < blob_table_len, 0); //数据没有收齐，返回等待下一次读信号。
-        THROW_IF(blob_table_len < buffer_len - sizeof(bus_reqhdr_t), -1); //数据异常，接受到比期望多的数据。
         
-        /* 4.获取table 长度和内容的首地址 */
-        len = blob_get_data_len(blob_attr);
-        blob_attr =(blob_attr_t*) blob_get_data(blob_attr);
+        rb->write(rb, t->buf, t->buf_len);
+        buffer_len = rb->get_len(rb);
 
-        dbg_str(BUS_DETAIL, "busd receive, blob expect blob_table_len:%d, buffer len:%d, head len:%d, receive len:%d", 
-                blob_table_len, buffer_len, sizeof(bus_reqhdr_t), t->buf_len);
+        do {
+            /* 2.判断数据类型 */
+            THROW_IF(buffer_len < sizeof(bus_reqhdr_t) + sizeof(blob_attr_t), 0); //数据小于req和table头，返回等待下一次读信号。
+            rb->peek(rb, buffer, sizeof(bus_reqhdr_t));  //数据可能没有收齐，所以需要先peek一下
+            hdr = (bus_reqhdr_t *)buffer;
+            THROW_IF(hdr->type > __BUS_REQ_LAST, -1);
+            dbg_str(BUS_DETAIL, "type:%d", hdr->type);
 
-        /* 5.解析bus attribs */
-        EXEC(blob_parse_to_attr(busd_attribs, 
-                                ARRAY_SIZE(busd_attribs), 
-                                tb,
-                                blob_attr, 
-                                len));
+            /* 3.获取blob table和table len， 如果Cache的数据不够blob table的长度，
+            *   说明数据有可能有分片，需要返回直到收集完全后往后处理。 */
+            rb->peek(rb, buffer, sizeof(bus_reqhdr_t) + sizeof(blob_attr_t));
+            blob_attr = (blob_attr_t *)((char *)buffer + sizeof(bus_reqhdr_t));
+            blob_table_len = blob_get_len(blob_attr);
+            dbg_str(BUS_DETAIL, "blob_table_len:%d, buffer_len:%d", blob_table_len, buffer_len);
+            THROW_IF(buffer_len - sizeof(bus_reqhdr_t) < blob_table_len, 0); //数据没有收齐，返回等待下一次读信号。
+            // THROW_IF(blob_table_len < buffer_len - sizeof(bus_reqhdr_t), -1); //数据异常，接受到比期望多的数据。
+            
+            /* 4.获取table内容长度和内容的首地址 */
+            rb->read(rb, buffer, sizeof(bus_reqhdr_t) + blob_table_len);
+            blob_attr = (blob_attr_t *)((char *)buffer + sizeof(bus_reqhdr_t));
+            len = blob_get_data_len(blob_attr);
+            blob_attr =(blob_attr_t*) blob_get_data(blob_attr);
 
-        /* 6.调用相应回调处理数据 */
-        cb = handlers[hdr->type];
-        THROW_IF(cb == NULL, -1);
-        EXEC(cb(busd, tb, t->fd));
+            dbg_str(BUS_DETAIL, "busd receive, blob expect blob_table_len:%d, buffer len:%d, head len:%d, receive len:%d", 
+                    blob_table_len, buffer_len, sizeof(bus_reqhdr_t), t->buf_len);
+
+            /* 5.解析bus attribs */
+            EXEC(blob_parse_to_attr(busd_attribs, 
+                                    ARRAY_SIZE(busd_attribs), 
+                                    tb,
+                                    blob_attr, 
+                                    len));
+
+            /* 6.调用相应回调处理数据 */
+            cb = handlers[hdr->type];
+            THROW_IF(cb == NULL, -1);
+            EXEC(cb(busd, tb, t->fd));
+            buffer_len = rb->get_len(rb);
+            dbg_str(BUS_DETAIL, "left buffer_len:%d", buffer_len);
+        } while (buffer_len > 0);
     } CATCH (ret) { 
         dbg_str(BUS_ERROR, "busd_process_receiving_data_callback error, task fd:%d, buf_len:%d", t->fd, t->buf_len);
     } FINALLY {
-        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t) || t->buf_len <= 0 || ret < 0) {
+        if (t->buf_len <= 0 || ret < 0) {
             object_destroy(t->cache);
             t->cache = NULL;
         }

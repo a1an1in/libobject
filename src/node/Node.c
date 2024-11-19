@@ -573,12 +573,26 @@ static int __lookup(Node *node, char *node_id, Vector *vector)
     return 0;
 }
 
-static int __execute_async_callback(char *out, int len, void *opaque)
+static int __execute_async_callback(bus_req_t *req, char *out, int len, int state, void *opaque)
 {
-    if (len > 0)
-        dbg_str(DBG_VIP, "%s", out);
+    Node *node = (bus_t *)opaque;
+    bus_t *bus = node->bus;
+    Map *map = bus->req_map;
+    int ret;
 
-    return 0;
+    TRY {
+        if (len > 0)
+            dbg_str(DBG_VIP, "%s", out);
+
+        if (state <= 1) {
+            dbg_str(DBG_VIP, "execute_async_callback, req key:%s, node:%p", req->key, node);
+            EXEC(ret = map->del(map, req->key));
+            allocator_mem_free(bus->allocator, req);
+            node->node_exit_flag = 1;
+        }
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 static int __execute(Node *node, const char *fmt, ...)
@@ -600,7 +614,7 @@ static int __execute(Node *node, const char *fmt, ...)
 
         EXEC(str->reset(str));
         str->assign(str, code);
-        dbg_str(DBG_VIP, "node execute %s", code);
+        dbg_str(DBG_VIP, "node execute %s, node:%p", code, node);
         count = str->split(str, "[@{}]", -1);
         THROW_IF(count != 2, -1);
         bus = node->bus;
@@ -610,7 +624,6 @@ static int __execute(Node *node, const char *fmt, ...)
         args[0].value = command;
    
         EXEC(bus_invoke_async(bus, node_id, "execute", ARRAY_SIZE(args), args, __execute_async_callback, node));
-        sleep(5);
     } CATCH (ret) {}
 
     return ret;

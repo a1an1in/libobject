@@ -70,8 +70,15 @@ static int __lookup_command_action(Node *node, char *arg1, char *arg2)
 
 static int __execute_command_action(Node *node, char *arg1, char *arg2)
 {
-    dbg_str(DBG_VIP, "execute_command_action, arg1:%s", arg1);
-    return TRY_EXEC(node->execute(node, arg1));
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "execute_command_action, arg1:%s", arg1);
+        EXEC(node->execute(node, arg1));
+        while (node->node_exit_flag != 1) usleep(1000);
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 struct node_command_s {

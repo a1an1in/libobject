@@ -263,7 +263,7 @@ static int popen_work_callback(void *task)
         src_fd = obj->src_fd;
         if (t->buf_len <= 0) {
             ret = t->buf_len;
-            // EXEC(bus_reply_forward_invoke(bus, obj->id, "execute", 1, t->buf, 0, src_fd));
+            EXEC(bus_reply_forward_invoke(bus, obj->id, "execute", 1, t->buf, 0, src_fd));
             dbg_str(DBG_DETAIL, "popen_work_callback, file addr:%p", worker->opaque);
             pclose(t->cache);
             object_destroy(worker);
@@ -329,6 +329,7 @@ static int node_execute(bus_object_t *obj, int argc,
         task = worker->task;
         task->cache = f;  // popen由worker负责释放
         task->socket = obj->src_fd;  // 传入src_fd用于异步回复。
+        THROW(2);
     } CATCH (ret) {} FINALLY {
         *out_len = 0;
     }

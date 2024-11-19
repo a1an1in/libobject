@@ -26,6 +26,7 @@ struct ring_buffer_s{
 
     /*virtual methods reimplement*/
     int (*read)(Ring_Buffer *, void *dst, int len);
+    int (*peek)(Ring_Buffer *, void *dst, int len);
     int (*read_to_string)(Ring_Buffer *, String *str, int len);
     int (*read_to_buffer)(Ring_Buffer *rb, Buffer *buffer, int len);
     int (*write)(Ring_Buffer *, void *src, int len);

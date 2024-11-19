@@ -145,6 +145,7 @@ typedef struct bus_req_s {
     int opaque_len;
     int opaque_buffer_len;
 	void *async_callback;
+	char key[BLOB_BUFFER_MAX_SIZE];
 } bus_req_t;
 
 struct bus_s {

@@ -78,7 +78,7 @@ static int __get_len(Ring_Buffer *rb)
         return rb->w_offset - rb->r_offset;
 
     } else if (rb->last_operation_flag == BUFFER_READ_OPERATION &&
-               rb->w_offset > rb->r_offset){
+               rb->w_offset == rb->r_offset){
         return 0;
     } else {
         return (rb->w_offset - rb->r_offset + rb->size);
@@ -119,32 +119,74 @@ static int __read(Ring_Buffer *rb, void *dst, int len)
     }
 
     l = l > len ? len : l;
+    dbg_str(IO_DETAIL, "read len=%d, w=%d, r=%d", l, rb->w_offset, rb->r_offset);
 
-    dbg_str(IO_DETAIL, "read len=%d, w=%d, r=%d",
-            l, rb->w_offset, rb->r_offset);
+    if (dst != NULL) {
+        if (rb->w_offset > rb->r_offset) {
+            memcpy(dst, rb->addr + rb->r_offset, l);
+        } else if (l < rb->size - rb->r_offset) {
+            memcpy(dst, rb->addr + rb->r_offset, l);
+        } else {
+            memcpy(dst, rb->addr + rb->r_offset, 
+                    rb->size - rb->r_offset);
+            /*
+            *dbg_buf(IO_DETAIL, "read char:", rb->addr + rb->r_offset,
+            *        rb->size - rb->r_offset );
+            */
+            memcpy(dst + rb->size - rb->r_offset,
+                rb->addr, 
+                l - rb->size + rb->r_offset);
+            /*
+            *dbg_buf(IO_DETAIL, "read char:", rb->addr,
+            *        l - rb->size + rb->r_offset);
+            */
+        }
+    }
+
+    rb->r_offset = (rb->r_offset + l) % rb->size;
+    rb->last_operation_flag = BUFFER_READ_OPERATION;
+
+end:
+    return l;
+}
+
+static int __peek(Ring_Buffer *rb, void *dst, int len)
+{
+    int l;
+
+    if (rb->last_operation_flag != BUFFER_WRITE_OPERATION &&
+        rb->w_offset == rb->r_offset) {
+        l = 0;
+        dbg_str(IO_WARN, "rb is nil");
+        goto end;
+    } else if (rb->last_operation_flag == BUFFER_WRITE_OPERATION &&
+        rb->w_offset == rb->r_offset) {
+        l = rb->size;
+    } else {
+        l = (rb->w_offset - rb->r_offset + rb->size) % rb->size;
+    }
+
+    l = l > len ? len : l;
+
+    dbg_str(IO_DETAIL, "peek len=%d, w=%d, r=%d", l, rb->w_offset, rb->r_offset);
 
     if (rb->w_offset > rb->r_offset) {
         memcpy(dst, rb->addr + rb->r_offset, l);
     } else if (l < rb->size - rb->r_offset) {
         memcpy(dst, rb->addr + rb->r_offset, l);
     } else {
-        memcpy(dst, rb->addr + rb->r_offset, 
-                rb->size - rb->r_offset);
+        memcpy(dst, rb->addr + rb->r_offset, rb->size - rb->r_offset);
         /*
          *dbg_buf(IO_DETAIL, "read char:", rb->addr + rb->r_offset,
          *        rb->size - rb->r_offset );
          */
-        memcpy(dst + rb->size - rb->r_offset,
-               rb->addr, 
+        memcpy(dst + rb->size - rb->r_offset, rb->addr, 
                l - rb->size + rb->r_offset);
         /*
          *dbg_buf(IO_DETAIL, "read char:", rb->addr,
          *        l - rb->size + rb->r_offset);
          */
     }
-
-    rb->r_offset = (rb->r_offset + l) % rb->size;
-    rb->last_operation_flag = BUFFER_READ_OPERATION;
 
 end:
     return l;
@@ -395,15 +437,16 @@ static class_info_entry_t ring_rb_class_info[] = {
     Init_Vfunc_Entry(3 , Ring_Buffer, set, NULL),
     Init_Vfunc_Entry(4 , Ring_Buffer, get, NULL),
     Init_Vfunc_Entry(5 , Ring_Buffer, read, __read),
-    Init_Vfunc_Entry(6 , Ring_Buffer, read_to_string, __read_to_string),
-    Init_Vfunc_Entry(7 , Ring_Buffer, read_to_buffer, __read_to_buffer),
-    Init_Vfunc_Entry(8 , Ring_Buffer, write, __write),
-    Init_Vfunc_Entry(9 , Ring_Buffer, find, __find),
-    Init_Vfunc_Entry(10, Ring_Buffer, get_needle_offset, __get_needle_offset),
-    Init_Vfunc_Entry(11, Ring_Buffer, printf, __printf),
-    Init_Vfunc_Entry(12, Ring_Buffer, memcopy, __memcpy),
-    Init_Vfunc_Entry(13, Ring_Buffer, get_len, __get_len),
-    Init_Vfunc_Entry(14, Ring_Buffer, set_size, __set_size),
-    Init_End___Entry(15, Ring_Buffer),
+    Init_Vfunc_Entry(6 , Ring_Buffer, peek, __peek),
+    Init_Vfunc_Entry(7 , Ring_Buffer, read_to_string, __read_to_string),
+    Init_Vfunc_Entry(8 , Ring_Buffer, read_to_buffer, __read_to_buffer),
+    Init_Vfunc_Entry(9 , Ring_Buffer, write, __write),
+    Init_Vfunc_Entry(10, Ring_Buffer, find, __find),
+    Init_Vfunc_Entry(11, Ring_Buffer, get_needle_offset, __get_needle_offset),
+    Init_Vfunc_Entry(12, Ring_Buffer, printf, __printf),
+    Init_Vfunc_Entry(13, Ring_Buffer, memcopy, __memcpy),
+    Init_Vfunc_Entry(14, Ring_Buffer, get_len, __get_len),
+    Init_Vfunc_Entry(15, Ring_Buffer, set_size, __set_size),
+    Init_End___Entry(16, Ring_Buffer),
 };
 REGISTER_CLASS(Ring_Buffer, ring_rb_class_info);

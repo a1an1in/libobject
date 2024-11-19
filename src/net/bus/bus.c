@@ -36,7 +36,7 @@
 #include <libobject/core/utils/config.h>
 #include <libobject/core/Hash_Map.h>
 #include <libobject/core/utils/dbg/debug.h>
-#include <libobject/core/io/Buffer.h>
+#include <libobject/core/io/Ring_Buffer.h>
 #include <libobject/net/bus/bus.h>
 
 static const blob_policy_t bus_attribs[] = {
@@ -203,7 +203,7 @@ int bus_add_object(bus_t *bus, bus_object_t *obj)
     char object_infos[BLOB_BUFFER_MAX_SIZE] = {0};
     uint32_t buffer_len;
 
-    dbg_str(DBG_VIP, "bus_add_object, object_id:%s, object cname:%s", obj->id, obj->cname);
+    dbg_str(BUS_VIP, "bus_add_object, object_id:%s, object cname:%s", obj->id, obj->cname);
     memset(&hdr, 0, sizeof(hdr));
     memcpy(bus->bus_object_id, obj->id, BUS_OBJECT_ID_LEN);
 
@@ -434,7 +434,6 @@ int bus_invoke_async(bus_t *bus, char *object_id, char *method,
     bus_req_t *req = NULL;
     Map *map = bus->req_map;
     int count = 0, state = 0;
-    char buffer[BLOB_BUFFER_MAX_SIZE] = {0};
     int ret;
 
     TRY {
@@ -443,9 +442,9 @@ int bus_invoke_async(bus_t *bus, char *object_id, char *method,
         req->async_callback    = async_callback;
         req->opaque            = opaque;
 
-        sprintf(buffer, "%s@%s", object_id, method);
-        EXEC(map->add(map, buffer, req));
-        dbg_str(DBG_VIP, "bus_invoke_async method:%s", buffer);
+        sprintf(req->key, "%s@%s", object_id, method);
+        EXEC(map->add(map, req->key, req));
+        dbg_str(BUS_VIP, "bus_invoke_async req key:%s", req->key);
 
         EXEC(bus_invoke(bus, object_id, method, argc, args));
     } CATCH (ret) {} FINALLY {}
@@ -460,7 +459,6 @@ int bus_invoke_sync(bus_t *bus, char *object_id, char *method,
     bus_req_t *req = NULL;
     Map *map = bus->req_map;
     int count = 0, state = 0;
-    char buffer[BLOB_BUFFER_MAX_SIZE] = {0};
     int ret;
 
     TRY {
@@ -472,8 +470,8 @@ int bus_invoke_sync(bus_t *bus, char *object_id, char *method,
         req->opaque_buffer_len = (out_len == NULL) ? 0 : *out_len;
         dbg_str(BUS_INFO, "bus_invoke_sync, opaque_buffer_len=%d, out_len addr:%p", req->opaque_buffer_len, out_len);
 
-        sprintf(buffer, "%s@%s", object_id, method);
-        EXEC(map->add(map, buffer, req));
+        sprintf(req->key, "%s@%s", object_id, method);
+        EXEC(map->add(map, req->key, req));
         dbg_str(BUS_INFO, "bus_invoke_sync, req count=%d", map->count(map));
 
         EXEC(bus_invoke(bus, object_id, method, argc, args));
@@ -487,7 +485,7 @@ int bus_invoke_sync(bus_t *bus, char *object_id, char *method,
             *out_len = req->opaque_len;
         }
 
-        EXEC(map->del(map, buffer));
+        EXEC(map->del(map, req->key));
         THROW(req->state);
     } CATCH (ret) {} FINALLY {
         allocator_mem_free(bus->allocator, req);
@@ -505,7 +503,7 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
     int ret;
     char *buffer = NULL;
     int buffer_len = 0;
-    int (*async_callback)(char *out, int len, void *opaque);
+    int (*async_callback)(bus_req_t *req, char *out, int len, int state, void *opaque);
 #define MAX_BUFFER_LEN 2048
     char key[MAX_BUFFER_LEN] = {0};
 #undef MAX_BUFFER_LEN
@@ -523,7 +521,7 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
         buffer_len = blob_get_buffer(attr[BUS_OPAQUE], (uint8_t**)&buffer);
     }
 
-    dbg_str(DBG_VIP, "bus_handle_invoke_reply, object_id:%s, method:%s, state:%d, buffer len:%d", object_id, method_name, state, buffer_len);
+    dbg_str(BUS_VIP, "bus_handle_invoke_reply, object_id:%s, method:%s, state:%d, buffer len:%d", object_id, method_name, state, buffer_len);
 
     if (method_name != NULL) {
         sprintf(key, "%s@%s", object_id, method_name);
@@ -543,9 +541,9 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
             }
             req->state = state;
         } else {
-            dbg_buf(DBG_VIP, "bus async buffer:", buffer, buffer_len);
+            dbg_buf(BUS_VIP, "bus async buffer:", buffer, buffer_len);
             async_callback = req->async_callback;
-            async_callback(buffer, buffer_len, req->opaque);
+            async_callback(req, buffer, buffer_len, state, req->opaque);
         }
     }
 
@@ -638,7 +636,7 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
            blob_get_len((blob_attr_t *)blob->head));
     buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
-    dbg_buf(DBG_VIP, "bus send:", buffer, buffer_len);
+    dbg_buf(BUS_VIP, "bus send:", buffer, buffer_len);
 
     bus_send(bus, buffer, buffer_len);
 
@@ -740,7 +738,7 @@ int bus_handle_pong_reply(bus_t *bus, blob_attr_t **attr)
         time = blob_get_uint32(attr[BUS_TIME]);
     }
     bus->bus_object_off_line_flag = 0;
-    dbg_str(DBG_VIP, "bus_handle_pong_reply, time:%d", 0);
+    dbg_str(BUS_VIP, "bus_handle_pong_reply, time:%d", 0);
 
     return 0;
 }
@@ -762,7 +760,8 @@ static int bus_process_receiving_data_callback(void *task)
     work_task_t *t = (work_task_t *)task;
     bus_t *bus = (bus_t *)t->opaque;
     allocator_t *allocator = bus->allocator;
-    Buffer *buffer = NULL;
+    Ring_Buffer *rb;
+    char buffer[BLOB_BUFFER_MAX_SIZE];
     int len, buffer_len, blob_table_len, ret;
 
     TRY {
@@ -772,43 +771,60 @@ static int bus_process_receiving_data_callback(void *task)
 
         /* 1.将数据写入cache */
         if (t->cache == NULL) {
-            t->cache = object_new(allocator, "Buffer", NULL);
-            dbg_str(BUS_DETAIL, "new a cache for the task");
+            t->cache = object_new(allocator, "Ring_Buffer", NULL);
+            rb = t->cache;
+            rb->set_size(rb, BLOB_BUFFER_MAX_SIZE);
+            dbg_str(BUS_DETAIL, "new buffer");
+        } else {
+            rb = t->cache;
         }
-        buffer = t->cache;
-        buffer_len = buffer->get_len(buffer);
-        dbg_str(BUS_DETAIL, "buffer len:%d", buffer_len);
-        buffer->write(buffer, t->buf, t->buf_len);
-        buffer_len = buffer->get_len(buffer);
+
+        rb->write(rb, t->buf, t->buf_len);
+        buffer_len = rb->get_len(rb);
     
-        /* 2.判断数据类型 */
-        hdr = (bus_reqhdr_t *)buffer->addr;
-        dbg_str(BUS_DETAIL, "buffer len:%d type:%x", buffer_len, hdr->type);
-        THROW_IF(hdr->type > __BUS_REQ_LAST, -1);
+        do {
+            /* 2.判断数据类型 */
+            THROW_IF(buffer_len < sizeof(bus_reqhdr_t) + sizeof(blob_attr_t), 0); //数据小于req和table头，返回等待下一次读信号。
+            rb->peek(rb, buffer, sizeof(bus_reqhdr_t));  //数据可能没有收齐，所以需要先peek一下
+            hdr = (bus_reqhdr_t *)buffer;
+            THROW_IF(hdr->type > __BUS_REQ_LAST, -1);
+            dbg_str(BUS_DETAIL, "type:%d", hdr->type);
 
-        /* 3.获取blob table和table len， 如果Cache的数据不够blob table的长度，
-         *   说明数据有可能有分片，需要返回直到收集完全后往后处理。 */
-        blob_attr = (blob_attr_t *)((char *)buffer->addr + sizeof(bus_reqhdr_t));
-        blob_table_len = blob_get_len(blob_attr);
-        THROW_IF(buffer_len - sizeof(bus_reqhdr_t) < blob_table_len, 0);
+            /* 3.获取blob table和table len， 如果Cache的数据不够blob table的长度，
+            *   说明数据有可能有分片，需要返回直到收集完全后往后处理。 */
+            rb->peek(rb, buffer, sizeof(bus_reqhdr_t) + sizeof(blob_attr_t));
+            blob_attr = (blob_attr_t *)((char *)buffer + sizeof(bus_reqhdr_t));
+            blob_table_len = blob_get_len(blob_attr);
+            dbg_str(BUS_DETAIL, "blob_table_len:%d, buffer_len:%d", blob_table_len, buffer_len);
+            THROW_IF(buffer_len - sizeof(bus_reqhdr_t) < blob_table_len, 0); //数据没有收齐，返回等待下一次读信号。
+            // THROW_IF(blob_table_len < buffer_len - sizeof(bus_reqhdr_t), -1); //数据异常，接受到比期望多的数据。
+            
+            /* 4.获取table内容长度和内容的首地址 */
+            rb->read(rb, buffer, sizeof(bus_reqhdr_t) + blob_table_len);
+            blob_attr = (blob_attr_t *)((char *)buffer + sizeof(bus_reqhdr_t));
+            len = blob_get_data_len(blob_attr);
+            blob_attr =(blob_attr_t*) blob_get_data(blob_attr);
 
-        /* 4.获取table内容的长度和内容首地址 */
-        len = blob_get_data_len(blob_attr);
-        blob_attr =(blob_attr_t*) blob_get_data(blob_attr);
+            dbg_str(BUS_DETAIL, "busd receive, blob expect blob_table_len:%d, buffer len:%d, head len:%d, receive len:%d", 
+                    blob_table_len, buffer_len, sizeof(bus_reqhdr_t), t->buf_len);
 
-        /* 5.解析bus attribs */
-        EXEC(blob_parse_to_attr(bus_attribs, 
-                                ARRAY_SIZE(bus_attribs), 
-                                tb, 
-                                blob_attr, 
-                                len));
-        /* 6.调用相应回调处理数据 */
-        cb = handlers[hdr->type];
-        THROW_IF(cb == NULL, -1);
-        EXEC(cb(bus, tb));
+            /* 5.解析bus attribs */
+            EXEC(blob_parse_to_attr(bus_attribs, 
+                                    ARRAY_SIZE(bus_attribs), 
+                                    tb,
+                                    blob_attr, 
+                                    len));
+
+            /* 6.调用相应回调处理数据 */
+            cb = handlers[hdr->type];
+            THROW_IF(cb == NULL, -1);
+            EXEC(cb(bus, tb));
+            buffer_len = rb->get_len(rb);
+            dbg_str(BUS_DETAIL, "left buffer_len:%d", buffer_len);
+        } while (buffer_len > 0);
     } CATCH (ret) {} FINALLY {
-        if (blob_table_len == buffer_len - sizeof(bus_reqhdr_t) || (t->buf_len <= 0) || ret < 0) {
-            object_destroy(buffer);
+        if ((buffer_len == 0) || (t->buf_len <= 0) || ret < 0) {
+            object_destroy(t->cache);
             t->cache = NULL;
             dbg_str(BUS_DETAIL, "release task cache");
         }
