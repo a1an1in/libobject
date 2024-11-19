@@ -600,7 +600,7 @@ static int __execute(Node *node, const char *fmt, ...)
 
         node_id = str->get_splited_cstr(str, 0);
         command = str->get_splited_cstr(str, 1);
-        snprintf(cmd, sizeof(cmd), "fsh_exec(\"%s\")", command);
+        snprintf(cmd, sizeof(cmd), "fsh_popen(\"%s\")", command);
         args[0].value = cmd;
         EXEC(bus_invoke_sync(bus, node_id, "call_fshell", ARRAY_SIZE(args), args, NULL, NULL));
     } CATCH (ret) {}

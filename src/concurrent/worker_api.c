@@ -82,6 +82,8 @@ io_worker(allocator_t *allocator, int fd,
         producer = producer_get_default_instance();
     }
     worker = OBJECT_NEW(allocator, Worker, NULL);
+
+    if (opaque == NULL) opaque = worker;
     worker->opaque = opaque;
 
     worker->assign(worker, fd, EV_READ | EV_PERSIST, ev_tv, 

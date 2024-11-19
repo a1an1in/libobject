@@ -81,7 +81,8 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/windows/bin/xtools wget http://mirrors.hust.edu.cn/gnu/hello/hello-1.3.tar.gz
 ```
 
-## node 本地测试
+## node
+### 本地测试
 ```
 /* test exit */
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x17 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
@@ -120,14 +121,15 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_bus "node@mfree(0, #test_stub_name1)"
 ./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_bus "node@mfree(0, #test_v1)"
 
-/* test run node command */
-./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 run "node@help"
-
 ./sysroot/windows/bin/xtools.exe mockery --log-level=0x14 -f test_node
 ./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_node
+
+./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x17 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
+./sysroot/linux/bin/xtools  node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 execute 1b0fd2d7e9f2249372b350c8fe0e9732fc02a996@{"ls -l"}
+object_id:1b0fd2d7e9f2249372b350c8fe0e9732fc02a996
 ```
 
-## node 线上测试
+### 线上测试
 ```
 ./devops.sh build --platform=windows
 ./devops.sh docker --install --platform=linux    #install docker at linux platform
@@ -150,7 +152,7 @@ nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --hos
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list 9642a3c6dcc64bc451eba2a0da492e53178466f4@./tests/node/
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus ec52cbeaa14dd3898941f21a923924c59d7a4b4a@{"set_loglevel(1,2,3)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh ec52cbeaa14dd3898941f21a923924c59d7a4b4a@{"test_hello()"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x16 execute ec52cbeaa14dd3898941f21a923924c59d7a4b4a@{"ls -l"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x16 execute 5c6ed89a332f456384575ebe3d7667e4812d9214@{"ls -l"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
 
 3 windows 测试
