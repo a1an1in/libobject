@@ -427,27 +427,35 @@ bus_invoke(bus_t *bus, char *object_id, char *method,
     return ret;
 }
 
-int bus_invoke_async(bus_t *bus, char *key, char *method, int argc, char **args)
+int bus_invoke_async(bus_t *bus, char *object_id, char *method,
+                     int argc, bus_method_args_t *args, 
+                     void *async_callback, void *opaque)
 {
-/*
- *    bus_req_t req;
- *
- *    bus_invoke(bus, key, method, argc, args);
- *
- *    req.method = method;
- *    req.state = -1;
- *
- *    make_pair(bus->pair, method, &req);
- *    hash_map_insert_data(bus->obj_hmap, bus->pair->data);
- */
+    bus_req_t *req = NULL;
+    Map *map = bus->req_map;
+    int count = 0, state = 0;
+    char buffer[BLOB_BUFFER_MAX_SIZE] = {0};
+    int ret;
 
-    return 0;
+    TRY {
+        req = (bus_req_t *)allocator_mem_zalloc(bus->allocator, sizeof(bus_req_t));
+        req->method            = method;
+        req->async_callback    = async_callback;
+        req->opaque            = opaque;
+
+        sprintf(buffer, "%s@%s", object_id, method);
+        EXEC(map->add(map, buffer, req));
+        dbg_str(DBG_VIP, "bus_invoke_async method:%s", buffer);
+
+        EXEC(bus_invoke(bus, object_id, method, argc, args));
+    } CATCH (ret) {} FINALLY {}
+ 
+    return ret;
 }
 
-int
-bus_invoke_sync(bus_t *bus, char *object_id, char *method,
-                int argc, bus_method_args_t *args, 
-                char *out_buf, uint32_t *out_len)
+int bus_invoke_sync(bus_t *bus, char *object_id, char *method,
+                    int argc, bus_method_args_t *args, 
+                    char *out_buf, uint32_t *out_len)
 {
     bus_req_t *req = NULL;
     Map *map = bus->req_map;
@@ -497,6 +505,7 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
     int ret;
     char *buffer = NULL;
     int buffer_len = 0;
+    int (*async_callback)(char *out, int len, void *opaque);
 #define MAX_BUFFER_LEN 2048
     char key[MAX_BUFFER_LEN] = {0};
 #undef MAX_BUFFER_LEN
@@ -514,12 +523,13 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
         buffer_len = blob_get_buffer(attr[BUS_OPAQUE], (uint8_t**)&buffer);
     }
 
-    dbg_str(BUS_SUC, "bus_handle_invoke_reply, object_id:%s, method:%s, state:%d", object_id, method_name, state);
+    dbg_str(DBG_VIP, "bus_handle_invoke_reply, object_id:%s, method:%s, state:%d, buffer len:%d", object_id, method_name, state, buffer_len);
 
     if (method_name != NULL) {
         sprintf(key, "%s@%s", object_id, method_name);
         ret = map->search(map, key, (void **)&req);
-        if (ret > 0) {
+        if (ret <= 0) return ret;
+        if (req->async_callback == NULL) {
             if (req->opaque_buffer_len < buffer_len) {
                 req->opaque_len = req->opaque_buffer_len;
                 dbg_str(BUS_WARN, "opaque buffer is too small, please check, opaque_buffer_len:%d, buffer_len:%d", req->opaque_buffer_len, buffer_len);
@@ -532,6 +542,10 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
                  dbg_buf(BUS_DETAIL, "bus buffer:", buffer, req->opaque_len);
             }
             req->state = state;
+        } else {
+            dbg_buf(DBG_VIP, "bus async buffer:", buffer, buffer_len);
+            async_callback = req->async_callback;
+            async_callback(buffer, buffer_len, req->opaque);
         }
     }
 
@@ -624,7 +638,7 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
            blob_get_len((blob_attr_t *)blob->head));
     buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
-    dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
+    dbg_buf(DBG_VIP, "bus send:", buffer, buffer_len);
 
     bus_send(bus, buffer, buffer_len);
 
@@ -671,6 +685,7 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
             method = bus_get_method_handler(obj, method_name);
             policy = bus_get_policy(obj, method_name);
             n_policy = bus_get_n_policy(obj, method_name);
+            obj->src_fd = src_fd;
 
             blob_parse_to_attr(policy, n_policy, tb, blob_get_data(args),
                                blob_get_data_len(args));

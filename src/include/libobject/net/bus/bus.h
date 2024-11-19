@@ -133,6 +133,7 @@ struct bus_object_s {
 	struct bus_method *methods;
 	int n_methods;
 	void *bus;
+	void *src_fd;
 	};
 
 typedef struct bus_req_s {
@@ -143,6 +144,7 @@ typedef struct bus_req_s {
 #undef BUS_REQ_MAX_OPAQUE_LEN
     int opaque_len;
     int opaque_buffer_len;
+	void *async_callback;
 } bus_req_t;
 
 struct bus_s {
@@ -181,7 +183,7 @@ int bus_send(bus_t *bus,
 int bus_add_object(bus_t *bus, bus_object_t *obj);
 
 int bus_invoke_sync(bus_t *bus, char *key, char *method, int argc, bus_method_args_t *args, char *out_buf, uint32_t *out_len);
-
+int bus_invoke_async(bus_t *bus, char *object_id, char *method, int argc, bus_method_args_t *args, void *async_callback, void *opaque);
 bus_t * bus_create(allocator_t *allocator,
                    char *server_host,
                    char *server_srv,

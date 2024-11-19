@@ -232,13 +232,103 @@ static int node_call_fshell(bus_object_t *obj, int argc,
         bus = obj->bus;
         allocator = bus->allocator;
         node = bus->opaque;
-        shell = node->shell;
         str = node->str;
+        shell = node->shell;
+        shell->opaque = bus;
 
         dbg_str(DBG_INFO, "node_call_fshell command:%s", command);
         str->reset(str);
         str->assign(str, command);
         THROW(shell->run_func(shell, str));
+    } CATCH (ret) {} FINALLY {
+        *out_len = 0;
+    }
+
+	return ret;
+}
+
+static const struct blob_policy_s execute_policy[] = {
+	[0] = { .name = "command",  .type = BLOB_TYPE_STRING }, 
+};
+
+static int popen_work_callback(void *task)
+{
+    work_task_t *t = task;
+    Worker *worker = t->opaque;
+    bus_object_t *obj = worker->opaque;
+    bus_t *bus = obj->bus;
+    int ret, src_fd;
+
+    TRY {
+        src_fd = obj->src_fd;
+        if (t->buf_len <= 0) {
+            ret = t->buf_len;
+            // EXEC(bus_reply_forward_invoke(bus, obj->id, "execute", 1, t->buf, 0, src_fd));
+            dbg_str(DBG_DETAIL, "popen_work_callback, file addr:%p", worker->opaque);
+            pclose(t->cache);
+            object_destroy(worker);
+            THROW(ret);
+        }
+
+        dbg_str(DBG_VIP, "popen_work_callback:%s, len:%d", t->buf, t->buf_len);
+        EXEC(bus_reply_forward_invoke(bus, obj->id, "execute", 2, t->buf, t->buf_len, src_fd));
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+static int popen_ev_callback(int fd, short event, void *arg)
+{
+    Worker *worker = (Worker *)arg;
+    work_task_t *task = worker->task;
+    int len;
+
+    len = read(fd, task->buf, WORKER_TASK_MAX_BUF_LEN);
+    if (len <= 0) {
+        dbg_str(DBG_DETAIL, "popen_ev_callback, fd:%d, len=%d", fd, len);
+    }
+
+    if (worker->work_callback != NULL) {
+        task->buf_len = len;
+        task->fd = fd;
+        task->opaque = worker;
+        worker->work_callback(task);
+    }
+
+    return 0;
+}
+
+static int node_execute(bus_object_t *obj, int argc, 
+                        struct blob_attr_s **args, 
+                        void *out, int *out_len)
+{
+    char *command;
+    FILE *f = NULL;
+    bus_t *bus = obj->bus;
+    allocator_t *allocator;
+    Worker *worker;
+    work_task_t *task;
+    int ret, len, fd;
+
+    TRY {
+        command = blob_get_string(args[0]);
+        dbg_str(DBG_VIP, "node execute command:%s", command);
+        THROW_IF(command == NULL, -1);
+        if (command[0] == '"') {
+            len = strlen(command);
+            command[len - 1] = '\0';
+            command = &command[1];
+        }
+
+        f = popen(command, "r");
+        fd = fileno(f);
+        allocator = bus->allocator;
+
+        worker = io_worker(allocator, fd, NULL, NULL, popen_ev_callback, 
+                           popen_work_callback, obj); //shell opaque是bus
+        task = worker->task;
+        task->cache = f;  // popen由worker负责释放
+        task->socket = obj->src_fd;  // 传入src_fd用于异步回复。
     } CATCH (ret) {} FINALLY {
         *out_len = 0;
     }
@@ -496,6 +586,7 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("mget", node_mget, mget_policy),
     BUS_METHOD("mset", node_mset, mset_policy),
     BUS_METHOD("mget_pointer", node_mget_pointer, mget_pointer_policy),
+    BUS_METHOD("execute", node_execute, execute_policy),
 };
 
 bus_object_t node_object = {

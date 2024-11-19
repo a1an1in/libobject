@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <libobject/core/utils/string.h>
 #include <libobject/scripts/fshell/FShell.h>
+#include <libobject/net/bus/bus.h>
 #include "libobject/stub/stub.h"
 
 extern FShell *g_shell;
@@ -202,76 +203,4 @@ int fsh_add_stub_hooks(FShell *shell, stub_t *stub, char *func_name, char *pre_n
 int fsh_remove_stub_hooks(FShell *shell, stub_t *stub)
 {
     return stub_remove_hooks(stub);
-}
-
-static int popen_ev_callback(int fd, short event, void *arg)
-{
-    Worker *worker = (Worker *)arg;
-    work_task_t *task = worker->task;
-    int len;
-
-    len = read(fd, task->buf, WORKER_TASK_MAX_BUF_LEN);
-    if (len <= 0) {
-        dbg_str(DBG_ERROR, "popen_ev_callback, fd:%d, len=%d", fd, len);
-    }
-
-    if (worker->work_callback != NULL) {
-        task->buf_len = len;
-        task->fd = fd;
-        task->opaque = worker;
-        worker->work_callback(task);
-    }
-
-    return 0;
-}
-
-static int popen_work_callback(void *task)
-{
-    work_task_t *t = task;
-    Worker *worker = t->opaque;
-    int ret;
-
-    TRY {
-        if (t->buf_len <= 0) {
-            ret = t->buf_len;
-            dbg_str(DBG_VIP, "popen_work_callback, file addr:%p", worker->opaque);
-            pclose(worker->opaque);
-            object_destroy(worker);
-            // THROW(ret);
-            exit(1);
-        }
-
-        dbg_str(DBG_VIP, "popen_work_callback:%s", t->buf);
-    } CATCH (ret) {}
-
-    return ret;
-}
-
-int fsh_popen(FShell *shell, char *string)
-{
-    FILE *f = NULL;
-    int fd;
-    Worker *worker;
-    allocator_t *allocator = shell->parent.allocator;
-    int ret, len;
-
-    TRY {
-        THROW_IF(string == NULL, -1);
-        if (string[0] == '"') {
-            len = strlen(string);
-            string[len - 1] = '\0';
-            string = &string[1];
-        }
-
-        dbg_str(DBG_VIP, "fsh_open:%s", string);
-        f = popen(string, "r");
-        fd = fileno(f);
-        dbg_str(DBG_VIP, "fsh_open fd:%d,  file addr:%p", fd, f);
-
-        worker = io_worker(allocator, fd, NULL, NULL, popen_ev_callback, 
-                           popen_work_callback, NULL);
-        worker->opaque = f; // popen由worker负责释放
-    } CATCH (ret) { } FINALLY { }
-
-    return ret;
 }

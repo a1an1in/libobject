@@ -49,6 +49,7 @@ struct FShell_s {
     Worker *worker;
     int close_flag;
     char prompt[20];
+    void *opaque;
 };
 
 typedef int (*fshell_func_t)(void * p1, void * p2, void * p3, void * p4, void * p5, 

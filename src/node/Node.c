@@ -573,6 +573,14 @@ static int __lookup(Node *node, char *node_id, Vector *vector)
     return 0;
 }
 
+static int __execute_async_callback(char *out, int len, void *opaque)
+{
+    if (len > 0)
+        dbg_str(DBG_VIP, "%s", out);
+
+    return 0;
+}
+
 static int __execute(Node *node, const char *fmt, ...)
 {
     bus_t *bus;
@@ -580,7 +588,6 @@ static int __execute(Node *node, const char *fmt, ...)
     String *str = node->str;
     char *node_id, *command;
     char code[1024] = {0};
-    char cmd[128] = {0};
     bus_method_args_t args[1] = {
         [0] = {ARG_TYPE_STRING, "command", NULL}, 
     };
@@ -600,9 +607,10 @@ static int __execute(Node *node, const char *fmt, ...)
 
         node_id = str->get_splited_cstr(str, 0);
         command = str->get_splited_cstr(str, 1);
-        snprintf(cmd, sizeof(cmd), "fsh_popen(\"%s\")", command);
-        args[0].value = cmd;
-        EXEC(bus_invoke_sync(bus, node_id, "call_fshell", ARRAY_SIZE(args), args, NULL, NULL));
+        args[0].value = command;
+   
+        EXEC(bus_invoke_async(bus, node_id, "execute", ARRAY_SIZE(args), args, __execute_async_callback, node));
+        sleep(5);
     } CATCH (ret) {}
 
     return ret;
