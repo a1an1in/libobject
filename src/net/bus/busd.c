@@ -560,11 +560,11 @@ static int busd_process_receiving_data_callback(void *task)
         buffer_len = rb->get_len(rb);
 
         do {
-            /* 2.判断数据类型 */
+            /* 2.判断数据头 */
             THROW_IF(buffer_len < sizeof(bus_reqhdr_t) + sizeof(blob_attr_t), 0); //数据小于req和table头，返回等待下一次读信号。
             rb->peek(rb, buffer, sizeof(bus_reqhdr_t));  //数据可能没有收齐，所以需要先peek一下
             hdr = (bus_reqhdr_t *)buffer;
-            THROW_IF(hdr->type > __BUS_REQ_LAST, -1);
+            THROW_IF(hdr->type > __BUS_REQ_LAST || hdr->version != 0, -1);
             dbg_str(BUS_DETAIL, "type:%d", hdr->type);
 
             /* 3.获取blob table和table len， 如果Cache的数据不够blob table的长度，

@@ -327,6 +327,7 @@ int app(int argc, char *argv[])
     } CATCH (ret) {} FINALLY {
         object_destroy(app);
         libobject_destroy();
+        if (ret == 1) ret = 0;  //shell返回值1时提示命令行执行错误。
         dbg_str(DBG_VIP, "exit app!");
     }
 
@@ -337,4 +338,3 @@ Application *get_global_application()
 {
     return global_app;
 }
-

@@ -395,7 +395,7 @@ bus_invoke(bus_t *bus, char *object_id, char *method,
     int ret;
 
     TRY {
-        dbg_str(BUS_SUC, "bus_invoke, object_id:%s, method:%s", object_id, method);
+        dbg_str(BUS_INFO, "bus_invoke, object_id:%s, method:%s", object_id, method);
         /*compose req proto*/
         memset(&hdr, 0, sizeof(hdr));
 

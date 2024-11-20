@@ -68,7 +68,7 @@ static int __add_worker(Producer *producer, void *worker)
 
     while (producer->parent.flags < EVTHREAD_STATE_RUNNING){
         dbg_str(DBG_VIP, "default_producer not ready, waiting...");
-        usleep(100000);
+        usleep(100);
     }
 
     dbg_str(CONCURRENT_VIP, "producer %p add worker, worker:%p, fd:%d",
@@ -89,7 +89,7 @@ static int __del_worker(Producer *producer, void *worker)
 
     while (producer->parent.flags < EVTHREAD_STATE_RUNNING){
         dbg_str(DBG_VIP, "default_producer not ready, waiting...");
-        usleep(100000);
+        usleep(100);
     }
 
     dbg_str(CONCURRENT_DETAIL, "producer %p del worker, worker:%p, fd:%d",
@@ -163,12 +163,12 @@ int producer_destroy_default_instance()
 
     while (producer->parent.flags < EVTHREAD_STATE_RUNNING){
         dbg_str(DBG_VIP, "default_producer not ready, waiting...");
-        usleep(100000);
+        usleep(100);
     }
     producer->close(producer);
     while (producer->parent.flags != EVTHREAD_STATE_DESTROYED) {
         dbg_str(DBG_VIP, "waiting producer to stop ...");
-        usleep(1000000);
+        usleep(100);
     } 
 
     object_destroy(producer);

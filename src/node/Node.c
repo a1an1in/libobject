@@ -49,7 +49,7 @@ static int __deconstruct(Node *node)
     //因为使用的event base, 所以没有给链表加锁，但是销毁server和对
     //客户端关闭处理是在俩个不通线程处理，所以需要等待一下， 这个不算
     //是问题， 是异步设计需要注意的一个地方。
-    usleep(1000); 
+    usleep(100); 
     busd_destroy(node->busd);
 
     return 0;
@@ -112,7 +112,7 @@ static int __loop(Node *node)
     struct event_base *event_base;
 
     event_base = event_base_get_default_instance();
-    do { sleep(1); } while (node->node_exit_flag != 1 && event_base->eb->break_flag != 1);
+    do { usleep(100); } while (node->node_exit_flag != 1 && event_base->eb->break_flag != 1);
     dbg_str(DBG_VIP, "node loop out");
 
     return 0;
@@ -582,7 +582,7 @@ static int __execute_async_callback(bus_req_t *req, char *out, int len, int stat
 
     TRY {
         if (len > 0)
-            dbg_str(DBG_VIP, "%s", out);
+            printf("%s", out);
 
         if (state <= 1) {
             dbg_str(DBG_VIP, "execute_async_callback, req key:%s, node:%p", req->key, node);

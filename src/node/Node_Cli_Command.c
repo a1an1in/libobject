@@ -75,7 +75,7 @@ static int __execute_command_action(Node *node, char *arg1, char *arg2)
     TRY {
         dbg_str(DBG_VIP, "execute_command_action, arg1:%s", arg1);
         EXEC(node->execute(node, arg1));
-        while (node->node_exit_flag != 1) usleep(1000);
+        while (node->node_exit_flag != 1) usleep(100);
     } CATCH (ret) {}
 
     return ret;
