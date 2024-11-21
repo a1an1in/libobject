@@ -96,6 +96,7 @@ static int __init(Node *node)
                 EXEC(bn_to_hex_str(buffer, 20, &node_object.id, &size));
             }
             bus_add_object(bus, &node_object);
+            bus->bus_object_no_ping_flag = 1;
         }
 
         app = get_global_application();

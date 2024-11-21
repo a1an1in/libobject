@@ -868,7 +868,7 @@ static void bus_timer_callback(void *task)
 
             map->for_each_arg(map, bus_obj_map_add_obj_foreach_callback, bus); // 断链后重新添加obj
             bus->bus_object_off_line_flag = 0;
-        } else {
+        } else if (bus->bus_object_no_ping_flag != 1) {
             EXEC(bus_ping(bus));
         }
         

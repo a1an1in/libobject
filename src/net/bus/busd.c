@@ -544,7 +544,9 @@ static int busd_process_receiving_data_callback(void *task)
 
     TRY {
         THROW_IF(t->buf_len <= 0, 0);
-        dbg_buf(BUS_INFO, "busd receive:", (uint8_t *)t->buf, t->buf_len);
+        if (t->buf_len > 2 && ((char *)(t->buf))[0] == 0 && ((char *)(t->buf))[1] != BUS_REQ_PING) {
+            dbg_buf(BUS_INFO, "busd receive:", (uint8_t *)t->buf, t->buf_len);
+        }
 
         /* 1.将数据写入cache */
         if (t->cache == NULL) {

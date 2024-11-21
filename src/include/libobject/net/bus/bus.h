@@ -23,37 +23,6 @@ enum {
 	__BUS_MAX
 };
 
-struct bus_s;
-typedef struct bus_s bus_t;
-typedef struct bus_object_s bus_object_t;
-
-typedef int (*bus_handler_t)(bus_object_t *obj,
-                             int argc,
-		      		         struct blob_attr_s **args,
-                             void *out_data,
-                             int *out_data_len);
-typedef int (*bus_cmd_callback)(bus_t *bus,  blob_attr_t **attr);
-
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
-#endif
-
-#define BUS_METHOD(_name, _handler, _policy)\
-{\
-	.name = _name,\
-	.handler = _handler,\
-	.policy = (struct blob_policy_s *)_policy,\
-	.n_policy = ARRAY_SIZE(_policy),\
-}
-
-#define BUS_METHOD_WITHOUT_ARG(_name, _handler, _policy)\
-{\
-	.name = _name,\
-	.handler = _handler,\
-	.policy = NULL,\
-	.n_policy = 0,\
-}
-
 enum bus_method_arg_type_e {       
     ARG_TYPE_UNSPEC,  
     ARG_TYPE_ARRAY,
@@ -67,19 +36,6 @@ enum bus_method_arg_type_e {
 	ARG_TYPE_INT32,
     ARG_TYPE_LAST,
 }; 
-typedef struct bus_method_args_s {
-    uint8_t type;
-    char *name;
-    void *value;
-	int len;
-}bus_method_args_t;
-
-typedef struct bus_reqhdr {
-	uint8_t version;
-	uint8_t type;
-	uint32_t s_id;
-	uint32_t d_id;
-}__attribute__((packed)) bus_reqhdr_t;
 
 enum bus_communication_type {
 	/* initial server message */
@@ -118,6 +74,58 @@ enum bus_communication_type {
 	/* must be last */
 	__BUS_REQ_LAST,
 };
+
+enum {
+	BUS_RET_FAIL = -1,
+	BUS_RET_SUC = 1,
+	BUS_RET_PHASED_SUC = 2,
+	BUS_RET_MAX
+};
+
+struct bus_s;
+typedef struct bus_s bus_t;
+typedef struct bus_object_s bus_object_t;
+
+typedef int (*bus_handler_t)(bus_object_t *obj,
+                             int argc,
+		      		         struct blob_attr_s **args,
+                             void *out_data,
+                             int *out_data_len);
+typedef int (*bus_cmd_callback)(bus_t *bus,  blob_attr_t **attr);
+
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+#endif
+
+#define BUS_METHOD(_name, _handler, _policy)\
+{\
+	.name = _name,\
+	.handler = _handler,\
+	.policy = (struct blob_policy_s *)_policy,\
+	.n_policy = ARRAY_SIZE(_policy),\
+}
+
+#define BUS_METHOD_WITHOUT_ARG(_name, _handler, _policy)\
+{\
+	.name = _name,\
+	.handler = _handler,\
+	.policy = NULL,\
+	.n_policy = 0,\
+}
+
+typedef struct bus_method_args_s {
+    uint8_t type;
+    char *name;
+    void *value;
+	int len;
+}bus_method_args_t;
+
+typedef struct bus_reqhdr {
+	uint8_t version;
+	uint8_t type;
+	uint32_t s_id;
+	uint32_t d_id;
+}__attribute__((packed)) bus_reqhdr_t;
 
 struct bus_method {
 	char *name;
@@ -168,6 +176,7 @@ struct bus_s {
 	char bus_object_id[BUS_OBJECT_ID_LEN];  //用于断链后恢复
 	uint8_t bus_object_added_flag;
 	uint8_t bus_object_off_line_flag;
+	uint8_t bus_object_no_ping_flag;
 	void *opaque;
 };
 
