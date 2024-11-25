@@ -307,7 +307,7 @@ static int __fwrite(Node *node, char *from, char *node_id, char *to)
                 args[2].len = read_len;
                 dbg_str(DBG_VIP, "node %s write %s, offset:%d, read size:%d, read len:%d", 
                         node_id, to, offset, buffer_size, read_len);
-                EXEC(bus_invoke_sync(bus, node_id, "write_file", ARRAY_SIZE(args), args, NULL, NULL));
+                EXEC(bus_invoke_sync(bus, node_id, "fwrite", ARRAY_SIZE(args), args, NULL, NULL));
                 offset += read_len;
             }
             file->close(file);
@@ -390,7 +390,7 @@ static int __fread(Node *node, char *node_id, char *from, char *to)
                 
                 dbg_str(DBG_VIP, "node %s read %s, offset:%d, read size:%d, read len:%d", 
                         node_id, from, offset, read_size, args[2].value);
-                EXEC(bus_invoke_sync(bus, node_id, "read_file", ARRAY_SIZE(args), args, buffer, &args[2].value));
+                EXEC(bus_invoke_sync(bus, node_id, "fread", ARRAY_SIZE(args), args, buffer, &args[2].value));
                 
                 EXEC(file->seek(file, offset, SEEK_SET));
                 EXEC(file->write(file, buffer, (int)args[2].value));
@@ -457,7 +457,7 @@ static int __flist(Node *node, char *node_id, char *path, Vector *vector)
 
     TRY {
         THROW_IF(path == NULL, -1);
-        snprintf(buffer, sizeof(buffer), "%s@list(%s)", node_id, path);
+        snprintf(buffer, sizeof(buffer), "%s@flist(%s)", node_id, path);
         EXEC(node->call_bus(node, buffer, buffer, &len));
         THROW_IF(len == 0, 0);
         if (len > 0) {
