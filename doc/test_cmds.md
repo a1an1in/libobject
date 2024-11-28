@@ -52,7 +52,7 @@ timedatectl list-timezones  # list all
  * 注意： 使用的是offset， 不是[]号里面的绝对地址
  **/
 ./sysroot/linux/bin/xtools mockery --log-level=0x6 test_coredump_signal
-addr2line -e ./sysroot/linux/bin/xtools 0x253dc
+addr2line -e ./sysroot/linux/bin/xtools 0x6a44f
 addr2line -e ./sysroot/linux/bin/xtools 0x98c00
 addr2line -e ./sysroot/linux/bin/xtools 0x53ccc
 addr2line -f -e ./sysroot/linux/bin/xtools  libobject-core.so 0x152
@@ -122,7 +122,7 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_bus "node@mfree(0, #test_v1)"
 
 ./sysroot/windows/bin/xtools.exe mockery --log-level=0x14 -f test_node
-./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_node
+./sysroot/linux/bin/xtools mockery --log-level=0x15 -f test_node
 
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x17 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
 ./sysroot/linux/bin/xtools  node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 execute 1b0fd2d7e9f2249372b350c8fe0e9732fc02a996@{"ls -l"}
@@ -142,11 +142,12 @@ tcpdump -i eth0  port 12345
 sudo tcpdump -i enp0s17  port 12345
 ./devops.sh build --platform=linux
 ./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.216.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.269.tar.gz
 
 2 linux 测试
 nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30016 --host=139.159.231.27 --service=12345
+./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x30016 node
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list 8dbfb5f2e674dddcb82acc2e67eba709c9479761@/root/.xtools/packages
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list 04911cdd24f42272ed0feaf737c9a8d233f26f35@./tests/node/
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus ec52cbeaa14dd3898941f21a923924c59d7a4b4a@{"set_loglevel(1,2,3)"}

@@ -58,9 +58,10 @@ static int __mkdir(Unix_File_System *fs, char *path, mode_t mode)
         string = object_new(allocator, "String", NULL);
         string->assign(string, path);
         path_len = strlen(path);
-        tmp = allocator_mem_alloc(allocator, path_len * 2);
+        tmp = allocator_mem_zalloc(allocator, path_len * 2);
 
         cnt = string->split(string, "/", -1);
+        if (path[0] == '/') {  strcat(tmp, "/"); }
 
         for (i = 0; i < cnt; i++) {
             p = string->get_splited_cstr(string, i);
