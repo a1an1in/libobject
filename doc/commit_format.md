@@ -1,8 +1,7 @@
-[update:node] 支持保存和读取node配置。
+[update:node] 实现node_id持久化。
 
 Description:
-node配置有利于noded迁移开发，node重启后可以根据
-配置里面的地址重新链接上noded。
+node_id经常变化， 不方便测试。
 
 Major Changes:
-1. 实现node配置读取和保存功能。
+1. 实现配置中读取node_id。

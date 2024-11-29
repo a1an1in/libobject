@@ -83,7 +83,7 @@ static int __init(Node *node)
         bus->opaque = node;
 
         if (node->disable_node_service_flag != 1) {
-            if (node->node_id != NULL) {
+            if (strlen(node->node_id) != 0) {
                 memcpy(&node_object.id, node->node_id, strlen(node->node_id));
             } else {
                 /* 先生成一个随机数， 然后再用sha1生成一个长度固定的id */
@@ -94,6 +94,7 @@ static int __init(Node *node)
                 digest->final(digest, buffer, 20);
                 size = 41;
                 EXEC(bn_to_hex_str(buffer, 20, &node_object.id, &size));
+                memcpy(node->node_id, &node_object.id, size);
             }
             bus_add_object(bus, &node_object);
             bus->bus_object_no_ping_flag = 1;

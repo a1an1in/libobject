@@ -50,6 +50,10 @@ static int __read_configs(Node_Command *command)
                 option_action(o, o->opaque);
             }
         }
+
+        item = cjson_get_object_item(root, "node_id");
+        THROW_IF(item == NULL, 0);
+        strcpy(n->node_id, item->valuestring);
     } CATCH (ret) {} FINALLY {
         object_destroy(file);
         cjson_delete(root);
@@ -94,6 +98,8 @@ static int __save_configs(Node_Command *command)
             }
             cjson_add_string_to_object(root, STR2A(o->name) + 2, STR2A(o->value));
         }
+
+        cjson_add_string_to_object(root, "node_id", n->node_id);
         out = cjson_print(root);
         file->write(file, out, strlen(out));
     } CATCH (ret) {} FINALLY {

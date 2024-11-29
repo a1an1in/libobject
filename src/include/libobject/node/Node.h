@@ -49,7 +49,7 @@ struct Node_s {
     int run_bus_deamon_flag; /* 1表示要运行bus deamon */
 	int disable_node_service_flag; //node cli 设置这个标记可以禁止启动服务。
     int node_exit_flag; /* flag == 1 表示退出node */
-	char *node_id; // 用户指定node id。
+	char node_id[BUS_OBJECT_ID_LEN]; // 用户指定node id。
 	String *str;
 };
 

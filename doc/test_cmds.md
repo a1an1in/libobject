@@ -148,14 +148,13 @@ sudo tcpdump -i enp0s17  port 12345
 nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30016 --host=139.159.231.27 --service=12345
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x30016 node
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list 8dbfb5f2e674dddcb82acc2e67eba709c9479761@/root/.xtools/packages
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list 04911cdd24f42272ed0feaf737c9a8d233f26f35@./tests/node/
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus ec52cbeaa14dd3898941f21a923924c59d7a4b4a@{"set_loglevel(1,2,3)"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh ec52cbeaa14dd3898941f21a923924c59d7a4b4a@{"test_hello()"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 execute 04911cdd24f42272ed0feaf737c9a8d233f26f35@{"ls -l"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 execute 8ffcb3d302a1c06d0c4b9e0d5063aaab2ea0e49c@{"pwd"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list b35f958b26e359bffe5c097e8c64150ec452b639@/root/.xtools/packages
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list b35f958b26e359bffe5c097e8c64150ec452b639@./tests/node/
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"set_loglevel(1,2,3)"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"test_hello()"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 execute b35f958b26e359bffe5c097e8c64150ec452b639@{"ls -l"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 execute b35f958b26e359bffe5c097e8c64150ec452b639@{"pwd"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
-object_id:04911cdd24f42272ed0feaf737c9a8d233f26f35
 
 3 windows 测试
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
