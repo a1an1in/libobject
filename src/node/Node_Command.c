@@ -181,6 +181,7 @@ static int __construct(Node_Command *command, char *init_str)
         c->add_option(c, "--host", "", "", "set node center ip address", __option_host_callback, command);
         c->add_option(c, "--service", "-s", "", "set node center port", __option_service_callback, command);
         c->add_option(c, "--deamon", "-d", "false", "run bus deamon", __option_deamon_callback, command);
+        command->node->opaque = command;
     } CATCH (ret) {}
 
     return ret;

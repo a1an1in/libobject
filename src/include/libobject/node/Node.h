@@ -51,6 +51,7 @@ struct Node_s {
     int node_exit_flag; /* flag == 1 表示退出node */
 	char node_id[BUS_OBJECT_ID_LEN]; // 用户指定node id。
 	String *str;
+	void *opaque;
 };
 
 extern bus_object_t node_object;

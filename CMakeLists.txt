@@ -6,7 +6,7 @@ if (POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
 
-project (libobject VERSION 2.13.2.285)
+project (libobject VERSION 2.13.2.289)
 
 config_lib_version()
 config_platform()
