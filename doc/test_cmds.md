@@ -151,7 +151,8 @@ nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --hos
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list b35f958b26e359bffe5c097e8c64150ec452b639@/root/.xtools/packages
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list b35f958b26e359bffe5c097e8c64150ec452b639@./tests/node/
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"set_loglevel(1,2,3)"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"test_hello()"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"fsh_hello()"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"fsh_help()"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 execute b35f958b26e359bffe5c097e8c64150ec452b639@{"ls -l"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 execute b35f958b26e359bffe5c097e8c64150ec452b639@{"pwd"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all

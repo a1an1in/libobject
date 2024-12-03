@@ -24,6 +24,7 @@ static int __read_configs(Node_Command *command)
     int ret, i, option_count, set_flag = 1;
 
     TRY {
+        THROW_IF(n->run_bus_deamon_flag == 1, 0); //deamon 不需要node配置文件
         app = get_global_application();
 
         dbg_str(DBG_VIP, "app addr:%p", app);
@@ -77,6 +78,7 @@ static int __save_configs(Node_Command *command)
     int ret, i, option_count, set_flag = 1;
 
     TRY {
+        THROW_IF(n->run_bus_deamon_flag == 1, 0);
         app = get_global_application();
 
         snprintf(path, 128, "%s/%s", STR2A(app->root), "node");
@@ -117,14 +119,9 @@ static int __run_command(Node_Command *command)
     int ret;
 
     TRY {
-        //deamon 不需要node配置文件
-        if (node->run_bus_deamon_flag != 1) {
-            EXEC(__read_configs(command));
-        }
+        EXEC(__read_configs(command));
         EXEC(node->init(node));
-        if (node->run_bus_deamon_flag != 1) {
-            EXEC(__save_configs(command));
-        }
+        EXEC(__save_configs(command));
         EXEC(node->loop(node));
     } CATCH (ret) {}
 

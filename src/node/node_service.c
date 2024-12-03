@@ -574,7 +574,7 @@ static int node_mget_pointer(bus_object_t *obj, int argc,
 }
 
 static const struct bus_method node_service_methods[] = {
-	BUS_METHOD_WITHOUT_ARG("exit", node_exit, NULL),
+    BUS_METHOD_WITHOUT_ARG("exit", node_exit, NULL),
     BUS_METHOD("test", node_test, test_policy),
     BUS_METHOD("set_loglevel", node_set_loglevel, set_loglevel_policy),
     BUS_METHOD("flist", node_list, list_policy),
@@ -592,6 +592,6 @@ static const struct bus_method node_service_methods[] = {
 
 bus_object_t node_object = {
     .cname     = (char *)"node_service", 
-	.methods   = (struct bus_method *)node_service_methods,
-	.n_methods = ARRAY_SIZE(node_service_methods),
+    .methods   = (struct bus_method *)node_service_methods,
+    .n_methods = ARRAY_SIZE(node_service_methods),
 };

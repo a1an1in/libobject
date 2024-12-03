@@ -102,6 +102,7 @@ static int __init(Node *node)
 
         app = get_global_application();
         node->shell = app->fshell;
+        dbg_str(DBG_VIP, "node addr:%p", node);
     } CATCH (ret) {} FINALLY {
         object_destroy(digest);
     }
