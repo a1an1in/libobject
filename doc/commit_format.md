@@ -1,4 +1,4 @@
-[update:node] node opaque赋值为node command。
+[update:node] 增加node migration接口。
 
 Description:
 update。

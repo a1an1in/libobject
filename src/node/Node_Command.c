@@ -10,6 +10,8 @@
 #include <libobject/argument/Application.h>
 #include "Node_Command.h"
 
+Node_Command *global_node;
+
 static int __read_configs(Node_Command *command)
 {
     Command *c = (Command *)command;
@@ -182,6 +184,7 @@ static int __construct(Node_Command *command, char *init_str)
         c->add_option(c, "--service", "-s", "", "set node center port", __option_service_callback, command);
         c->add_option(c, "--deamon", "-d", "false", "run bus deamon", __option_deamon_callback, command);
         command->node->opaque = command;
+        global_node = command;
     } CATCH (ret) {}
 
     return ret;
@@ -202,3 +205,18 @@ static class_info_entry_t Node_Command_class_info[] = {
     Init_End___Entry(4, Node_Command),
 };
 REGISTER_APP_CMD(Node_Command, Node_Command_class_info);
+
+int node_command_get_global_addr(Node_Command **addr)
+{
+    *addr = global_node;
+    dbg_str(DBG_VIP, "node command addr:%p", global_node);
+
+    return 1;
+}
+
+int node_command_migrate_noded(Node_Command **addr, char *config)
+{
+    dbg_str(DBG_VIP, "node_command_migrate_noded, node command addr:%p, config:%s", *addr, config);
+
+    return 1;
+}
