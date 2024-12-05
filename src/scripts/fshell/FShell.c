@@ -141,6 +141,13 @@ static int __run_func(FShell *shell, String *str)
                 THROW_IF(info == NULL, -1);
                 par[i - 1] = info->addr;
                 dbg_str(DBG_INFO, "run_func, transfer variable %s address %p", arg, info->addr);
+            } else if (arg[0] == '*' && arg[1] == '#')
+            /* *# 表示取值, 类似于C的*符号 */
+            {
+                map->search(map, arg + 1, &info);
+                THROW_IF(info == NULL, -1);
+                par[i - 1] = *((void **)info->addr);
+                dbg_str(DBG_INFO, "run_func, transfer variable %s address %p", arg, par[i - 1]);
             } else if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
                 par[i - 1] = str_hex_to_integer(arg);
                 dbg_str(DBG_DETAIL, "par i:%d value:%x", i - 1, par[i - 1]);

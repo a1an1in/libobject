@@ -214,9 +214,13 @@ int node_command_get_global_addr(Node_Command **addr)
     return 1;
 }
 
-int node_command_migrate_noded(Node_Command **addr, char *config)
+int node_command_config(Node_Command *addr, char *config)
 {
-    dbg_str(DBG_VIP, "node_command_migrate_noded, node command addr:%p, config:%s", *addr, config);
+    int ret;
 
-    return 1;
+    TRY {
+        dbg_str(DBG_VIP, "node_command_config, node command addr:%p, config:%s", addr, config);
+    } CATCH (ret) {}
+
+    return ret;
 }

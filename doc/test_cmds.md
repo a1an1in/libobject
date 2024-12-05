@@ -159,8 +159,8 @@ nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --hos
 
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"malloc(0, 10, \"null\", #node_command, 8)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"node_command_get_global_addr(#node_command)"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"node_command_migrate_noded(#node_command, \"hello world\")"}
-./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_bus "node@mfree(0, #node_command)"
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"node_command_config(*#node_command,{\"log-level\": \"0x30016\",\"host\": \"139.159.231.27\",\"service\": \"12345\"})"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"mfree(0, #node_command)"}
 
 3 windows 测试
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
