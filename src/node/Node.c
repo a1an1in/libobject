@@ -163,6 +163,7 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
                 p = strchr(tmp, ':');
                 THROW_IF(p == NULL, -1);
                 *p = '\0';
+                /* 这里只是把本地buffer地址传入， bus_blob_add_args 会把数据拷到buffer里 */
                 args[i].value = str_hex_to_integer(tmp);
                 args[i].len = atoi(p + 1);
             } else {
@@ -181,9 +182,12 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
 
 /*
  * 注意：
- * 1.这个不能复用call_bus, 因为execute不想把命令的参数也解析出来。如果加标记判断
+ * 1.函数的参数如果是字符串， 则字符不能包含,\t\n();等符号，否则fshell无法区分哪些
+ * 是参数, 如果确实有这些字符， 则需要先用mset配置字符串，然后该字符参数用地址替代.
+ * 比如字符串是json，就不能直接传入，先用mset放入内存。
+ * 2.这个不能复用call_bus, 因为execute不想把命令的参数也解析出来。如果加标记判断
  * 什么时候解析，会把call_bus搞复杂了。
- * 2.call fsh不知道哪些函数需要回传什么特定的数据， 所以设计只能回传return value。
+ * 3.call fsh不知道哪些函数需要回传什么特定的数据， 所以设计只能回传return value。
  * 如果需要调用的同时回传数据，请可以使用call_bus或者结合使用call_fsh和mget。
  */
 static int __call_fsh(Node *node, const char *fmt, ...)
@@ -481,7 +485,7 @@ static int __malloc(Node *node, char *node_id, target_type_t type, int value_typ
     int ret, len = sizeof(addr);
     
     TRY {
-        snprintf(cmd, 1024, "node@malloc(%d, %d, %s, %s, %d)", type, value_type, 
+        snprintf(cmd, 1024, "%s@malloc(%d, %d, %s, %s, %d)", node_id, type, value_type, 
                  class_name == NULL ? "null" : class_name, 
                  name == NULL ? "null" : name,  size);
         EXEC(node->call_bus(node, cmd, addr, &len));
@@ -502,7 +506,7 @@ static int __mfree(Node *node, char *node_id, target_type_t type, char *name)
     int ret;
     
     TRY {
-        snprintf(cmd, 1024, "node@mfree(%d, %s)", type, name == NULL ? "null" : name);
+        snprintf(cmd, 1024, "%s@mfree(%d, %s)", node_id, type, name == NULL ? "null" : name);
         EXEC(node->call_bus(node, cmd, NULL, 0));
         dbg_str(DBG_VIP, "node free name:%s", name);
     } CATCH (ret) {} FINALLY {}
@@ -517,7 +521,7 @@ static int __mset(Node *node, char *node_id, target_type_t type, void *addr, int
     
     TRY {
         THROW_IF(value_len > capacity, -1);
-        snprintf(cmd, 1024, "node@mset(%d, 0x%p, %d, %d, 0x%p:%d)", type, addr, offset, capacity, value, value_len);
+        snprintf(cmd, 1024, "%s@mset(%d, 0x%p, %d, %d, 0x%p:%d)", node_id, type, addr, offset, capacity, value, value_len);
         EXEC(node->call_bus(node, cmd, NULL, 0));
     } CATCH (ret) {} FINALLY {}
 
@@ -531,7 +535,7 @@ static int __mget(Node *node, char *node_id, target_type_t type, void *addr, int
     
     TRY {
         THROW_IF(*value_len > capacity, -1);
-        snprintf(cmd, 1024, "node@mget(%d, 0x%p, %d, %d, %d)", type, addr, offset, capacity, *value_len);
+        snprintf(cmd, 1024, "%s@mget(%d, 0x%p, %d, %d, %d)", node_id, type, addr, offset, capacity, *value_len);
         EXEC(node->call_bus(node, cmd, value, value_len));
     } CATCH (ret) {} FINALLY {}
 
@@ -547,7 +551,7 @@ static int __mget_pointer(Node *node, char *node_id, target_type_t type, void *a
         THROW_IF(addr == NULL || dpointer == NULL, -1);
         addr = byteorder_cpu_to_be64(&addr);
         len = sizeof(void *);
-        snprintf(cmd, 1024, "node@mget_pointer(%d, 0x%p)", type, addr);
+        snprintf(cmd, 1024, "%s@mget_pointer(%d, 0x%p)", node_id, type, addr);
         EXEC(node->call_bus(node, cmd, dpointer, &len));
         *dpointer = byteorder_be64_to_cpu(dpointer);
     } CATCH (ret) {} FINALLY {}

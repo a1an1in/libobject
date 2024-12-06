@@ -1,8 +1,7 @@
-[update:node] 增加fshell变量取址能力。
+[update:node] 修复node_id问题。
 
 Description:
-fshell分配的变量做指针都是二级指针，函数定义的参数
-大都是一级指针， 所以指针取址对fshell函数很重要。
+之前node_id部分接口使用的是默认值。
 
 Major Changes:
-1. 实现fshell指针取址。
+1. 更新修改。

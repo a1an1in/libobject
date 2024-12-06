@@ -122,7 +122,7 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_bus "node@mfree(0, #test_v1)"
 
 ./sysroot/windows/bin/xtools.exe mockery --log-level=0x14 -f test_node
-./sysroot/linux/bin/xtools mockery --log-level=0x15 -f test_node
+./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_node
 
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x17 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
 ./sysroot/linux/bin/xtools  node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 execute 1b0fd2d7e9f2249372b350c8fe0e9732fc02a996@{"ls -l"}
@@ -159,7 +159,9 @@ nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --hos
 
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"malloc(0, 10, \"null\", #node_command, 8)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"node_command_get_global_addr(#node_command)"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"node_command_config(*#node_command,{\"log-level\": \"0x30016\",\"host\": \"139.159.231.27\",\"service\": \"12345\"})"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"malloc(0, 10, \"null\", #node_config, 128)"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_local {"mset(b35f958b26e359bffe5c097e8c64150ec452b639, TARGET_TYPE_NODE, #node_config, 0, 128, {\"log-level\": \"0x30016\",\"host\": \"139.159.231.27\",\"service\": \"12345\"})"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"node_command_config(*#node_command, #node_config)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"mfree(0, #node_command)"}
 
 3 windows 测试
