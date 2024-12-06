@@ -125,7 +125,7 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_node
 
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x17 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/linux/bin/xtools  node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 execute 1b0fd2d7e9f2249372b350c8fe0e9732fc02a996@{"ls -l"}
+./sysroot/linux/bin/xtools  node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd 1b0fd2d7e9f2249372b350c8fe0e9732fc02a996@{"ls -l"}
 object_id:1b0fd2d7e9f2249372b350c8fe0e9732fc02a996
 ```
 
@@ -142,7 +142,7 @@ tcpdump -i eth0  port 12345
 sudo tcpdump -i enp0s17  port 12345
 ./devops.sh build --platform=linux
 ./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.269.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.297.tar.gz
 
 2 linux 测试
 nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
@@ -153,14 +153,14 @@ nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --hos
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"set_loglevel(1,2,3)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"fsh_hello()"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"fsh_node_test()"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 execute b35f958b26e359bffe5c097e8c64150ec452b639@{"ls -l"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 execute b35f958b26e359bffe5c097e8c64150ec452b639@{"pwd"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"ls -l"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"pwd"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
 
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"malloc(0, 10, \"null\", #node_command, 8)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"node_command_get_global_addr(#node_command)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"malloc(0, 10, \"null\", #node_config, 128)"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_local {"mset(b35f958b26e359bffe5c097e8c64150ec452b639, TARGET_TYPE_NODE, #node_config, 0, 128, {\"log-level\": \"0x30016\",\"host\": \"139.159.231.27\",\"service\": \"12345\"})"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_cli {"mset(b35f958b26e359bffe5c097e8c64150ec452b639, TARGET_TYPE_NODE, #node_config, 0, 128, {\"log-level\": \"0x30016\",\"host\": \"139.159.231.27\",\"service\": \"12345\"})"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"node_command_config(*#node_command, #node_config)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"mfree(0, #node_command)"}
 
@@ -168,7 +168,7 @@ nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --hos
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 7917ec7c24809a2d718eeea06273d47f8fc9c3e7@/root/.xtools/packages
 ./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 9642a3c6dcc64bc451eba2a0da492e53178466f4@./tests/node/
-./sysroot/windows/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x16 execute e7fa912cd7d9f0ae6aeffdb40d78d714c10acbc8@{"ls -l"}
+./sysroot/windows/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x16 call_cmd e7fa912cd7d9f0ae6aeffdb40d78d714c10acbc8@{"ls -l"}
 ./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=139.159.231.27 --service=12345 lookup all
 id:e7fa912cd7d9f0ae6aeffdb40d78d714c10acbc8
 

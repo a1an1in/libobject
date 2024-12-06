@@ -247,7 +247,7 @@ static int node_call_fshell(bus_object_t *obj, int argc,
 	return ret;
 }
 
-static const struct blob_policy_s execute_policy[] = {
+static const struct blob_policy_s call_cmd_policy[] = {
 	[0] = { .name = "command",  .type = BLOB_TYPE_STRING }, 
 };
 
@@ -263,7 +263,7 @@ static int popen_work_callback(void *task)
         src_fd = obj->src_fd;
         if (t->buf_len <= 0) {
             ret = t->buf_len;
-            EXEC(bus_reply_forward_invoke(bus, obj->id, "execute", BUS_RET_SUC, t->buf, 0, src_fd));
+            EXEC(bus_reply_forward_invoke(bus, obj->id, "call_cmd", BUS_RET_SUC, t->buf, 0, src_fd));
             dbg_str(DBG_DETAIL, "popen_work_callback, file addr:%p", worker->opaque);
             pclose(t->cache);
             object_destroy(worker);
@@ -271,7 +271,7 @@ static int popen_work_callback(void *task)
         }
 
         dbg_str(DBG_VIP, "popen_work_callback:%s, len:%d", t->buf, t->buf_len);
-        EXEC(bus_reply_forward_invoke(bus, obj->id, "execute", BUS_RET_PHASED_SUC, t->buf, t->buf_len, src_fd));
+        EXEC(bus_reply_forward_invoke(bus, obj->id, "call_cmd", BUS_RET_PHASED_SUC, t->buf, t->buf_len, src_fd));
     } CATCH (ret) {}
 
     return ret;
@@ -298,7 +298,7 @@ static int popen_ev_callback(int fd, short event, void *arg)
     return 0;
 }
 
-static int node_execute(bus_object_t *obj, int argc, 
+static int node_call_cmd(bus_object_t *obj, int argc, 
                         struct blob_attr_s **args, 
                         void *out, int *out_len)
 {
@@ -312,7 +312,7 @@ static int node_execute(bus_object_t *obj, int argc,
 
     TRY {
         command = blob_get_string(args[0]);
-        dbg_str(DBG_VIP, "node execute command:%s", command);
+        dbg_str(DBG_VIP, "node call_cmd command:%s", command);
         THROW_IF(command == NULL, -1);
         if (command[0] == '"') {
             len = strlen(command);
@@ -587,7 +587,7 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("mget", node_mget, mget_policy),
     BUS_METHOD("mset", node_mset, mset_policy),
     BUS_METHOD("mget_pointer", node_mget_pointer, mget_pointer_policy),
-    BUS_METHOD("execute", node_execute, execute_policy),
+    BUS_METHOD("call_cmd", node_call_cmd, call_cmd_policy),
 };
 
 bus_object_t node_object = {

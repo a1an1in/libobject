@@ -185,7 +185,7 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
  * 1.函数的参数如果是字符串， 则字符不能包含,\t\n();等符号，否则fshell无法区分哪些
  * 是参数, 如果确实有这些字符， 则需要先用mset配置字符串，然后该字符参数用地址替代.
  * 比如字符串是json，就不能直接传入，先用mset放入内存。
- * 2.这个不能复用call_bus, 因为execute不想把命令的参数也解析出来。如果加标记判断
+ * 2.这个不能复用call_bus, 因为call_fsh不想把命令的参数也解析出来。如果加标记判断
  * 什么时候解析，会把call_bus搞复杂了。
  * 3.call fsh不知道哪些函数需要回传什么特定的数据， 所以设计只能回传return value。
  * 如果需要调用的同时回传数据，请可以使用call_bus或者结合使用call_fsh和mget。
@@ -580,7 +580,7 @@ static int __lookup(Node *node, char *node_id, Vector *vector)
     return 0;
 }
 
-static int __execute_async_callback(bus_req_t *req, char *out, int len, int state, void *opaque)
+static int __call_cmd_async_callback(bus_req_t *req, char *out, int len, int state, void *opaque)
 {
     Node *node = (bus_t *)opaque;
     bus_t *bus = node->bus;
@@ -592,7 +592,7 @@ static int __execute_async_callback(bus_req_t *req, char *out, int len, int stat
             printf("%s", out);
 
         if (state <= 1) {
-            dbg_str(DBG_VIP, "execute_async_callback, req key:%s, node:%p", req->key, node);
+            dbg_str(DBG_VIP, "call_cmd_async_callback, req key:%s, node:%p", req->key, node);
             EXEC(ret = map->del(map, req->key));
             allocator_mem_free(bus->allocator, req);
             node->node_exit_flag = 1;
@@ -602,7 +602,7 @@ static int __execute_async_callback(bus_req_t *req, char *out, int len, int stat
     return ret;
 }
 
-static int __execute(Node *node, const char *fmt, ...)
+static int __call_cmd(Node *node, const char *fmt, ...)
 {
     bus_t *bus;
     va_list ap;
@@ -621,7 +621,7 @@ static int __execute(Node *node, const char *fmt, ...)
 
         EXEC(str->reset(str));
         str->assign(str, code);
-        dbg_str(DBG_VIP, "node execute %s, node:%p", code, node);
+        dbg_str(DBG_VIP, "node call_cmd %s, node:%p", code, node);
         count = str->split(str, "[@{}]", -1);
         THROW_IF(count != 2, -1);
         bus = node->bus;
@@ -630,7 +630,7 @@ static int __execute(Node *node, const char *fmt, ...)
         command = str->get_splited_cstr(str, 1);
         args[0].value = command;
    
-        EXEC(bus_invoke_async(bus, node_id, "execute", ARRAY_SIZE(args), args, __execute_async_callback, node));
+        EXEC(bus_invoke_async(bus, node_id, "call_cmd", ARRAY_SIZE(args), args, __call_cmd_async_callback, node));
     } CATCH (ret) {}
 
     return ret;
@@ -655,7 +655,7 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(15, Node, mget, __mget),
     Init_Nfunc_Entry(16, Node, mget_pointer, __mget_pointer),
     Init_Nfunc_Entry(17, Node, lookup, __lookup),
-    Init_Nfunc_Entry(18, Node, execute, __execute),
+    Init_Nfunc_Entry(18, Node, call_cmd, __call_cmd),
     Init_End___Entry(19, Node),
 };
 REGISTER_CLASS(Node, node_class_info);

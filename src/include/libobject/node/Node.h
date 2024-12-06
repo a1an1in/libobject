@@ -29,6 +29,7 @@ struct Node_s {
 	int (*call_bus)(Node *node, char *code, void *out, uint32_t *out_len);
 	int (*call_fsh)(Node *node, const char *fmt, ...);
 	int (*call_fsh_object_method)(Node *node, const char *fmt, ...);
+	int (*call_cmd)(Node *node, const char *fmt, ...);  // 用于运行remote 命令
 	int (*fwrite)(Node *node, char *from, char *node_id, char *to);
 	int (*fread)(Node *node, char *node_id, char *from, char *to);
 	int (*fcopy)(Node *node, char *from, char *to);
@@ -39,7 +40,6 @@ struct Node_s {
 	int (*mget)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int *value_len);
 	int (*mget_pointer)(Node *node, char *node_id, target_type_t type, void *addr, void **dpointer);
 	int (*lookup)(Node *node, char *node_id, Vector *vector);     // 用于查询busd service
-	int (*execute)(Node *node, const char *fmt, ...);  // 用于运行remote 命令
 
 	bus_t *bus;
     busd_t *busd;
