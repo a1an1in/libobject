@@ -81,6 +81,19 @@ static int __call_cmd_command_action(Node *node, char *arg1, char *arg2)
     return ret;
 }
 
+static int __call_cli_command_action(Node *node, char *arg1, char *arg2)
+{
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "call_cli_command_action, arg1:%s", arg1);
+        // EXEC(node->call_cmd(node, arg1));
+        // while (node->node_exit_flag != 1) usleep(100);
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 struct node_command_s {
     int type;
     char *command_name;
@@ -88,11 +101,12 @@ struct node_command_s {
 } node_command_table[COMMAND_TYPE_MAX] = {
     [COMMAND_TYPE_BUS_CALL] = {COMMAND_TYPE_BUS_CALL, "call_bus", __call_bus_command_action},
     [COMMAND_TYPE_FSH_CALL] = {COMMAND_TYPE_FSH_CALL, "call_fsh", __call_fsh_command_action},
-    [COMMAND_TYPE_EXIT] = {COMMAND_TYPE_EXIT, "exit", NULL},
-    [COMMAND_TYPE_COPY] = {COMMAND_TYPE_COPY, "copy", __copy_command_action},
-    [COMMAND_TYPE_LIST] = {COMMAND_TYPE_LIST, "list", __list_command_action},
-    [COMMAND_TYPE_LOOKUP] = {COMMAND_TYPE_LOOKUP, "lookup", __lookup_command_action},
-    [COMMAND_TYPE_EXEC] = {COMMAND_TYPE_EXEC, "call_cmd", __call_cmd_command_action},
+    [COMMAND_TYPE_EXIT]     = {COMMAND_TYPE_EXIT, "exit", NULL},
+    [COMMAND_TYPE_COPY]     = {COMMAND_TYPE_COPY, "copy", __copy_command_action},
+    [COMMAND_TYPE_LIST]     = {COMMAND_TYPE_LIST, "list", __list_command_action},
+    [COMMAND_TYPE_LOOKUP]   = {COMMAND_TYPE_LOOKUP, "lookup", __lookup_command_action},
+    [COMMAND_TYPE_CMD_CALL] = {COMMAND_TYPE_CMD_CALL, "call_cmd", __call_cmd_command_action},
+    [COMMAND_TYPE_CLI_CALL] = {COMMAND_TYPE_CLI_CALL, "call_cli", __call_cli_command_action},
 };
 
 static int __run_command(Node_Cli_Command *command)
