@@ -77,4 +77,17 @@ char* strchr_n(char *s, char c, int n)
     } else return NULL;
 }
 
+int strrcnt(char *s, char *end, char c)
+{
+    int i = 0, count = 0;
+
+    while ((s - i) != end) {
+        if (*(s - i) == c) {
+            count++;
+        }
+        i++;
+    }
+
+    return count;
+}
 

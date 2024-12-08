@@ -8,6 +8,7 @@
 
 #include <libobject/core/Vector.h>
 #include <libobject/core/io/file_system_api.h>
+#include <libobject/core/utils/string.h>
 #include "Node_Cli_Command.h"
 
 static int __call_fsh_command_action(Node *node, char *arg1, char *arg2)
@@ -81,14 +82,15 @@ static int __call_cmd_command_action(Node *node, char *arg1, char *arg2)
     return ret;
 }
 
-static int __call_cli_command_action(Node *node, char *arg1, char *arg2)
+static int __mset_command_action(Node *node, char *arg1, char *arg2)
 {
-    int ret;
+    String *str = node->str;
+    char *func_name, *arg;
+    void *par[20] = {0};
+    int ret, len, cnt, i;
 
     TRY {
-        dbg_str(DBG_VIP, "call_cli_command_action, arg1:%s", arg1);
-        // EXEC(node->call_cmd(node, arg1));
-        // while (node->node_exit_flag != 1) usleep(100);
+        dbg_str(DBG_VIP, "mset_command_action, arg1:%s", arg1);
     } CATCH (ret) {}
 
     return ret;
@@ -106,7 +108,7 @@ struct node_command_s {
     [COMMAND_TYPE_LIST]     = {COMMAND_TYPE_LIST, "list", __list_command_action},
     [COMMAND_TYPE_LOOKUP]   = {COMMAND_TYPE_LOOKUP, "lookup", __lookup_command_action},
     [COMMAND_TYPE_CMD_CALL] = {COMMAND_TYPE_CMD_CALL, "call_cmd", __call_cmd_command_action},
-    [COMMAND_TYPE_CLI_CALL] = {COMMAND_TYPE_CLI_CALL, "call_cli", __call_cli_command_action},
+    [COMMAND_TYPE_MSET]     = {COMMAND_TYPE_MSET, "mset", __mset_command_action},
 };
 
 static int __run_command(Node_Cli_Command *command)

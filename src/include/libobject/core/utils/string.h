@@ -5,6 +5,7 @@
 
 long long str_hex_to_integer(char *str);
 char *str_trim(char *str);
+int strrcnt(char *s, char *end, char c);
 
 #endif
 
