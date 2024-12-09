@@ -102,7 +102,6 @@ static int __init(Node *node)
 
         app = get_global_application();
         node->shell = app->fshell;
-        dbg_str(DBG_VIP, "node addr:%p", node);
     } CATCH (ret) {} FINALLY {
         object_destroy(digest);
     }
@@ -521,7 +520,7 @@ static int __mset(Node *node, char *node_id, target_type_t type, void *addr, int
     
     TRY {
         THROW_IF(value_len > capacity, -1);
-        snprintf(cmd, 1024, "%s@mset(%d, 0x%p, %d, %d, 0x%p:%d)", node_id, type, addr, offset, capacity, value, value_len);
+        snprintf(cmd, 1024, "%s@mset(%d, %p, %d, %d, %p:%d)", node_id, type, addr, offset, capacity, value, value_len);
         EXEC(node->call_bus(node, cmd, NULL, 0));
     } CATCH (ret) {} FINALLY {}
 
@@ -535,7 +534,7 @@ static int __mget(Node *node, char *node_id, target_type_t type, void *addr, int
     
     TRY {
         THROW_IF(*value_len > capacity, -1);
-        snprintf(cmd, 1024, "%s@mget(%d, 0x%p, %d, %d, %d)", node_id, type, addr, offset, capacity, *value_len);
+        snprintf(cmd, 1024, "%s@mget(%d, %p, %d, %d, %d)", node_id, type, addr, offset, capacity, *value_len);
         EXEC(node->call_bus(node, cmd, value, value_len));
     } CATCH (ret) {} FINALLY {}
 
@@ -551,9 +550,26 @@ static int __mget_pointer(Node *node, char *node_id, target_type_t type, void *a
         THROW_IF(addr == NULL || dpointer == NULL, -1);
         addr = byteorder_cpu_to_be64(&addr);
         len = sizeof(void *);
-        snprintf(cmd, 1024, "%s@mget_pointer(%d, 0x%p)", node_id, type, addr);
+        snprintf(cmd, 1024, "%s@mget_pointer(%d, %p)", node_id, type, addr);
         EXEC(node->call_bus(node, cmd, dpointer, &len));
         *dpointer = byteorder_be64_to_cpu(dpointer);
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
+static int __mget_addr(Node *node, char *node_id, target_type_t type, char *name, void **addr)
+{
+    char cmd[1024] = {0};
+    int ret, len = sizeof(addr);
+    
+    TRY {
+        snprintf(cmd, 1024, "%s@mget_addr(%d, %s)", node_id, type, name == NULL ? "null" : name);
+        EXEC(node->call_bus(node, cmd, addr, &len));
+        if (addr != NULL) {
+            *addr = byteorder_be64_to_cpu(addr);
+        }
+        THROW_IF(len != 8 && len != 4, -1);
     } CATCH (ret) {} FINALLY {}
 
     return ret;
@@ -653,10 +669,11 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(13, Node, mfree, __mfree),
     Init_Nfunc_Entry(14, Node, mset, __mset),
     Init_Nfunc_Entry(15, Node, mget, __mget),
-    Init_Nfunc_Entry(16, Node, mget_pointer, __mget_pointer),
-    Init_Nfunc_Entry(17, Node, lookup, __lookup),
-    Init_Nfunc_Entry(18, Node, call_cmd, __call_cmd),
-    Init_End___Entry(19, Node),
+    Init_Nfunc_Entry(16, Node, mget_addr, __mget_addr),
+    Init_Nfunc_Entry(17, Node, mget_pointer, __mget_pointer),
+    Init_Nfunc_Entry(18, Node, lookup, __lookup),
+    Init_Nfunc_Entry(19, Node, call_cmd, __call_cmd),
+    Init_End___Entry(20, Node),
 };
 REGISTER_CLASS(Node, node_class_info);
 

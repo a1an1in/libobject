@@ -38,6 +38,7 @@ struct Node_s {
 	int (*mfree)(Node *node, char *node_id, target_type_t type, char *name);
 	int (*mset)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int value_len);
 	int (*mget)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int *value_len);
+	int (*mget_addr)(Node *node, char *node_id, target_type_t type, char *name, void **addr);
 	int (*mget_pointer)(Node *node, char *node_id, target_type_t type, void *addr, void **dpointer);
 	int (*lookup)(Node *node, char *node_id, Vector *vector);     // 用于查询busd service
 
@@ -52,6 +53,7 @@ struct Node_s {
 	char node_id[BUS_OBJECT_ID_LEN]; // 用户指定node id。
 	String *str;
 	void *opaque;
+	target_type_t type;
 };
 
 extern bus_object_t node_object;

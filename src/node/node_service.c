@@ -411,7 +411,6 @@ static int node_malloc(bus_object_t *obj, int argc,
         map->add(map, info->name, info);
         
         dbg_str(DBG_VIP, "node_malloc, name:%s, class_name:%s, size:%d, addr:%p", name, class_name, size, addr);
-
         *out_len = sizeof(void *);
         addr = byteorder_cpu_to_be64(&addr);
         memcpy(out, &addr, sizeof(void *));
@@ -573,6 +572,48 @@ static int node_mget_pointer(bus_object_t *obj, int argc,
 	return ret;
 }
 
+static const struct blob_policy_s mget_addr_policy[] = {
+    [0] = { .name = "target_type",  .type = BLOB_TYPE_UINT32 },
+    [1] = { .name = "name",         .type = BLOB_TYPE_STRING },
+};
+static int node_mget_addr(bus_object_t *obj, int argc, 
+                          struct blob_attr_s **args, 
+                          void *out, int *out_len)
+{
+    bus_t *bus;
+    allocator_t *allocator;
+    Node *node;
+    FShell *shell;
+    char *name, *addr;
+    Map *map;
+    fsh_malloc_variable_info_t *info = NULL;
+    target_type_t type;
+    int ret, size;
+
+    TRY {
+        type = blob_get_uint32(args[0]);
+        name = blob_get_string(args[1]);
+        bus = obj->bus;
+        node = bus->opaque;
+        shell = node->shell;
+        map = shell->variable_map;
+        allocator = bus->allocator;
+        dbg_str(DBG_DETAIL, "node mget addr, name:%s", name);
+
+        THROW_IF(name == NULL, -1);
+        map->search(map, name, &info);
+        THROW_IF(info == NULL, -1);
+        EXEC(fsh_variable_info_free(allocator, info));
+
+        addr = info->addr;
+        *out_len = sizeof(void *);
+        addr = byteorder_cpu_to_be64(&addr);
+        memcpy(out, &addr, sizeof(void *));
+    } CATCH (ret) { *out_len = 0; } FINALLY {  }
+
+	return ret;
+}
+
 static const struct bus_method node_service_methods[] = {
     BUS_METHOD_WITHOUT_ARG("exit", node_exit, NULL),
     BUS_METHOD("test", node_test, test_policy),
@@ -585,6 +626,7 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("malloc", node_malloc, malloc_policy),
     BUS_METHOD("mfree", node_mfree, mfree_policy),
     BUS_METHOD("mget", node_mget, mget_policy),
+    BUS_METHOD("mget_addr", node_mget_addr, mget_addr_policy),
     BUS_METHOD("mset", node_mset, mset_policy),
     BUS_METHOD("mget_pointer", node_mget_pointer, mget_pointer_policy),
     BUS_METHOD("call_cmd", node_call_cmd, call_cmd_policy),

@@ -85,12 +85,28 @@ static int __call_cmd_command_action(Node *node, char *arg1, char *arg2)
 static int __mset_command_action(Node *node, char *arg1, char *arg2)
 {
     String *str = node->str;
-    char *func_name, *arg;
-    void *par[20] = {0};
-    int ret, len, cnt, i;
+    char *func_name, *arg, *node_id, *addr_name;
+    void *par[20] = {0}, *addr;
+    int ret, len, cnt, i, offset, capacity;
 
     TRY {
         dbg_str(DBG_VIP, "mset_command_action, arg1:%s", arg1);
+        dbg_str(DBG_VIP, "mset_command_action, arg2:%s", arg2);
+        EXEC(str->reset(str));
+        str->assign(str, arg1);
+        cnt = str->split(str, "[@{}-]", -1);
+        THROW_IF(cnt < 2 || cnt > 4, -1);
+        node_id = str->get_splited_cstr(str, 0);
+        addr_name = str->get_splited_cstr(str, 1);
+        if (cnt == 4) {
+            offset = atoi(str->get_splited_cstr(str, 2));
+            capacity = atoi(str->get_splited_cstr(str, 3));;
+        } else {
+            offset = 0, capacity = sizeof(void *);
+        }
+        dbg_str(DBG_VIP, "mset_command_action, type:%d, cnt:%d, addr:%s, offset:%d, capacity:%d", node->type, cnt, addr_name, offset, capacity);
+        EXEC(node->mget_addr(node, node_id, node->type, addr_name, &addr));
+        EXEC(node->mset(node, node_id, node->type, addr, offset, capacity, arg2, strlen(arg2)));
     } CATCH (ret) {}
 
     return ret;
@@ -103,12 +119,12 @@ struct node_command_s {
 } node_command_table[COMMAND_TYPE_MAX] = {
     [COMMAND_TYPE_BUS_CALL] = {COMMAND_TYPE_BUS_CALL, "call_bus", __call_bus_command_action},
     [COMMAND_TYPE_FSH_CALL] = {COMMAND_TYPE_FSH_CALL, "call_fsh", __call_fsh_command_action},
-    [COMMAND_TYPE_EXIT]     = {COMMAND_TYPE_EXIT, "exit", NULL},
-    [COMMAND_TYPE_COPY]     = {COMMAND_TYPE_COPY, "copy", __copy_command_action},
-    [COMMAND_TYPE_LIST]     = {COMMAND_TYPE_LIST, "list", __list_command_action},
-    [COMMAND_TYPE_LOOKUP]   = {COMMAND_TYPE_LOOKUP, "lookup", __lookup_command_action},
     [COMMAND_TYPE_CMD_CALL] = {COMMAND_TYPE_CMD_CALL, "call_cmd", __call_cmd_command_action},
+    [COMMAND_TYPE_LOOKUP]   = {COMMAND_TYPE_LOOKUP, "lookup", __lookup_command_action},
+    [COMMAND_TYPE_COPY]     = {COMMAND_TYPE_COPY, "fcopy", __copy_command_action},
+    [COMMAND_TYPE_LIST]     = {COMMAND_TYPE_LIST, "flist", __list_command_action},
     [COMMAND_TYPE_MSET]     = {COMMAND_TYPE_MSET, "mset", __mset_command_action},
+    [COMMAND_TYPE_EXIT]     = {COMMAND_TYPE_EXIT, "exit", NULL},
 };
 
 static int __run_command(Node_Cli_Command *command)
@@ -149,26 +165,6 @@ static int __option_service_callback(Option *option, void *opaque)
     return 1;
 }
 
-static int __option_call_bus_command_callback(Option *option, void *opaque)
-{
-    Node_Cli_Command *c = (Node_Cli_Command *)opaque;
-    dbg_str(DBG_VIP,"option_bus_cmd_action_callback:%s", STR2A(option->value));
-    c->arg1 = STR2A(option->value);
-    c->command_type = COMMAND_TYPE_BUS_CALL;
-
-    return 1;
-}
-
-static int __option_execute_command_callback(Option *option, void *opaque)
-{
-    Node_Cli_Command *c = (Node_Cli_Command *)opaque;
-    dbg_str(DBG_VIP,"option_fshell_cmd_action_callback:%s", STR2A(option->value));
-    c->arg1 = STR2A(option->value);
-    c->command_type = COMMAND_TYPE_FSH_CALL;
-
-    return 1;
-}
-
 static int __option_disable_node_service_callback(Option *option, void *opaque)
 {
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
@@ -183,6 +179,17 @@ static int __option_disable_node_service_callback(Option *option, void *opaque)
     } else {
         n->disable_node_service_flag = 0;
     }
+
+    return 1;
+}
+
+static int __option_target_callback(Option *option, void *opaque)
+{
+    Node_Cli_Command *c = (Node_Cli_Command *)opaque;
+    Node *n = c->node;
+
+    dbg_str(DBG_FATAL,"option_service_action_callback:%s", STR2A(option->value));
+    n->type = atoi(STR2A(option->value));
 
     return 1;
 }
@@ -235,14 +242,10 @@ static int __construct(Node_Cli_Command *command, char *init_str)
     c->set(c, "/Command/name", "node_cli");
     c->add_option(c, "--host", "", "", "set node center ip address.", __option_host_callback, command);
     c->add_option(c, "--service", "-s", "", "set node center port.", __option_service_callback, command);
-    c->add_option(c, "--call_bus", "-b", "",
-                                                    "set the executing code of bus, \n"
-                  "                                ""eg: --call_bus=nodeid@set_loglevel(1,2,3).",
-                  __option_call_bus_command_callback, command);
-    c->add_option(c, "--call_fsh", "-f", "", "set the executing code of fshell, eg, --call_fsh=fsh_test_add_v1(1,2).", 
-                  __option_execute_command_callback, command);
     c->add_option(c, "--disable-node-service", "", "true", "disable node service for node cli.", 
                   __option_disable_node_service_callback, command);
+    c->add_option(c, "--target", "-t", "0", "set operateion target, default 0, which means to operate the node.", 
+                  __option_target_callback, command);
 
     c->add_argument(c, "",
                                                       "command type, it's optional if you want to call bus or fshell, \n"

@@ -95,19 +95,17 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 
 /* test node cli */
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 --call_bus="node@set_loglevel(1,2,3)"
 ./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 call_bus "node@set_loglevel(1,2,3)"
 ./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 call_bus "node@exit()"
-./sysroot/linux/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 copy ./tests/node/test_node.txt "node@./tests/node/output/write/test_node.txt"
-./sysroot/linux/bin/xtools node_cli --log-level=0x20019 --host=127.0.0.1 --service=12345 copy ./tests/node/test_node.c "node@./tests/node/output/write/test_node.c"
-./sysroot/linux/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 copy ./tests/node/ "node@./tests/node/output/write/"
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 call_bus "node@list(./tests/node/)"
-./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 list node@./tests/node/
+./sysroot/linux/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 fcopy ./tests/node/test_node.txt "node@./tests/node/output/write/test_node.txt"
+./sysroot/linux/bin/xtools node_cli --log-level=0x20019 --host=127.0.0.1 --service=12345 fcopy ./tests/node/test_node.c "node@./tests/node/output/write/test_node.c"
+./sysroot/linux/bin/xtools node_cli --log-level=0x20016 --host=127.0.0.1 --service=12345 fcopy ./tests/node/ "node@./tests/node/output/write/"
+./sysroot/linux/bin/xtools --log-level=0x20016 node_cli --host=127.0.0.1 --service=12345 flist node@./tests/node/
 
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/windows/bin/xtools node_cli --log-level=0x16 --host=127.0.0.1 --service=12345 list 8d12cab570dcac3bf9d082e8141ae845612224a2@./tests/node/
-./sysroot/windows/bin/xtools node_cli --log-level=0x16 --host=127.0.0.1 --service=12345 copy ./tests/node/test_node.c 8d12cab570dcac3bf9d082e8141ae845612224a2@./tests/node/output/write/test_node.c
-./sysroot/windows/bin/xtools node_cli --log-level=0x16 --host=127.0.0.1 --service=12345 copy 8d12cab570dcac3bf9d082e8141ae845612224a2@./tests/node/res/test_node.txt ./tests/node/output/read/test_node.txt
+./sysroot/windows/bin/xtools node_cli --log-level=0x16 --host=127.0.0.1 --service=12345 flist 8d12cab570dcac3bf9d082e8141ae845612224a2@./tests/node/
+./sysroot/windows/bin/xtools node_cli --log-level=0x16 --host=127.0.0.1 --service=12345 fcopy ./tests/node/test_node.c 8d12cab570dcac3bf9d082e8141ae845612224a2@./tests/node/output/write/test_node.c
+./sysroot/windows/bin/xtools node_cli --log-level=0x16 --host=127.0.0.1 --service=12345 fcopy 8d12cab570dcac3bf9d082e8141ae845612224a2@./tests/node/res/test_node.txt ./tests/node/output/read/test_node.txt
 
 /* test stub */
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=127.0.0.1 --service=12345 --deamon=t
@@ -142,35 +140,35 @@ tcpdump -i eth0  port 12345
 sudo tcpdump -i enp0s17  port 12345
 ./devops.sh build --platform=linux
 ./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.303.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.298.tar.gz
 
 2 linux 测试
+* 2.1 node cli 基本用法
 nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30016 --host=139.159.231.27 --service=12345
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x30016 node
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list b35f958b26e359bffe5c097e8c64150ec452b639@/root/.xtools/packages
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 list b35f958b26e359bffe5c097e8c64150ec452b639@./tests/node/
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 flist b35f958b26e359bffe5c097e8c64150ec452b639@/root/.xtools/packages
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 flist b35f958b26e359bffe5c097e8c64150ec452b639@./tests/node/
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20017 fcopy ./tests/node/res/test_node.txt "b35f958b26e359bffe5c097e8c64150ec452b639@./tests/node/output/write/test_node.txt"
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"set_loglevel(1,2,3)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"fsh_hello()"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"fsh_node_test()"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_cmd 3238b8420917336d40f44c8e9246039a671563a7@{"ls -l"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"ls -l"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"pwd"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
 
-object_id:3238b8420917336d40f44c8e9246039a671563a7
+* 2.2 node cli 高阶用法
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"malloc(0, 10, \"null\", #node_command, 8)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"node_command_get_global_addr(#node_command)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"malloc(0, 10, \"null\", #node_config, 128)"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 mset b35f958b26e359bffe5c097e8c64150ec452b639@#node_config {\"log-level\": \"0x30016\",\"host\": \"139.159.231.27\",\"service\": \"12345\"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 mset b35f958b26e359bffe5c097e8c64150ec452b639@#node_config{0-127} "{\"log-level\": \"0x30016\",\"host\": \"139.159.231.27\",\"service\": \"12345\"}"
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"node_command_config(*#node_command, #node_config)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"mfree(0, #node_command)"}
 
 3 windows 测试
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345
-./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 7917ec7c24809a2d718eeea06273d47f8fc9c3e7@/root/.xtools/packages
-./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 list 9642a3c6dcc64bc451eba2a0da492e53178466f4@./tests/node/
+./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 flist 7917ec7c24809a2d718eeea06273d47f8fc9c3e7@/root/.xtools/packages
+./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 flist 9642a3c6dcc64bc451eba2a0da492e53178466f4@./tests/node/
 ./sysroot/windows/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x16 call_cmd e7fa912cd7d9f0ae6aeffdb40d78d714c10acbc8@{"ls -l"}
 ./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=139.159.231.27 --service=12345 lookup all
-id:e7fa912cd7d9f0ae6aeffdb40d78d714c10acbc8
-
 ```

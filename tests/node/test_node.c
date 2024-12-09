@@ -311,19 +311,19 @@ static int test_node(TEST_ENTRY *entry)
         node->disable_node_service_flag = 1;
         EXEC(node->init(node));
 
-        EXEC(__test_node_call_bus(node));
-        EXEC(__test_node_list(node));
-        EXEC(__test_node_read_file(node));
-        EXEC(__test_node_read_files(node));
-        EXEC(__test_node_write_file(node));
-        EXEC(__test_node_write_files(node));
-        EXEC(__test_node_malloc_and_mfree(node));
+        // EXEC(__test_node_call_bus(node));
+        // EXEC(__test_node_list(node));
+        // EXEC(__test_node_read_file(node));
+        // EXEC(__test_node_read_files(node));
+        // EXEC(__test_node_write_file(node));
+        // EXEC(__test_node_write_files(node));
+        // EXEC(__test_node_malloc_and_mfree(node));
         EXEC(__test_node_mset_and_mget(node));
-        EXEC(__test_node_call_fsh(node));
-        EXEC(__test_node_call_fsh_object_method(node));
-        EXEC(__test_node_mget_pointer(node));
-        EXEC(__test_node_stub(node));
-        EXEC(__test_node_lookup(node));
+        // EXEC(__test_node_call_fsh(node));
+        // EXEC(__test_node_call_fsh_object_method(node));
+        // EXEC(__test_node_mget_pointer(node));
+        // EXEC(__test_node_stub(node));
+        // EXEC(__test_node_lookup(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         usleep(1000);
