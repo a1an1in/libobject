@@ -628,7 +628,7 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("mget", node_mget, mget_policy),
     BUS_METHOD("mget_addr", node_mget_addr, mget_addr_policy),
     BUS_METHOD("mset", node_mset, mset_policy),
-    BUS_METHOD("mget_pointer", node_mget_pointer, mget_pointer_policy),
+    BUS_METHOD("maddress", node_mget_pointer, mget_pointer_policy),
     BUS_METHOD("call_cmd", node_call_cmd, call_cmd_policy),
 };
 

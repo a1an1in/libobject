@@ -18,6 +18,7 @@ enum command_type_e {
     COMMAND_TYPE_CMD_CALL,
     COMMAND_TYPE_LOOKUP,
     COMMAND_TYPE_MSET,
+    COMMAND_TYPE_MGET,
     COMMAND_TYPE_MAX
 };
 

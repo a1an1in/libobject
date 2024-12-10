@@ -533,7 +533,7 @@ static int __mget(Node *node, char *node_id, target_type_t type, void *addr, int
     int ret;
     
     TRY {
-        THROW_IF(*value_len > capacity, -1);
+        THROW_IF(capacity != -1 && *value_len > capacity, -1);
         snprintf(cmd, 1024, "%s@mget(%d, %p, %d, %d, %d)", node_id, type, addr, offset, capacity, *value_len);
         EXEC(node->call_bus(node, cmd, value, value_len));
     } CATCH (ret) {} FINALLY {}
@@ -550,7 +550,7 @@ static int __mget_pointer(Node *node, char *node_id, target_type_t type, void *a
         THROW_IF(addr == NULL || dpointer == NULL, -1);
         addr = byteorder_cpu_to_be64(&addr);
         len = sizeof(void *);
-        snprintf(cmd, 1024, "%s@mget_pointer(%d, %p)", node_id, type, addr);
+        snprintf(cmd, 1024, "%s@maddress(%d, %p)", node_id, type, addr);
         EXEC(node->call_bus(node, cmd, dpointer, &len));
         *dpointer = byteorder_be64_to_cpu(dpointer);
     } CATCH (ret) {} FINALLY {}
@@ -670,7 +670,7 @@ static class_info_entry_t node_class_info[] = {
     Init_Nfunc_Entry(14, Node, mset, __mset),
     Init_Nfunc_Entry(15, Node, mget, __mget),
     Init_Nfunc_Entry(16, Node, mget_addr, __mget_addr),
-    Init_Nfunc_Entry(17, Node, mget_pointer, __mget_pointer),
+    Init_Nfunc_Entry(17, Node, maddress, __mget_pointer),
     Init_Nfunc_Entry(18, Node, lookup, __lookup),
     Init_Nfunc_Entry(19, Node, call_cmd, __call_cmd),
     Init_End___Entry(20, Node),

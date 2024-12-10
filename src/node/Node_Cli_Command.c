@@ -112,6 +112,72 @@ static int __mset_command_action(Node *node, char *arg1, char *arg2)
     return ret;
 }
 
+static int __mget_command_action(Node *node, char *arg1, char *arg2)
+{
+    String *str = node->str;
+    char *node_id, *addr_name, fmt, unit, unit_size = 1;
+    void *addr;
+    int ret, i, len, cnt, offset = 0, capacity;
+    char buffer[BLOB_BUFFER_MAX_SIZE] = {0};
+
+    TRY {
+        dbg_str(DBG_VIP, "mget_command_action, arg1:%s", arg1);
+        dbg_str(DBG_VIP, "mget_command_action, arg2:%s", arg2);
+
+        EXEC(str->reset(str));
+        str->assign(str, arg1);
+        cnt = str->split(str, "[@]", -1);
+        THROW_IF(cnt != 2, -1);
+        node_id = str->get_splited_cstr(str, 0);
+        addr_name = str->get_splited_cstr(str, 1);
+
+        len = strlen(arg2);
+        unit = arg2[len - 1];
+        THROW_IF(arg2[0] != '/', -1);
+        sscanf(arg2, "/%d%c", &cnt, &fmt);    
+
+        if (fmt == 's' || fmt == unit || unit == 'b') { unit_size = 1;}
+        else if ((unit == 'h')) {unit_size = 2;}
+        else if ((unit == 'w')) {unit_size = 4;}
+        else if ((unit == 'g')) {unit_size = 8;}
+        else { THROW(-1); }
+        len = cnt * unit_size;
+
+        if (addr_name[0] == '#') {
+            EXEC(node->mget_addr(node, node_id, node->type, addr_name, &addr));
+        } else if (addr_name[0] == '0' || addr_name[1] == 'x'|| addr_name[1] == 'X') {
+            THROW(-1);
+        }
+
+        dbg_str(DBG_VIP, "mget_command_action, len:%d, fmt:%c, unit:%c, unit_size:%d, cnt:%d", len, fmt, unit, unit_size, cnt);
+        EXEC(node->mget(node, node_id, node->type, addr, offset, len, buffer, &len));
+
+        if (unit == 's') {
+            printf("%s\n", buffer);
+            THROW(1);
+        }
+        for (i = 0; i < cnt; i++) {
+            addr = buffer + i * unit_size;
+            if ((unit == 'b')) {
+                printf("0x%02x ", *((char *)addr));
+                if (i % 32 == 31) printf("\n");
+            } else if ((unit == 'h')) {
+                printf("0x%04x ", *((short *)addr));
+                if (i % 16 == 15) printf("\n");
+            } else if ((unit == 'w')) {
+                printf("0x%08x ", *((int *)addr));
+                if (i % 8 == 7) printf("\n");
+            } else if ((unit == 'g')) {
+                printf("0x%016llx ", *((long long *)addr));
+                if (i % 4 == 3) printf("\n");
+            }
+            
+        }
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 struct node_command_s {
     int type;
     char *command_name;
@@ -124,6 +190,7 @@ struct node_command_s {
     [COMMAND_TYPE_COPY]     = {COMMAND_TYPE_COPY, "fcopy", __copy_command_action},
     [COMMAND_TYPE_LIST]     = {COMMAND_TYPE_LIST, "flist", __list_command_action},
     [COMMAND_TYPE_MSET]     = {COMMAND_TYPE_MSET, "mset", __mset_command_action},
+    [COMMAND_TYPE_MGET]     = {COMMAND_TYPE_MGET, "mget", __mget_command_action},
     [COMMAND_TYPE_EXIT]     = {COMMAND_TYPE_EXIT, "exit", NULL},
 };
 
@@ -188,7 +255,6 @@ static int __option_target_callback(Option *option, void *opaque)
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
     Node *n = c->node;
 
-    dbg_str(DBG_FATAL,"option_service_action_callback:%s", STR2A(option->value));
     n->type = atoi(STR2A(option->value));
 
     return 1;
