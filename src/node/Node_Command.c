@@ -214,12 +214,44 @@ int node_command_get_global_addr(Node_Command **addr)
     return 1;
 }
 
-int node_command_config(Node_Command *addr, char *config)
+int node_command_config(Node_Command *command, char *config)
+{
+    Command *c = (Command *)command;
+    Vector *options = c->options;
+    cjson_t *root, *item;
+    Option *o;
+    int ret, i, option_count, set_flag = 1;
+
+    TRY {
+        dbg_str(DBG_VIP, "node_command_config, node command addr:%p, config:%s", command, config);
+        root = cjson_parse(config);
+        option_count = options->count(options);
+
+        for (i = 0; i < option_count; i++) {
+            options->peek_at(options, i, (void **)&o);
+            /* if configed default value and set_flag == 1, then need run option action */
+            if (o == NULL) continue;
+            item = cjson_get_object_item(root, STR2A(o->name) + 2);
+            if (item == NULL) continue;
+            o->set(o, "value", item->valuestring);
+            o->set(o, "set_flag", &set_flag);
+            int (*option_action)(void *, void *) = o->action;
+            option_action(o, o->opaque);
+        }
+        EXEC(__save_configs(command));
+    } CATCH (ret) {} FINALLY {
+        cjson_delete(root);
+    }
+
+    return ret;
+}
+
+int node_command_upgrade(Node_Command *addr)
 {
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "node_command_config, node command addr:%p, config:%s", addr, config);
+        dbg_str(DBG_VIP, "node_command_upgrade, node command addr:%p", addr);
     } CATCH (ret) {}
 
     return ret;

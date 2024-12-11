@@ -160,18 +160,21 @@ static int __mget_command_action(Node *node, char *arg1, char *arg2)
             addr = buffer + i * unit_size;
             if ((unit == 'b')) {
                 printf("0x%02x ", *((char *)addr));
-                if (i % 32 == 31) printf("\n");
+                if (i % 16 == 15) printf("\n");
+                if (i == cnt -1 && i % 16 != 15) printf("\n");
             } else if ((unit == 'h')) {
                 printf("0x%04x ", *((short *)addr));
                 if (i % 16 == 15) printf("\n");
+                if (i == cnt -1 && i % 16 != 15) printf("\n");
             } else if ((unit == 'w')) {
                 printf("0x%08x ", *((int *)addr));
                 if (i % 8 == 7) printf("\n");
+                if (i == cnt -1 && i % 8 != 7) printf("\n");
             } else if ((unit == 'g')) {
                 printf("0x%016llx ", *((long long *)addr));
                 if (i % 4 == 3) printf("\n");
-            }
-            
+                if (i == cnt -1 && i % 4 != 3) printf("\n");
+            } 
         }
     } CATCH (ret) {}
 
