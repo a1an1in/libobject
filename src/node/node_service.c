@@ -539,7 +539,7 @@ static const struct blob_policy_s mget_pointer_policy[] = {
     [0] = { .name = "target_type", .type = BLOB_TYPE_UINT32 }, 
     [1] = { .name = "addr",        .type = BLOB_TYPE_UINT64 },
 };
-static int node_mget_pointer(bus_object_t *obj, int argc, 
+static int node_maddress(bus_object_t *obj, int argc, 
                              struct blob_attr_s **args, 
                              void *out, int *out_len)
 {
@@ -628,7 +628,7 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("mget", node_mget, mget_policy),
     BUS_METHOD("mget_addr", node_mget_addr, mget_addr_policy),
     BUS_METHOD("mset", node_mset, mset_policy),
-    BUS_METHOD("maddress", node_mget_pointer, mget_pointer_policy),
+    BUS_METHOD("maddress", node_maddress, mget_pointer_policy),
     BUS_METHOD("call_cmd", node_call_cmd, call_cmd_policy),
 };
 

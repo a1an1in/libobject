@@ -145,7 +145,7 @@ sudo tcpdump -i enp0s17  port 12345
 2 linux 测试
 * 2.1 node cli 基本用法
 nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
-./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x30016 --host=139.159.231.27 --service=12345
+./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 flist b35f958b26e359bffe5c097e8c64150ec452b639@/root/.xtools/packages
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 flist b35f958b26e359bffe5c097e8c64150ec452b639@./tests/node/
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20017 fcopy ./tests/node/res/test_node.txt "b35f958b26e359bffe5c097e8c64150ec452b639@./tests/node/output/write/test_node.txt"
