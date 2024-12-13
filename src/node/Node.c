@@ -613,6 +613,10 @@ static int __call_cmd_async_callback(bus_req_t *req, char *out, int len, int sta
             allocator_mem_free(bus->allocator, req);
             node->node_exit_flag = 1;
         }
+
+        if (state < 0) {
+            printf("call %s error!\n", req->key);
+        }
     } CATCH (ret) {}
 
     return ret;

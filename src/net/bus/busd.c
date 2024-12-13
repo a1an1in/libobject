@@ -409,6 +409,7 @@ int busd_handle_invoke_method(busd_t *busd, blob_attr_t **attr, int fd)
 
         EXEC(busd_forward_invoke(busd, fd, obj->fd, object_id, method, argc, args));
     } CATCH (ret) {
+        busd_reply_invoke(busd, object_id, method, BUS_RET_FAIL, NULL, 0, fd, fd);
         dbg_str(BUS_ERROR, "busd_handle_invoke_method error, src fd:%d, dest fd:%d, object:%s, method:%s", 
                 fd, obj != NULL ? obj->fd : 0, object_id != NULL ? object_id : "na", method != NULL ? method : "na");
     }
@@ -479,6 +480,11 @@ int busd_handle_forward_invoke_reply(busd_t *busd, blob_attr_t **attr, int fd)
     }
 
     busd_reply_invoke(busd, object_id, method, state, buffer, buffer_len, fd, src_fd);
+
+    /* 如果该req有多个回复，如果cli结束需要通知service结束该req */
+    if (state = BUS_RET_NEED_END_NOTIFY) {
+    } else if (state == BUS_RET_END_AND_CLEAR_NOTIFY) {
+    }
 
     return 0;
 }

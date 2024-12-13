@@ -37,9 +37,8 @@ typedef struct busd_s {
     char *server_srv;
 
     blob_t *blob;
+    /*bus 注册的service map。*/
 	Map *obj_map;
-    uint8_t key_size;
-    uint8_t bucket_size;
 } busd_t;
 
 typedef struct busd_object {

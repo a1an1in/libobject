@@ -140,7 +140,7 @@ tcpdump -i eth0  port 12345
 sudo tcpdump -i enp0s17  port 12345
 ./devops.sh build --platform=linux
 ./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.298.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.13.2.396.tar.gz
 
 2 linux 测试
 * 2.1 node cli 基本用法

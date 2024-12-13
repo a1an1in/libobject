@@ -1,8 +1,8 @@
-[update:node] node迁移noded功能完成。
+[update:node] 优化node。
 
 Description:
-开发node新特性。
+优化node。
 
 Major Changes:
-1. 优化mget。
-2. 增加node迁移noded。
+1. 增加node cli错误提示。
+2. 增加busd返回错误。
