@@ -37,6 +37,7 @@ struct Node_Cli_Command_s {
     char *arg1, *arg2;
     Node *node;
     int command_type;
+    struct event quit_event;
 };
 
 #endif

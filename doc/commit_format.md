@@ -1,8 +1,7 @@
-[update:node] 优化node。
+[update:node] 中断node_cli调试。
 
 Description:
-优化node。
+更新。
 
 Major Changes:
-1. 增加node cli错误提示。
-2. 增加busd返回错误。
+1. 增加测试命令。

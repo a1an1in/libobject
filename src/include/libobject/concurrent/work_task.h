@@ -17,6 +17,7 @@ typedef struct work_task_s{
     void *cache;
     allocator_t *allocator;
     short event;
+    // char name[24];
 } work_task_t;
 
 static inline work_task_t *

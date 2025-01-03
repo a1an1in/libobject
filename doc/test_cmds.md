@@ -123,8 +123,10 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_node
 
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x17 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/linux/bin/xtools  node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd 1b0fd2d7e9f2249372b350c8fe0e9732fc02a996@{"ls -l"}
-object_id:1b0fd2d7e9f2249372b350c8fe0e9732fc02a996
+./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd acdcda6a235bee5993530f7992d87330ac864a0d@{"ls -l"}
+./sysroot/linux/bin/xtools node_cli --host=127.0.0.1 --service=12345 lookup all
+
+object_id:acdcda6a235bee5993530f7992d87330ac864a0d
 ```
 
 ### 线上测试
@@ -189,7 +191,13 @@ nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --hos
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"node_command_upgrade(*#node_command)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"mfree(0, #node_command)"}
 
-* 2.5 attancher
+* 2.5 tail log
+stdbuf -oL -eL ./sysroot/linux/bin/test-process  > ~/.xtools/test_process.log 2>&1
+tail -f ~/.xtools/test_process.log
+./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x17 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
+./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd acdcda6a235bee5993530f7992d87330ac864a0d@{"tail -f ~/.xtools/test_process.log"}
+
+* 2.6 attancher
 
 3 windows 测试
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345

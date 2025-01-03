@@ -257,6 +257,7 @@ static int popen_work_callback(void *task)
     Worker *worker = t->opaque;
     bus_object_t *obj = worker->opaque;
     bus_t *bus = obj->bus;
+    // Map *map = bus->req_map;
     int ret, src_fd;
 
     TRY {
@@ -272,6 +273,8 @@ static int popen_work_callback(void *task)
 
         dbg_str(DBG_VIP, "popen_work_callback:%s, len:%d", t->buf, t->buf_len);
         EXEC(bus_reply_forward_invoke(bus, obj->id, "call_cmd", BUS_RET_PHASED_SUC, t->buf, t->buf_len, src_fd));
+        // sprintf(t->name, "task@%d", src_fd);
+        // map->add(map, t->name, t);
     } CATCH (ret) {}
 
     return ret;

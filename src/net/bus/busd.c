@@ -576,7 +576,7 @@ static int busd_process_receiving_data_callback(void *task)
             dbg_str(BUS_DETAIL, "type:%d", hdr->type);
 
             /* 3.获取blob table和table len， 如果Cache的数据不够blob table的长度，
-            *   说明数据有可能有分片，需要返回直到收集完全后往后处理。 */
+             *   说明数据有可能有分片，需要返回直到收集完全后往后处理。 */
             rb->peek(rb, buffer, sizeof(bus_reqhdr_t) + sizeof(blob_attr_t));
             blob_attr = (blob_attr_t *)((char *)buffer + sizeof(bus_reqhdr_t));
             blob_table_len = blob_get_len(blob_attr);

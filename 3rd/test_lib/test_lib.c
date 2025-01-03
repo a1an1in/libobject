@@ -138,8 +138,8 @@ void *subprocess_callback(void *para)
 	while (1) {
         i++;
         sum +=i;
-        sleep(10);
-        printf("subprocess is running ...\n");
+        sleep(2);
+        printf("subprocess is running, index:%d sum:%d\n", i, sum);
         test_lib_hello_world_with_pointer_pars2(1, "abc");
 	}
 
