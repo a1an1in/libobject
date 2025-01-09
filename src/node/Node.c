@@ -49,7 +49,7 @@ static int __deconstruct(Node *node)
     //因为使用的event base, 所以没有给链表加锁，但是销毁server和对
     //客户端关闭处理是在俩个不通线程处理，所以需要等待一下， 这个不算
     //是问题， 是异步设计需要注意的一个地方。
-    usleep(100); 
+    usleep(1000); 
     busd_destroy(node->busd);
 
     return 0;
@@ -612,6 +612,8 @@ static int __call_cmd_async_callback(bus_req_t *req, char *out, int len, int sta
             EXEC(ret = map->del(map, req->key));
             allocator_mem_free(bus->allocator, req);
             node->node_exit_flag = 1;
+        } else if (state == 2) {
+            node->node_wait_flag = 1;
         }
 
         if (state < 0) {
@@ -647,6 +649,7 @@ static int __call_cmd(Node *node, const char *fmt, ...)
         bus = node->bus;
 
         node_id = str->get_splited_cstr(str, 0);
+        strcpy(node->call_cmd_node_id, node_id);
         command = str->get_splited_cstr(str, 1);
         args[0].value = command;
    

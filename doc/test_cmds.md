@@ -56,7 +56,7 @@ addr2line -e ./sysroot/linux/bin/xtools 0x6a44f
 addr2line -e ./sysroot/linux/bin/xtools 0x98c00
 addr2line -e ./sysroot/linux/bin/xtools 0x53ccc
 addr2line -f -e ./sysroot/linux/bin/xtools  libobject-core.so 0x152
-addr2line -e ./sysroot/linux/bin/xtools 0x93be6
+addr2line -e ./sysroot/linux/bin/xtools 0x6e96a
 addr2line -e ./sysroot/linux/bin/xtools 0xaeba2
 ```
 
@@ -191,12 +191,12 @@ nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --hos
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"node_command_upgrade(*#node_command)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_bus b35f958b26e359bffe5c097e8c64150ec452b639@{"mfree(0, #node_command)"}
 
-* 2.5 tail log
+* 2.5 long task
 stdbuf -oL -eL ./sysroot/linux/bin/test-process  > ~/.xtools/test_process.log 2>&1
-tail -f ~/.xtools/test_process.log
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 --log-level=0x17 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd acdcda6a235bee5993530f7992d87330ac864a0d@{"tail -f ~/.xtools/test_process.log"}
-
+./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 node --host=127.0.0.1 --service=12345
+./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"tail -f ~/.xtools/test_process.log"}
+object_id:b35f958b26e359bffe5c097e8c64150ec452b639
 * 2.6 attancher
 
 3 windows 测试

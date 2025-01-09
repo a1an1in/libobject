@@ -50,7 +50,9 @@ struct Node_s {
     int run_bus_deamon_flag; /* 1表示要运行bus deamon */
 	int disable_node_service_flag; //node cli 设置这个标记可以禁止启动服务。
     int node_exit_flag; /* flag == 1 表示退出node */
+	int node_wait_flag; /* flag == 1 表示等待调用结束后才能退出node */
 	char node_id[BUS_OBJECT_ID_LEN]; // 用户指定node id。
+	char call_cmd_node_id[BUS_OBJECT_ID_LEN]; // 保持call cmd node id, node cli中断需要通知对方。
 	String *str;
 	void *opaque;
 	target_type_t type;

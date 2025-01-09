@@ -559,7 +559,7 @@ static int busd_process_receiving_data_callback(void *task)
             t->cache = object_new(allocator, "Ring_Buffer", NULL);
             rb = t->cache;
             rb->set_size(rb, BLOB_BUFFER_MAX_SIZE);
-            dbg_str(BUS_DETAIL, "new buffer");
+            dbg_str(BUS_FATAL, "new cache fd:%d", t->fd);
         } else {
             rb = t->cache;
         }
@@ -613,6 +613,7 @@ static int busd_process_receiving_data_callback(void *task)
         if (t->buf_len <= 0 || ret < 0) {
             object_destroy(t->cache);
             t->cache = NULL;
+            dbg_str(BUS_FATAL, "close cache fd:%d", t->fd);
         }
 
         /* 检测到bus service异常，需要释放bus obj */

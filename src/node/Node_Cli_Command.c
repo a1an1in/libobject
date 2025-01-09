@@ -13,23 +13,27 @@
 #include <libobject/concurrent/event_api.h>
 #include "Node_Cli_Command.h"
 
-static int __call_fsh_command_action(Node *node, char *arg1, char *arg2)
+static int __call_fsh_command_action(Node_Cli_Command *command, char *arg1, char *arg2)
 {
+    Node *node = command->node;
     return TRY_EXEC(node->call_fsh(node, arg1));
 }
 
-static int __call_bus_command_action(Node *node, char *arg1, char *arg2)
+static int __call_bus_command_action(Node_Cli_Command *command, char *arg1, char *arg2)
 {
+    Node *node = command->node;
     return TRY_EXEC(node->call_bus(node, arg1, NULL, 0));
 }
 
-static int __copy_command_action(Node *node, char *arg1, char *arg2)
+static int __copy_command_action(Node_Cli_Command *command, char *arg1, char *arg2)
 {
+    Node *node = command->node;
     return TRY_EXEC(node->fcopy(node, arg1, arg2));
 }
 
-static int __list_command_action(Node *node, char *arg1, char *arg2)
+static int __list_command_action(Node_Cli_Command *command, char *arg1, char *arg2)
 {
+    Node *node = command->node;
     allocator_t *allocator = node->parent.allocator;
     char *node_id, *path;
     int value_type = VALUE_TYPE_STRUCT_POINTER;
@@ -54,9 +58,10 @@ static int __list_command_action(Node *node, char *arg1, char *arg2)
     return ret;
 }
 
-static int __lookup_command_action(Node *node, char *arg1, char *arg2)
+static int __lookup_command_action(Node_Cli_Command *command, char *arg1, char *arg2)
 {
     Vector *list;
+    Node *node = command->node;
     allocator_t *allocator = node->parent.allocator;
     int ret;
 
@@ -71,21 +76,48 @@ static int __lookup_command_action(Node *node, char *arg1, char *arg2)
     return ret;
 }
 
-static int __call_cmd_command_action(Node *node, char *arg1, char *arg2)
+static int __call_cmd_command_action(Node_Cli_Command *command, char *arg1, char *arg2)
 {
-    int ret;
+    Node *node = command->node;
+    String *str = node->str;
+    struct event_base *event_base = event_base_get_default_instance();
+    bus_t *bus = node->bus;
+    Map *map = bus->req_map;
+    bus_req_t *req = NULL;
+    char cmd[1024] = {0};
+    int ret, cnt;
 
     TRY {
         dbg_str(DBG_VIP, "call_cmd_command_action, arg1:%s", arg1);
+        EXEC(str->reset(str));
+        str->assign(str, arg1);
+        cnt = str->split(str, "[@{}]", -1);
+        THROW_IF(cnt < 2 || cnt > 4, -1);
+
         EXEC(node->call_cmd(node, arg1));
         while (node->node_exit_flag != 1) usleep(100);
+
+        if (node->node_wait_flag == 1) { //Event Base已经收到退出指令，但是需要node cli先走退出流程.
+            dbg_str(DBG_VIP, "call_cmd_command abort_cmd");
+            snprintf(cmd, 1024, "%s@abort_cmd()", node->call_cmd_node_id);
+            node->call_bus(node, cmd, NULL, 0);
+
+            //需要清楚call cmd req。
+            sprintf(cmd, "%s@%s", node->call_cmd_node_id, "call_cmd");
+            ret = map->search(map, cmd, (void **)&req);
+            EXEC(map->del(map, cmd));
+            allocator_mem_free(bus->allocator, req);
+
+            event_base->eb->break_flag = 1;
+        }
     } CATCH (ret) {}
 
     return ret;
 }
 
-static int __mset_command_action(Node *node, char *arg1, char *arg2)
+static int __mset_command_action(Node_Cli_Command *command, char *arg1, char *arg2)
 {
+    Node *node = command->node;
     String *str = node->str;
     char *func_name, *arg, *node_id, *addr_name;
     void *par[20] = {0}, *addr;
@@ -114,8 +146,9 @@ static int __mset_command_action(Node *node, char *arg1, char *arg2)
     return ret;
 }
 
-static int __mget_command_action(Node *node, char *arg1, char *arg2)
+static int __mget_command_action(Node_Cli_Command *command, char *arg1, char *arg2)
 {
+    Node *node = command->node;
     String *str = node->str;
     char *node_id, *addr_name, fmt, unit, unit_size = 1;
     void *addr;
@@ -186,8 +219,8 @@ static int __mget_command_action(Node *node, char *arg1, char *arg2)
 struct node_command_s {
     int type;
     char *command_name;
-    int (*action)(Node *node, char *arg1, char *arg2);
-} node_command_table[COMMAND_TYPE_MAX] = {
+    int (*action)(Node_Cli_Command *command, char *arg1, char *arg2);
+} node_cli_command_table[COMMAND_TYPE_MAX] = {
     [COMMAND_TYPE_BUS_CALL] = {COMMAND_TYPE_BUS_CALL, "call_bus", __call_bus_command_action},
     [COMMAND_TYPE_FSH_CALL] = {COMMAND_TYPE_FSH_CALL, "call_fsh", __call_fsh_command_action},
     [COMMAND_TYPE_CMD_CALL] = {COMMAND_TYPE_CMD_CALL, "call_cmd", __call_cmd_command_action},
@@ -203,8 +236,13 @@ static void __quit_signal_cb(int fd, short event_res, void *arg)
 {
     Node_Cli_Command *command = (Node_Cli_Command *)arg;
     Node *node = command->node;
+    struct event_base *event_base = event_base_get_default_instance();
+
     dbg_str(DBG_WARN, "quit_signal_cb running");
     node->node_exit_flag = 1;
+    if (node->node_wait_flag == 1) {
+        event_base->eb->break_flag = 2; // 这里需要让EB等node cli处理完后退出。
+    }
 
     return;
 }
@@ -216,7 +254,7 @@ static int __add_quit_signal(Node_Cli_Command *command)
 
     /* Initalize the event library */
 
-    dbg_str(DBG_DETAIL, "add_quit_signal");
+    dbg_str(DBG_DETAIL, "node cli add_quit_signal");
 
     /* Initalize one event */
     event_assign(ev, base, SIGINT, EV_SIGNAL|EV_PERSIST,
@@ -230,15 +268,15 @@ static int __add_quit_signal(Node_Cli_Command *command)
 static int __run_command(Node_Cli_Command *command)
 {
     Node *node = command->node;
-    int (*action)(Node *node, char *arg1, char *arg2);
+    int (*action)(Node_Cli_Command *command, char *arg1, char *arg2);
     int ret;
 
     TRY {
         __add_quit_signal(command);
         EXEC(node->init(node));
-        action = node_command_table[command->command_type].action;
+        action = node_cli_command_table[command->command_type].action;
         THROW_IF(action == NULL, -1);
-        EXEC(action(node, command->arg1, command->arg2));
+        EXEC(action(command, command->arg1, command->arg2));
     } CATCH (ret) {}
 
     return ret; 
@@ -302,9 +340,9 @@ static int __argument_arg0_action_callback(Argument *arg, void *opaque)
     dbg_str(DBG_VIP,"argument arg0:%s", STR2A(arg->value));
 
     for (i = 0; i < COMMAND_TYPE_MAX; i++) {
-        if (node_command_table[i].command_name == NULL) continue;
-        if (strcmp(STR2A(arg->value), node_command_table[i].command_name) == 0) {
-            c->command_type = node_command_table[i].type;
+        if (node_cli_command_table[i].command_name == NULL) continue;
+        if (strcmp(STR2A(arg->value), node_cli_command_table[i].command_name) == 0) {
+            c->command_type = node_cli_command_table[i].type;
             break;
         }
     }

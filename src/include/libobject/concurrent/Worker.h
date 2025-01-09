@@ -9,6 +9,8 @@
 #include <libobject/concurrent/event/event.h>
 #include <libobject/core/io/Socket.h>
 
+#define MAX_WORKER_NAME_LEN 32
+
 typedef struct worker_s Worker;
 
 struct worker_s{
@@ -33,6 +35,7 @@ struct worker_s{
     void *task;
     Socket *socket;
     int flags;
+    char name[MAX_WORKER_NAME_LEN];
     struct timeval lasttime;  //定时器用于记录上次运行worker的时间。
 };
 

@@ -308,6 +308,7 @@ static int node_call_cmd(bus_object_t *obj, int argc,
     char *command;
     FILE *f = NULL;
     bus_t *bus = obj->bus;
+    Map *map = bus->req_map;
     allocator_t *allocator;
     Worker *worker;
     work_task_t *task;
@@ -332,6 +333,9 @@ static int node_call_cmd(bus_object_t *obj, int argc,
         task = worker->task;
         task->cache = f;  // popen由worker负责释放
         task->socket = obj->src_fd;  // 传入src_fd用于异步回复。
+
+        sprintf(worker->name, "%d@call_cmd", obj->src_fd);
+        EXEC(map->add(map, worker->name, worker));
         THROW(BUS_RET_PHASED_SUC);
     } CATCH (ret) {} FINALLY {
         *out_len = 0;
@@ -617,6 +621,37 @@ static int node_mget_addr(bus_object_t *obj, int argc,
 	return ret;
 }
 
+
+static int node_abort_cmd(bus_object_t *obj, int argc, 
+                          struct blob_attr_s **args, 
+                          void *out, int *out_len)
+{
+    bus_t *bus;
+    Map *map;
+    Worker *worker;
+    work_task_t *task;
+    char key[MAX_WORKER_NAME_LEN];
+    int ret;
+
+    TRY {
+        // name = blob_get_string(args[0]);
+        bus = obj->bus;
+        map = bus->req_map;
+        sprintf(key, "%d@call_cmd", obj->src_fd);
+        ret = map->search(map, key, (void **)&worker);
+        THROW_IF(ret <= 0, -1);
+
+        dbg_str(DBG_FATAL, "node_abort_cmd find src fd:%d", obj->src_fd);
+        task = worker->task;
+        pclose(task->cache);
+        object_destroy(worker);
+    } CATCH (ret) {} FINALLY {
+        *out_len = 0;
+    }
+
+	return ret;
+}
+
 static const struct bus_method node_service_methods[] = {
     BUS_METHOD_WITHOUT_ARG("exit", node_exit, NULL),
     BUS_METHOD("test", node_test, test_policy),
@@ -626,13 +661,14 @@ static const struct bus_method node_service_methods[] = {
     BUS_METHOD("fread", node_read_file, read_file_policy),
     BUS_METHOD("call_fshell", node_call_fshell, call_fshell_policy),
     BUS_METHOD("call_fshell_object_method", node_call_fshell_object_method, call_fshell_object_method_policy),
+    BUS_METHOD("call_cmd", node_call_cmd, call_cmd_policy),
     BUS_METHOD("malloc", node_malloc, malloc_policy),
     BUS_METHOD("mfree", node_mfree, mfree_policy),
     BUS_METHOD("mget", node_mget, mget_policy),
     BUS_METHOD("mget_addr", node_mget_addr, mget_addr_policy),
     BUS_METHOD("mset", node_mset, mset_policy),
     BUS_METHOD("maddress", node_maddress, mget_pointer_policy),
-    BUS_METHOD("call_cmd", node_call_cmd, call_cmd_policy),
+    BUS_METHOD_WITHOUT_ARG("abort_cmd", node_abort_cmd, NULL),
 };
 
 bus_object_t node_object = {

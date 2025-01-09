@@ -172,7 +172,8 @@ quit_signal_cb(int fd, short event_res, void *arg)
     Event_Base* eb = (Event_Base*)event->ev_base;
 
     dbg_str(DBG_WARN, "quit_signal_cb, signal no:%d", event->ev_fd);
-    eb->break_flag = 1;
+    /* 只有break_flag为0的时候才置1， 因为break_flag为2时，其它模块期望延迟退出。*/
+    if (eb->break_flag == 0) eb->break_flag = 1;
 }
 
 int set_quit_signal(Event_Base* eb)

@@ -244,7 +244,7 @@ static int __loop(Event_Base *eb)
     Timer *timer = eb->timer;
     struct timeval tv, *tv_p;
 
-    while (eb->break_flag == 0) {
+    while (eb->break_flag != 1) {
         tv_p = &tv;
         timer->timeout_next(timer, &tv_p);
         eb->dispatch(eb, tv_p);
