@@ -1,7 +1,7 @@
-[update:node] 中断node_cli调试。
+[update:node] 修复noded 内存泄漏问题。
 
 Description:
-更新。
+event base在noded释放前退出，导致链路上内存未释放。
 
 Major Changes:
-1. 增加测试命令。
+1. node增加quit中断信号。

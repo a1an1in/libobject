@@ -56,6 +56,7 @@ struct Node_s {
 	String *str;
 	void *opaque;
 	target_type_t type;
+    struct event quit_event;
 };
 
 extern bus_object_t node_object;

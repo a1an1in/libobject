@@ -29,7 +29,7 @@ static int __read_configs(Node_Command *command)
         THROW_IF(n->run_bus_deamon_flag == 1, 0); //deamon 不需要node配置文件
         app = get_global_application();
 
-        dbg_str(DBG_VIP, "app addr:%p", app);
+        dbg_str(DBG_DETAIL, "app addr:%p", app);
         snprintf(path, 128, "%s/%s", STR2A(app->root), "node");
         fs_mkdir(path, 0777);
         strcat(path, "/node.json");
@@ -86,7 +86,7 @@ static int __save_configs(Node_Command *command)
         snprintf(path, 128, "%s/%s", STR2A(app->root), "node");
         fs_mkdir(path, 0777);
         strcat(path, "/node.json");
-        dbg_str(DBG_VIP, "path:%s", path);
+        dbg_str(DBG_DETAIL, "path:%s", path);
         EXEC(fs_mkfile(path, 0777));
 
         file = object_new(allocator, "File", NULL);

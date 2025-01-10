@@ -271,7 +271,7 @@ static int popen_work_callback(void *task)
             THROW(ret);
         }
 
-        dbg_str(DBG_VIP, "popen_work_callback:%s, len:%d", t->buf, t->buf_len);
+        dbg_str(DBG_DETAIL, "popen_work_callback:%s, len:%d", t->buf, t->buf_len);
         EXEC(bus_reply_forward_invoke(bus, obj->id, "call_cmd", BUS_RET_PHASED_SUC, t->buf, t->buf_len, src_fd));
         // sprintf(t->name, "task@%d", src_fd);
         // map->add(map, t->name, t);
@@ -334,7 +334,7 @@ static int node_call_cmd(bus_object_t *obj, int argc,
         task->cache = f;  // popen由worker负责释放
         task->socket = obj->src_fd;  // 传入src_fd用于异步回复。
 
-        sprintf(worker->name, "%d@call_cmd", obj->src_fd);
+        sprintf(worker->name, "%d@call_cmd", (int)obj->src_fd);
         EXEC(map->add(map, worker->name, worker));
         THROW(BUS_RET_PHASED_SUC);
     } CATCH (ret) {} FINALLY {
@@ -637,11 +637,11 @@ static int node_abort_cmd(bus_object_t *obj, int argc,
         // name = blob_get_string(args[0]);
         bus = obj->bus;
         map = bus->req_map;
-        sprintf(key, "%d@call_cmd", obj->src_fd);
+        sprintf(key, "%d@call_cmd", (int)(obj->src_fd));
         ret = map->search(map, key, (void **)&worker);
         THROW_IF(ret <= 0, -1);
 
-        dbg_str(DBG_FATAL, "node_abort_cmd find src fd:%d", obj->src_fd);
+        dbg_str(DBG_VIP, "node_abort_cmd, src fd:%d", obj->src_fd);
         task = worker->task;
         pclose(task->cache);
         object_destroy(worker);

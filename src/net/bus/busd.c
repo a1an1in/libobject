@@ -212,7 +212,7 @@ int busd_reply_add_object(busd_t *busd, int state, char *object_id, int fd)
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_VIP, "busd_reply_add_object, object_id:%s, state:%d, fd:%d", object_id, state, fd);
+    dbg_str(BUS_SUC, "busd_reply_add_object, object_id:%s, state:%d, fd:%d", object_id, state, fd);
     memset(&hdr, 0, sizeof(hdr));
 
     hdr.type = BUSD_REPLY_ADD_OBJECT;
@@ -425,7 +425,7 @@ int busd_reply_invoke(busd_t *busd, char *object_id, char *method, int state, ui
     uint32_t buffer_len;
     allocator_t *allocator = busd->allocator;
 
-    dbg_str(BUS_VIP, "busd_reply_invoke, object_id:%s, method:%s, state:%d, source_fd:%d, dest_fd:%d", 
+    dbg_str(BUS_INFO, "busd_reply_invoke, object_id:%s, method:%s, state:%d, source_fd:%d, dest_fd:%d", 
             object_id, method, state, source_fd, dest_fd);
 
     memset(&hdr, 0, sizeof(hdr));
@@ -551,7 +551,7 @@ static int busd_process_receiving_data_callback(void *task)
     TRY {
         THROW_IF(t->buf_len <= 0, 0);
         if (t->buf_len > 2 && ((char *)(t->buf))[0] == 0 && ((char *)(t->buf))[1] != BUS_REQ_PING) {
-            dbg_buf(BUS_INFO, "busd receive:", (uint8_t *)t->buf, t->buf_len);
+            dbg_buf(BUS_DETAIL, "busd receive:", (uint8_t *)t->buf, t->buf_len);
         }
 
         /* 1.将数据写入cache */
@@ -559,7 +559,7 @@ static int busd_process_receiving_data_callback(void *task)
             t->cache = object_new(allocator, "Ring_Buffer", NULL);
             rb = t->cache;
             rb->set_size(rb, BLOB_BUFFER_MAX_SIZE);
-            dbg_str(BUS_FATAL, "new cache fd:%d", t->fd);
+            dbg_str(BUS_DETAIL, "new cache fd:%d", t->fd);
         } else {
             rb = t->cache;
         }
@@ -613,7 +613,7 @@ static int busd_process_receiving_data_callback(void *task)
         if (t->buf_len <= 0 || ret < 0) {
             object_destroy(t->cache);
             t->cache = NULL;
-            dbg_str(BUS_FATAL, "close cache fd:%d", t->fd);
+            dbg_str(BUS_DETAIL, "close cache fd:%d", t->fd);
         }
 
         /* 检测到bus service异常，需要释放bus obj */
@@ -658,6 +658,8 @@ int busd_destroy(busd_t *busd)
 
     TRY {
         THROW_IF(busd == NULL, 0);
+        dbg_str(DBG_VIP, "destory busd!");
+
         allocator = busd->allocator;
         map = busd->obj_map;
 

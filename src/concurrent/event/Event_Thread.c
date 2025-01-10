@@ -195,7 +195,7 @@ static int __stop(Event_Thread *thread)
     Event_Base *eb = thread->eb;
 
     eb->break_flag = 1;
-
+    dbg_str(EV_VIP,"Event Thread, stop break_flag:%d", eb->break_flag);
     if (c->send(c, "e", 1, 0) != 1) {//to make option task effect
         return -1;
     }

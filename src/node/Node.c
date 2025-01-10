@@ -16,6 +16,7 @@
  * @version 
  * @date 2024-02-18
  */
+#include <signal.h>
 #include <libobject/argument/Application.h>
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/core/io/File.h>
@@ -24,6 +25,40 @@
 #include <libobject/concurrent/event_api.h>
 #include <libobject/encoding/Digest.h>
 #include <libobject/node/Node.h>
+
+static void __quit_signal_cb(int fd, short event_res, void *arg)
+{
+    Node *node = (Node *)arg;
+    struct event_base *event_base = event_base_get_default_instance();
+
+    dbg_str(DBG_WARN, "quit_signal_cb running");
+    node->node_exit_flag = 1;
+
+    // 这里需要让EB等node cli处理完后退出, node是在main线程运行的，当node退出后，
+    // main就会退出，然后会调用dtor函数释放producer， break_flag会在producer的
+    // stop函数置1， event base最后正常退出。
+    event_base->eb->break_flag = 2; 
+
+    return;
+}
+
+static int __add_quit_signal(Node *node)
+{
+    struct event *ev = &node->quit_event;
+    struct event_base* base = event_base_get_default_instance();
+
+    /* Initalize the event library */
+
+    dbg_str(DBG_DETAIL, "node cli add_quit_signal");
+
+    /* Initalize one event */
+    event_assign(ev, base, SIGINT, EV_SIGNAL|EV_PERSIST,
+                 __quit_signal_cb, node);
+
+    event_add(ev, NULL);
+
+    return (0);
+}
 
 static int __construct(Node *node, char *init_str)
 {
@@ -102,6 +137,8 @@ static int __init(Node *node)
 
         app = get_global_application();
         node->shell = app->fshell;
+
+        EXEC(__add_quit_signal(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(digest);
     }
@@ -114,7 +151,7 @@ static int __loop(Node *node)
     struct event_base *event_base;
 
     event_base = event_base_get_default_instance();
-    do { usleep(100); } while (node->node_exit_flag != 1 && event_base->eb->break_flag != 1);
+    do { usleep(100); } while (node->node_exit_flag != 1);
     dbg_str(DBG_VIP, "node loop out");
 
     return 0;

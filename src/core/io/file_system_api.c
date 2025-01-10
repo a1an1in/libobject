@@ -228,7 +228,7 @@ int fs_mkfile(char *path, mode_t mode)
         string = object_new(allocator, "String", NULL);
         string->assign(string, path);
         EXEC(fs_get_path_and_name(string->get_cstr(string), &parent_dir, &name));
-        dbg_str(DBG_INFO, "fs_mkfile dir:%s, name:%s", parent_dir, name);
+        dbg_str(DBG_DETAIL, "fs_mkfile dir:%s, name:%s", parent_dir, name);
         EXEC(fs_mkdir(parent_dir, mode));
         f = fopen(path, "w+");
         THROW_IF(f == NULL, -1);

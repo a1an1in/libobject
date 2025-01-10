@@ -203,7 +203,7 @@ int bus_add_object(bus_t *bus, bus_object_t *obj)
     char object_infos[BLOB_BUFFER_MAX_SIZE] = {0};
     uint32_t buffer_len;
 
-    dbg_str(BUS_VIP, "bus_add_object, object_id:%s, object cname:%s", obj->id, obj->cname);
+    dbg_str(BUS_SUC, "bus_add_object, object_id:%s, object cname:%s", obj->id, obj->cname);
     memset(&hdr, 0, sizeof(hdr));
     memcpy(bus->bus_object_id, obj->id, BUS_OBJECT_ID_LEN);
 
@@ -606,7 +606,7 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
     uint32_t buffer_len, tmp_len;
     allocator_t *allocator = bus->allocator;
 
-    dbg_str(BUS_VIP, "bus_reply_forward_invoke, object_id:%s, method_name:%s, state:%d, src_fd:%d", 
+    dbg_str(BUS_INFO, "bus_reply_forward_invoke, object_id:%s, method_name:%s, state:%d, src_fd:%d", 
             object_id, method_name, state, src_fd);
     memset(&hdr, 0, sizeof(hdr));
 
@@ -636,7 +636,7 @@ bus_reply_forward_invoke(bus_t *bus, char *object_id,
            blob_get_len((blob_attr_t *)blob->head));
     buffer_len += blob_get_len((blob_attr_t *)blob->head);
 
-    dbg_buf(BUS_VIP, "bus send:", buffer, buffer_len);
+    dbg_buf(BUS_DETAIL, "bus send:", buffer, buffer_len);
 
     bus_send(bus, buffer, buffer_len);
 
@@ -676,6 +676,9 @@ int bus_handle_forward_invoke(bus_t *bus, blob_attr_t **attr)
     if (attr[BUS_OBJID]) {
         object_id = blob_get_string(attr[BUS_OBJID]);
     }
+
+    if (object_id != NULL && method_name != NULL)
+        dbg_str(BUS_INFO, "bus_handle_forward_invoke %s@%s", object_id, method_name);
 
     if (method_name != NULL) {
         ret = map->search(map, object_id, (void **)&obj);
@@ -767,7 +770,7 @@ static int bus_process_receiving_data_callback(void *task)
     TRY {
         THROW_IF(t->buf_len <= 0, 0);
         if (t->buf_len > 2 && ((char *)t->buf)[1] != 4)
-            dbg_buf(BUS_VIP, "bus receive:", t->buf, t->buf_len);
+            dbg_buf(BUS_DETAIL, "bus receive:", t->buf, t->buf_len);
 
         /* 1.将数据写入cache */
         if (t->cache == NULL) {
@@ -906,6 +909,7 @@ int bus_destroy(bus_t *bus)
 {
     if (bus == NULL) return 0;
 
+    dbg_str(DBG_VIP, "destory bus!");
     object_destroy(bus->obj_map);
     object_destroy(bus->req_map);
     blob_destroy(bus->blob);
