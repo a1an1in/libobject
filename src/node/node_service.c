@@ -261,7 +261,7 @@ static int popen_work_callback(void *task)
     int ret, src_fd;
 
     TRY {
-        src_fd = obj->src_fd;
+        src_fd = t->socket;
         if (t->buf_len <= 0) {
             ret = t->buf_len;
             EXEC(bus_reply_forward_invoke(bus, obj->id, "call_cmd", BUS_RET_SUC, t->buf, 0, src_fd));

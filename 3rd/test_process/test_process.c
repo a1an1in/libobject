@@ -7,14 +7,14 @@
 #include <sys/syscall.h> //for gettid
 
 #define gettid() syscall(__NR_gettid)
-extern void *subprocess_callback(void *para);
+extern void *test_thread_callback(void *para);
 
 int main()
 { 
     pthread_t tid;
     void *handle;
 
-    int ret = pthread_create(&tid, NULL, subprocess_callback, NULL);
+    int ret = pthread_create(&tid, NULL, test_thread_callback, NULL);
     if (ret != 0) {   
         exit(errno);
     }   

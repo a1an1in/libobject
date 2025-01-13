@@ -1,7 +1,9 @@
-[update:node] 修复noded 内存泄漏问题。
+[update:node] 修复node service source fd issue。
 
 Description:
-event base在noded释放前退出，导致链路上内存未释放。
+node serice src fd没有使用task里面保持的值，导致service
+回复busd的src fd错误。
 
 Major Changes:
-1. node增加quit中断信号。
+1. 修改source fd问题。
+2. 修改short task node_wait_flag置零。

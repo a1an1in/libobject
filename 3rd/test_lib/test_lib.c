@@ -115,12 +115,12 @@ int my_dlclose (void *handle)
     return addr;
  }
 
-void *subprocess_callback(void *para)
+void *test_thread_callback(void *para)
 {
-    int i = 0, sum = 0;
+    int i = 0;
 
 #if (!defined(WINDOWS_USER_MODE))
-    printf("child process tid: %u\n", gettid());
+    printf("child thread tid: %u\n", gettid());
     printf("dlopen function addr: %p\n", dlopen);
 #endif
     printf("test_lib_hello_world addr: %p\n", test_lib_hello_world);
@@ -137,9 +137,8 @@ void *subprocess_callback(void *para)
     // my_dlopen("abc", 0);
 	while (1) {
         i++;
-        sum +=i;
         sleep(2);
-        printf("subprocess is running, index:%d sum:%d\n", i, sum);
+        printf("test thread is running, loop index:%d\n", i);
         test_lib_hello_world_with_pointer_pars2(1, "abc");
 	}
 

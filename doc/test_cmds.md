@@ -196,10 +196,13 @@ stdbuf -oL -eL ./sysroot/linux/bin/test-process  > ~/.xtools/test_process.log 2>
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
 ./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 node --log-level=0x20016 --host=127.0.0.1 --service=12345
 ./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"tail -f ~/.xtools/test_process.log"}
+./sysroot/linux/bin/xtools --event-thread-service=11151 --event-signal-service=11152 node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"ls -l"}
 
+stdbuf -oL -eL ./sysroot/linux/bin/test-process  > ~/.xtools/test_process.log 2>&1
 ./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 node --log-level=0x20016 --host=139.159.231.27 --service=12345
 ./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=139.159.231.27 --service=12345 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"tail -f ~/.xtools/test_process.log"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
+./sysroot/linux/bin/xtools --event-thread-service=11151 --event-signal-service=11152 node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"ls -l"}
 
 * 2.7 attancher
 
