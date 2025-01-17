@@ -284,6 +284,20 @@ static int __test_node_lookup(Node *node)
     return ret;
 }
 
+static int __test_node_attacher(Node *node)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    int ret;
+    
+    TRY {
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {
+    }
+
+    return ret;
+}
+
 static int test_node(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -324,6 +338,7 @@ static int test_node(TEST_ENTRY *entry)
         EXEC(__test_node_mget_pointer(node));
         EXEC(__test_node_stub(node));
         EXEC(__test_node_lookup(node));
+        EXEC(__test_node_attacher(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         usleep(1000);

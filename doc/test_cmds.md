@@ -204,6 +204,8 @@ stdbuf -oL -eL ./sysroot/linux/bin/test-process  > ~/.xtools/test_process.log 2>
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
 ./sysroot/linux/bin/xtools --event-thread-service=11151 --event-signal-service=11152 node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"ls -l"}
 
+./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_attacher
+
 * 2.7 attancher
 
 3 windows 测试

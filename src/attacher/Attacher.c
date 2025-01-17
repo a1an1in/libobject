@@ -77,6 +77,7 @@ static void *__malloc(Attacher *attacher, int size, void *value)
         // addr = attacher->get_function_address(attacher, malloc, "libc.so");
         addr = attacher->get_function_address(attacher, my_malloc, "libobject-testlib.so");
         THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "my_malloc addr:%p", addr);
         addr = attacher->call_address_with_value_pars(attacher, addr, pars, 1);
         THROW_IF(addr == NULL, -1);
         dbg_str(DBG_VIP, "attacher malloc addr:%p, size:%d", addr, size);
@@ -84,7 +85,7 @@ static void *__malloc(Attacher *attacher, int size, void *value)
             EXEC(attacher->write(attacher, addr, value, size));
         }
         return addr;
-    } CATCH (ret) {}
+    } CATCH (ret) { ret = NULL; }
 
     return ret;
 }
