@@ -557,7 +557,7 @@ static int __mset(Node *node, char *node_id, target_type_t type, void *addr, int
     
     TRY {
         THROW_IF(value_len > capacity, -1);
-        snprintf(cmd, 1024, "%s@mset(%d, %p, %d, %d, %p:%d)", node_id, type, addr, offset, capacity, value, value_len);
+        snprintf(cmd, 1024, "%s@mset(%d, 0x%p, %d, %d, 0x%p:%d)", node_id, type, addr, offset, capacity, value, value_len);
         EXEC(node->call_bus(node, cmd, NULL, 0));
     } CATCH (ret) {} FINALLY {}
 
@@ -571,7 +571,7 @@ static int __mget(Node *node, char *node_id, target_type_t type, void *addr, int
     
     TRY {
         THROW_IF(capacity != -1 && *value_len > capacity, -1);
-        snprintf(cmd, 1024, "%s@mget(%d, %p, %d, %d, %d)", node_id, type, addr, offset, capacity, *value_len);
+        snprintf(cmd, 1024, "%s@mget(%d, 0x%p, %d, %d, %d)", node_id, type, addr, offset, capacity, *value_len);
         EXEC(node->call_bus(node, cmd, value, value_len));
     } CATCH (ret) {} FINALLY {}
 
@@ -587,7 +587,7 @@ static int __mget_pointer(Node *node, char *node_id, target_type_t type, void *a
         THROW_IF(addr == NULL || dpointer == NULL, -1);
         addr = byteorder_cpu_to_be64(&addr);
         len = sizeof(void *);
-        snprintf(cmd, 1024, "%s@maddress(%d, %p)", node_id, type, addr);
+        snprintf(cmd, 1024, "%s@maddress(%d, 0x%p)", node_id, type, addr);
         EXEC(node->call_bus(node, cmd, dpointer, &len));
         *dpointer = byteorder_be64_to_cpu(dpointer);
     } CATCH (ret) {} FINALLY {}

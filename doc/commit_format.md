@@ -1,9 +1,8 @@
-[update:node] 修复node service source fd issue。
+[update:node] 更改windows node test issue。
 
 Description:
-node serice src fd没有使用task里面保持的值，导致service
-回复busd的src fd错误。
+修复windows平台编程问题。
 
 Major Changes:
-1. 修改source fd问题。
-2. 修改short task node_wait_flag置零。
+1. 去掉windows平台没有的功能。
+2. windows平台%p不能打印0x前缀。

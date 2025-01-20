@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/wait.h>
 #include <unistd.h>
 #include <libobject/core/try.h>
- 
+
+#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE))
 int process_execv(char *path, char *argv[]) 
 {
     int ret;
@@ -54,3 +54,4 @@ int process_kill(int pid)
  
     return ret;
 }
+#endif

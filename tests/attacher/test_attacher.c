@@ -1,3 +1,4 @@
+#if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE))
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <errno.h>
@@ -22,8 +23,7 @@ extern int test_lib_hello_world_with_pointer_pars3(int par1, char *par2);
 extern int stub_hello_world();
 extern void *my_malloc(int size);
 
-// #if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE))
-#if 1
+// #if 1
 
 /* 测试attacher， 先要运行 test-attach-target进程， 然后获取pid, 执行如下命令进行测试：
  * sudo ./sysroot/linux/bin/xtools mockery --log-level=6 test_attacher_call_address_without_pars 10334
