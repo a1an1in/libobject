@@ -1,8 +1,7 @@
-[update:node] 更改windows node test issue。
+[update:attacher] 优化attacher测试用例。
 
 Description:
-修复windows平台编程问题。
+之前的attacher用例是CMD类型， 更改为FUNC类型。
 
 Major Changes:
-1. 去掉windows平台没有的功能。
-2. windows平台%p不能打印0x前缀。
+1. 优化attacher测试。

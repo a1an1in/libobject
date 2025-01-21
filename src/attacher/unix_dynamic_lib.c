@@ -7,13 +7,13 @@
 #include <libobject/core/utils/string.h>
 #include <libobject/attacher/dynamic_lib.h>
 
-void * dl_get_func_addr_by_name(char *name)
+void * dl_get_func_addr_by_name(char *name, char *lib_name)
 {
     void *handle = NULL;
     void *addr = NULL;
 
     /* open the needed object */
-    handle = dlopen(NULL, RTLD_LOCAL | RTLD_LAZY);
+    handle = dlopen(lib_name, RTLD_LOCAL | RTLD_LAZY);
     if (handle == NULL) {
         return NULL;
     }
@@ -73,6 +73,7 @@ void *dl_get_dynamic_lib_base_address(pid_t pid, const char *module_name)
         THROW_IF(fp == NULL, -1);
 
         while (fgets(line, sizeof(line), fp)) {
+            // printf("line %s\n", line);
             if (strstr(line, module_name)) {
                 pch = strtok(line, "-");
                 addr = strtoul(pch, NULL, 16);
@@ -99,6 +100,7 @@ void* dl_get_remote_function_adress(pid_t target_pid, const char* module_name, v
         THROW_IF(local_handle == NULL, -1);
 	    remote_handle = dl_get_dynamic_lib_base_address(target_pid, module_name);
         THROW_IF(remote_handle == NULL, -1);
+        dbg_str(DBG_VIP, "local_addr:%p,  remote_handle:%p, local_handle:%p", local_addr, (uint64_t)remote_handle, (uint64_t)local_handle);
         return (void *)((uint64_t)local_addr + (uint64_t)remote_handle - (uint64_t)local_handle);
     } CATCH (ret) {}
 	

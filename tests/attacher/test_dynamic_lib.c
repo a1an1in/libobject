@@ -24,7 +24,7 @@ int test_get_func_addr(TEST_ENTRY *entry)
     int ret;
 
     TRY {
-        addr = dl_get_func_addr_by_name(func_name);
+        addr = dl_get_func_addr_by_name(func_name, NULL);
         THROW_IF(addr == NULL, -1);
         THROW_IF(addr != expect_addr, -1);
     } CATCH (ret) {

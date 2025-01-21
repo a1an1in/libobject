@@ -12,6 +12,8 @@
 #include <libobject/mockery/mockery.h>
 #include <libobject/core/try.h>
 #include <libobject/attacher/Attacher.h>
+#include <libobject/argument/Application.h>
+#include <libobject/scripts/fshell/FShell.h>
 
 extern int test_lib_hello_world();
 extern int test_lib_get_debug_info_address();
@@ -21,7 +23,7 @@ extern int test_lib2_hello_world();
 extern int test_lib_hello_world_with_pointer_pars2(int par1, char *par2);
 extern int test_lib_hello_world_with_pointer_pars3(int par1, char *par2);
 extern int stub_hello_world();
-extern void *my_malloc(int size);
+extern void *test_lib_malloc(int size);
 
 // #if 1
 
@@ -83,28 +85,6 @@ static int test_attacher_call_address_with_value_pars(Attacher *attacher, pid_t 
     return ret;
 }
 
-static int test_attacher_call_address_malloc(Attacher *attacher, pid_t pid)
-{
-    int ret;
-    void *func_addr, *addr;
-    long long pars[1] = {8};
-
-    TRY {
-        addr = attacher->malloc(attacher, 8, NULL);
-        THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_VIP, "malloc addr:%p", addr);
-
-        attacher->free(attacher, addr);
-        dbg_str(DBG_VIP, "free addr:%p", addr);
-        
-        // THROW_IF(ret != 0xadad, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
-                __func__, extract_filename_from_path(__FILE__), __LINE__);
-    } CATCH (ret) { } FINALLY { }
-
-    return ret;
-}
-
 static int test_attacher_call_address_with_pointer_pars(Attacher *attacher, pid_t pid)
 {
     int ret;
@@ -116,6 +96,89 @@ static int test_attacher_call_address_with_pointer_pars(Attacher *attacher, pid_
         THROW_IF(func_addr == NULL, -1);
         dbg_str(DBG_VIP, "func_addr:%p", func_addr);
         EXEC(ret = attacher->call_address(attacher, func_addr, pars, 2));
+        THROW_IF(ret != 0xadad, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) { } FINALLY { }
+
+    return ret;
+}
+
+static int test_attacher_call_from_lib(Attacher *attacher, pid_t pid)
+{
+    int ret;
+    void *func_addr;
+    attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
+
+    TRY {
+        EXEC(ret = attacher->call_from_lib(attacher, "test_lib_hello_world_with_pointer_pars2", pars, 2, "libobject-testlib.so"));
+        THROW_IF(ret != 0xadad, -1);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) { } FINALLY {}
+
+    return ret;
+}
+
+static int test_attacher_add_and_remove_lib(Attacher *attacher, pid_t pid)
+{
+    int ret;
+    char *name = "./sysroot/linux/lib/libobject-testlib2.so";
+
+    TRY {
+        EXEC(attacher->add_lib(attacher, name));
+        EXEC(attacher->remove_lib(attacher, name));
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) { } FINALLY {}
+
+    return ret;
+}
+
+static int test_attacher_call_from_adding_lib(Attacher *attacher, pid_t pid)
+{
+    int ret;
+    char *name = "./sysroot/linux/lib/libobject-testlib2.so";
+
+    TRY {
+        EXEC(attacher->add_lib(attacher, name));
+        EXEC(attacher->call_from_lib(attacher, "test_lib2_hello_world", NULL, 0, "libobject-testlib2.so"));
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) { } FINALLY {
+        attacher->remove_lib(attacher, name);
+    }
+
+    return ret;
+}
+
+static int test_attacher_call_directly(Attacher *attacher, pid_t pid)
+{
+    int ret;
+    attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
+
+    TRY {
+        dbg_str(DBG_SUC, "test_attacher_call_directly start"); 
+        EXEC(ret = attacher->call(attacher, test_lib_hello_world_with_pointer_pars3, pars, 2));
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) { } FINALLY {}
+
+    return ret;
+}
+
+static int test_attacher_malloc_and_mfree(Attacher *attacher, pid_t pid)
+{
+    int ret;
+    void *func_addr, *addr;
+    long long pars[1] = {8};
+
+    TRY {
+        addr = attacher->malloc(attacher, 8, NULL);
+        THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "malloc addr:%p", addr);
+
+        EXEC(attacher->free(attacher, addr));
         // THROW_IF(ret != 0xadad, -1);
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
@@ -124,286 +187,71 @@ static int test_attacher_call_address_with_pointer_pars(Attacher *attacher, pid_
     return ret;
 }
 
-static int test_attacher_call_from_lib(TEST_ENTRY *entry, int argc, void **argv)
+static int test_attacher_read_and_write_data(Attacher *attacher, pid_t pid)
 {
     int ret;
-    allocator_t *allocator = allocator_get_default_instance();
-    Attacher *attacher;
-    void *func_addr;
-    pid_t pid;
-    attacher_paramater_t pars[2] = {{"test1", 6}, {"test2", 6}};
-
-    TRY {
-        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
-        dbg_str(DBG_VIP, "argc:%d", argc);
-        for (int i = 0; i < argc; i++) {
-            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
-        }
-        THROW_IF(argc != 2, -1);
-        pid = atoi(argv[1]);
-
-        attacher = object_new(allocator, "UnixAttacher", NULL);
-        EXEC(attacher->attach(attacher, pid));
-
-        EXEC(ret = attacher->call_from_lib(attacher, "test_lib_hello_world_with_pointer_pars", pars, 2, "libobject-testlib.so"));
-        // THROW_IF(ret != 0xadad, -1);
-    } CATCH (ret) { } FINALLY {
-        object_destroy(attacher);
-    }
-
-    return ret;
-}
-REGISTER_TEST_CMD(test_attacher_call_from_lib);
-
-static int test_attacher_call_from_lib2(TEST_ENTRY *entry, int argc, void **argv)
-{
-    int ret;
-    allocator_t *allocator = allocator_get_default_instance();
-    Attacher *attacher;
-    void *func_addr;
-    pid_t pid;
-    attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
-
-    TRY {
-        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
-        dbg_str(DBG_VIP, "argc:%d", argc);
-        for (int i = 0; i < argc; i++) {
-            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
-        }
-        THROW_IF(argc != 2, -1);
-        pid = atoi(argv[1]);
-
-        attacher = object_new(allocator, "UnixAttacher", NULL);
-        EXEC(attacher->attach(attacher, pid));
-
-        EXEC(ret = attacher->call_from_lib(attacher, "test_lib_hello_world_with_pointer_pars2", pars, 2, "libobject-testlib.so"));
-        // THROW_IF(ret != 0xadad, -1);
-    } CATCH (ret) { } FINALLY {
-        object_destroy(attacher);
-    }
-
-    return ret;
-}
-REGISTER_TEST_CMD(test_attacher_call_from_lib2);
-
-static int test_attacher_add_lib(TEST_ENTRY *entry, int argc, void **argv)
-{
-    int ret;
-    allocator_t *allocator = allocator_get_default_instance();
-    Attacher *attacher;
-    void *func_addr;
-    char *name = "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-testlib2.so";
-    pid_t pid;
-
-    TRY {
-        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
-        dbg_str(DBG_VIP, "argc:%d", argc);
-        for (int i = 0; i < argc; i++) {
-            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
-        }
-        THROW_IF(argc != 2, -1);
-        pid = atoi(argv[1]);
-
-        attacher = object_new(allocator, "UnixAttacher", NULL);
-        EXEC(attacher->attach(attacher, pid));
-
-        dbg_str(DBG_VIP, "name len:%d", strlen(name));
-        EXEC(ret = attacher->add_lib(attacher, name));
-        sleep(1000);
-        // THROW_IF(ret != 0xadad, -1);
-    } CATCH (ret) { } FINALLY {
-        object_destroy(attacher);
-    }
-
-    return ret;
-}
-REGISTER_TEST_CMD(test_attacher_add_lib);
-
-
-static int test_attacher_remove_lib(TEST_ENTRY *entry, int argc, void **argv)
-{
-    int ret;
-    allocator_t *allocator = allocator_get_default_instance();
-    Attacher *attacher;
-    void *func_addr;
-    char *name = "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-testlib2.so";
-    pid_t pid;
-
-    TRY {
-        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
-        dbg_str(DBG_VIP, "argc:%d", argc);
-        for (int i = 0; i < argc; i++) {
-            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
-        }
-        THROW_IF(argc != 2, -1);
-        pid = atoi(argv[1]);
-
-        attacher = object_new(allocator, "UnixAttacher", NULL);
-        EXEC(attacher->attach(attacher, pid));
-
-        dbg_str(DBG_VIP, "name len:%d", strlen(name));
-        EXEC(attacher->add_lib(attacher, name));
-        sleep(5);
-        EXEC(attacher->remove_lib(attacher, name));
-        // THROW_IF(ret != 0xadad, -1);
-    } CATCH (ret) { } FINALLY {
-        object_destroy(attacher);
-    }
-
-    return ret;
-}
-REGISTER_TEST_CMD(test_attacher_remove_lib);
-
-static int test_attacher_call_from_adding_lib(TEST_ENTRY *entry, int argc, void **argv)
-{
-    int ret;
-    allocator_t *allocator = allocator_get_default_instance();
-    Attacher *attacher;
-    void *func_addr;
-    char *name = "/home/alan/workspace/libobject/sysroot/linux/lib/libobject-testlib2.so";
-    pid_t pid;
-
-    TRY {
-        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
-        dbg_str(DBG_VIP, "argc:%d", argc);
-        for (int i = 0; i < argc; i++) {
-            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
-        }
-        THROW_IF(argc != 2, -1);
-        pid = atoi(argv[1]);
-
-        attacher = object_new(allocator, "UnixAttacher", NULL);
-        EXEC(attacher->attach(attacher, pid));
-        EXEC(attacher->add_lib(attacher, name));
-        EXEC(attacher->call_from_lib(attacher, "test_lib2_hello_world", NULL, 0, "libobject-testlib2.so"));
-    } CATCH (ret) { } FINALLY {
-        attacher->remove_lib(attacher, name);
-        object_destroy(attacher);
-    }
-
-    return ret;
-}
-REGISTER_TEST_CMD(test_attacher_call_from_adding_lib);
-
-static int test_attacher_read_data(TEST_ENTRY *entry, int argc, void **argv)
-{
-    int ret;
-    allocator_t *allocator = allocator_get_default_instance();
-    Attacher *attacher;
     void *addr;
-    pid_t pid;
     char buffer[1024] = {0};
 
     TRY {
-        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
-        dbg_str(DBG_VIP, "argc:%d", argc);
-        for (int i = 0; i < argc; i++) {
-            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
-        }
-        THROW_IF(argc != 2, -1);
-        pid = atoi(argv[1]);
-
-        attacher = object_new(allocator, "UnixAttacher", NULL);
-        EXEC(attacher->attach(attacher, pid));
         addr = attacher->call_from_lib(attacher, "test_lib_get_debug_info_address", NULL, 0, "libobject-testlib.so");
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_VIP, "addr:%p", addr);
-        addr = attacher->read(attacher, addr, buffer, 20);
-        dbg_str(DBG_VIP, "read back data:%s", buffer);
-    } CATCH (ret) { } FINALLY {
-        object_destroy(attacher);
-    }
+        EXEC(attacher->read(attacher, addr, buffer, 20));
+        THROW_IF(strcmp("hello world", buffer) != 0, -1);
+
+        strcpy(buffer, "hello world2");
+        EXEC(attacher->write(attacher, addr, buffer, 20));
+        memset(buffer, 0, sizeof(buffer));
+        EXEC(attacher->read(attacher, addr, buffer, 20));
+        THROW_IF(strcmp("hello world2", buffer) != 0, -1);
+        
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) { } FINALLY { }
 
     return ret;
 }
-REGISTER_TEST_CMD(test_attacher_read_data);
 
-static int test_attacher_call_stub(TEST_ENTRY *entry, int argc, void **argv)
+static int test_attacher_call_stub(Attacher *attacher, pid_t pid)
 {
     int ret;
-    allocator_t *allocator = allocator_get_default_instance();
-    Attacher *attacher;
-    void *func_addr;
     stub_t *stub;
-    pid_t pid;
     attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
 
     TRY {
-        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
-        dbg_str(DBG_VIP, "argc:%d", argc);
-        for (int i = 0; i < argc; i++) {
-            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
-        }
-        THROW_IF(argc != 2, -1);
-        pid = atoi(argv[1]);
-
-        attacher = object_new(allocator, "UnixAttacher", NULL);
-        EXEC(attacher->attach(attacher, pid));
-        EXEC(attacher->init(attacher));
-
         THROW_IF(((stub = attacher->alloc_stub(attacher)) == NULL), -1);
         EXEC(attacher->add_stub_hooks(attacher, stub, test_lib_hello_world_with_pointer_pars2, NULL, 
                                       test_lib_hello_world_with_pointer_pars3, NULL, 2));
         EXEC(attacher->run(attacher));
-        dbg_str(DBG_VIP, "sleep ...");
-        sleep(10);
+        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
         attacher->stop(attacher);
         attacher->remove_stub_hooks(attacher, stub);
         attacher->free_stub(attacher, stub);
-        object_destroy(attacher);
     }
 
     return ret;
 }
-REGISTER_TEST_CMD(test_attacher_call_stub);
-
-
-static int test_attacher_call_directly(TEST_ENTRY *entry, int argc, void **argv)
-{
-    int ret;
-    allocator_t *allocator = allocator_get_default_instance();
-    Attacher *attacher;
-    void *func_addr;
-    stub_t *stub;
-    pid_t pid;
-    attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
-
-    TRY {
-        dbg_str(DBG_VIP, "test_attacher_call_from_lib");
-        dbg_str(DBG_VIP, "argc:%d", argc);
-        for (int i = 0; i < argc; i++) {
-            dbg_str(DBG_VIP, "argv[%d]:%s", i, argv[i]);
-        }
-        THROW_IF(argc != 2, -1);
-        pid = atoi(argv[1]);
-
-        attacher = object_new(allocator, "UnixAttacher", NULL);
-        EXEC(attacher->attach(attacher, pid));
-        EXEC(attacher->init(attacher));
-
-        EXEC(ret = attacher->call(attacher, test_lib_hello_world_with_pointer_pars3, pars, 2));
-
-    } CATCH (ret) { } FINALLY {
-        object_destroy(attacher);
-    }
-
-    return ret;
-}
-REGISTER_TEST_CMD(test_attacher_call_directly);
 
 static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
 {
+    Application *app = get_global_application();
     allocator_t *allocator = allocator_get_default_instance();
+    FShell *shell;
     pid_t pid = -1;
 #   if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE))
     char *path = "./sysroot/linux/bin/test-process";
+    char *lib_name = "./sysroot/linux/lib/libobject-testlib2.so";
 #   elif (defined(WINDOWS_USER_MODE))
     char *path = "./sysroot/windows/bin/test-process";
+    char *lib_name = "./sysroot/windows/lib/libobject-testlib2.dll";
 #   elif (defined(MAC_USER_MODE) || defined(IOS_USER_MODE))
     char *path = "./sysroot/mac/bin/test-process";
+    char *lib_name = "./sysroot/mac/lib/libobject-testlib2.dylib";
 #   else
     char *path = "./sysroot/linux/bin/test-process";
+    char *lib_name = "./sysroot/linux/lib/libobject-testlib2.so";
 #   endif
     char *arg_vector[2] = {"test-process", NULL};
     Attacher *attacher;
@@ -413,19 +261,27 @@ static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
         dbg_str(DBG_VIP, "test_attacher");
         EXEC((pid = process_execv(path, arg_vector)));
         dbg_str(DBG_VIP, "test_attacher pid:%d", pid);
+        shell = app->fshell;
+        EXEC(shell->load(shell, lib_name, RTLD_LOCAL | RTLD_LAZY));
 
-        sleep(1);
+        usleep(10000);
         attacher = object_new(allocator, "UnixAttacher", NULL);
         EXEC(attacher->attach(attacher, pid));
+        EXEC(attacher->init(attacher));
 
-        EXEC(test_attacher_get_function_address(attacher, pid));
-        EXEC(test_attacher_call_address_without_pars(attacher, pid));
-        EXEC(test_attacher_call_address_with_value_pars(attacher, pid));
-        EXEC(test_attacher_call_address_malloc(attacher, pid));
+        // EXEC(test_attacher_get_function_address(attacher, pid));
+        // EXEC(test_attacher_call_address_without_pars(attacher, pid));
+        // EXEC(test_attacher_call_address_with_value_pars(attacher, pid));
         // EXEC(test_attacher_call_address_with_pointer_pars(attacher, pid));
-        
-        
+        // EXEC(test_attacher_call_from_lib(attacher, pid));
+        // EXEC(test_attacher_add_and_remove_lib(attacher, pid));
+        // EXEC(test_attacher_call_from_adding_lib(attacher, pid));
+        // EXEC(test_attacher_call_directly(attacher, pid));
+        // EXEC(test_attacher_malloc_and_mfree(attacher, pid));
+        // EXEC(test_attacher_read_and_write_data(attacher, pid));
+        EXEC(test_attacher_call_stub(attacher, pid));
     } CATCH (ret) { } FINALLY {
+        shell->unload(shell, lib_name);
         object_destroy(attacher);
         process_kill(pid);
     }

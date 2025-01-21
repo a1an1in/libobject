@@ -64,7 +64,7 @@ static int __load(UnixFShell *shell, char *lib_name, int flag)
 
 static int __unload(UnixFShell *shell, char *lib_name, int flag)
 {
-    fsh_lib_info_t *info;
+    fsh_lib_info_t *info = NULL;
     Map *map = shell->parent.lib_map;
     int ret;
 
@@ -72,6 +72,7 @@ static int __unload(UnixFShell *shell, char *lib_name, int flag)
         EXEC(map->remove(map, lib_name, (void **)&info));
         THROW_IF(info == NULL, -1);
         EXEC(dlclose(info->handle));
+        allocator_mem_free(shell->parent.parent.allocator, info);
     } CATCH (ret) { }
 
     return ret;

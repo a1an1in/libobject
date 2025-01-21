@@ -8,8 +8,8 @@
 
 #include <libobject/attacher/Attacher.h>
 
-extern void *my_malloc(int size);
-extern int my_free(void *addr);
+extern void *test_lib_malloc(int size);
+extern int test_lib_free(void *addr);
 
 static int tree_node_free_callback(allocator_t *allocator, void *value)
 {
@@ -75,9 +75,10 @@ static void *__malloc(Attacher *attacher, int size, void *value)
     TRY {
         THROW_IF(size == 0, 0);
         // addr = attacher->get_function_address(attacher, malloc, "libc.so");
-        addr = attacher->get_function_address(attacher, my_malloc, "libobject-testlib.so");
+        dbg_str(DBG_VIP, "local test_lib_malloc addr:%p", test_lib_malloc);
+        addr = attacher->get_function_address(attacher, test_lib_malloc, "libobject-testlib.so");
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_VIP, "my_malloc addr:%p", addr);
+        dbg_str(DBG_VIP, "test_lib_malloc addr:%p", addr);
         addr = attacher->call_address_with_value_pars(attacher, addr, pars, 1);
         THROW_IF(addr == NULL, -1);
         dbg_str(DBG_VIP, "attacher malloc addr:%p, size:%d", addr, size);
@@ -98,8 +99,8 @@ static int __free(Attacher *attacher, void *addr)
 
     TRY {
         THROW_IF(addr == 0, -1);
-        // free_addr = attacher->get_function_address(attacher, my_free, "libc.so");
-        free_addr = attacher->get_function_address(attacher, my_free, "libobject-testlib.so");
+        // free_addr = attacher->get_function_address(attacher, test_lib_free, "libc.so");
+        free_addr = attacher->get_function_address(attacher, test_lib_free, "libobject-testlib.so");
         THROW_IF(free_addr == NULL, -1);
         dbg_str(DBG_VIP, "free func addr:%p, free addr:%p", free_addr, addr);
         ret = attacher->call_address_with_value_pars(attacher, free_addr, pars, 1);
@@ -171,7 +172,7 @@ static long __call_from_lib(Attacher *attacher, char *name, attacher_paramater_t
 
     TRY {
         /* get local fuction address */
-        addr = dl_get_func_addr_by_name(name);
+        addr = dl_get_func_addr_by_name(name, module_name);
         THROW_IF(addr == NULL, -1);
         /* get remote fuction address */
         addr = attacher->get_function_address(attacher, addr, module_name);

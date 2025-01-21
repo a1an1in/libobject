@@ -57,19 +57,19 @@ int test_lib_hello_world_with_pointer_pars3(int par1, char *par2)
     return 0xadad;
 }
 
-void *my_malloc(int size)
+void *test_lib_malloc(int size)
 {
     void *addr;
     addr = malloc(size);
     // sprintf(debug_info, "test my_dlopen\n");
-    printf("my_malloc addr:%p\n", addr);
+    printf("test_lib_malloc addr:%p\n", addr);
 
     return addr;
 }
 
-int my_free(void *addr)
+int test_lib_free(void *addr)
 {
-    printf("my_free addr:%p\n", addr);
+    printf("test_lib_free addr:%p\n", addr);
     free(addr);
 
     return 0;
@@ -124,8 +124,8 @@ void *test_thread_callback(void *para)
     printf("dlopen function addr: %p\n", dlopen);
 #endif
     printf("test_lib_hello_world addr: %p\n", test_lib_hello_world);
-    printf("my_free function addr: %p\n", my_free);
-    printf("my_malloc function addr: %p\n", my_malloc);
+    printf("test_lib_free function addr: %p\n", test_lib_free);
+    printf("test_lib_malloc function addr: %p\n", test_lib_malloc);
     printf("my_dlopen function addr: %p\n", my_dlopen);
 
     printf("sprintf function addr: %p\n", sprintf);
