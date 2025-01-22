@@ -29,7 +29,7 @@ enum debug_level_enum {
     DBG_FATAL,	
     DBG_ERROR,	
     DBG_WARN,
-    DBG_SUC,
+    DBG_WIP,
     DBG_VIP,
     DBG_INFO,
     DBG_DETAIL,
@@ -186,7 +186,7 @@ extract_filename_from_path(const char *macro)
                 case DBG_WARN:\
                     __android_log_print(ANDROID_LOG_WARN, "libobject", fmt, ##args);\
                     break;\
-                case DBG_SUC:\
+                case DBG_WIP:\
                     __android_log_print(ANDROID_LOG_INFO, "libobject", fmt, ##args);\
                     break;\
                 case DBG_VIP:\

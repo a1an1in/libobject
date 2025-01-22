@@ -37,7 +37,7 @@ static int test_attacher_get_function_address(Attacher *attacher, pid_t pid)
         addr = attacher->get_function_address(attacher, test_lib_hello_world, module_name);
         dbg_str(DBG_VIP, "test_lib_hello_world:%p, addr:%p", test_lib_hello_world, addr);
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {}
 
@@ -54,7 +54,7 @@ static int test_attacher_call_address_without_pars(Attacher *attacher, pid_t pid
         THROW_IF(func_addr == NULL, -1);
         EXEC(ret = attacher->call_address_with_value_pars(attacher, func_addr, 0, 0));
         THROW_IF(ret != 0xadad, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY { }
 
@@ -73,7 +73,7 @@ static int test_attacher_call_address_with_value_pars(Attacher *attacher, pid_t 
         THROW_IF(func_addr == NULL, -1);
         EXEC(ret = attacher->call_address_with_value_pars(attacher, func_addr, pars, 8));
         THROW_IF(ret != 0xadad, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY { }
 
@@ -92,7 +92,7 @@ static int test_attacher_call_address_with_pointer_pars(Attacher *attacher, pid_
         dbg_str(DBG_VIP, "func_addr:%p", func_addr);
         EXEC(ret = attacher->call_address(attacher, func_addr, pars, 2));
         THROW_IF(ret != 0xadad, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY { }
 
@@ -108,7 +108,7 @@ static int test_attacher_call_from_lib(Attacher *attacher, pid_t pid)
     TRY {
         EXEC(ret = attacher->call_from_lib(attacher, "test_lib_hello_world_with_pointer_pars2", pars, 2, "libobject-testlib.so"));
         THROW_IF(ret != 0xadae, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {}
 
@@ -123,7 +123,7 @@ static int test_attacher_add_and_remove_lib(Attacher *attacher, pid_t pid)
     TRY {
         EXEC(attacher->add_lib(attacher, name));
         EXEC(attacher->remove_lib(attacher, name));
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {}
 
@@ -138,7 +138,7 @@ static int test_attacher_call_from_adding_lib(Attacher *attacher, pid_t pid)
     TRY {
         EXEC(attacher->add_lib(attacher, name));
         EXEC(attacher->call_from_lib(attacher, "test_lib2_hello_world", NULL, 0, "libobject-testlib2.so"));
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
         attacher->remove_lib(attacher, name);
@@ -153,10 +153,10 @@ static int test_attacher_call_directly(Attacher *attacher, pid_t pid)
     attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
 
     TRY {
-        dbg_str(DBG_SUC, "test_attacher_call_directly start"); 
+        dbg_str(DBG_WIP, "test_attacher_call_directly start"); 
         EXEC(ret = attacher->call(attacher, test_lib_hello_world_with_pointer_pars3, pars, 2));
         THROW_IF(ret != 0xadaf, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {}
 
@@ -176,7 +176,7 @@ static int test_attacher_malloc_and_mfree(Attacher *attacher, pid_t pid)
 
         EXEC(attacher->free(attacher, addr));
         // THROW_IF(ret != 0xadad, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY { }
 
@@ -201,7 +201,7 @@ static int test_attacher_read_and_write_data(Attacher *attacher, pid_t pid)
         EXEC(attacher->read(attacher, addr, buffer, 20));
         THROW_IF(strcmp("hello world2", buffer) != 0, -1);
         
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY { }
 
@@ -219,9 +219,9 @@ static int test_attacher_call_stub(Attacher *attacher, pid_t pid)
         EXEC(attacher->add_stub_hooks(attacher, stub, test_lib_hello_world_with_pointer_pars2, NULL, 
                                       test_lib_hello_world_with_pointer_pars3, NULL, 2));
         EXEC(ret = attacher->call(attacher, test_lib_hello_world_with_pointer_pars2, pars, 2));
-        dbg_str(DBG_SUC, "test_lib_hello_world_with_pointer_pars2, ret:%x", ret);
+        dbg_str(DBG_WIP, "test_lib_hello_world_with_pointer_pars2, ret:%x", ret);
         THROW_IF(ret != 0xadaf, -1);
-        dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
         attacher->remove_stub_hooks(attacher, stub);

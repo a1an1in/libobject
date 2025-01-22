@@ -103,7 +103,7 @@ int execute_designated_func(Mockery_Command *command, char *func_name, int arg1,
             dbg_str(DBG_ERROR, "command failed, func_name = %s,  file = %s, line = %d", 
                     element->func_name, element->file, element->line);
         } else {
-            dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
+            dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                     element->func_name, element->file, element->line);
         }
         free(element);
