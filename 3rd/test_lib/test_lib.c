@@ -27,7 +27,6 @@ int test_lib_hello_world()
     char tmp[4] = {0};
     printf("hello world, sprintf:%p\n", sprintf);
     sprintf(tmp, "%d", 1);
-    printf("run at here\n");
     return 0xadad;
 }
 
@@ -47,29 +46,26 @@ int test_lib_hello_world_with_pointer_pars2(int par1, char *par2)
 {
     printf("test_lib_hello_world_with_pointer_pars2, par1:%x, par2:%s\n", par1, par2);
     
-    return 0xadad;
+    return 0xadae;
 }
 
 int test_lib_hello_world_with_pointer_pars3(int par1, char *par2)
 {
     printf("test_lib_hello_world_with_pointer_pars3, par1:%x, par2:%s\n", par1, par2);
     
-    return 0xadad;
+    return 0xadaf;
 }
 
 void *test_lib_malloc(int size)
 {
     void *addr;
     addr = malloc(size);
-    // sprintf(debug_info, "test my_dlopen\n");
-    printf("test_lib_malloc addr:%p\n", addr);
 
     return addr;
 }
 
 int test_lib_free(void *addr)
 {
-    printf("test_lib_free addr:%p\n", addr);
     free(addr);
 
     return 0;
@@ -81,13 +77,13 @@ void *my_dlopen(char *name, int flag)
     void *handle = NULL;
     int i;
 
-    printf("my_dlopen name:%s, strlen:%I64d, flag:%x\n", name, strlen(name), flag);
+    
 #if (!defined(WINDOWS_USER_MODE))
     handle = dlopen(name, flag);
     if (handle == NULL) {
         printf("dlopen error %s\n", dlerror());
     } else {
-        printf("my_dlopen handle:%p\n", handle);
+        printf("my_dlopen %s, handle:%p\n", name, handle);
     }
 #endif
 

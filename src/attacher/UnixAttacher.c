@@ -178,7 +178,7 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
         EXEC(ptrace(PTRACE_GETREGS, ((Attacher *)attacher)->pid, NULL, &regs));
         EXEC(ptrace(PTRACE_SETREGS, ((Attacher *)attacher)->pid, NULL, &bak));
 
-        dbg_str(DBG_DETAIL, "call_address_with_value_pars, return value:%llx", regs.rax);
+        dbg_str(DBG_VIP, "call_address_with_value_pars function_address:%p, return value:%llx", function_address, regs.rax);
         return regs.rax;
     } CATCH (ret) {}
 

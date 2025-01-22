@@ -73,7 +73,6 @@ void *dl_get_dynamic_lib_base_address(pid_t pid, const char *module_name)
         THROW_IF(fp == NULL, -1);
 
         while (fgets(line, sizeof(line), fp)) {
-            // printf("line %s\n", line);
             if (strstr(line, module_name)) {
                 pch = strtok(line, "-");
                 addr = strtoul(pch, NULL, 16);
@@ -128,7 +127,7 @@ int dl_get_dynamic_lib_path(pid_t pid, const char *module_name, char *path, int 
 
         while (fgets(line, sizeof(line), fp)) {
             if (strstr(line, module_name)) {
-                printf("line:%s", line);
+                // printf("line:%s", line);
                 p1 = strchr(line, '/');
                 p2 = strstr(p1, ".so");
                 p2[3] = '\0';
@@ -154,7 +153,6 @@ int dl_get_dynamic_name(pid_t pid, void *func_addr, char *module_name, int len)
     int i = 0, ret;
 
     TRY {
-        printf("addr raw:%lx\n", (long unsigned int)func_addr);
         if (pid < 0) {
             /* self process */
             snprintf(filename, sizeof(filename), "/proc/self/maps", pid);
@@ -176,7 +174,6 @@ int dl_get_dynamic_name(pid_t pid, void *func_addr, char *module_name, int len)
 
             if (func_addr < (void *)addr[0]  || func_addr > (void *)addr[1]) continue;
 
-            printf("find line:%s", temp);
             p1 = strrchr(temp, '/');
             p2 = strstr(p1, ".so");
             p2[3] = '\0';
@@ -234,8 +231,9 @@ int dl_parse_dynamic_table(pid_t pid, Interval_Tree *tree)
             
             node = allocator_mem_zalloc(allocator, sizeof(interval_tree_node_t));
             node->value = module_name;
+            node->start = addr[0];
             node->end = addr[1];
-            tree->add(tree, addr[0], node);
+            tree->add(tree, node->start, node);
         }   
     } CATCH (ret) {} FINALLY {
         fclose(fp);
@@ -253,6 +251,7 @@ int dl_get_dynamic_lib_name_from_interval_tree(Interval_Tree *tree, void *func_a
         EXEC(tree->search(tree, func_addr, (void **)&t));
         THROW_IF(len < strlen(t->value) || t == NULL, -1);
         memcpy(module_name, t->value, strlen(t->value));
+        dbg_str(DBG_INFO, "get_dynamic_lib_name, start:%p, end:%p, module_name:%s", t->start, t->end, module_name);
     } CATCH (ret) {} FINALLY {}
 
     return ret;

@@ -1,3 +1,4 @@
+// #if 1
 #if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE))
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -24,12 +25,6 @@ extern int test_lib_hello_world_with_pointer_pars2(int par1, char *par2);
 extern int test_lib_hello_world_with_pointer_pars3(int par1, char *par2);
 extern int stub_hello_world();
 extern void *test_lib_malloc(int size);
-
-// #if 1
-
-/* 测试attacher， 先要运行 test-attach-target进程， 然后获取pid, 执行如下命令进行测试：
- * sudo ./sysroot/linux/bin/xtools mockery --log-level=6 test_attacher_call_address_without_pars 10334
- */
 
 static int test_attacher_get_function_address(Attacher *attacher, pid_t pid)
 {
@@ -112,7 +107,7 @@ static int test_attacher_call_from_lib(Attacher *attacher, pid_t pid)
 
     TRY {
         EXEC(ret = attacher->call_from_lib(attacher, "test_lib_hello_world_with_pointer_pars2", pars, 2, "libobject-testlib.so"));
-        THROW_IF(ret != 0xadad, -1);
+        THROW_IF(ret != 0xadae, -1);
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {}
@@ -160,6 +155,7 @@ static int test_attacher_call_directly(Attacher *attacher, pid_t pid)
     TRY {
         dbg_str(DBG_SUC, "test_attacher_call_directly start"); 
         EXEC(ret = attacher->call(attacher, test_lib_hello_world_with_pointer_pars3, pars, 2));
+        THROW_IF(ret != 0xadaf, -1);
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {}
@@ -222,11 +218,12 @@ static int test_attacher_call_stub(Attacher *attacher, pid_t pid)
         THROW_IF(((stub = attacher->alloc_stub(attacher)) == NULL), -1);
         EXEC(attacher->add_stub_hooks(attacher, stub, test_lib_hello_world_with_pointer_pars2, NULL, 
                                       test_lib_hello_world_with_pointer_pars3, NULL, 2));
-        EXEC(attacher->run(attacher));
+        EXEC(ret = attacher->call(attacher, test_lib_hello_world_with_pointer_pars2, pars, 2));
+        dbg_str(DBG_SUC, "test_lib_hello_world_with_pointer_pars2, ret:%x", ret);
+        THROW_IF(ret != 0xadaf, -1);
         dbg_str(DBG_SUC, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
-        attacher->stop(attacher);
         attacher->remove_stub_hooks(attacher, stub);
         attacher->free_stub(attacher, stub);
     }
@@ -269,16 +266,16 @@ static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
         EXEC(attacher->attach(attacher, pid));
         EXEC(attacher->init(attacher));
 
-        // EXEC(test_attacher_get_function_address(attacher, pid));
-        // EXEC(test_attacher_call_address_without_pars(attacher, pid));
-        // EXEC(test_attacher_call_address_with_value_pars(attacher, pid));
-        // EXEC(test_attacher_call_address_with_pointer_pars(attacher, pid));
-        // EXEC(test_attacher_call_from_lib(attacher, pid));
-        // EXEC(test_attacher_add_and_remove_lib(attacher, pid));
-        // EXEC(test_attacher_call_from_adding_lib(attacher, pid));
-        // EXEC(test_attacher_call_directly(attacher, pid));
-        // EXEC(test_attacher_malloc_and_mfree(attacher, pid));
-        // EXEC(test_attacher_read_and_write_data(attacher, pid));
+        EXEC(test_attacher_get_function_address(attacher, pid));
+        EXEC(test_attacher_call_address_without_pars(attacher, pid));
+        EXEC(test_attacher_call_address_with_value_pars(attacher, pid));
+        EXEC(test_attacher_call_address_with_pointer_pars(attacher, pid));
+        EXEC(test_attacher_call_from_lib(attacher, pid));
+        EXEC(test_attacher_add_and_remove_lib(attacher, pid));
+        EXEC(test_attacher_call_from_adding_lib(attacher, pid));
+        EXEC(test_attacher_call_directly(attacher, pid));
+        EXEC(test_attacher_malloc_and_mfree(attacher, pid));
+        EXEC(test_attacher_read_and_write_data(attacher, pid));
         EXEC(test_attacher_call_stub(attacher, pid));
     } CATCH (ret) { } FINALLY {
         shell->unload(shell, lib_name);

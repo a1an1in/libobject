@@ -179,7 +179,7 @@ static long __call_from_lib(Attacher *attacher, char *name, attacher_paramater_t
         THROW_IF(addr == NULL, -1);
         
         ret = attacher->call_address(attacher, addr, pars, num);
-        printf("call from lib, func name:%s, func_addr:%p, ret:%lx\n", name, addr, ret);
+        dbg_str(DBG_INFO, "call from lib, func name:%s, func_addr:%p, ret:%lx", name, addr, ret);
         return ret;
     } CATCH (ret) {}
 
@@ -208,7 +208,7 @@ static long __call(Attacher *attacher, void *addr, attacher_paramater_t pars[], 
         
         /* 4.call */
         ret = attacher->call_address(attacher, addr, pars, num);
-        printf("call from lib, func name:%s, func_addr:%p, ret:%lx\n", func_name, addr, ret);
+        printf("call func name:%s, func_addr:%p, ret:%lx\n", func_name, addr, ret);
         return ret;
     } CATCH (ret) {}
 
@@ -255,7 +255,6 @@ __add_stub_hooks(Attacher *attacher, stub_t *stub, void *func, void *pre, void *
         if (func != NULL) {
             EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, func, module_name, 64));
             func = attacher->get_function_address(attacher, func, module_name);
-            printf("stub func addr:%p\n", func);
             pars[1].value = func;
         }
         if (pre != NULL) {
@@ -276,6 +275,8 @@ __add_stub_hooks(Attacher *attacher, stub_t *stub, void *func, void *pre, void *
             post = attacher->get_function_address(attacher, post, module_name);
             pars[4].value = post;
         }
+        dbg_str(DBG_INFO, "attacher add_stub_hooks, func:%p, pre:%p, target:%p, post:%p", 
+                pars[1].value, pars[2].value, pars[3].value, pars[4].value);
         
         EXEC(attacher->call_from_lib(attacher, "stub_add_hooks", pars, 6, "libobject-stub.so"));
     } CATCH (ret) {} FINALLY {}

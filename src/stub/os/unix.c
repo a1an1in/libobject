@@ -83,6 +83,7 @@ int stub_parse_context(void *exec_code_addr, void *rsp)
     stub_exec_area_t *area;
     stub_func_t func;
     void *p[20] = {0};
+    int ret;
 
     area = exec_code_addr - 42;
     int i = 0, j = 0;
@@ -114,13 +115,13 @@ int stub_parse_context(void *exec_code_addr, void *rsp)
 
     if (stub->new_fn != stub->fn) {
         func = (stub_func_t)stub->new_fn;
-        func(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], 
-             p[10], p[11], p[12], p[13], p[14], p[15], p[16], p[17], p[18], p[19]);
+        ret = func(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], 
+                   p[10], p[11], p[12], p[13], p[14], p[15], p[16], p[17], p[18], p[19]);
     } else {
         stub_remove(stub);
         func = (stub_func_t)stub->fn;
-        func(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], 
-             p[10], p[11], p[12], p[13], p[14], p[15], p[16], p[17], p[18], p[19]);
+        ret = func(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], 
+                   p[10], p[11], p[12], p[13], p[14], p[15], p[16], p[17], p[18], p[19]);
         stub_add(stub, stub->fn, stub->new_fn);
     }
     
@@ -130,7 +131,7 @@ int stub_parse_context(void *exec_code_addr, void *rsp)
              p[10], p[11], p[12], p[13], p[14], p[15], p[16], p[17], p[18], p[19]);
     }
 
-    return 1;
+    return ret;
 }
 
 int stub_config_exec_area(stub_t *stub)
@@ -141,7 +142,6 @@ int stub_config_exec_area(stub_t *stub)
     TRY {
         THROW_IF(stub->area == NULL, -1);
         EXEC(mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_WRITE | PROT_EXEC));
-        printf("xxxxxxxxx stub->area:%p\n", stub->area);
         stub->area->stub = stub;
         stub->area_flag = 1;
         mprotect(pageof(stub->area), pagesize, PROT_READ | PROT_EXEC);  
@@ -193,7 +193,7 @@ int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post
         stub->fn = func;
         stub->post = post;
         stub->para_count = para_count;
-        dbg_str(DBG_DETAIL,"stub:%p, pre:%p, func:%p, post:%p, stubed_func:%p", 
+        dbg_str(DBG_VIP,"stub:%p, pre:%p, func:%p, post:%p, stubed_func:%p", 
                 stub, stub->pre, stub->new_fn, stub->post, stub->fn);
         EXEC(stub_add(stub, func, stub->area->exec_code));
     } CATCH (ret) {}
