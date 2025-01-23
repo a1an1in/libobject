@@ -34,7 +34,7 @@ static int test_attacher_get_function_address(Attacher *attacher, pid_t pid)
     void *addr;
 
     TRY {
-        addr = attacher->get_function_address(attacher, test_lib_hello_world, module_name);
+        addr = attacher->get_remote_function_address(attacher, "test_lib_hello_world", module_name);
         dbg_str(DBG_VIP, "test_lib_hello_world:%p, addr:%p", test_lib_hello_world, addr);
         THROW_IF(addr == NULL, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
@@ -50,7 +50,7 @@ static int test_attacher_call_address_without_pars(Attacher *attacher, pid_t pid
     void *func_addr;
 
     TRY {
-        func_addr = attacher->get_function_address(attacher, test_lib_hello_world, "libobject-testlib.so");
+        func_addr = attacher->get_remote_function_address(attacher, "test_lib_hello_world", "libobject-testlib.so");
         THROW_IF(func_addr == NULL, -1);
         EXEC(ret = attacher->call_address_with_value_pars(attacher, func_addr, 0, 0));
         THROW_IF(ret != 0xadad, -1);
@@ -69,7 +69,7 @@ static int test_attacher_call_address_with_value_pars(Attacher *attacher, pid_t 
 
     TRY {
         test_lib_hello_world_without_pointer_pars(1, 1, 2, 2, 5, 6, 0xf1, 0xf2);
-        func_addr = attacher->get_function_address(attacher, test_lib_hello_world_without_pointer_pars, "libobject-testlib.so");
+        func_addr = attacher->get_remote_function_address(attacher, "test_lib_hello_world_without_pointer_pars", "libobject-testlib.so");
         THROW_IF(func_addr == NULL, -1);
         EXEC(ret = attacher->call_address_with_value_pars(attacher, func_addr, pars, 8));
         THROW_IF(ret != 0xadad, -1);
@@ -87,7 +87,7 @@ static int test_attacher_call_address_with_pointer_pars(Attacher *attacher, pid_
     attacher_paramater_t pars[2] = {{"test1", 8}, {"test2", 8}};
 
     TRY {
-        func_addr = attacher->get_function_address(attacher, test_lib_hello_world_with_pointer_pars, "libobject-testlib.so");
+        func_addr = attacher->get_remote_function_address(attacher, "test_lib_hello_world_with_pointer_pars", "libobject-testlib.so");
         THROW_IF(func_addr == NULL, -1);
         dbg_str(DBG_VIP, "func_addr:%p", func_addr);
         EXEC(ret = attacher->call_address(attacher, func_addr, pars, 2));
@@ -154,7 +154,7 @@ static int test_attacher_call_directly(Attacher *attacher, pid_t pid)
 
     TRY {
         dbg_str(DBG_WIP, "test_attacher_call_directly start"); 
-        EXEC(ret = attacher->call(attacher, test_lib_hello_world_with_pointer_pars3, pars, 2));
+        EXEC(ret = attacher->call(attacher, "test_lib_hello_world_with_pointer_pars3", pars, 2));
         THROW_IF(ret != 0xadaf, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
@@ -216,9 +216,9 @@ static int test_attacher_call_stub(Attacher *attacher, pid_t pid)
 
     TRY {
         THROW_IF(((stub = attacher->alloc_stub(attacher)) == NULL), -1);
-        EXEC(attacher->add_stub_hooks(attacher, stub, test_lib_hello_world_with_pointer_pars2, NULL, 
-                                      test_lib_hello_world_with_pointer_pars3, NULL, 2));
-        EXEC(ret = attacher->call(attacher, test_lib_hello_world_with_pointer_pars2, pars, 2));
+        EXEC(attacher->add_stub_hooks(attacher, stub, "test_lib_hello_world_with_pointer_pars2", NULL, 
+                                      "test_lib_hello_world_with_pointer_pars3", NULL, 2));
+        EXEC(ret = attacher->call(attacher, "test_lib_hello_world_with_pointer_pars2", pars, 2));
         dbg_str(DBG_WIP, "test_lib_hello_world_with_pointer_pars2, ret:%x", ret);
         THROW_IF(ret != 0xadaf, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 

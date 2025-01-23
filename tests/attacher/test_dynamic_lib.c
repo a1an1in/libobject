@@ -18,8 +18,8 @@ extern int test_lib_hello_world();
 
 int test_get_func_addr(TEST_ENTRY *entry)
 {
-    char *func_name = "test_print_outbound";
-    void *expect_addr = test_print_outbound;
+    char *func_name = "test_lib_hello_world";
+    void *expect_addr = test_lib_hello_world;
     void *addr;
     int ret;
 
@@ -27,6 +27,8 @@ int test_get_func_addr(TEST_ENTRY *entry)
         addr = dl_get_func_addr_by_name(func_name, NULL);
         THROW_IF(addr == NULL, -1);
         THROW_IF(addr != expect_addr, -1);
+        dbg_str(DBG_WIP, "test_get_func_addr, addr=%p, %s:%p",
+                addr, func_name, expect_addr);
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "test_get_func_addr, addr=%p, %s:%p",
                 addr, func_name, expect_addr);

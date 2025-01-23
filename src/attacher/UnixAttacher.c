@@ -47,15 +47,18 @@ static int __detach(UnixAttacher *attacher)
     return ret;
 }
 
-static void *__get_function_address(UnixAttacher *attacher, void *local_func_address, char *module_name)
+static void *__get_function_address(UnixAttacher *attacher, char *name, char *module_name)
 {
     void *addr;
     int ret;
 
     TRY {
-        addr = dl_get_remote_function_adress(((Attacher *)attacher)->pid, module_name, local_func_address);
+        /* get local fuction address */
+        addr = dl_get_func_addr_by_name(name, module_name);
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_VIP, "attacher get_function_address, function remote address:%p", addr);
+        addr = dl_get_remote_function_adress(((Attacher *)attacher)->pid, module_name, addr);
+        THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "attacher get_remote_function_address, function remote address:%p", addr);
     } CATCH (ret) { addr = NULL; }
 
     return addr;
@@ -243,7 +246,7 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry( 7, UnixAttacher, write, __write),
     Init_Vfunc_Entry( 8, UnixAttacher, malloc, NULL),
     Init_Vfunc_Entry( 9, UnixAttacher, free, NULL),
-    Init_Vfunc_Entry(10, UnixAttacher, get_function_address, __get_function_address),
+    Init_Vfunc_Entry(10, UnixAttacher, get_remote_function_address, __get_function_address),
     Init_Vfunc_Entry(11, UnixAttacher, call_address_with_value_pars, __call_address_with_value_pars),
     Init_Vfunc_Entry(12, UnixAttacher, call_address, NULL),
     Init_Vfunc_Entry(13, UnixAttacher, call_from_lib, NULL),
