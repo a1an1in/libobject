@@ -1,7 +1,7 @@
-[update:log] 更改DBG_SUC等级名为DBG_WIP。
+[update:testlib] 更改testlib函数命名。
 
 Description:
-日志等级DBG_WIP显示名和配置名不统一。
+优化testlib函数命名。
 
 Major Changes:
-1. 修复日志等级名。
+1. 更改testlib函数命名。

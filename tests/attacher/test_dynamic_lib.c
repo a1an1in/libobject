@@ -14,12 +14,12 @@
 #include <libobject/attacher/dynamic_lib.h>
 
 extern int test_print_outbound(int a, int b, int c, int d, int e, int f, int *g);
-extern int test_lib_hello_world();
+extern int testlib_hello_world();
 
 int test_get_func_addr(TEST_ENTRY *entry)
 {
-    char *func_name = "test_lib_hello_world";
-    void *expect_addr = test_lib_hello_world;
+    char *func_name = "testlib_hello_world";
+    void *expect_addr = testlib_hello_world;
     void *addr;
     int ret;
 
@@ -40,8 +40,8 @@ REGISTER_TEST_FUNC(test_get_func_addr);
 
 int test_dl_get_dynamic_lib_base_address(TEST_ENTRY *entry, int argc, void **argv)
 {
-    char *func_name = "test_lib_hello_world";
-    void *expect_addr = test_lib_hello_world;
+    char *func_name = "testlib_hello_world";
+    void *expect_addr = testlib_hello_world;
     void *addr;
     pid_t pid;
     int ret;
@@ -56,7 +56,7 @@ int test_dl_get_dynamic_lib_base_address(TEST_ENTRY *entry, int argc, void **arg
         pid = atoi(argv[1]);
         addr = dl_get_dynamic_lib_base_address(-1, "libobject-testlib.so");
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_INFO, "addr:%p, expect addr:%p", addr, test_lib_hello_world);
+        dbg_str(DBG_INFO, "addr:%p, expect addr:%p", addr, testlib_hello_world);
         sleep(1000);
         THROW_IF(addr != expect_addr, -1);
     } CATCH (ret) {
@@ -70,8 +70,8 @@ REGISTER_TEST_CMD(test_dl_get_dynamic_lib_base_address);
 
 int test_dl_get_remote_function_adress(TEST_ENTRY *entry, int argc, void **argv)
 {
-    char *func_name = "test_lib_hello_world";
-    void *expect_addr = test_lib_hello_world;
+    char *func_name = "testlib_hello_world";
+    void *expect_addr = testlib_hello_world;
     void *addr;
     pid_t pid;
     int ret;
@@ -84,9 +84,9 @@ int test_dl_get_remote_function_adress(TEST_ENTRY *entry, int argc, void **argv)
         THROW_IF(argc != 2, -1);
 
         pid = atoi(argv[1]);
-        addr = dl_get_remote_function_adress(pid, "libobject-testlib.so", test_lib_hello_world);
+        addr = dl_get_remote_function_adress(pid, "libobject-testlib.so", testlib_hello_world);
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_INFO, "test_dl_get_remote_function_adress local:%p, remote addr:%p", test_lib_hello_world, addr);
+        dbg_str(DBG_INFO, "test_dl_get_remote_function_adress local:%p, remote addr:%p", testlib_hello_world, addr);
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "test_get_func_addr, addr=%p, %s:%p",
                 addr, func_name, expect_addr);
@@ -120,7 +120,7 @@ static int test_dl_get_dynamic_name(TEST_ENTRY *entry, int argc, void **argv)
         tree->customize(tree, VALUE_TYPE_STRUCT_POINTER, tree_node_free_callback);
 
         EXEC(dl_parse_dynamic_table(-1, tree));
-        EXEC(dl_get_dynamic_lib_name_from_interval_tree(tree, test_lib_hello_world, module_name, 64));
+        EXEC(dl_get_dynamic_lib_name_from_interval_tree(tree, testlib_hello_world, module_name, 64));
 
         THROW_IF(strcmp(module_name, "libobject-testlib.so") != 0, -1);
         dbg_str(DBG_INFO, "module_name:%s", module_name);

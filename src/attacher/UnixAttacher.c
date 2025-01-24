@@ -8,7 +8,7 @@
 #if (!defined(WINDOWS_USER_MODE))
 #include "UnixAttacher.h"
 
-extern void *my_dlopen(char *name, int flag);
+extern void *testlib_dlopen(char *name, int flag);
 
 static int __construct(UnixAttacher *attacher, char *init_str)
 {
@@ -205,7 +205,7 @@ static int __add_lib(UnixAttacher *attacher, char *name)
         EXEC(map->search(map, name, &handle));
         THROW_IF(handle != NULL, 0);
 
-        handle = attacher->call_from_lib(attacher, "my_dlopen", pars, 2, "libobject-testlib.so");
+        handle = attacher->call_from_lib(attacher, "testlib_dlopen", pars, 2, "libobject-testlib.so");
         // handle = attacher->call_from_lib(attacher, "dlopen", pars, 2, "libdl");
         dbg_str(DBG_VIP, "attacher add_lib, lib name:%s, flag:%x, handle:%p", 
                 name, RTLD_LOCAL | RTLD_LAZY, handle);

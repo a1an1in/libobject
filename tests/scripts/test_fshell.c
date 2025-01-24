@@ -96,7 +96,7 @@ static int test_fshell_load()
 {
     int ret;
     FShell *shell;
-    char *expect_func_name = "test_lib_print_outbound";
+    char *expect_func_name = "testlib_print_outbound";
 #if (defined(MAC_USER_MODE))
     char *lib_name = "./sysroot/mac/lib/libobject-testlib.dylib";
 #elif (defined(WINDOWS_USER_MODE))
@@ -127,7 +127,7 @@ static int test_fshell_load_and_get_func_addr()
 {
     int ret = 0;
     FShell *shell;
-    char *func_name = "test_lib_print_outbound";
+    char *func_name = "testlib_print_outbound";
 #if (defined(MAC_USER_MODE))
     char *lib_name = "./sysroot/mac/lib/libobject-testlib.dylib";
 #elif (defined(WINDOWS_USER_MODE))

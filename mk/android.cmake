@@ -75,8 +75,8 @@ macro (add_module_lists)
 
     list(APPEND module_lists "src/drivers")
     list(APPEND module_lists "3rd/test_process")
-    list(APPEND module_lists "3rd/test_lib")
-    list(APPEND module_lists "3rd/test_lib2")
+    list(APPEND module_lists "3rd/testlib")
+    list(APPEND module_lists "3rd/testlib2")
     
     #list(APPEND module_lists "src/media")
     #list(APPEND module_lists "src/ui")
