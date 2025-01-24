@@ -7,14 +7,43 @@
 #include <sys/syscall.h> //for gettid
 
 #define gettid() syscall(__NR_gettid)
-extern void *testlib_thread_callback(void *para);
+
+int test_with_mixed_type_pars(int par1, char *par2)
+{
+    printf("test_with_mixed_type_pars, par1:%x, par2:%s\n", par1, par2);
+    
+    return 0xadae;
+}
+
+void *test_thread_callback(void *para)
+{
+    int i = 0;
+
+#if (!defined(WINDOWS_USER_MODE))
+    printf("child thread tid: %u\n", gettid());
+    printf("dlopen function addr: %p\n", dlopen);
+#endif
+
+    printf("sprintf function addr: %p\n", sprintf);
+    printf("test_with_mixed_type_pars function addr: %p\n", test_with_mixed_type_pars);
+
+    // attacher_dlopen("abc", 0);
+	while (1) {
+        i++;
+        sleep(2);
+        printf("test thread is running, loop index:%d\n", i);
+        test_with_mixed_type_pars(1, "abc");
+	}
+
+    return NULL;
+}
 
 int main()
 { 
     pthread_t tid;
     void *handle;
 
-    int ret = pthread_create(&tid, NULL, testlib_thread_callback, NULL);
+    int ret = pthread_create(&tid, NULL, test_thread_callback, NULL);
     if (ret != 0) {   
         exit(errno);
     }   

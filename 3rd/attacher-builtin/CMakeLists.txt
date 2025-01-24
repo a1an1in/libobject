@@ -1,4 +1,4 @@
-project(object-testlib2)
+project(attacher-builtin)
 
 file(GLOB_RECURSE MOUDLE_HEADERS
     "*.h"

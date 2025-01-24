@@ -1,4 +1,4 @@
-project(object-testlib)
+project(testlib)
 
 file(GLOB_RECURSE MOUDLE_HEADERS
     "*.h"

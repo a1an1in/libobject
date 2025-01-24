@@ -96,13 +96,13 @@ static int test_fshell_load()
 {
     int ret;
     FShell *shell;
-    char *expect_func_name = "testlib_print_outbound";
+    char *expect_func_name = "attacher_print_outbound";
 #if (defined(MAC_USER_MODE))
-    char *lib_name = "./sysroot/mac/lib/libobject-testlib.dylib";
+    char *lib_name = "./sysroot/mac/lib/attacher-builtin.dylib";
 #elif (defined(WINDOWS_USER_MODE))
-    char *lib_name = "./sysroot/windows/lib/libobject-testlib.dll";
+    char *lib_name = "./sysroot/windows/lib/attacher-builtin.dll";
 #else
-    char *lib_name = "./sysroot/linux/lib/libobject-testlib.so";
+    char *lib_name = "./sysroot/linux/lib/libattacher-builtin.so";
 #endif
     char name[20];
     void *addr;
@@ -127,13 +127,13 @@ static int test_fshell_load_and_get_func_addr()
 {
     int ret = 0;
     FShell *shell;
-    char *func_name = "testlib_print_outbound";
+    char *func_name = "attacher_print_outbound";
 #if (defined(MAC_USER_MODE))
-    char *lib_name = "./sysroot/mac/lib/libobject-testlib.dylib";
+    char *lib_name = "./sysroot/mac/lib/attacher-builtin.dylib";
 #elif (defined(WINDOWS_USER_MODE))
-    char *lib_name = "./sysroot/windows/lib/libobject-testlib.dll";
+    char *lib_name = "./sysroot/windows/lib/attacher-builtin.dll";
 #else
-    char *lib_name = "./sysroot/linux/lib/libobject-testlib.so";
+    char *lib_name = "./sysroot/linux/lib/libattacher-builtin.so";
 #endif
     char name[20];
     allocator_t *allocator = allocator_get_default_instance();

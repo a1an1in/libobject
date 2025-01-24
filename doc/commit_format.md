@@ -1,7 +1,7 @@
-[update:testlib] 更改testlib函数命名。
+[update:attacher-builtin] 更改attacher函数命名。
 
 Description:
-优化testlib函数命名。
+优化attacher函数命名。
 
 Major Changes:
-1. 更改testlib函数命名。
+1. 更改attacher函数命名。

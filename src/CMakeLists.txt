@@ -19,7 +19,7 @@ if ("${PLATFORM}" STREQUAL "windows")
 elseif("${PLATFORM}" STREQUAL "mac")
     target_link_libraries(${PROJECT_NAME} ${ExternalLibs})
 else()
-    target_link_libraries(${PROJECT_NAME} ${ExternalLibs}  -Wl,--as-needed object-testlib2 -Wl,--as-needed object-testlib)
+    target_link_libraries(${PROJECT_NAME} ${ExternalLibs} attacher-builtin)
 endif()
 #add_dependencies(${PROJECT_NAME} object)
 

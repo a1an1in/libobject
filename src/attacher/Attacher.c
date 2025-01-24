@@ -8,8 +8,8 @@
 
 #include <libobject/attacher/Attacher.h>
 
-extern void *testlib_malloc(int size);
-extern int testlib_free(void *addr);
+extern void *attacher_malloc(int size);
+extern int attacher_free(void *addr);
 
 static int tree_node_free_callback(allocator_t *allocator, void *value)
 {
@@ -74,10 +74,10 @@ static void *__malloc(Attacher *attacher, int size, void *value)
 
     TRY {
         THROW_IF(size == 0, 0);
-        dbg_str(DBG_VIP, "local testlib_malloc addr:%p", testlib_malloc);
-        addr = attacher->get_remote_function_address(attacher, "testlib_malloc", "libobject-testlib.so");
+        dbg_str(DBG_VIP, "local attacher_malloc addr:%p", attacher_malloc);
+        addr = attacher->get_remote_function_address(attacher, "attacher_malloc", "libattacher-builtin.so");
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_VIP, "testlib_malloc addr:%p", addr);
+        dbg_str(DBG_VIP, "attacher_malloc addr:%p", addr);
         addr = attacher->call_address_with_value_pars(attacher, addr, pars, 1);
         THROW_IF(addr == NULL, -1);
         dbg_str(DBG_VIP, "attacher malloc addr:%p, size:%d", addr, size);
@@ -98,7 +98,7 @@ static int __free(Attacher *attacher, void *addr)
 
     TRY {
         THROW_IF(addr == 0, -1);
-        free_addr = attacher->get_remote_function_address(attacher, "testlib_free", "libobject-testlib.so");
+        free_addr = attacher->get_remote_function_address(attacher, "attacher_free", "libattacher-builtin.so");
         THROW_IF(free_addr == NULL, -1);
         dbg_str(DBG_VIP, "free func addr:%p, free addr:%p", free_addr, addr);
         ret = attacher->call_address_with_value_pars(attacher, free_addr, pars, 1);
@@ -223,7 +223,7 @@ static int __remove_lib(Attacher *attacher, char *name)
         dbg_str(DBG_VIP, "attacher remove_lib, lib name:%s, handle:%p", name, handle);
         THROW_IF(handle == NULL, -1);
         pars[0].value = handle;
-        EXEC(attacher->call_from_lib(attacher, "testlib_dlclose", pars, 1, "libobject-testlib.so"));
+        EXEC(attacher->call_from_lib(attacher, "attacher_dlclose", pars, 1, "libattacher-builtin.so"));
     } CATCH (ret) {}
 
     return ret;

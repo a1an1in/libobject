@@ -8,8 +8,6 @@
 #if (!defined(WINDOWS_USER_MODE))
 #include "UnixAttacher.h"
 
-extern void *testlib_dlopen(char *name, int flag);
-
 static int __construct(UnixAttacher *attacher, char *init_str)
 {
     return 0;
@@ -47,7 +45,7 @@ static int __detach(UnixAttacher *attacher)
     return ret;
 }
 
-static void *__get_function_address(UnixAttacher *attacher, char *name, char *module_name)
+static void *__get_remote_function_address(UnixAttacher *attacher, char *name, char *module_name)
 {
     void *addr;
     int ret;
@@ -198,14 +196,14 @@ static int __add_lib(UnixAttacher *attacher, char *name)
     int ret;
     void *handle = NULL;
     Map *map = ((Attacher *)attacher)->map;
-    attacher_paramater_t pars[2] = {{name, strlen(name)}, {RTLD_LOCAL | RTLD_LAZY, 0}};
+    attacher_paramater_t pars[2] = {{name, strlen(name) + 1}, {RTLD_LOCAL | RTLD_LAZY, 0}};
 
     TRY {
         THROW_IF(name == NULL, -1);
         EXEC(map->search(map, name, &handle));
         THROW_IF(handle != NULL, 0);
 
-        handle = attacher->call_from_lib(attacher, "testlib_dlopen", pars, 2, "libobject-testlib.so");
+        handle = attacher->call_from_lib(attacher, "attacher_dlopen", pars, 2, "libattacher-builtin.so");
         // handle = attacher->call_from_lib(attacher, "dlopen", pars, 2, "libdl");
         dbg_str(DBG_VIP, "attacher add_lib, lib name:%s, flag:%x, handle:%p", 
                 name, RTLD_LOCAL | RTLD_LAZY, handle);
@@ -246,7 +244,7 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry( 7, UnixAttacher, write, __write),
     Init_Vfunc_Entry( 8, UnixAttacher, malloc, NULL),
     Init_Vfunc_Entry( 9, UnixAttacher, free, NULL),
-    Init_Vfunc_Entry(10, UnixAttacher, get_remote_function_address, __get_function_address),
+    Init_Vfunc_Entry(10, UnixAttacher, get_remote_function_address, __get_remote_function_address),
     Init_Vfunc_Entry(11, UnixAttacher, call_address_with_value_pars, __call_address_with_value_pars),
     Init_Vfunc_Entry(12, UnixAttacher, call_address, NULL),
     Init_Vfunc_Entry(13, UnixAttacher, call_from_lib, NULL),
