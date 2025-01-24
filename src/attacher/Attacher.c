@@ -63,9 +63,6 @@ static int __deconstrcut(Attacher *attacher)
     return 0;
 }
 
-/* call_address is using malloc and free interfaces, we can't implement it
- * with call_from_lib. so, this func is irreplacable.
- */
 static void *__malloc(Attacher *attacher, int size, void *value)
 {
     int ret;
@@ -75,7 +72,7 @@ static void *__malloc(Attacher *attacher, int size, void *value)
     TRY {
         THROW_IF(size == 0, 0);
         dbg_str(DBG_VIP, "local attacher_malloc addr:%p", attacher_malloc);
-        addr = attacher->get_remote_function_address(attacher, "attacher_malloc", "libattacher-builtin.so");
+        addr = attacher->get_remote_builtin_function_address(attacher, "attacher_malloc", "libattacher-builtin.so");
         THROW_IF(addr == NULL, -1);
         dbg_str(DBG_VIP, "attacher_malloc addr:%p", addr);
         addr = attacher->call_address_with_value_pars(attacher, addr, pars, 1);
@@ -98,7 +95,7 @@ static int __free(Attacher *attacher, void *addr)
 
     TRY {
         THROW_IF(addr == 0, -1);
-        free_addr = attacher->get_remote_function_address(attacher, "attacher_free", "libattacher-builtin.so");
+        free_addr = attacher->get_remote_builtin_function_address(attacher, "attacher_free", "libattacher-builtin.so");
         THROW_IF(free_addr == NULL, -1);
         dbg_str(DBG_VIP, "free func addr:%p, free addr:%p", free_addr, addr);
         ret = attacher->call_address_with_value_pars(attacher, free_addr, pars, 1);
@@ -106,6 +103,32 @@ static int __free(Attacher *attacher, void *addr)
     } CATCH (ret) {}
 
     return ret;
+}
+
+static void *__get_remote_function_address(Attacher *attacher, char *lib_name, char *name)
+{
+    long ret;
+    void *addr;
+    char module_name[64] = {0};
+    attacher_paramater_t pars[2] = {{name, strlen(name)}, {lib_name, lib_name == NULL ? 0 : strlen(lib_name)}};
+
+    TRY {
+        addr = dl_get_func_addr_by_name(name, NULL);
+        if (addr != NULL) { // builtin地址
+            // EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
+            EXEC(dl_get_dynamic_name(-1, addr, module_name, 64));
+            addr = attacher->get_remote_builtin_function_address(attacher, name, module_name);
+        } else { // 远端自己的地址
+            addr = attacher->get_remote_builtin_function_address(attacher, "attacher_get_func_addr_by_name", "libattacher-builtin.so");
+            addr = attacher->call_address(attacher, addr, pars, 2);
+        }
+        
+        THROW_IF(addr == NULL, -1);
+    } CATCH (ret) {
+        addr = NULL;
+    }
+
+    return addr;
 }
 
 /* name:call_address
@@ -155,55 +178,20 @@ static long __call_address(Attacher *attacher, void *function_address, attacher_
     return ret;
 }
 
-/* 
- * name: function name want to call.
- * module_name: only need module name, don't need module path.
- *
- * description:
- * if only we know the func name and which lib this func is, we can call this method. 
- **/
-
-static long __call_from_lib(Attacher *attacher, char *name, attacher_paramater_t pars[], int num, char *module_name)
-{
-    long ret;
-    void *addr;
-
-    TRY {
-        /* get remote fuction address */
-        addr = attacher->get_remote_function_address(attacher, name, module_name);
-        THROW_IF(addr == NULL, -1);
-        
-        ret = attacher->call_address(attacher, addr, pars, num);
-        dbg_str(DBG_INFO, "call from lib, func name:%s, func_addr:%p, ret:%lx", name, addr, ret);
-        return ret;
-    } CATCH (ret) {}
-
-    return ret;
-}
-
-/* 如果确定调用函数不是ldopen加载的， 就可以使用改函数调用， 否则使用call_from_lib */
-static long __call(Attacher *attacher, char *name, attacher_paramater_t pars[], int num)
+/* 如果确定调用函数不是builtin，需要指定库名，builtin指的是xtools自带的库  */
+static long __call(Attacher *attacher, char *lib_name, char *name, attacher_paramater_t pars[], int num)
 {
     long ret;
     void *addr;
     char module_name[64] = {0};
 
     TRY {
-        /* 1.get module name */
-        dbg_str(DBG_VIP, "call addr:%p", addr);
-        addr = dl_get_func_addr_by_name(name, NULL);
-        THROW_IF(addr == NULL, -1);
-        // dl_get_dynamic_name(-1, addr, module_name, 64);  //old func for get dynamic lib name. it'll do searching every time.
-        EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
-        dbg_str(DBG_VIP, "module name:%s", module_name);
-
-        /* 2.get remote fuction address */
-        addr = attacher->get_remote_function_address(attacher, name, module_name);
+        /* 1.get remote fuction address */
+        addr = attacher->get_remote_function_address(attacher, lib_name, name);
         THROW_IF(addr == NULL, -1);
         
-        /* 3.call */
+        /* 2.call */
         ret = attacher->call_address(attacher, addr, pars, num);
-        printf("call func name:%s, func_addr:%p, ret:%lx\n", name, addr, ret);
         return ret;
     } CATCH (ret) {}
 
@@ -223,7 +211,7 @@ static int __remove_lib(Attacher *attacher, char *name)
         dbg_str(DBG_VIP, "attacher remove_lib, lib name:%s, handle:%p", name, handle);
         THROW_IF(handle == NULL, -1);
         pars[0].value = handle;
-        EXEC(attacher->call_from_lib(attacher, "attacher_dlclose", pars, 1, "libattacher-builtin.so"));
+        EXEC(attacher->call(attacher, NULL, "attacher_dlclose", pars, 1));
     } CATCH (ret) {}
 
     return ret;
@@ -231,7 +219,7 @@ static int __remove_lib(Attacher *attacher, char *name)
 
 static stub_t *__alloc_stub(Attacher *attacher)
 {
-    return attacher->call_from_lib(attacher, "stub_alloc", NULL, 0, "libobject-stub.so");
+    return attacher->call(attacher, NULL, "stub_alloc", NULL, 0);
 }
 
 /* 如果有函数属于加载的库，当前不支持。 */
@@ -252,7 +240,7 @@ __add_stub_hooks(Attacher *attacher, stub_t *stub, char *func, char *pre, char *
             addr = dl_get_func_addr_by_name(func, NULL);
             THROW_IF(addr == NULL, -1);
             EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
-            addr = attacher->get_remote_function_address(attacher, func, module_name);
+            addr = attacher->get_remote_builtin_function_address(attacher, func, module_name);
             pars[1].value = addr;
         }
         if (pre != NULL) {
@@ -260,7 +248,7 @@ __add_stub_hooks(Attacher *attacher, stub_t *stub, char *func, char *pre, char *
             addr = dl_get_func_addr_by_name(pre, NULL);
             THROW_IF(addr == NULL, -1);
             EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
-            addr = attacher->get_remote_function_address(attacher, pre, module_name);
+            addr = attacher->get_remote_builtin_function_address(attacher, pre, module_name);
             pars[2].value = addr;
         }
         if (new_fn != NULL) {
@@ -268,7 +256,7 @@ __add_stub_hooks(Attacher *attacher, stub_t *stub, char *func, char *pre, char *
             addr = dl_get_func_addr_by_name(new_fn, NULL);
             THROW_IF(addr == NULL, -1);
             EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
-            addr = attacher->get_remote_function_address(attacher, new_fn, module_name);
+            addr = attacher->get_remote_builtin_function_address(attacher, new_fn, module_name);
             pars[3].value = addr;
         }
         if (post != NULL) {
@@ -276,13 +264,13 @@ __add_stub_hooks(Attacher *attacher, stub_t *stub, char *func, char *pre, char *
             addr = dl_get_func_addr_by_name(post, NULL);
             THROW_IF(addr == NULL, -1);
             EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
-            addr = attacher->get_remote_function_address(attacher, post, module_name);
+            addr = attacher->get_remote_builtin_function_address(attacher, post, module_name);
             pars[4].value = addr;
         }
         dbg_str(DBG_INFO, "attacher add_stub_hooks, func:%p, pre:%p, target:%p, post:%p", 
                 pars[1].value, pars[2].value, pars[3].value, pars[4].value);
         
-        EXEC(attacher->call_from_lib(attacher, "stub_add_hooks", pars, 6, "libobject-stub.so"));
+        EXEC(attacher->call(attacher, NULL, "stub_add_hooks", pars, 6));
     } CATCH (ret) {} FINALLY {}
     
     return ret;
@@ -291,13 +279,13 @@ __add_stub_hooks(Attacher *attacher, stub_t *stub, char *func, char *pre, char *
 static int __remove_stub_hooks(Attacher *attacher, stub_t *stub)
 {
     attacher_paramater_t pars[1] = {{stub, 0}};
-    return attacher->call_from_lib(attacher, "stub_remove_hooks", pars, 1, "libobject-stub.so");
+    return attacher->call(attacher, NULL, "stub_remove_hooks", pars, 1);
 }
 
 static int __free_stub(Attacher *attacher, stub_t *stub)
 {
     attacher_paramater_t pars[1] = {{stub, 0}};
-    return attacher->call_from_lib(attacher, "stub_free", pars, 1, "libobject-stub.so");
+    return attacher->call(attacher, NULL, "stub_free", pars, 1);
 }
 
 static int __init(Attacher *attacher)
@@ -316,8 +304,8 @@ static int __init(Attacher *attacher)
         dbg_str(DBG_VIP, "path2:%s", path_addr);
         EXEC(attacher->add_lib(attacher, path_addr));
        
-        EXEC(attacher->call_from_lib(attacher, "execute_ctor_funcs", NULL, 0, "libobject-core.so"));
-        EXEC(attacher->call_from_lib(attacher, "stub_admin_init_default_instance", NULL, 0, "libobject-stub.so"));
+        EXEC(attacher->call(attacher, NULL, "execute_ctor_funcs", NULL, 0));
+        EXEC(attacher->call(attacher, NULL, "stub_admin_init_default_instance", NULL, 0));
 
         /* 解析本地动态库地址区间， 后面方便根据本地地址查询对应的函数库 */
         EXEC(dl_parse_dynamic_table(-1, attacher->tree));
@@ -332,14 +320,14 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Nfunc_Entry( 2, Attacher, deconstruct, __deconstrcut),
     Init_Vfunc_Entry( 3, Attacher, attach, NULL),
     Init_Vfunc_Entry( 4, Attacher, detach, NULL),
-    Init_Vfunc_Entry( 5, Attacher, get_remote_function_address, NULL),
-    Init_Vfunc_Entry( 6, Attacher, read, NULL),
-    Init_Vfunc_Entry( 7, Attacher, write, NULL),
-    Init_Vfunc_Entry( 8, Attacher, malloc, __malloc),
-    Init_Vfunc_Entry( 9, Attacher, free, __free),
-    Init_Vfunc_Entry(10, Attacher, call_address_with_value_pars, NULL),
-    Init_Vfunc_Entry(11, Attacher, call_address, __call_address),
-    Init_Vfunc_Entry(12, Attacher, call_from_lib, __call_from_lib),
+    Init_Vfunc_Entry( 5, Attacher, get_remote_function_address, __get_remote_function_address),
+    Init_Vfunc_Entry( 6, Attacher, get_remote_builtin_function_address, NULL),
+    Init_Vfunc_Entry( 7, Attacher, read, NULL),
+    Init_Vfunc_Entry( 8, Attacher, write, NULL),
+    Init_Vfunc_Entry( 9, Attacher, malloc, __malloc),
+    Init_Vfunc_Entry(10, Attacher, free, __free),
+    Init_Vfunc_Entry(11, Attacher, call_address_with_value_pars, NULL),
+    Init_Vfunc_Entry(12, Attacher, call_address, __call_address),
     Init_Vfunc_Entry(13, Attacher, call, __call),
     Init_Vfunc_Entry(14, Attacher, add_lib, NULL),
     Init_Vfunc_Entry(15, Attacher, remove_lib, __remove_lib),
@@ -353,4 +341,3 @@ static class_info_entry_t attacher_class_info[] = {
     Init_End___Entry(23, Attacher),
 };
 REGISTER_CLASS(Attacher, attacher_class_info);
-

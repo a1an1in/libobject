@@ -1,5 +1,5 @@
 #! /bin/bash
-pid=$(ps -el|grep "test mockery" | grep -v grep | awk '{print $2}')
+pid=$(ps -aux|grep "test-process" | grep -v grep | awk '{print $2}')
 
 kill -n 30 $pid
 

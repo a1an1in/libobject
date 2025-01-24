@@ -26,7 +26,7 @@ struct UnixAttacher_s {
 
     int *(*attach)(UnixAttacher *, int pid);
     int *(*detach)(UnixAttacher *);
-    void *(*get_remote_function_address)(UnixAttacher *, char *func_name, char *module_name);
+    void *(*get_remote_builtin_function_address)(UnixAttacher *, char *func_name, char *module_name);
     int (*write)(UnixAttacher *attacher, void *addr, uint8_t *value, int len);
     int (*read)(UnixAttacher *attacher, void *addr, uint8_t *value, int len);
     void *(*malloc)(UnixAttacher *attacher, int size, void *value);
@@ -34,7 +34,6 @@ struct UnixAttacher_s {
     int (*set_function_pars)(UnixAttacher *attacher, struct user_regs_struct *regs, void *paramters, int num);
     long (*call_address_with_value_pars)(UnixAttacher *, void *function_adress, void *paramters, int num);
     long (*call_address)(UnixAttacher *, void *function_adress, attacher_paramater_t paramters[], int num);
-    long (*call_from_lib)(UnixAttacher *, char *function_name, attacher_paramater_t paramters[], int num, char *module_name);
     int (*add_lib)(UnixAttacher *, char *name);
     int (*remove_lib)(UnixAttacher *, char *name);
     int (*run)(UnixAttacher *);

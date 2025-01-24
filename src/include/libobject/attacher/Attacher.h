@@ -30,15 +30,15 @@ struct Attacher_s {
 
     int *(*attach)(Attacher *, int pid);
     int *(*detach)(Attacher *);
-    void *(*get_remote_function_address)(Attacher *, char *func_name, char *module_name);
+    void *(*get_remote_builtin_function_address)(Attacher *, char *func_name, char *module_name);
+    void *(*get_remote_function_address)(Attacher *, char *lib_name, char *func_name);
     int (*write)(Attacher *attacher, void *addr, uint8_t *value, int len);
     int (*read)(Attacher *attacher, void *addr, uint8_t *value, int len);
     void *(*malloc)(Attacher *attacher, int size, void *value);
     int (*free)(Attacher *attacher, void *addr);
     long (*call_address_with_value_pars)(Attacher *, void *function_adress, void *paramters, int num);
     long (*call_address)(Attacher *attacher, void *function_address, attacher_paramater_t pars[], int num);
-    long (*call_from_lib)(Attacher *, char *function_name, attacher_paramater_t paramters[], int num, char *module_name);
-    long (*call)(Attacher *attacher, char *addr, attacher_paramater_t pars[], int num);
+    long (*call)(Attacher *attacher, char *lib_name, char *addr, attacher_paramater_t pars[], int num);
     int (*add_lib)(Attacher *, char *name);
     int (*remove_lib)(Attacher *, char *name);
     int (*init)(Attacher *);
