@@ -105,6 +105,10 @@ static int __free(Attacher *attacher, void *addr)
     return ret;
 }
 
+/* 远端地址有三种类型，1. 远端进程自带函数， 2. attacher加载的内置库函数， 3. attacher为target加载且自己没有的库。
+ * 第一和第三种类型的地址需要传给个远端进程获取地址。第二种类型attacher可以自己计算远端地址。
+ * 第三种类型需要传入lib名，远端进程才能获取到对应函数地址。
+ */
 static void *__get_remote_function_address(Attacher *attacher, char *lib_name, char *name)
 {
     long ret;
@@ -118,7 +122,7 @@ static void *__get_remote_function_address(Attacher *attacher, char *lib_name, c
             // EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
             EXEC(dl_get_dynamic_name(-1, addr, module_name, 64));
             addr = attacher->get_remote_builtin_function_address(attacher, name, module_name);
-        } else { // 远端自己的地址
+        } else { // 远端函数或者动态加载非builtin lib函数地址。
             addr = attacher->get_remote_builtin_function_address(attacher, "attacher_get_func_addr_by_name", "libattacher-builtin.so");
             addr = attacher->call_address(attacher, addr, pars, 2);
         }
@@ -145,7 +149,6 @@ static long __call_address(Attacher *attacher, void *function_address, attacher_
 
     TRY {
         THROW_IF(num > ATTACHER_PARAMATER_ARRAY_MAX_SIZE, -1);
-
         /* retmote funtion args pre process*/
         for (i = 0; i < num; i++) {
             if (pars[i].size == 0) {
@@ -178,7 +181,10 @@ static long __call_address(Attacher *attacher, void *function_address, attacher_
     return ret;
 }
 
-/* 如果确定调用函数不是builtin，需要指定库名，builtin指的是xtools自带的库  */
+/* 如果调用函数不是builtin，需要指定库名，builtin指的是xtools自带的库。
+ * 如果函数是attacher为target加载且自己没有的库，则需要指定库名，否则target
+ * 不能获取到函数名对应的地址。函数名为空只能查询进程自带函数的地址。
+ */
 static long __call(Attacher *attacher, char *lib_name, char *name, attacher_paramater_t pars[], int num)
 {
     long ret;
@@ -229,42 +235,28 @@ __add_stub_hooks(Attacher *attacher, stub_t *stub, char *func, char *pre, char *
 {
     void *addr;
     char module_name[64] = {0};
-    int ret;
     /* 如果size 为0表示是 value类型， 这时也可以传递地址 */
     attacher_paramater_t pars[6] = {{stub, 0}, {NULL, 0},
                                     {NULL, 0}, {NULL, 0},
                                     {NULL, 0}, {para_count, 0}};
+    int ret;
 
     TRY {
         if (func != NULL) {
-            addr = dl_get_func_addr_by_name(func, NULL);
-            THROW_IF(addr == NULL, -1);
-            EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
-            addr = attacher->get_remote_builtin_function_address(attacher, func, module_name);
+            // EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
+            addr = attacher->get_remote_function_address(attacher, NULL, func);
             pars[1].value = addr;
         }
         if (pre != NULL) {
-            memset(module_name, 0, 64);
-            addr = dl_get_func_addr_by_name(pre, NULL);
-            THROW_IF(addr == NULL, -1);
-            EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
-            addr = attacher->get_remote_builtin_function_address(attacher, pre, module_name);
+            addr = attacher->get_remote_function_address(attacher, NULL, pre);
             pars[2].value = addr;
         }
         if (new_fn != NULL) {
-            memset(module_name, 0, 64);
-            addr = dl_get_func_addr_by_name(new_fn, NULL);
-            THROW_IF(addr == NULL, -1);
-            EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
-            addr = attacher->get_remote_builtin_function_address(attacher, new_fn, module_name);
+            addr = attacher->get_remote_function_address(attacher, NULL, new_fn);
             pars[3].value = addr;
         }
         if (post != NULL) {
-            memset(module_name, 0, 64);
-            addr = dl_get_func_addr_by_name(post, NULL);
-            THROW_IF(addr == NULL, -1);
-            EXEC(dl_get_dynamic_lib_name_from_interval_tree(attacher->tree, addr, module_name, 64));
-            addr = attacher->get_remote_builtin_function_address(attacher, post, module_name);
+            addr = attacher->get_remote_function_address(attacher, NULL, post);
             pars[4].value = addr;
         }
         dbg_str(DBG_INFO, "attacher add_stub_hooks, func:%p, pre:%p, target:%p, post:%p", 
@@ -308,7 +300,7 @@ static int __init(Attacher *attacher)
         EXEC(attacher->call(attacher, NULL, "stub_admin_init_default_instance", NULL, 0));
 
         /* 解析本地动态库地址区间， 后面方便根据本地地址查询对应的函数库 */
-        EXEC(dl_parse_dynamic_table(-1, attacher->tree));
+        // EXEC(dl_parse_dynamic_table(-1, attacher->tree));
     } CATCH (ret) {} FINALLY {}
 
     return ret;

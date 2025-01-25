@@ -66,8 +66,8 @@ macro (add_module_lists)
     list(APPEND module_lists "src/archive")
 
     list(APPEND module_lists "src/drivers")
-    list(APPEND module_lists "3rd/test_process")
     list(APPEND module_lists "3rd/attacher-builtin")
+    list(APPEND module_lists "3rd/test_process")
     list(APPEND module_lists "3rd/testlib")
     list(APPEND module_lists "3rd/test_http_plugin")
     
