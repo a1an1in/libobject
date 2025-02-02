@@ -1,10 +1,8 @@
-[update:attacher] 优化attacher，只需加载builtin库。
+[update:attacher] 修改attacher测试。
 
 Description:
-老版本本地和target都必须加载同版本的库，这个才能算出远端
-函数的地址。优化后只需加载builtin库。
+添加builtin库后，不需要在本地加载第三方库了， 只需要远端
+加载。
 
 Major Changes:
-1. 优化获取远端函数地址函数。
-2. 去掉call_from_lib，因为call函数可以完全不用知道函数
-   在哪个库了。
+1. 去掉本地加载远端相同库的限制。

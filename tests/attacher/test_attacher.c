@@ -136,7 +136,8 @@ static int test_attacher_call_from_adding_lib(Attacher *attacher, pid_t pid)
 
     TRY {
         EXEC(attacher->add_lib(attacher, name));
-        EXEC(attacher->call(attacher, "libtestlib.so", "testlib_test", NULL, 0));
+        EXEC(ret = attacher->call(attacher, "libtestlib.so", "testlib_test", NULL, 0));
+        THROW_IF(ret != 0xadad, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
@@ -238,16 +239,12 @@ static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
     pid_t pid = -1;
 #   if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE))
     char *path = "./sysroot/linux/bin/test-process";
-    char *lib_name = "./sysroot/linux/lib/libtestlib.so";
 #   elif (defined(WINDOWS_USER_MODE))
     char *path = "./sysroot/windows/bin/test-process";
-    char *lib_name = "./sysroot/windows/lib/libtestlib.dll";
 #   elif (defined(MAC_USER_MODE) || defined(IOS_USER_MODE))
     char *path = "./sysroot/mac/bin/test-process";
-    char *lib_name = "./sysroot/mac/lib/libtestlib.dylib";
 #   else
     char *path = "./sysroot/linux/bin/test-process";
-    char *lib_name = "./sysroot/linux/lib/libtestlib.so";
 #   endif
     char *arg_vector[2] = {"test-process", NULL};
     Attacher *attacher;
@@ -257,8 +254,6 @@ static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
         dbg_str(DBG_VIP, "test_attacher");
         EXEC((pid = process_execv(path, arg_vector)));
         dbg_str(DBG_VIP, "test_attacher pid:%d", pid);
-        shell = app->fshell;
-        EXEC(shell->load(shell, lib_name, RTLD_LOCAL | RTLD_LAZY));
 
         usleep(10000);
         attacher = object_new(allocator, "UnixAttacher", NULL);
@@ -277,7 +272,6 @@ static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
         EXEC(test_attacher_read_and_write_data(attacher, pid));
         EXEC(test_attacher_call_stub(attacher, pid));
     } CATCH (ret) { } FINALLY {
-        shell->unload(shell, lib_name);
         object_destroy(attacher);
         process_kill(pid);
     }
