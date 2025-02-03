@@ -37,3 +37,18 @@ int test_string_v1_strchr_n(TEST_ENTRY *entry, int argc, void **argv)
     return ret;
 }
 REGISTER_TEST_FUNC(test_string_v1_strchr_n);
+
+int test_string_v1_remove_spaces_around_comma(TEST_ENTRY *entry, int argc, void **argv)
+{
+    char str[1024] = "  hello ,  world ,  this  is , a test  ";
+    char expect[1024] = "  hello,world,this  is,a test  ";
+    int ret;
+
+    TRY {
+        str_remove_spaces_around_comma(str);
+        THROW_IF(strcmp(str, expect) != 0, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_string_v1_remove_spaces_around_comma);

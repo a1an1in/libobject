@@ -298,6 +298,28 @@ static int __test_node_attacher(Node *node)
     return ret;
 }
 
+/* node cli可能需要node去获取变量地址来判断结果 */
+static int __test_node_cli_call_obj(Node *node)
+{
+    String *str;
+    char *expect = "hello_world";
+    int ret;
+    
+    TRY {
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 13, \"String\", #test_string, 0)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@assign(#test_string, \"hello_world\")"));  
+        EXEC(node->mget_addr(node, "node", TARGET_TYPE_NODE, "#test_string", &str));
+
+        THROW_IF(strcmp(STR2A(str), expect) != 0, -1);
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_string)");
+    }
+
+    return ret;
+}
+
 static int test_node(TEST_ENTRY *entry)
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -339,6 +361,9 @@ static int test_node(TEST_ENTRY *entry)
         EXEC(__test_node_stub(node));
         EXEC(__test_node_lookup(node));
         EXEC(__test_node_attacher(node));
+
+        /* 直接测试node cli command */
+        EXEC(__test_node_cli_call_obj(node));
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         usleep(1000);

@@ -262,6 +262,8 @@ static int __set_args(Command *command, int argc, char **argv)
 {
     command->argc = argc;
     command->argv = argv;
+
+    return 1;
 }
 
 static int

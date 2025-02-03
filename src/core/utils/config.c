@@ -36,20 +36,6 @@
 // }
 #endif
 
-int str_split(char *str, char *delim, char **out, int *cnt) 
-{
-    int index = 0;
-    char *p, *ptr = NULL;
-
-    while((p = strtok_r(str, delim, &ptr)) != NULL) {  
-        *(out + index++) = p;
-        str = NULL;  
-        if (ptr == NULL) break;
-    }  
-
-    return *cnt = index;
-}
-
 int compute_slash_count(char *path)
 {
     int i, len = strlen(path), cnt = 0;

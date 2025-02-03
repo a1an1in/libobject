@@ -190,6 +190,7 @@ static int __run_object_func(FShell *shell, String *str)
     int ret, i, cnt, len;
 
     TRY {
+        dbg_str(DBG_VIP, "run_object_func:%s", STR2A(str));
         map = shell->variable_map;
         cnt = str->split(str, "[,\t\n();]", -1);
 

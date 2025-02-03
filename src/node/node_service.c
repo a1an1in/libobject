@@ -610,7 +610,6 @@ static int node_mget_addr(bus_object_t *obj, int argc,
         THROW_IF(name == NULL, -1);
         map->search(map, name, &info);
         THROW_IF(info == NULL, -1);
-        EXEC(fsh_variable_info_free(allocator, info));
 
         addr = info->addr;
         *out_len = sizeof(void *);

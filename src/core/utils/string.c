@@ -91,3 +91,45 @@ int strrcnt(char *s, char *end, char c)
     return count;
 }
 
+int str_split(char *str, char *delim, char **out, int *cnt) 
+{
+    int index = 0;
+    char *p, *ptr = NULL;
+
+    while((p = strtok_r(str, delim, &ptr)) != NULL) {  
+        *(out + index++) = p;
+        str = NULL;  
+        if (ptr == NULL) break;
+    }  
+
+    return *cnt = index;
+}
+
+int str_remove_spaces_around_comma(char *str) 
+{
+    char *pos = str;
+
+    while (*pos) {
+        if (*pos == ',') {
+            // 移动逗号前的空格
+            char *start = pos - 1;
+            while (start >= str && isspace((unsigned char)*start)) start--;
+            // 移动逗号后的空格
+            char *end = pos + 1;
+            while (*end && isspace((unsigned char)*end)) end++;
+            // 移动逗号后的内容到逗号位置之后
+            memmove(pos + 1, end, strlen(end) + 1);
+            // 如果逗号前有非空格字符，则将逗号前移
+            if (start + 1 < pos) {
+                memmove(start + 1, pos, strlen(pos) + 1);
+                pos = start + 1; // 更新pos位置
+            } else {
+                pos++; // 没有非空格字符，直接移动到下一个字符
+            }
+        } else {
+            pos++;
+        }
+    }
+
+    return 1;
+}

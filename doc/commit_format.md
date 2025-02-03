@@ -1,8 +1,8 @@
-[update:attacher] 修改attacher测试。
+[update:node] 新增call_obj方法。
 
 Description:
-添加builtin库后，不需要在本地加载第三方库了， 只需要远端
-加载。
+支持node cli调用obj方法。
 
 Major Changes:
-1. 去掉本地加载远端相同库的限制。
+1. 增加node cli调用obj方法。
+2. 增加node cli调用obj的测试用例。

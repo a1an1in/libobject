@@ -174,7 +174,7 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
     char *node_id = NULL, *tmp, *p;
     bus_method_args_t *args = NULL;
     String *str = node->str;
-    int ret, argc, i, count;
+    int ret, argc, i, count, len;
 
     TRY {
         dbg_str(DBG_VIP, "call_bus %s", code);
@@ -202,6 +202,11 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
                 /* 这里只是把本地buffer地址传入， bus_blob_add_args 会把数据拷到buffer里 */
                 args[i].value = str_hex_to_integer(tmp);
                 args[i].len = atoi(p + 1);
+            } else if (args[i].type == ARG_TYPE_STRING && tmp[0] == '"') {
+                    len = strlen(tmp);
+                    THROW_IF(tmp[len - 1] != '"', -1);
+                    tmp[len - 1] = '\0';
+                    args[i].value = tmp + 1;
             } else {
                 args[i].value = str->get_splited_cstr(str, 2 + i);
             }
@@ -771,4 +776,32 @@ int node_free_argument_template(allocator_t *allocator, bus_method_args_t *args,
     allocator_mem_free(allocator, args);
 
     return 1;
+}
+
+int node_cli(char *cmd)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    char tmp[1024];
+    Command *cli;
+    int argc;
+    char *argv[32];
+    int ret;
+
+    TRY {
+        strcpy(tmp, cmd);
+        str_remove_spaces_around_comma(tmp);
+        dbg_str(DBG_WIP, "%s", tmp);
+        str_split(tmp, " ", argv, &argc);
+
+        cli = object_new(allocator, "Node_Cli_Command", NULL);
+        EXEC(cli->set_args(cli, argc, argv));
+        EXEC(cli->parse_args(cli));
+        EXEC(cli->run_option_actions(cli));
+        EXEC(cli->run_argument_actions(cli));
+        EXEC(cli->run_command(cli));
+    } CATCH (ret) {} FINALLY {
+        object_destroy(cli);
+    }
+
+    return ret;
 }

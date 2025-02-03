@@ -57,6 +57,7 @@ addr2line -e ./sysroot/linux/bin/xtools 0x53ccc
 addr2line -f -e ./sysroot/linux/bin/xtools  libobject-core.so 0x152
 addr2line -e ./sysroot/linux/bin/xtools 0x6e96a
 addr2line -e ./sysroot/linux/bin/xtools 0xaeba2
+addr2line -e ./sysroot/linux/bin/xtools 0x7fed6
 ```
 
 ## bus test

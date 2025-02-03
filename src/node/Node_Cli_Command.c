@@ -10,7 +10,7 @@
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/core/utils/string.h>
 #include <libobject/concurrent/event_api.h>
-#include "Node_Cli_Command.h"
+#include <libobject/node/Node_Cli_Command.h>
 
 static int __call_fsh_command_action(Node_Cli_Command *command, char *arg1, char *arg2)
 {
@@ -112,6 +112,12 @@ static int __call_cmd_command_action(Node_Cli_Command *command, char *arg1, char
     } CATCH (ret) {}
 
     return ret;
+}
+
+static int __call_obj_command_action(Node_Cli_Command *command, char *arg1, char *arg2)
+{
+    Node *node = command->node;
+    return TRY_EXEC(node->call_fsh_object_method(node, arg1));
 }
 
 static int __mset_command_action(Node_Cli_Command *command, char *arg1, char *arg2)
@@ -223,6 +229,7 @@ struct node_command_s {
     [COMMAND_TYPE_BUS_CALL] = {COMMAND_TYPE_BUS_CALL, "call_bus", __call_bus_command_action},
     [COMMAND_TYPE_FSH_CALL] = {COMMAND_TYPE_FSH_CALL, "call_fsh", __call_fsh_command_action},
     [COMMAND_TYPE_CMD_CALL] = {COMMAND_TYPE_CMD_CALL, "call_cmd", __call_cmd_command_action},
+    [COMMAND_TYPE_OBJ_CALL] = {COMMAND_TYPE_OBJ_CALL, "call_obj", __call_obj_command_action},  
     [COMMAND_TYPE_LOOKUP]   = {COMMAND_TYPE_LOOKUP, "lookup", __lookup_command_action},
     [COMMAND_TYPE_COPY]     = {COMMAND_TYPE_COPY, "fcopy", __copy_command_action},
     [COMMAND_TYPE_LIST]     = {COMMAND_TYPE_LIST, "flist", __list_command_action},
