@@ -284,20 +284,6 @@ static int __test_node_lookup(Node *node)
     return ret;
 }
 
-static int __test_node_attacher(Node *node)
-{
-    allocator_t *allocator = allocator_get_default_instance();
-    int ret;
-    
-    TRY {
-        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
-                __func__, extract_filename_from_path(__FILE__), __LINE__);
-    } CATCH (ret) {} FINALLY {
-    }
-
-    return ret;
-}
-
 /* node cli可能需要node去获取变量地址来判断结果 */
 static int __test_node_cli_call_obj(Node *node)
 {
@@ -315,6 +301,35 @@ static int __test_node_cli_call_obj(Node *node)
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
         node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_string)");
+    }
+
+    return ret;
+}
+
+static int __test_node_cli_attacher(Node *node)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    pid_t pid = -1;
+#   if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE))
+    char *path = "./sysroot/linux/bin/test-process";
+#   elif (defined(WINDOWS_USER_MODE))
+    char *path = "./sysroot/windows/bin/test-process";
+#   elif (defined(MAC_USER_MODE) || defined(IOS_USER_MODE))
+    char *path = "./sysroot/mac/bin/test-process";
+#   else
+    char *path = "./sysroot/linux/bin/test-process";
+#   endif
+    char *arg_vector[2] = {"test-process", NULL};
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "test_attacher");
+        EXEC((pid = process_execv(path, arg_vector)));
+        dbg_str(DBG_VIP, "test_attacher pid:%d", pid);
+
+        usleep(10000);
+    } CATCH (ret) { } FINALLY {
+        process_kill(pid);
     }
 
     return ret;
@@ -360,10 +375,12 @@ static int test_node(TEST_ENTRY *entry)
         EXEC(__test_node_mget_pointer(node));
         EXEC(__test_node_stub(node));
         EXEC(__test_node_lookup(node));
-        EXEC(__test_node_attacher(node));
 
         /* 直接测试node cli command */
         EXEC(__test_node_cli_call_obj(node));
+#if (defined(LINUX_USER_MODE))
+        EXEC(__test_node_cli_attacher(node));
+#endif
     } CATCH (ret) {} FINALLY {
         object_destroy(node);
         usleep(1000);

@@ -1,8 +1,7 @@
 [update:node] 新增call_obj方法。
 
 Description:
-支持node cli调用obj方法。
+call bus和call fsh保持一致， 字符串参数需要引号开头作为标识符。
 
 Major Changes:
-1. 增加node cli调用obj方法。
-2. 增加node cli调用obj的测试用例。
+1. bus call字符串参数增加引号作为标识符。

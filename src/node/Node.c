@@ -202,13 +202,18 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
                 /* 这里只是把本地buffer地址传入， bus_blob_add_args 会把数据拷到buffer里 */
                 args[i].value = str_hex_to_integer(tmp);
                 args[i].len = atoi(p + 1);
-            } else if (args[i].type == ARG_TYPE_STRING && tmp[0] == '"') {
+            } else if (args[i].type == ARG_TYPE_STRING && tmp[0] == '"')
+            /* 字符串可以带引号也可以不带， call_bus都支持， 但是同call_fsh一样，字符串不能包含,\t\n();等符号，
+             * 否则无法区分哪些是参数, 如果确实有这些字符，则需要先用mset配置字符串，然后该字符参数用地址替代. */
+            {
                     len = strlen(tmp);
                     THROW_IF(tmp[len - 1] != '"', -1);
                     tmp[len - 1] = '\0';
                     args[i].value = tmp + 1;
-            } else {
+            } else if (args[i].type == ARG_TYPE_STRING && tmp[0] != '"'){
                 args[i].value = str->get_splited_cstr(str, 2 + i);
+            } else {
+                THROW(-1);
             }
         }
         EXEC(bus_invoke_sync(node->bus, node_id, method_name, argc, args, out, out_len)); 
@@ -790,7 +795,7 @@ int node_cli(char *cmd)
     TRY {
         strcpy(tmp, cmd);
         str_remove_spaces_around_comma(tmp);
-        dbg_str(DBG_WIP, "%s", tmp);
+        dbg_str(DBG_VIP, "%s", tmp);
         str_split(tmp, " ", argv, &argc);
 
         cli = object_new(allocator, "Node_Cli_Command", NULL);
