@@ -64,6 +64,6 @@ extern bus_object_t node_object;
 int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator, char *method_name, 
                                        bus_method_args_t **args, int *cnt);
 int node_free_argument_template(allocator_t *allocator, bus_method_args_t *args, int count);
-int node_cli(char *cmd);
+int node_cli(char *cmd, ...);
 
 #endif

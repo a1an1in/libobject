@@ -783,17 +783,23 @@ int node_free_argument_template(allocator_t *allocator, bus_method_args_t *args,
     return 1;
 }
 
-int node_cli(char *cmd)
+int node_cli(char *fmt, ...)
 {
     allocator_t *allocator = allocator_get_default_instance();
     char tmp[1024];
     Command *cli;
     int argc;
     char *argv[32];
+    va_list ap;
+    char fmt_str[MAX_DBG_STR_LEN] = {0};
     int ret;
 
     TRY {
-        strcpy(tmp, cmd);
+        va_start(ap, fmt);
+        vsnprintf(fmt_str, MAX_DBG_STR_LEN, fmt, ap);
+        va_end(ap);
+
+        strcpy(tmp, fmt_str);
         str_remove_spaces_around_comma(tmp);
         dbg_str(DBG_VIP, "%s", tmp);
         str_split(tmp, " ", argv, &argc);

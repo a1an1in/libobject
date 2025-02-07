@@ -726,3 +726,21 @@ void *object_get_member_of_class(char *class_name, char *func_name)
 
     return NULL;
 }
+
+void * object_get_lastest_vitual_func(void *class_name, char *func_name)
+{
+    class_deamon_t *deamon;
+    class_info_entry_t *entry;
+    int ret;
+
+    TRY {
+        deamon = class_deamon_get_global_class_deamon();
+        entry  = (class_info_entry_t *) 
+                 class_deamon_search_class(deamon, (char *)class_name);
+        THROW_IF(entry == NULL, -1);
+
+        return __object_get_lastest_vitual_func(entry, func_name);
+    } CATCH (ret) {} 
+
+    return NULL;
+}

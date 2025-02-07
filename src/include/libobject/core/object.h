@@ -31,6 +31,7 @@ void *object_get_member_of_class(char *class_name, char *func_name);
 void *object_get_progeny_class_first_private_func(char *sub_class_name, char *root_class_name, char *func_name);
 void *object_get_lastest_virtual_func(char *start_type_name, char *end_type_name, char *method_name);
 int object_call_method(void *object, char *func_str);
+void * object_get_lastest_vitual_func(void *class_name, char *func_name);
 
 #define OBJECT_ALLOC(alloc, type)                                                   \
 ({                                                                                  \

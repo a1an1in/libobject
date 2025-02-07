@@ -323,12 +323,19 @@ static int __test_node_cli_attacher(Node *node)
     int ret;
 
     TRY {
-        dbg_str(DBG_VIP, "test_attacher");
+        dbg_str(DBG_WIP, "test_attacher");
         EXEC((pid = process_execv(path, arg_vector)));
         dbg_str(DBG_VIP, "test_attacher pid:%d", pid);
 
         usleep(10000);
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 13, \"UnixAttacher\", #test_attacher, 0)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@attach(#test_attacher, %d)", pid));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@init(#test_attacher)"));  
+
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_attacher)");
         process_kill(pid);
     }
 
