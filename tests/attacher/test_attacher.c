@@ -43,13 +43,12 @@ static int test_attacher_get_remote_function_address_case1(Attacher *attacher, p
 
 static int test_attacher_get_remote_function_address_case2(Attacher *attacher, pid_t pid)
 {
-    int ret;
+    int ret, return_value;
     char *func_name = "test_with_mixed_type_pars";
     void *addr;
-    attacher_paramater_t pars[2] = {{func_name, strlen(func_name)}, {NULL, 0}};
 
     TRY {
-        addr = attacher->call(attacher, NULL, "attacher_get_func_addr_by_name", pars, 2);
+        EXEC(attacher->call(attacher, NULL, "attacher_get_func_addr_by_name(\"test_with_mixed_type_pars\", 0)", &addr));
         THROW_IF(addr == NULL, -1);
         dbg_str(DBG_VIP, "%s addr:%p", func_name, addr);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
@@ -131,13 +130,13 @@ static int test_attacher_add_and_remove_lib(Attacher *attacher, pid_t pid)
 
 static int test_attacher_call_from_adding_lib(Attacher *attacher, pid_t pid)
 {
-    int ret;
+    int ret, return_value;
     char *name = "./sysroot/linux/lib/libtestlib.so";
 
     TRY {
         EXEC(attacher->add_lib(attacher, name));
-        EXEC(ret = attacher->call(attacher, "libtestlib.so", "testlib_test", NULL, 0));
-        THROW_IF(ret != 0xadad, -1);
+        EXEC(attacher->call(attacher, "libtestlib.so", "testlib_test()", &return_value));
+        THROW_IF(return_value != 0xadad, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
@@ -149,13 +148,12 @@ static int test_attacher_call_from_adding_lib(Attacher *attacher, pid_t pid)
 
 static int test_attacher_call_directly(Attacher *attacher, pid_t pid)
 {
-    int ret;
-    attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
+    long ret, return_value;
 
     TRY {
         dbg_str(DBG_WIP, "test_attacher_call_directly start"); 
-        EXEC(ret = attacher->call(attacher, NULL, "attacher_test2_with_pointer_arg", pars, 2));
-        THROW_IF(ret != 0xadaf, -1);
+        EXEC(attacher->call(attacher, NULL, "attacher_test_with_pointer_arg(0x1234, \"test2\")", &return_value));
+        THROW_IF(return_value != 0xadae, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {}
@@ -185,12 +183,12 @@ static int test_attacher_malloc_and_mfree(Attacher *attacher, pid_t pid)
 
 static int test_attacher_read_and_write_data(Attacher *attacher, pid_t pid)
 {
-    int ret;
+    int ret, return_value;
     void *addr;
     char buffer[1024] = {0};
 
     TRY {
-        addr = attacher->call(attacher, NULL, "attacher_get_debug_info_address", NULL, 0);
+        EXEC(attacher->call(attacher, NULL, "attacher_get_debug_info_address()", &addr));
         THROW_IF(addr == NULL, -1);
         EXEC(attacher->read(attacher, addr, buffer, 20));
         THROW_IF(strcmp("hello world", buffer) != 0, -1);
@@ -210,17 +208,16 @@ static int test_attacher_read_and_write_data(Attacher *attacher, pid_t pid)
 
 static int test_attacher_call_stub(Attacher *attacher, pid_t pid)
 {
-    int ret;
+    int ret, return_value;
     stub_t *stub;
-    attacher_paramater_t pars[2] = {{0x1234, 0}, {"test2", 6}};
 
     TRY {
         THROW_IF(((stub = attacher->alloc_stub(attacher)) == NULL), -1);
         EXEC(attacher->add_stub_hooks(attacher, stub, "attacher_test_with_pointer_arg", NULL, 
                                       "attacher_test2_with_pointer_arg", NULL, 2));
-        EXEC(ret = attacher->call(attacher, NULL, "attacher_test_with_pointer_arg", pars, 2));
+        EXEC(attacher->call(attacher, NULL, "attacher_test_with_pointer_arg(0x1234, \"test2\")", &return_value));
         dbg_str(DBG_WIP, "attacher_test_with_pointer_arg, ret:%x", ret);
-        THROW_IF(ret != 0xadaf, -1);
+        THROW_IF(return_value != 0xadaf, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {

@@ -306,6 +306,52 @@ static int __test_node_cli_call_obj(Node *node)
     return ret;
 }
 
+static int __test_node_cli_attacher_call(Node *node, pid_t pid)
+{
+    int ret;
+
+    TRY {
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 13, \"UnixAttacher\", #test_attacher, 0)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@attach(#test_attacher, %d)", pid));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@init(#test_attacher)"));
+
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 10, \"null\", #test_func_str, 128)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 mset node@#test_func_str{0-127} attacher_test_with_pointer_arg(0x1234, \"test2\")"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@call(#test_attacher, 0, #test_func_str, 0)"));
+
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_attacher)");
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_func_str)");
+    }
+
+    return ret;
+}
+
+static int __test_node_cli_attacher_stub(Node *node, pid_t pid)
+{
+    int ret;
+
+    TRY {
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 13, \"UnixAttacher\", #test_attacher, 0)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@attach(#test_attacher, %d)", pid));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@init(#test_attacher)"));
+
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 10, \"null\", #test_func_str, 128)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 mset node@#test_func_str{0-127} attacher_test_with_pointer_arg(0x1234, \"test2\")"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@call(#test_attacher, 0, #test_func_str, 0)"));
+
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {} FINALLY {
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_attacher)");
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_func_str)");
+    }
+
+    return ret;
+}
+
 static int __test_node_cli_attacher(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -328,14 +374,11 @@ static int __test_node_cli_attacher(Node *node)
         dbg_str(DBG_VIP, "test_attacher pid:%d", pid);
 
         usleep(10000);
-        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 13, \"UnixAttacher\", #test_attacher, 0)"));
-        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@attach(#test_attacher, %d)", pid));
-        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@init(#test_attacher)"));  
-
+        EXEC(__test_node_cli_attacher_call(node, pid));
+        // EXEC(__test_node_cli_attacher_stub(node, pid));
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
-        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_attacher)");
         process_kill(pid);
     }
 

@@ -1,8 +1,7 @@
-[update:node] 新增call_obj方法。
+[update:node] node cli支持调用attacher call方法。
 
 Description:
-call bus和call fsh保持一致， 字符串参数需要引号开头作为标识符。
+测试用例node cli运行attached进程方法测试通过。
 
 Major Changes:
-1. node_cl支持变参。
-2. 修复run_object_func返回值问题。
+1. node cli支持调用attached进程方法。

@@ -166,7 +166,7 @@ static char __at(String *string, int index)
     return string->value[index];
 }
 
-static String *__assign(String *string, char *s)
+static int __assign(String *string, char *s)
 {
     int l = strlen(s);
     int ret;
@@ -179,7 +179,7 @@ static String *__assign(String *string, char *s)
     string->value_len  = l;
     string->value[l] = '\0';
 
-    return string;
+    return 1;
 }
 
 static int __equal(String *string, char *s)

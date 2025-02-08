@@ -30,6 +30,7 @@ struct Node_s {
 	int (*call_fsh)(Node *node, const char *fmt, ...);
 	int (*call_fsh_object_method)(Node *node, const char *fmt, ...);
 	int (*call_cmd)(Node *node, const char *fmt, ...);  // 用于运行remote 命令
+    int (*call_attacher)(Node *node, const char *name, const char *fmt, ...); 
 	int (*fwrite)(Node *node, char *from, char *node_id, char *to);
 	int (*fread)(Node *node, char *node_id, char *from, char *to);
 	int (*fcopy)(Node *node, char *from, char *to);

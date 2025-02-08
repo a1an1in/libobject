@@ -49,7 +49,7 @@ char *str_trim(char *str)
     if(p)
     {
         p1 = p + strlen(str) - 1;
-        while(*p && isspace(*p))
+        while(p < p1 && isspace(*p))
             p++;
         while(p1 > p && isspace(*p1))
             *p1--=0;

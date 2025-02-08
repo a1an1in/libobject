@@ -229,13 +229,13 @@ struct node_command_s {
     [COMMAND_TYPE_BUS_CALL] = {COMMAND_TYPE_BUS_CALL, "call_bus", __call_bus_command_action},
     [COMMAND_TYPE_FSH_CALL] = {COMMAND_TYPE_FSH_CALL, "call_fsh", __call_fsh_command_action},
     [COMMAND_TYPE_CMD_CALL] = {COMMAND_TYPE_CMD_CALL, "call_cmd", __call_cmd_command_action},
-    [COMMAND_TYPE_OBJ_CALL] = {COMMAND_TYPE_OBJ_CALL, "call_obj", __call_obj_command_action},  
-    [COMMAND_TYPE_LOOKUP]   = {COMMAND_TYPE_LOOKUP, "lookup", __lookup_command_action},
-    [COMMAND_TYPE_COPY]     = {COMMAND_TYPE_COPY, "fcopy", __copy_command_action},
-    [COMMAND_TYPE_LIST]     = {COMMAND_TYPE_LIST, "flist", __list_command_action},
-    [COMMAND_TYPE_MSET]     = {COMMAND_TYPE_MSET, "mset", __mset_command_action},
-    [COMMAND_TYPE_MGET]     = {COMMAND_TYPE_MGET, "mget", __mget_command_action},
-    [COMMAND_TYPE_EXIT]     = {COMMAND_TYPE_EXIT, "exit", NULL},
+    [COMMAND_TYPE_OBJ_CALL] = {COMMAND_TYPE_OBJ_CALL, "call_obj", __call_obj_command_action},
+    [COMMAND_TYPE_LOOKUP] = {COMMAND_TYPE_LOOKUP, "lookup", __lookup_command_action},
+    [COMMAND_TYPE_COPY] = {COMMAND_TYPE_COPY, "fcopy", __copy_command_action},
+    [COMMAND_TYPE_LIST] = {COMMAND_TYPE_LIST, "flist", __list_command_action},
+    [COMMAND_TYPE_MSET] = {COMMAND_TYPE_MSET, "mset", __mset_command_action},
+    [COMMAND_TYPE_MGET] = {COMMAND_TYPE_MGET, "mget", __mget_command_action},
+    [COMMAND_TYPE_EXIT] = {COMMAND_TYPE_EXIT, "exit", NULL},
 };
 
 static int __run_command(Node_Cli_Command *command)

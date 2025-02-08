@@ -22,7 +22,7 @@ struct string_s{
     void *(*get)(void *obj, char *attrib);
     int (*modulate_capacity)(String *string, int write_len);
     String *(*alloc)(String *string,uint32_t size);
-    String *(*assign)(String *string,char *s);
+    int (*assign)(String *string,char *s);
     int (*equal)(String *string,char *s);
     void (*format)(String *, int max_len, char *fmt, ...);
     void (*append)(String *string, char *sub, int len);

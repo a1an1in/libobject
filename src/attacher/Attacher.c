@@ -5,7 +5,7 @@
  * @version 
  * @date 2023-07-28
  */
-
+#include <libobject/core/utils/string.h>
 #include <libobject/attacher/Attacher.h>
 
 extern void *attacher_malloc(int size);
@@ -185,7 +185,7 @@ static long __call_address(Attacher *attacher, void *function_address, attacher_
  * 如果函数是attacher为target加载且自己没有的库，则需要指定库名，否则target
  * 不能获取到函数名对应的地址。函数名为空只能查询进程自带函数的地址。
  */
-static long __call(Attacher *attacher, char *lib_name, char *name, attacher_paramater_t pars[], int num)
+static long __call_name(Attacher *attacher, char *lib_name, char *name, attacher_paramater_t pars[], int num)
 {
     long ret;
     void *addr;
@@ -204,6 +204,64 @@ static long __call(Attacher *attacher, char *lib_name, char *name, attacher_para
     return ret;
 }
 
+static long __call(Attacher *attacher, char *lib_name, char *func, long *ret_value)
+{
+    long ret, cnt, i, len, return_value;
+    allocator_t *allocator = attacher->parent.allocator;
+    attacher_paramater_t pars[20];
+    void *addr;
+    char *method_name, *arg;
+    String *str;
+
+    TRY {
+        dbg_str(DBG_WIP, "attacher call:%s", func);
+        /* 1. 获取函数名和参数 */
+        str = object_new(allocator, "String", func);
+        cnt = str->split(str, "[,\t\n();]", -1);
+
+        THROW_IF(cnt <= 0, 0);
+        method_name = str->get_splited_cstr(str, 0);
+        for (i = 1; i < cnt; i++) {
+            arg = str->get_splited_cstr(str, i);
+            arg = str_trim(arg);
+            THROW_IF(arg == NULL, -1);
+
+            if (arg[0] == '"')
+            /* 参数加引号为表示字符串， 不加引号为数字或者变量名 */
+            {
+                len = strlen(arg);
+                THROW_IF(arg[len - 1] != '"', -1);
+                arg[len - 1] = '\0';
+                pars[i - 1].value = arg + 1;
+                pars[i - 1].size = strlen(pars[i - 1].value);
+            } else if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
+                pars[i - 1].value = str_hex_to_integer(arg);
+                pars[i - 1].size = 0;
+            } else if (arg[0] == '0' && (arg[1] == 'd' || arg[1] == 'D')) {
+                pars[i - 1].value = atoi(arg + 2);
+                pars[i - 1].size = 0;
+            } else {
+                pars[i - 1].value = atoi(arg);
+                pars[i - 1].size = 0;
+            }
+        }
+
+        /* 2.get remote fuction address */
+        addr = attacher->get_remote_function_address(attacher, lib_name, method_name);
+        THROW_IF(addr == NULL, -1);
+        
+        /* 3.call */
+        return_value = attacher->call_address(attacher, addr, pars, cnt - 1);
+        if (ret_value != NULL) {
+            *ret_value = return_value;
+        }
+    } CATCH (ret) {} FINALLY {
+        object_destroy(str);
+    }
+
+    return ret;
+}
+
 static int __remove_lib(Attacher *attacher, char *name)
 {
     int ret;
@@ -217,7 +275,7 @@ static int __remove_lib(Attacher *attacher, char *name)
         dbg_str(DBG_VIP, "attacher remove_lib, lib name:%s, handle:%p", name, handle);
         THROW_IF(handle == NULL, -1);
         pars[0].value = handle;
-        EXEC(attacher->call(attacher, NULL, "attacher_dlclose", pars, 1));
+        EXEC(attacher->call_name(attacher, NULL, "attacher_dlclose", pars, 1));
     } CATCH (ret) {}
 
     return ret;
@@ -225,7 +283,7 @@ static int __remove_lib(Attacher *attacher, char *name)
 
 static stub_t *__alloc_stub(Attacher *attacher)
 {
-    return attacher->call(attacher, NULL, "stub_alloc", NULL, 0);
+    return attacher->call_name(attacher, NULL, "stub_alloc", NULL, 0);
 }
 
 /* 如果有函数属于加载的库，当前不支持。 */
@@ -262,7 +320,7 @@ __add_stub_hooks(Attacher *attacher, stub_t *stub, char *func, char *pre, char *
         dbg_str(DBG_INFO, "attacher add_stub_hooks, func:%p, pre:%p, target:%p, post:%p", 
                 pars[1].value, pars[2].value, pars[3].value, pars[4].value);
         
-        EXEC(attacher->call(attacher, NULL, "stub_add_hooks", pars, 6));
+        EXEC(attacher->call_name(attacher, NULL, "stub_add_hooks", pars, 6));
     } CATCH (ret) {} FINALLY {}
     
     return ret;
@@ -271,13 +329,13 @@ __add_stub_hooks(Attacher *attacher, stub_t *stub, char *func, char *pre, char *
 static int __remove_stub_hooks(Attacher *attacher, stub_t *stub)
 {
     attacher_paramater_t pars[1] = {{stub, 0}};
-    return attacher->call(attacher, NULL, "stub_remove_hooks", pars, 1);
+    return attacher->call_name(attacher, NULL, "stub_remove_hooks", pars, 1);
 }
 
 static int __free_stub(Attacher *attacher, stub_t *stub)
 {
     attacher_paramater_t pars[1] = {{stub, 0}};
-    return attacher->call(attacher, NULL, "stub_free", pars, 1);
+    return attacher->call_name(attacher, NULL, "stub_free", pars, 1);
 }
 
 static int __init(Attacher *attacher)
@@ -296,8 +354,8 @@ static int __init(Attacher *attacher)
         dbg_str(DBG_VIP, "path2:%s", path_addr);
         EXEC(attacher->add_lib(attacher, path_addr));
        
-        EXEC(attacher->call(attacher, NULL, "execute_ctor_funcs", NULL, 0));
-        EXEC(attacher->call(attacher, NULL, "stub_admin_init_default_instance", NULL, 0));
+        EXEC(attacher->call_name(attacher, NULL, "execute_ctor_funcs", NULL, 0));
+        EXEC(attacher->call_name(attacher, NULL, "stub_admin_init_default_instance", NULL, 0));
 
         /* 解析本地动态库地址区间， 后面方便根据本地地址查询对应的函数库 */
         // EXEC(dl_parse_dynamic_table(-1, attacher->tree));
@@ -320,16 +378,17 @@ static class_info_entry_t attacher_class_info[] = {
     Init_Vfunc_Entry(10, Attacher, free, __free),
     Init_Vfunc_Entry(11, Attacher, call_address_with_value_pars, NULL),
     Init_Vfunc_Entry(12, Attacher, call_address, __call_address),
-    Init_Vfunc_Entry(13, Attacher, call, __call),
-    Init_Vfunc_Entry(14, Attacher, add_lib, NULL),
-    Init_Vfunc_Entry(15, Attacher, remove_lib, __remove_lib),
-    Init_Vfunc_Entry(16, Attacher, alloc_stub, __alloc_stub),
-    Init_Vfunc_Entry(17, Attacher, add_stub_hooks, __add_stub_hooks),
-    Init_Vfunc_Entry(18, Attacher, remove_stub_hooks, __remove_stub_hooks),
-    Init_Vfunc_Entry(19, Attacher, free_stub, __free_stub),
-    Init_Vfunc_Entry(20, Attacher, init, __init),
-    Init_Vfunc_Entry(21, Attacher, run, NULL),
-    Init_Vfunc_Entry(22, Attacher, stop, NULL),
-    Init_End___Entry(23, Attacher),
+    Init_Vfunc_Entry(13, Attacher, call_name, __call_name),
+    Init_Vfunc_Entry(14, Attacher, call, __call),
+    Init_Vfunc_Entry(15, Attacher, add_lib, NULL),
+    Init_Vfunc_Entry(16, Attacher, remove_lib, __remove_lib),
+    Init_Vfunc_Entry(17, Attacher, alloc_stub, __alloc_stub),
+    Init_Vfunc_Entry(18, Attacher, add_stub_hooks, __add_stub_hooks),
+    Init_Vfunc_Entry(19, Attacher, remove_stub_hooks, __remove_stub_hooks),
+    Init_Vfunc_Entry(20, Attacher, free_stub, __free_stub),
+    Init_Vfunc_Entry(21, Attacher, init, __init),
+    Init_Vfunc_Entry(22, Attacher, run, NULL),
+    Init_Vfunc_Entry(23, Attacher, stop, NULL),
+    Init_End___Entry(24, Attacher),
 };
 REGISTER_CLASS(Attacher, attacher_class_info);
