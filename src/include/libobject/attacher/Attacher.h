@@ -43,7 +43,7 @@ struct Attacher_s {
     int (*add_lib)(Attacher *, char *name);
     int (*remove_lib)(Attacher *, char *name);
     int (*init)(Attacher *);
-    stub_t *(*alloc_stub)(Attacher *);
+    long (*alloc_stub)(Attacher *, stub_t **);
     int (*add_stub_hooks)(Attacher *attacher, stub_t *stub, char *func, char *pre, char *new_fn, char *post, int para_count);
     int (*remove_stub_hooks)(Attacher *attacher, stub_t *stub);
     int (*free_stub)(Attacher *, stub_t *stub);

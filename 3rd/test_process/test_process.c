@@ -7,6 +7,9 @@
 #include <sys/syscall.h> //for gettid
 
 #define gettid() syscall(__NR_gettid)
+extern int attacher_test_with_pointer_arg(int par1, char *par2);
+extern int attacher_test_with_pointer_arg_prehook(int par1, char *par2);
+extern attacher_test_with_pointer_arg_afterhook(int par1, char *par2);
 
 int test_with_mixed_type_pars(int par1, char *par2)
 {
@@ -26,6 +29,7 @@ void *test_thread_callback(void *para)
 
     printf("sprintf function addr: %p\n", sprintf);
     printf("test_with_mixed_type_pars function addr: %p\n", test_with_mixed_type_pars);
+    printf("attacher_test_with_pointer_arg function addr: %p\n", attacher_test_with_pointer_arg);
 
     // attacher_dlopen("abc", 0);
 	while (1) {

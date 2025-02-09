@@ -212,7 +212,7 @@ static int test_attacher_call_stub(Attacher *attacher, pid_t pid)
     stub_t *stub;
 
     TRY {
-        THROW_IF(((stub = attacher->alloc_stub(attacher)) == NULL), -1);
+        EXEC(attacher->alloc_stub(attacher, &stub));
         EXEC(attacher->add_stub_hooks(attacher, stub, "attacher_test_with_pointer_arg", NULL, 
                                       "attacher_test2_with_pointer_arg", NULL, 2));
         EXEC(attacher->call(attacher, NULL, "attacher_test_with_pointer_arg(0x1234, \"test2\")", &return_value));

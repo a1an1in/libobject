@@ -658,7 +658,7 @@ int busd_destroy(busd_t *busd)
 
     TRY {
         THROW_IF(busd == NULL, 0);
-        dbg_str(DBG_VIP, "destory busd!");
+        dbg_str(BUS_VIP, "destory busd!");
 
         allocator = busd->allocator;
         map = busd->obj_map;

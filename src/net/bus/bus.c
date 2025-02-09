@@ -909,7 +909,7 @@ int bus_destroy(bus_t *bus)
 {
     if (bus == NULL) return 0;
 
-    dbg_str(DBG_VIP, "destory bus!");
+    dbg_str(BUS_VIP, "destory bus!");
     object_destroy(bus->obj_map);
     object_destroy(bus->req_map);
     blob_destroy(bus->blob);

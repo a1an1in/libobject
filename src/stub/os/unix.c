@@ -193,7 +193,7 @@ int stub_add_hooks(stub_t *stub, void *func, void *pre, void *new_fn, void *post
         stub->fn = func;
         stub->post = post;
         stub->para_count = para_count;
-        dbg_str(DBG_VIP,"stub:%p, pre:%p, func:%p, post:%p, stubed_func:%p", 
+        dbg_str(DBG_INFO,"stub:%p, pre:%p, func:%p, post:%p, stubed_func:%p", 
                 stub, stub->pre, stub->new_fn, stub->post, stub->fn);
         EXEC(stub_add(stub, func, stub->area->exec_code));
     } CATCH (ret) {}

@@ -99,7 +99,7 @@ void* dl_get_remote_function_adress(pid_t target_pid, const char* module_name, v
         THROW_IF(local_handle == NULL, -1);
 	    remote_handle = dl_get_dynamic_lib_base_address(target_pid, module_name);
         THROW_IF(remote_handle == NULL, -1);
-        dbg_str(DBG_VIP, "local_addr:%p,  remote_handle:%p, local_handle:%p", local_addr, (uint64_t)remote_handle, (uint64_t)local_handle);
+        dbg_str(DBG_DETAIL, "local_addr:%p,  remote_handle:%p, local_handle:%p", local_addr, (uint64_t)remote_handle, (uint64_t)local_handle);
         return (void *)((uint64_t)local_addr + (uint64_t)remote_handle - (uint64_t)local_handle);
     } CATCH (ret) {}
 	

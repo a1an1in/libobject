@@ -129,8 +129,8 @@ static int __mset_command_action(Node_Cli_Command *command, char *arg1, char *ar
     int ret, len, cnt, i, offset, capacity;
 
     TRY {
-        dbg_str(DBG_VIP, "mset_command_action, arg1:%s", arg1);
-        dbg_str(DBG_VIP, "mset_command_action, arg2:%s", arg2);
+        dbg_str(DBG_DETAIL, "mset_command_action, arg1:%s", arg1);
+        dbg_str(DBG_DETAIL, "mset_command_action, arg2:%s", arg2);
         EXEC(str->reset(str));
         str->assign(str, arg1);
         cnt = str->split(str, "[@{}-]", -1);
@@ -143,7 +143,7 @@ static int __mset_command_action(Node_Cli_Command *command, char *arg1, char *ar
         } else {
             offset = 0, capacity = sizeof(void *);
         }
-        dbg_str(DBG_VIP, "mset_command_action, type:%d, cnt:%d, addr:%s, offset:%d, capacity:%d", node->type, cnt, addr_name, offset, capacity);
+        dbg_str(DBG_DETAIL, "mset_command_action, type:%d, cnt:%d, addr:%s, offset:%d, capacity:%d", node->type, cnt, addr_name, offset, capacity);
         EXEC(node->mget_addr(node, node_id, node->type, addr_name, &addr));
         EXEC(node->mset(node, node_id, node->type, addr, offset, capacity, arg2, strlen(arg2)));
     } CATCH (ret) {}
@@ -259,7 +259,7 @@ static int __option_host_callback(Option *option, void *opaque)
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
     Node *n = c->node;
 
-    dbg_str(DBG_VIP,"option_host_action_callback:%s", STR2A(option->value));
+    dbg_str(DBG_INFO,"option_host_action_callback:%s", STR2A(option->value));
     n->host = STR2A(option->value);
 
     return 1;
@@ -270,7 +270,7 @@ static int __option_service_callback(Option *option, void *opaque)
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
     Node *n = c->node;
 
-    dbg_str(DBG_VIP,"option_service_action_callback:%s", STR2A(option->value));
+    dbg_str(DBG_INFO, "option_service_action_callback:%s", STR2A(option->value));
     n->service = STR2A(option->value);
 
     return 1;
@@ -281,7 +281,7 @@ static int __option_disable_node_service_callback(Option *option, void *opaque)
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
     Node *n = c->node;
 
-    dbg_str(DBG_VIP,"disable_node_service: %s", STR2A(option->value));
+    dbg_str(DBG_INFO, "disable_node_service: %s", STR2A(option->value));
     if ((strcmp(STR2A(option->value), "true") == 0) ||
         (strcmp(STR2A(option->value), "True") == 0) ||
         (strcmp(STR2A(option->value), "T") == 0) ||
@@ -309,7 +309,7 @@ static int __argument_arg0_action_callback(Argument *arg, void *opaque)
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
     int i, ret;
 
-    dbg_str(DBG_VIP,"argument arg0:%s", STR2A(arg->value));
+    dbg_str(DBG_INFO, "argument arg0:%s", STR2A(arg->value));
 
     for (i = 0; i < COMMAND_TYPE_MAX; i++) {
         if (node_cli_command_table[i].command_name == NULL) continue;
@@ -326,7 +326,7 @@ static int __argument_arg1_action_callback(Argument *arg, void *opaque)
 {
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
 
-    dbg_str(DBG_VIP,"argument arg1:%s", STR2A(arg->value));
+    dbg_str(DBG_INFO,"argument arg1:%s", STR2A(arg->value));
     c->arg1 = STR2A(arg->value);
 
     return 0;
@@ -336,7 +336,7 @@ static int __argument_arg2_action_callback(Argument *arg, void *opaque)
 {
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
 
-    dbg_str(DBG_VIP,"argument arg2:%s", STR2A(arg->value));
+    dbg_str(DBG_INFO,"argument arg2:%s", STR2A(arg->value));
     c->arg2 = STR2A(arg->value);
 
     return 0;

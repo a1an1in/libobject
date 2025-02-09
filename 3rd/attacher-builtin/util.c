@@ -48,6 +48,20 @@ int attacher_test2_with_pointer_arg(int par1, char *par2)
     return 0xadaf;
 }
 
+int attacher_test_with_pointer_arg_prehook(int par1, char *par2)
+{
+    printf("attacher_test_with_pointer_arg_prehook, par1:%x, par2:%s\n", par1, par2);
+    
+    return 0xadae;
+}
+
+int attacher_test_with_pointer_arg_afterhook(int par1, char *par2)
+{
+    printf("attacher_test_with_pointer_arg_afterhook, par1:%x, par2:%s\n", par1, par2);
+    
+    return 0xadae;
+}
+
 void *attacher_malloc(int size)
 {
     void *addr;

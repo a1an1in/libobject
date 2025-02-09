@@ -195,7 +195,7 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
                 args[i].value = str_hex_to_integer(tmp);
                 dbg_str(DBG_INFO, "call_bus ARG_TYPE_UINT64:%p, hex string:%s", args[i].value, tmp);
             } else if (args[i].type == ARG_TYPE_BUFFER) {
-                dbg_str(DBG_VIP, "call_bus ARG_TYPE_BUFFER value:%s", tmp);
+                dbg_str(DBG_INFO, "call_bus ARG_TYPE_BUFFER value:%s", tmp);
                 p = strchr(tmp, ':');
                 THROW_IF(p == NULL, -1);
                 *p = '\0';
@@ -801,7 +801,7 @@ int node_cli(char *fmt, ...)
 
         strcpy(tmp, fmt_str);
         str_remove_spaces_around_comma(tmp);
-        dbg_str(DBG_VIP, "%s", tmp);
+        dbg_str(DBG_DETAIL, "%s", tmp);
         str_split(tmp, " ", argv, &argc);
 
         cli = object_new(allocator, "Node_Cli_Command", NULL);

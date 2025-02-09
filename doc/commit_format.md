@@ -1,7 +1,8 @@
-[update:node] node cli支持调用attacher call方法。
+[update:node] node cli支持attacher。
 
 Description:
-测试用例node cli运行attached进程方法测试通过。
+测试用例node cli测试attacher call和stub都通过测试。
 
 Major Changes:
-1. node cli支持调用attached进程方法。
+1. 更改日志等级。
+2. 修复run_object_func取地址问题。

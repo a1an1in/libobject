@@ -190,7 +190,7 @@ static int __run_object_func(FShell *shell, String *str)
     int ret, i, cnt, len;
 
     TRY {
-        dbg_str(DBG_VIP, "run_object_func:%s", STR2A(str));
+        dbg_str(DBG_DETAIL, "run_object_func:%s", STR2A(str));
         map = shell->variable_map;
         cnt = str->split(str, "[,\t\n();]", -1);
 
@@ -216,6 +216,14 @@ static int __run_object_func(FShell *shell, String *str)
                 map->search(map, arg, &info);
                 THROW_IF(info == NULL, -1);
                 par[i - 1] = info->addr;
+            
+            } else if (arg[0] == '*' && arg[1] == '#')
+            /* *# 表示取值, 类似于C的*符号 */
+            {
+                map->search(map, arg + 1, &info);
+                THROW_IF(info == NULL, -1);
+                par[i - 1] = *((void **)info->addr);
+                dbg_str(DBG_INFO, "run_func, transfer variable %s address %p", arg, par[i - 1]);
             } else if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
                 par[i - 1] = str_hex_to_integer(arg);
                 dbg_str(DBG_DETAIL, "par i:%d value:%x", i - 1, par[i - 1]);
@@ -316,14 +324,14 @@ int fsh_variable_info_alloc(allocator_t *allocator, uint32_t value_type, char *c
             case VALUE_TYPE_STUB_POINTER:
                 info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + sizeof(void *));
                 info->addr = stub_alloc();
-                dbg_str(DBG_VIP, "node stub alloc %s:%p", name, info->addr);
+                dbg_str(DBG_DETAIL, "node stub alloc %s:%p", name, info->addr);
                 info->value_type = VALUE_TYPE_STUB_POINTER;
                 strcpy(info->name, name);
                 break;
             case VALUE_TYPE_OBJ_POINTER:
                 info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + sizeof(void *));
                 info->addr = object_new(allocator, class_name, NULL);
-                dbg_str(DBG_VIP, "node alloc object %s:%p", ((Obj *)info->addr)->name, info->addr);
+                dbg_str(DBG_DETAIL, "node alloc object %s:%p", ((Obj *)info->addr)->name, info->addr);
                 info->value_type = VALUE_TYPE_OBJ_POINTER;
                 strcpy(info->name, name);
                 break;

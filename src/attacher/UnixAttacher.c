@@ -56,7 +56,7 @@ static void *__get_remote_builtin_function_address(UnixAttacher *attacher, char 
         THROW_IF(addr == NULL, -1);
         addr = dl_get_remote_function_adress(((Attacher *)attacher)->pid, module_name, addr);
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_VIP, "attacher get_remote_builtin_function_address, function remote address:%p", addr);
+        dbg_str(DBG_INFO, "attacher get_remote_builtin_function_address, %s remote address:%p", name, addr);
     } CATCH (ret) { addr = NULL; }
 
     return addr;
@@ -92,7 +92,7 @@ static void *__write(UnixAttacher *attacher, void *addr, uint8_t *value, int len
     long tmp;
 
     TRY {
-        dbg_str(DBG_VIP, "attacher write addr:%p, len:%d", addr, len);
+        dbg_str(DBG_DETAIL, "attacher write addr:%p, len:%d", addr, len);
         num = (len + sizeof(long) - 1) / sizeof(long);
 
         for (i = 0; i < num; i++) {
@@ -179,7 +179,7 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
         EXEC(ptrace(PTRACE_GETREGS, ((Attacher *)attacher)->pid, NULL, &regs));
         EXEC(ptrace(PTRACE_SETREGS, ((Attacher *)attacher)->pid, NULL, &bak));
 
-        dbg_str(DBG_VIP, "call_address_with_value_pars function_address:%p, return value:%llx", function_address, regs.rax);
+        dbg_str(DBG_INFO, "call_address_with_value_pars function_address:%p, return value:%llx", function_address, regs.rax);
         return regs.rax;
     } CATCH (ret) {}
 

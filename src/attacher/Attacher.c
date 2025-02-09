@@ -71,13 +71,13 @@ static void *__malloc(Attacher *attacher, int size, void *value)
 
     TRY {
         THROW_IF(size == 0, 0);
-        dbg_str(DBG_VIP, "local attacher_malloc addr:%p", attacher_malloc);
+        dbg_str(DBG_INFO, "local attacher_malloc addr:%p", attacher_malloc);
         addr = attacher->get_remote_builtin_function_address(attacher, "attacher_malloc", "libattacher-builtin.so");
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_VIP, "attacher_malloc addr:%p", addr);
+        dbg_str(DBG_INFO, "attacher_malloc addr:%p", addr);
         addr = attacher->call_address_with_value_pars(attacher, addr, pars, 1);
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_VIP, "attacher malloc addr:%p, size:%d", addr, size);
+        dbg_str(DBG_INFO, "attacher malloc addr:%p, size:%d", addr, size);
         if (value != NULL) {
             EXEC(attacher->write(attacher, addr, value, size));
         }
@@ -97,7 +97,7 @@ static int __free(Attacher *attacher, void *addr)
         THROW_IF(addr == 0, -1);
         free_addr = attacher->get_remote_builtin_function_address(attacher, "attacher_free", "libattacher-builtin.so");
         THROW_IF(free_addr == NULL, -1);
-        dbg_str(DBG_VIP, "free func addr:%p, free addr:%p", free_addr, addr);
+        dbg_str(DBG_INFO, "free func addr:%p, free addr:%p", free_addr, addr);
         ret = attacher->call_address_with_value_pars(attacher, free_addr, pars, 1);
         THROW(ret);
     } CATCH (ret) {}
@@ -158,7 +158,7 @@ static long __call_address(Attacher *attacher, void *function_address, attacher_
             /* We require size to be multiples of long because ptrace is written in units of long */
             if (pars[i].size % sizeof(long) != 0) {
                 pars[i].size = (pars[i].size / sizeof(long) + 1) * sizeof(long);
-                dbg_str(DBG_VIP, "call address prepare paramater %d, newsize:%d", i, pars[i].size);
+                dbg_str(DBG_DETAIL, "call address prepare paramater %d, newsize:%d", i, pars[i].size);
             }
             
             paramters[i] = attacher->malloc(attacher, pars[i].size, pars[i].value);
@@ -272,7 +272,7 @@ static int __remove_lib(Attacher *attacher, char *name)
     TRY {
         THROW_IF(name == NULL, -1);
         EXEC(map->remove(map, name, &handle));
-        dbg_str(DBG_VIP, "attacher remove_lib, lib name:%s, handle:%p", name, handle);
+        dbg_str(DBG_VIP, "attacher remove lib:%s, handle:%p", name, handle);
         THROW_IF(handle == NULL, -1);
         pars[0].value = handle;
         EXEC(attacher->call_name(attacher, NULL, "attacher_dlclose", pars, 1));
@@ -281,9 +281,11 @@ static int __remove_lib(Attacher *attacher, char *name)
     return ret;
 }
 
-static stub_t *__alloc_stub(Attacher *attacher)
+static int __alloc_stub(Attacher *attacher, stub_t **stub)
 {
-    return attacher->call_name(attacher, NULL, "stub_alloc", NULL, 0);
+    *stub = attacher->call_name(attacher, NULL, "stub_alloc", NULL, 0);
+    dbg_str(DBG_WIP, "alloc_stub addr:%p", *stub);
+    return 1;
 }
 
 /* 如果有函数属于加载的库，当前不支持。 */
@@ -317,8 +319,8 @@ __add_stub_hooks(Attacher *attacher, stub_t *stub, char *func, char *pre, char *
             addr = attacher->get_remote_function_address(attacher, NULL, post);
             pars[4].value = addr;
         }
-        dbg_str(DBG_INFO, "attacher add_stub_hooks, func:%p, pre:%p, target:%p, post:%p", 
-                pars[1].value, pars[2].value, pars[3].value, pars[4].value);
+        dbg_str(DBG_DETAIL, "attacher add_stub_hooks, stub:%p, func:%p, pre:%p, target:%p, post:%p, para count:%d", 
+                stub, pars[1].value, pars[2].value, pars[3].value, pars[4].value, para_count);
         
         EXEC(attacher->call_name(attacher, NULL, "stub_add_hooks", pars, 6));
     } CATCH (ret) {} FINALLY {}
@@ -347,11 +349,11 @@ static int __init(Attacher *attacher)
     TRY {
         path_addr = allocator_mem_zalloc(allocator, 128);
         EXEC(dl_get_dynamic_lib_path(-1, "libobject-core.so", path_addr, 128));
-        dbg_str(DBG_VIP, "path1:%s", path_addr);
+        dbg_str(DBG_DETAIL, "attacher init add lib:%s", path_addr);
         EXEC(attacher->add_lib(attacher, path_addr));
         path_addr = allocator_mem_zalloc(allocator, 128);
         EXEC(dl_get_dynamic_lib_path(-1, "libobject-stub.so", path_addr, 128));
-        dbg_str(DBG_VIP, "path2:%s", path_addr);
+        dbg_str(DBG_DETAIL, "attacher init add lib:%s", path_addr);
         EXEC(attacher->add_lib(attacher, path_addr));
        
         EXEC(attacher->call_name(attacher, NULL, "execute_ctor_funcs", NULL, 0));

@@ -366,7 +366,7 @@ static int node_call_fshell_object_method(bus_object_t *obj, int argc,
         shell = node->shell;
         str = node->str;
 
-        dbg_str(DBG_INFO, "node_call_fshell_object_method command:%s", command);
+        dbg_str(DBG_DETAIL, "node_call_fshell_object_method command:%s", command);
         str->reset(str);
         str->assign(str, command);
         THROW(shell->run_object_func(shell, str));
@@ -417,7 +417,7 @@ static int node_malloc(bus_object_t *obj, int argc,
         addr = info->addr;
         map->add(map, info->name, info);
         
-        dbg_str(DBG_VIP, "node_malloc, name:%s, class_name:%s, size:%d, addr:%p", name, class_name, size, addr);
+        dbg_str(DBG_INFO, "node_malloc, name:%s, class_name:%s, size:%d, addr:%p", name, class_name, size, addr);
         *out_len = sizeof(void *);
         addr = byteorder_cpu_to_be64(&addr);
         memcpy(out, &addr, sizeof(void *));
@@ -530,9 +530,9 @@ static int node_mset(bus_object_t *obj, int argc,
         allocator = bus->allocator;
         THROW_IF(len > capacity || addr == NULL, -1);
 
-        dbg_str(DBG_VIP, "node_mset, type:%d addr:%p, offset:%d, capacity:%d, len:%d", 
+        dbg_str(DBG_DETAIL, "node_mset, type:%d addr:%p, offset:%d, capacity:%d, len:%d", 
                 type, addr, offset, capacity, len);
-        dbg_buf(DBG_VIP, "node mset receive buffer:", buffer, len);
+        dbg_buf(DBG_DETAIL, "node mset receive buffer:", buffer, len);
         memcpy(addr + offset, buffer, len);
     } CATCH (ret) { } FINALLY { *out_len = 0; }
 
