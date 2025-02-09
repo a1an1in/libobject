@@ -9,7 +9,10 @@
 #define gettid() syscall(__NR_gettid)
 extern int attacher_test_with_pointer_arg(int par1, char *par2);
 extern int attacher_test_with_pointer_arg_prehook(int par1, char *par2);
-extern attacher_test_with_pointer_arg_afterhook(int par1, char *par2);
+extern int attacher_test_with_pointer_arg_posthook(int par1, char *par2);
+extern void *attacher_get_func_addr_by_name(char *name, char *lib_name);
+
+long global_test = 0x1234;
 
 int test_with_mixed_type_pars(int par1, char *par2)
 {
@@ -23,18 +26,19 @@ void *test_thread_callback(void *para)
     int i = 0;
 
 #if (!defined(WINDOWS_USER_MODE))
-    printf("child thread tid: %u\n", gettid());
+    printf("child thread tid: %lu\n", gettid());
     printf("dlopen function addr: %p\n", dlopen);
 #endif
 
     printf("sprintf function addr: %p\n", sprintf);
     printf("test_with_mixed_type_pars function addr: %p\n", test_with_mixed_type_pars);
     printf("attacher_test_with_pointer_arg function addr: %p\n", attacher_test_with_pointer_arg);
+    printf("global_test addr: %p\n", &global_test);
 
     // attacher_dlopen("abc", 0);
 	while (1) {
         i++;
-        sleep(2);
+        sleep(5);
         printf("test thread is running, loop index:%d\n", i);
         test_with_mixed_type_pars(1, "abc");
 	}

@@ -54,10 +54,10 @@ timedatectl list-timezones  # list all
 addr2line -e ./sysroot/linux/bin/xtools 0x6a44f
 addr2line -e ./sysroot/linux/bin/xtools 0x98c00
 addr2line -e ./sysroot/linux/bin/xtools 0x53ccc
-addr2line -f -e ./sysroot/linux/bin/xtools  libobject-core.so 0x152
+addr2line -f -e ./sysroot/linux/bin/xtools  libobject-core.so 0x43d6b
 addr2line -e ./sysroot/linux/bin/xtools 0x6e96a
 addr2line -e ./sysroot/linux/bin/xtools 0xaeba2
-addr2line -e ./sysroot/linux/bin/xtools 0x7fed6
+addr2line -e ./sysroot/linux/bin/xtools 0xb3a62
 ```
 
 ## bus test
@@ -204,9 +204,32 @@ stdbuf -oL -eL ./sysroot/linux/bin/test-process  > ~/.xtools/test_process.log 2>
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
 ./sysroot/linux/bin/xtools --event-thread-service=11151 --event-signal-service=11152 node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"ls -l"}
 
-./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_attacher
-
 * 2.7 attancher
+./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_attacher
+./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_node
+
+//run node service and test process
+./sysroot/linux/bin/test-process
+./sysroot/linux/bin/xtools --event-thread-service=11141 --event-signal-service=11142 node --log-level=0x20016 --host=139.159.231.27 --service=12345
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
+
+// open attacher
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_bus 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"malloc(0, 13, \"UnixAttacher\", #test_attacher, 0)"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"attach(#test_attacher, 244049)"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"init(#test_attacher)"}
+
+// test adding stub
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_bus 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"malloc(0, 10, \"null\", #test_stub, 8)"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"alloc_stub(#test_attacher, #test_stub)"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"add_stub_hooks(#test_attacher, *#test_stub, \"test_with_mixed_type_pars\", \"attacher_test_with_pointer_arg_prehook\", \"attacher_test2_with_pointer_arg\", \"attacher_test_with_pointer_arg_posthook\", 2)"}
+
+// remove stub
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"remove_stub_hooks(#test_attacher, *#test_stub)"}
+
+// test calling target method
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_bus 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"malloc(0, 10, \"null\", #test_func_str, 128)"}
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 mset 4807d81c85887316271c05e27ee5a3f8795dd1a6@#test_func_str{0-127} "attacher_test_with_pointer_arg(0x1234, \"test2\")"
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"call(#test_attacher, 0, #test_func_str, 0)"}
 
 3 windows 测试
 ./sysroot/windows/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node --log-level=0x15 --host=139.159.231.27 --service=12345

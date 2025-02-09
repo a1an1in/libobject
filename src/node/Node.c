@@ -289,7 +289,7 @@ static int __call_fsh_object_method(Node *node, const char *fmt, ...)
         EXEC(str->reset(str));
         str->assign(str, code);
         dbg_str(DBG_VIP, "call_fsh_object_method %s", code);
-        count = str->split(str, "[@]", -1);
+        count = str->split(str, "[@{}]", -1);
         THROW_IF(count != 2, -1);
         bus = node->bus;
 

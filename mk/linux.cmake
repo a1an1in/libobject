@@ -83,8 +83,8 @@ endmacro()
 
 # add compile paramater 
 macro (add_compiling_options)
-    add_definitions(-DDEBUG)
-    add_definitions(-O0 -g)
+    #add_definitions(-DDEBUG)
+    #add_definitions(-O0 -g)
     add_definitions(-fPIC)
     #add_definitions(-Wl,--no-whole-archive)
     #add_definitions(-Wl,--whole-archive)

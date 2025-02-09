@@ -530,7 +530,7 @@ int bus_handle_invoke_reply(bus_t *bus, blob_attr_t **attr)
         if (req->async_callback == NULL) {
             if (req->opaque_buffer_len < buffer_len) {
                 req->opaque_len = req->opaque_buffer_len;
-                dbg_str(BUS_WARN, "opaque buffer is too small, please check, opaque_buffer_len:%d, buffer_len:%d", req->opaque_buffer_len, buffer_len);
+                dbg_str(BUS_INFO, "opaque buffer is too small, please check, opaque_buffer_len:%d, buffer_len:%d", req->opaque_buffer_len, buffer_len);
             } else {
                 req->opaque_len = buffer_len;
             }

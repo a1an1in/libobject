@@ -36,7 +36,7 @@ int attacher_test_without_pointer_arg(int a, int b, int c, int d, int e, int f, 
 
 int attacher_test_with_pointer_arg(int par1, char *par2)
 {
-    printf("attacher_test2_with_pointer_arg, par1:%x, par2:%s\n", par1, par2);
+    printf("attacher_test_with_pointer_arg, par1:%x, par2:%s\n", par1, par2);
     
     return 0xadae;
 }
@@ -55,9 +55,9 @@ int attacher_test_with_pointer_arg_prehook(int par1, char *par2)
     return 0xadae;
 }
 
-int attacher_test_with_pointer_arg_afterhook(int par1, char *par2)
+int attacher_test_with_pointer_arg_posthook(int par1, char *par2)
 {
-    printf("attacher_test_with_pointer_arg_afterhook, par1:%x, par2:%s\n", par1, par2);
+    printf("attacher_test_with_pointer_arg_posthook, par1:%x, par2:%s\n", par1, par2);
     
     return 0xadae;
 }
