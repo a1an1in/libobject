@@ -121,6 +121,7 @@ void *attacher_get_func_addr_by_name(char *name, char *lib_name)
     void *handle = NULL;
     void *addr = NULL;
 
+#if (!defined(WINDOWS_USER_MODE))
     /* open the needed object */
     handle = dlopen(lib_name, RTLD_LOCAL | RTLD_LAZY);
     if (handle == NULL) {
@@ -131,6 +132,7 @@ void *attacher_get_func_addr_by_name(char *name, char *lib_name)
     addr = dlsym(handle, name);
     printf("attacher_get_func_addr_by_name, func name:%s, addr:%p\n", name, addr);
     dlclose(handle);
+#endif
 
     return addr;
 }

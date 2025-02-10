@@ -61,7 +61,7 @@ static int __trustee_io(Select_Base *b, event_t *e)
     Event_Base *p = (Event_Base *)b;
 
     if (fd < 0) {
-        dbg_str(EV_WARN, "not add this fd =%d", fd);
+        dbg_str(EV_INFO, "not add this fd =%d", fd);
         return 0;
     }
 

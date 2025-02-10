@@ -384,6 +384,7 @@ static int __test_node_cli_attacher_operate_global_addr(Node *node, pid_t pid)
     return ret;
 }
 
+#if (defined(LINUX_USER_MODE))
 static int __test_node_cli_attacher(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -423,6 +424,7 @@ static int __test_node_cli_attacher(Node *node)
 
     return ret;
 }
+#endif
 
 static int test_node(TEST_ENTRY *entry)
 {
@@ -454,7 +456,9 @@ static int test_node(TEST_ENTRY *entry)
         EXEC(__test_node_call_bus(node));
         EXEC(__test_node_list(node));
         EXEC(__test_node_read_file(node));
+#if (defined(LINUX_USER_MODE))
         EXEC(__test_node_read_files(node));
+#endif
         EXEC(__test_node_write_file(node));
         EXEC(__test_node_write_files(node));
         EXEC(__test_node_malloc_and_mfree(node));
