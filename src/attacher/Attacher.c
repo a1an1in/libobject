@@ -8,14 +8,13 @@
 #include <libobject/core/utils/string.h>
 #include <libobject/attacher/Attacher.h>
 
-extern void *attacher_malloc(int size);
-extern int attacher_free(void *addr);
-
 static int tree_node_free_callback(allocator_t *allocator, void *value)
 {
     interval_tree_node_t *t = (interval_tree_node_t *)value;
+
     allocator_mem_free(allocator, t->value);
     allocator_mem_free(allocator, t);
+
     return 0;
 }
 
@@ -67,14 +66,16 @@ static void *__malloc(Attacher *attacher, int size, void *value)
 {
     int ret;
     void *addr;
+    char module_name[64] = {0};
     long long pars[1] = {size};
 
     TRY {
         THROW_IF(size == 0, 0);
-        dbg_str(DBG_INFO, "local attacher_malloc addr:%p", attacher_malloc);
-        addr = attacher->get_remote_builtin_function_address(attacher, "attacher_malloc", "libattacher-builtin.so");
+        EXEC(dl_get_dynamic_name(-1, malloc, module_name, 64));
+        dbg_str(DBG_INFO, "local malloc addr:%p", malloc);
+        addr = attacher->get_remote_builtin_function_address(attacher, "malloc", module_name);
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_INFO, "attacher_malloc addr:%p", addr);
+        dbg_str(DBG_INFO, "remote alloc addr:%p", addr);
         addr = attacher->call_address_with_value_pars(attacher, addr, pars, 1);
         THROW_IF(addr == NULL, -1);
         dbg_str(DBG_INFO, "attacher malloc addr:%p, size:%d", addr, size);
@@ -91,11 +92,13 @@ static int __free(Attacher *attacher, void *addr)
 {
     int ret;
     void *free_addr;
+    char module_name[64] = {0};
     long long pars[1] = {addr};
 
     TRY {
         THROW_IF(addr == 0, -1);
-        free_addr = attacher->get_remote_builtin_function_address(attacher, "attacher_free", "libattacher-builtin.so");
+        EXEC(dl_get_dynamic_name(-1, free, module_name, 64));
+        free_addr = attacher->get_remote_builtin_function_address(attacher, "free", module_name);
         THROW_IF(free_addr == NULL, -1);
         dbg_str(DBG_INFO, "free func addr:%p, free addr:%p", free_addr, addr);
         ret = attacher->call_address_with_value_pars(attacher, free_addr, pars, 1);
@@ -275,7 +278,7 @@ static int __remove_lib(Attacher *attacher, char *name)
         dbg_str(DBG_VIP, "attacher remove lib:%s, handle:%p", name, handle);
         THROW_IF(handle == NULL, -1);
         pars[0].value = handle;
-        EXEC(attacher->call_name(attacher, NULL, "attacher_dlclose", pars, 1));
+        EXEC(attacher->call_name(attacher, NULL, "__libc_dlopen_mode", pars, 1));
     } CATCH (ret) {}
 
     return ret;
@@ -347,10 +350,18 @@ static int __init(Attacher *attacher)
     allocator_t *allocator = attacher->parent.allocator;
 
     TRY {
+        // 获取进程自带或自己运行后加载lib的函数地址，需要依赖libattacher-builtin.so，
+        // 所以需要init时提前加载到目标进程。
+        path_addr = allocator_mem_zalloc(allocator, 128);
+        EXEC(dl_get_dynamic_lib_path(-1, "libattacher-builtin.so", path_addr, 128));
+        dbg_str(DBG_DETAIL, "attacher init add lib:%s", path_addr);
+        EXEC(attacher->add_lib(attacher, path_addr));
+
         path_addr = allocator_mem_zalloc(allocator, 128);
         EXEC(dl_get_dynamic_lib_path(-1, "libobject-core.so", path_addr, 128));
         dbg_str(DBG_DETAIL, "attacher init add lib:%s", path_addr);
         EXEC(attacher->add_lib(attacher, path_addr));
+
         path_addr = allocator_mem_zalloc(allocator, 128);
         EXEC(dl_get_dynamic_lib_path(-1, "libobject-stub.so", path_addr, 128));
         dbg_str(DBG_DETAIL, "attacher init add lib:%s", path_addr);

@@ -116,6 +116,7 @@ int attacher_dlclose (void *handle)
     return addr;
  }
 
+/* 如果要获取进程自带函数或者运行后load且attacher没有的库里面的地址， 需要调用该函数获取 */
 void *attacher_get_func_addr_by_name(char *name, char *lib_name)
 {
     void *handle = NULL;

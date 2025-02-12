@@ -228,7 +228,6 @@ stdbuf -oL -eL ./sysroot/linux/bin/test-process  > ~/.xtools/test_process.log 2>
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"remove_stub_hooks(#test_attacher, *#test_stub)"}
 
 // test calling target method
-
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_bus 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"malloc(0, 10, \"null\", #test_func_str, 128)"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 mset 4807d81c85887316271c05e27ee5a3f8795dd1a6@#test_func_str{0-127} "attacher_test_with_pointer_arg(0x1234, \"test2\")"
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"call(#test_attacher, 0, #test_func_str, 0)"}

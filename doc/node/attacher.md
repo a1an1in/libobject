@@ -20,3 +20,4 @@ https://github.com/gaffe23/linux-inject/
 
 [Windows 中的三种常用 DLL 注入技术](https://www.xjx100.cn/news/475978.html?action=onClick)
 
+[代码艺术：浅析GDB注入魔法](https://forum.butian.net/share/3070)

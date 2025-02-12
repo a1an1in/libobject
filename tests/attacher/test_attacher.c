@@ -41,6 +41,7 @@ static int test_attacher_get_remote_function_address_case1(Attacher *attacher, p
     return ret;
 }
 
+/* 测试获取进程自带地址 */
 static int test_attacher_get_remote_function_address_case2(Attacher *attacher, pid_t pid)
 {
     int ret, return_value;
@@ -51,6 +52,24 @@ static int test_attacher_get_remote_function_address_case2(Attacher *attacher, p
         EXEC(attacher->call(attacher, NULL, "attacher_get_func_addr_by_name(\"test_with_mixed_type_pars\", 0)", &addr));
         THROW_IF(addr == NULL, -1);
         dbg_str(DBG_VIP, "%s addr:%p", func_name, addr);
+        dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) { } FINALLY {}
+
+    return ret;
+}
+
+static int test_attacher_get_remote_function_address_case3(Attacher *attacher, pid_t pid)
+{
+    int ret;
+    char *name = "__libc_dlopen_mode";
+    void *addr;
+
+    TRY {
+        // 如果函数本地有就可以不用指定库名
+        addr = attacher->get_remote_function_address(attacher, NULL, name);
+        dbg_str(DBG_WIP, "get_remote_function_address %s:%p", name, addr);
+        THROW_IF(addr == NULL, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {}
@@ -259,6 +278,7 @@ static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
 
         EXEC(test_attacher_get_remote_function_address_case1(attacher, pid));
         EXEC(test_attacher_get_remote_function_address_case2(attacher, pid));
+        EXEC(test_attacher_get_remote_function_address_case3(attacher, pid));
         EXEC(test_attacher_call_address_without_pars(attacher, pid));
         EXEC(test_attacher_call_address_with_value_pars(attacher, pid));
         EXEC(test_attacher_call_address_with_pointer_pars(attacher, pid));

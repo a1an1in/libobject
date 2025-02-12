@@ -7,10 +7,7 @@
 #include <sys/syscall.h> //for gettid
 
 #define gettid() syscall(__NR_gettid)
-extern int attacher_test_with_pointer_arg(int par1, char *par2);
-extern int attacher_test_with_pointer_arg_prehook(int par1, char *par2);
-extern int attacher_test_with_pointer_arg_posthook(int par1, char *par2);
-extern void *attacher_get_func_addr_by_name(char *name, char *lib_name);
+extern void *__libc_dlopen_mode (const char *name, int mode);
 
 long global_test = 0x1234;
 
@@ -25,15 +22,10 @@ void *test_thread_callback(void *para)
 {
     int i = 0;
 
-#if (!defined(WINDOWS_USER_MODE))
-    printf("child thread tid: %lu\n", gettid());
-    printf("dlopen function addr: %p\n", dlopen);
-#endif
-
     printf("sprintf function addr: %p\n", sprintf);
     printf("test_with_mixed_type_pars function addr: %p\n", test_with_mixed_type_pars);
-    printf("attacher_test_with_pointer_arg function addr: %p\n", attacher_test_with_pointer_arg);
     printf("global_test addr: %p\n", &global_test);
+    printf("__libc_dlopen_mode addr: %p\n", __libc_dlopen_mode);
 
     // attacher_dlopen("abc", 0);
 	while (1) {

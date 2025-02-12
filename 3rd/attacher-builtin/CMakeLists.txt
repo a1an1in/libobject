@@ -14,3 +14,4 @@ file(GLOB MOUDLE_SRC
 )
 
 add_library(${PROJECT_NAME} SHARED ${MOUDLE_SRC})
+target_link_libraries(${PROJECT_NAME} dl)

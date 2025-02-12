@@ -203,7 +203,7 @@ static int __add_lib(UnixAttacher *attacher, char *name)
         EXEC(map->search(map, name, &handle));
         THROW_IF(handle != NULL, 0);
 
-        handle = ((Attacher *)attacher)->call_name(attacher, NULL, "attacher_dlopen", pars, 2);
+        handle = ((Attacher *)attacher)->call_name(attacher, NULL, "__libc_dlopen_mode", pars, 2);
         dbg_str(DBG_VIP, "attacher add_lib, lib name:%s, flag:%x, handle:%p", 
                 name, RTLD_LOCAL | RTLD_LAZY, handle);
         THROW_IF(handle == NULL, -1);
