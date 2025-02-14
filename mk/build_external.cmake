@@ -46,7 +46,7 @@ macro (build_mysql)
             message("git clone and build mysql")
             ExternalProject_Add(mysql-connector-c
                 SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c
-                GIT_REPOSITORY git@github.com:a1an1in/mysql-connector-c.git
+                GIT_REPOSITORY https://github.com/a1an1in/mysql-connector-c.git
                 CMAKE_ARGS ${BUILD_EXTERNAL_ARGS})
         endif()
     endif()
@@ -75,7 +75,7 @@ macro (build_openssl)
             ExternalProject_Add(openssl
                 PREFIX openssl
                 SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/openssl
-                GIT_REPOSITORY git@github.com:a1an1in/openssl.git
+                GIT_REPOSITORY https://github.com/a1an1in/openssl.git
                 CONFIGURE_COMMAND ./config --prefix=${CMAKE_INSTALL_PREFIX}
                 BUILD_COMMAND make VERBOSE=1
                 BUILD_IN_SOURCE TRUE)
