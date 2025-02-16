@@ -306,6 +306,7 @@ static int __test_node_cli_call_obj(Node *node)
     return ret;
 }
 
+#if (defined(LINUX_USER_MODE))
 static int __test_node_cli_attacher_call(Node *node, pid_t pid)
 {
     int ret;
@@ -384,7 +385,6 @@ static int __test_node_cli_attacher_operate_global_addr(Node *node, pid_t pid)
     return ret;
 }
 
-#if (defined(LINUX_USER_MODE))
 static int __test_node_cli_attacher(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();

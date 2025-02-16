@@ -46,6 +46,12 @@
 #include <libobject/core/utils/registry/registry.h>
 #include "Inet_Tcp_Socket.h"
 
+// 苹果平台这些宏跟linux有些差异， 需要定义有差异的部分使代码能够统一。
+#ifdef __APPLE__
+    #define SOL_TCP IPPROTO_TCP
+    #define TCP_KEEPIDLE TCP_KEEPALIVE
+#endif
+
 static int __get_sockoptval_size(int optname)
 {
     int size = 0;

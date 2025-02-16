@@ -250,7 +250,7 @@ static int __call_fsh(Node *node, const char *fmt, ...)
 
     TRY {
         va_start(ap, fmt);
-        vsnprintf(code, MAX_DBG_STR_LEN, fmt, ap);
+        vsnprintf(code, sizeof(code), fmt, ap);
         va_end(ap);
 
         EXEC(str->reset(str));
@@ -283,7 +283,7 @@ static int __call_fsh_object_method(Node *node, const char *fmt, ...)
 
     TRY {
         va_start(ap, fmt);
-        vsnprintf(code, MAX_DBG_STR_LEN, fmt, ap);
+        vsnprintf(code, sizeof(code), fmt, ap);
         va_end(ap);
 
         EXEC(str->reset(str));

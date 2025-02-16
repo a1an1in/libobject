@@ -23,24 +23,25 @@ macro (set_cmake_evironment_variable)
     SET (EXTERNAL_LIB_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/mac)
     SET (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
 
-    SET(ExternalLibs ${ExternalLibs} 
+    SET(ExternalLibs ${ExternalLibs}
         -force_load object-tests
-        #-force_load object-archive
         -force_load object-argument
         -force_load object-mockery
         -force_load object-compress
         -force_load object-concurrent
         -force_load object-core
         -force_load object-crypto
-        # -force_load object-db
         -force_load object-encoding
+        -force_load object-node
+        -force_load object-net
+        -force_load object-scripts
+        -force_load object-stub
+        crypto z iconv bz2 )
+        #-force_load object-archive
+        # -force_load object-db
         #-force_load object-media
         # -force_load object-message
-        -force_load object-net
-        # -force_load object-scripts
-        # -force_load object-stub
         #-force_load object-ui
-        crypto z iconv bz2 )
 
     #SET(ExternalLibs ${ExternalLibs} -force_load object-ex-media -force_load object-ex-ui avformat avfilter swscale swresample avcodec avutil x264 vorbis vorbisenc vorbisfile mp3lame vpx xvidcore opus fdk-aac theora xvidcore SDL2 SDL2_ttf yuv)
     find_library(SECURITY Security)
@@ -126,7 +127,7 @@ macro (add_module_lists)
     list(APPEND module_lists "src/crypto")
     list(APPEND module_lists "src/database")
     # list(APPEND module_lists "src/attacher")
-    # list(APPEND module_lists "src/scripts")
+    list(APPEND module_lists "src/scripts")
     list(APPEND module_lists "src/archive")
 
     # list(APPEND module_lists "src/drivers")
