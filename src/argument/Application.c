@@ -201,9 +201,7 @@ static int __run_command(Application *app)
 
         EXEC(producer_init_default_instance(event_thread_service, event_signal_service));
         EXEC(event_base_init_default_instance());
-#if (!defined(MAC_USER_MODE))
         EXEC(stub_admin_init_default_instance());
-#endif
 
         /* 之前fshell是在node中构造的，但是后面发现其它模块也需要，比如需要fshell load
          * 插件，所以fshell在更上层的application构造 */
@@ -296,9 +294,7 @@ int libobject_destroy()
     int ret;
 
     TRY {
-#if (!defined(MAC_USER_MODE))
         EXEC(stub_admin_destroy_default_instance());
-#endif
         EXEC(event_base_destroy_default_instance());
         EXEC(producer_destroy_default_instance());
         

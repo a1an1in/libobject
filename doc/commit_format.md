@@ -1,11 +1,8 @@
-[update:attacher] attacher已经完成。
+[update:node] 解决mac平台node测试用例问题。
 
 Description:
-发布v2.13.3.1版本， attacher已经不依赖目标进程自带dl库。
-现已经支持获取目标进程全局变量，运行函数和打桩目标进程的
-函数，动态加载动态库。所以attacher已经完备，后续的功能
-拓展可以在第三方库进行。
+解决mac平台load问题， core和stub是动态库不能用force_load。
 
 Major Changes:
-1. 发布v2.13.3.1版本。
-2. attacher去掉目标进程自带dl库的依赖。
+1. 修复mac平台测试用例。
+2. 修复mac平台bin链接动态库问题。

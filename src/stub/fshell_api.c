@@ -39,19 +39,6 @@ int test_print_outbound(int a, int b, int c, int d, int e, int f, int *g)
     return 1;
 }
 
-int fsh_printf(FShell *shell, char *fmt, ...)
-{
-    va_list ap;
-
-    printf("fsh_printf, fmt:%s\n", fmt);
-    dbg_buf(DBG_VIP, "fmt:", fmt, strlen(fmt));
-    va_start(ap, fmt);
-    vprintf(fmt, ap);
-    va_end(ap);
-
-    return 1;
-}
-
 int fsh_add_stub_hooks(FShell *shell, stub_t *stub, char *func_name, char *pre_name, 
                        char *new_fn_name, char *post_name, int para_count)
 {

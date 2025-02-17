@@ -209,7 +209,7 @@ void slab_print_list(ctr_slab_t *slab_list, uint16_t slab_index)
     if (slab_index != 0xffff) {
         dbg_str(ALLOC_WARN, 
                 "slab info, slab index =%d\t, alloc size=%d\t, req_size =%d\t, "
-                "slab_size=%d\t, slab_start:%p\t, slab_end:%p, tag:%s", 
+                "slab_size=%d\t, slab_start:%p\t, slab_end:%p, %s", 
                 slab_index, 
                 slab_list->size, slab_list->data_size, 
                 slab_list->slab_size, 
@@ -219,7 +219,7 @@ void slab_print_list(ctr_slab_t *slab_list, uint16_t slab_index)
     } else {
         dbg_str(ALLOC_WARN, 
                 "slab info, alloc size=%d\t, req_size =%d\t, slab_size=%d\t, "
-                "slab_start:%p\t, slab_end:%p, tag:%s", 
+                "slab_start:%p\t, slab_end:%p, %s", 
                 slab_list->size, slab_list->data_size, 
                 slab_list->slab_size, 
                 slab_list, 

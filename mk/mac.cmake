@@ -29,19 +29,14 @@ macro (set_cmake_evironment_variable)
         -force_load object-mockery
         -force_load object-compress
         -force_load object-concurrent
-        -force_load object-core
         -force_load object-crypto
         -force_load object-encoding
         -force_load object-node
         -force_load object-net
         -force_load object-scripts
-        -force_load object-stub
+        object-stub
+        object-core
         crypto z iconv bz2 )
-        #-force_load object-archive
-        # -force_load object-db
-        #-force_load object-media
-        # -force_load object-message
-        #-force_load object-ui
 
     #SET(ExternalLibs ${ExternalLibs} -force_load object-ex-media -force_load object-ex-ui avformat avfilter swscale swresample avcodec avutil x264 vorbis vorbisenc vorbisfile mp3lame vpx xvidcore opus fdk-aac theora xvidcore SDL2 SDL2_ttf yuv)
     find_library(SECURITY Security)
