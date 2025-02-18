@@ -60,6 +60,7 @@ static int __deconstrcut(Inet_Tcp_Client *client)
     dbg_str(NET_DETAIL, "Inet_Tcp_Client deconstruct, client addr:%p", client);
 
     object_destroy(client->parent.worker);
+    usleep(1000); //需要等待worker退出后销毁socket
     object_destroy(client->parent.socket);
 
     return 0;

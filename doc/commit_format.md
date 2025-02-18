@@ -1,8 +1,9 @@
-[update:node] 解决mac平台node测试用例问题。
+[update:node] 解决mac平台node内存泄露问题。
 
 Description:
-解决mac平台load问题， core和stub是动态库不能用force_load。
+销毁client或着server需要等待worker resign后销毁socket, 
+目前只是简单等待，如果不等待，性能好的电脑有可能socket先退
+出然后导致worker没有走退出流程导致内存泄露。
 
 Major Changes:
-1. 修复mac平台测试用例。
-2. 修复mac平台bin链接动态库问题。
+1. 解决mac平台node内存泄露问题。

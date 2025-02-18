@@ -60,6 +60,10 @@ static int __deconstrcut(Inet_Tcp_Server *server)
 {
     dbg_str(NET_DETAIL, "server deconstruct, server addr:%p", server);
     object_destroy(server->parent.worker);
+
+    //需要等待worker resign后销毁socket, 这里目前只是简单等待，如果不等待，
+    //性能好的电脑有可能socket先退出然后导致worker没有走退出流程导致内存泄露。
+    usleep(1000);
     object_destroy(server->parent.socket);
 
     return 0;
