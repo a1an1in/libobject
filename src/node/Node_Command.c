@@ -18,10 +18,10 @@ static int __read_configs(Node_Command *command)
     Node *n = command->node;
     allocator_t *allocator = c->parent.allocator;
     Application *app;
-    File *file;
+    File *file = NULL;
     Vector *options = c->options;
     char path[128] = {0}, content[4096] = {0};
-    cjson_t *root, *item;
+    cjson_t *root = NULL, *item;
     Option *o;
     int ret, i, option_count, set_flag = 1;
 
@@ -59,7 +59,7 @@ static int __read_configs(Node_Command *command)
         strcpy(n->node_id, item->valuestring);
     } CATCH (ret) {} FINALLY {
         object_destroy(file);
-        cjson_delete(root);
+        if (root) cjson_delete(root);
     }
 
     return ret;
@@ -71,12 +71,12 @@ static int __save_configs(Node_Command *command)
     Node *n = command->node;
     allocator_t *allocator = c->parent.allocator;
     Application *app;
-    File *file;
+    File *file = NULL;
     Vector *options = c->options;
     char path[128] = {0}, content[4096] = {0};
-    cjson_t *root, *item;
+    cjson_t *root = NULL, *item;
     Option *o;
-    char *out;
+    char *out = NULL;
     int ret, i, option_count, set_flag = 1;
 
     TRY {
@@ -108,8 +108,8 @@ static int __save_configs(Node_Command *command)
         file->write(file, out, strlen(out));
     } CATCH (ret) {} FINALLY {
         object_destroy(file);
-        cjson_delete(root);
-        free(out);
+        if (root) cjson_delete(root);
+        if (out) free(out);
     }
 
     return ret;

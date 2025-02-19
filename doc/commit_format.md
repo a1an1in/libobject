@@ -6,4 +6,6 @@ Description:
 出然后导致worker没有走退出流程导致内存泄露。
 
 Major Changes:
-1. 解决mac平台node内存泄露问题。
+1. 加载完libattacher-builtin.so后，动态库加载使用attacher_dlopen， 
+   如果有错误这个可以打印错误原因。
+2. 修复read_configs 局部变量为初始化问题。
