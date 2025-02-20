@@ -11,11 +11,6 @@
 
 typedef struct Node_s Node;
 
-typedef enum target_type_e {
-	TARGET_TYPE_NODE = 0,
-	TARGET_TYPE_ATTACHER,
-} target_type_t;
-
 struct Node_s {
 	Obj parent;
 
@@ -35,12 +30,12 @@ struct Node_s {
 	int (*fread)(Node *node, char *node_id, char *from, char *to);
 	int (*fcopy)(Node *node, char *from, char *to);
 	int (*flist)(Node *node, char *node_id, char *path, Vector *vector);
-	int (*malloc)(Node *node, char *node_id, target_type_t type, int value_type, char *class_name, char *name, int size, void **addr);
-	int (*mfree)(Node *node, char *node_id, target_type_t type, char *name);
-	int (*mset)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int value_len);
-	int (*mget)(Node *node, char *node_id, target_type_t type, void *addr, int offset, int len, void *value, int *value_len);
-	int (*mget_addr)(Node *node, char *node_id, target_type_t type, char *name, void **addr);
-	int (*maddress)(Node *node, char *node_id, target_type_t type, void *addr, void **dpointer);
+	int (*malloc)(Node *node, char *node_id, int value_type, char *class_name, char *name, int size, void **addr);
+	int (*mfree)(Node *node, char *node_id, char *name);
+	int (*mset)(Node *node, char *node_id, void *addr, int offset, int len, void *value, int value_len);
+	int (*mget)(Node *node, char *node_id, void *addr, int offset, int len, void *value, int *value_len);
+	int (*mget_addr)(Node *node, char *node_id, char *name, void **addr);
+	int (*maddress)(Node *node, char *node_id, void *addr, void **dpointer);
 	int (*lookup)(Node *node, char *node_id, Vector *vector);     // 用于查询busd service
 
 	bus_t *bus;
@@ -56,7 +51,6 @@ struct Node_s {
 	char call_cmd_node_id[BUS_OBJECT_ID_LEN]; // 保持call cmd node id, node cli中断需要通知对方。
 	String *str;
 	void *opaque;
-	target_type_t type;
     struct event quit_event;
 };
 

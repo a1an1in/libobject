@@ -4,10 +4,7 @@
 #include <libobject/core/utils/byteorder.h>
 
 extern allocator_t *global_allocator_default;
-extern int test_print_inbound(int a, int b, int c, int d, int e, int f, int *g);
 extern int test_func(int a, int b, int c, int d, int e, int f, int *g);
-extern int test_target_func(int a, int b, int c, int d, int e, int f, int *g);
-extern int test_print_outbound(int a, int b, int c, int d, int e, int f, int *g);
 
 static int __test_node_call_bus(Node *node)
 {
@@ -133,9 +130,9 @@ static int __test_node_malloc_and_mfree(Node *node)
     int ret;
     
     TRY {
-        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, "#abc", 8, &addr));
+        EXEC(node->malloc(node, "node", VALUE_TYPE_ALLOC_POINTER, NULL, "#abc", 8, &addr));
         dbg_str(DBG_WIP, "node alloc addr:%p", addr);
-        EXEC(node->mfree(node, "node", TARGET_TYPE_NODE, "#abc"));
+        EXEC(node->mfree(node, "node", "#abc"));
 
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
@@ -155,16 +152,16 @@ static int __test_node_mset_and_mget(Node *node)
     
     TRY {
         strcpy(buffer, "hello world");
-        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, variable_name, 1024, &addr));
-        EXEC(node->mset(node, "node", TARGET_TYPE_NODE, addr, 0, 1024, test_value, strlen(test_value)));
+        EXEC(node->malloc(node, "node", VALUE_TYPE_ALLOC_POINTER, NULL, variable_name, 1024, &addr));
+        EXEC(node->mset(node, "node", addr, 0, 1024, test_value, strlen(test_value)));
         memset(buffer, 0, sizeof(buffer));
-        EXEC(node->mget(node, "node", TARGET_TYPE_NODE, addr, 0, 1024, buffer, &len));
+        EXEC(node->mget(node, "node", addr, 0, 1024, buffer, &len));
         THROW_IF(len != strlen(test_value), -1);
         THROW_IF(strcmp(test_value, buffer) != 0, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
-        node->mfree(node, "node", TARGET_TYPE_NODE, variable_name);
+        node->mfree(node, "node", variable_name);
     }
 
     return ret;
@@ -179,15 +176,15 @@ static int __test_node_call_fsh(Node *node)
     int ret, len = sizeof(int);
     
     TRY {
-        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_ALLOC_POINTER, NULL, variable_name1, sizeof(int), &addr));
+        EXEC(node->malloc(node, "node", VALUE_TYPE_ALLOC_POINTER, NULL, variable_name1, sizeof(int), &addr));
         EXEC(node->call_fsh(node, "node@fsh_test_add_v2(%d, %d, 0x%p)", 1, 2, addr));
-        EXEC(node->mget(node, "node", TARGET_TYPE_NODE, addr, 0, sizeof(int), buffer, &len));
+        EXEC(node->mget(node, "node", addr, 0, sizeof(int), buffer, &len));
         THROW_IF(*(uint32_t *)buffer != 3, -1);
 
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
-        node->mfree(node, "node", TARGET_TYPE_NODE, variable_name1);
+        node->mfree(node, "node", variable_name1);
     }
 
     return ret;
@@ -202,14 +199,14 @@ static int __test_node_call_fsh_object_method(Node *node)
     int ret; 
     
     TRY {
-        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_OBJ_POINTER, "String", object_name, 8, &str));
+        EXEC(node->malloc(node, "node", VALUE_TYPE_OBJ_POINTER, "String", object_name, 8, &str));
         dbg_str(DBG_WIP, "node alloc object addr:%p", str);
         EXEC(node->call_fsh_object_method(node, "%s@assign(%s, \"%s\")", "node", object_name, expect));
         THROW_IF(strncmp(expect, STR2A(str), strlen(expect)) != 0, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
-        node->mfree(node, "node", TARGET_TYPE_NODE, object_name);
+        node->mfree(node, "node", object_name);
     }
 
     return ret;
@@ -222,7 +219,7 @@ static int __test_node_mget_pointer(Node *node)
     int ret;
     
     TRY {
-        EXEC(node->maddress(node, "node", TARGET_TYPE_NODE, &global_allocator_default, &addr));
+        EXEC(node->maddress(node, "node", &global_allocator_default, &addr));
         THROW_IF(addr != global_allocator_default, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
@@ -239,7 +236,7 @@ static int __test_node_stub(Node *node)
     int ret;
     
     TRY {
-        EXEC(node->malloc(node, "node", TARGET_TYPE_NODE, VALUE_TYPE_STUB_POINTER, NULL, stub_name, 0, NULL));
+        EXEC(node->malloc(node, "node", VALUE_TYPE_STUB_POINTER, NULL, stub_name, 0, NULL));
 
         /* 因为node 和 node cli 是在同一个进程中， 所有可以直接使用test_func测试，不需要调用node执行test_func。 */
         test_func(1, 2, 3, 4, 5, 6, &g);
@@ -258,7 +255,7 @@ static int __test_node_stub(Node *node)
         dbg_str(DBG_WIP, "command suc, func_name = %s, file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
-        node->mfree(node, "node", TARGET_TYPE_NODE, stub_name);
+        node->mfree(node, "node", stub_name);
     }
 
     return ret;
@@ -292,15 +289,15 @@ static int __test_node_cli_call_obj(Node *node)
     int ret;
     
     TRY {
-        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 13, \"String\", #test_string, 0)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(13, \"String\", #test_string, 0)"));
         EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@assign(#test_string, \"hello_world\")"));  
-        EXEC(node->mget_addr(node, "node", TARGET_TYPE_NODE, "#test_string", &str));
+        EXEC(node->mget_addr(node, "node", "#test_string", &str));
 
         /* node service 和node cli 运行在同一个进程， 所有可以直接获取str地址， 然后验证 */
         THROW_IF(strcmp(STR2A(str), expect) != 0, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s, file = %s, line = %d", __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
-        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_string)");
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(#test_string)");
     }
 
     return ret;
@@ -312,13 +309,13 @@ static int __test_node_cli_attacher_call(Node *node, pid_t pid)
     int ret;
 
     TRY {
-        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 10, \"null\", #test_func_str, 128)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(10, \"null\", #test_func_str, 128)"));
         EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 mset node@#test_func_str{0-127} attacher_test_with_pointer_arg(0x1234, \"test2\")"));
         EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@call(#test_attacher, 0, #test_func_str, 0)"));
 
         dbg_str(DBG_WIP, "command suc, func_name = %s, file = %s, line = %d", __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
-        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_func_str)");
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(#test_func_str)");
     }
 
     return ret;
@@ -331,25 +328,25 @@ static int __test_node_cli_attacher_add_stub_hooks(Node *node, pid_t pid)
     int ret;
 
     TRY {
-        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 10, \"null\", #test_stub, 8)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(10, \"null\", #test_stub, 8)"));
         EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@alloc_stub(#test_attacher, #test_stub)"));
         EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@add_stub_hooks(#test_attacher, *#test_stub, \"attacher_test_with_pointer_arg\", \"attacher_test_with_pointer_arg_prehook\", \"attacher_test2_with_pointer_arg\", \"attacher_test_with_pointer_arg_posthook\", 2)"));
 
         /* 判断测试结果 */
-        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 10, \"null\", #test_func_str, 128)"));
-        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 10, \"null\", #test_return_value, 8)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(10, \"null\", #test_func_str, 128)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(10, \"null\", #test_return_value, 8)"));
         EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 mset node@#test_func_str{0-127} attacher_test_with_pointer_arg(0x1234, \"test2\")"));
         EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@call(#test_attacher, 0, #test_func_str, #test_return_value)"));
-        EXEC(node->mget_addr(node, "node", TARGET_TYPE_NODE, "#test_return_value", &addr));
-        EXEC(node->mget(node, "node", TARGET_TYPE_NODE, addr, 0, 8, &return_value, &len));
+        EXEC(node->mget_addr(node, "node", "#test_return_value", &addr));
+        EXEC(node->mget(node, "node", addr, 0, 8, &return_value, &len));
 
         // 不考虑大小端问题， 因为测试进程和node_cli都是在同一台电脑，大小端是一致的。
         THROW_IF(return_value != 0xadaf, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s, file = %s, line = %d", __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
-        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_stub)");
-        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_func_str)");
-        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_return_value)");
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(#test_stub)");
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(#test_func_str)");
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(#test_return_value)");
     }
 
     return ret;
@@ -363,23 +360,23 @@ static int __test_node_cli_attacher_operate_global_addr(Node *node, pid_t pid)
     int ret;
 
     TRY {
-        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 10, \"null\", #test_func_str, 128)"));
-        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 10, \"null\", #test_return_value, 8)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(10, \"null\", #test_func_str, 128)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(10, \"null\", #test_return_value, 8)"));
         EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 mset node@#test_func_str{0-127} attacher_get_func_addr_by_name(\"global_test\", 0)"));
         EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@call(#test_attacher, 0, #test_func_str, #test_return_value)"));
 
         EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@read(#test_attacher, *#test_return_value, #test_return_value, 4)"));
-        EXEC(node->mget_addr(node, "node", TARGET_TYPE_NODE, "#test_return_value", &addr));
+        EXEC(node->mget_addr(node, "node", "#test_return_value", &addr));
         //读取global_test的值。
-        EXEC(node->mget(node, "node", TARGET_TYPE_NODE, addr, 0, sizeof(long), &return_value, &len));
+        EXEC(node->mget(node, "node", addr, 0, sizeof(long), &return_value, &len));
 
         /* 判断测试结果 */
         // 不考虑大小端问题， 因为测试进程和node_cli都是在同一台电脑，大小端是一致的。
         THROW_IF((return_value != expect_value), -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s, file = %s, line = %d", __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) {} FINALLY {
-        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_func_str)");
-        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_return_value)");
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(#test_func_str)");
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(#test_return_value)");
     }
 
     return ret;
@@ -407,7 +404,7 @@ static int __test_node_cli_attacher(Node *node)
         dbg_str(DBG_VIP, "test_attacher pid:%d", pid);
 
         usleep(10000);
-        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(0, 13, \"UnixAttacher\", #test_attacher, 0)"));
+        EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@malloc(13, \"UnixAttacher\", #test_attacher, 0)"));
         EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@attach(#test_attacher, %d)", pid));
         EXEC(node_cli("node_cli --host=127.0.0.1 --service=12345 call_obj node@init(#test_attacher)"));
 
@@ -417,7 +414,7 @@ static int __test_node_cli_attacher(Node *node)
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
-        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(0, #test_attacher)");
+        node_cli("node_cli --host=127.0.0.1 --service=12345 call_bus node@mfree(#test_attacher)");
         usleep(1000);
         process_kill(pid);
     }

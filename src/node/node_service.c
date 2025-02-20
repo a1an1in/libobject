@@ -380,11 +380,10 @@ static int node_call_fshell_object_method(bus_object_t *obj, int argc,
 /* 因为alloc要返回地址， 如果在fshell里实现， 很难把地址传出来，
  * 需要在node_cli 指定存储地址的空间， 这样使用会更复杂。 */
 static const struct blob_policy_s malloc_policy[] = { 
-    [0] = { .name = "target_type",  .type = BLOB_TYPE_UINT32 }, 
-    [1] = { .name = "value_type",   .type = BLOB_TYPE_UINT32 },
-    [2] = { .name = "class_name",   .type = BLOB_TYPE_STRING },
-    [3] = { .name = "name",         .type = BLOB_TYPE_STRING },
-    [4] = { .name = "size",         .type = BLOB_TYPE_UINT32 }, 
+    [0] = { .name = "value_type",   .type = BLOB_TYPE_UINT32 },
+    [1] = { .name = "class_name",   .type = BLOB_TYPE_STRING },
+    [2] = { .name = "name",         .type = BLOB_TYPE_STRING },
+    [3] = { .name = "size",         .type = BLOB_TYPE_UINT32 }, 
 };
 static int node_malloc(bus_object_t *obj, int argc, 
                        struct blob_attr_s **args, 
@@ -393,7 +392,6 @@ static int node_malloc(bus_object_t *obj, int argc,
     bus_t *bus;
     allocator_t *allocator;
     char *name, *class_name, *addr;
-    target_type_t type;
     uint32_t value_type;
     Node *node;
     FShell *shell;
@@ -402,11 +400,10 @@ static int node_malloc(bus_object_t *obj, int argc,
     int ret, size;
 
     TRY {
-        type = blob_get_uint32(args[0]);
-        value_type = blob_get_uint32(args[1]);
-        class_name = blob_get_string(args[2]);
-        name = blob_get_string(args[3]);
-        size = blob_get_uint32(args[4]);
+        value_type = blob_get_uint32(args[0]);
+        class_name = blob_get_string(args[1]);
+        name = blob_get_string(args[2]);
+        size = blob_get_uint32(args[3]);
         bus = obj->bus;
         node = bus->opaque;
         shell = node->shell;
@@ -427,8 +424,7 @@ static int node_malloc(bus_object_t *obj, int argc,
 }
 
 static const struct blob_policy_s mfree_policy[] = {
-    [0] = { .name = "target_type",  .type = BLOB_TYPE_UINT32 },
-    [1] = { .name = "name",         .type = BLOB_TYPE_STRING },
+    [0] = { .name = "name",         .type = BLOB_TYPE_STRING },
 };
 static int node_mfree(bus_object_t *obj, int argc, 
                       struct blob_attr_s **args, 
@@ -441,12 +437,10 @@ static int node_mfree(bus_object_t *obj, int argc,
     char *name, *search_addr = NULL;
     Map *map;
     fsh_malloc_variable_info_t *info = NULL;
-    target_type_t type;
     int ret, size;
 
     TRY {
-        type = blob_get_uint32(args[0]);
-        name = blob_get_string(args[1]);
+        name = blob_get_string(args[0]);
         bus = obj->bus;
         node = bus->opaque;
         shell = node->shell;
@@ -464,11 +458,10 @@ static int node_mfree(bus_object_t *obj, int argc,
 }
 
 static const struct blob_policy_s mget_policy[] = {
-    [0] = { .name = "target_type", .type = BLOB_TYPE_UINT32 }, 
-    [1] = { .name = "addr",        .type = BLOB_TYPE_UINT64 },
-    [2] = { .name = "offset",      .type = BLOB_TYPE_UINT32 },
-    [3] = { .name = "capacity",    .type = BLOB_TYPE_UINT32 },
-    [4] = { .name = "len",         .type = BLOB_TYPE_UINT32 },
+    [0] = { .name = "addr",        .type = BLOB_TYPE_UINT64 },
+    [1] = { .name = "offset",      .type = BLOB_TYPE_UINT32 },
+    [2] = { .name = "capacity",    .type = BLOB_TYPE_UINT32 },
+    [3] = { .name = "len",         .type = BLOB_TYPE_UINT32 },
 };
 static int node_mget(bus_object_t *obj, int argc, 
                      struct blob_attr_s **args, 
@@ -477,20 +470,18 @@ static int node_mget(bus_object_t *obj, int argc,
     bus_t *bus;
     allocator_t *allocator;
     char *addr;
-    target_type_t type;
     Node *node;
     int ret, size, offset, capacity, len;
 
     TRY {
-        type = blob_get_uint32(args[0]);
-        addr = blob_get_uint64(args[1]);
-        offset = blob_get_uint32(args[2]);
-        capacity = blob_get_uint32(args[3]);
-        len = blob_get_uint32(args[4]);
+        addr = blob_get_uint64(args[0]);
+        offset = blob_get_uint32(args[1]);
+        capacity = blob_get_uint32(args[2]);
+        len = blob_get_uint32(args[3]);
         bus = obj->bus;
         node = bus->opaque;
         allocator = bus->allocator;
-        dbg_str(DBG_VIP, "node_mget, type:%d addr:%p, offset:%d, capacity:%d", type, addr, offset, capacity);
+        dbg_str(DBG_VIP, "node_mget, addr:%p, offset:%d, capacity:%d", addr, offset, capacity);
 
         memcpy(out, addr, len);
         *out_len = len;
@@ -500,11 +491,10 @@ static int node_mget(bus_object_t *obj, int argc,
 }
 
 static const struct blob_policy_s mset_policy[] = {
-    [0] = { .name = "target_type", .type = BLOB_TYPE_UINT32 }, 
-    [1] = { .name = "addr",        .type = BLOB_TYPE_UINT64 },
-    [2] = { .name = "offset",      .type = BLOB_TYPE_UINT32 },
-    [3] = { .name = "capacity",    .type = BLOB_TYPE_UINT32 },
-    [4] = { .name = "value",       .type = BLOB_TYPE_BUFFER }, 
+    [0] = { .name = "addr",        .type = BLOB_TYPE_UINT64 },
+    [1] = { .name = "offset",      .type = BLOB_TYPE_UINT32 },
+    [2] = { .name = "capacity",    .type = BLOB_TYPE_UINT32 },
+    [3] = { .name = "value",       .type = BLOB_TYPE_BUFFER }, 
 };
 static int node_mset(bus_object_t *obj, int argc, 
                      struct blob_attr_s **args, 
@@ -513,25 +503,23 @@ static int node_mset(bus_object_t *obj, int argc,
     bus_t *bus;
     allocator_t *allocator;
     char *addr;
-    target_type_t type;
     uint8_t *buffer;
     Node *node;
     int ret, size, offset, len, capacity;
 
     TRY {
-        type = blob_get_uint32(args[0]);
-        addr = blob_get_uint64(args[1]);
-        offset = blob_get_uint32(args[2]);
-        capacity = blob_get_uint32(args[3]);
-        len = blob_get_buffer(args[4], &buffer);
+        addr = blob_get_uint64(args[0]);
+        offset = blob_get_uint32(args[1]);
+        capacity = blob_get_uint32(args[2]);
+        len = blob_get_buffer(args[3], &buffer);
     
         bus = obj->bus;
         node = bus->opaque;
         allocator = bus->allocator;
         THROW_IF(len > capacity || addr == NULL, -1);
 
-        dbg_str(DBG_DETAIL, "node_mset, type:%d addr:%p, offset:%d, capacity:%d, len:%d", 
-                type, addr, offset, capacity, len);
+        dbg_str(DBG_DETAIL, "node_mset, addr:%p, offset:%d, capacity:%d, len:%d", 
+                addr, offset, capacity, len);
         dbg_buf(DBG_DETAIL, "node mset receive buffer:", buffer, len);
         memcpy(addr + offset, buffer, len);
     } CATCH (ret) { } FINALLY { *out_len = 0; }
@@ -543,8 +531,7 @@ static int node_mset(bus_object_t *obj, int argc,
  * 对应的地址需要多一个node大小端类型的接口，而且单独一个接口用来取多级
  * 指针对应的地址也是必要的，需要合并简化操作。 */
 static const struct blob_policy_s mget_pointer_policy[] = {
-    [0] = { .name = "target_type", .type = BLOB_TYPE_UINT32 }, 
-    [1] = { .name = "addr",        .type = BLOB_TYPE_UINT64 },
+    [0] = { .name = "addr",        .type = BLOB_TYPE_UINT64 },
 };
 static int node_maddress(bus_object_t *obj, int argc, 
                              struct blob_attr_s **args, 
@@ -553,15 +540,13 @@ static int node_maddress(bus_object_t *obj, int argc,
     bus_t *bus;
     allocator_t *allocator;
     char **addr;
-    target_type_t type;
     uint8_t *buffer;
     Node *node;
     void *value;
     int ret, size, offset;
 
     TRY {
-        type = blob_get_uint32(args[0]);
-        addr = blob_get_uint64(args[1]);
+        addr = blob_get_uint64(args[0]);
     
         bus = obj->bus;
         node = bus->opaque;
@@ -580,8 +565,7 @@ static int node_maddress(bus_object_t *obj, int argc,
 }
 
 static const struct blob_policy_s mget_addr_policy[] = {
-    [0] = { .name = "target_type",  .type = BLOB_TYPE_UINT32 },
-    [1] = { .name = "name",         .type = BLOB_TYPE_STRING },
+    [0] = { .name = "name",         .type = BLOB_TYPE_STRING },
 };
 static int node_mget_addr(bus_object_t *obj, int argc, 
                           struct blob_attr_s **args, 
@@ -594,12 +578,10 @@ static int node_mget_addr(bus_object_t *obj, int argc,
     char *name, *addr;
     Map *map;
     fsh_malloc_variable_info_t *info = NULL;
-    target_type_t type;
     int ret, size;
 
     TRY {
-        type = blob_get_uint32(args[0]);
-        name = blob_get_string(args[1]);
+        name = blob_get_string(args[0]);
         bus = obj->bus;
         node = bus->opaque;
         shell = node->shell;

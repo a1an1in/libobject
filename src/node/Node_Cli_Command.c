@@ -143,9 +143,9 @@ static int __mset_command_action(Node_Cli_Command *command, char *arg1, char *ar
         } else {
             offset = 0, capacity = sizeof(void *);
         }
-        dbg_str(DBG_DETAIL, "mset_command_action, type:%d, cnt:%d, addr:%s, offset:%d, capacity:%d", node->type, cnt, addr_name, offset, capacity);
-        EXEC(node->mget_addr(node, node_id, node->type, addr_name, &addr));
-        EXEC(node->mset(node, node_id, node->type, addr, offset, capacity, arg2, strlen(arg2)));
+        dbg_str(DBG_DETAIL, "mset_command_action, cnt:%d, addr:%s, offset:%d, capacity:%d", cnt, addr_name, offset, capacity);
+        EXEC(node->mget_addr(node, node_id, addr_name, &addr));
+        EXEC(node->mset(node, node_id, addr, offset, capacity, arg2, strlen(arg2)));
     } CATCH (ret) {}
 
     return ret;
@@ -184,13 +184,13 @@ static int __mget_command_action(Node_Cli_Command *command, char *arg1, char *ar
         len = cnt * unit_size;
 
         if (addr_name[0] == '#') {
-            EXEC(node->mget_addr(node, node_id, node->type, addr_name, &addr));
+            EXEC(node->mget_addr(node, node_id, addr_name, &addr));
         } else if (addr_name[0] == '0' || addr_name[1] == 'x'|| addr_name[1] == 'X') {
             THROW(-1);
         }
 
         dbg_str(DBG_VIP, "mget_command_action, len:%d, fmt:%c, unit:%c, unit_size:%d, cnt:%d", len, fmt, unit, unit_size, cnt);
-        EXEC(node->mget(node, node_id, node->type, addr, offset, len, buffer, &len));
+        EXEC(node->mget(node, node_id, addr, offset, len, buffer, &len));
 
         if (unit == 's') {
             printf("%s\n", buffer);
@@ -294,16 +294,6 @@ static int __option_disable_node_service_callback(Option *option, void *opaque)
     return 1;
 }
 
-static int __option_target_callback(Option *option, void *opaque)
-{
-    Node_Cli_Command *c = (Node_Cli_Command *)opaque;
-    Node *n = c->node;
-
-    n->type = atoi(STR2A(option->value));
-
-    return 1;
-}
-
 static int __argument_arg0_action_callback(Argument *arg, void *opaque)
 {
     Node_Cli_Command *c = (Node_Cli_Command *)opaque;
@@ -354,9 +344,6 @@ static int __construct(Node_Cli_Command *command, char *init_str)
     c->add_option(c, "--service", "-s", "", "set node center port.", __option_service_callback, command);
     c->add_option(c, "--disable-node-service", "", "true", "disable node service for node cli.", 
                   __option_disable_node_service_callback, command);
-    c->add_option(c, "--target", "-t", "0", "set operateion target, default 0, which means to operate the node.", 
-                  __option_target_callback, command);
-
     c->add_argument(c, "",
                                                       "command type, it's optional if you want to call bus or fshell, \n"
                     "                                ""we can excute cmd by option. now we support call_bus, call_fsh \n"
