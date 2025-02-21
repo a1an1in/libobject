@@ -80,4 +80,17 @@ typedef struct class_info_entry_s {
 #define Init_Obj___Entry Init_Obj_Entry
 #define Init_End___Entry Init_End_Entry
 
+
+// 类型信息初始化宏版本v2
+#define INIT_FUNC_ENTRY(type, class_name, value_name, value) \
+    {type, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
+#define INIT_VFUNC_ENTRY(class_name, value_name, value) \
+    INIT_FUNC_ENTRY(ENTRY_TYPE_VFUNC_POINTER, class_name, value_name, value)
+#define INIT_NFUNC_ENTRY(class_name, value_name, value) \
+    INIT_FUNC_ENTRY(ENTRY_TYPE_FUNC_POINTER, class_name, value_name, value)
+#define INIT_OBJ___ENTRY(type_name, value_name) \
+    {ENTRY_TYPE_OBJ, #type_name, #value_name}
+#define INIT_END___ENTRY(class_name) \
+    {ENTRY_TYPE_END, #class_name, "", NULL, sizeof(class_name), 0}
+
 #endif
