@@ -369,13 +369,11 @@ static int __deconstruct(Node_Cli_Command *command)
     return 0;
 }
 
-static class_info_entry_t node_cli_command_class_info[] = {
-    Init_Obj___Entry(0, Command, parent),
-    Init_Nfunc_Entry(1, Node_Cli_Command, construct, __construct),
-    Init_Nfunc_Entry(2, Node_Cli_Command, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Node_Cli_Command, set, NULL),
-    Init_Vfunc_Entry(4, Node_Cli_Command, get, NULL),
-    Init_Vfunc_Entry(5, Node_Cli_Command, run_command, __run_command),
-    Init_End___Entry(6, Node_Cli_Command),
-};
-REGISTER_APP_CMD(Node_Cli_Command, node_cli_command_class_info);
+DEFINE_COMMAND(Node_Cli_Command,
+    CLASS_OBJ___ENTRY(Command, parent),
+    CLASS_NFUNC_ENTRY(construct, __construct),
+    CLASS_NFUNC_ENTRY(deconstruct, __deconstruct),
+    CLASS_VFUNC_ENTRY(set, NULL),
+    CLASS_VFUNC_ENTRY(get, NULL),
+    CLASS_VFUNC_ENTRY(run_command, __run_command)
+);

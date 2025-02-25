@@ -707,30 +707,28 @@ static int __call_cmd(Node *node, const char *fmt, ...)
     return ret;
 }
 
-static class_info_entry_t node_class_info[] = {
-    Init_Obj___Entry(0 , Obj, parent),
-    Init_Nfunc_Entry(1 , Node, construct, __construct),
-    Init_Nfunc_Entry(2 , Node, deconstruct, __deconstruct),
-    Init_Nfunc_Entry(3 , Node, init, __init),
-    Init_Nfunc_Entry(4 , Node, loop, __loop),
-    Init_Nfunc_Entry(5 , Node, call_bus, __call_bus),
-    Init_Nfunc_Entry(6 , Node, call_fsh, __call_fsh),
-    Init_Nfunc_Entry(7 , Node, call_fsh_object_method, __call_fsh_object_method),
-    Init_Nfunc_Entry(8 , Node, fwrite, __fwrite),
-    Init_Nfunc_Entry(9 , Node, fread, __fread),
-    Init_Nfunc_Entry(10, Node, fcopy, __fcopy),
-    Init_Nfunc_Entry(11, Node, flist, __flist),
-    Init_Nfunc_Entry(12, Node, malloc, __malloc),
-    Init_Nfunc_Entry(13, Node, mfree, __mfree),
-    Init_Nfunc_Entry(14, Node, mset, __mset),
-    Init_Nfunc_Entry(15, Node, mget, __mget),
-    Init_Nfunc_Entry(16, Node, mget_addr, __mget_addr),
-    Init_Nfunc_Entry(17, Node, maddress, __mget_pointer),
-    Init_Nfunc_Entry(18, Node, lookup, __lookup),
-    Init_Nfunc_Entry(19, Node, call_cmd, __call_cmd),
-    Init_End___Entry(20, Node),
-};
-REGISTER_CLASS(Node, node_class_info);
+DEFINE_CLASS(Node,
+    CLASS_OBJ___ENTRY(Obj, parent),
+    CLASS_NFUNC_ENTRY(construct, __construct),
+    CLASS_NFUNC_ENTRY(deconstruct, __deconstruct),
+    CLASS_NFUNC_ENTRY(init, __init),
+    CLASS_NFUNC_ENTRY(loop, __loop),
+    CLASS_NFUNC_ENTRY(call_bus, __call_bus),
+    CLASS_NFUNC_ENTRY(call_fsh, __call_fsh),
+    CLASS_NFUNC_ENTRY(call_fsh_object_method, __call_fsh_object_method),
+    CLASS_NFUNC_ENTRY(fwrite, __fwrite),
+    CLASS_NFUNC_ENTRY(fread, __fread),
+    CLASS_NFUNC_ENTRY(fcopy, __fcopy),
+    CLASS_NFUNC_ENTRY(flist, __flist),
+    CLASS_NFUNC_ENTRY(malloc, __malloc),
+    CLASS_NFUNC_ENTRY(mfree, __mfree),
+    CLASS_NFUNC_ENTRY(mset, __mset),
+    CLASS_NFUNC_ENTRY(mget, __mget),
+    CLASS_NFUNC_ENTRY(mget_addr, __mget_addr),
+    CLASS_NFUNC_ENTRY(maddress, __mget_pointer),
+    CLASS_NFUNC_ENTRY(lookup, __lookup),
+    CLASS_NFUNC_ENTRY(call_cmd, __call_cmd)
+);
 
 int node_find_method_argument_template(bus_object_t *obj, allocator_t *allocator, char *method_name, 
                                        bus_method_args_t **args, int *cnt)

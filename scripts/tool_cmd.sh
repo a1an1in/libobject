@@ -140,9 +140,9 @@ function do_deploy {
         do
             if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "kill -9" "$element"; then
                 echo "kill xtools process failed!"
-                exit 1
+            else
+                echo "kill running xtools progess id: $element success"
             fi
-            echo "kill running xtools progess id: $element success"
         done
 
         echo "2.mkdir packages: $OPTION_TO_PATH"

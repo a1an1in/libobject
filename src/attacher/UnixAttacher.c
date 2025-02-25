@@ -76,7 +76,7 @@ static void *__read(UnixAttacher *attacher, void *addr, uint8_t *value, int len)
         for (i = 0; i < num; i++) {
             tmp = ptrace(PTRACE_PEEKDATA, ((Attacher *)attacher)->pid, addr + i * sizeof(long), NULL);
             dbg_str(DBG_VIP, "peek addr:%p, value:%llx, i:%d, num:%d", 
-                    addr + i * sizeof(long), tmp, i, num);
+                addr + i * sizeof(long), tmp, i, num);
             dbg_str(DBG_VIP, "value address:%p", (long *)value + i * sizeof(long));
             *(long *)(value + i * sizeof(long)) = tmp;
         }
@@ -97,7 +97,7 @@ static void *__write(UnixAttacher *attacher, void *addr, uint8_t *value, int len
 
         for (i = 0; i < num; i++) {
             dbg_str(DBG_DETAIL, "poke write addr:%p, value:%x, i:%d, num:%d, sizeof long:%d", 
-                    addr + i * sizeof(long), *(p + i), i, num, sizeof(long));
+                addr + i * sizeof(long), *(p + i), i, num, sizeof(long));
             tmp = *(p + i);
             dbg_buf(DBG_DETAIL, "write:", (p + i), sizeof(long));
             EXEC(ptrace(PTRACE_POKEDATA, ((Attacher *)attacher)->pid, addr + i * sizeof(long), *(p + i)));
@@ -127,11 +127,11 @@ static void *__set_function_pars(UnixAttacher *attacher, struct user_regs_struct
             /* 预留返回地址， 再加上进入函数后首先会把rbp入栈， 函数会用0x10(%rbp)的
              * 方式来访问存在栈中的第7个参数
              */
-            regs->rsp -= sizeof(void *); 
+            regs->rsp -= sizeof(void *);
         } else {
             /* 这里必须要预留3 * sizeof(void *) 的大小， 原因还不清楚， 否则sprintf，
              * dlopen等函数调用会中断返回。 */
-            regs->rsp -= 3 * sizeof(void *);  
+            regs->rsp -= 3 * sizeof(void *);
         }
         for (i = 0; i < num; i++) {
             if (i < 6) {
@@ -232,32 +232,30 @@ static int __stop(UnixAttacher *attacher)
 {
     int stat;
     printf("attacher stop\n");
-    kill(((Attacher *)attacher)->pid, SIGSTOP); 
+    kill(((Attacher *)attacher)->pid, SIGSTOP);
     waitpid(((Attacher *)attacher)->pid, &stat, 0);
     
     return 1;
 }
 
-static class_info_entry_t attacher_class_info[] = {
-    INIT_OBJ___ENTRY(Attacher, parent),
-    INIT_NFUNC_ENTRY(UnixAttacher, construct, __construct),
-    INIT_NFUNC_ENTRY(UnixAttacher, deconstruct, __deconstruct),
-    INIT_VFUNC_ENTRY(UnixAttacher, attach, __attach),
-    INIT_VFUNC_ENTRY(UnixAttacher, detach, __detach),
-    INIT_VFUNC_ENTRY(UnixAttacher, set_function_pars, __set_function_pars),
-    INIT_VFUNC_ENTRY(UnixAttacher, read, __read),
-    INIT_VFUNC_ENTRY(UnixAttacher, write, __write),
-    INIT_VFUNC_ENTRY(UnixAttacher, malloc, NULL),
-    INIT_VFUNC_ENTRY(UnixAttacher, free, NULL),
-    INIT_VFUNC_ENTRY(UnixAttacher, get_remote_builtin_function_address, __get_remote_builtin_function_address),
-    INIT_VFUNC_ENTRY(UnixAttacher, call_address_with_value_pars, __call_address_with_value_pars),
-    INIT_VFUNC_ENTRY(UnixAttacher, call_address, NULL),
-    INIT_VFUNC_ENTRY(UnixAttacher, add_lib, __add_lib),
-    INIT_VFUNC_ENTRY(UnixAttacher, remove_lib, NULL),
-    INIT_VFUNC_ENTRY(UnixAttacher, run, __run),
-    INIT_VFUNC_ENTRY(UnixAttacher, stop, __stop),
-    INIT_END___ENTRY(UnixAttacher),
-};
-REGISTER_CLASS(UnixAttacher, attacher_class_info);
+DEFINE_CLASS(UnixAttacher,
+    CLASS_OBJ___ENTRY(Attacher, parent),
+    CLASS_NFUNC_ENTRY(construct, __construct),
+    CLASS_NFUNC_ENTRY(deconstruct, __deconstruct),
+    CLASS_VFUNC_ENTRY(attach, __attach),
+    CLASS_VFUNC_ENTRY(detach, __detach),
+    CLASS_VFUNC_ENTRY(set_function_pars, __set_function_pars),
+    CLASS_VFUNC_ENTRY(read, __read),
+    CLASS_VFUNC_ENTRY(write, __write),
+    CLASS_VFUNC_ENTRY(malloc, NULL),
+    CLASS_VFUNC_ENTRY(free, NULL),
+    CLASS_VFUNC_ENTRY(get_remote_builtin_function_address, __get_remote_builtin_function_address),
+    CLASS_VFUNC_ENTRY(call_address_with_value_pars, __call_address_with_value_pars),
+    CLASS_VFUNC_ENTRY(call_address, NULL),
+    CLASS_VFUNC_ENTRY(add_lib, __add_lib),
+    CLASS_VFUNC_ENTRY(remove_lib, NULL),
+    CLASS_VFUNC_ENTRY(run, __run),
+    CLASS_VFUNC_ENTRY(stop, __stop)
+);
 
 #endif

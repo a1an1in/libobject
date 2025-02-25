@@ -1,8 +1,8 @@
-[update:node] 去掉target_type_t类型。
+[update:object] 新增第三版本类信息定义宏。
 
 Description:
-之前设计mem ops可以兼容attacher和node，现在发现node没必要指定类型。
-attacher mem ops可以直接调用对象方法。
+第二版本的类信息注册还是有点冗余，新增递3版本的类信息定义宏
+该版本更加简洁。
 
 Major Changes:
-1. 去掉target_type_t类型后适配修改。
+1. 优化第二版本的类信息注册宏。
