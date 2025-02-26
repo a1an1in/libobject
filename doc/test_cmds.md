@@ -143,12 +143,15 @@ tcpdump -i eth0  port 12345
 sudo tcpdump -i enp0s17  port 12345
 ./devops.sh build --platform=linux
 ./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.14.0.123.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.14.0.125.tar.gz
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
 
 2 linux 测试
 * 2.1 node cli 基本用法
 nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
 ./sysroot/linux/bin/xtools --event-thread-service=11131 --event-signal-service=11132 node
+./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
+
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 flist b35f958b26e359bffe5c097e8c64150ec452b639@/root/.xtools/packages
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x28017 flist b35f958b26e359bffe5c097e8c64150ec452b639@./tests/node/
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20017 fcopy ./tests/node/res/test_node.txt "b35f958b26e359bffe5c097e8c64150ec452b639@./tests/node/output/write/test_node.txt"
@@ -157,7 +160,6 @@ nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --hos
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20016 call_fsh b35f958b26e359bffe5c097e8c64150ec452b639@{"fsh_node_test()"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"ls -l"}
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"pwd"}
-./sysroot/linux/bin/xtools --log-level=0x17 node_cli --host=139.159.231.27 --service=12345 lookup all
 
 * 2.2 stub
 ./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 call_bus "b35f958b26e359bffe5c097e8c64150ec452b639@malloc(12, \"null\", #test_stub_name1, 0)"

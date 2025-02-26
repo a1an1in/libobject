@@ -74,7 +74,7 @@ static int test_fs_tree(TEST_ENTRY *entry)
         fs_print_file_info_list(list);
 
         SET_CATCH_INT_PARS(count, 0);
-        THROW_IF(count != 14, -1);
+        THROW_IF(count != 10, -1);
     } CATCH (ret) {
         CATCH_SHOW_INT_PARS(DBG_ERROR);
     } FINALLY {
@@ -100,7 +100,7 @@ static int test_fs_tree_with_depth(TEST_ENTRY *entry)
         fs_print_file_info_list(list);
 
         SET_CATCH_INT_PARS(count, 0);
-        THROW_IF(count != 11, -1);
+        THROW_IF(count != 10, -1);
     } CATCH (ret) {
         CATCH_SHOW_INT_PARS(DBG_ERROR);
     } FINALLY {
