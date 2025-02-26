@@ -38,6 +38,8 @@ struct UnixAttacher_s {
     int (*remove_lib)(UnixAttacher *, char *name);
     int (*run)(UnixAttacher *);
     int (*stop)(UnixAttacher *);
+
+    int count;
 };
 
 #endif

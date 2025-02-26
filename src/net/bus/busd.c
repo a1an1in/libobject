@@ -156,8 +156,8 @@ busd_create_bus_object(busd_t *busd, char *object_id, blob_attr_t *attr, int fd)
     allocator_t *allocator = busd->allocator;
     char *object_infos;
 
-    obj = (struct busd_object *)allocator_mem_alloc(allocator, 
-                                                    sizeof(struct busd_object));
+    obj = (struct busd_object *)allocator_mem_zalloc(allocator, 
+                                                     sizeof(struct busd_object));
     if (obj == NULL) {
         dbg_str(BUS_ERROR, "allocator_mem_alloc");
         return NULL;

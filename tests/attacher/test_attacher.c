@@ -290,6 +290,7 @@ static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
         EXEC(test_attacher_call_stub(attacher, pid));
     } CATCH (ret) { } FINALLY {
         object_destroy(attacher);
+        usleep(1000);
         process_kill(pid);
     }
 

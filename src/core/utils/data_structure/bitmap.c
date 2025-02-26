@@ -57,7 +57,6 @@ int bitmap_set(bitmap_t *bitmap, uint32_t pos)
     uint32_t index, bit, ret;
 
     if (bitmap == NULL || pos >= bitmap->size) { // 检查位图结构是否有效，以及位置是否超出范围
-        dbg_str(DBG_ERROR, "bitmap:%p, pos:%d", bitmap, pos);
         return -1; // 如果无效，则直接返回
     }
     

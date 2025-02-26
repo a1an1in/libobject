@@ -77,7 +77,7 @@ static int test_http_deamon_plugin_api()
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_http_deamon_plugin_api);
+REGISTER_TEST_CMD(test_http_deamon_plugin_api);
 
 static int test_http_wget()
 {

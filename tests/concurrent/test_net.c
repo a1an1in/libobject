@@ -42,9 +42,7 @@ static int test_net_udp_ipv4(TEST_ENTRY *entry, void *argc, void *argv)
         usleep(100000);
         THROW_IF(test_echo_work_result != 1, 0);
     } CATCH (ret) {} FINALLY {
-        dbg_str(DBG_FATAL, "run at here");
         object_destroy(c2);
-        dbg_str(DBG_FATAL, "run at here");
         object_destroy(c1);
         test_echo_work_result = 0;
     }

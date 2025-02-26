@@ -153,7 +153,7 @@ static int test_bus()
     int ret, count = 0;
     
     TRY {
-        sleep(1);
+        usleep(1000);
         busd = busd_create(allocator, deamon_host,
                            deamon_srv, SERVER_TYPE_INET_TCP);
         THROW_IF(busd == NULL, -1);
@@ -164,6 +164,7 @@ static int test_bus()
 
         memcpy(test_object.id, "test", strlen("test"));
         bus_add_object(bus, &test_object);
+        usleep(1000);
 
         EXEC(__test_bus_invoke_sync());
         EXEC(__test_bus_lookup_one_sync());
