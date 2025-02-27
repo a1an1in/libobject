@@ -1,9 +1,8 @@
-[update:tests] 测试用例mockery func linux环境全部通过测试。
+[update:attacher] 新增一个重定向attacher的日志文件。
 
 Description:
-更新修改。
+attacher调试时有时目标进程日志丢失输出很难调试，新增一个
+重定向标准输出的功能。
 
 Major Changes:
-1. 修复test_file_system测试用例。
-2. 修复node test id 问题。
-3. 修复attacher和node attancher同批运行测试问题。
+1. attacher init直接重定向标准输出。

@@ -4,6 +4,8 @@
 #include <dlfcn.h>
 #endif
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 static char debug_info[1024] = "hello world";
 
@@ -136,4 +138,32 @@ void *attacher_get_func_addr_by_name(char *name, char *lib_name)
 #endif
 
     return addr;
+}
+
+int attacher_redirect_stdout_to_file(const char *filename) 
+{
+    FILE *f = NULL;
+    int file_fd;
+
+    // 打开文件以写入。如果文件不存在，将会被创建。
+    f = fopen(filename, "w");
+    if (f == NULL) {
+        perror("Failed to open file");
+        return -1;
+    }
+    file_fd = fileno(f);
+ 
+    // 使用dup2将文件描述符复制到标准输出（文件描述符1）
+    if (dup2(file_fd, STDOUT_FILENO) == -1) {
+        perror("Failed to redirect stdout");
+        close(file_fd); // 关闭打开的文件描述符
+        return -1;
+    }
+
+    printf("attacher_redirect_stdout_to_file, filename:%s\n", filename);
+ 
+    // 关闭原始的文件描述符，因为我们不再需要它
+    close(file_fd);
+
+    return 1;
 }

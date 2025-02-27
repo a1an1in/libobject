@@ -7,6 +7,7 @@
  */
 #include <libobject/core/utils/string.h>
 #include <libobject/attacher/Attacher.h>
+#include <libobject/argument/Application.h>
 
 static int tree_node_free_callback(allocator_t *allocator, void *value)
 {
@@ -348,6 +349,8 @@ static int __init(Attacher *attacher)
     int ret;
     void *path_addr;
     allocator_t *allocator = attacher->parent.allocator;
+    Application *app;
+    char tmp[128] = {0};
 
     TRY {
         // 获取进程自带或自己运行后加载lib的函数地址，需要依赖libattacher-builtin.so，
@@ -356,6 +359,11 @@ static int __init(Attacher *attacher)
         EXEC(dl_get_dynamic_lib_path(-1, "libattacher-builtin.so", path_addr, 128));
         dbg_str(DBG_DETAIL, "attacher init add lib:%s", path_addr);
         EXEC(attacher->add_lib(attacher, path_addr));
+
+        app = get_global_application();
+        snprintf(tmp, 128, "attacher_redirect_stdout_to_file(\"%s/%s\")", STR2A(app->root), "redirect.log");
+        EXEC(attacher->call(attacher, NULL, tmp, &ret));
+        usleep(1000);
 
         path_addr = allocator_mem_zalloc(allocator, 128);
         EXEC(dl_get_dynamic_lib_path(-1, "libobject-core.so", path_addr, 128));
@@ -366,7 +374,7 @@ static int __init(Attacher *attacher)
         EXEC(dl_get_dynamic_lib_path(-1, "libobject-stub.so", path_addr, 128));
         dbg_str(DBG_DETAIL, "attacher init add lib:%s", path_addr);
         EXEC(attacher->add_lib(attacher, path_addr));
-       
+    
         EXEC(attacher->call_name(attacher, NULL, "execute_ctor_funcs", NULL, 0));
         EXEC(attacher->call_name(attacher, NULL, "stub_admin_init_default_instance", NULL, 0));
 

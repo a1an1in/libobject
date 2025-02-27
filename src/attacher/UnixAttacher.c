@@ -203,7 +203,7 @@ static int __add_lib(UnixAttacher *attacher, char *name)
         EXEC(map->search(map, name, &handle));
         THROW_IF(handle != NULL, 0);
 
-        if (attacher->count++ >= 2) { //后续的动态库加载使用attacher_dlopen， 如果有错误这个可以打印错误原因。
+        if (attacher->count++ >= 1) { //后续的动态库加载使用attacher_dlopen， 如果有错误这个可以打印错误原因。
             handle = ((Attacher *)attacher)->call_name(attacher, "libattacher-builtin.so", "attacher_dlopen", pars, 2);
         } else { //加载第一个使用__libc_dlopen_mode。
             handle = ((Attacher *)attacher)->call_name(attacher, NULL, "__libc_dlopen_mode", pars, 2);
