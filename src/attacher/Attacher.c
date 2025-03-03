@@ -360,10 +360,10 @@ static int __init(Attacher *attacher)
         dbg_str(DBG_DETAIL, "attacher init add lib:%s", path_addr);
         EXEC(attacher->add_lib(attacher, path_addr));
 
-        app = get_global_application();
-        snprintf(tmp, 128, "attacher_redirect_stdout_to_file(\"%s/%s\")", STR2A(app->root), "redirect.log");
-        EXEC(attacher->call(attacher, NULL, tmp, &ret));
-        usleep(1000);
+        // app = get_global_application();
+        // snprintf(tmp, 128, "attacher_redirect_stdout_to_file(\"%s/%s\")", STR2A(app->root), "redirect.log");
+        // EXEC(attacher->call(attacher, NULL, tmp, &ret));
+        // usleep(1000);
 
         path_addr = allocator_mem_zalloc(allocator, 128);
         EXEC(dl_get_dynamic_lib_path(-1, "libobject-core.so", path_addr, 128));

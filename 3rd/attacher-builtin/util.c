@@ -84,7 +84,6 @@ void *attacher_dlopen(char *name, int flag)
     void *handle = NULL;
     int i;
 
-    
 #if (!defined(WINDOWS_USER_MODE))
     handle = dlopen(name, flag);
     if (handle == NULL) {
@@ -92,6 +91,7 @@ void *attacher_dlopen(char *name, int flag)
     } else {
         printf("attacher_dlopen %s, handle:%p\n", name, handle);
     }
+    fflush(stdout); 
 #endif
 
     return handle;
@@ -161,6 +161,7 @@ int attacher_redirect_stdout_to_file(const char *filename)
     }
 
     printf("attacher_redirect_stdout_to_file, filename:%s\n", filename);
+    fflush(stdout); 
  
     // 关闭原始的文件描述符，因为我们不再需要它
     close(file_fd);

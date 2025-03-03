@@ -196,7 +196,7 @@ static int __add_lib(UnixAttacher *attacher, char *name)
     int ret;
     void *handle = NULL;
     Map *map = ((Attacher *)attacher)->map;
-    attacher_paramater_t pars[2] = {{name, strlen(name) + 1}, {RTLD_LOCAL | RTLD_LAZY, 0}};
+    attacher_paramater_t pars[2] = {{name, strlen(name) + 1}, {RTLD_LOCAL | RTLD_NOW, 0}};
 
     TRY {
         THROW_IF(name == NULL, -1);
