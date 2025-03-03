@@ -168,3 +168,11 @@ int attacher_redirect_stdout_to_file(const char *filename)
 
     return 1;
 }
+
+//将标准输出设置为行缓冲模式（_IOLBF），此时每次输出遇到换行符 \n 时自动刷新缓冲区‌
+int attacher_set_stdout_rbf_mode()
+{
+    setvbuf(stdout, NULL, _IOLBF, 0); //设置为行缓冲模式
+
+    return 1;
+}

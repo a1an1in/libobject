@@ -1,8 +1,8 @@
-[update:attacher] 更改dlopen load标志。
+[update:attacher] 更改attacher目标为行输出缓冲模式。
 
 Description:
-load标志更改为RTLD_NOW，这会强制在 dlopen 返回前
-完成所有符号的解析和初始化操作，包括执行构造函数函数。
+测试发现目标进程日志打印不出来，发现有可能是stdout缓冲模式
+不对，修改为行缓冲，遇到\n就打印日志。
 
 Major Changes:
-1. 更改dlopen load标志为RTLD_NOW。
+1. 更改标准输出的缓冲模式。

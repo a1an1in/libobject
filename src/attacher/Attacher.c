@@ -360,10 +360,11 @@ static int __init(Attacher *attacher)
         dbg_str(DBG_DETAIL, "attacher init add lib:%s", path_addr);
         EXEC(attacher->add_lib(attacher, path_addr));
 
-        // app = get_global_application();
-        // snprintf(tmp, 128, "attacher_redirect_stdout_to_file(\"%s/%s\")", STR2A(app->root), "redirect.log");
-        // EXEC(attacher->call(attacher, NULL, tmp, &ret));
-        // usleep(1000);
+        app = get_global_application();
+        snprintf(tmp, 128, "attacher_redirect_stdout_to_file(\"%s/%s\")", STR2A(app->root), "redirect.log");
+        EXEC(attacher->call(attacher, NULL, tmp, &ret));
+        usleep(1000);
+        EXEC(attacher->call_name(attacher, NULL, "attacher_set_stdout_rbf_mode", NULL, 0));
 
         path_addr = allocator_mem_zalloc(allocator, 128);
         EXEC(dl_get_dynamic_lib_path(-1, "libobject-core.so", path_addr, 128));
@@ -377,7 +378,7 @@ static int __init(Attacher *attacher)
     
         EXEC(attacher->call_name(attacher, NULL, "execute_ctor_funcs", NULL, 0));
         EXEC(attacher->call_name(attacher, NULL, "stub_admin_init_default_instance", NULL, 0));
-
+        
         /* 解析本地动态库地址区间， 后面方便根据本地地址查询对应的函数库 */
         // EXEC(dl_parse_dynamic_table(-1, attacher->tree));
     } CATCH (ret) {} FINALLY {}
