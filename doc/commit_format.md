@@ -1,9 +1,11 @@
-[update:eventbase] 去掉Event_Base端口配置。
+[update:http] app不管理插件。
 
 Description:
-之前的Event_Base需要指定两个端口号， 如果一台设备上运行多个xtools进程，
-需要提前配置号每个进程使用的端口，会很麻烦。现在不需要配置端口号了，使用
-系统随机分配的端口，这个端口也只是内部使用。
+app管理所有的插件有问题， 在测试的时候发现在销毁插件是已经
+找不到对应的应用了， 因为应用已经销毁了，所以需要把插件交给
+应用管理， 比如httpd command。
 
 Major Changes:
-1. 去掉Event_Base端口配置，简化命令行参数。
+1. 更改http插件配置文件名。
+2. 测试用例拷贝http插件配置文件到工作目录。
+3. 插件从app更改到httpd command。

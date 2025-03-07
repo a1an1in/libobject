@@ -5,12 +5,14 @@
  * @version 
  * @date 2019-05-19
  */
+#include <dlfcn.h>
 #include <libobject/core/io/File.h>
 #include <libobject/argument/Application.h>
 #include <libobject/argument/Argument.h>
 #include <libobject/net/http/Client.h>
 #include <libobject/net/url/Url.h>
 #include <libobject/net/http/Httpd_Command.h>
+#include <libobject/scripts/fshell/FShell.h>
 #include <libobject/concurrent/event_api.h>
 
 static int __handler_hello_world(Request *req, Response *res, void *opaque)
@@ -64,6 +66,9 @@ static int __construct(Httpd_Command *command, char *init_str)
 {
     Http_Server *server;
     Command *c = (Command *)command;
+    int value_type = VALUE_TYPE_OBJ_POINTER;
+    uint8_t trustee_flag = 1;
+    Map *plugins;
 
     server = object_new(c->parent.allocator, "Http_Server", NULL);
     server->set(server, "/Http_Server/root", "./webroot");
@@ -80,11 +85,19 @@ static int __construct(Httpd_Command *command, char *init_str)
     c->set(c, "/Command/name", "httpd");
     c->set(c, "/Command/description", "nginx is mimic nginx and is used in much the same way.");
 
+        /* 2.construct plugins vector */
+    plugins = object_new(c->parent.allocator, "RBTree_Map", NULL);
+    plugins->set_cmp_func(plugins, string_key_cmp_func);
+    plugins->set(plugins, "/Map/value_type", &value_type);
+    plugins->set(plugins, "/Map/trustee_flag", &trustee_flag);
+    command->plugins = plugins;
+
     return 0;
 }
 
 static int __deconstruct(Httpd_Command *command)
 {
+    object_destroy(command->plugins);
     object_destroy(command->server);
 
     return 0;
@@ -130,6 +143,33 @@ static int __run_command(Httpd_Command *command)
     return ret;
 }
 
+static int __load_plugin(Httpd_Command *command, char *name, char *path, char *json, void *opaque)
+{
+    Map *plugins = command->plugins;
+    allocator_t *allocator = command->parent.parent.allocator;
+    Application *app;
+    FShell *shell;
+    Command *c;
+    int ret;
+
+    TRY {
+        dbg_str(DBG_VIP, "application load plugin, plugin class name:%s, path:%s", name, path);
+        dbg_str(DBG_INFO, "application load plugin, json:%s", json);
+        app = get_global_application();
+        shell = app->fshell;
+        EXEC(shell->load(shell, path, RTLD_LOCAL | RTLD_LAZY));
+        c = object_new(allocator, name, json);
+        /* http plugin 需要http server， 所有通过opaque传入。 */
+        c->opaque = opaque;
+
+        plugins->add(plugins, STR2A(c->name), c);
+        dbg_str(DBG_VIP, "application run plugin %s.", name);
+        EXEC(c->run_command(c));
+    } CATCH (ret) {} FINALLY {}
+
+    return ret;
+}
+
 static int __load_plugins(Httpd_Command *command)
 {
     Application *app;
@@ -143,7 +183,7 @@ static int __load_plugins(Httpd_Command *command)
 
     TRY {
         app = get_global_application();
-        snprintf(path, 128, "%s/%s/configs.json", STR2A(app->root), "httpd/plugins");
+        snprintf(path, 128, "%s/%s/http_plugin.json", STR2A(app->root), "httpd/plugins");
 
         if (!fs_is_exist(path)) { return 0; }
         dbg_str(DBG_VIP,"httpd root:%s", path);
@@ -164,7 +204,7 @@ static int __load_plugins(Httpd_Command *command)
 
             if (!fs_is_exist(plugin_path->valuestring)) continue;
             out = cjson_print(config);
-            EXEC(app->load_plugin(app, name->valuestring, plugin_path->valuestring, out, command));
+            EXEC(__load_plugin(command, name->valuestring, plugin_path->valuestring, out, command));
             free(out);
         }
     } CATCH (ret) {} FINALLY {

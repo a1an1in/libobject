@@ -23,6 +23,7 @@ struct Httpd_Command_s{
 
     Http_Server *server;
 	int loop_flag;
+    Map *plugins;
 };
 
 #endif

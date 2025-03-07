@@ -43,6 +43,7 @@ static int test_http_deamon_built_in_api()
 }
 REGISTER_TEST_FUNC(test_http_deamon_built_in_api);
 
+
 static int test_http_deamon_plugin_api()
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -52,8 +53,13 @@ static int test_http_deamon_plugin_api()
     char *argv[2] = {"httpd", "--no-loop"};
     char *curl_argv[4] = {"curl", "-X", "GET", "http://127.0.0.1:8081/api/test_http_plugin"};
     int ret, count = 0;
+    char path[128] = {0};
     
     TRY {
+        snprintf(path, 128, "%s/%s/http_plugin.json", "~/.xtools", "httpd/plugins");
+        if (fs_is_exist(path) != 1) {
+            system("cp ./doc/http/http_plugin.json ~/.xtools/httpd/plugins/http_plugin.json");
+        }
         command = object_new(allocator, "Httpd_Command", NULL);
         command->set_args(command, 2, (char **)argv);
         command->parse_args(command);
@@ -77,7 +83,9 @@ static int test_http_deamon_plugin_api()
 
     return ret;
 }
-REGISTER_TEST_CMD(test_http_deamon_plugin_api);
+#if (!defined(WINDOWS_USER_MODE))
+REGISTER_TEST_FUNC(test_http_deamon_plugin_api);
+#endif
 
 static int test_http_wget()
 {

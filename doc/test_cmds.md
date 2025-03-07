@@ -124,6 +124,7 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_node
 
 ./sysroot/linux/bin/xtools --log-level=0x17 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
+./sysroot/linux/bin/xtools node --log-level=0x15 --host=127.0.0.1 --service=12345
 ./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd acdcda6a235bee5993530f7992d87330ac864a0d@{"ls -l"}
 ./sysroot/linux/bin/xtools node_cli --host=127.0.0.1 --service=12345 lookup all
 

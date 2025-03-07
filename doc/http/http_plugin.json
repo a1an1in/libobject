@@ -1,0 +1,23 @@
+[{
+    "class_name": "Test_Http_Plugin",
+    "path": "./sysroot/linux/lib/libobject-http-plugin-test.so",
+    "config": {
+        "Command": {
+            "name": "http-plugin-test"
+        },
+        "option": "test command option",
+        "help": 0
+    }
+}, {
+    "class_name": "Http_Paddlefish_Plugin",
+    "path": "./sysroot/linux/lib/libobject-http-plugin-paddlefish.so",
+    "config": {
+        "Command": {
+            "name": "http-plugin-paddlefish"
+        },
+        "db_host": "139.159.231.27",
+        "db_user": "root",
+        "db_password": "123456",
+        "db_name": "test"
+    }
+}]

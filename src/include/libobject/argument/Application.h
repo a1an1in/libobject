@@ -29,7 +29,6 @@ struct Application_s{
     int argc;
     char **argv;
     String *root;
-    Map *plugins;
     void *fshell;
 };
 

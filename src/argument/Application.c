@@ -90,9 +90,6 @@ static int __construct(Application *app, char *init_str)
 {
     Command *command = (Command *)app;
     allocator_t *allocator = command->parent.allocator;
-    int value_type = VALUE_TYPE_OBJ_POINTER;
-    uint8_t trustee_flag = 1;
-    Map *plugins;
 
     /* 1.add help infos */
     command->set(command, "/Command/name", "xtools");
@@ -104,20 +101,12 @@ static int __construct(Application *app, char *init_str)
                         __option_log_level_callback, app);
     command->add_option(command, "--root", "-r", "~/.xtools", "config xtool work space", __option_root_callback, app);
 
-    /* 2.construct plugins vector */
-    plugins = object_new(allocator, "RBTree_Map", NULL);
-    plugins->set_cmp_func(plugins, string_key_cmp_func);
-    plugins->set(plugins, "/Map/value_type", &value_type);
-    plugins->set(plugins, "/Map/trustee_flag", &trustee_flag);
-    app->plugins = plugins;
-
     return 0;
 }
 
 static int __deconstruct(Application *app)
 {
     object_destroy(app->root);
-    object_destroy(app->plugins);
     object_destroy(app->fshell);
 
     return 0;
@@ -193,35 +182,6 @@ static int __run_command(Application *app)
     return 0;
 }
 
-static int __load_plugin(Application *app, char *name, char *path, char *json, void *opaque)
-{
-    Map *plugins = app->plugins;
-    allocator_t *allocator = app->parent.parent.allocator;
-    FShell *shell = app->fshell;
-    Command *c;
-    int ret;
-
-    TRY {
-        dbg_str(DBG_VIP, "application load plugin, plugin class name:%s, path:%s", name, path);
-        dbg_str(DBG_INFO, "application load plugin, json:%s", json);
-        EXEC(shell->load(shell, path, RTLD_LOCAL | RTLD_LAZY));
-        c = object_new(allocator, name, json);
-        /* http plugin 需要http server， 所有通过opaque传入。 */
-        c->opaque = opaque;
-
-        /* 插件单独放在app的plugins Map里， 没有放到command的submodule里面，是因为：
-         * 1. 区分plugin和sub command两个概念。plugin是sub command功能的拓展。
-         * 2. Application是Command的子类， 会先释放shell（释放plugin）， 然后在
-         *    Command父类释放plugin会导致找不到插件类。
-         */
-        plugins->add(plugins, STR2A(c->name), c);
-        dbg_str(DBG_VIP, "application run plugin %s.", name);
-        EXEC(c->run_command(c));
-    } CATCH (ret) {} FINALLY {}
-
-    return ret;
-}
-
 static class_info_entry_t application_class_info[] = {
     Init_Obj___Entry(0 , Command, parent),
     Init_Nfunc_Entry(1 , Application, construct, __construct),
@@ -233,9 +193,8 @@ static class_info_entry_t application_class_info[] = {
     Init_Vfunc_Entry(7 , Application, run, __run),
     Init_Vfunc_Entry(8 , Application, run_command, __run_command),
     Init_Vfunc_Entry(9 , Application, help, NULL),
-    Init_Vfunc_Entry(10, Application, load_plugin, __load_plugin),
-    Init_Str___Entry(11, Application, root, NULL),
-    Init_End___Entry(12, Application),
+    Init_Str___Entry(10, Application, root, NULL),
+    Init_End___Entry(11, Application),
 };
 REGISTER_CLASS(Application, application_class_info);
 

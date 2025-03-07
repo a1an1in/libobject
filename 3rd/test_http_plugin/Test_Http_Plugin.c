@@ -71,4 +71,4 @@ static class_info_entry_t Test_Http_Plugin_class_info[] = {
     Init_U32___Entry(6, Test_Http_Plugin, help, 0),
     Init_End___Entry(7, Test_Http_Plugin),
 };
-PLUGIN_REGISTER_CLASS(Test_Http_Plugin, Test_Http_Plugin_class_info);
+REGISTER_PLUGIN_CLASS(Test_Http_Plugin, Test_Http_Plugin_class_info);
