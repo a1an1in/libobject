@@ -39,6 +39,7 @@ struct socket_s{
     int (*getsockopt)(Socket *socket, sockoptval *val);
     int (*setsockopt)(Socket *socket, sockoptval *val);
     int (*setnonblocking)(Socket *socket);
+    int (*getservice)(Socket *socket, char *service, int len);
 
     /* 
      * keep_alive可以是双向的，即客户端可以主动给服务器发，或服务器主动给客户端发送。在使能了SO_KEEPALIVE后，即启用了保活机制。

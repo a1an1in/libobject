@@ -74,18 +74,23 @@ static int __deconstrcut(Inet_Udp_Socket *socket)
 static int __bind(Inet_Udp_Socket *socket, char *host, char *service)
 {
     struct addrinfo  *addr, *addrsave, hint;
-    int skfd, ret;
+    int skfd, ret, port;
     char *h, *s;
 
     bzero(&hint, sizeof(hint));
     hint.ai_family   = AF_INET;
     hint.ai_socktype = SOCK_DGRAM;
 
-    if (host == NULL && service == NULL) {
-        h = socket->parent.local_host;
-        s = socket->parent.local_service;
+    if (host == NULL) {
+        h = "127.0.0.1";
     } else {
         h = host;
+    }
+
+    if (service == NULL) {
+        hint.ai_flags = AI_PASSIVE; 
+        s = "0";
+    } else {
         s = service;
     }
 
@@ -100,7 +105,7 @@ static int __bind(Inet_Udp_Socket *socket, char *host, char *service)
     } else {
         dbg_str(DBG_ERROR, "getaddrinfo err");
         return -1;
-    }                      
+    }                 
 
     do {
         if ((ret = bind(socket->parent.fd, addr->ai_addr, addr->ai_addrlen)) == 0)
@@ -223,6 +228,40 @@ static int __setnonblocking(Inet_Udp_Socket *socket)
     return 0;
 }
 
+static int __getservice(Inet_Udp_Socket *socket, char *service, size_t service_len) 
+{  
+    struct sockaddr_storage addr;  
+    socklen_t addr_len = sizeof(addr);
+    uint16_t port;
+    int ret, written;
+
+    TRY {
+        // 获取套接字地址信息  
+        if (getsockname(socket->parent.fd, (struct sockaddr*)&addr, &addr_len) != 0) {  
+            THROW(-1); 
+        }  
+
+        // 提取端口号  
+        if (addr.ss_family == AF_INET) {  
+            struct sockaddr_in *ipv4_addr = (struct sockaddr_in*)&addr;  
+            port = ntohs(ipv4_addr->sin_port);  
+        } else if (addr.ss_family == AF_INET6) {  
+            struct sockaddr_in6 *ipv6_addr = (struct sockaddr_in6*)&addr;  
+            port = ntohs(ipv6_addr->sin6_port);  
+        } else {  
+            THROW(-1);
+        }  
+
+        // 将端口号转换为字符串  
+        written = snprintf(service, service_len, "%d", port);  
+        if (written < 0 || written >= service_len) {  
+            THROW(-1);
+        }
+    } CATCH (ret) {}
+
+    return ret; 
+}  
+
 static class_info_entry_t inet_udp_socket_class_info[] = {
     Init_Obj___Entry(0 , Socket, parent),
     Init_Nfunc_Entry(1 , Inet_Udp_Socket, construct, __construct),
@@ -238,7 +277,8 @@ static class_info_entry_t inet_udp_socket_class_info[] = {
     Init_Vfunc_Entry(11, Inet_Udp_Socket, getsockopt, __getsockopt),
     Init_Vfunc_Entry(12, Inet_Udp_Socket, setsockopt, __setsockopt),
     Init_Vfunc_Entry(13, Inet_Udp_Socket, setnonblocking, __setnonblocking),
-    Init_End___Entry(14, Inet_Udp_Socket),
+    Init_Vfunc_Entry(14, Inet_Udp_Socket, getservice, __getservice),
+    Init_End___Entry(15, Inet_Udp_Socket),
 };
 REGISTER_CLASS(Inet_Udp_Socket, inet_udp_socket_class_info);
 

@@ -136,23 +136,16 @@ Producer *producer_get_default_instance()
     return global_default_producer;
 }
 
-int producer_init_default_instance(char *thread_service, char *signal_service)
+int producer_init_default_instance()
 {
     Producer *producer;
     allocator_t *allocator = allocator_get_default_instance();
-    configurator_t * c;
 
-    c = cfg_alloc(allocator); 
-    cfg_config_str(c, "/Event_Thread", "thread_service", thread_service); 
-    cfg_config_str(c, "/Event_Thread", "signal_service", signal_service); 
-
-    // dbg_str(DBG_DETAIL, "Producer init str:%s", c->buf);
     dbg_str(DBG_VIP, "producer_init_default_instance");
-    producer = OBJECT_NEW(allocator, Producer, c->buf);
+    producer = OBJECT_NEW(allocator, Producer, NULL);
     global_default_producer = producer;
 
     producer->start(producer);
-    cfg_destroy(c);
 
     return 0;
 }

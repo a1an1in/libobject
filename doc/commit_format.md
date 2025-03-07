@@ -1,8 +1,9 @@
-[update:attacher] 更改attacher目标为行输出缓冲模式。
+[update:eventbase] 去掉Event_Base端口配置。
 
 Description:
-测试发现目标进程日志打印不出来，发现有可能是stdout缓冲模式
-不对，修改为行缓冲，遇到\n就打印日志。
+之前的Event_Base需要指定两个端口号， 如果一台设备上运行多个xtools进程，
+需要提前配置号每个进程使用的端口，会很麻烦。现在不需要配置端口号了，使用
+系统随机分配的端口，这个端口也只是内部使用。
 
 Major Changes:
-1. 更改标准输出的缓冲模式。
+1. 去掉Event_Base端口配置，简化命令行参数。

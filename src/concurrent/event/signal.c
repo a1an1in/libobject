@@ -89,19 +89,14 @@ int evsig_init(Event_Base *eb)
     allocator_t *allocator = eb->obj.allocator;
     Socket *s;
     char service[10];
-
-    if (eb->signal_service) {
-        dbg_str(DBG_DETAIL, "evsig_init, service:%s", STR2A(eb->signal_service));
-        sprintf(service, "%s", STR2A(eb->signal_service));
-    } else {
-        sprintf(service, "%d", SIGNAL_SERVICE + 5);
-    }
     
     s = (Socket *)object_new(allocator, "Inet_Udp_Socket", NULL);
-    s->bind(s, "127.0.0.1", service);
+    s->bind(s, "127.0.0.1", NULL);
     s->setnonblocking(s);
+    s->getservice(s, service, sizeof(service));
     //?? set closeonexec
     eb->evsig.receiver = s;
+    dbg_str(DBG_INFO, "Event Signal service:%s", service);
 
     s = (Socket *)object_new(allocator, "Inet_Udp_Socket", NULL);
     s->connect(s, "127.0.0.1", service);

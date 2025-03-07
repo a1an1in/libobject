@@ -25,18 +25,6 @@ static int app_command_count;
 
 Application *global_app;
 
-static int __option_set_event_thread_service_callback(Option *option, void *opaque)
-{
-    dbg_str(DBG_VIP,"option_set_event_thread_service_callback:%s", STR2A(option->value));
-    return 1;
-}
-
-static int __option_set_event_signal_service_callback(Option *option, void *opaque)
-{
-    dbg_str(DBG_VIP,"option_set_event_signal_service_callback:%s", STR2A(option->value));
-    return 1;
-}
-
 static int __option_version_callback(Option *option, void *opaque)
 {
     if (option->set_flag == 1) {
@@ -108,10 +96,6 @@ static int __construct(Application *app, char *init_str)
 
     /* 1.add help infos */
     command->set(command, "/Command/name", "xtools");
-    command->add_option(command, "--event-thread-service", "", "11110", "event-thread-service address",
-                        __option_set_event_thread_service_callback, NULL);
-    command->add_option(command, "--event-signal-service", "", "11120", "event-signal-service address",
-                        __option_set_event_signal_service_callback, NULL);
     command->add_option(command, "--version", "-v", NULL, "show version of xtools",
                         __option_version_callback, NULL);
     command->add_option(command, "--help", "-h", NULL, "help for xtools",
@@ -187,19 +171,13 @@ static int __run_command(Application *app)
     Command *command = (Command *)app;
     Option *option;
     allocator_t *allocator = command->parent.allocator;
-    char *event_thread_service, *event_signal_service;
     int ret;
 
     TRY {
         dbg_str(DBG_VIP, "run Application command");
         fs_expand_path(STR2A(app->root), app->root->value_max_len);
 
-        option = command->get_option(command, "--event-thread-service");
-        event_thread_service = STR2A(option->value);
-        option = command->get_option(command, "--event-signal-service");
-        event_signal_service = STR2A(option->value);
-
-        EXEC(producer_init_default_instance(event_thread_service, event_signal_service));
+        EXEC(producer_init_default_instance());
         EXEC(event_base_init_default_instance());
         EXEC(stub_admin_init_default_instance());
 

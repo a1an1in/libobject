@@ -34,7 +34,7 @@ struct producer_s{
 };
 
 extern Producer *producer_get_default_instance();
-extern int producer_init_default_instance(char *event_thread_service, char *event_signal_service);
+extern int producer_init_default_instance();
 extern int producer_destroy_default_instance();
 
 #endif

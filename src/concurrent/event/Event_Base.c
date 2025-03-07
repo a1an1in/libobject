@@ -78,8 +78,6 @@ static int __deconstrcut(Event_Base *eb)
         dbg_str(EV_DETAIL, "remove global_event_base_list, count=%d", list->count(list));
     }
 
-    object_destroy(eb->signal_service);
-
     return 0;
 }
 
@@ -268,8 +266,7 @@ static class_info_entry_t event_base_class_info[] = {
     Init_Vfunc_Entry(10, Event_Base, trustee_io, NULL), 
     Init_Vfunc_Entry(11, Event_Base, reclaim_io, NULL), 
     Init_Vfunc_Entry(12, Event_Base, dispatch, NULL),
-    Init_Str___Entry(13, Event_Base, signal_service, NULL),
-    Init_End___Entry(14, Event_Base), 
+    Init_End___Entry(13, Event_Base), 
 };
 REGISTER_CLASS(Event_Base, event_base_class_info);
 

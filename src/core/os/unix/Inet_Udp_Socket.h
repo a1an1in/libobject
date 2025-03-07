@@ -30,6 +30,7 @@ struct inet_udp_socket_s{
     int (*getsockopt)(Inet_Udp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setsockopt)(Inet_Udp_Socket *socket, int level, int optname, sockoptval *val);
     int (*setnonblocking)(Inet_Udp_Socket *socket);
+    int (*getservice)(Inet_Udp_Socket *socket, char *service, size_t service_len);
 };
 
 #endif

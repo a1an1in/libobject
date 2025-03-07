@@ -42,7 +42,6 @@ struct event_base_s{
     Iterator *map_iter;
     struct evsig_s evsig;
     int break_flag;
-    String *signal_service;
 
     event_t quit_event;
     event_t coredump_event;
