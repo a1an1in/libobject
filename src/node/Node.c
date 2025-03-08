@@ -206,10 +206,10 @@ static int __call_bus(Node *node, char *code, void *out, uint32_t *out_len)
             /* 字符串可以带引号也可以不带， call_bus都支持， 但是同call_fsh一样，字符串不能包含,\t\n();等符号，
              * 否则无法区分哪些是参数, 如果确实有这些字符，则需要先用mset配置字符串，然后该字符参数用地址替代. */
             {
-                    len = strlen(tmp);
-                    THROW_IF(tmp[len - 1] != '"', -1);
-                    tmp[len - 1] = '\0';
-                    args[i].value = tmp + 1;
+                len = strlen(tmp);
+                THROW_IF(tmp[len - 1] != '"', -1);
+                tmp[len - 1] = '\0';
+                args[i].value = tmp + 1;
             } else if (args[i].type == ARG_TYPE_STRING && tmp[0] != '"'){
                 args[i].value = str->get_splited_cstr(str, 2 + i);
             } else {
