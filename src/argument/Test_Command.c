@@ -18,7 +18,7 @@ static int __construct(Command *command, char *init_str)
     help = 0;
     command->set(command, "/Test_Command/help", &help);
     command->set(command, "/Test_Command/option", "test command option");
-    command->set(command, "/Command/name", "Test");
+    command->set(command, "/Command/name", "test");
 
     command->add_subcommand(command, "Test_Sub1_Command");
     command->add_subcommand(command, "Test_Sub2_Command");

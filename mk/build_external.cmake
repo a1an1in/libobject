@@ -84,5 +84,5 @@ macro (build_openssl)
 endmacro()
 
 build_windows_dl()
-build_openssl()
+#build_openssl()
 build_mysql()

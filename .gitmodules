@@ -4,6 +4,3 @@
 [submodule "3rd/mysql-connector-c"]
 	path = 3rd/mysql-connector-c
 	url = git@github.com:a1an1in/mysql-connector-c.git
-[submodule "3rd/openssl"]
-	path = 3rd/openssl
-	url = git@github.com:a1an1in/openssl.git
