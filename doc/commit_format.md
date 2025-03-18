@@ -1,8 +1,8 @@
-[update:encoding] 去掉openssl依赖。
+[update:attacher] 去掉attacher-builtin符号表。
 
 Description:
-Openssl_Digest_HmacSha1使用不多而且依赖openssl，导致
-编译很慢，所以先暂时去掉该类的实现。
+在实际应用的过程中， 发现很多进程没有符号表， 所以去掉
+attacher-builtin符号表， 以模拟真实场景。
 
 Major Changes:
-1. 去掉openssl依赖。
+1. 尝试编译去掉部分库符号表。

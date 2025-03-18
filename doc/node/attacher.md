@@ -10,7 +10,10 @@ attacher
 
 2. ptrace系统调用方法：该方法是通过调用ptrace系统调用来实现动态库注入。ptrace系统调用可以控制目标进程的执行，并允许开发人员读写进程的内存。通过ptrace系统调用可以将动态库注入到目标进程的地址空间中，从而实现动态库注入的目的。
 
-refs
+## 计算函数地址
+objdump -d bin|grep "func_name"
+
+## refs
 
 https://github.com/gaffe23/linux-inject/
 
