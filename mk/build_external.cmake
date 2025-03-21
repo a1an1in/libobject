@@ -85,4 +85,4 @@ endmacro()
 
 build_windows_dl()
 #build_openssl()
-build_mysql()
+#build_mysql()

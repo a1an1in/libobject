@@ -1,8 +1,7 @@
-[update:attacher] 去掉attacher-builtin符号表。
+[update:attacher] 简化attacher shell命令行。
 
 Description:
-在实际应用的过程中， 发现很多进程没有符号表， 所以去掉
-attacher-builtin符号表， 以模拟真实场景。
+之前的命令行很长，使用很不方便， 简化后就很简练了。
 
 Major Changes:
-1. 尝试编译去掉部分库符号表。
+1. 优化node cli脚本。
