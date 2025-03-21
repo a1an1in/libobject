@@ -125,7 +125,9 @@ ping6 2409:8c20:1833:1000::ad5:2cb5
 
 ./sysroot/linux/bin/xtools --log-level=0x17 node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
 ./sysroot/linux/bin/xtools node --log-level=0x15 --host=127.0.0.1 --service=12345
-./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd acdcda6a235bee5993530f7992d87330ac864a0d@{"ls -l"}
+
+node_id=$(./sysroot/linux/bin/xtools node_cli --host=127.0.0.1 --service=12345 lookup all | grep "index:2" | awk -F'id:' '{print $2}' | awk -F',' '{print $1}' | tr -d ' ')
+./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd $node_id@{"ls -l"}
 ./sysroot/linux/bin/xtools node_cli --host=127.0.0.1 --service=12345 lookup all
 
 object_id:acdcda6a235bee5993530f7992d87330ac864a0d
@@ -199,14 +201,25 @@ nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --hos
 stdbuf -oL -eL ./sysroot/linux/bin/test-process  > ~/.xtools/test_process.log 2>&1
 ./sysroot/linux/bin/xtools node --log-level=0x20016 --host=127.0.0.1 --service=12345 --deamon=t
 ./sysroot/linux/bin/xtools node --log-level=0x20016 --host=127.0.0.1 --service=12345
-./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"tail -f ~/.xtools/test_process.log"}
-./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=127.0.0.1 --service=12345 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"ls -l"}
 
-stdbuf -oL -eL ./sysroot/linux/bin/test-process  > ~/.xtools/test_process.log 2>&1
-./sysroot/linux/bin/xtools node --log-level=0x20016 --host=139.159.231.27 --service=12345
-./sysroot/linux/bin/xtools node_cli --log-level=0x14 --host=139.159.231.27 --service=12345 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"tail -f ~/.xtools/test_process.log"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_cmd b35f958b26e359bffe5c097e8c64150ec452b639@{"ls -l"}
+node_cli() {
+    # 检测操作系统类型
+    if [[ "$(uname -s)" == "Linux" ]]; then
+        ND_CLI="./sysroot/linux/bin/xtools node_cli"
+    elif [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* || "$(uname -s)" == "MSYS"* ]]; then
+        ND_CLI="./sysroot/windows/bin/xtools.exe node_cli"
+    else
+        echo "Unsupported OS: $(uname -s)"
+        return 1
+    fi
+
+    # 执行命令
+    $ND_CLI --host="127.0.0.1" --service="12345" "$@"
+}
+node_id=$(node_cli lookup all | grep "index:2" | awk -F'id:' '{print $2}' | awk -F',' '{print $1}' | tr -d ' ')
+
+node_cli --log-level=0x20014 call_cmd $node_id@{"tail -f ~/.xtools/test_process.log"}
+node_cli --log-level=0x20014 call_cmd $node_id@{"ls -l"}
 
 * 2.7 attancher
 ./sysroot/linux/bin/xtools mockery --log-level=0x14 -f test_attacher
@@ -214,31 +227,65 @@ stdbuf -oL -eL ./sysroot/linux/bin/test-process  > ~/.xtools/test_process.log 2>
 
 //run node service and test process
 ./sysroot/linux/bin/test-process
-./sysroot/linux/bin/xtools node --log-level=0x20016 --host=139.159.231.27 --service=12345
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 lookup all
+./sysroot/linux/bin/xtools node --log-level=0x20016 --host=127.0.0.1 --service=12345
+
+node_cli() {
+    # 检测操作系统类型
+    if [[ "$(uname -s)" == "Linux" ]]; then
+        ND_CLI="./sysroot/linux/bin/xtools node_cli"
+    elif [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* || "$(uname -s)" == "MSYS"* ]]; then
+        ND_CLI="./sysroot/windows/bin/xtools.exe node_cli"
+    else
+        echo "Unsupported OS: $(uname -s)"
+        return 1
+    fi
+
+    # 执行命令
+    $ND_CLI --host="127.0.0.1" --service="12345" "$@"
+}
+
+node_id=$(node_cli lookup all | grep "index:2" | awk -F'id:' '{print $2}' | awk -F',' '{print $1}' | tr -d ' ')
+pid=$(ps aux | grep test-process | grep -v grep | awk '{print $2}')
 
 // open attacher
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_bus 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"malloc(13, \"UnixAttacher\", #test_attacher, 0)"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"attach(#test_attacher, 244049)"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"init(#test_attacher)"}
+node_cli --log-level=0x20014 call_bus $node_id@{"malloc(13, \"UnixAttacher\", #test_attacher, 0)"}
+node_cli --log-level=0x20014 call_obj $node_id@{"attach(#test_attacher, $pid)"}
+node_cli --log-level=0x20014 call_obj $node_id@{"init(#test_attacher)"}
 
 // test adding stub
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_bus 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"malloc(10, \"null\", #test_stub, 8)"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"alloc_stub(#test_attacher, #test_stub)"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"add_stub_hooks(#test_attacher, *#test_stub, \"test_with_mixed_type_pars\", \"attacher_test_with_pointer_arg_prehook\", \"attacher_test2_with_pointer_arg\", \"attacher_test_with_pointer_arg_posthook\", 2)"}
+node_cli --log-level=0x20014 call_bus $node_id@{"malloc(10, \"null\", #test_stub, 8)"}
+node_cli --log-level=0x20014 call_obj $node_id@{"alloc_stub(#test_attacher, #test_stub)"}
+node_cli --log-level=0x20014 call_obj $node_id@{"add_stub_hooks(#test_attacher, *#test_stub, \"test_with_mixed_type_pars\", \"attacher_test_with_pointer_arg_prehook\", \"attacher_test2_with_pointer_arg\", \"attacher_test_with_pointer_arg_posthook\", 2)"}
 
 // remove stub
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"remove_stub_hooks(#test_attacher, *#test_stub)"}
+node_cli --log-level=0x20014 call_obj $node_id@{"remove_stub_hooks(#test_attacher, *#test_stub)"}
 
 // test calling target method
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_bus 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"malloc(10, \"null\", #test_func_str, 128)"}
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 mset 4807d81c85887316271c05e27ee5a3f8795dd1a6@#test_func_str{0-127} "attacher_test_with_pointer_arg(0x1234, \"test2\")"
-./sysroot/linux/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x20014 call_obj 4807d81c85887316271c05e27ee5a3f8795dd1a6@{"call(#test_attacher, 0, #test_func_str, 0)"}
+node_cli --log-level=0x20014 call_bus $node_id@{"malloc(10, \"null\", #test_func_str, 128)"}
+node_cli --log-level=0x20014 mset $node_id@#test_func_str{0-127} "attacher_test_with_pointer_arg(0x1234, \"test2\")"
+node_cli --log-level=0x20014 call_obj $node_id@{"call(#test_attacher, 0, #test_func_str, 0)"}
 
 3 windows 测试
 ./sysroot/windows/bin/xtools node --log-level=0x15 --host=139.159.231.27 --service=12345
-./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 flist 7917ec7c24809a2d718eeea06273d47f8fc9c3e7@/root/.xtools/packages
-./sysroot/windows/bin/xtools --log-level=0x20016 node_cli --host=139.159.231.27 --service=12345 flist 9642a3c6dcc64bc451eba2a0da492e53178466f4@./tests/node/
-./sysroot/windows/bin/xtools node_cli --host=139.159.231.27 --service=12345 --log-level=0x16 call_cmd e7fa912cd7d9f0ae6aeffdb40d78d714c10acbc8@{"ls -l"}
-./sysroot/windows/bin/xtools node_cli --log-level=0x14 --host=139.159.231.27 --service=12345 lookup all
+node_cli() {
+    # 检测操作系统类型
+    if [[ "$(uname -s)" == "Linux" ]]; then
+        ND_CLI="./sysroot/linux/bin/xtools node_cli"
+    elif [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* || "$(uname -s)" == "MSYS"* ]]; then
+        ND_CLI="./sysroot/windows/bin/xtools.exe node_cli"
+    else
+        echo "Unsupported OS: $(uname -s)"
+        return 1
+    fi
+
+    # 执行命令
+    $ND_CLI --host="127.0.0.1" --service="12345" "$@"
+}
+
+node_id=$(node_cli lookup all | grep "index:2" | awk -F'id:' '{print $2}' | awk -F',' '{print $1}' | tr -d ' ')
+
+node_cli --log-level=0x20016 flist $node_id@/root/.xtools/packages
+node_cli --log-level=0x20016 flist $node_id@./tests/node/
+node_cli --log-level=0x20016 call_cmd $node_id@{"ls -l"}
+node_cli --log-level=0x20016 lookup all
 ```
