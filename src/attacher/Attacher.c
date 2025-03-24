@@ -73,14 +73,15 @@ static void *__malloc(Attacher *attacher, int size, void *value)
     TRY {
         THROW_IF(size == 0, 0);
         EXEC(dl_get_dynamic_name(-1, malloc, module_name, 64));
-        dbg_str(DBG_INFO, "local malloc addr:%p", malloc);
+        dbg_str(DBG_DETAIL, "local malloc addr:%p", malloc);
         addr = attacher->get_remote_builtin_function_address(attacher, "malloc", module_name);
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_INFO, "remote alloc addr:%p", addr);
+        dbg_str(DBG_DETAIL, "remote alloc addr:%p", addr);
         addr = attacher->call_address_with_value_pars(attacher, addr, pars, 1);
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_INFO, "attacher malloc addr:%p, size:%d", addr, size);
+        
         if (value != NULL) {
+            dbg_str(DBG_DETAIL, "attacher malloc write addr:%p, size:%d", addr, size);
             EXEC(attacher->write(attacher, addr, value, size));
         }
         return addr;
@@ -118,7 +119,7 @@ static void *__get_remote_function_address(Attacher *attacher, char *lib_name, c
     long ret;
     void *addr;
     char module_name[64] = {0};
-    attacher_paramater_t pars[2] = {{name, strlen(name)}, {lib_name, lib_name == NULL ? 0 : strlen(lib_name)}};
+    attacher_paramater_t pars[2] = {{name, strlen(name) + 1}, {lib_name, lib_name == NULL ? 0 : strlen(lib_name) + 1}};
 
     TRY {
         addr = dl_get_func_addr_by_name(name, NULL);
@@ -218,7 +219,6 @@ static long __call(Attacher *attacher, char *lib_name, char *func, long *ret_val
     String *str;
 
     TRY {
-        dbg_str(DBG_WIP, "attacher call:%s", func);
         /* 1. 获取函数名和参数 */
         str = object_new(allocator, "String", func);
         cnt = str->split(str, "[,\t\n();]", -1);
@@ -237,7 +237,8 @@ static long __call(Attacher *attacher, char *lib_name, char *func, long *ret_val
                 THROW_IF(arg[len - 1] != '"', -1);
                 arg[len - 1] = '\0';
                 pars[i - 1].value = arg + 1;
-                pars[i - 1].size = strlen(pars[i - 1].value);
+                pars[i - 1].size = strlen(pars[i - 1].value) + 1;
+                dbg_str(DBG_WIP, "attacher call arg0: %s len:%d", pars[i - 1].value, strlen(pars[i - 1].value) + 1);
             } else if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
                 pars[i - 1].value = str_hex_to_integer(arg);
                 pars[i - 1].size = 0;
@@ -259,7 +260,10 @@ static long __call(Attacher *attacher, char *lib_name, char *func, long *ret_val
         if (ret_value != NULL) {
             *ret_value = return_value;
         }
-    } CATCH (ret) {} FINALLY {
+        dbg_str(DBG_WIP, "attacher call:%s success, return value:%x", func, return_value);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "attacher call:%s failed", func);
+    } FINALLY {
         object_destroy(str);
     }
 

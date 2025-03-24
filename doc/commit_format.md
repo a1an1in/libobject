@@ -1,7 +1,7 @@
-[update:attacher] 简化attacher shell命令行。
+[update:node] 修复mset前空间没有清零的问题。
 
 Description:
-之前的命令行很长，使用很不方便， 简化后就很简练了。
+mset前变量未清零导致数据混淆。
 
 Major Changes:
-1. 优化node cli脚本。
+1. 修复mset问题。
