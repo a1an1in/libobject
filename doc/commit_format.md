@@ -1,7 +1,7 @@
-[update:node] 修复mset前空间没有清零的问题。
+[update:node] 优化attacher操作脚本。
 
 Description:
-mset前变量未清零导致数据混淆。
+使用attacher.sh操作attacher命令行更简单。
 
 Major Changes:
-1. 修复mset问题。
+1. 优化attacher操作。

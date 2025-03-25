@@ -46,7 +46,7 @@ static int __deconstrcut(Attacher *attacher)
 
     for (; !end->equal(end, cur); cur->next(cur)) {
         key = cur->get_kpointer(cur);
-        dbg_str(DB_VIP, "attacher destroy, release lib:%s", key);
+        dbg_str(DBG_VIP, "attacher destroy, release lib:%s", key);
         attacher->remove_lib(attacher, key);
         allocator_mem_free(allocator, key);
     }
@@ -57,6 +57,7 @@ static int __deconstrcut(Attacher *attacher)
 
     /* 3. detach */
     if (attacher->pid != 0) {
+        dbg_str(DBG_VIP, "attacher destroy, detach pid:%d", attacher->pid);
         attacher->detach(attacher);
     }
 

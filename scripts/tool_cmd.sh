@@ -13,6 +13,12 @@ function do_build_linux {
         make install
         exit 0
     fi
+
+    # 将 attacher.sh 脚本复制到 sysroot/linux/bin 目录
+    mkdir -p ../../sysroot/linux/bin
+    cp ../../scripts/attacher.sh ../../sysroot/linux/bin/attacher.sh
+    chmod +x ../../sysroot/linux/bin/attacher.sh
+    echo "attacher.sh has been copied to sysroot/linux/bin"
 }
 
 function do_build_mac {
@@ -102,14 +108,14 @@ function do_release {
         return 0;
     fi
 
-    if [ ! -d "sysroot/linux" ];then
+    if [ ! -d "sysroot/linux" ]; then
         exit 1
     fi
 
-    if [ ! -f "src/include/libobject/version.h" ];then
+    if [ ! -f "src/include/libobject/version.h" ]; then
         exit 1
     fi
-    
+
     file_name=$(get_release_package_name xtools_linux src/include/libobject/version.h)
     echo "file_name:$file_name"
     if [ -f packages/$file_name ]; then

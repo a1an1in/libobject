@@ -446,7 +446,7 @@ static int node_mfree(bus_object_t *obj, int argc,
         shell = node->shell;
         map = shell->variable_map;
         allocator = bus->allocator;
-        dbg_str(DBG_DETAIL, "node_mfree, name:%s", name);
+        dbg_str(DBG_VIP, "node_mfree, name:%s", name);
 
         THROW_IF(name == NULL, -1);
         map->remove(map, name, &info);
