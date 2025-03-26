@@ -32,8 +32,6 @@
 * ./sysroot/windows/bin/xtools.exe mockery --log-level=0x16 -f test_string
 * ./sysroot/windows/bin/xtools.exe mockery --log-level=0x16 -f test_message_publisher
 * ./sysroot/windows/bin/xtools.exe mockery --log-level=0x16 -f test_net
-* 
-* 
 
 ## timezone test
 we can change system timezone using this command
@@ -98,14 +96,8 @@ sudo tcpdump -i enp0s17  port 12345
 ./sysroot/linux/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t 
 ./sysroot/linux/bin/xtools node --log-level=0x20016 --host=127.0.0.1 --service=12345
 ./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_v2.14.0.125.tar.gz
-node_cli lookup all
 
 node_cli() {
-    local log_level="0x20014"
-    if [[ "$1" == "--log-level="* ]]; then
-        log_level="${1#--log-level=}"
-        shift
-    fi
     # 检测操作系统类型
     if [[ "$(uname -s)" == "Linux" ]]; then
         ND_CLI="./sysroot/linux/bin/xtools node_cli"
@@ -120,6 +112,7 @@ node_cli() {
     $ND_CLI --host="127.0.0.1" --service="12345" "$@"
 }
 node_id=$(node_cli lookup all | grep "index:2" | awk -F'id:' '{print $2}' | awk -F',' '{print $1}' | tr -d ' ')
+node_cli lookup all
 
 2 linux 测试
 * 2.1 node cli 基本用法
@@ -209,9 +202,12 @@ node_cli call_obj $node_id@{"remove_stub_hooks(#test_attacher, *#test_stub)"}
 ./sysroot/linux/bin/xtools node --log-level=0x30016 --host=127.0.0.1 --service=12345 --deamon=t
 sudo ./sysroot/linux/bin/xtools node --log-level=0x20016 --host=127.0.0.1 --service=12345
 
-./sysroot/linux/bin/attacher.sh setup --filter="fd:10" --app-name="test-process"
-./sysroot/linux/bin/attacher.sh call --log-level=0x20014 "attacher_test_with_pointer_arg(0x1234, \"test2\")"
-./sysroot/linux/bin/attacher.sh destroy
+source ./sysroot/linux/bin/attacher.sh
+attacher setup --filter="fd:10" --app-name="test-process"
+attacher alloc "#test_result"
+attacher call --log-level=0x20014 "attacher_test_with_pointer_arg(0x1234, \"test2\")" "#test_result"
+attacher free "#test_result"
+attacher destroy
 
 3 windows 测试
 ./sysroot/windows/bin/xtools node --log-level=0x15 --host=139.159.231.27 --service=12345
