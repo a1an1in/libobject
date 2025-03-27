@@ -1,11 +1,9 @@
-[update:node] 优化attacher操作脚本。
+[update:all] 优化attacher操作脚本。
 
 Description:
-之前node_id存放在/tmp/attacher_node_id文件，这样就限制同时
-只能登录一个attacher。
-attacher call有可能有返回值，这个返回值应该存放在提前分配的
-内存中，所以需要新增attacher alloc和free内存的接口。
+使用GPT-4o，为库添加子模块readme。更改linux cmake以
+支持x86_64和arm工具链。
 
 Major Changes:
-1. 增加内存alloc和free。
-2. node_id去掉文件依赖。
+1. 为模块添加readme。
+2. 为linux添加arm和x86_64工具链。

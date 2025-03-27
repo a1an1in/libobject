@@ -17,7 +17,10 @@ function get_release_package_version {
     echo "$version"
 }
 
-function parse_args { # Read commande line arguments and update global vairbles
+function parse_args { # Read command line arguments and update global variables
+    # Set default values if not provided
+    OPTION_ARCH="x86_64"
+
     local error_msg=""
     local i
     for i in "$@"; do # Parse arguments in arg=value format
@@ -34,6 +37,11 @@ function parse_args { # Read commande line arguments and update global vairbles
                 ;;
             -i|--install)
                 OPTION_INSTALL=true
+                OPTION_HELP=""
+                shift # past argument
+                ;;
+            --arch=*)
+                OPTION_ARCH="${i#*=}"
                 OPTION_HELP=""
                 shift # past argument
                 ;;

@@ -4,21 +4,73 @@
 
 function do_build_linux {
     increase_version_tweak_number
-    rm -rf /usr/local/include/libobject
-    mkdir -p build/linux
-    cd build/linux
-    cmake ../.. -DPLATFORM=linux -DMODULE_UI=off
-    make
+
+    # 如果未指定架构，默认使用 x86_64
+    if [[ -z $OPTION_ARCH ]]; then
+        echo "No architecture specified. Defaulting to x86_64."
+        OPTION_ARCH="x86_64"
+    fi
+
+    # 根据架构动态设置构建目录、工具链文件和安装目录
+    case $OPTION_ARCH in
+        "x86_64")
+            echo "Building for x86_64 architecture"
+            BUILD_DIR="build/linux/x86_64"
+            TOOLCHAIN_FILE="../../../mk/linux-x86_64.toolchain.cmake"
+            SYSROOT_DIR="../../../sysroot/linux/x86_64"
+            ;;
+        "arm")
+            echo "Building for ARM architecture"
+            BUILD_DIR="build/linux/arm"
+            TOOLCHAIN_FILE="../../../mk/linux-arm.toolchain.cmake"
+            SYSROOT_DIR="../../../sysroot/linux/arm"
+            ;;
+        *)
+            echo "Error: Unsupported architecture: $OPTION_ARCH"
+            exit 1
+            ;;
+    esac
+
+    # 创建构建目录
+    mkdir -p $BUILD_DIR
+    cd $BUILD_DIR || { echo "Failed to enter build directory: $BUILD_DIR"; exit 1; }
+
+    # 检查工具链文件是否存在
+    if [[ ! -f $TOOLCHAIN_FILE ]]; then
+        echo "Error: Toolchain file not found: $TOOLCHAIN_FILE"
+        exit 1
+    fi
+
+    # 检查 CMakeLists.txt 文件是否存在于构建目录的父级
+    if [[ ! -f ../../../CMakeLists.txt ]]; then
+        echo "Error: CMakeLists.txt not found in the source directory."
+        exit 1
+    fi
+
+    # 运行 CMake，加载工具链文件
+    cmake ../../../ \
+        -DPLATFORM=linux \
+        -DMODULE_UI=off \
+        -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} || { echo "CMake configuration failed."; exit 1; }
+
+    make || { echo "Make failed."; exit 1; }
+
     if [[ $OPTION_INSTALL == "true" ]]; then
-        make install
+        make install || { echo "Make install failed."; exit 1; }
         exit 0
     fi
 
-    # 将 attacher.sh 脚本复制到 sysroot/linux/bin 目录
-    mkdir -p ../../sysroot/linux/bin
-    cp ../../scripts/attacher.sh ../../sysroot/linux/bin/attacher.sh
-    chmod +x ../../sysroot/linux/bin/attacher.sh
-    echo "attacher.sh has been copied to sysroot/linux/bin"
+    # 检查 attacher.sh 文件是否存在
+    if [[ ! -f ../../../scripts/attacher.sh ]]; then
+        echo "Error: attacher.sh not found in ../../scripts."
+        exit 1
+    fi
+
+    # 将 attacher.sh 脚本复制到对应架构的 bin 目录
+    mkdir -p ${SYSROOT_DIR}/bin
+    cp ../../../scripts/attacher.sh ${SYSROOT_DIR}/bin/attacher.sh
+    chmod +x ${SYSROOT_DIR}/bin/attacher.sh
+    echo "attacher.sh has been copied to ${SYSROOT_DIR}/bin"
 }
 
 function do_build_mac {
@@ -103,34 +155,57 @@ function do_clean {
 function do_release {
     if [[ $OPTION_PLATFORM == "linux" ]]; then
         echo "do release package"
+
+        # 如果未指定架构，默认使用 x86_64
+        if [[ -z $OPTION_ARCH ]]; then
+            echo "No architecture specified. Defaulting to x86_64."
+            OPTION_ARCH="x86_64"
+        fi
+
+        # 根据架构设置 SYSROOT_DIR
+        if [[ $OPTION_ARCH == "arm" ]]; then
+            SYSROOT_DIR="sysroot/linux/arm"
+        else
+            SYSROOT_DIR="sysroot/linux/x86_64"
+        fi
+
+        # 检查必要的文件和目录
+        if [ ! -d "$SYSROOT_DIR" ]; then
+            echo "Error: $SYSROOT_DIR does not exist."
+            exit 1
+        fi
+
+        if [ ! -f "src/include/libobject/version.h" ]; then
+            echo "Error: src/include/libobject/version.h does not exist."
+            exit 1
+        fi
+
+        # 获取发布包名称
+        file_name=$(get_release_package_name xtools_linux_${OPTION_ARCH} src/include/libobject/version.h)
+        echo "file_name: $file_name"
+
+        # 如果包已存在，直接退出
+        if [ -f packages/$file_name ]; then
+            echo "Package $file_name already exists."
+            exit 0
+        elif [ -z "$file_name" ]; then
+            echo "Error: Failed to generate package name."
+            exit 1
+        fi
+
+        # 创建发布包
+        mkdir -p packages/xtools
+        cp -rf $SYSROOT_DIR/* packages/xtools/
+        cd packages
+        tar -zcvf $file_name xtools/*
+        rm -rf xtools
+
+        echo "Release package created: $file_name"
+        return 0
     else
         OPTION_HELP="true"
-        return 0;
+        return 0
     fi
-
-    if [ ! -d "sysroot/linux" ]; then
-        exit 1
-    fi
-
-    if [ ! -f "src/include/libobject/version.h" ]; then
-        exit 1
-    fi
-
-    file_name=$(get_release_package_name xtools_linux src/include/libobject/version.h)
-    echo "file_name:$file_name"
-    if [ -f packages/$file_name ]; then
-        exit 0
-    elif [ ! -n $file_name ]; then
-        exit 1
-    fi
-
-    mkdir -p packages/xtools
-    cp -rf sysroot/linux/* packages/xtools/
-    cd packages
-    tar -zcvf $file_name xtools/*
-    rm -rf xtools
-
-    return 0
 }
 
 function do_deploy {
