@@ -48,6 +48,8 @@ To build the project for Android, use the following command:
 ./devops.sh build --platform=android
 ```
 
+Before building for Android, ensure that the Android NDK is installed. Follow the [Installing Android NDK on Ubuntu](./doc/env/install_android_ndk.md) guide for detailed instructions.
+
 ### Release Instructions
 
 #### Linux
