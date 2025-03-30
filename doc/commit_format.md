@@ -1,4 +1,4 @@
-[update:readme] 更新readme。
+[update:cmake] 修复mac平台编译错误。
 
 Description:
 update。

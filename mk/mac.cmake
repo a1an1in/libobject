@@ -8,6 +8,7 @@ macro (set_cmake_evironment_variable)
         ${CMAKE_INSTALL_PREFIX}/lib
         /usr/local/opt/mysql-client/lib
         /usr/local/Cellar/openssl@1.1/1.1.1i/lib
+        /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
         )
 
     INCLUDE_DIRECTORIES(/usr/local/include
