@@ -1,7 +1,7 @@
-[update:cmake] 修复mac平台编译错误。
+[update:cmake] 修复android平台编译错误。
 
 Description:
-update。
+NDK更换过后编译不能编译android。
 
 Major Changes:
-1. update。
+1. 修复android cmake。

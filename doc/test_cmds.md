@@ -216,3 +216,9 @@ node_cli --log-level=0x20016 flist $node_id@./tests/node/
 node_cli --log-level=0x20016 call_cmd $node_id@{"ls -l"}
 node_cli --log-level=0x20016 lookup all
 ```
+
+4 编译android
+```
+export NDK_ROOT=/opt/android-ndk
+./devops.sh build --platform=android --arch=arm64-v8a
+```

@@ -92,19 +92,56 @@ function do_build_ios {
 }
 
 function do_build_android {
-    mkdir -p build/android
-    cd build/android
-    cmake ../.. -DOPTION_PLATFORM=android -DANDROID_ABI=armeabi-v7a -DCMAKE_ANDROID_NDK=/Users/alanlin/Library/Android/sdk/ndk-bundle&&make&&
-    cd ../..
+    echo "Building for Android platform"
 
-    #cp -rf lib/android/ ~/workspace/goya-github/android/goya/app/src/main/jni/lib
-    #cp -rf lib/android/ ~/workspace/goya-github/android/goya-alone/app/src/main/jni/lib
-    #cp lib/android/armeabi-v7a/*.so ${NDK_ROOT}/platforms/android-21/arch-arm/usr/lib
-    #cp lib/android/armeabi-v7a/*.so ${NDK_ROOT}/platforms/android-21/arch-arm/usr/lib
-    #cp -rf lib/android/armeabi-v7a/*.so ~/workspace/goya-github/android/goya-alone/app/src/main/jni/lib/armeabi-v7a
+    # 检查 NDK 环境变量是否已设置
+    if [[ -z "$NDK_ROOT" ]]; then
+        echo "Error: NDK_ROOT is not set. Please set the NDK_ROOT environment variable to your Android NDK path."
+        exit 1
+    fi
 
-    #cp -rf src/include/libobject ${NDK_ROOT}/sysroot/usr/include/
-    #cp -rf src/include/libobject ~/workspace/goya-github/android/goya-alone/app/src/main/jni/include/libobject
+    # 检查 NDK 路径是否有效
+    if [[ ! -d "$NDK_ROOT" ]]; then
+        echo "Error: NDK_ROOT path '$NDK_ROOT' does not exist. Please check your NDK installation."
+        exit 1
+    fi
+
+    # 设置默认架构
+    if [[ -z "$OPTION_ARCH" ]]; then
+        echo "No architecture specified. Defaulting to arm64-v8a."
+        OPTION_ARCH="arm64-v8a"
+    fi
+
+    # 设置构建目录和安装目录
+    BUILD_DIR="build/android/$OPTION_ARCH"
+    SYSROOT_DIR="sysroot/android/$OPTION_ARCH"
+
+    # 创建构建目录
+    mkdir -p "$BUILD_DIR"
+    cd "$BUILD_DIR" || { echo "Failed to enter build directory: $BUILD_DIR"; exit 1; }
+
+    # 检查 CMakeLists.txt 文件是否存在
+    if [[ ! -f ../../../CMakeLists.txt ]]; then
+        echo "Error: CMakeLists.txt not found in the source directory."
+        exit 1
+    fi
+
+    # 运行 CMake 配置
+    cmake ../../../ \
+        -C ../../../mk/android.cmake \
+        -DANDROID_ABI="$OPTION_ARCH" \
+        -DCMAKE_INSTALL_PREFIX=../../../"$SYSROOT_DIR" || { echo "CMake configuration failed."; exit 1; }
+
+    # 编译
+    make || { echo "Make failed."; exit 1; }
+
+    # 安装
+    if [[ $OPTION_INSTALL == "true" ]]; then
+        make install || { echo "Make install failed."; exit 1; }
+        exit 0
+    fi
+
+    echo "Build completed. Output directory: $SYSROOT_DIR"
 }
 
 function do_build_windows {
