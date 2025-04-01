@@ -25,7 +25,7 @@ void *test_thread_callback(void *para)
     printf("sprintf function addr: %p\n", sprintf);
     printf("test_with_mixed_type_pars function addr: %p\n", test_with_mixed_type_pars);
     printf("global_test addr: %p\n", &global_test);
-    printf("__libc_dlopen_mode addr: %p\n", __libc_dlopen_mode);
+    // printf("__libc_dlopen_mode addr: %p\n", __libc_dlopen_mode);
 
     // attacher_dlopen("abc", 0);
 	while (1) {

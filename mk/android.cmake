@@ -26,8 +26,6 @@ message(STATUS "Using Android NDK at $ENV{NDK_ROOT}")
 message(STATUS "Android ABI: ${ANDROID_ABI}")
 message(STATUS "Android platform: ${ANDROID_PLATFORM}")
 
-
-
 macro (set_cmake_evironment_variable)
     LINK_DIRECTORIES(
         ${CMAKE_ANDROID_NDK}/platforms/android-21/${ARCH_NAME}/usr/lib
@@ -38,6 +36,29 @@ macro (set_cmake_evironment_variable)
         ${CMAKE_ANDROID_NDK}/sysroot/usr/include
         ${CMAKE_INSTALL_PREFIX}/include
         ${PROJECT_SOURCE_DIR}/src/include)
+
+    # 动态设置 ExternalLibs
+    SET (ExternalLibs
+        -Wl,--whole-archive
+            object-tests
+            object-mockery
+            object-drivers
+            object-node
+            object-archive
+            ${COMPRESS_LIB} # 动态控制是否链接 object-compress
+            object-scripts
+            ${ATTACHER_LIB} # 动态控制是否链接 object-attacher
+            object-stub
+            ${DATABASE_LIB} # 动态控制是否链接 object-db
+            object-net
+            object-concurrent
+            object-crypto
+            object-encoding
+            object-argument
+            object-core
+        -Wl,--no-whole-archive
+        ${MYSQL_LIB} dl m ${Z_LIB} # 动态控制是否链接 mysqlclient 和 z
+    )
 
     set (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DANDROID_ABI=armeabi-v7a -DCMAKE_ANDROID_NDK=${CMAKE_ANDROID_NDK})
 
@@ -65,8 +86,7 @@ macro (add_module_lists)
 
     list(APPEND module_lists "src/compress")
     list(APPEND module_lists "src/crypto")
-    list(APPEND module_lists "src/database")
-    list(APPEND module_lists "src/attacher")
+    #list(APPEND module_lists "src/attacher")
     list(APPEND module_lists "src/scripts")
     list(APPEND module_lists "src/archive")
 

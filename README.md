@@ -45,7 +45,8 @@ To build the project on macOS, use the following command:
 To build the project for Android, use the following command:
 
 ```bash
-./devops.sh build --platform=android
+export NDK_ROOT=/opt/android-ndk
+./devops.sh build --platform=android --arch=arm64-v8a
 ```
 
 Before building for Android, ensure that the Android NDK is installed. Follow the [Installing Android NDK on Ubuntu](./doc/env/install_android_ndk.md) guide for detailed instructions.

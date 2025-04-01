@@ -14,4 +14,8 @@ file(GLOB MOUDLE_SRC
 )
 
 add_library(${PROJECT_NAME} SHARED ${MOUDLE_SRC})
-target_link_libraries(${PROJECT_NAME} object-core) 
+if("${PLATFORM}" STREQUAL "android")
+    target_link_libraries(${PROJECT_NAME} object-core log)
+else()
+    target_link_libraries(${PROJECT_NAME} object-core)
+endif()

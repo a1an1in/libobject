@@ -13,12 +13,12 @@ file(GLOB MOUDLE_SRC
     ${MOUDLE_SOURCES}
 )
 
+add_library(${PROJECT_NAME} SHARED ${MOUDLE_SRC})
 if ("${PLATFORM}" STREQUAL "windows")
-    add_library(${PROJECT_NAME} SHARED ${MOUDLE_SRC})
     target_link_libraries(${PROJECT_NAME} ws2_32 wsock32 regex pthread)
 elseif("${PLATFORM}" STREQUAL "mac")
-    add_library(${PROJECT_NAME} SHARED ${MOUDLE_SRC})
+elseif("${PLATFORM}" STREQUAL "android")
+    target_link_libraries(${PROJECT_NAME} PRIVATE log)
 else()
-    add_library(${PROJECT_NAME} SHARED ${MOUDLE_SRC})
     target_link_libraries(${PROJECT_NAME} m)
 endif()
