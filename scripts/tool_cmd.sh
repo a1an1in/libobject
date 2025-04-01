@@ -96,8 +96,8 @@ function do_build_android {
 
     # 检查 NDK 环境变量是否已设置
     if [[ -z "$NDK_ROOT" ]]; then
-        echo "Error: NDK_ROOT is not set. Please set the NDK_ROOT environment variable to your Android NDK path."
-        exit 1
+        NDK_ROOT=/opt/android-ndk
+        echo
     fi
 
     # 检查 NDK 路径是否有效
@@ -114,7 +114,7 @@ function do_build_android {
 
     # 设置构建目录和安装目录
     BUILD_DIR="build/android/$OPTION_ARCH"
-    SYSROOT_DIR="sysroot/android/$OPTION_ARCH"
+    SYSROOT_DIR=$(realpath "./sysroot/android/$OPTION_ARCH")
 
     # 创建构建目录
     mkdir -p "$BUILD_DIR"
@@ -126,22 +126,22 @@ function do_build_android {
         exit 1
     fi
 
+    echo "build linux"
+
     # 运行 CMake 配置
     cmake ../../../ \
         -C ../../../mk/android.cmake \
+        -DSOURCE_DIR="../../.." \
+        -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake \
         -DANDROID_ABI="$OPTION_ARCH" \
-        -DCMAKE_INSTALL_PREFIX=../../../"$SYSROOT_DIR" || { echo "CMake configuration failed."; exit 1; }
+        -DANDROID_PLATFORM=android-21 \
+        -DCMAKE_INSTALL_PREFIX=$SYSROOT_DIR || { echo "CMake configuration failed."; exit 1; }
 
     # 编译
     make || { echo "Make failed."; exit 1; }
+    make install || { echo "Make install failed."; exit 1; }
 
-    # 安装
-    if [[ $OPTION_INSTALL == "true" ]]; then
-        make install || { echo "Make install failed."; exit 1; }
-        exit 0
-    fi
-
-    echo "Build completed. Output directory: $SYSROOT_DIR"
+    echo "Build android completed."
 }
 
 function do_build_windows {

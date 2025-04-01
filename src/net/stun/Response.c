@@ -76,10 +76,10 @@ static int __read_attribs(Response *response)
             raw->len = ntohs(raw->len);
             i +=  sizeof(int) + raw->len;
             dbg_str(DBG_DETAIL, "raw  type :%d , len:%d", raw->type, raw->len);
-            CONTINUE_IF((raw->type > STUN_ATR_TYPE_MAX) || (g_parse_attr_policies[raw->type].policy == NULL));
+            CONTINUE_IF((raw->type > STUN_ATR_TYPE_MAX) || (g_stun_parse_attr_policies[raw->type].policy == NULL));
 
             attr = allocator_mem_alloc(allocator, sizeof(stun_attrib_t));
-            EXEC(g_parse_attr_policies[raw->type].policy(raw, attr));
+            EXEC(g_stun_parse_attr_policies[raw->type].policy(raw, attr));
             map->add(map, raw->type, attr);
         }
     } CATCH (ret) {

@@ -1,11 +1,3 @@
-# Ensure the NDK root is set
-if(NOT DEFINED ENV{NDK_ROOT})
-    message(FATAL_ERROR "NDK_ROOT environment variable is not set. Please set it to your Android NDK path.")
-endif()
-
-# Set the toolchain file from the NDK
-set(CMAKE_TOOLCHAIN_FILE "$ENV{NDK_ROOT}/build/cmake/android.toolchain.cmake" CACHE STRING "")
-
 # Set the Android ABI (architecture)
 if(NOT DEFINED ANDROID_ABI)
     set(ANDROID_ABI "arm64-v8a" CACHE STRING "Android ABI (e.g., arm64-v8a, armeabi-v7a, x86, x86_64)")
@@ -18,15 +10,13 @@ endif()
 
 # Additional configurations
 set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)
+set(LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib)
+set(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_PREFIX})
 
-message(STATUS "Using Android NDK at $ENV{NDK_ROOT}")
 message(STATUS "Android ABI: ${ANDROID_ABI}")
 message(STATUS "Android platform: ${ANDROID_PLATFORM}")
-
-
 
 macro (set_cmake_evironment_variable)
     LINK_DIRECTORIES(
@@ -38,6 +28,29 @@ macro (set_cmake_evironment_variable)
         ${CMAKE_ANDROID_NDK}/sysroot/usr/include
         ${CMAKE_INSTALL_PREFIX}/include
         ${PROJECT_SOURCE_DIR}/src/include)
+
+    # 动态设置 ExternalLibs
+    SET (ExternalLibs
+        -Wl,--whole-archive
+            object-tests
+            object-mockery
+            object-drivers
+            object-node
+            object-archive
+            ${COMPRESS_LIB} # 动态控制是否链接 object-compress
+            object-scripts
+            ${ATTACHER_LIB} # 动态控制是否链接 object-attacher
+            object-stub
+            ${DATABASE_LIB} # 动态控制是否链接 object-db
+            object-net
+            object-concurrent
+            object-crypto
+            object-encoding
+            object-argument
+            object-core
+        -Wl,--no-whole-archive
+        ${MYSQL_LIB} dl m ${Z_LIB} # 动态控制是否链接 mysqlclient 和 z
+    )
 
     set (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DANDROID_ABI=armeabi-v7a -DCMAKE_ANDROID_NDK=${CMAKE_ANDROID_NDK})
 
@@ -65,8 +78,7 @@ macro (add_module_lists)
 
     list(APPEND module_lists "src/compress")
     list(APPEND module_lists "src/crypto")
-    list(APPEND module_lists "src/database")
-    list(APPEND module_lists "src/attacher")
+    #list(APPEND module_lists "src/attacher")
     list(APPEND module_lists "src/scripts")
     list(APPEND module_lists "src/archive")
 

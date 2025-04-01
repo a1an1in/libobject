@@ -73,7 +73,7 @@ static void signal_handler(int sig)
     list->for_each_arg(list, __evsig_send, (void *)&msg);
 
     if (sig == SIGSEGV) {
-#if (!defined(WINDOWS_USER_MODE))
+#if (!defined(WINDOWS_USER_MODE) && !defined(ANDROID_USER_MODE))
         print_backtrace();
         exit(0);
 #endif 

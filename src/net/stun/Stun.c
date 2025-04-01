@@ -106,7 +106,7 @@ static int __parse_attrib_changed_addr(stun_attrib_t *raw, stun_attrib_t *out)
     return ret;
 }
 
-attrib_parse_policy_t g_parse_attr_policies[ENTRY_TYPE_MAX_TYPE] = {
+attrib_parse_policy_t g_stun_parse_attr_policies[ENTRY_TYPE_MAX_TYPE] = {
     [STUN_ATR_TYPE_MAPPED_ADDR] = {.policy = __parse_attrib_mapped_addr},
     [STUN_ATR_TYPE_CHANGED_ADDRESS] = {.policy = __parse_attrib_changed_addr},
 };

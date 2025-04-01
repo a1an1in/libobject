@@ -33,6 +33,6 @@ typedef struct attrib_parse_policy_s {
     int (*policy)(stun_attrib_t *, stun_attrib_t *);
 } attrib_parse_policy_t;
 
-attrib_parse_policy_t g_parse_attr_policies[ENTRY_TYPE_MAX_TYPE];
+extern attrib_parse_policy_t g_stun_parse_attr_policies[ENTRY_TYPE_MAX_TYPE];
 
 #endif

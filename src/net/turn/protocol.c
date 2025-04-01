@@ -213,7 +213,7 @@ static attrib_type_map_t g_parse_policies_type_map[TURN_ATTR_ENUM_MAX] = {
     {TURN_ATTR_ENUM_DATA, TURN_ATTR_TYPE_DATA},
 };
 
-static attrib_parse_policy_t g_parse_attr_policies[ENTRY_TYPE_MAX_TYPE] = {
+static attrib_parse_policy_t g_turn_parse_attr_policies[ENTRY_TYPE_MAX_TYPE] = {
     [TURN_ATTR_ENUM_MAPPED_ADDR] = {.policy = turn_parse_attrib_mapped_addr},
     [TURN_ATTR_ENUM_CHANGED_ADDRESS] = {.policy = turn_parse_attrib_changed_addr},
     [TURN_ATTR_ENUM_ERROR_CODE] = {.policy = turn_parse_attrib_error_code},
@@ -228,7 +228,7 @@ static attrib_parse_policy_t g_parse_attr_policies[ENTRY_TYPE_MAX_TYPE] = {
 
 attrib_parse_policy_t *turn_get_parser_policies()
 {
-    return g_parse_attr_policies;
+    return g_turn_parse_attr_policies;
 }
 
 int turn_get_parser_policy_index(int type) 
