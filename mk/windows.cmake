@@ -1,20 +1,4 @@
 macro (set_cmake_evironment_variable)
-    if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "C:/Program Files (x86)/libobject")
-        SET (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/windows)
-    endif ()
-    LINK_DIRECTORIES(
-        C:/mingw64/lib
-        C:/mingw64/x86_64-w64-mingw32/lib
-        "C:/Program Files (x86)/Microsoft SDKs/Windows Kits/10/ExtensionSDKs/Microsoft.UniversalCRT.Debug/10.0.19041.0/Redist/Debug/x64"
-        # C:/Windows/System32
-        ${CMAKE_INSTALL_PREFIX}/lib)
-
-    INCLUDE_DIRECTORIES(
-        C:/mingw64/include
-        C:/mingw64/x86_64-w64-mingw32/include
-        ${PROJECT_SOURCE_DIR}/src/include
-        ${CMAKE_INSTALL_PREFIX}/include)
-
     SET (BUILD_EXTERNAL_ARGS -DPLATFORM=${PLATFORM} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
     SET (EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)
     SET (LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
@@ -75,6 +59,7 @@ macro (add_module_lists)
     list(APPEND module_lists "src/.")
     list(APPEND module_lists "3rd/attacher-builtin")
     list(APPEND module_lists "3rd/test_http_plugin")
+    list(APPEND module_lists "3rd/windows-dl")
     add_subdirectories("${module_lists}")
 endmacro()
 

@@ -29,7 +29,7 @@ The build output will be placed in the `sysroot/linux/<architecture>` directory,
 To build the project on Windows, use the following command:
 
 ```bash
-./devops.sh build --platform=windows
+./devops.sh build --platform=windows --arch=x86_64
 ```
 
 #### Mac OS

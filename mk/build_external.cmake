@@ -83,6 +83,6 @@ macro (build_openssl)
     endif()
 endmacro()
 
-build_windows_dl()
+#build_windows_dl()
 #build_openssl()
 #build_mysql()

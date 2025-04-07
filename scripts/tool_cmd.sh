@@ -93,6 +93,7 @@ function do_build_ios {
 
 function do_build_android {
     echo "Building for Android platform"
+    increase_version_tweak_number
 
     # 检查 NDK 环境变量是否已设置
     if [[ -z "$NDK_ROOT" ]]; then
@@ -145,15 +146,63 @@ function do_build_android {
 }
 
 function do_build_windows {
+    echo "Building for Windows..."
     increase_version_tweak_number
-    # rm -rf /usr/local/include/libobject
-    mkdir -p build/windows
-    cd build/windows
-    cmake ../.. -G "Unix Makefiles" -DPLATFORM=windows -DMODULE_UI=off
-    make
+
+    # 如果未指定架构，默认使用 x86_64
+    if [[ -z $OPTION_ARCH ]]; then
+        echo "No architecture specified. Defaulting to x86_64."
+        OPTION_ARCH="x86_64"
+    fi
+
+    # 动态检测当前平台
+    if [[ "$(uname -s)" == "Linux" ]]; then
+        TOOLCHAIN_FILE="../../../mk/windows.x86_64.cross.toolchain.cmake"
+        echo "Detected Linux host. Using cross-compilation toolchain: $TOOLCHAIN_FILE"
+    elif [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* || "$(uname -s)" == "MSYS"* ]]; then
+        TOOLCHAIN_FILE="../../../mk/windows.x86_64.toolchain.cmake"
+        echo "Detected Windows host. Using native Windows toolchain: $TOOLCHAIN_FILE"
+    else
+        echo "Unsupported host platform: $(uname -s)"
+        exit 1
+    fi
+
+    # 设置构建目录和安装目录
+    mkdir -p ./sysroot/windows/$OPTION_ARCH
+    BUILD_DIR="build/windows/$OPTION_ARCH"
+    SYSROOT_DIR=$(realpath "./sysroot/windows/$OPTION_ARCH")
+
+    # 创建构建目录
+    mkdir -p $BUILD_DIR
+    cd $BUILD_DIR || { echo "Failed to enter build directory: $BUILD_DIR"; exit 1; }
+
+    # 检查工具链文件是否存在
+    if [[ ! -f $TOOLCHAIN_FILE ]]; then
+        echo "Error: Toolchain file not found: $TOOLCHAIN_FILE"
+        exit 1
+    fi
+
+    # 检查 CMakeLists.txt 文件是否存在于构建目录的父级
+    if [[ ! -f ../../../CMakeLists.txt ]]; then
+        echo "Error: CMakeLists.txt not found in the source directory."
+        exit 1
+    fi
+
+    if [[ "$(uname -s)" == "Linux" ]]; then
+        # 运行 CMake，加载工具链文件
+        cmake ../../../ -DPLATFORM=windows -DMODULE_UI=off -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} -DCMAKE_INSTALL_PREFIX=$SYSROOT_DIR || { echo "CMake configuration failed."; exit 1; }
+    elif [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* || "$(uname -s)" == "MSYS"* ]]; then
+        echo "build windows locally."
+        cmake ../../.. -G "Unix Makefiles" -DPLATFORM=windows -DMODULE_UI=off -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} -DCMAKE_INSTALL_PREFIX=$SYSROOT_DIR
+    else
+        echo "Unsupported host platform: $(uname -s)"
+        exit 1
+    fi
+
+    make || { echo "Make failed."; exit 1; }
+
     if [[ $OPTION_INSTALL == "true" ]]; then
-        mingw32-make install
-        echo "mingw32-make install"
+        make install || { echo "Make install failed."; exit 1; }
         exit 0
     fi
 }
