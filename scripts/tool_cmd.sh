@@ -238,59 +238,113 @@ function do_clean {
     rm -rf build && rm -rf sysroot
 }
 
+function do_release_linux {
+    echo "do release package for Linux"
+
+    # 如果未指定架构，默认使用 x86_64
+    if [[ -z $OPTION_ARCH ]]; then
+        echo "No architecture specified. Defaulting to x86_64."
+        OPTION_ARCH="x86_64"
+    fi
+
+    # 根据架构设置 SYSROOT_DIR
+    if [[ $OPTION_ARCH == "arm" ]]; then
+        SYSROOT_DIR="sysroot/linux/arm"
+    else
+        SYSROOT_DIR="sysroot/linux/x86_64"
+    fi
+
+    # 检查必要的文件和目录
+    if [ ! -d "$SYSROOT_DIR" ]; then
+        echo "Error: $SYSROOT_DIR does not exist."
+        exit 1
+    fi
+
+    if [ ! -f "src/include/libobject/version.h" ]; then
+        echo "Error: src/include/libobject/version.h does not exist."
+        exit 1
+    fi
+
+    # 获取发布包名称
+    file_name=$(get_release_package_name xtools_linux_${OPTION_ARCH} src/include/libobject/version.h)
+    echo "file_name: $file_name"
+
+    # 如果包已存在，直接退出
+    if [ -f packages/$file_name ]; then
+        echo "Package $file_name already exists."
+        exit 0
+    elif [ -z "$file_name" ]; then
+        echo "Error: Failed to generate package name."
+        exit 1
+    fi
+
+    # 创建发布包
+    mkdir -p packages/xtools
+    cp -rf $SYSROOT_DIR/* packages/xtools/
+    cd packages
+    tar -zcvf $file_name xtools/*
+    rm -rf xtools
+
+    echo "Release package created: $file_name"
+    return 0
+}
+
+function do_release_windows {
+    echo "do release package for Windows"
+
+    # 如果未指定架构，默认使用 x86_64
+    if [[ -z $OPTION_ARCH ]]; then
+        echo "No architecture specified. Defaulting to x86_64."
+        OPTION_ARCH="x86_64"
+    fi
+
+    # 设置 SYSROOT_DIR
+    SYSROOT_DIR="sysroot/windows/$OPTION_ARCH"
+
+    # 检查必要的文件和目录
+    if [ ! -d "$SYSROOT_DIR" ]; then
+        echo "Error: $SYSROOT_DIR does not exist."
+        exit 1
+    fi
+
+    if [ ! -f "src/include/libobject/version.h" ]; then
+        echo "Error: src/include/libobject/version.h does not exist."
+        exit 1
+    fi
+
+    # 获取发布包名称
+    file_name=$(get_release_package_name xtools_windows_${OPTION_ARCH} src/include/libobject/version.h)
+    echo "file_name: $file_name"
+
+    # 如果包已存在，直接退出
+    if [ -f packages/$file_name ]; then
+        echo "Package $file_name already exists."
+        exit 0
+    elif [ -z "$file_name" ]; then
+        echo "Error: Failed to generate package name."
+        exit 1
+    fi
+
+    # 创建发布包
+    mkdir -p packages/xtools
+    cp -rf $SYSROOT_DIR/* packages/xtools/
+    cd packages
+    tar -zcvf $file_name xtools/*
+    rm -rf xtools
+
+    echo "Release package created: $file_name"
+    return 0
+}
+
 function do_release {
     if [[ $OPTION_PLATFORM == "linux" ]]; then
-        echo "do release package"
-
-        # 如果未指定架构，默认使用 x86_64
-        if [[ -z $OPTION_ARCH ]]; then
-            echo "No architecture specified. Defaulting to x86_64."
-            OPTION_ARCH="x86_64"
-        fi
-
-        # 根据架构设置 SYSROOT_DIR
-        if [[ $OPTION_ARCH == "arm" ]]; then
-            SYSROOT_DIR="sysroot/linux/arm"
-        else
-            SYSROOT_DIR="sysroot/linux/x86_64"
-        fi
-
-        # 检查必要的文件和目录
-        if [ ! -d "$SYSROOT_DIR" ]; then
-            echo "Error: $SYSROOT_DIR does not exist."
-            exit 1
-        fi
-
-        if [ ! -f "src/include/libobject/version.h" ]; then
-            echo "Error: src/include/libobject/version.h does not exist."
-            exit 1
-        fi
-
-        # 获取发布包名称
-        file_name=$(get_release_package_name xtools_linux_${OPTION_ARCH} src/include/libobject/version.h)
-        echo "file_name: $file_name"
-
-        # 如果包已存在，直接退出
-        if [ -f packages/$file_name ]; then
-            echo "Package $file_name already exists."
-            exit 0
-        elif [ -z "$file_name" ]; then
-            echo "Error: Failed to generate package name."
-            exit 1
-        fi
-
-        # 创建发布包
-        mkdir -p packages/xtools
-        cp -rf $SYSROOT_DIR/* packages/xtools/
-        cd packages
-        tar -zcvf $file_name xtools/*
-        rm -rf xtools
-
-        echo "Release package created: $file_name"
-        return 0
+        do_release_linux
+    elif [[ $OPTION_PLATFORM == "windows" ]]; then
+        do_release_windows
     else
+        echo "Unsupported platform: $OPTION_PLATFORM"
         OPTION_HELP="true"
-        return 0
+        return 1
     fi
 }
 

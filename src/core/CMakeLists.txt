@@ -13,6 +13,8 @@ file(GLOB MOUDLE_SRC
     ${MOUDLE_SOURCES}
 )
 
+message(STATUS "xxxxxxxx core LINK_DIRECTORIES: ${LINK_DIRECTORIES}")
+
 add_library(${PROJECT_NAME} SHARED ${MOUDLE_SRC})
 if ("${PLATFORM}" STREQUAL "windows")
     target_link_libraries(${PROJECT_NAME} ws2_32 wsock32 regex pthread)

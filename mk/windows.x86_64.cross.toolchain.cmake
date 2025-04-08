@@ -1,3 +1,6 @@
+# 定义交叉编译标记
+add_definitions(-DCROSS_COMPILE)
+
 set(CMAKE_SYSTEM_NAME Windows)
 set(CMAKE_SYSTEM_VERSION 10)
 
@@ -16,6 +19,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 link_directories(
     /usr/x86_64-w64-mingw32/lib
     /usr/lib/gcc/x86_64-w64-mingw32/posix
+    ${CMAKE_INSTALL_PREFIX}/lib
 )
 
 # 配置包含目录
@@ -23,4 +27,5 @@ include_directories(
     /usr/x86_64-w64-mingw32/include
     /usr/lib/gcc/x86_64-w64-mingw32/posix/include
     ${PROJECT_SOURCE_DIR}/src/include
+    ${CMAKE_INSTALL_PREFIX}/include
 )

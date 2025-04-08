@@ -35,6 +35,17 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/io/File_System.h>
 #include <libobject/core/io/file_system_api.h>
+#include <time.h>
+
+// Linux交叉编译Windows找不到localtime_r替代实现
+#if defined(CROSS_COMPILE)
+static struct tm *localtime_r(const time_t *timep, struct tm *result) {
+    if (localtime_s(result, timep) != 0) {
+        return NULL;
+    }
+    return result;
+}
+#endif
 
 static int __get_mtime(File_System *fs, char *path, char *time, int time_max_len)
 {

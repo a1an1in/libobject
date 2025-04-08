@@ -5,7 +5,6 @@
  * @version 
  * @date 2019-06-19
  */
-#include <dlfcn.h>
 #include <libobject/argument/Application.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/try.h>

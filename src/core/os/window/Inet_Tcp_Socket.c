@@ -35,7 +35,15 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <winsock2.h>
-#include <WS2tcpip.h>
+
+#if defined(CROSS_COMPILE)
+    // 交叉编译环境的逻辑
+    #include <ws2tcpip.h>
+#else
+    // 本地编译环境的逻辑
+    #include <WS2tcpip.h>
+#endif
+
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/concurrent/event/Event_Base.h>

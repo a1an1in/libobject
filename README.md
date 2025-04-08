@@ -26,11 +26,20 @@ The build output will be placed in the `sysroot/linux/<architecture>` directory,
 
 #### Windows
 
-To build the project on Windows, use the following command:
+To build the project on Windows, you can use either **native Windows compilation** or **Linux cross-compilation**.
 
-```bash
-./devops.sh build --platform=windows --arch=x86_64
-```
+- **Native Windows Compilation**:
+  Run the following command on a Windows host:
+  ```bash
+  ./devops.sh build --platform=windows --arch=x86_64
+  ```
+
+- **Linux Cross-Compilation for Windows**:
+  Set up the cross-compilation environment on a Linux host and run:
+  ```bash
+  ./devops.sh build --platform=windows --arch=x86_64
+  ```
+  For details on setting up the Linux cross-compilation environment, refer to the [Linux Cross-Compilation Setup Guide](./doc/env/linux_cross_compile_windows_setup.md).
 
 #### Mac OS
 
@@ -68,12 +77,26 @@ To create a release package for Linux, you can specify the architecture or use t
 
 The release package will be created in the `packages` directory with a name like `xtools_linux_<architecture>_v<version>.tar.gz`.
 
+#### Windows
+
+To create a release package for Windows, you can specify the architecture (default is x86_64):
+
+```bash
+# Default architecture (x86_64)
+./devops.sh release --platform=windows
+
+# Specify architecture (x86_64)
+./devops.sh release --platform=windows --arch=x86_64
+```
+
+The release package will be created in the `packages` directory with a name like `xtools_windows_<architecture>_v<version>.zip`.
+
 #### Other Platforms
 
 To create a release package for other platforms, use the following command:
 
 ```bash
-# Replace <platform> with mac, android, or windows
+# Replace <platform> with mac or android
 ./devops.sh release --platform=<platform>
 ```
 
