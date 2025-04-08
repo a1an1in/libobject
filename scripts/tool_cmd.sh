@@ -114,6 +114,7 @@ function do_build_android {
     fi
 
     # 设置构建目录和安装目录
+    mkdir -p ./sysroot/android/$OPTION_ARCH
     BUILD_DIR="build/android/$OPTION_ARCH"
     SYSROOT_DIR=$(realpath "./sysroot/android/$OPTION_ARCH")
 
@@ -128,6 +129,7 @@ function do_build_android {
     fi
 
     echo "build linux"
+    echo "SYSROOT_DIR:$SYSROOT_DIR"
 
     # 运行 CMake 配置
     cmake ../../../ \
@@ -336,13 +338,155 @@ function do_release_windows {
     return 0
 }
 
+function do_release_android {
+    echo "do release package for Android"
+
+    echo "OPTION_ARCH: $OPTION_ARCH"
+    # 如果未指定架构，默认使用 arm64-v8a
+    if [[ -z $OPTION_ARCH ]]; then
+        echo "No architecture specified. Defaulting to arm64-v8a."
+        OPTION_ARCH="arm64-v8a"
+    fi
+    echo "OPTION_ARCH: $OPTION_ARCH"
+
+    # 设置 SYSROOT_DIR
+    SYSROOT_DIR="sysroot/android/$OPTION_ARCH"
+
+    # 检查必要的文件和目录
+    if [ ! -d "$SYSROOT_DIR" ]; then
+        echo "Error: $SYSROOT_DIR does not exist."
+        exit 1
+    fi
+
+    if [ ! -f "src/include/libobject/version.h" ]; then
+        echo "Error: src/include/libobject/version.h does not exist."
+        exit 1
+    fi
+
+    # 获取发布包名称
+    file_name=$(get_release_package_name xtools_android_${OPTION_ARCH} src/include/libobject/version.h)
+    echo "file_name2: $file_name"
+
+    # 如果包已存在，直接退出
+    if [ -f packages/$file_name ]; then
+        echo "Package $file_name already exists."
+        exit 0
+    elif [ -z "$file_name" ]; then
+        echo "Error: Failed to generate package name."
+        exit 1
+    fi
+
+    # 创建发布包
+    mkdir -p packages/xtools
+    cp -rf $SYSROOT_DIR/* packages/xtools/
+    cd packages
+    tar -zcvf $file_name xtools/*
+    rm -rf xtools
+
+    echo "Release package created: $file_name"
+    return 0
+}
+
 function do_release {
     if [[ $OPTION_PLATFORM == "linux" ]]; then
         do_release_linux
     elif [[ $OPTION_PLATFORM == "windows" ]]; then
         do_release_windows
+    elif [[ $OPTION_PLATFORM == "android" ]]; then
+        do_release_android
     else
         echo "Unsupported platform: $OPTION_PLATFORM"
+        OPTION_HELP="true"
+        return 1
+    fi
+}
+
+function do_deploy_linux {
+    echo "1.kill running xtools progess ..."
+    ret=$($expect_command_prefix "ssh" "root@$OPTION_IP" "ps -aux|grep "xtools" | grep -v grep | awk '{print \$2}'")
+    ret=$(echo "$ret" | tr -d '\r')
+    ret=$(echo "$ret" | awk 'NR >=3 {print $1}')
+    echo "ret:" $ret
+
+    array=(`echo $ret` )  
+    for element in "${array[@]}"
+    do
+        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "kill -9" "$element"; then
+            echo "kill xtools process failed!"
+        else
+            echo "kill running xtools progess id: $element success"
+        fi
+    done
+
+    echo "2.mkdir packages: $OPTION_TO_PATH"
+    if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "mkdir -p $OPTION_TO_PATH"; then
+        echo "uploading images failed!"
+        exit 1
+    fi
+
+    echo "3.copy package to $OPTION_IP:$OPTION_TO_PATH ..."
+    if ! $expect_command_prefix "scp" $OPTION_PACKAGE_PATH "root@$OPTION_IP:$OPTION_TO_PATH"; then
+        echo "uploading images failed!"
+        exit 1
+    fi
+
+    echo "4.mkdir ~/.xtools/sysroot/"
+    if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "rm -rf ~/.xtools/sysroot/ && mkdir -p ~/.xtools/sysroot/"; then
+        echo "uploading images failed!"
+        exit 1
+    fi
+
+    echo "5.expand $(basename $OPTION_PACKAGE_PATH) to working dir ..."
+    if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "tar -zxvf $OPTION_TO_PATH/$(basename $OPTION_PACKAGE_PATH) -C ~/.xtools/sysroot --strip-components 1"; then
+        echo "uploading images failed!"
+        exit 1
+    fi
+
+    echo "6.run xtools program"
+    if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "{ export LD_LIBRARY_PATH=~/.xtools/sysroot/lib:~/.xtools/sysroot/lib64:\$LD_LIBRARY_PATH&&nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools --log-level=0x20016 node --host=0.0.0.0 --service=12345 --deamon=t; } >~/.xtools/logs 2>&1 &"; then
+        echo "run xtools program failed!"
+        exit 1
+    fi
+    echo "7.deploy xtools success!"
+}
+
+function do_deploy_android {
+    echo "Deploying to Android platform..."
+    
+    echo "1.mkdir packages: $OPTION_TO_PATH"
+    if ! $expect_command_prefix "adb" "shell" "mkdir -p $OPTION_TO_PATH"; then
+        echo "Failed to create directory on Android device!"
+        exit 1
+    fi
+
+    echo "2.copy package to Android device: $OPTION_TO_PATH ..."
+    if ! $expect_command_prefix "adb" "push" "$OPTION_PACKAGE_PATH" "$OPTION_TO_PATH"; then
+        echo "Failed to copy package to Android device!"
+        exit 1
+    fi
+
+    echo "3.expand $(basename $OPTION_PACKAGE_PATH) to working dir ..."
+    if ! $expect_command_prefix "adb" "shell" "tar -zxvf $OPTION_TO_PATH/$(basename $OPTION_PACKAGE_PATH) -C $OPTION_TO_PATH --strip-components 1"; then
+        echo "Failed to extract package on Android device!"
+        exit 1
+    fi
+
+    echo "4.run xtools program"
+    if ! $expect_command_prefix "adb" "shell" "{ export LD_LIBRARY_PATH=$OPTION_TO_PATH/lib:$OPTION_TO_PATH/lib64:\$LD_LIBRARY_PATH && nohup $OPTION_TO_PATH/bin/xtools --log-level=0x20016 node --host=0.0.0.0 --service=12345 --deamon=t; } >$OPTION_TO_PATH/logs 2>&1 &"; then
+        echo "Failed to run xtools program on Android device!"
+        exit 1
+    fi
+
+    echo "5.deploy xtools success on Android!"
+}
+
+function do_deploy {
+    if [[ $OPTION_PLATFORM == "linux" ]]; then
+        do_deploy_linux
+    elif [[ $OPTION_PLATFORM == "android" ]]; then
+        do_deploy_android
+    else
+        echo "Unsupported platform for deployment: $OPTION_PLATFORM"
         OPTION_HELP="true"
         return 1
     fi

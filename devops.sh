@@ -18,9 +18,6 @@ function get_release_package_version {
 }
 
 function parse_args { # Read command line arguments and update global variables
-    # Set default values if not provided
-    OPTION_ARCH="x86_64"
-
     local error_msg=""
     local i
     for i in "$@"; do # Parse arguments in arg=value format
