@@ -162,24 +162,23 @@ After deploying the project to a Linux server, you can verify the deployment usi
 ./sysroot/linux/x86_64/bin/xtools node_cli --host="139.159.231.27" --service="12345" lookup all
 ```
 
-#### Android Deployment
+#### Android Deployment Example
 
 To deploy the project to an Android device, use the following command:
 
 ```bash
-./devops.sh deploy -p=android --device=<device_id> --package-path=<path_to_package>
+./devops.sh deploy -p=android --package-path=<path_to_package>
 ```
 
-- `<device_id>`: Replace with the ID of the target Android device (e.g., `emulator-5554` or a physical device ID obtained via `adb devices`).
 - `<path_to_package>`: Replace with the path to the release package (e.g., `./packages/xtools_android_arm64-v8a_v2.14.0.125.zip`).
 
 ##### Example
 
 ```bash
-./devops.sh deploy -p=android --device=emulator-5554 --package-path=./packages/xtools_android_arm64-v8a_v2.14.0.125.zip
+./devops.sh deploy -p=android --package-path=./packages/xtools_android_arm64-v8a_v2.15.0.128.tar.gz
 ```
 
-This command will deploy the specified package to the Android device with ID `emulator-5554`.
+This command will deploy the specified package to the connected Android device.
 
 ### User Guide
 

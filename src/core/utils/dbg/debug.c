@@ -361,7 +361,7 @@ int debugger_constructor()
     snprintf(file_name, sizeof(file_name), "%s/%s", home, ".xtools");
     mkdir(file_name, 0x777);
 #elif defined(ANDROID_USER_MODE)
-    snprintf(file_name, sizeof(file_name), "/storage/sdcard/.xtools");
+    snprintf(file_name, sizeof(file_name), "/data/local/tmp/.xtools");
     mkdir(file_name, 0x777);
 #else
     snprintf(file_name, sizeof(file_name), "%s/%s", home, ".xtools");

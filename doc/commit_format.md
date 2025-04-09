@@ -1,7 +1,7 @@
-[update:android] 新增release Android命令。
+[update:android]  新增部署android脚本。
 
 Description:
-目前已经支持linux、windows、android平台的编译和release。
+已经支持部署android。
 
 Major Changes:
-1. 新增Android平台release命令。
+1. 新增部署android脚本。

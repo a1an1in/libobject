@@ -89,6 +89,7 @@ static int __construct(Application *app, char *init_str)
 {
     Command *command = (Command *)app;
     allocator_t *allocator = command->parent.allocator;
+    char *root;
 
     /* 1.add help infos */
     command->set(command, "/Command/name", "xtools");
@@ -98,7 +99,12 @@ static int __construct(Application *app, char *init_str)
                         __option_help_callback, app);
     command->add_option(command, "--log-level", "", "5", "setting log display level, the default value is 6.",
                         __option_log_level_callback, app);
-    command->add_option(command, "--root", "-r", "~/.xtools", "config xtool work space", __option_root_callback, app);
+#if defined(ANDROID_USER_MODE)
+    root = "/data/local/tmp/.xtools";
+#else
+    root = "~/.xtools";
+#endif
+    command->add_option(command, "--root", "-r", root, "config xtool work space", __option_root_callback, app);
 
     return 0;
 }

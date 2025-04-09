@@ -452,38 +452,49 @@ function do_deploy_linux {
 
 function do_deploy_android {
     echo "Deploying to Android platform..."
-    
+    OPTION_TO_PATH="/data/local/tmp/.xtools/packages"
+    SYSROOT_DIR="/data/local/tmp/.xtools/sysroot"
+
     echo "1.mkdir packages: $OPTION_TO_PATH"
-    if ! $expect_command_prefix "adb" "shell" "mkdir -p $OPTION_TO_PATH"; then
+    if ! adb shell "mkdir -p $OPTION_TO_PATH"; then
         echo "Failed to create directory on Android device!"
         exit 1
     fi
-
-    echo "2.copy package to Android device: $OPTION_TO_PATH ..."
-    if ! $expect_command_prefix "adb" "push" "$OPTION_PACKAGE_PATH" "$OPTION_TO_PATH"; then
-        echo "Failed to copy package to Android device!"
+    echo "2.mkdir sysroot: $SYSROOT_DIR"
+    if ! adb shell "mkdir -p $SYSROOT_DIR"; then
+        echo "Failed to create directory on Android device!"
         exit 1
     fi
-
-    echo "3.expand $(basename $OPTION_PACKAGE_PATH) to working dir ..."
-    if ! $expect_command_prefix "adb" "shell" "tar -zxvf $OPTION_TO_PATH/$(basename $OPTION_PACKAGE_PATH) -C $OPTION_TO_PATH --strip-components 1"; then
-        echo "Failed to extract package on Android device!"
-        exit 1
+    
+    if ! adb shell "test -f $OPTION_TO_PATH/$(basename $OPTION_PACKAGE_PATH)";  then
+        echo "3.copy package to Android device: $OPTION_TO_PATH ..."
+        if ! adb push "$OPTION_PACKAGE_PATH" "$OPTION_TO_PATH"; then
+            echo "Failed to copy package to Android device!"
+            exit 1
+        fi
+        echo "4.expand $(basename $OPTION_PACKAGE_PATH) to working dir ..."
+        if ! adb shell "tar -zxvf $OPTION_TO_PATH/$(basename $OPTION_PACKAGE_PATH) -C $SYSROOT_DIR --strip-components 1"; then
+            echo "Failed to extract package on Android device!"
+            exit 1
+        fi
     fi
-
-    echo "4.run xtools program"
-    if ! $expect_command_prefix "adb" "shell" "{ export LD_LIBRARY_PATH=$OPTION_TO_PATH/lib:$OPTION_TO_PATH/lib64:\$LD_LIBRARY_PATH && nohup $OPTION_TO_PATH/bin/xtools --log-level=0x20016 node --host=0.0.0.0 --service=12345 --deamon=t; } >$OPTION_TO_PATH/logs 2>&1 &"; then
+    
+    echo "5.run xtools program"
+    if ! adb shell "export LD_LIBRARY_PATH=$SYSROOT_DIR/lib:\$LD_LIBRARY_PATH && nohup stdbuf -oL -eL $SYSROOT_DIR/bin/xtools --log-level=0x20016 node --host=139.159.231.27 --service=12345 >$SYSROOT_DIR/logs 2>&1 &"; then
         echo "Failed to run xtools program on Android device!"
         exit 1
     fi
 
-    echo "5.deploy xtools success on Android!"
+    echo "6.deploy xtools success on Android!"
 }
 
 function do_deploy {
+    echo "do deploy!"
     if [[ $OPTION_PLATFORM == "linux" ]]; then
+        echo "deploy xtools on linux!"
         do_deploy_linux
     elif [[ $OPTION_PLATFORM == "android" ]]; then
+        echo "deploy xtools on Android!"
         do_deploy_android
     else
         echo "Unsupported platform for deployment: $OPTION_PLATFORM"
@@ -492,61 +503,6 @@ function do_deploy {
     fi
 }
 
-function do_deploy {
-    if [[ $OPTION_PLATFORM == "linux" ]]; then
-        echo "1.kill running xtools progess ..."
-        ret=$($expect_command_prefix "ssh" "root@$OPTION_IP" "ps -aux|grep "xtools" | grep -v grep | awk '{print \$2}'")
-        ret=$(echo "$ret" | tr -d '\r')
-        ret=$(echo "$ret" | awk 'NR >=3 {print $1}')
-        echo "ret:" $ret
-
-        array=(`echo $ret` )  
-        for element in "${array[@]}"
-        do
-            if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "kill -9" "$element"; then
-                echo "kill xtools process failed!"
-            else
-                echo "kill running xtools progess id: $element success"
-            fi
-        done
-
-        echo "2.mkdir packages: $OPTION_TO_PATH"
-        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "mkdir -p $OPTION_TO_PATH"; then
-            echo "uploading images failed!"
-            exit 1
-        fi
-
-        echo "3.copy package to $OPTION_IP:$OPTION_TO_PATH ..."
-        if ! $expect_command_prefix "scp" $OPTION_PACKAGE_PATH "root@$OPTION_IP:$OPTION_TO_PATH"; then
-            echo "uploading images failed!"
-            exit 1
-        fi
-
-        echo "4.mkdir ~/.xtools/sysroot/"
-        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "rm -rf ~/.xtools/sysroot/ && mkdir -p ~/.xtools/sysroot/"; then
-            echo "uploading images failed!"
-            exit 1
-        fi
-
-        echo "5.expand $(basename $OPTION_PACKAGE_PATH) to working dir ..."
-        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "tar -zxvf $OPTION_TO_PATH/$(basename $OPTION_PACKAGE_PATH) -C ~/.xtools/sysroot --strip-components 1"; then
-            echo "uploading images failed!"
-            exit 1
-        fi
-
-        echo "6.run xtools program"
-        if ! $expect_command_prefix "ssh" "root@$OPTION_IP" "{ export LD_LIBRARY_PATH=~/.xtools/sysroot/lib:~/.xtools/sysroot/lib64:\$LD_LIBRARY_PATH&&nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools --log-level=0x20016 node --host=0.0.0.0 --service=12345 --deamon=t; } >~/.xtools/logs 2>&1 &"; then
-            echo "run xtools program failed!"
-            exit 1
-        fi
-        echo "7.deploy xtools success!"
-    else
-        OPTION_HELP="true"
-        return 0;
-    fi
-
-    return 0
-}
 
 function do_install_docker {
     if [[ -z $OPTION_PLATFORM ]]; then
