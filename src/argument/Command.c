@@ -435,8 +435,7 @@ static int __parse_args(Command *command)
         } else {
             c = command->get_subcommand(command, command->argv[i]);
             if (c != NULL) {
-                dbg_str(ARG_SUC, "%s found a command %s",
-                        command->argv[0], command->argv[i]);
+                dbg_str(ARG_SUC, "%s found a command %s", command->argv[0], command->argv[i]);
                 c->set_args(c, command->argc - i, (char **)&command->argv[i]);
                 c->parse_args(c);
                 command->selected_subcommand = c;

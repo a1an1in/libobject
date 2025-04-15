@@ -172,35 +172,43 @@ extract_filename_from_path(const char *macro)
 #if (defined(ANDROID_USER_MODE))
     #include <android/log.h>
     #ifdef OPEN_DEBUG
-    	#define dbg_str(debug_switch,fmt,args...)\
-            switch(debug_switch&0xf) {\
-                case DBG_PANIC:\
-                    __android_log_print(ANDROID_LOG_ERROR, "libobject", fmt, ##args);\
-                    break;\
-                case DBG_FATAL:\
-                    __android_log_print(ANDROID_LOG_WARN, "libobject", fmt, ##args);\
-                    break;\
-                case DBG_ERROR:\
-                    __android_log_print(ANDROID_LOG_WARN, "libobject", fmt, ##args);\
-                    break;\
-                case DBG_WARN:\
-                    __android_log_print(ANDROID_LOG_WARN, "libobject", fmt, ##args);\
-                    break;\
-                case DBG_WIP:\
-                    __android_log_print(ANDROID_LOG_INFO, "libobject", fmt, ##args);\
-                    break;\
-                case DBG_VIP:\
-                    __android_log_print(ANDROID_LOG_INFO, "libobject", fmt, ##args);\
-                    break;\
-                case DBG_INFO:\
-                    __android_log_print(ANDROID_LOG_DEBUG, "libobject", fmt, ##args);\
-                    break;\
-                case DBG_DETAIL:\
-                    __android_log_print(ANDROID_LOG_VERBOSE, "libobject", fmt, ##args);\
-                    break;\
-                default:\
-                    break;\
-            }
+        #define dbg_str(debug_switch,fmt,args...) do{\
+            if ((debug_switch & 0xf) <= DBG_VIP) {\
+                printf("[" fmt "]-[%s:%d]\n",\
+                    ##args,\
+                    extract_filename_from_path(__FILE__),\
+                    __LINE__);\
+            }\
+        } while(0) 
+        // #define dbg_str(debug_switch,fmt,args...)\
+        //     switch(debug_switch&0xf) {\
+        //         case DBG_PANIC:\
+        //             __android_log_print(ANDROID_LOG_ERROR, "libobject", fmt, ##args);\
+        //             break;\
+        //         case DBG_FATAL:\
+        //             __android_log_print(ANDROID_LOG_WARN, "libobject", fmt, ##args);\
+        //             break;\
+        //         case DBG_ERROR:\
+        //             __android_log_print(ANDROID_LOG_WARN, "libobject", fmt, ##args);\
+        //             break;\
+        //         case DBG_WARN:\
+        //             __android_log_print(ANDROID_LOG_WARN, "libobject", fmt, ##args);\
+        //             break;\
+        //         case DBG_WIP:\
+        //             __android_log_print(ANDROID_LOG_INFO, "libobject", fmt, ##args);\
+        //             break;\
+        //         case DBG_VIP:\
+        //             __android_log_print(ANDROID_LOG_INFO, "libobject", fmt, ##args);\
+        //             break;\
+        //         case DBG_INFO:\
+        //             __android_log_print(ANDROID_LOG_DEBUG, "libobject", fmt, ##args);\
+        //             break;\
+        //         case DBG_DETAIL:\
+        //             __android_log_print(ANDROID_LOG_VERBOSE, "libobject", fmt, ##args);\
+        //             break;\
+        //         default:\
+        //             break;\
+        //     }
     	#define dbg_buf(debug_switch,const_str,buf,buf_len) do{}while(0)  
     #else
     	#define dbg_str(debug_switch,fmt,args...) do{}while(0) 

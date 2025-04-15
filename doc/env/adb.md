@@ -18,6 +18,11 @@ adb shell "tar -zxvf /data/local/tmp/.xtools/packages/xtools_android_arm64-v8a_v
 adb shell "export LD_LIBRARY_PATH=/data/local/tmp/.xtools/sysroot/lib:$LD_LIBRARY_PATH&&/data/local/tmp/.xtools/sysroot/bin/xtools -h"
 adb shell "export LD_LIBRARY_PATH=/data/local/tmp/.xtools/sysroot/lib:$LD_LIBRARY_PATH&&/data/local/tmp/.xtools/sysroot/bin/xtools --log-level=0x20016 node -h"
 
-adb shell ls -la /data/local/tmp/.xtools/ -h
-adb shell cat /data/local/tmp/.xtools/dbg.ini -h
+./devops.sh build --platform=android --arch=arm64-v8a
+./devops.sh release --platform=android --arch=arm64-v8a
+./devops.sh deploy -p=android --package-path=./packages/xtools_android_arm64-v8a_v2.15.0.130.tar.gz
+adb shell 
+cd  /data/local/tmp/.xtools/
+export LD_LIBRARY_PATH=/data/local/tmp/.xtools/sysroot/lib:$LD_LIBRARY_PATH
+./sysroot/bin/xtools --log-level=0x20017 node -h
 ```

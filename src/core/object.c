@@ -536,7 +536,7 @@ int object_destroy(void *obj)
 
             ret = map->search(map, o->name, (void **)&list);
             THROW_IF(ret != 1, -1);
-            dbg_str(OBJ_INFO, "object destroy cache, obj name:%s", o->name)
+            dbg_str(OBJ_INFO, "object destroy cache, obj name:%s", o->name);
             o->reset(o);
             list->add(list, o);
         } else {
