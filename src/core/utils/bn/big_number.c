@@ -388,6 +388,8 @@ int bn_rand(uint8_t *dest, int dest_len, int *dest_size, int bits, int top, int 
         *dest_size = bytes;
         dbg_buf(DBG_DETAIL, "rand:", dest, bytes);
     } CATCH (ret) { }
+
+    return ret;
 }
 
 int bn_prime(uint8_t *dest, int dest_len, int *dest_size, int bits)
@@ -408,7 +410,9 @@ int bn_to_hex_str(uint8_t *src, int src_len, char *dest, int *dest_len)
             snprintf(dest + strlen(dest), len - strlen(dest), "%02x", src[i]);
         }
         *dest_len = strlen(dest);
-    } CATCH (ret) {} FINALLY {}
+    } CATCH (ret) {} FINALLY {
+        dbg_str(DBG_VIP, "bn_to_hex_str src_len:%d, dest_len:%d", src_len, len);
+    }
 
     return ret;
 }

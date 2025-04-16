@@ -95,7 +95,7 @@ sudo tcpdump -i enp0s17  port 12345
 ./devops.sh release -p=linux
 ./sysroot/linux/x86_64/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t 
 ./sysroot/linux/x86_64/bin/xtools node --log-level=0x20016 --host=127.0.0.1 --service=12345
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_x86_64_v2.15.0.112.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_x86_64_v2.15.0.153.tar.gz
 ./sysroot/linux/x86_64/bin/xtools node_cli --host="139.159.231.27" --service="12345" lookup all 
 
 node_cli() {

@@ -20,6 +20,7 @@
 #include <libobject/argument/Application.h>
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/core/io/File.h>
+#include <libobject/core/utils/bn/big_number.h>
 #include <libobject/core/utils/string.h>
 #include <libobject/core/utils/byteorder.h>
 #include <libobject/concurrent/event_api.h>

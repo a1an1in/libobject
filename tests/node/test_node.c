@@ -387,13 +387,13 @@ static int __test_node_cli_attacher(Node *node)
     allocator_t *allocator = allocator_get_default_instance();
     pid_t pid = -1;
 #   if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE))
-    char *path = "./sysroot/linux/bin/test-process";
+    char *path = "./sysroot/linux/x86_64/bin/test-process";
 #   elif (defined(WINDOWS_USER_MODE))
-    char *path = "./sysroot/windows/bin/test-process";
+    char *path = "./sysroot/windows/x86_64/bin/test-process";
 #   elif (defined(MAC_USER_MODE) || defined(IOS_USER_MODE))
-    char *path = "./sysroot/mac/bin/test-process";
+    char *path = "./sysroot/mac/x86_64/bin/test-process";
 #   else
-    char *path = "./sysroot/linux/bin/test-process";
+    char *path = "./sysroot/linux/x86_64/bin/test-process";
 #   endif
     char *arg_vector[2] = {"test-process", NULL};
     int ret;

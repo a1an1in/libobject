@@ -20,9 +20,12 @@ adb shell "export LD_LIBRARY_PATH=/data/local/tmp/.xtools/sysroot/lib:$LD_LIBRAR
 
 ./devops.sh build --platform=android --arch=arm64-v8a
 ./devops.sh release --platform=android --arch=arm64-v8a
-./devops.sh deploy -p=android --package-path=./packages/xtools_android_arm64-v8a_v2.15.0.130.tar.gz
+./devops.sh deploy -p=android --package-path=./packages/xtools_android_arm64-v8a_v2.15.0.154.tar.gz
 adb shell 
 cd  /data/local/tmp/.xtools/
 export LD_LIBRARY_PATH=/data/local/tmp/.xtools/sysroot/lib:$LD_LIBRARY_PATH
 ./sysroot/bin/xtools --log-level=0x20017 node -h
+./sysroot/bin/xtools node --log-level=0x15 --host=139.159.231.27 --service=12345
+nohup ./sysroot/bin/xtools node --log-level=0x15 --host=139.159.231.27 --service=12345 >/data/local/tmp/.xtools/logs 2>&1 &
+./sysroot/linux/x86_64/bin/xtools node_cli --host="139.159.231.27" --service="12345" lookup all 
 ```

@@ -149,7 +149,7 @@ This command connects to the deployed service on the specified host (`139.159.23
 ##### Example
 
 ```bash
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_x86_64_v2.14.0.125.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_x86_64_v2.15.0.153.tar.gz
 ```
 
 This command will deploy the specified package to the Linux server at `139.159.231.27`.

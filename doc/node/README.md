@@ -1,15 +1,67 @@
 # Node Operations Guide
 
-The node module manages distributed nodes and their communication.
+## Table of Contents
+
+- [1. Deploying the Node Service](#1-deploying-the-node-service)
+    - [1.1 Deploying on Linux](#11-deploying-on-linux)
+    - [1.2 Deploying on Android](#12-deploying-on-android)
+- [2. Node CLI Operations](#2-node-cli-operations)
+    - [2.1 Querying Node ID](#21-querying-node-id)
+    - [2.2 File Operations](#22-file-operations)
+    - [2.3 Command Execution](#23-command-execution)
+    - [2.5 Migrating `noded`](#25-migrating-noded)
+        - [2.5.1 Allocating Command and Configuration](#251-allocating-command-and-configuration)
+        - [2.5.2 Setting Configuration](#252-setting-configuration)
+        - [2.5.3 Applying Configuration](#253-applying-configuration)
+        - [2.5.4 Getting Global Address](#254-getting-global-address)
+        - [2.5.5 Freeing Allocated Memory](#255-freeing-allocated-memory)
+    - [2.6 Memory Operations](#26-memory-operations)
+    - [2.7 Node Upgrade Operations](#27-node-upgrade-operations)
+    - [2.8 Stub and Hook Management](#28-stub-and-hook-management)
+        - [2.8.1 Allocating Stub and Variables](#281-allocating-stub-and-variables)
+        - [2.8.2 Adding Stub Hooks](#282-adding-stub-hooks)
+        - [2.8.3 Testing Function with Stub Hooks](#283-testing-function-with-stub-hooks)
+        - [2.8.4 Removing Stub Hooks](#284-removing-stub-hooks)
+        - [2.8.5 Testing Function Without Stub Hooks](#285-testing-function-without-stub-hooks)
+        - [2.8.6 Freeing Stub and Variables](#286-freeing-stub-and-variables)
+    - [2.9 Attacher Operations](#29-attacher-operations)
+        - [2.9.1 Starting the Service and Testing the Process](#291-starting-the-service-and-testing-the-process)
+        - [2.9.2 Opening the Attacher](#292-opening-the-attacher)
+        - [2.9.3 Invoking Target Methods](#293-invoking-target-methods)
+        - [2.9.4 Simplifying Attacher Operations with Scripts](#294-simplifying-attacher-operations-with-scripts)
+    - [2.10 Windows Testing](#210-windows-testing)
+        - [2.10.1 Starting the Node Service](#2101-starting-the-node-service)
+        - [2.10.2 Node CLI Examples](#2102-node-cli-examples)
 
 ---
+The node module manages distributed nodes and their communication.
 
 ## 1. Deploying the Node Service
 
-### 1.1 Starting the Node Service
+### 1.1 Deploying on Linux
+To deploy the Node Service on a Linux system, use the following commands:
 ```bash
-./sysroot/linux/bin/xtools node --log-level=0x30016 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/linux/bin/xtools node --log-level=0x20016 --host=127.0.0.1 --service=12345
+./devops.sh build --platform=linux
+./devops.sh release -p=linux
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_x86_64_v2.15.0.153.tar.gz
+./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x14 -f test_node
+./sysroot/linux/x86_64/bin/xtools node --log-level=0x30016 --host=127.0.0.1 --service=12345 --deamon=t
+./sysroot/linux/x86_64/bin/xtools node --log-level=0x20016 --host=127.0.0.1 --service=12345
+```
+
+### 1.2 Deploying on Android
+To deploy the Node Service on an Android device, use the following commands:
+```bash
+./devops.sh build --platform=android --arch=arm64-v8a
+./devops.sh release --platform=android --arch=arm64-v8a
+./devops.sh deploy -p=android --package-path=./packages/xtools_android_arm64-v8a_v2.15.0.155.tar.gz
+adb shell 
+cd  /data/local/tmp/.xtools/
+export LD_LIBRARY_PATH=/data/local/tmp/.xtools/sysroot/lib:$LD_LIBRARY_PATH
+./sysroot/bin/xtools --log-level=0x20017 node -h
+./sysroot/bin/xtools node --log-level=0x15 --host=139.159.231.27 --service=12345
+nohup ./sysroot/bin/xtools node --log-level=0x30015 --host=139.159.231.27 --service=12345 >/data/local/tmp/.xtools/logs 2>&1 &
+./sysroot/linux/x86_64/bin/xtools node_cli --host="139.159.231.27" --service="12345" lookup all
 ```
 
 ---
@@ -24,7 +76,7 @@ Retrieve the node ID by querying all available nodes.
 node_cli() {
     # Detect the operating system type
     if [[ "$(uname -s)" == "Linux" ]]; then
-        ND_CLI="./sysroot/linux/bin/xtools node_cli"
+        ND_CLI="./sysroot/linux/x86_64/bin/xtools node_cli"
     elif [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* || "$(uname -s)" == "MSYS"* ]]; then
         ND_CLI="./sysroot/windows/bin/xtools.exe node_cli"
     else
@@ -33,10 +85,12 @@ node_cli() {
     fi
 
     # Execute the command
-    $ND_CLI --host="127.0.0.1" --service="12345" "$@"
+    # $ND_CLI --host="127.0.0.1" --service="12345" "$@"
+    $ND_CLI --host="139.159.231.27" --service="12345" "$@"
 }
 
 node_id=$(node_cli lookup all | grep "index:2" | awk -F'id:' '{print $2}' | awk -F',' '{print $1}' | tr -d ' ')
+echo $node_id
 node_cli lookup all
 ```
 
@@ -160,7 +214,7 @@ node_cli call_bus "$node_id@mfree(#test_v1)"
 
 #### 2.9.1 Starting the Service and Testing the Process
 ```bash
-./sysroot/linux/bin/test-process
+./sysroot/linux/x86_64/bin/test-process
 pid=$(ps aux | grep test-process | grep -v grep | awk '{print $2}')
 ```
 
@@ -181,7 +235,7 @@ node_cli call_bus $node_id@{"mfree(#test_attacher)"}
 
 #### 2.9.4 Simplifying Attacher Operations with Scripts
 ```bash
-source ./sysroot/linux/bin/attacher.sh
+source ./sysroot/linux/x86_64/bin/attacher.sh
 attacher setup --filter="fd:10" --app-name="test-process"
 attacher alloc "#test_result"
 attacher call --log-level=0x20014 "attacher_test_with_pointer_arg(0x1234, \"test2\")" "#test_result"
