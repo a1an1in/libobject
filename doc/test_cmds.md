@@ -55,7 +55,7 @@ addr2line -e ./sysroot/linux/x86_64/bin/xtools 0x53ccc
 addr2line -f -e ./sysroot/linux/x86_64/bin/xtools  libobject-core.so 0x43d6b
 addr2line -e ./sysroot/linux/x86_64/bin/xtools 0x6e96a
 addr2line -e ./sysroot/linux/x86_64/bin/xtools 0xaeba2
-addr2line -e ./sysroot/linux/x86_64/bin/xtools 0xb375b
+addr2line -e ./sysroot/linux/x86_64/bin/xtools +0x98479
 addr2line -f -e ./sysroot/linux/x86_64/bin/xtools  libobject-core.so +0x439a3
 ```
 

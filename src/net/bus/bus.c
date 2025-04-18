@@ -764,7 +764,7 @@ static int bus_process_receiving_data_callback(void *task)
     bus_t *bus = (bus_t *)t->opaque;
     allocator_t *allocator = bus->allocator;
     Ring_Buffer *rb;
-    char buffer[BLOB_BUFFER_MAX_SIZE];
+    char buffer[BLOB_MAX_SIZE];
     int len, buffer_len, blob_table_len, ret;
 
     TRY {
@@ -776,7 +776,7 @@ static int bus_process_receiving_data_callback(void *task)
         if (t->cache == NULL) {
             t->cache = object_new(allocator, "Ring_Buffer", NULL);
             rb = t->cache;
-            rb->set_size(rb, BLOB_BUFFER_MAX_SIZE);
+            rb->set_size(rb, BLOB_MAX_SIZE);
             dbg_str(BUS_DETAIL, "new buffer");
         } else {
             rb = t->cache;

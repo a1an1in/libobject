@@ -264,8 +264,8 @@ static int popen_work_callback(void *task)
         src_fd = t->socket;
         if (t->buf_len <= 0) {
             ret = t->buf_len;
+            dbg_str(DBG_DETAIL, "close popen, object_id:%s, src_fd:%d", obj->id, src_fd);
             EXEC(bus_reply_forward_invoke(bus, obj->id, "call_cmd", BUS_RET_SUC, t->buf, 0, src_fd));
-            dbg_str(DBG_DETAIL, "popen_work_callback, file addr:%p", worker->opaque);
             pclose(t->cache);
             object_destroy(worker);
             THROW(ret);
@@ -286,10 +286,11 @@ static int popen_ev_callback(int fd, short event, void *arg)
     work_task_t *task = worker->task;
     int len;
 
-    len = read(fd, task->buf, WORKER_TASK_MAX_BUF_LEN);
+    len = read(fd, task->buf, 1024 * 2);
     if (len <= 0) {
-        dbg_str(DBG_DETAIL, "popen_ev_callback, fd:%d, len=%d", fd, len);
+        dbg_str(DBG_WARN, "popen_ev_callback, fd:%d, len=%d", fd, len);
     }
+    // usleep(1000);
 
     if (worker->work_callback != NULL) {
         task->buf_len = len;
