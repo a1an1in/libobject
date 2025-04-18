@@ -43,10 +43,10 @@ To deploy the Node Service on a Linux system, use the following commands:
 ```bash
 ./devops.sh build --platform=linux
 ./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_x86_64_v2.15.0.153.tar.gz
+./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_x86_64_v2.15.0.187.tar.gz
 ./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x14 -f test_node
 ./sysroot/linux/x86_64/bin/xtools node --log-level=0x30016 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/linux/x86_64/bin/xtools node --log-level=0x20016 --host=127.0.0.1 --service=12345
+./sysroot/linux/x86_64/bin/xtools node --log-level=0x20016 --host=139.159.231.27 --service=12345
 ```
 
 ### 1.2 Deploying on Android
@@ -54,12 +54,12 @@ To deploy the Node Service on an Android device, use the following commands:
 ```bash
 ./devops.sh build --platform=android --arch=arm64-v8a
 ./devops.sh release --platform=android --arch=arm64-v8a
-./devops.sh deploy -p=android --package-path=./packages/xtools_android_arm64-v8a_v2.15.0.155.tar.gz
+./devops.sh deploy -p=android --package-path=./packages/xtools_android_arm64-v8a_v2.15.0.188.tar.gz
 adb shell 
 cd  /data/local/tmp/.xtools/
 export LD_LIBRARY_PATH=/data/local/tmp/.xtools/sysroot/lib:$LD_LIBRARY_PATH
+./sysroot/bin/xtools node --log-level=0x30015 --host=139.159.231.27 --service=12345
 ./sysroot/bin/xtools --log-level=0x20017 node -h
-./sysroot/bin/xtools node --log-level=0x15 --host=139.159.231.27 --service=12345
 nohup ./sysroot/bin/xtools node --log-level=0x30015 --host=139.159.231.27 --service=12345 >/data/local/tmp/.xtools/logs 2>&1 &
 ./sysroot/linux/x86_64/bin/xtools node_cli --host="139.159.231.27" --service="12345" lookup all
 ```
@@ -92,6 +92,8 @@ node_cli() {
 node_id=$(node_cli lookup all | grep "index:2" | awk -F'id:' '{print $2}' | awk -F',' '{print $1}' | tr -d ' ')
 echo $node_id
 node_cli lookup all
+
+node_cli --log-level=0x15 call_cmd $node_id@{"ls -l"}
 ```
 
 ### 2.2 File Operations
@@ -111,7 +113,7 @@ node_cli fcopy ./tests/node/res/test_node.txt "$node_id@./tests/node/output/writ
 Run shell commands on the node.
 ```bash
 # List files in the current directory
-node_cli call_cmd $node_id@{"ls -l"}
+node_cli --log-level=0x30015 call_cmd $node_id@{"ls -l"}
 
 # Print the current working directory
 node_cli call_cmd $node_id@{"pwd"}
@@ -165,6 +167,7 @@ node_cli call_bus $node_id@{"mfree(#node_config)"}
 Perform a node upgrade using specific commands.
 ```bash
 node_cli call_bus $node_id@{"malloc(10, \"null\", #node_command, 8)"}
+node_cli call_fsh $node_id@{"node_command_get_global_addr(#node_command)"}
 node_cli call_fsh $node_id@{"node_command_upgrade(*#node_command)"}
 node_cli call_bus $node_id@{"mfree(#node_command)"}
 ```

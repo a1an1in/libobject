@@ -251,7 +251,7 @@ int debugger_dbg_buf(debugger_t *debugger,
                      uint32_t buf_len, 
                      const char *fmt, ...) 
 {
-#define MAX_BUFFER_STR_LEN 1024*10
+#define MAX_BUFFER_STR_LEN 1024*15
     int ret = 0;
     va_list ap;
     uint32_t business_num = dbg_switch >> 8;
