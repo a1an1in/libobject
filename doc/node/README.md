@@ -250,7 +250,7 @@ attacher destroy
 
 #### 2.10.1 Starting the Node Service
 ```bash
-./sysroot/windows/bin/xtools node --log-level=0x15 --host=139.159.231.27 --service=12345
+./sysroot/windows/x86_64/bin/xtools node --log-level=0x15 --host=139.159.231.27 --service=12345
 ```
 
 #### 2.10.2 Node CLI Examples

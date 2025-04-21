@@ -1,7 +1,7 @@
-[update:bus] 修复bus RB太小导致tcp数据合并后有可能丢失问题。
+[update:doc] 更新文档。
 
 Description:
-tcp数据合并后超过了RB大小， 导致后续解析数据错误。
+NA。
 
 Major Changes:
-1. 修复bus bug.
+1. 更新文档.

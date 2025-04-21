@@ -211,6 +211,7 @@ attacher free "#test_result"
 attacher destroy
 
 3 windows 测试
+./sysroot/windows/x86_64/bin/xtools mockery --log-level=0x14 -f test_node
 ./sysroot/windows/bin/xtools node --log-level=0x15 --host=139.159.231.27 --service=12345
 node_cli --log-level=0x20016 flist $node_id@/root/.xtools/packages
 node_cli --log-level=0x20016 flist $node_id@./tests/node/
