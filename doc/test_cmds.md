@@ -92,6 +92,7 @@ ldconfig
 tcpdump -i eth0  port 12345
 sudo tcpdump -i enp0s17  port 12345
 ./devops.sh build --platform=linux
+./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x14 -f test_node
 ./devops.sh release -p=linux
 ./sysroot/linux/x86_64/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t 
 ./sysroot/linux/x86_64/bin/xtools node --log-level=0x20016 --host=127.0.0.1 --service=12345
@@ -172,7 +173,6 @@ node_cli call_cmd $node_id@{"ls -l"}
 
 * 2.7 attancher
 ./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x14 -f test_attacher
-./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x14 -f test_node
 
 //run node service and test process
 ./sysroot/linux/bin/test-process
