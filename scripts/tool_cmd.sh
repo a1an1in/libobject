@@ -68,9 +68,12 @@ function do_build_linux {
 
     # 将 attacher.sh 脚本复制到对应架构的 bin 目录
     mkdir -p ${SYSROOT_DIR}/bin
+    mkdir -p ${SYSROOT_DIR}/include
     cp ../../../scripts/attacher.sh ${SYSROOT_DIR}/bin/attacher.sh
-    chmod +x ${SYSROOT_DIR}/bin/attacher.sh
     echo "attacher.sh has been copied to ${SYSROOT_DIR}/bin"
+    chmod +x ${SYSROOT_DIR}/bin/attacher.sh
+    cp -r ../../../src/include/* ${SYSROOT_DIR}/include/
+    echo "include has been copied to ${SYSROOT_DIR}/include"
 }
 
 function do_build_mac {
