@@ -95,6 +95,7 @@ sudo tcpdump -i enp0s17  port 12345
 ./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x14 -f test_node
 ./devops.sh release -p=linux
 ./sysroot/linux/x86_64/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t 
+sudo -u alan nohup stdbuf -oL -eL ./sysroot/linux/x86_64/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/node/logs 2>&1 &
 ./sysroot/linux/x86_64/bin/xtools node --log-level=0x20016 --host=127.0.0.1 --service=12345
 ./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_x86_64_v2.15.0.153.tar.gz
 ./sysroot/linux/x86_64/bin/xtools node_cli --host="139.159.231.27" --service="12345" lookup all 
@@ -213,6 +214,8 @@ attacher destroy
 3 windows 测试
 ./sysroot/windows/x86_64/bin/xtools mockery --log-level=0x14 -f test_node
 ./sysroot/windows/bin/xtools node --log-level=0x15 --host=139.159.231.27 --service=12345
+./sysroot/windows/x86_64/bin/xtools node_cli --host="www.yunisona.top" --service="12345" lookup all 
+./sysroot/windows/x86_64/bin/xtools node_cli --host="www.yunisona.top" --service="12345" call_cmd 03def4e207a24ad435102eda63193a714fd88f20@{"ls -l"}
 node_cli --log-level=0x20016 flist $node_id@/root/.xtools/packages
 node_cli --log-level=0x20016 flist $node_id@./tests/node/
 node_cli --log-level=0x20016 call_cmd $node_id@{"ls -l"}

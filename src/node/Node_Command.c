@@ -26,14 +26,14 @@ static int __read_configs(Node_Command *command)
     int ret, i, option_count, set_flag = 1;
 
     TRY {
-        THROW_IF(n->run_bus_deamon_flag == 1, 0); //deamon 不需要node配置文件
+        // THROW_IF(n->run_bus_deamon_flag == 1, 0); //deamon 不需要node配置文件
         app = get_global_application();
 
-        dbg_str(DBG_DETAIL, "app addr:%p", app);
         snprintf(path, 128, "%s/%s", STR2A(app->root), "node");
         fs_mkdir(path, 0777);
         strcat(path, "/node.json");
         THROW_IF(fs_is_exist(path) == 0, 0);
+        dbg_str(DBG_VIP, "node config file:%s", path);
 
         file = object_new(allocator, "File", NULL);
         file->open(file, path, "r+");
