@@ -152,7 +152,7 @@ static int __loop(Node *node)
     struct event_base *event_base;
 
     event_base = event_base_get_default_instance();
-    do { usleep(100); } while (node->node_exit_flag != 1);
+    do { usleep(10000); } while (node->node_exit_flag != 1);
     dbg_str(DBG_VIP, "node loop out");
 
     return 0;

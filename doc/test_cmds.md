@@ -120,6 +120,7 @@ node_cli lookup all
 2 linux 测试
 * 2.1 node cli 基本用法
 nohup stdbuf -oL -eL ~/.xtools/sysroot/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
+nohup stdbuf -oL -eL ./sysroot/linux/x86_64/bin/xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >~/.xtools/logs 2>&1 &
 ./sysroot/linux/x86_64/bin/xtools node
 
 node_cli --log-level=0x28017 flist $node_id@/root/.xtools/packages
