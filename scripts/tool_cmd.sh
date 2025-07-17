@@ -545,8 +545,8 @@ function do_build_docker_image_xtools {
     # version=$(get_release_package_version src/include/liboject/version.h)
     version=2.15.0.229
     docker build -f docker/dockerfile                                                 \
-        -t fruit/xtools                                                               \
-        -t agile/xtools:$version                                                      \
+        -t $OPTION_NAME                                                               \
+        -t $OPTION_NAME:$version                                                      \
         --build-arg TAR_PACKAGE_PATH=${OPTION_PACKAGE_PATH}                           \
         .
 }
@@ -574,7 +574,7 @@ function do_run_docker_container {
     fi
     image_name=$(docker images | grep $OPTION_NAME | awk '{print $1}')
     echo "run docker container, container image_name:$image_name OPTION_ARGS:$OPTION_ARGS"
-    docker run -itd $OPTION_ARGS fruit/xtools
+    docker run -itd $OPTION_ARGS $OPTION_NAME
     container_id=$(docker ps | grep $OPTION_NAME | awk '{print $1}')
     docker exec -it $container_id /bin/bash
 }
@@ -584,10 +584,9 @@ function do_build_docker_image {
 
     if [[ -z $OPTION_NAME ]]; then
         OPTION_HELP="true"
-        return 1
-    elif [[ $OPTION_NAME == "fruit/xtools" ]]; then
-        do_build_docker_image_xtools
+        return 1     
     fi
+    do_build_docker_image_xtools
 }
 
 function do_test {
@@ -632,7 +631,7 @@ cat << EOF
     ./devops.sh docker --install --platform=linux    #install docker at linux platform
     ./devops.sh release -p=linux
     ./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_v2.13.0.442.tar.gz
-    ./devops.sh docker --build=fruit/xtools --package-path=./packages/xtools_linux_x86_64_v2.15.0.229.tar.gz
+    ./devops.sh docker --build=fruit-pomegranate --package-path=./packages/xtools_linux_x86_64_v2.15.0.229.tar.gz
     
 EOF
 }
