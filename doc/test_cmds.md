@@ -99,6 +99,7 @@ sudo -u alan nohup stdbuf -oL -eL ./sysroot/linux/x86_64/bin/xtools node --log-l
 ./sysroot/linux/x86_64/bin/xtools node --log-level=0x20016 --host=127.0.0.1 --service=12345
 ./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_x86_64_v2.15.0.153.tar.gz
 ./sysroot/linux/x86_64/bin/xtools node_cli --host="139.159.231.27" --service="12345" lookup all 
+./sysroot/linux/x86_64/bin/xtools node_cli --host=0.0.0.0 --service=12345 lookup all 
 
 node_cli() {
     # 检测操作系统类型

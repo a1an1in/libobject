@@ -539,19 +539,15 @@ function do_install_docker {
     fi
 }
 
-function do_build_docker_image_paddlefish {
+function do_build_docker_image_xtools {
+    echo "do_build_docker_image_xtools, pwd:$(pwd)"
     local version
-    local tar_file_name
-
-    echo "do deploy arg1:$OPTION_DB_IP"
-    version=$(get_release_package_version src/include/version.h)
-    tar_file_name=$(get_release_package_name paddlefish_linux src/include/version.h)
-    echo "tar_file_name:$tar_file_name, version:$version"
+    # version=$(get_release_package_version src/include/liboject/version.h)
+    version=2.15.0.229
     docker build -f docker/dockerfile                                                 \
-        -t agile/paddlefish:$version                                                  \
-        -t agile/paddlefish                                                           \
-        --build-arg TAR_PACKAGE_NAME=${tar_file_name}                                 \
-        --build-arg DB_IP=$OPTION_DB_IP                                               \
+        -t fruit/xtools                                                               \
+        -t agile/xtools:$version                                                      \
+        --build-arg TAR_PACKAGE_PATH=${OPTION_PACKAGE_PATH}                           \
         .
 }
 
@@ -578,21 +574,19 @@ function do_run_docker_container {
     fi
     image_name=$(docker images | grep $OPTION_NAME | awk '{print $1}')
     echo "run docker container, container image_name:$image_name OPTION_ARGS:$OPTION_ARGS"
-    docker run -itd $OPTION_ARGS agile/paddlefish
+    docker run -itd $OPTION_ARGS fruit/xtools
     container_id=$(docker ps | grep $OPTION_NAME | awk '{print $1}')
     docker exec -it $container_id /bin/bash
 }
 
 function do_build_docker_image {
-    if [[ -z $OPTION_DB_IP ]]; then
-        OPTION_HELP="true"
-        return 1
-    fi
+    echo "do_build_docker_image image name:$OPTION_NAME"
+
     if [[ -z $OPTION_NAME ]]; then
         OPTION_HELP="true"
         return 1
-    elif [[ $OPTION_NAME == "paddlefish" ]]; then
-        do_build_docker_image_paddlefish
+    elif [[ $OPTION_NAME == "fruit/xtools" ]]; then
+        do_build_docker_image_xtools
     fi
 }
 
@@ -638,6 +632,7 @@ cat << EOF
     ./devops.sh docker --install --platform=linux    #install docker at linux platform
     ./devops.sh release -p=linux
     ./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_v2.13.0.442.tar.gz
+    ./devops.sh docker --build=fruit/xtools --package-path=./packages/xtools_linux_x86_64_v2.15.0.229.tar.gz
     
 EOF
 }

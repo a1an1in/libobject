@@ -1,10 +1,7 @@
-[update:doc] 编译完后安装头文件到sysroot。
+[update:dockerfile] 支持编译noded docker image。  
 
 Description:
-兼容tangerine需要安装include， 更改./devops.sh后导致
-包含libobject的库不能通过ExternalProject_Add编译， 
-需要相应修改。
+生成noded docker image， 方便部署。
 
 Major Changes:
-1. 新增file-transfer目录.
-2. 编译安装头文件
+1. 制作noded docker image.

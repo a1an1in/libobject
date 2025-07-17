@@ -1,40 +1,29 @@
 FROM ubuntu:20.04
 
-ARG TAR_PACKAGE_NAME
-ARG DB_IP
-ENV TAR_PACKAGE_NAME ${TAR_PACKAGE_NAME}
-ENV DB_IP ${DB_IP}
+ARG TAR_PACKAGE_PATH
+ENV TAR_PACKAGE_PATH ${TAR_PACKAGE_PATH}
 
-RUN    echo "deb http://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse" >> /etc/apt/sources.list                  \
-    && echo "deb http://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse" >> /etc/apt/sources.list         \
-    && echo "deb http://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse" >> /etc/apt/sources.list          \
-    && echo "deb http://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse" >> /etc/apt/sources.list        \
-    #    echo "deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse"               >  /etc/apt/sources.list \
-    # && echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse"      >> /etc/apt/sources.list \
-    # && echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse"       >> /etc/apt/sources.list \
-    # && echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse"      >> /etc/apt/sources.list \
-    # && echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse"     >> /etc/apt/sources.list \
-    # && echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse"           >> /etc/apt/sources.list \
-    # && echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse"  >> /etc/apt/sources.list \  
-    # && echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse"   >> /etc/apt/sources.list \
-    # && echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse"  >> /etc/apt/sources.list \
-    # && echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list \
-    && apt-get update                                                                                                                 \
-    && apt-get upgrade
+RUN echo "deb http://mirrors.huaweicloud.com/ubuntu/ focal main restricted universe multiverse" > /etc/apt/sources.list              && \
+    echo "deb http://mirrors.huaweicloud.com/ubuntu/ focal-updates main restricted universe multiverse" >> /etc/apt/sources.list     && \
+    echo "deb http://mirrors.huaweicloud.com/ubuntu/ focal-backports main restricted universe multiverse" >> /etc/apt/sources.list   && \
+    echo "deb http://mirrors.huaweicloud.com/ubuntu/ focal-security main restricted universe multiverse" >> /etc/apt/sources.list
 
-RUN    apt-get install -y net-tools                                                                                                   \
-    && apt-get install -y iputils-ping                                                                                                \
-    && apt-get install -y libmysqlclient-dev
+RUN  apt-get update
+
+RUN  apt-get install -y net-tools && apt-get install -y iputils-ping && apt-get install -y libmysqlclient-dev
 
 RUN mkdir -p /root/softs
-COPY package/${TAR_PACKAGE_NAME} /root/softs
-COPY docker/webroot /root/softs/paddlefish/bin/webroot
+COPY ${TAR_PACKAGE_PATH} /root/softs/
 
-RUN echo "TAR_PACKAGE_NAME: ${TAR_PACKAGE_NAME}, DB_IP:${DB_IP}"
+RUN export TAR_NAME=$(basename ${TAR_PACKAGE_PATH}) \
+    && echo "处理文件: ${TAR_NAME}" \
+    && mkdir -p /root/.xtools/sysroot \
+    && tar -xzf /root/softs/${TAR_NAME} -C /root/.xtools/sysroot --strip-components 1
 
-RUN cd /root/softs                                                                                                                    \
-    && tar -zxvf ${TAR_PACKAGE_NAME}                                                                                                  \
-    && rm ${TAR_PACKAGE_NAME}
+RUN mkdir -p /root/.xtools/node
+COPY ./doc/node/node.json /root/.xtools/node
 
-WORKDIR /root/softs/paddlefish/bin
-CMD cd /root/softs/paddlefish/bin && ./paddlefish -h "0.0.0.0" -s "81" > p.log
+WORKDIR /root/.xtools/sysroot/bin
+CMD export LD_LIBRARY_PATH=/root/.xtools/sysroot/lib:/root/.xtools/sysroot/lib64:$LD_LIBRARY_PATH                                             && \ 
+    ldconfig && ./xtools node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t >/root/.xtools/node/logs
+# CMD ["tail", "-f", "/dev/null"]

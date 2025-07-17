@@ -81,6 +81,7 @@ To build the project on macOS, use the following command:
 ### Release Instructions
 
 #### Linux
+* Release package
 
 To create a release package for Linux, you can specify the architecture or use the default (x86_64):
 
@@ -94,6 +95,12 @@ To create a release package for Linux, you can specify the architecture or use t
 ```
 
 The release package will be created in the `packages` directory with a name like `xtools_linux_<architecture>_v<version>.tar.gz`.
+
+* Release docker image
+```
+sudo ./devops.sh docker --build=fruit/xtools --package-path=./packages/xtools_linux_x86_64_v2.15.0.229.tar.gz
+sudo docker run -d --name fruit-pomegranate -p 12345:12345 fruit/xtools
+```
 
 #### Windows
 

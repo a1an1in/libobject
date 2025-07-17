@@ -1,5 +1,6 @@
 {
-    "log-level": "0x30016",
-    "host": "139.159.231.27",
-    "service": "12345"
+    "host": "0.0.0.0",
+    "service": "12345",
+    "log-level": "0x20016",
+    "node_id": "19f26e78abb24eb47cedc30d68a86a5e45e70e20"
 }
