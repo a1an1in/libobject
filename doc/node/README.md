@@ -78,7 +78,7 @@ node_cli() {
     if [[ "$(uname -s)" == "Linux" ]]; then
         ND_CLI="./sysroot/linux/x86_64/bin/xtools node_cli"
     elif [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* || "$(uname -s)" == "MSYS"* ]]; then
-        ND_CLI="./sysroot/windows/bin/xtools.exe node_cli"
+        ND_CLI="./sysroot/windows/x86_64/bin/xtools.exe node_cli"
     else
         echo "Unsupported OS: $(uname -s)"
         return 1
@@ -86,7 +86,7 @@ node_cli() {
 
     # Execute the command
     # $ND_CLI --host="127.0.0.1" --service="12345" "$@"
-    $ND_CLI --host="139.159.231.27" --service="12345" "$@"
+    $ND_CLI --host="www.yunisona.top" --service="12345" "$@"
 }
 
 node_id=$(node_cli lookup all | grep "index:2" | awk -F'id:' '{print $2}' | awk -F',' '{print $1}' | tr -d ' ')
