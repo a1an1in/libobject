@@ -218,6 +218,29 @@ function do_build_windows {
         make install || { echo "Make install failed."; exit 1; }
         exit 0
     fi
+
+    # 检查 attacher.sh 文件是否存在
+    if [[ ! -f ../../../doc/attacher/attacher.sh ]]; then
+        echo "Error: attacher.sh not found in doc/attacher."
+        exit 1
+    fi
+    # 检查 node_cli.sh 文件是否存在
+    if [[ ! -f ../../../doc/node/node_cli.sh ]]; then
+        echo "Error: node_cli.sh not found in doc/node."
+        exit 1
+    fi
+
+    # 将 attacher.sh 脚本复制到对应架构的 bin 目录
+    mkdir -p ${SYSROOT_DIR}/bin
+    mkdir -p ${SYSROOT_DIR}/include
+    cp ../../../doc/attacher/attacher.sh ${SYSROOT_DIR}/bin/attacher.sh
+    echo "attacher.sh has been copied to ${SYSROOT_DIR}/bin"
+    chmod +x ${SYSROOT_DIR}/bin/attacher.sh
+    cp ../../../doc/node/node_cli.sh ${SYSROOT_DIR}/bin/node_cli.sh
+    echo "node_cli.sh has been copied to ${SYSROOT_DIR}/bin"
+    chmod +x ${SYSROOT_DIR}/bin/node_cli.sh
+    cp -r ../../../src/include/* ${SYSROOT_DIR}/include/
+    echo "include has been copied to ${SYSROOT_DIR}/include"
 }
 
 function do_build {

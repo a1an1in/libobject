@@ -256,6 +256,7 @@ attacher destroy
 #### 2.10.1 Starting the Node Service
 ```bash
 ./sysroot/windows/x86_64/bin/xtools node --log-level=0x15 --host=139.159.231.27 --service=12345
+source ./sysroot/windows/x86_64/bin/node_cli.sh www.yunisona.top 12345
 ```
 
 #### 2.10.2 Node CLI Examples
