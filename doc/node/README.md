@@ -73,8 +73,12 @@ This section provides detailed examples of using `node_cli` to interact with nod
 ### 2.1 Querying Node ID
 Retrieve the node ID by querying all available nodes.
 ```bash
+export HOST="www.yunisona.top"
+export SERVICE="12345"
 node_cli() {
-    # Detect the operating system type
+    local HOST="${HOST:-127.0.0.1}"
+    local SERVICE="${SERVICE:-12345}"
+
     if [[ "$(uname -s)" == "Linux" ]]; then
         ND_CLI="./sysroot/linux/x86_64/bin/xtools node_cli"
     elif [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* || "$(uname -s)" == "MSYS"* ]]; then
@@ -84,10 +88,11 @@ node_cli() {
         return 1
     fi
 
-    # Execute the command
-    # $ND_CLI --host="127.0.0.1" --service="12345" "$@"
-    $ND_CLI --host="www.yunisona.top" --service="12345" "$@"
+    $ND_CLI --host="$HOST" --service="$SERVICE" "$@"
 }
+
+或者：
+source ./sysroot/linux/x86_64/bin/node_cli.sh www.yunisona.top 12345
 
 node_id=$(node_cli lookup all | grep "index:2" | awk -F'id:' '{print $2}' | awk -F',' '{print $1}' | tr -d ' ')
 echo $node_id
