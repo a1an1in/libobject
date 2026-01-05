@@ -86,81 +86,6 @@ __for_each_arg(Queue *queue,
     }
 }
 
-static void 
-__for_each_arg2(Queue *queue,
-                void (*func)(void *element, void *arg,void *arg1),
-                void *arg1,void *arg2)
-{
-    Iterator *cur, *end;
-    void *element;
-
-    dbg_str(OBJ_INFO, "queue for_each arg2");
-    cur = queue->begin(queue);
-    end = queue->end(queue);
-
-    for (; !end->equal(end, cur); cur->next(cur)) {
-        element = cur->get_vpointer(cur);
-        func(element, arg1, arg2);
-    }
-}
-
-static void
-__for_each_arg3(Queue *queue,
-                void (*func)(void *element, void *arg,
-                             void *arg1,void *arg2),
-                void *arg1,void *arg2,void *arg3)
-{
-    Iterator *cur, *end;
-    void *element;
-
-    dbg_str(OBJ_INFO, "queue for_each arg3");
-    cur = queue->begin(queue);
-    end = queue->end(queue);
-
-    for (; !end->equal(end, cur); cur->next(cur)) {
-        element = cur->get_vpointer(cur);
-        func(element, arg1, arg2, arg3);
-    }
-}
-
-static void 
-__for_each_arg4(Queue *queue,
-                void (*func)(void *element, void *arg,
-                             void *arg1,void *arg2,void *arg3), 
-                void *arg1,void *arg2,void *arg3,void *arg4)
-{
-    Iterator *cur, *end;
-    void *element;
-
-    dbg_str(OBJ_INFO, "queue for_each arg4");
-    cur = queue->begin(queue);
-    end = queue->end(queue);
-
-    for (; !end->equal(end, cur); cur->next(cur)) {
-        element = cur->get_vpointer(cur);
-        func(element, arg1, arg2, arg3, arg4);
-    }
-}
-
-static void 
-__for_each_arg5(Queue *queue, 
-                void (*func)(void *element, void *arg1,
-                             void *arg2,void *arg3,void *arg4,void *arg5), 
-                void *arg1,void *arg2,void *arg3,void *arg4, void *arg5)
-{
-    Iterator *cur, *end;
-    void *element;
-
-    dbg_str(OBJ_INFO, "queue for_each arg5");
-    cur = queue->begin(queue);
-    end = queue->end(queue);
-
-    for (; !end->equal(end, cur); cur->next(cur)) {
-        element = cur->get_vpointer(cur);
-        func(element, arg1, arg2, arg3, arg4 , arg5);
-    }
-}
-
 static void __reset(Queue *queue)
 {
     Iterator *cur, *end;
@@ -210,14 +135,10 @@ static class_info_entry_t queue_class_info[] = {
     Init_Vfunc_Entry(15, Queue, reset, __reset),
     Init_Vfunc_Entry(16, Queue, for_each, __for_each),
     Init_Vfunc_Entry(17, Queue, for_each_arg, __for_each_arg),
-    Init_Vfunc_Entry(18, Queue, for_each_arg2, __for_each_arg2),
-    Init_Vfunc_Entry(19, Queue, for_each_arg3, __for_each_arg3),
-    Init_Vfunc_Entry(20, Queue, for_each_arg4, __for_each_arg4),
-    Init_Vfunc_Entry(21, Queue, for_each_arg5, __for_each_arg5),
-    Init_Vfunc_Entry(22, Queue, peek_front, NULL),
-    Init_Vfunc_Entry(23, Queue, peek_back, NULL),
-    Init_U8____Entry(24, Queue, trustee_flag, NULL),
-    Init_U8____Entry(25, Queue, value_type, NULL),
-    Init_End___Entry(26, Queue),
+    Init_Vfunc_Entry(18, Queue, peek_front, NULL),
+    Init_Vfunc_Entry(19, Queue, peek_back, NULL),
+    Init_U8____Entry(20, Queue, trustee_flag, NULL),
+    Init_U8____Entry(21, Queue, value_type, NULL),
+    Init_End___Entry(22, Queue),
 };
 REGISTER_CLASS(Queue, queue_class_info);

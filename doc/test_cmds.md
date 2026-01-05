@@ -76,6 +76,7 @@ addr2line -f -e ./sysroot/linux/x86_64/bin/xtools  libobject-core.so +0x439a3
 ping6 2409:8c20:1833:1000::ad5:2cb5
 ./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x6 test_client_udp_v6_recv
 ./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x6 test_client_udp_v6_send
-./sysroot/windows/bin/xtools.exe mockery --log-level=0x14 -f test_http
-./sysroot/windows/bin/xtools wget http://mirrors.hust.edu.cn/gnu/hello/hello-1.3.tar.gz
+./sysroot/windows/x86_64/bin/xtools mockery --log-level=0x14 -f test_http
+./sysroot/windows/x86_64/bin/xtools mockery --log-level=0x14 -f test_linked_queue
+./sysroot/windows/x86_64/bin/xtools wget http://mirrors.hust.edu.cn/gnu/hello/hello-1.3.tar.gz
 ```
