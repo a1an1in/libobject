@@ -62,6 +62,7 @@ export LD_LIBRARY_PATH=/data/local/tmp/.xtools/sysroot/lib:$LD_LIBRARY_PATH
 ./sysroot/bin/xtools --log-level=0x20017 node -h
 nohup ./sysroot/bin/xtools node --log-level=0x30015 --host=139.159.231.27 --service=12345 >/data/local/tmp/.xtools/logs 2>&1 &
 ./sysroot/linux/x86_64/bin/xtools node_cli --host="139.159.231.27" --service="12345" lookup all
+./sysroot/linux/x86_64/bin/xtools node_cli --host="127.0.0.1" --service="12345" lookup all
 ```
 
 ---
