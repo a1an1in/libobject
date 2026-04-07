@@ -51,14 +51,14 @@ static int test_http_deamon_plugin_api()
     Http_Client *client;
     Response *resp;
     char *argv[2] = {"httpd", "--no-loop"};
-    char *curl_argv[4] = {"curl", "-X", "GET", "http://127.0.0.1:8081/api/test_http_plugin"};
+    char *curl_argv[4] = {"curl", "-X", "GET", "http://127.0.0.1:8081/api/http_plugin_test"};
     int ret, count = 0;
     char path[128] = {0};
     
     TRY {
         snprintf(path, 128, "%s/%s/http_plugin.json", "~/.xtools", "httpd/plugins");
         if (fs_is_exist(path) != 1) {
-            system("cp ./doc/http/http_plugin.json ~/.xtools/httpd/plugins/http_plugin.json");
+            system("cp ./doc/net/http/http_plugin.json ~/.xtools/httpd/plugins/http_plugin.json");
         }
         command = object_new(allocator, "Httpd_Command", NULL);
         command->set_args(command, 2, (char **)argv);

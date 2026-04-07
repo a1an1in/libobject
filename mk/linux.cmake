@@ -71,7 +71,8 @@ macro (add_module_lists)
         "3rd/attacher-builtin"
         "3rd/test_process"
         "3rd/testlib"
-        "3rd/test_http_plugin"
+        "3rd/http_plugin_test"
+        "3rd/http_plugin_mp4"
         "tests"
         "src/."
     )

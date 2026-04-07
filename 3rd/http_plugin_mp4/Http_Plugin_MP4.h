@@ -1,13 +1,13 @@
-#ifndef __Test_Http_Plugin_H__
-#define __Test_Http_Plugin_H__
+#ifndef __Http_Plugin_MP4_H__
+#define __Http_Plugin_MP4_H__
 
 #include <stdio.h>
 #include <libobject/argument/Command.h>
 #include <libobject/core/String.h>
 
-typedef struct Test_Http_Plugin_s Test_Http_Plugin;
+typedef struct Http_Plugin_MP4_s Http_Plugin_MP4;
 
-struct Test_Http_Plugin_s{
+struct Http_Plugin_MP4_s{
     Command parent;
 
     int (*construct)(Command *command,char *init_str);
