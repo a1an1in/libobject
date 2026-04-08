@@ -173,11 +173,14 @@ static ssize_t __listenfd_ev_callback(int fd, short event, void *arg)
         THROW_IF((new_worker = __get_worker(server)) == NULL, -1);
         new_socket = new_worker->socket;
         new_socket->fd = new_fd;
-        dbg_str(DBG_DETAIL, "listenfd_ev_callback, new fd = %d", new_socket->fd);
+        
+        // 设置新socket为非阻塞模式，避免send阻塞
+        new_socket->setnonblocking(new_socket);
+        dbg_str(DBG_DETAIL, "listenfd_ev_callback, new fd = %d (set non-blocking)", new_socket->fd);
 
         new_worker->opaque = server;
-        new_worker->assign(new_worker, new_socket->fd, EV_READ | EV_PERSIST, NULL, 
-                           (void *)__new_conn_ev_callback, new_worker, 
+        new_worker->assign(new_worker, new_socket->fd, EV_READ | EV_PERSIST, NULL,
+                           (void *)__new_conn_ev_callback, new_worker,
                            (void *)worker->work_callback);
         EXEC(new_worker->enroll(new_worker, producer));
         new_socket->opaque = new_worker;

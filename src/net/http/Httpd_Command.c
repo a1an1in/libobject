@@ -80,7 +80,7 @@ static int __construct(Httpd_Command *command, char *init_str)
     c->add_option(c, "--version", "-v", "false", "display version", __option_version_callback, server);
     c->add_option(c, "--host", "-h", "", "set server ip address", __option_host_callback, server);
     c->add_option(c, "--service", "-s", "", "set server ip port", __option_service_callback, server);
-    c->add_option(c, "--no-loop", "", "", "don't loop httpd", __option_no_loop_callback, command);
+    c->add_option(c, "--no-loop", "", NULL, "don't loop httpd", __option_no_loop_callback, command);
     
     c->set(c, "/Command/name", "httpd");
     c->set(c, "/Command/description", "nginx is mimic nginx and is used in much the same way.");

@@ -371,35 +371,48 @@ static int __write_file(Response *response)
     socket = response->socket;
     while (!feof(response->file)) {
         len = fread(buf, 1, sizeof(buf), response->file);
-        cnt += len;
-
-        while (len > 0) {
-            if (try_count > 5) {
+        
+        int bytes_sent_from_buf = 0;
+        while (bytes_sent_from_buf < len) {
+            if (try_count > 50) {
+                dbg_str(DBG_ERROR, "http write file error, max retries exceeded, sent %d/%d from buffer",
+                        bytes_sent_from_buf, len);
                 return -1;
             }
-            ret = socket->send(socket, buf, 2048, 0);
+            
+            // 发送剩余的数据
+            int bytes_to_send = len - bytes_sent_from_buf;
+            ret = socket->send(socket, buf + bytes_sent_from_buf, bytes_to_send, 0);
             if (ret == -1) {
-                dbg_str(DBG_ERROR, "http write file error, retry again, error no:%d, strerror:%s",
-                        ret, strerror(errno));
+                dbg_str(DBG_WARN, "socket->send returned -1, errno=%d (%s), try_count=%d",
+                        errno, strerror(errno), try_count);
+                try_count++;
+                usleep(1000000); // 50ms delay before retry
+                continue;
+            } else if (ret == 0) {
+                // 连接关闭
+                dbg_str(DBG_ERROR, "connection closed by peer, sent %d total bytes", cnt);
                 return -1;
-                /*
-                 *try_count++;
-                 *usleep(100000);
-                 *continue;
-                 */
-            } else if (ret < -1) {
-                dbg_str(DBG_ERROR, "http write file error, error no:%d, strerror:%s",
-                        ret, strerror(errno));
+            } else if (ret < 0) {
+                dbg_str(DBG_ERROR, "socket->send returned %d, error: %s", ret, strerror(errno));
                 return -1;
             }
 
+            // 成功发送了一些数据
+            bytes_sent_from_buf += ret;
+            cnt += ret;
             try_count = 0;
-
-            len -= ret;
+            
+            // 每发送64KB记录一次进度
+            if (cnt % 65536 == 0) {
+                dbg_str(DBG_VIP, "write file progress: %d/%d bytes (%.1f%%)",
+                        cnt, response->content_len,
+                        (float)cnt * 100.0 / response->content_len);
+            }
         }
     }
 
-    dbg_str(NET_SUC, "write file, file len=%d, cnt=%d", response->content_len, cnt);
+    dbg_str(DBG_VIP, "write file, file len=%d, cnt=%d", response->content_len, cnt);
 
     return 1;
 }

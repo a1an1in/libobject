@@ -163,11 +163,13 @@ static int __process_static_request(Http_Server *server, Request *r, Response *r
     char filename[MAX_FILE_NAME_LEN];
     FILE *file = NULL;
     int ret = 1;
+    char *range_header = NULL;
+    handler_t *mp4_handler = NULL;
 
     TRY {
         dbg_str(NET_VIP, "process_static_request, method:%s, uri:%s", r->method, r->uri);
 
-        snprintf(filename, MAX_FILE_NAME_LEN, "%s%s", 
+        snprintf(filename, MAX_FILE_NAME_LEN, "%s%s",
                 server->root->get_cstr(server->root),
                 (char *)r->uri);
 
@@ -181,12 +183,32 @@ static int __process_static_request(Http_Server *server, Request *r, Response *r
 
         dbg_str(NET_SUC, "request filename:%s", filename);
 
+        // 检查是否是MP4文件且有Range头
+        if (strstr(filename, ".mp4") != NULL || strstr(filename, ".MP4") != NULL) {
+            // 检查是否有Range头
+            r->headers->search(r->headers, "range", (void **)&range_header);
+            if (range_header != NULL && strstr(range_header, "bytes=") != NULL) {
+                // 查找MP4 Range handler
+                server->get_handlers->search(server->get_handlers,
+                                            "mp4_range_handler",
+                                            (void **)&mp4_handler);
+                if (mp4_handler != NULL && mp4_handler->callback != NULL) {
+                    dbg_str(NET_VIP, "Calling MP4 range handler for file: %s", filename);
+                    return mp4_handler->callback(r, resp, mp4_handler->opaque);
+                } else {
+                    resp->set_status_code(resp, 501);
+                    dbg_str(NET_WARN, "MP4 range handler not found, falling back to normal file transfer");
+                    EXEC(server->response(server, r, resp));
+                    THROW(-1);
+                }
+            }
+        }
+
         file = fopen(filename, "r");
         THROW_IF(file == NULL, -1);
         resp->file = file;
         resp->content_len = st.st_size;
         resp->set_status_code(resp, 200);
-
         EXEC(server->response(server, r, resp));
     } CATCH (ret) {
         dbg_str(NET_ERROR, "process_static_request, filename:%s, ret:%d", filename, ret);
