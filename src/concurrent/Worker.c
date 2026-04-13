@@ -57,6 +57,7 @@ static int __deconstrcut(Worker *worker)
     return 0;
 }
 
+/* 分配任务 */
 static int  __assign(Worker *worker, int fd, int ev_events, 
                      struct timeval *ev_tv, void *ev_callback, 
                      void *ev_arg, void *work_callback)
@@ -74,6 +75,19 @@ static int  __assign(Worker *worker, int fd, int ev_events,
         event->ev_timeout     = *ev_tv;
 }
 
+/* 调整任务 */
+static int  __adjust(Worker *worker,  int ev_events)
+{
+    event_t *event = &worker->event;
+    Producer *p = worker->producer;
+
+    event->ev_events = ev_events;
+    p->train_worker(p, worker);
+    
+    return 0;
+}
+
+/* 加入工厂 */
 static int __enroll(Worker *worker, void *producer)
 {
     Producer *p = (Producer *)producer;
@@ -84,6 +98,7 @@ static int __enroll(Worker *worker, void *producer)
     return 0;
 }
 
+/* 退出工厂 */
 static int __resign(Worker *worker)
 {
     Producer *p = worker->producer;
@@ -108,9 +123,10 @@ static class_info_entry_t worker_class_info[] = {
     Init_Nfunc_Entry(1 , Worker, construct, __construct),
     Init_Nfunc_Entry(2 , Worker, deconstruct, __deconstrcut),
     Init_Vfunc_Entry(3 , Worker, assign, __assign),
-    Init_Vfunc_Entry(4 , Worker, enroll, __enroll),
-    Init_Vfunc_Entry(5 , Worker, resign, __resign),
-    Init_End___Entry(6 , Worker),
+    Init_Vfunc_Entry(4 , Worker, adjust, __adjust),
+    Init_Vfunc_Entry(5 , Worker, enroll, __enroll),
+    Init_Vfunc_Entry(6 , Worker, resign, __resign),
+    Init_End___Entry(7 , Worker),
 };
 REGISTER_CLASS(Worker, worker_class_info);
 

@@ -22,6 +22,7 @@ struct producer_s{
     void *(*get)(void *obj, char *attrib);
     int (*add_worker)(Producer *, void *);
     int (*del_worker)(Producer *, void *);
+    int (*train_worker)(Producer *, void *);
     int (*add_dispatcher)(Producer *, void *);
     int (*del_dispatcher)(Producer *, void *);
 

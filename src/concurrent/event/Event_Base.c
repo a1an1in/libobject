@@ -110,6 +110,25 @@ static int __add(Event_Base *eb, event_t *event)
     return (0);
 }
 
+static int __update(Event_Base *eb, event_t *event)
+{
+    Timer *timer = eb->timer;
+    int fd = event->ev_fd;
+
+    dbg_str(EV_VIP, "event base update, fd:%d, event addr:%p", fd, event);
+
+    /* For IO events */
+    /* First reclaim IO (remove from fd sets) */
+    eb->reclaim_io(eb, event);
+    
+    /* Finally trustee IO (add to fd sets with new event type) */
+    eb->trustee_io(eb, event);
+    
+    dbg_str(EV_VIP, "event base update io, fd:%d", fd);
+
+    return 0;
+}
+
 static int __del(Event_Base *eb, event_t *event) 
 {
     Timer *timer = eb->timer;
@@ -253,41 +272,20 @@ static int __loop(Event_Base *eb)
 }
 
 static class_info_entry_t event_base_class_info[] = {
-    Init_Obj___Entry(0 , Obj, obj), 
-    Init_Nfunc_Entry(1 , Event_Base, construct, __construct), 
-    Init_Nfunc_Entry(2 , Event_Base, deconstruct, __deconstrcut), 
-    Init_Vfunc_Entry(3 , Event_Base, set, NULL), 
-    Init_Vfunc_Entry(4 , Event_Base, init, __init), 
-    Init_Vfunc_Entry(5 , Event_Base, loop, __loop), 
-    Init_Vfunc_Entry(6 , Event_Base, activate_io, __activate_io), 
-    Init_Vfunc_Entry(7 , Event_Base, activate_signal, __activate_signal), 
-    Init_Vfunc_Entry(8 , Event_Base, add, __add), 
-    Init_Vfunc_Entry(9 , Event_Base, del, __del), 
-    Init_Vfunc_Entry(10, Event_Base, trustee_io, NULL), 
-    Init_Vfunc_Entry(11, Event_Base, reclaim_io, NULL), 
-    Init_Vfunc_Entry(12, Event_Base, dispatch, NULL),
-    Init_End___Entry(13, Event_Base), 
+    Init_Obj___Entry(0 , Obj, obj),
+    Init_Nfunc_Entry(1 , Event_Base, construct, __construct),
+    Init_Nfunc_Entry(2 , Event_Base, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Event_Base, set, NULL),
+    Init_Vfunc_Entry(4 , Event_Base, init, __init),
+    Init_Vfunc_Entry(5 , Event_Base, loop, __loop),
+    Init_Vfunc_Entry(6 , Event_Base, activate_io, __activate_io),
+    Init_Vfunc_Entry(7 , Event_Base, activate_signal, __activate_signal),
+    Init_Vfunc_Entry(8 , Event_Base, add, __add),
+    Init_Vfunc_Entry(9 , Event_Base, del, __del),
+    Init_Vfunc_Entry(10, Event_Base, update, __update),
+    Init_Vfunc_Entry(11, Event_Base, trustee_io, NULL),
+    Init_Vfunc_Entry(12, Event_Base, reclaim_io, NULL),
+    Init_Vfunc_Entry(13, Event_Base, dispatch, NULL),
+    Init_End___Entry(14, Event_Base),
 };
 REGISTER_CLASS(Event_Base, event_base_class_info);
-
-void test_obj_eb()
-{
-    Event_Base *eb;
-    allocator_t *allocator = allocator_get_default_instance();
-    configurator_t * c;
-    char *set_str;
-    cjson_t *root, *e, *s;
-    char buf[2048];
-
-    c = cfg_alloc(allocator); 
-    dbg_str(EV_SUC, "configurator_t addr:%p", c);
-    cfg_config_str(c, "/Event_Base", "name", "alan eb") ;  
-
-    eb = OBJECT_NEW(allocator, Event_Base, c->buf);
-
-    object_dump(eb, "Event_Base", buf, 2048);
-    dbg_str(EV_DETAIL, "Event_Base dump: %s", buf);
-
-    object_destroy(eb);
-    cfg_destroy(c);
-}

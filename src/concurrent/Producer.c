@@ -100,6 +100,25 @@ static int __del_worker(Producer *producer, void *worker)
     workers_list->remove_element(workers_list, worker);
 }
 
+static int __train_worker(Producer *producer, void *worker)
+{
+    Worker *w            = (Worker *)worker;
+    Event_Thread *thread = &producer->parent;
+    List *workers_list   = producer->workers;
+
+    while (producer->parent.flags < EVTHREAD_STATE_RUNNING){
+        dbg_str(DBG_VIP, "default_producer not ready, waiting...");
+        usleep(100);
+    }
+
+    dbg_str(CONCURRENT_DETAIL, "producer %p train worker, worker:%p, fd:%d",
+            producer, worker, w->event.ev_fd);
+
+    thread->update_event(thread, (void *)&w->event);
+
+    return 0;
+}
+
 static int __add_dispatcher(Producer *producer, void *worker)
 {
 }
@@ -118,16 +137,17 @@ static int __close(Producer *producer)
 }
 
 static class_info_entry_t producer_class_info[] = {
-    Init_Obj___Entry(0, Event_Thread, parent),
-    Init_Nfunc_Entry(1, Producer, construct, __construct),
-    Init_Nfunc_Entry(2, Producer, deconstruct, __deconstrcut),
-    Init_Vfunc_Entry(3, Producer, add_worker, __add_worker),
-    Init_Vfunc_Entry(4, Producer, del_worker, __del_worker),
-    Init_Vfunc_Entry(5, Producer, add_dispatcher, __add_dispatcher),
-    Init_Vfunc_Entry(6, Producer, del_dispatcher, __del_dispatcher),
-    Init_Vfunc_Entry(7, Producer, start, NULL),
-    Init_Vfunc_Entry(8, Producer, close, __close),
-    Init_End___Entry(9, Producer),
+    Init_Obj___Entry(0 , Event_Thread, parent),
+    Init_Nfunc_Entry(1 , Producer, construct, __construct),
+    Init_Nfunc_Entry(2 , Producer, deconstruct, __deconstrcut),
+    Init_Vfunc_Entry(3 , Producer, add_worker, __add_worker),
+    Init_Vfunc_Entry(4 , Producer, del_worker, __del_worker),
+    Init_Vfunc_Entry(5 , Producer, train_worker, __train_worker),
+    Init_Vfunc_Entry(6 , Producer, add_dispatcher, __add_dispatcher),
+    Init_Vfunc_Entry(7 , Producer, del_dispatcher, __del_dispatcher),
+    Init_Vfunc_Entry(8 , Producer, start, NULL),
+    Init_Vfunc_Entry(9 , Producer, close, __close),
+    Init_End___Entry(10, Producer),
 };
 REGISTER_CLASS(Producer, producer_class_info);
 

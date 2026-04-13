@@ -40,13 +40,24 @@
 
 int (*handler_not_found)(Request *req, Response *res, void *opaque) = __handler_not_found;
 
-static int __http_server_callback(void *task)
+static int __http_work_for_write_callback(void *task)
+{
+    work_task_t *t = (work_task_t *)task;
+    Request *req;
+
+    req = t->cache;
+
+    dbg_str(DBG_VIP, "tcp subsocket ev callback, fd:%d is writeable now.", t->fd);
+
+    return 0;
+}
+
+static int __http_work_for_read_callback(void *task)
 {
     work_task_t *t = (work_task_t *)task;
     Http_Server *server = (Http_Server *)t->opaque;
     allocator_t *allocator = server->obj.allocator;
     Request *req;
-    Response *response;
     int len = 0, ret, read_ret = 0;
 
     if (t->buf_len <= 0) {
@@ -92,7 +103,19 @@ static int __http_server_callback(void *task)
         dbg_str(NET_ERROR,"http request error end, ret=%d", read_ret);
         object_destroy(req);
         t->cache = NULL;
-        //... response error
+    }
+
+    return 0;
+}
+
+static int __http_work_callback(void *task)
+{
+    work_task_t *t = (work_task_t *)task;
+
+    if (t->event == EV_READ) {
+        __http_work_for_read_callback(task);
+    } else if (t->event == EV_WRITE) {
+        __http_work_for_write_callback(task);
     }
 
     return 0;
@@ -398,7 +421,7 @@ static int __start(Http_Server *http_server)
 
     s = (Server *)server(allocator, SERVER_TYPE_INET_TCP,
                          STR2A(http_server->host), STR2A(http_server->service),
-                         __http_server_callback, http_server);
+                         __http_work_callback, http_server);
     http_server->s = s;
 
     return 1;

@@ -25,6 +25,7 @@ struct worker_s{
     int  (*assign)(Worker *worker, int fd, int ev_events,
                    struct timeval *ev_tv, void *ev_callback,
                    void *ev_arg, void *work_callback);
+    int  (*adjust)(Worker *, int ev_events);
     int  (*enroll)(Worker *, void *);
     int  (*resign)(Worker *);
 

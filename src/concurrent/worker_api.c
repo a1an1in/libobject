@@ -72,7 +72,7 @@ timer_worker_timeout_cb(int fd, short event, void *arg)
 }
 
 Worker *
-io_worker(allocator_t *allocator, int fd, 
+io_worker(allocator_t *allocator, int fd, int event,
           struct timeval *ev_tv, Producer *producer,
           void *ev_callback, void *work_callback, void *opaque)
 {
@@ -86,7 +86,7 @@ io_worker(allocator_t *allocator, int fd,
     if (opaque == NULL) opaque = worker;
     worker->opaque = opaque;
 
-    worker->assign(worker, fd, EV_READ | EV_PERSIST, ev_tv, 
+    worker->assign(worker, fd, event, ev_tv, 
                    ev_callback, worker, work_callback);
     worker->enroll(worker, producer);
 

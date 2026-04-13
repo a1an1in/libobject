@@ -27,11 +27,12 @@ struct event_base_s{
     int (*activate_io)(Event_Base *, int fd, short events); 
     int (*activate_signal)(Event_Base *, int fd, short events); 
     int (*add)(Event_Base *, event_t *e);
-    int (*del)(Event_Base *, event_t *e); 
+    int (*del)(Event_Base *, event_t *e);
+    int (*update)(Event_Base *, event_t *e);
 
     /*virtual methods reimplement*/
     int (*trustee_io)(Event_Base *, event_t *e);
-    int (*reclaim_io)(Event_Base *, event_t *e); 
+    int (*reclaim_io)(Event_Base *, event_t *e);
     /*
      *int (*ctl)(Event_Base *, int fd, int op, short events);
      */

@@ -329,7 +329,7 @@ static int node_call_cmd(bus_object_t *obj, int argc,
         fd = fileno(f);
         allocator = bus->allocator;
 
-        worker = io_worker(allocator, fd, NULL, NULL, popen_ev_callback, 
+        worker = io_worker(allocator, fd, EV_READ | EV_PERSIST, NULL, NULL, popen_ev_callback, 
                            popen_work_callback, obj); //shell opaque是bus
         task = worker->task;
         task->cache = f;  // popen由worker负责释放

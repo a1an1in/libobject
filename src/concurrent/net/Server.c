@@ -102,10 +102,11 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
     task->opaque = server->opaque;
     task->socket = socket;
     task->fd     = fd;
-    task->event  = event;
+    task->worker = worker;
     len_bak      = task->buf_len;
 
     if (event & EV_READ) {
+        task->event = EV_READ;
         len = socket->recv(socket, task->buf, task->buf_len, 0);
 
         if (worker->work_callback) {
@@ -120,6 +121,11 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
             server->close_subsocket(server, worker->socket);
             return -1;
         }
+    } 
+
+    if (event & EV_WRITE && worker->work_callback) {
+        task->event = EV_WRITE;
+        worker->work_callback(task);
     }
 
     return 0;

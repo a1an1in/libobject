@@ -66,7 +66,7 @@ static int test_pipe(TEST_ENTRY *entry, void *argc, void *argv)
         pipe->read(pipe, buffer, 1024);
         dbg_str(DBG_VIP,"Pipe read out:%s", buffer);
         THROW_IF(strcmp(str, buffer) != 0, -1);
-        // worker = io_worker(allocator, fds[1], NULL, NULL, test_pipe_ev_callback, 
+        // worker = io_worker(allocator, fds[1], EV_READ | EV_PERSIST, NULL, NULL, test_pipe_ev_callback, 
         //                    test_work_callback, NULL);
     } CATCH (ret) {} FINALLY {
         object_destroy(pipe);

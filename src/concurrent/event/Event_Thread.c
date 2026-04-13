@@ -119,6 +119,28 @@ static int __del_event(Event_Thread *thread, event_t *event)
     return 0;
 }
 
+static int __update_event(Event_Thread *thread, event_t *event)
+{
+    Socket *c      = thread->c;
+    Event_Base *eb = thread->eb;
+
+    if (event == NULL) {
+        return -1;
+    }
+
+    dbg_str(EV_VIP, "event_thread, update event fd=%d", event->ev_fd);
+    eb->update(eb, event);
+
+    /* let the option take effect, not only update map, fresh the base
+     * (take select for example, update read and write set fd also) 
+     */
+    if (c->send(c, "c", 1, 0) != 1) {
+        return -1;
+    }
+
+    return 0;
+}
+
 static void event_thread_notifier_callback(int fd, short events, void *arg)
 {
     Event_Thread *event_thread = (Event_Thread *)arg;
@@ -134,6 +156,7 @@ static void event_thread_notifier_callback(int fd, short events, void *arg)
     switch(buf[0]) {
         case 'a': 
         case 'd': 
+        case 'u': 
             break;
         case 'e': //exit
             dbg_str(DBG_VIP, "event_thread received exit message!");
@@ -206,11 +229,12 @@ static class_info_entry_t event_thread_class_info[] = {
     Init_Nfunc_Entry(2 , Event_Thread, deconstruct, __deconstrcut),
     Init_Vfunc_Entry(3 , Event_Thread, add_event, __add_event),
     Init_Vfunc_Entry(4 , Event_Thread, del_event, __del_event),
-    Init_Vfunc_Entry(5 , Event_Thread, start, NULL),
-    Init_Vfunc_Entry(6 , Event_Thread, set_start_routine, NULL),
-    Init_Vfunc_Entry(7 , Event_Thread, set_start_arg, NULL),
-    Init_Vfunc_Entry(8 , Event_Thread, start_routine, __start_routine),
-    Init_Vfunc_Entry(9 , Event_Thread, stop, __stop),
-    Init_End___Entry(10, Event_Thread),
+    Init_Vfunc_Entry(5 , Event_Thread, update_event, __update_event),
+    Init_Vfunc_Entry(6 , Event_Thread, start, NULL),
+    Init_Vfunc_Entry(7 , Event_Thread, set_start_routine, NULL),
+    Init_Vfunc_Entry(8 , Event_Thread, set_start_arg, NULL),
+    Init_Vfunc_Entry(9 , Event_Thread, start_routine, __start_routine),
+    Init_Vfunc_Entry(10, Event_Thread, stop, __stop),
+    Init_End___Entry(11, Event_Thread),
 };
 REGISTER_CLASS(Event_Thread, event_thread_class_info);

@@ -70,31 +70,26 @@ static int __trustee_io(Select_Base *b, event_t *e)
     }
 
     b->maxfdp = b->maxfdp -1 > fd ? b->maxfdp : fd + 1; 
-
-    dbg_str(EV_DETAIL, "select base add event, fd =%d, maxfdp=%d", fd, b->maxfdp);
-
     if (e->ev_events & EV_READ)
         FD_SET(fd, &b->event_readset_in);
     if (e->ev_events & EV_WRITE)
         FD_SET(fd, &b->event_writeset_in);
 
+    dbg_str(EV_INFO, "select base trustee_io, fd =%d, maxfdp=%d", fd, b->maxfdp);
+
     return (0);
 }
 
-static int __reclaim_io(Select_Base *b, event_t *e) 
+static int __reclaim_io(Select_Base *b, event_t *e)
 {
     int fd = e->ev_fd;
     unsigned short events = e->ev_events;
     int maxfd = b->maxfdp;
 
-    dbg_str(EV_DETAIL, "select base add event");
     if (fd < 0) return 0;
 
-    if (events & EV_READ)
-        FD_CLR(fd, &b->event_readset_in);
-
-    if (events & EV_WRITE)
-        FD_CLR(fd, &b->event_writeset_in);
+    FD_CLR(fd, &b->event_readset_in);
+    FD_CLR(fd, &b->event_writeset_in);
 
     do {
         if (FD_ISSET(maxfd, &b->event_readset_in) || FD_ISSET(maxfd, &b->event_writeset_in))
@@ -102,6 +97,7 @@ static int __reclaim_io(Select_Base *b, event_t *e)
     } while (maxfd--);
 
     b->maxfdp = maxfd + 1;
+    dbg_str(EV_DETAIL, "select base reclaim_io, fd:%d, maxfd:%d", fd, b->maxfdp);
 
     return 0;
 }
@@ -121,7 +117,7 @@ static int __dispatch(Select_Base *b, struct timeval *tv)
         if (errno == EINTR) {
         } else {
             ((Event_Base *)b)->break_flag = 1;
-            perror("dispatch");
+            perror("dispatch error");
             dbg_str(EV_WARN, "dispatch, erro_no:%d, nfds=%d", errno, nfds);
         }
         return (0);

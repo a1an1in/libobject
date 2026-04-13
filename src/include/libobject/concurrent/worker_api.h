@@ -10,7 +10,7 @@
 #include <libobject/concurrent/Worker.h>
 #include <libobject/concurrent/event/event.h>
 
-Worker *io_worker(allocator_t *allocator, int fd, 
+Worker *io_worker(allocator_t *allocator, int fd, int event,
           struct timeval *ev_tv, Producer *producer, void *ev_callback, 
           void *work_callback, void *opaque);
         
