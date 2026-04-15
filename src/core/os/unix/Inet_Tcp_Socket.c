@@ -231,7 +231,7 @@ static ssize_t __send(Inet_Tcp_Socket *socket, const void *buf, size_t len, int 
 
     ret = send(socket->parent.fd, buf, len, flags);
     if (ret <= 0 && errno != EWOULDBLOCK) {
-        dbg_str(NET_ERROR, "socket fd %d send error: %s, ret:%d", socket->parent.fd, strerror(errno), ret);
+        dbg_str(NET_ERROR, "socket fd:%d send error: %s, ret:%d", socket->parent.fd, strerror(errno), ret);
     }
 
     return ret;

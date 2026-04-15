@@ -420,7 +420,6 @@ int fshell_init_default_instance()
 #else  
     global_default_fshell = object_new(allocator, "UnixFShell", NULL);
 #endif
-    dbg_str(DBG_ERROR, "run at here, shell addr:%p", global_default_fshell);
 
     return 0;
 }

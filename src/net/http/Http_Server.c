@@ -83,14 +83,14 @@ static int __http_write_file(Request *req, Response *res)
             /* Handle partial write */
             if (ret < len) {
                 fseek(res->file, -(len - ret), SEEK_CUR);
-                dbg_str(DBG_VIP, "socket fd %d write partially, sent %d of %d bytes, total %d/%d, progress:%.1f%%",
+                dbg_str(DBG_VIP, "socket fd:%d write partially, sent %d of %d bytes, total %d/%d, progress:%.1f%%",
                         socket->fd, ret, len, res->file_bytes_written, res->content_len, res->file_bytes_written * 100.0 / res->content_len);
                 continue;
             }
         }
 
         if (res->file_bytes_written == res->content_len) {
-            dbg_str(DBG_VIP, "socket fd %d write compeleted, sent %d of %d bytes, total %d/%d, progress:%.1f%%",
+            dbg_str(DBG_VIP, "socket fd:%d write compeleted, sent %d of %d bytes, total %d/%d, progress:%.1f%%",
                     socket->fd, ret, len, res->file_bytes_written, res->content_len, res->file_bytes_written * 100.0 / res->content_len);
         }
         /* Check if file write is complete */
@@ -134,6 +134,9 @@ static int __http_work_for_write_callback(void *task)
     } CATCH (ret) { } FINALLY {
         if (ret == 1 || ret < 0) {
             worker->adjust(worker, EV_READ | EV_PERSIST);
+            object_destroy(req);
+            t->cache = NULL;
+            dbg_str(DBG_VIP, "socket fd:%d release req", t->fd);
         }
     }
 
@@ -150,12 +153,15 @@ static int __http_work_for_read_callback(void *task)
 
     if (t->buf_len <= 0) {
         object_destroy(t->cache);
+        if (t->cache) {
+            dbg_str(DBG_VIP, "socket fd:%d release req", t->fd);
+        }
         t->cache = NULL;
         return 0;
     }
 
     if (t->cache == NULL) {
-        dbg_str(NET_SUC,"http request start");
+        dbg_str(DBG_VIP, "socket fd:%d new req", t->fd);
         req = object_new(allocator, "Request", NULL);
         req->status = STATUS_INIT;
         req->server = server;
@@ -190,6 +196,7 @@ static int __http_work_for_read_callback(void *task)
     }
 
     if (read_ret < 0 || (read_ret == 1 && ret != 206)) {
+        dbg_str(DBG_VIP, "socket fd:%d release req", req->socket->fd);
         object_destroy(req);
         t->cache = NULL;
     }
@@ -241,30 +248,12 @@ static int __construct(Http_Server *hs,char *init_str)
 static int __deconstruct(Http_Server *server)
 {
     server_destroy(server->s);
-    
-    if (server->get_handlers != NULL) {
-        object_destroy(server->get_handlers);
-    }
-
-    if (server->post_handlers != NULL) {
-        object_destroy(server->post_handlers);
-    }
-
-    if (server->other_handlers != NULL) {
-        object_destroy(server->other_handlers);
-    }
-
-    if (server->host != NULL) {
-        object_destroy(server->host);
-    }
-
-    if (server->service != NULL) {
-        object_destroy(server->service);
-    }
-
-    if (server->root != NULL) {
-        object_destroy(server->root);
-    }
+    object_destroy(server->get_handlers);
+    object_destroy(server->post_handlers);
+    object_destroy(server->other_handlers);
+    object_destroy(server->host);
+    object_destroy(server->service);
+    object_destroy(server->root);
 
     return 0;
 }

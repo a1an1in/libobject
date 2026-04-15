@@ -159,7 +159,6 @@ static int __load_plugin(Httpd_Command *command, char *name, char *path, char *j
         dbg_str(DBG_INFO, "application load plugin, json:%s", json);
         app = get_global_application();
         shell = app->fshell;
-        dbg_str(DBG_VIP, "shell addr:%p", shell);
         EXEC(shell->load(shell, path, RTLD_LOCAL | RTLD_LAZY));
         c = object_new(allocator, name, json);
         /* http plugin 需要http server， 所有通过opaque传入。 */
