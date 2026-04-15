@@ -19,6 +19,6 @@ curl -X GET 127.0.0.1:8081/api/http_plugin_test
 http://127.0.0.1:8081/test2.mp4
 
 sudo tcpdump -i any -w http_8081.pcap 'port 8081'
-
+./sysroot/linux/x86_64/bin/xtools --log-level=0x16 mockery -f test_http_mp4
 New-NetFirewallRule -DisplayName "Allow 8081 Port For xtools" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8081 -Profile Domain,Private,Public
 ```

@@ -125,7 +125,11 @@ static ssize_t __new_conn_ev_callback(int fd, short event, void *arg)
 
     if (event & EV_WRITE && worker->work_callback) {
         task->event = EV_WRITE;
-        worker->work_callback(task);
+        ret = worker->work_callback(task);
+        if (ret != 0) { //0表示传输还没有结束， 1表示成功结束， 小于0表示遇到了错误。
+            server->close_subsocket(server, worker->socket);
+        }
+
     }
 
     return 0;

@@ -133,7 +133,6 @@ static int __http_work_for_write_callback(void *task)
         THROW(ret);
     } CATCH (ret) { } FINALLY {
         if (ret == 1 || ret < 0) {
-            worker->adjust(worker, EV_READ | EV_PERSIST);
             object_destroy(req);
             t->cache = NULL;
             dbg_str(DBG_VIP, "socket fd:%d release req", t->fd);
@@ -207,14 +206,15 @@ static int __http_work_for_read_callback(void *task)
 static int __http_work_callback(void *task)
 {
     work_task_t *t = (work_task_t *)task;
+    int ret;
 
     if (t->event == EV_READ) {
-        __http_work_for_read_callback(task);
+       ret = __http_work_for_read_callback(task);
     } else if (t->event == EV_WRITE) {
-        __http_work_for_write_callback(task);
+       ret = __http_work_for_write_callback(task);
     }
 
-    return 0;
+    return ret;
 }
 
 static int __construct(Http_Server *hs,char *init_str)
