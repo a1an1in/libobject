@@ -5,7 +5,7 @@
 #include <libobject/argument/Command.h>
 #include <libobject/core/String.h>
 
-typedef struct Http_Plugin_MP4_s Http_Plugin_MP4;
+typedef struct Http_Plugin_MP4_s Http_Plugin_Range;
 
 struct Http_Plugin_MP4_s{
     Command parent;

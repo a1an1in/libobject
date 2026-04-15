@@ -86,7 +86,7 @@ static int __add_event(Event_Thread *thread, event_t *event)
     if (event == NULL) {
         return -1;
     }
-    dbg_str(EV_VIP, "event_thread, add_event fd=%d", event->ev_fd);
+    dbg_str(DBG_VIP, "event_thread, add_event fd=%d", event->ev_fd);
 
     eb->add(eb, event);
 
@@ -106,7 +106,7 @@ static int __del_event(Event_Thread *thread, event_t *event)
         return -1;
     }
 
-    dbg_str(EV_VIP, "event_thread, del_event fd=%d", event->ev_fd);
+    dbg_str(DBG_VIP, "event_thread, del_event fd=%d", event->ev_fd);
     eb->del(eb, event);
 
     /* let the option take effect, not only update map, fresh the base

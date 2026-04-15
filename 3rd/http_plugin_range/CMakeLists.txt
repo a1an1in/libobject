@@ -1,4 +1,4 @@
-project(object-http-plugin-mp4)
+project(object-http-plugin-range)
 
 file(GLOB_RECURSE MOUDLE_HEADERS
     "*.h"

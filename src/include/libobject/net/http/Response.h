@@ -43,6 +43,8 @@ struct response_s{
     uint8_t end_flag;
     Socket *socket;
     uint8_t writable_flag;
+    /* file write state for async file writing */
+    int file_bytes_written;
 };
 
 #endif

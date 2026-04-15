@@ -62,7 +62,7 @@ macro (add_module_lists)
     list(APPEND module_lists "src/.")
     list(APPEND module_lists "3rd/attacher-builtin")
     list(APPEND module_lists "3rd/http_plugin_test")
-    list(APPEND module_lists "3rd/http_plugin_mp4")
+    list(APPEND module_lists "3rd/http_plugin_range")
     add_subdirectories("${module_lists}")
 endmacro()
 

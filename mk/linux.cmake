@@ -72,7 +72,7 @@ macro (add_module_lists)
         "3rd/test_process"
         "3rd/testlib"
         "3rd/http_plugin_test"
-        "3rd/http_plugin_mp4"
+        "3rd/http_plugin_range"
         "tests"
         "src/."
     )

@@ -21,11 +21,11 @@
         "db_name": "test"
     }
 }, {
-    "class_name": "Http_Plugin_MP4",
-    "path": "./sysroot/linux/x86_64/lib/libobject-http-plugin-mp4.so",
+    "class_name": "Http_Plugin_Range",
+    "path": "./sysroot/linux/x86_64/lib/libobject-http-plugin-range.so",
     "config": {
         "Command": {
-            "name": "http-plugin-mp4"
+            "name": "http_plugin_range"
         },
         "option": "MP4 range support plugin",
         "help": 0

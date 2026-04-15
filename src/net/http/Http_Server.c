@@ -31,25 +31,126 @@
  */
 #include <stdio.h>
 #include <sys/stat.h>
+#include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/net/http/Server.h>
 #include <libobject/concurrent/net/Inet_Tcp_Server.h>
 
-
 int (*handler_not_found)(Request *req, Response *res, void *opaque) = __handler_not_found;
+
+static int __http_write_file(Request *req, Response *res)
+{
+    char buf[8192]; /* 8KB buffer */
+    int ret = 0, len;
+    Socket *socket;
+    int full_flag = 0;
+
+    TRY {
+        THROW_IF(res == NULL || res->file == NULL, -1);
+        
+        /* Check if file write is already complete */
+        if (res->file_bytes_written >= res->content_len) {
+            THROW(1); /* File write complete */
+        }
+
+        /* Keep writing until socket buffer is full or file is complete */
+        while (!feof(res->file) && !full_flag) {
+            /* Read a chunk from file */
+            len = fread(buf, 1, sizeof(buf), res->file);
+            if (len <= 0) {
+                THROW_IF(feof(res->file), 1); //The file has been read.
+                dbg_str(DBG_ERROR, "file read error");
+                THROW(-1);
+            }
+
+            /* Try to send the chunk */
+            socket = res->socket;
+            ret = socket->send(socket, buf, len, 0);
+            if (ret == -1) {
+                /* EAGAIN or EWOULDBLOCK - socket buffer is full */
+                if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                    /* Rewind file pointer back since we didn't send anything */
+                    fseek(res->file, -len, SEEK_CUR);
+                    full_flag = 1;
+                    THROW(0);
+                }
+            } else if (ret == 0) {
+                dbg_str(DBG_ERROR, "connection closed by peer during file write");
+            } else if (ret < 0) {
+                dbg_str(DBG_ERROR, "socket->send returned %d, error: %s", ret, strerror(errno));
+            }
+            THROW_IF(ret <= 0, -1);
+
+            /* Successfully sent some data */
+            res->file_bytes_written += ret;
+            
+            /* Handle partial write */
+            if (ret < len) {
+                fseek(res->file, -(len - ret), SEEK_CUR);
+                dbg_str(DBG_VIP, "socket write partially, sent %d of %d bytes, total %d/%d",
+                        ret, len, res->file_bytes_written, res->content_len);
+                continue;
+            }
+
+            /* Log progress every 64KB */
+            if (res->file_bytes_written % 65536 == 0) {
+                dbg_str(DBG_VIP, "file write progress: %d/%d bytes (%.1f%%)",
+                        res->file_bytes_written, res->content_len,
+                        (float)res->file_bytes_written * 100.0 / res->content_len);
+            }
+        }
+
+        /* Check if file write is complete */
+        THROW_IF(res->file_bytes_written >= res->content_len || feof(res->file), 1);
+        /* More data to write, but socket buffer is full - normal case, not an error */
+        THROW(0);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "__http_write_file error: %d", ret);
+    } FINALLY {
+        /* Clean up resources based on return value */
+        if (ret == 1 || ret == -1) {
+            /* File write completed (either successfully or with error) */
+            if (res->file != NULL) {
+                fclose(res->file);
+                res->file = NULL;
+            }
+        }
+        /* If ret == 0, we're not done yet, keep file open for next write */
+    }
+
+    return ret;
+}
 
 static int __http_work_for_write_callback(void *task)
 {
     work_task_t *t = (work_task_t *)task;
+    Worker *worker = (Worker *)t->worker;
     Request *req;
+    Response *res;
+    int ret = 0;
 
-    req = t->cache;
+    TRY {
+        dbg_str(DBG_DETAIL, "tcp subsocket ev callback, fd:%d is writeable now, writing file.", t->fd);
+        req = t->cache;
+        THROW_IF(req == NULL, 0);
 
-    dbg_str(DBG_VIP, "tcp subsocket ev callback, fd:%d is writeable now.", t->fd);
+        res = (Response *)req->response;
+        THROW_IF(res == NULL || res->file == NULL, -1);
 
-    return 0;
+        /* Try to write file data */
+        EXEC(ret = __http_write_file(req, res));
+        THROW(ret);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "__http_work_for_write_callback error: %d", ret);
+    } FINALLY {
+        if (ret == 1 || ret < 0) {
+            worker->adjust(worker, EV_READ | EV_PERSIST);
+        }
+    }
+
+    return ret;
 }
 
 static int __http_work_for_read_callback(void *task)
@@ -58,7 +159,7 @@ static int __http_work_for_read_callback(void *task)
     Http_Server *server = (Http_Server *)t->opaque;
     allocator_t *allocator = server->obj.allocator;
     Request *req;
-    int len = 0, ret, read_ret = 0;
+    int len = 0, ret = 0, read_ret = 0;
 
     if (t->buf_len <= 0) {
         object_destroy(t->cache);
@@ -76,6 +177,7 @@ static int __http_work_for_read_callback(void *task)
         dbg_str(NET_SUC,"http request continue");
         req = t->cache;
     }
+    req->worker = t->worker;
 
     while (len != t->buf_len) {
         ret = req->buffer->write(req->buffer,
@@ -94,13 +196,13 @@ static int __http_work_for_read_callback(void *task)
 
     if (read_ret == 1) {
         req->socket = t->socket;
-        server->process_request(server, req);
-        object_destroy(req);
-        t->cache = NULL;
-
+        ret = server->process_request(server, req);
         dbg_str(NET_SUC,"http request end");
     } else if (read_ret < 0) {
         dbg_str(NET_ERROR,"http request error end, ret=%d", read_ret);
+    }
+
+    if (read_ret < 0 || (read_ret == 1 && ret != 206)) {
         object_destroy(req);
         t->cache = NULL;
     }
@@ -302,7 +404,13 @@ static int __process_request(Http_Server *server, Request *r)
     int ret;
 
     TRY {
-        resp = object_new(server->obj.allocator, "Response", NULL);
+        if (r->response == NULL) {
+            resp = object_new(server->obj.allocator, "Response", NULL);
+            r->response = (void *)resp; //response 的任务处理完，托管给request；
+        } else {
+            resp = r->response;
+        }
+        
         resp->socket = r->socket;
 
         EXEC(__process_request_cookie(server, r, resp));
@@ -325,7 +433,8 @@ static int __process_request(Http_Server *server, Request *r)
                 break;
         }
 
-        r->response = (void *)resp; //response 的任务处理完，托管给request；
+        THROW_IF(resp->get_status_code(resp) == 206, 206);
+
     } CATCH (ret) {
         CATCH_SHOW_INT_PARS(DBG_ERROR);
     }
@@ -408,6 +517,13 @@ __override_inner_handler(Http_Server *server, char *key,
 static int 
 __response(Http_Server *server, Request *req, Response *res)
 {
+    Worker * worker = (Worker *)req->worker;
+
+    if (res->file != NULL) {
+        worker->adjust(worker, EV_READ | EV_WRITE | EV_PERSIST);
+    }
+    sleep(1);
+
     return res->write(res);
 }
 

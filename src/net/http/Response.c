@@ -68,8 +68,9 @@ static int __construct(Response *response, char *init_str)
     if (map != NULL) {
         response->headers = map;
     }
-    map->set_cmp_func(map, string_key_cmp_func); 
+    map->set_cmp_func(map, string_key_cmp_func);
     response->writable_flag = 1;
+    response->file_bytes_written = 0;
 
     return 0;
 }
@@ -462,12 +463,16 @@ static int __write(Response *response)
         EXEC(__write_headers(response));
 
         if (response->file != NULL) {
-            EXEC(__write_file(response));
+            /* For file writing, we only write headers here.
+             * The actual file content will be written asynchronously
+             * in __http_work_for_write_callback.
+             */
+            response->file_bytes_written = 0;
+            ret = 0; /* Indicate that writing is not complete yet */
         } else if (response->content_len != 0) {
             EXEC(__write_body(response));
         }
-    } CATCH (ret) {
-    }
+    } CATCH (ret) {}
 
     return ret;
 }

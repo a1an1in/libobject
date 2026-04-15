@@ -61,6 +61,7 @@ struct request_s{
     void *response;
     Socket *socket;
     void *server;
+    void *worker;
 };
 
 #endif
