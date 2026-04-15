@@ -27,7 +27,6 @@
         "Command": {
             "name": "http_plugin_range"
         },
-        "option": "MP4 range support plugin",
-        "help": 0
+        "option": "range plugin"
     }
 }]

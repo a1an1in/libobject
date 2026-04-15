@@ -67,15 +67,17 @@ debugger_t *debugger_get_global_debugger()
     return debugger_gp;
 }
 
-void debugger_set_all_businesses_level(debugger_t *debugger,int sw, int level)
+int debugger_set_all_businesses_level(debugger_t *debugger,int sw, int level)
 {
     dictionary *d = debugger->d;;
     int bussiness_num, i;
 
     bussiness_num = iniparser_getint(d, (char *)"businesses:business_num", 0);
-        for (i = 0; i < bussiness_num; i++) {
-            debugger_set_business(debugger, i, sw, level);
-        }
+    for (i = 0; i < bussiness_num; i++) {
+        debugger_set_business(debugger, i, sw, level);
+    }
+
+    return 0;
 }
 
 void debugger_set_level_info(debugger_t *debugger, 

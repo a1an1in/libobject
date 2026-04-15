@@ -105,6 +105,7 @@ static int __construct(Application *app, char *init_str)
     root = "~/.xtools";
 #endif
     command->add_option(command, "--root", "-r", root, "config xtool work space", __option_root_callback, app);
+    app->fshell = fshell_get_default_instance();
 
     return 0;
 }
@@ -112,7 +113,6 @@ static int __construct(Application *app, char *init_str)
 static int __deconstruct(Application *app)
 {
     object_destroy(app->root);
-    object_destroy(app->fshell);
 
     return 0;
 }
@@ -126,6 +126,7 @@ static int __run(Application *app, int argc, char *argv[])
     int ret = 0;
 
     TRY {
+        dbg_str(DBG_VIP, "run at here");
         for (i = 0; i < app_command_count; i++) {
             app->add_subcommand(app, app_commands[i]);
         }
@@ -174,14 +175,6 @@ static int __run_command(Application *app)
         EXEC(producer_init_default_instance());
         EXEC(event_base_init_default_instance());
         EXEC(stub_admin_init_default_instance());
-
-        /* 之前fshell是在node中构造的，但是后面发现其它模块也需要，比如需要fshell load
-         * 插件，所以fshell在更上层的application构造 */
-#if (defined(WINDOWS_USER_MODE))
-        app->fshell = object_new(allocator, "WindowsFShell", NULL);    
-#else  
-        app->fshell = object_new(allocator, "UnixFShell", NULL);
-#endif
     } CATCH (ret) { }
 
     return 0;
@@ -225,7 +218,8 @@ int libobject_init()
         EXEC(execute_ctor_funcs());
         EXEC(fs_init());
         EXEC(exception_init());
-        debugger_set_all_businesses_level(debugger_gp, 1, 3);
+        EXEC(debugger_set_all_businesses_level(debugger_gp, 1, 3));
+        EXEC(fshell_init_default_instance());
     } CATCH (ret) {
     }
     return ret;
@@ -236,6 +230,7 @@ int libobject_destroy()
     int ret;
 
     TRY {
+        EXEC(fshell_destroy_default_instance());
         EXEC(stub_admin_destroy_default_instance());
         EXEC(event_base_destroy_default_instance());
         EXEC(producer_destroy_default_instance());

@@ -406,3 +406,31 @@ static class_info_entry_t fsh_variable_info[] = {
     Init_End___Entry(6, Struct_Adapter),
 };
 REGISTER_CLASS(Fsh_Variable_Info, fsh_variable_info);
+
+FShell *global_default_fshell;
+
+int fshell_init_default_instance()
+{
+    allocator_t *allocator = allocator_get_default_instance();
+
+    /* 之前fshell是在node中构造的，但是后面发现其它模块也需要，比如需要fshell load
+        * 插件，所以fshell在更上层的application构造 */
+#if (defined(WINDOWS_USER_MODE))
+    global_default_fshell = object_new(allocator, "WindowsFShell", NULL);    
+#else  
+    global_default_fshell = object_new(allocator, "UnixFShell", NULL);
+#endif
+    dbg_str(DBG_ERROR, "run at here, shell addr:%p", global_default_fshell);
+
+    return 0;
+}
+
+FShell *fshell_get_default_instance()
+{
+    return global_default_fshell;
+}
+
+int fshell_destroy_default_instance()
+{
+    object_destroy(global_default_fshell);
+}

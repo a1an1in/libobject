@@ -42,21 +42,16 @@ int (*handler_not_found)(Request *req, Response *res, void *opaque) = __handler_
 
 static int __http_write_file(Request *req, Response *res)
 {
-    char buf[8192]; /* 8KB buffer */
+    char buf[1024 * 8]; /* 8KB buffer */
     int ret = 0, len;
     Socket *socket;
     int full_flag = 0;
 
     TRY {
         THROW_IF(res == NULL || res->file == NULL, -1);
-        
-        /* Check if file write is already complete */
-        if (res->file_bytes_written >= res->content_len) {
-            THROW(1); /* File write complete */
-        }
 
         /* Keep writing until socket buffer is full or file is complete */
-        while (!feof(res->file) && !full_flag) {
+        while (!feof(res->file) && !full_flag && (res->file_bytes_written < res->content_len)) {
             /* Read a chunk from file */
             len = fread(buf, 1, sizeof(buf), res->file);
             if (len <= 0) {
@@ -85,30 +80,24 @@ static int __http_write_file(Request *req, Response *res)
 
             /* Successfully sent some data */
             res->file_bytes_written += ret;
-            
             /* Handle partial write */
             if (ret < len) {
                 fseek(res->file, -(len - ret), SEEK_CUR);
-                dbg_str(DBG_VIP, "socket write partially, sent %d of %d bytes, total %d/%d",
-                        ret, len, res->file_bytes_written, res->content_len);
+                dbg_str(DBG_VIP, "socket fd %d write partially, sent %d of %d bytes, total %d/%d, progress:%.1f%%",
+                        socket->fd, ret, len, res->file_bytes_written, res->content_len, res->file_bytes_written * 100.0 / res->content_len);
                 continue;
-            }
-
-            /* Log progress every 64KB */
-            if (res->file_bytes_written % 65536 == 0) {
-                dbg_str(DBG_VIP, "file write progress: %d/%d bytes (%.1f%%)",
-                        res->file_bytes_written, res->content_len,
-                        (float)res->file_bytes_written * 100.0 / res->content_len);
             }
         }
 
+        if (res->file_bytes_written == res->content_len) {
+            dbg_str(DBG_VIP, "socket fd %d write compeleted, sent %d of %d bytes, total %d/%d, progress:%.1f%%",
+                    socket->fd, ret, len, res->file_bytes_written, res->content_len, res->file_bytes_written * 100.0 / res->content_len);
+        }
         /* Check if file write is complete */
         THROW_IF(res->file_bytes_written >= res->content_len || feof(res->file), 1);
         /* More data to write, but socket buffer is full - normal case, not an error */
         THROW(0);
-    } CATCH (ret) {
-        dbg_str(DBG_ERROR, "__http_write_file error: %d", ret);
-    } FINALLY {
+    } CATCH (ret) { } FINALLY {
         /* Clean up resources based on return value */
         if (ret == 1 || ret == -1) {
             /* File write completed (either successfully or with error) */
@@ -142,9 +131,7 @@ static int __http_work_for_write_callback(void *task)
         /* Try to write file data */
         EXEC(ret = __http_write_file(req, res));
         THROW(ret);
-    } CATCH (ret) {
-        dbg_str(DBG_ERROR, "__http_work_for_write_callback error: %d", ret);
-    } FINALLY {
+    } CATCH (ret) { } FINALLY {
         if (ret == 1 || ret < 0) {
             worker->adjust(worker, EV_READ | EV_PERSIST);
         }
@@ -293,39 +280,32 @@ static int __process_static_request(Http_Server *server, Request *r, Response *r
 
     TRY {
         dbg_str(NET_VIP, "process_static_request, method:%s, uri:%s", r->method, r->uri);
-
         snprintf(filename, MAX_FILE_NAME_LEN, "%s%s",
                 server->root->get_cstr(server->root),
                 (char *)r->uri);
+        dbg_str(NET_SUC, "request filename:%s", filename);
 
         EXEC(stat(filename, &st));
-
         if ((st.st_mode & S_IFMT) == S_IFDIR) {
             __handler_get_directory_list(r, resp, server);
             server->response(server, r, resp);
             return 1;
         }
 
-        dbg_str(NET_SUC, "request filename:%s", filename);
-
-        // 检查是否是MP4文件且有Range头
-        if (strstr(filename, ".mp4") != NULL || strstr(filename, ".MP4") != NULL) {
-            // 检查是否有Range头
-            r->headers->search(r->headers, "range", (void **)&range_header);
-            if (range_header != NULL && strstr(range_header, "bytes=") != NULL) {
-                // 查找MP4 Range handler
-                server->get_handlers->search(server->get_handlers,
-                                            "mp4_range_handler",
-                                            (void **)&mp4_handler);
-                if (mp4_handler != NULL && mp4_handler->callback != NULL) {
-                    dbg_str(NET_VIP, "Calling MP4 range handler for file: %s", filename);
-                    return mp4_handler->callback(r, resp, mp4_handler->opaque);
-                } else {
-                    resp->set_status_code(resp, 501);
-                    dbg_str(NET_WARN, "MP4 range handler not found, falling back to normal file transfer");
-                    EXEC(server->response(server, r, resp));
-                    THROW(-1);
-                }
+        r->headers->search(r->headers, "range", (void **)&range_header);
+        if (range_header != NULL && strstr(range_header, "bytes=") != NULL) { // 检查是否有Range头
+            // 查找MP4 Range handler
+            server->get_handlers->search(server->get_handlers,
+                                        "range_handler",
+                                        (void **)&mp4_handler);
+            if (mp4_handler != NULL && mp4_handler->callback != NULL) {
+                dbg_str(NET_VIP, "Calling range handler for file: %s", filename);
+                return mp4_handler->callback(r, resp, mp4_handler->opaque);
+            } else {
+                resp->set_status_code(resp, 501);
+                dbg_str(NET_WARN, "Range handler not found, falling back to normal file transfer");
+                EXEC(server->response(server, r, resp));
+                THROW(-1);
             }
         }
 

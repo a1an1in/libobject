@@ -230,9 +230,8 @@ static ssize_t __send(Inet_Tcp_Socket *socket, const void *buf, size_t len, int 
     int ret;
 
     ret = send(socket->parent.fd, buf, len, flags);
-
     if (ret <= 0 && errno != EWOULDBLOCK) {
-        dbg_str(NET_ERROR, "send error: %s, ret:%d", strerror(errno), ret);
+        dbg_str(NET_ERROR, "socket fd %d send error: %s, ret:%d", socket->parent.fd, strerror(errno), ret);
     }
 
     return ret;
@@ -244,9 +243,9 @@ static ssize_t __recv(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags)
     
     ret = recv(socket->parent.fd, buf, len, flags);
     if (ret == 0) {
-        dbg_str(DBG_DETAIL, "client has closed fd:%d", socket->parent.fd);
+        dbg_str(DBG_DETAIL, "socket fd %d has been closed by peer!", socket->parent.fd);
     } else if (ret < 0) {
-        dbg_str(DBG_ERROR, "recv error fd:%d error:%s", socket->parent.fd, strerror(errno));
+        dbg_str(DBG_ERROR, "socket fd %d recv error:%s!", socket->parent.fd, strerror(errno));
     }
 
     return ret;

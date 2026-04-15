@@ -59,5 +59,8 @@ typedef int (*fshell_func_t)(void * p1, void * p2, void * p3, void * p4, void * 
 
 int fsh_variable_info_alloc(allocator_t *allocator, uint32_t value_type, char *class_name, uint32_t size, char *name, void **value);
 int fsh_variable_info_free(allocator_t *allocator, fsh_malloc_variable_info_t *info);
+FShell *fshell_get_default_instance();
+int fshell_init_default_instance();
+int fshell_destroy_default_instance();
 
 #endif

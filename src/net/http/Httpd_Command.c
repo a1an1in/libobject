@@ -70,6 +70,7 @@ static int __construct(Httpd_Command *command, char *init_str)
     uint8_t trustee_flag = 1;
     Map *plugins;
 
+    dbg_str(DBG_VIP, "construct httpd");
     server = object_new(c->parent.allocator, "Http_Server", NULL);
     server->set(server, "/Http_Server/root", "./webroot");
     command->server = server;
@@ -97,6 +98,7 @@ static int __construct(Httpd_Command *command, char *init_str)
 
 static int __deconstruct(Httpd_Command *command)
 {
+    dbg_str(DBG_VIP, "deconstruct httpd");
     object_destroy(command->plugins);
     object_destroy(command->server);
 
@@ -157,6 +159,7 @@ static int __load_plugin(Httpd_Command *command, char *name, char *path, char *j
         dbg_str(DBG_INFO, "application load plugin, json:%s", json);
         app = get_global_application();
         shell = app->fshell;
+        dbg_str(DBG_VIP, "shell addr:%p", shell);
         EXEC(shell->load(shell, path, RTLD_LOCAL | RTLD_LAZY));
         c = object_new(allocator, name, json);
         /* http plugin 需要http server， 所有通过opaque传入。 */

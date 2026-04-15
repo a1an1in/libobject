@@ -69,22 +69,20 @@ static int parse_range_header(const char *range_header, long long file_size,
     return 0;
 }
 
-// MP4 Range handler主函数 - 简单版本（发送10%内容）
-static int __handler_mp4_range(Request *req, Response *res, void *opaque)
+static int __handler_range(Request *req, Response *res, void *opaque)
 {
     char filename[1024];
     struct stat st;
     FILE *file = NULL;
     char *range_header = NULL;
     long long file_size, range_start = 0, range_end = 0;
-    int ret = 0;
     char content_range[128];
     Http_Plugin_Range *plugin = (Http_Plugin_Range *)opaque;
     Httpd_Command *httpd = (Httpd_Command *)(plugin->parent.opaque);
     Http_Server *server = httpd->server;
+    int ret = 0;
     
     TRY {
-        dbg_str(DBG_VIP, "mp4_range_handler called for URI: %s", req->uri);
         // 构建完整文件路径
         snprintf(filename, sizeof(filename), "%s%s",
                  server->root->get_cstr(server->root),
@@ -93,19 +91,15 @@ static int __handler_mp4_range(Request *req, Response *res, void *opaque)
         // 获取文件信息
         EXEC(stat(filename, &st));
         file_size = st.st_size;
-        dbg_str(DBG_VIP, "File size: %lld bytes", file_size);
         
         // 获取Range头
         req->headers->search(req->headers, "range", (void **)&range_header);
         THROW_IF(range_header == NULL, -1);
-        dbg_str(DBG_VIP, "Range header: %s", range_header);
-        
-        // 解析Range头
-        ret = parse_range_header(range_header, file_size, &range_start, &range_end);
+        ret = parse_range_header(range_header, file_size, &range_start, &range_end); // 解析Range头
         // 检查Range解析结果
         if (ret == -2) {
             // Range无法满足 - 正常返回416响应
-            dbg_str(DBG_VIP, "Range not satisfiable: %s", range_header);
+            dbg_str(DBG_VIP, "socket fd:%d, range not satisfiable: %s", req->socket->fd, range_header);
             res->set_status_code(res, 416); // Range Not Satisfiable
             
             snprintf(content_range, sizeof(content_range), "bytes */%lld", file_size);
@@ -114,7 +108,8 @@ static int __handler_mp4_range(Request *req, Response *res, void *opaque)
             THROW(0); // 正常处理完成, 不用关闭文件， 后续异步传输使用。 
         }
         THROW_IF(ret != 0, -1);
-        dbg_str(DBG_VIP, "Parsed range: %lld-%lld", range_start, range_end);
+        dbg_str(DBG_VIP, "socket fd:%d, url:%s, file size:%lld bytes, range header:%s, range:%lld-%lld", 
+                req->socket->fd, req->uri, file_size, range_header, range_start, range_end);
         
         // 打开文件
         file = fopen(filename, "rb");
@@ -126,8 +121,7 @@ static int __handler_mp4_range(Request *req, Response *res, void *opaque)
         // 设置206 Partial Content响应
         res->set_status_code(res, 206);
         // 设置Content-Range头
-        snprintf(content_range, sizeof(content_range),
-                 "bytes %lld-%lld/%lld",
+        snprintf(content_range, sizeof(content_range), "bytes %lld-%lld/%lld",
                  range_start, range_end, file_size);
         res->set_header(res, "Content-Range", content_range);
         // 设置Content-Type
@@ -139,9 +133,9 @@ static int __handler_mp4_range(Request *req, Response *res, void *opaque)
         res->content_len = total_range_size;
         // 将文件指针保存到Response中，让Response负责发送和关闭文件
         res->file = file;
-        dbg_str(DBG_VIP, "MP4 range request prepared successfully, file will be sent by Response");
+        dbg_str(DBG_VIP, "socket fd:%d, range request prepared successfully, file will be sent by async", req->socket->fd);
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "mp4_range_handler error: %d", ret);
+        dbg_str(DBG_ERROR, "range_handler error: %d", ret);
         // 其他错误情况（文件错误、格式错误等）
         res->set_status_code(res, 400); // Bad Request
         // 错误情况下关闭文件
@@ -170,7 +164,7 @@ static int __deconstruct(Command *command)
     dbg_str(DBG_VIP, "http mp4 plugin deregistered handlers from http server!");
 
     // 注销MP4 Range handler
-    server->deregister_handler(server, "GET", "mp4_range_handler");
+    server->deregister_handler(server, "GET", "range_handler");
     
     object_destroy(plugin->option);
 
@@ -191,7 +185,7 @@ static int __run_command(Command *command)
 
     TRY {
         // 注册MP4 Range handler（使用特殊路径标记）
-        server->register_handler(server, "GET", "mp4_range_handler", __handler_mp4_range, command);
+        server->register_handler(server, "GET", "range_handler", __handler_range, command);
         
         dbg_str(DBG_VIP, "http mp4 plugin registered handlers to http server!");
     } CATCH (ret) { }
