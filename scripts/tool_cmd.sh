@@ -573,9 +573,29 @@ function do_install_docker {
 function do_build_docker_image_xtools {
     echo "do_build_docker_image_xtools, pwd:$(pwd)"
     local version
+    local dockerfile_path
+    
     # version=$(get_release_package_version src/include/liboject/version.h)
     version=2.15.0.229
-    docker build -f docker/dockerfile                                                 \
+    
+    # 确定 Dockerfile 路径
+    if [[ -z "$OPTION_DOCKERFILE" ]]; then
+        echo "Error: --dockerfile parameter is required. Please specify Dockerfile name."
+        echo "Example: --dockerfile=dockerfile.noded or --dockerfile=dockerfile.test"
+        exit 1
+    fi
+    
+    # 使用指定的 Dockerfile
+    dockerfile_path="docker/$OPTION_DOCKERFILE"
+    echo "Using Dockerfile: $dockerfile_path"
+    
+    # 检查 Dockerfile 是否存在
+    if [[ ! -f "$dockerfile_path" ]]; then
+        echo "Error: Dockerfile not found at $dockerfile_path"
+        exit 1
+    fi
+    
+    docker build -f $dockerfile_path                                                 \
         -t $OPTION_NAME                                                               \
         -t $OPTION_NAME:$version                                                      \
         --build-arg TAR_PACKAGE_PATH=${OPTION_PACKAGE_PATH}                           \
@@ -651,6 +671,7 @@ cat << EOF
         --run              Optional. run container
         --args             Optional. designate args.
         --build            build docker.
+        --dockerfile       Required. specify Dockerfile name (e.g., --dockerfile=dockerfile.noded uses docker/dockerfile.noded)
 
     test                   do some test at this command
 
@@ -662,7 +683,7 @@ cat << EOF
     ./devops.sh docker --install --platform=linux    #install docker at linux platform
     ./devops.sh release -p=linux
     ./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_v2.13.0.442.tar.gz
-    ./devops.sh docker --build=fruit-pomegranate --package-path=./packages/xtools_linux_x86_64_v2.15.0.229.tar.gz
+    ./devops.sh docker --build=fruit-noded --package-path=./packages/xtools_linux_x86_64_v2.15.0.229.tar.gz
     
 EOF
 }

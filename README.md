@@ -98,8 +98,8 @@ The release package will be created in the `packages` directory with a name like
 
 **Release docker image**
 ```
-sudo ./devops.sh docker --build=fruit-pomegranate --package-path=./packages/xtools_linux_x86_64_v2.15.0.241.tar.gz
-sudo docker run -d --name fruit-pomegranate -p 12345:12345 fruit-pomegranate
+sudo ./devops.sh docker --build=fruit-noded --dockerfile=dockerfile.noded --package-path=./packages/xtools_linux_x86_64_v2.15.0.241.tar.gz
+sudo docker run -d --name fruit-noded -p 12345:12345 fruit-noded
 ./sysroot/linux/x86_64/bin/xtools node_cli --host=0.0.0.0 --service=12345 lookup all 
 ```
 

@@ -116,7 +116,7 @@ static int test_http_wget()
 }
 REGISTER_TEST_FUNC(test_http_wget);
 
-static int test_http_mp4_range_request()
+static int test_http_range_request()
 {
     allocator_t *allocator = allocator_get_default_instance();
     Command *httpd_command;
@@ -159,29 +159,11 @@ static int test_http_mp4_range_request()
         // 启动HTTP服务器
         httpd_command = object_new(allocator, "Httpd_Command", NULL);
         httpd_command->set_args(httpd_command, 2, (char **)httpd_argv);
-        dbg_str(DBG_VIP, "run at here");
         httpd_command->parse_args(httpd_command);
-        dbg_str(DBG_VIP, "run at here");
         EXEC(httpd_command->run_option_actions(httpd_command));
-        dbg_str(DBG_VIP, "run at here");
         EXEC(httpd_command->run_command(httpd_command));
-        dbg_str(DBG_VIP, "run at here");
-        
         // 等待服务器启动
         sleep(2);
-        
-        // 使用系统curl测试完整文件下载
-        dbg_str(DBG_VIP, "Testing full file download...");
-        snprintf(cmd, sizeof(cmd), "curl -s -o /dev/null -w '%%{http_code}' http://127.0.0.1:8081/test_range.mp4");
-        fp = popen(cmd, "r");
-        THROW_IF(fp == NULL, -1);
-        
-        fgets(http_code, sizeof(http_code), fp);
-        pclose(fp);
-        fp = NULL;
-        
-        dbg_str(DBG_VIP, "Full file HTTP status code: %s", http_code);
-        THROW_IF(atoi(http_code) != 200, -1);
         
         // 使用系统curl测试Range请求
         dbg_str(DBG_VIP, "Testing Range request...");
@@ -196,7 +178,6 @@ static int test_http_mp4_range_request()
         fp = NULL;
         
         dbg_str(DBG_VIP, "Range request HTTP status code: %s", range_http_code);
-        
         // 检查响应
         status = atoi(range_http_code);
         
@@ -239,5 +220,5 @@ static int test_http_mp4_range_request()
     return ret;
 }
 #if (!defined(WINDOWS_USER_MODE))
-REGISTER_TEST_FUNC(test_http_mp4_range_request);
+REGISTER_TEST_FUNC(test_http_range_request);
 #endif

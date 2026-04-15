@@ -1,0 +1,32 @@
+# Test Dockerfile for multi-Dockerfile support testing
+FROM docker.1ms.run/library/ubuntu:24.04
+
+ARG TAR_PACKAGE_PATH
+ENV TAR_PACKAGE_PATH ${TAR_PACKAGE_PATH}
+
+RUN echo "Test Dockerfile - Multi Dockerfile Support" > /tmp/test.txt
+
+RUN echo "deb http://mirrors.huaweicloud.com/ubuntu/ focal main restricted universe multiverse" > /etc/apt/sources.list              && \
+    echo "deb http://mirrors.huaweicloud.com/ubuntu/ focal-updates main restricted universe multiverse" >> /etc/apt/sources.list     && \
+    echo "deb http://mirrors.huaweicloud.com/ubuntu/ focal-backports main restricted universe multiverse" >> /etc/apt/sources.list   && \
+    echo "deb http://mirrors.huaweicloud.com/ubuntu/ focal-security main restricted universe multiverse" >> /etc/apt/sources.list
+
+RUN  apt-get update
+
+RUN  apt-get install -y net-tools && apt-get install -y iputils-ping
+
+RUN mkdir -p /root/softs
+COPY ${TAR_PACKAGE_PATH} /root/softs/
+
+RUN export TAR_NAME=$(basename ${TAR_PACKAGE_PATH}) \
+    && echo "处理文件: ${TAR_NAME}" \
+    && mkdir -p /root/.xtools/sysroot \
+    && tar -xzf /root/softs/${TAR_NAME} -C /root/.xtools/sysroot --strip-components 1
+
+RUN mkdir -p /root/.xtools/node
+COPY ./doc/node/node.json /root/.xtools/node
+
+WORKDIR /root/.xtools/sysroot/bin
+CMD export LD_LIBRARY_PATH=/root/.xtools/sysroot/lib:/root/.xtools/sysroot/lib64:$LD_LIBRARY_PATH                                             && \ 
+    ldconfig && ./xtools httpd --log-level=0x16 -h "0.0.0.0" -s "8081" >/root/.xtools/httpd/logs
+# CMD ["tail", "-f", "/dev/null"]

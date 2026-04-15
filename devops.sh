@@ -79,7 +79,12 @@ function parse_args { # Read command line arguments and update global variables
                 OPTION_PACKAGE_PATH="${i#*=}"
                 OPTION_HELP=""
                 shift # past argument
-                ;; 
+                ;;
+            --dockerfile=*)
+                OPTION_DOCKERFILE="${i#*=}"
+                OPTION_HELP=""
+                shift # past argument
+                ;;
             *)
                 error_msg="Unknown option $i"
                 OPTION_HELP="true"
