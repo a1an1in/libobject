@@ -100,9 +100,9 @@ static int test_fshell_load()
 #if (defined(MAC_USER_MODE))
     char *lib_name = "./sysroot/mac/lib/attacher-builtin.dylib";
 #elif (defined(WINDOWS_USER_MODE))
-    char *lib_name = "./sysroot/windows/lib/attacher-builtin.dll";
+    char *lib_name = "./sysroot/windows/x86_64/lib/attacher-builtin.dll";
 #else
-    char *lib_name = "./sysroot/linux/lib/libattacher-builtin.so";
+    char *lib_name = "./sysroot/linux/x86_64/lib/libattacher-builtin.so";
 #endif
     char name[20];
     void *addr;
@@ -131,9 +131,9 @@ static int test_fshell_load_and_get_func_addr()
 #if (defined(MAC_USER_MODE))
     char *lib_name = "./sysroot/mac/lib/attacher-builtin.dylib";
 #elif (defined(WINDOWS_USER_MODE))
-    char *lib_name = "./sysroot/windows/lib/attacher-builtin.dll";
+    char *lib_name = "./sysroot/windows/x86_64/lib/attacher-builtin.dll";
 #else
-    char *lib_name = "./sysroot/linux/lib/libattacher-builtin.so";
+    char *lib_name = "./sysroot/linux/x86_64/lib/libattacher-builtin.so";
 #endif
     char name[20];
     allocator_t *allocator = allocator_get_default_instance();

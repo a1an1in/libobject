@@ -57,7 +57,10 @@ static void *__get_remote_builtin_function_address(UnixAttacher *attacher, char 
         addr = dl_get_remote_function_adress(((Attacher *)attacher)->pid, module_name, addr);
         THROW_IF(addr == NULL, -1);
         dbg_str(DBG_INFO, "attacher get_remote_builtin_function_address, %s remote address:%p", name, addr);
-    } CATCH (ret) { addr = NULL; }
+    } CATCH (ret) { 
+        addr = NULL;
+        dbg_str(DBG_ERROR, "name:%s, module name:%s", name, module_name);
+    }
 
     return addr;
 }

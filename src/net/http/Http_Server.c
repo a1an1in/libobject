@@ -381,7 +381,6 @@ static int __process_request(Http_Server *server, Request *r)
         }
         
         resp->socket = r->socket;
-
         EXEC(__process_request_cookie(server, r, resp));
 
         type = r->get_request_type(r);
@@ -403,7 +402,6 @@ static int __process_request(Http_Server *server, Request *r)
         }
 
         THROW_IF(resp->get_status_code(resp) == 206, 206);
-
     } CATCH (ret) {
         CATCH_SHOW_INT_PARS(DBG_ERROR);
     }

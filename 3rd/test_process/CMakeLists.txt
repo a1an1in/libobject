@@ -14,13 +14,10 @@ file(GLOB MOUDLE_SRC
 )
 
 add_executable(${PROJECT_NAME} ${MOUDLE_SRC})
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-s")
-target_link_options(${PROJECT_NAME} PRIVATE -Wl,-s)
 
-if("${PLATFORM}" STREQUAL "android")
-    target_link_libraries(${PROJECT_NAME} dl)
-else()
-    target_link_libraries(${PROJECT_NAME} pthread)
-endif()
+# 添加库搜索路径 - 使用 target_link_directories 更精确
+target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_INSTALL_PREFIX}/lib)
+
+target_link_libraries(${PROJECT_NAME} -Wl,--no-as-needed -lattacher-builtin -Wl,--as-needed dl pthread)
 
 

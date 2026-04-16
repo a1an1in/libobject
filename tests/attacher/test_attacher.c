@@ -135,7 +135,7 @@ static int test_attacher_call_address_with_pointer_pars(Attacher *attacher, pid_
 static int test_attacher_add_and_remove_lib(Attacher *attacher, pid_t pid)
 {
     int ret;
-    char *name = "./sysroot/linux/lib/libtestlib.so";
+    char *name = "./sysroot/linux/x86_64/lib/libtestlib.so";
 
     TRY {
         EXEC(attacher->add_lib(attacher, name));
@@ -150,7 +150,7 @@ static int test_attacher_add_and_remove_lib(Attacher *attacher, pid_t pid)
 static int test_attacher_call_from_adding_lib(Attacher *attacher, pid_t pid)
 {
     int ret, return_value;
-    char *name = "./sysroot/linux/lib/libtestlib.so";
+    char *name = "./sysroot/linux/x86_64/lib/libtestlib.so";
 
     TRY {
         EXEC(attacher->add_lib(attacher, name));
@@ -254,13 +254,13 @@ static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
     FShell *shell;
     pid_t pid = -1;
 #   if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE))
-    char *path = "./sysroot/linux/bin/test-process";
+    char *path = "./sysroot/linux/x86_64/bin/test-process";
 #   elif (defined(WINDOWS_USER_MODE))
-    char *path = "./sysroot/windows/bin/test-process";
+    char *path = "./sysroot/windows/x86_64/bin/test-process";
 #   elif (defined(MAC_USER_MODE) || defined(IOS_USER_MODE))
     char *path = "./sysroot/mac/bin/test-process";
 #   else
-    char *path = "./sysroot/linux/bin/test-process";
+    char *path = "./sysroot/linux/x86_64/bin/test-process";
 #   endif
     char *arg_vector[2] = {"test-process", NULL};
     Attacher *attacher;
