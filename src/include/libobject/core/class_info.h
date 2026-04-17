@@ -36,7 +36,21 @@ typedef struct class_info_entry_s {
     int index;
 } class_info_entry_t;
 
-// 类型信息初始化宏版本v2
+// 类型信息初始化v1版本，如下直接定义。
+// static class_info_entry_t obj_class_info[] = {
+//     [0] = {ENTRY_TYPE_NORMAL_POINTER, "allocator_t", "allocator", NULL, sizeof(void *), offset_of_class(Obj, allocator)}, 
+//     [1] = {ENTRY_TYPE_FUNC_POINTER, "", "construct", __construct, sizeof(void *), offset_of_class(Obj, construct)}, 
+//     [2] = {ENTRY_TYPE_FUNC_POINTER, "", "deconstruct", __deconstrcut, sizeof(void *), offset_of_class(Obj, deconstruct)}, 
+//     [3] = {ENTRY_TYPE_VFUNC_POINTER, "", "set", __set, sizeof(void *), offset_of_class(Obj, set)}, 
+//     [4] = {ENTRY_TYPE_VFUNC_POINTER, "", "get", __get, sizeof(void *), offset_of_class(Obj, get)}, 
+//     [5] = {ENTRY_TYPE_VFUNC_POINTER, "", "to_json", __to_json, sizeof(void *), offset_of_class(Obj, to_json)}, 
+//     [6] = {ENTRY_TYPE_VFUNC_POINTER, "", "reset", __reset, sizeof(void *), offset_of_class(Obj, reset)}, 
+//     [7] = {ENTRY_TYPE_VFUNC_POINTER, "", "assign", __assign, sizeof(void *), offset_of_class(Obj, assign)}, 
+//     [8] = {ENTRY_TYPE_END}, 
+// };
+// REGISTER_CLASS(Obj, obj_class_info);
+
+// 类型信息初始化v2版本
 #define Init_Obj_Entry(id, type_name, value_name)                                                                                    \
     [id] = {ENTRY_TYPE_OBJ, #type_name, #value_name}
 #define Init_Nfunc_Entry(id, class_name, value_name, value)                                                                          \
@@ -70,8 +84,7 @@ typedef struct class_info_entry_s {
 #define Init_Obj___Entry Init_Obj_Entry
 #define Init_End___Entry Init_End_Entry
 
-
-// 类型信息初始化宏版本v3
+// 类型信息初始化v3版本
 #define Class_Obj___Entry(type_name, value_name) {ENTRY_TYPE_OBJ, #type_name, #value_name}
 #define Class_End___Entry(class_name) {ENTRY_TYPE_END, #class_name, "", NULL, sizeof(class_name), 0}
 #define Class_VFunc_Entry(value_name, value) {ENTRY_TYPE_VFUNC_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(__current_class_t, value_name)}
