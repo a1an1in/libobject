@@ -370,10 +370,10 @@ static int __deconstruct(Node_Cli_Command *command)
 }
 
 DEFINE_COMMAND(Node_Cli_Command,
-    CLASS_OBJ___ENTRY(Command, parent),
-    CLASS_NFUNC_ENTRY(construct, __construct),
-    CLASS_NFUNC_ENTRY(deconstruct, __deconstruct),
-    CLASS_VFUNC_ENTRY(set, NULL),
-    CLASS_VFUNC_ENTRY(get, NULL),
-    CLASS_VFUNC_ENTRY(run_command, __run_command)
+    Class_Obj___Entry(Command, parent),
+    Class_NFunc_Entry(construct, __construct),
+    Class_NFunc_Entry(deconstruct, __deconstruct),
+    Class_VFunc_Entry(set, NULL),
+    Class_VFunc_Entry(get, NULL),
+    Class_VFunc_Entry(run_command, __run_command)
 );

@@ -17,11 +17,10 @@ void * dl_get_func_addr_by_name(char *name, char *lib_name)
     if (handle == NULL) {
         return NULL;
     }
-    dbg_str(DBG_DETAIL, "handle=%p", handle);
+    dbg_str(DBG_DETAIL, "func name:%s, lib name:%s, handle=%p", name, lib_name, handle);
 
     /* find the address of function and data objects */
     addr = dlsym(handle, name);
-    dbg_str(DBG_DETAIL, "addr=%p", addr);
     dlclose(handle);
 
     return addr;
@@ -91,16 +90,19 @@ void *dl_get_dynamic_lib_base_address(pid_t pid, const char *module_name)
 
 void* dl_get_remote_function_adress(pid_t target_pid, const char* module_name, void* local_addr)
 {
-	void* local_handle, *remote_handle;
+	void *local_lib_base, *remote_lib_base;
+    void *addr;
     int ret;
 
     TRY {
-        local_handle = dl_get_dynamic_lib_base_address(-1, module_name);
-        THROW_IF(local_handle == NULL, -1);
-	    remote_handle = dl_get_dynamic_lib_base_address(target_pid, module_name);
-        THROW_IF(remote_handle == NULL, -1);
-        dbg_str(DBG_DETAIL, "local_addr:%p,  remote_handle:%p, local_handle:%p", local_addr, (uint64_t)remote_handle, (uint64_t)local_handle);
-        return (void *)((uint64_t)local_addr + (uint64_t)remote_handle - (uint64_t)local_handle);
+        local_lib_base = dl_get_dynamic_lib_base_address(-1, module_name);
+        THROW_IF(local_lib_base == NULL, -1);
+	    remote_lib_base = dl_get_dynamic_lib_base_address(target_pid, module_name);
+        THROW_IF(remote_lib_base == NULL, -1);
+        addr = (void *)((uint64_t)local_addr + (uint64_t)remote_lib_base - (uint64_t)local_lib_base);
+        dbg_str(DBG_DETAIL, "module_name:%s, local_lib_base:%p, remote_lib_base:%p, local_addr:%p, remote addr:%p", 
+                module_name, (uint64_t)local_lib_base, (uint64_t)remote_lib_base, local_addr, addr);
+        return addr;
     } CATCH (ret) {}
 	
     return NULL;
@@ -129,9 +131,21 @@ int dl_get_dynamic_lib_path(pid_t pid, const char *module_name, char *path, int 
             if (strstr(line, module_name)) {
                 // printf("line:%s", line);
                 p1 = strchr(line, '/');
-                p2 = strstr(p1, ".so");
-                p2[3] = '\0';
-                memcpy(path, p1, strlen(p1));
+                if (p1 == NULL) continue;
+                
+                // 找到路径的结尾（换行符或字符串结束）
+                p2 = p1;
+                while (*p2 != '\0' && *p2 != '\n' && *p2 != ' ') {
+                    p2++;
+                }
+                
+                // 计算路径长度
+                int path_len = p2 - p1;
+                THROW_IF(len <= path_len, -1);
+                
+                // 复制完整路径
+                memcpy(path, p1, path_len);
+                path[path_len] = '\0';
                 break;
             }
         }
@@ -175,10 +189,21 @@ int dl_get_dynamic_name(pid_t pid, void *func_addr, char *module_name, int len)
             if (func_addr < (void *)addr[0]  || func_addr > (void *)addr[1]) continue;
 
             p1 = strrchr(temp, '/');
-            p2 = strstr(p1, ".so");
-            p2[3] = '\0';
-            THROW_IF(len < strlen(p1), -1);
-            memcpy(module_name, p1 + 1, strlen(p1 + 1));
+            if (p1 == NULL) continue;
+            
+            // 找到库名的结尾（换行符、空格或字符串结束）
+            p2 = p1 + 1; // 跳过斜杠
+            while (*p2 != '\0' && *p2 != '\n' && *p2 != ' ') {
+                p2++;
+            }
+            
+            // 计算库名长度（不包括斜杠）
+            int name_len = p2 - (p1 + 1);
+            THROW_IF(len <= name_len, -1);
+            
+            // 复制库名
+            memcpy(module_name, p1 + 1, name_len);
+            module_name[name_len] = '\0';
             break;
         }   
     } CATCH (ret) {} FINALLY {
@@ -222,11 +247,22 @@ int dl_parse_dynamic_table(pid_t pid, Interval_Tree *tree)
 
             p1 = strrchr(temp, '/');
             if (p1 == NULL) continue;
-            p2 = strstr(p1, ".so");
-            if (p2 == NULL) continue;
-            p2[3] = '\0';
-            module_name = allocator_mem_zalloc(allocator, strlen(p1 + 1) + 1);
-            memcpy(module_name, p1 + 1, strlen(p1 + 1));
+            
+            // 找到库名的结尾（换行符、空格或字符串结束）
+            p2 = p1 + 1; // 跳过斜杠
+            while (*p2 != '\0' && *p2 != '\n' && *p2 != ' ') {
+                p2++;
+            }
+            
+            // 计算库名长度（不包括斜杠）
+            int name_len = p2 - (p1 + 1);
+            
+            // 只处理包含 ".so" 的库（动态库）
+            if (strstr(p1, ".so") == NULL) continue;
+            
+            module_name = allocator_mem_zalloc(allocator, name_len + 1);
+            memcpy(module_name, p1 + 1, name_len);
+            module_name[name_len] = '\0';
             dbg_str(DBG_INFO, "dl_parse_dynamic_table, addr1:%p, addr2:%p, moudle name:%s", addr[0], addr[1], module_name);
             
             node = allocator_mem_zalloc(allocator, sizeof(interval_tree_node_t));

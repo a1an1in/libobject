@@ -56,7 +56,7 @@ static void *__get_remote_builtin_function_address(UnixAttacher *attacher, char 
         THROW_IF(addr == NULL, -1);
         addr = dl_get_remote_function_adress(((Attacher *)attacher)->pid, module_name, addr);
         THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_INFO, "attacher get_remote_builtin_function_address, %s remote address:%p", name, addr);
+        dbg_str(DBG_VIP, "attacher get_remote_builtin_function_address, func:%s, remote address:%p", name, addr);
     } CATCH (ret) { 
         addr = NULL;
         dbg_str(DBG_ERROR, "name:%s, module name:%s", name, module_name);
@@ -127,18 +127,26 @@ static void *__set_function_pars(UnixAttacher *attacher, struct user_regs_struct
             regs->rsp -= (num - 6) * sizeof(void *);
             addr = regs->rsp;
             dbg_str(DBG_VIP, "attacher call, new rsp:%p", addr);
-            /* 预留返回地址， 再加上进入函数后首先会把rbp入栈， 函数会用0x10(%rbp)的
-             * 方式来访问存在栈中的第7个参数
+            /* 先对齐栈指针 */
+            regs->rsp &= ~0xF;
+            /* 预留返回地址和rbp空间：
+             * 1. 返回地址 (8字节) - 模拟 call 指令
+             * 2. rbp会被函数压栈 (8字节) - 函数序言 push rbp
+             * 函数会用0x10(%rbp)的方式来访问存在栈中的第7个参数
              */
-            regs->rsp -= sizeof(void *);
+            regs->rsp -= 2 * sizeof(void *);
         } else {
             /* 这里必须要预留3 * sizeof(void *) 的大小， 原因还不清楚， 否则sprintf，
              * dlopen等函数调用会中断返回。 */
             regs->rsp -= 3 * sizeof(void *);
+            /* 先对齐栈指针 */
+            regs->rsp &= ~0xF;
+            /* 预留返回地址空间，模拟 call 指令的效果 */
+            regs->rsp -= sizeof(void *);
         }
         for (i = 0; i < num; i++) {
             if (i < 6) {
-                *(par_array[i]) =  paramters[i];
+                *(par_array[i]) = (unsigned long long)paramters[i];
             } else {
                 dbg_str(DBG_VIP, "write (addr + (num - i - 1) * 8):%p, num:%d, i:%d", addr + (num - i -1), num, i);
                 EXEC(attacher->write(attacher, addr + i - 6, paramters + i, sizeof(void *)));
@@ -189,38 +197,6 @@ static long __call_address_with_value_pars(UnixAttacher *attacher, void *functio
     return ret;
 }
 
-/* 
- * we can see from add_lib implementation, the attacher depends on
- * the dl library, if the exe not link dl, the attacher may not useable,
- * but we can solve this problem by inject lib to the exe file.
- **/
-static int __add_lib(UnixAttacher *attacher, char *name)
-{
-    int ret;
-    void *handle = NULL;
-    Map *map = ((Attacher *)attacher)->map;
-    attacher_paramater_t pars[2] = {{name, strlen(name) + 1}, {RTLD_LOCAL | RTLD_NOW, 0}};
-
-    TRY {
-        THROW_IF(name == NULL, -1);
-        EXEC(map->search(map, name, &handle));
-        THROW_IF(handle != NULL, 0);
-
-        if (attacher->count++ >= 1) { //后续的动态库加载使用attacher_dlopen， 如果有错误这个可以打印错误原因。
-            handle = ((Attacher *)attacher)->call_name(attacher, "libattacher-builtin.so", "attacher_dlopen", pars, 2);
-        } else { //加载第一个使用__libc_dlopen_mode。
-            handle = ((Attacher *)attacher)->call_name(attacher, NULL, "__libc_dlopen_mode", pars, 2);
-        }
-
-        dbg_str(DBG_VIP, "attacher add_lib, lib name:%s, flag:%x, handle:%p", 
-                name, RTLD_LOCAL | RTLD_LAZY, handle);
-        THROW_IF(handle == NULL, -1);
-        map->add(map, name, handle);
-    } CATCH (ret) {}
-
-    return ret;
-}
-
 static int __run(UnixAttacher *attacher)
 {
     int ret;
@@ -241,23 +217,23 @@ static int __stop(UnixAttacher *attacher)
 }
 
 DEFINE_CLASS(UnixAttacher,
-    CLASS_OBJ___ENTRY(Attacher, parent),
-    CLASS_NFUNC_ENTRY(construct, __construct),
-    CLASS_NFUNC_ENTRY(deconstruct, __deconstruct),
-    CLASS_VFUNC_ENTRY(attach, __attach),
-    CLASS_VFUNC_ENTRY(detach, __detach),
-    CLASS_VFUNC_ENTRY(set_function_pars, __set_function_pars),
-    CLASS_VFUNC_ENTRY(read, __read),
-    CLASS_VFUNC_ENTRY(write, __write),
-    CLASS_VFUNC_ENTRY(malloc, NULL),
-    CLASS_VFUNC_ENTRY(free, NULL),
-    CLASS_VFUNC_ENTRY(get_remote_builtin_function_address, __get_remote_builtin_function_address),
-    CLASS_VFUNC_ENTRY(call_address_with_value_pars, __call_address_with_value_pars),
-    CLASS_VFUNC_ENTRY(call_address, NULL),
-    CLASS_VFUNC_ENTRY(add_lib, __add_lib),
-    CLASS_VFUNC_ENTRY(remove_lib, NULL),
-    CLASS_VFUNC_ENTRY(run, __run),
-    CLASS_VFUNC_ENTRY(stop, __stop)
+    Class_Obj___Entry(Attacher, parent),
+    Class_NFunc_Entry(construct, __construct),
+    Class_NFunc_Entry(deconstruct, __deconstruct),
+    Class_VFunc_Entry(attach, __attach),
+    Class_VFunc_Entry(detach, __detach),
+    Class_VFunc_Entry(set_function_pars, __set_function_pars),
+    Class_VFunc_Entry(read, __read),
+    Class_VFunc_Entry(write, __write),
+    Class_VFunc_Entry(malloc, NULL),
+    Class_VFunc_Entry(free, NULL),
+    Class_VFunc_Entry(get_remote_builtin_function_address, __get_remote_builtin_function_address),
+    Class_VFunc_Entry(call_address_with_value_pars, __call_address_with_value_pars),
+    Class_VFunc_Entry(call_address, NULL),
+    Class_VFunc_Entry(add_lib, NULL),
+    Class_VFunc_Entry(remove_lib, NULL),
+    Class_VFunc_Entry(run, __run),
+    Class_VFunc_Entry(stop, __stop)
 );
 
 #endif

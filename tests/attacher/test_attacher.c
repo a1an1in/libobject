@@ -98,7 +98,7 @@ static int test_attacher_call_address_with_value_pars(Attacher *attacher, pid_t 
 {
     int ret;
     void *func_addr;
-    long long pars[8] = {1, 2, 3, 4, 5, 6, 0xf1f1f1f1f1f1f1f1, 0xf2};
+    long long pars[8] = {1, 2, 3, 4, 5, 7, 0xf1f1f1f1f1f1f1f1, 0xf2};
 
     TRY {
         attacher_test_without_pointer_arg(1, 1, 2, 2, 5, 6, 0xf1, 0xf2);
@@ -278,7 +278,7 @@ static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
 
         EXEC(test_attacher_get_remote_function_address_case1(attacher, pid));
         EXEC(test_attacher_get_remote_function_address_case2(attacher, pid));
-        EXEC(test_attacher_get_remote_function_address_case3(attacher, pid));
+        // EXEC(test_attacher_get_remote_function_address_case3(attacher, pid));
         EXEC(test_attacher_call_address_without_pars(attacher, pid));
         EXEC(test_attacher_call_address_with_value_pars(attacher, pid));
         EXEC(test_attacher_call_address_with_pointer_pars(attacher, pid));

@@ -201,6 +201,7 @@ static long __call_name(Attacher *attacher, char *lib_name, char *name, attacher
         /* 1.get remote fuction address */
         addr = attacher->get_remote_function_address(attacher, lib_name, name);
         THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "attacher call func name:%s, remote addr:%p", name, addr);
         
         /* 2.call */
         ret = attacher->call_address(attacher, addr, pars, num);
@@ -239,7 +240,7 @@ static long __call(Attacher *attacher, char *lib_name, char *func, long *ret_val
                 arg[len - 1] = '\0';
                 pars[i - 1].value = arg + 1;
                 pars[i - 1].size = strlen(pars[i - 1].value) + 1;
-                dbg_str(DBG_WIP, "attacher call arg0: %s len:%d", pars[i - 1].value, strlen(pars[i - 1].value) + 1);
+                dbg_str(DBG_DETAIL, "attacher call arg0: %s len:%d", pars[i - 1].value, strlen(pars[i - 1].value) + 1);
             } else if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
                 pars[i - 1].value = str_hex_to_integer(arg);
                 pars[i - 1].size = 0;
@@ -261,12 +262,45 @@ static long __call(Attacher *attacher, char *lib_name, char *func, long *ret_val
         if (ret_value != NULL) {
             *ret_value = return_value;
         }
-        dbg_str(DBG_WIP, "attacher call:%s success, return value:%x", func, return_value);
+        dbg_str(DBG_WIP, "attacher call:%s, return value:%x", func, return_value);
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "attacher call:%s failed", func);
     } FINALLY {
         object_destroy(str);
     }
+
+    return ret;
+}
+
+/* 
+ * we can see from add_lib implementation, the attacher depends on
+ * the dl library, if the exe not link dl, the attacher may not useable,
+ * but we can solve this problem by inject lib to the exe file.
+ **/
+static int __add_lib(Attacher *attacher, char *name)
+{
+    int ret;
+    void *handle = NULL;
+    Map *map = attacher->map;
+    attacher_paramater_t pars[2] = {{name, strlen(name) + 1}, {RTLD_LOCAL | RTLD_NOW, 0}};
+
+    TRY {
+        THROW_IF(name == NULL, -1);
+        EXEC(map->search(map, name, &handle));
+        THROW_IF(handle != NULL, 0);
+
+        //if (attacher->count++ >= 1) { //后续的动态库加载使用attacher_dlopen， 如果有错误这个可以打印错误原因。
+        if (1) { //后续的动态库加载使用attacher_dlopen， 如果有错误这个可以打印错误原因。
+            handle = attacher->call_name(attacher, "libattacher-builtin.so", "attacher_dlopen", pars, 2);
+        } else { //加载第一个使用__libc_dlopen_mode。
+            handle = attacher->call_name(attacher, NULL, "__libc_dlopen_mode", pars, 2);
+        }
+
+        dbg_str(DBG_VIP, "attacher add_lib, lib name:%s, flag:%x, handle:%p", 
+                name, RTLD_LOCAL | RTLD_LAZY, handle);
+        THROW_IF(handle == NULL, -1);
+        map->add(map, name, handle);
+    } CATCH (ret) {}
 
     return ret;
 }
@@ -284,7 +318,7 @@ static int __remove_lib(Attacher *attacher, char *name)
         dbg_str(DBG_VIP, "attacher remove lib:%s, handle:%p", name, handle);
         THROW_IF(handle == NULL, -1);
         pars[0].value = handle;
-        EXEC(attacher->call_name(attacher, NULL, "__libc_dlopen_mode", pars, 1));
+        EXEC(attacher->call_name(attacher, "libattacher-builtin.so", "attacher_dlclose", pars, 1));
     } CATCH (ret) {}
 
     return ret;
@@ -359,11 +393,13 @@ static int __init(Attacher *attacher)
 
     TRY {
         // 获取进程自带或自己运行后加载lib的函数地址，需要依赖libattacher-builtin.so，
-        // 所以需要init时提前加载到目标进程。
-        path_addr = allocator_mem_zalloc(allocator, 128);
-        EXEC(dl_get_dynamic_lib_path(-1, "libattacher-builtin.so", path_addr, 128));
-        dbg_str(DBG_DETAIL, "attacher init add lib:%s", path_addr);
-        EXEC(attacher->add_lib(attacher, path_addr));
+        // 所以需要init时提前加载到目标进程。但是目前发现libc.so.6 已经没有__libc_dlopen_mode
+        // 符号了 ，所以使用attacher的前提需要改变了， 以前只需要bin里面带dl库，现在需要加载
+        // libattacher-builtin.so， 所有这部分不需要了， 因为bin必须要带该库， 不需要init加载了。
+        // path_addr = allocator_mem_zalloc(allocator, 128);
+        // EXEC(dl_get_dynamic_lib_path(-1, "libattacher-builtin.so", path_addr, 128));
+        // dbg_str(DBG_DETAIL, "attacher init add lib:%s", path_addr);
+        // EXEC(attacher->add_lib(attacher, path_addr));
 
         app = get_global_application();
         snprintf(tmp, 128, "attacher_redirect_stdout_to_file(\"%s/%s\")", STR2A(app->root), "redirect.log");
@@ -392,28 +428,28 @@ static int __init(Attacher *attacher)
 }
 
 DEFINE_CLASS(Attacher,
-    CLASS_OBJ___ENTRY(Obj, parent),
-    CLASS_NFUNC_ENTRY(construct, __construct),
-    CLASS_NFUNC_ENTRY(deconstruct, __deconstrcut),
-    CLASS_VFUNC_ENTRY(attach, NULL),
-    CLASS_VFUNC_ENTRY(detach, NULL),
-    CLASS_VFUNC_ENTRY(get_remote_function_address, __get_remote_function_address),
-    CLASS_VFUNC_ENTRY(get_remote_builtin_function_address, NULL),
-    CLASS_VFUNC_ENTRY(read, NULL),
-    CLASS_VFUNC_ENTRY(write, NULL),
-    CLASS_VFUNC_ENTRY(malloc, __malloc),
-    CLASS_VFUNC_ENTRY(free, __free),
-    CLASS_VFUNC_ENTRY(call_address_with_value_pars, NULL),
-    CLASS_VFUNC_ENTRY(call_address, __call_address),
-    CLASS_VFUNC_ENTRY(call_name, __call_name),
-    CLASS_VFUNC_ENTRY(call, __call),
-    CLASS_VFUNC_ENTRY(add_lib, NULL),
-    CLASS_VFUNC_ENTRY(remove_lib, __remove_lib),
-    CLASS_VFUNC_ENTRY(alloc_stub, __alloc_stub),
-    CLASS_VFUNC_ENTRY(add_stub_hooks, __add_stub_hooks),
-    CLASS_VFUNC_ENTRY(remove_stub_hooks, __remove_stub_hooks),
-    CLASS_VFUNC_ENTRY(free_stub, __free_stub),
-    CLASS_VFUNC_ENTRY(init, __init),
-    CLASS_VFUNC_ENTRY(run, NULL),
-    CLASS_VFUNC_ENTRY(stop, NULL)
+    Class_Obj___Entry(Obj, parent),
+    Class_NFunc_Entry(construct, __construct),
+    Class_NFunc_Entry(deconstruct, __deconstrcut),
+    Class_VFunc_Entry(attach, NULL),
+    Class_VFunc_Entry(detach, NULL),
+    Class_VFunc_Entry(get_remote_function_address, __get_remote_function_address),
+    Class_VFunc_Entry(get_remote_builtin_function_address, NULL),
+    Class_VFunc_Entry(read, NULL),
+    Class_VFunc_Entry(write, NULL),
+    Class_VFunc_Entry(malloc, __malloc),
+    Class_VFunc_Entry(free, __free),
+    Class_VFunc_Entry(call_address_with_value_pars, NULL),
+    Class_VFunc_Entry(call_address, __call_address),
+    Class_VFunc_Entry(call_name, __call_name),
+    Class_VFunc_Entry(call, __call),
+    Class_VFunc_Entry(add_lib, __add_lib),
+    Class_VFunc_Entry(remove_lib, __remove_lib),
+    Class_VFunc_Entry(alloc_stub, __alloc_stub),
+    Class_VFunc_Entry(add_stub_hooks, __add_stub_hooks),
+    Class_VFunc_Entry(remove_stub_hooks, __remove_stub_hooks),
+    Class_VFunc_Entry(free_stub, __free_stub),
+    Class_VFunc_Entry(init, __init),
+    Class_VFunc_Entry(run, NULL),
+    Class_VFunc_Entry(stop, NULL)
 );

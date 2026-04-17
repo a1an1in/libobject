@@ -82,18 +82,24 @@ typedef struct class_info_entry_s {
 
 
 // 类型信息初始化宏版本v3
-#define INIT_FUNC_ENTRY(type, class_name, value_name, value)                                                                         \
-    {type, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name)}
-#define INIT_VFUNC_ENTRY(class_name, value_name, value)                                                                              \
-    INIT_FUNC_ENTRY(ENTRY_TYPE_VFUNC_POINTER, class_name, value_name, value)
-#define INIT_NFUNC_ENTRY(class_name, value_name, value)                                                                              \
-    INIT_FUNC_ENTRY(ENTRY_TYPE_FUNC_POINTER, class_name, value_name, value)
-#define INIT_END___ENTRY(class_name)                                                                                                 \
-    {ENTRY_TYPE_END, #class_name, "", NULL, sizeof(class_name), 0}
-
-#define CLASS_OBJ___ENTRY(type_name, value_name) {ENTRY_TYPE_OBJ, #type_name, #value_name}
-#define CLASS_NFUNC_ENTRY(value_name, value)  INIT_FUNC_ENTRY(ENTRY_TYPE_FUNC_POINTER, __current_class_t, value_name, value)
-#define CLASS_VFUNC_ENTRY(value_name, value)  INIT_FUNC_ENTRY(ENTRY_TYPE_VFUNC_POINTER, __current_class_t, value_name, value)
+#define Class_Obj___Entry(type_name, value_name) {ENTRY_TYPE_OBJ, #type_name, #value_name}
+#define Class_End___Entry(class_name) {ENTRY_TYPE_END, #class_name, "", NULL, sizeof(class_name), 0}
+#define Class_VFunc_Entry(value_name, value) {ENTRY_TYPE_VFUNC_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(__current_class_t, value_name)}
+#define Class_Ptr___Entry(value_name, value) {ENTRY_TYPE_NORMAL_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(__current_class_t, value_name)}
+#define Class_OPtr__Entry(value_name, value) {ENTRY_TYPE_OBJ_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(__current_class_t, value_name)}
+#define Class_NFunc_Entry(value_name, value) {ENTRY_TYPE_FUNC_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(__current_class_t, value_name)}
+#define Class_S8____Entry(value_name, value) {ENTRY_TYPE_INT8_T, "", #value_name, value, sizeof(int8_t), offset_of_class(__current_class_t, value_name)}
+#define Class_U8____Entry(value_name, value) {ENTRY_TYPE_UINT8_T, "", #value_name, value, sizeof(uint8_t), offset_of_class(__current_class_t, value_name)}
+#define Class_S16___Entry(value_name, value) {ENTRY_TYPE_INT16_T, "", #value_name, value, sizeof(int16_t), offset_of_class(__current_class_t, value_name)}
+#define Class_U16___Entry(value_name, value) {ENTRY_TYPE_UINT16_T, "", #value_name, value, sizeof(uint16_t), offset_of_class(__current_class_t, value_name)}
+#define Class_S32___Entry(value_name, value) {ENTRY_TYPE_INT32_T, "", #value_name, value, sizeof(int32_t), offset_of_class(__current_class_t, value_name)}
+#define Class_U32___Entry(value_name, value) {ENTRY_TYPE_UINT32_T, "", #value_name, value, sizeof(uint32_t), offset_of_class(__current_class_t, value_name)}
+#define Class_S64___Entry(value_name, value) {ENTRY_TYPE_INT64_T, "", #value_name, value, sizeof(int64_t), offset_of_class(__current_class_t, value_name)}
+#define Class_U64___Entry(value_name, value) {ENTRY_TYPE_UINT64_T, "", #value_name, value, sizeof(uint64_t), offset_of_class(__current_class_t, value_name)}
+#define Class_Float_Entry(value_name, value) {ENTRY_TYPE_FLOAT_T, "", #value_name, value, sizeof(float), offset_of_class(__current_class_t, value_name)}
+#define Class_Dbl___Entry(value_name, value) {ENTRY_TYPE_DOUBLE_T, "", #value_name, value, sizeof(double), offset_of_class(__current_class_t, value_name)}
+#define Class_Str___Entry(value_name, value) {ENTRY_TYPE_STRING, "", #value_name, value, sizeof(void *), offset_of_class(__current_class_t, value_name)}
+#define Class_Vec___Entry(value_name, value, value_type) {ENTRY_TYPE_VECTOR, value_type, #value_name, value, sizeof(void *), offset_of_class(__current_class_t, value_name)}
 
 // 修改后的 DEFINE_CLASS：在 __VA_ARGS__ 后自动附加结束条目
 #define DEFINE_CLASS(cls, ...)                                                                                                       \
@@ -101,7 +107,7 @@ typedef struct class_info_entry_s {
 	static const char * const current_class_name = #cls;                                                                             \
 	static class_info_entry_t cls##_class_info[] = {                                                                                 \
 			__VA_ARGS__,                                                                                                             \
-			INIT_END___ENTRY(cls)                                                                                                    \
+			Class_End___Entry(cls)                                                                                                   \
 	};                                                                                                                               \
 	REGISTER_CLASS(cls, cls##_class_info)
 
@@ -110,7 +116,7 @@ typedef struct class_info_entry_s {
 	static const char * const current_class_name = #cls;                                                                             \
 	static class_info_entry_t cls##_class_info[] = {                                                                                 \
 			__VA_ARGS__,                                                                                                             \
-			INIT_END___ENTRY(cls)                                                                                                    \
+			Class_End___Entry(cls)                                                                                                   \
 	};                                                                                                                               \
 	REGISTER_APP_CMD(cls, cls##_class_info)
 

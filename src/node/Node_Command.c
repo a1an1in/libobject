@@ -198,10 +198,10 @@ static int __deconstruct(Node_Command *command)
 }
 
 DEFINE_COMMAND(Node_Command,
-    CLASS_OBJ___ENTRY(Command, parent),
-    CLASS_NFUNC_ENTRY(construct, __construct),
-    CLASS_NFUNC_ENTRY(deconstruct, __deconstruct),
-    CLASS_VFUNC_ENTRY(run_command, __run_command)
+    Class_Obj___Entry(Command, parent),
+    Class_NFunc_Entry(construct, __construct),
+    Class_NFunc_Entry(deconstruct, __deconstruct),
+    Class_VFunc_Entry(run_command, __run_command)
 );
 
 int node_command_get_global_addr(Node_Command **addr)

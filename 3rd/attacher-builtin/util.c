@@ -79,10 +79,21 @@ int attacher_free(void *addr)
     return 0;
 }
 
+void *attacher_echo(char *name, int flag)
+{
+    printf("attacher_echo %s, flag:%d\n", name, flag);
+    fflush(stdout); 
+
+    return 0;
+}
+
 void *attacher_dlopen(char *name, int flag)
 {
     void *handle = NULL;
     int i;
+
+    printf("attacher_dlopen %s, flag:%d\n", name, flag);
+    fflush(stdout); 
 
 #if (!defined(WINDOWS_USER_MODE))
     handle = dlopen(name, flag);
