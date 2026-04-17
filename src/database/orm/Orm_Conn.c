@@ -356,7 +356,7 @@ static int __query_model(Orm_Conn *conn, Model *model, char *sql_fmt, ...)
             CONTINUE_IF(strlen(STR2A(column)) == 0 || strlen(STR2A(column_name)) == 0);
 
             THROW_IF((entry = object_get_entry_of_class(model_name, STR2A(column_name))) == NULL, -1);
-            if (entry->type <= ENTRY_TYPE_UN64 && entry->type >= ENTRY_TYPE_INT8_T) {
+            if (entry->type <= ENTRY_TYPE_UINT64_T && entry->type >= ENTRY_TYPE_INT8_T) {
                 int v = strtol(STR2A(column), NULL, 10);
                 model->set(model, STR2A(column_name), &v);
             } else if(entry->type == ENTRY_TYPE_STRING) {
@@ -421,7 +421,7 @@ static int __query_table(Orm_Conn *conn, Table *table, char *sql_fmt, ...)
                  */
 
                 THROW_IF((entry = object_get_entry_of_class(model_name, STR2A(column_name))) == NULL, -1);
-                if (entry->type <= ENTRY_TYPE_UN64 && entry->type >= ENTRY_TYPE_INT8_T) {
+                if (entry->type <= ENTRY_TYPE_UINT64_T && entry->type >= ENTRY_TYPE_INT8_T) {
                     int v = strtol(STR2A(column), NULL, 10);
                     model->set(model, STR2A(column_name), &v);
                 } else if(entry->type == ENTRY_TYPE_STRING) {

@@ -159,7 +159,6 @@ static void *__get(Obj *obj, char *attrib)
             case ENTRY_TYPE_INT64_T:
             case ENTRY_TYPE_UINT64_T:
             case ENTRY_TYPE_FLOAT_T:
-            case ENTRY_TYPE_SN32:
             case ENTRY_TYPE_STRING:
             case ENTRY_TYPE_VECTOR:
             case ENTRY_TYPE_NORMAL_POINTER:
