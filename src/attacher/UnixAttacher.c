@@ -8,16 +8,6 @@
 #if (!defined(WINDOWS_USER_MODE))
 #include "UnixAttacher.h"
 
-static int __construct(UnixAttacher *attacher, char *init_str)
-{
-    return 0;
-}
-
-static int __deconstruct(UnixAttacher *attacher)
-{
-    return 0;
-}
-
 static int __attach(UnixAttacher *attacher, int pid)
 {
     int ret, stat;
@@ -43,26 +33,6 @@ static int __detach(UnixAttacher *attacher)
     } CATCH (ret) {}
 
     return ret;
-}
-
-static void *__get_remote_builtin_function_address(UnixAttacher *attacher, char *name, char *module_name)
-{
-    void *addr;
-    int ret;
-
-    TRY {
-        /* get local fuction address */
-        addr = dl_get_func_addr_by_name(name, module_name);
-        THROW_IF(addr == NULL, -1);
-        addr = dl_get_remote_function_adress(((Attacher *)attacher)->pid, module_name, addr);
-        THROW_IF(addr == NULL, -1);
-        dbg_str(DBG_VIP, "attacher get_remote_builtin_function_address, func:%s, remote address:%p", name, addr);
-    } CATCH (ret) { 
-        addr = NULL;
-        dbg_str(DBG_ERROR, "name:%s, module name:%s", name, module_name);
-    }
-
-    return addr;
 }
 
 static void *__read(UnixAttacher *attacher, void *addr, uint8_t *value, int len)
@@ -218,20 +188,12 @@ static int __stop(UnixAttacher *attacher)
 
 DEFINE_CLASS(UnixAttacher,
     Class_Obj___Entry(Attacher, parent),
-    Class_NFunc_Entry(construct, __construct),
-    Class_NFunc_Entry(deconstruct, __deconstruct),
     Class_VFunc_Entry(attach, __attach),
     Class_VFunc_Entry(detach, __detach),
     Class_VFunc_Entry(set_function_pars, __set_function_pars),
     Class_VFunc_Entry(read, __read),
     Class_VFunc_Entry(write, __write),
-    Class_VFunc_Entry(malloc, NULL),
-    Class_VFunc_Entry(free, NULL),
-    Class_VFunc_Entry(get_remote_builtin_function_address, __get_remote_builtin_function_address),
     Class_VFunc_Entry(call_address_with_value_pars, __call_address_with_value_pars),
-    Class_VFunc_Entry(call_address, NULL),
-    Class_VFunc_Entry(add_lib, NULL),
-    Class_VFunc_Entry(remove_lib, NULL),
     Class_VFunc_Entry(run, __run),
     Class_VFunc_Entry(stop, __stop)
 );

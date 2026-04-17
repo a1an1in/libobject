@@ -170,7 +170,7 @@ static int test_attacher_call_directly(Attacher *attacher, pid_t pid)
     long ret, return_value;
 
     TRY {
-        dbg_str(DBG_WIP, "test_attacher_call_directly start"); 
+        dbg_str(DBG_DETAIL, "test_attacher_call_directly start"); 
         EXEC(attacher->call(attacher, NULL, "attacher_test_with_pointer_arg(0x1234, \"test2\")", &return_value));
         THROW_IF(return_value != 0xadae, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
@@ -235,7 +235,6 @@ static int test_attacher_call_stub(Attacher *attacher, pid_t pid)
         EXEC(attacher->add_stub_hooks(attacher, stub, "attacher_test_with_pointer_arg", NULL, 
                                       "attacher_test2_with_pointer_arg", NULL, 2));
         EXEC(attacher->call(attacher, NULL, "attacher_test_with_pointer_arg(0x1234, \"test2\")", &return_value));
-        dbg_str(DBG_WIP, "attacher_test_with_pointer_arg, ret:%x", ret);
         THROW_IF(return_value != 0xadaf, -1);
         dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                 __func__, extract_filename_from_path(__FILE__), __LINE__);

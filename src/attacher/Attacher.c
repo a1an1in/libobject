@@ -141,6 +141,26 @@ static void *__get_remote_function_address(Attacher *attacher, char *lib_name, c
     return addr;
 }
 
+static void *__get_remote_builtin_function_address(Attacher *attacher, char *name, char *module_name)
+{
+    void *addr;
+    int ret;
+
+    TRY {
+        /* get local fuction address */
+        addr = dl_get_func_addr_by_name(name, module_name);
+        THROW_IF(addr == NULL, -1);
+        addr = dl_get_remote_function_adress(attacher->pid, module_name, addr);
+        THROW_IF(addr == NULL, -1);
+        dbg_str(DBG_VIP, "attacher get_remote_builtin_function_address, func:%s, remote address:%p", name, addr);
+    } CATCH (ret) { 
+        addr = NULL;
+        dbg_str(DBG_ERROR, "name:%s, module name:%s", name, module_name);
+    }
+
+    return addr;
+}
+
 /* name:call_address
  *
  * description:
@@ -434,7 +454,7 @@ DEFINE_CLASS(Attacher,
     Class_VFunc_Entry(attach, NULL),
     Class_VFunc_Entry(detach, NULL),
     Class_VFunc_Entry(get_remote_function_address, __get_remote_function_address),
-    Class_VFunc_Entry(get_remote_builtin_function_address, NULL),
+    Class_VFunc_Entry(get_remote_builtin_function_address, __get_remote_builtin_function_address),
     Class_VFunc_Entry(read, NULL),
     Class_VFunc_Entry(write, NULL),
     Class_VFunc_Entry(malloc, __malloc),
