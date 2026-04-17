@@ -61,7 +61,7 @@ static int test_strlen(TEST_ENTRY *entry, void *argc, void *argv)
 {
 
     printf("file name: %d\n", strlen("hello"));
-    return 0;
+    return 1;
 }
 REGISTER_TEST_FUNC(test_strlen);
 
