@@ -230,8 +230,13 @@ static ssize_t __send(Inet_Tcp_Socket *socket, const void *buf, size_t len, int 
     int ret;
 
     ret = send(socket->parent.fd, buf, len, flags);
-    if (ret <= 0 && errno != EWOULDBLOCK) {
-        dbg_str(NET_ERROR, "socket fd:%d send error: %s, ret:%d", socket->parent.fd, strerror(errno), ret);
+    if (ret <= 0 && (errno != EWOULDBLOCK && errno != ECONNRESET)) {
+        dbg_str(DBG_VIP, "socket fd:%d send, errorno:%d, error str:%s, ret:%d", socket->parent.fd, errno, strerror(errno), ret);
+    } else if (ret <= 0 && errno == ECONNRESET) {
+        dbg_str(DBG_VIP, "socket fd %d send errrono:%d, error str:%s, ret:%d!", socket->parent.fd, errno, strerror(errno), ret);
+        ret = -ECONNRESET;
+    } else if (ret <= 0 && errno == EWOULDBLOCK) {
+        dbg_str(DBG_DETAIL, "socket fd %d send errrono:%d, error str:%s!", socket->parent.fd, errno, strerror(errno));
     }
 
     return ret;
@@ -243,9 +248,11 @@ static ssize_t __recv(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags)
     
     ret = recv(socket->parent.fd, buf, len, flags);
     if (ret == 0) {
-        dbg_str(DBG_DETAIL, "socket fd %d has been closed by peer!", socket->parent.fd);
-    } else if (ret < 0) {
-        dbg_str(DBG_ERROR, "socket fd %d recv error:%s!", socket->parent.fd, strerror(errno));
+        dbg_str(DBG_VIP, "socket fd %d has been closed by peer!", socket->parent.fd);
+    } else if (ret < 0 && errno == ECONNRESET) { //connection reset by peer
+        dbg_str(DBG_VIP, "socket fd %d recv errrono:%d, error str:%s!", socket->parent.fd, errno, strerror(errno));
+    } else if (ret < 0 && errno != ECONNRESET) {
+        dbg_str(DBG_ERROR, "socket fd %d recv errrono:%d, error str:%s!", socket->parent.fd, errno, strerror(errno));
     }
 
     return ret;

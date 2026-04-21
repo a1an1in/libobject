@@ -7,7 +7,7 @@
 #include <libobject/net/http/Curl_Command.h>
 #include <libobject/net/http/Wget_Command.h>
 
-static int test_http_deamon_built_in_api()
+static int test_http_built_in_api()
 {
     allocator_t *allocator = allocator_get_default_instance();
     Command *command, *curl;
@@ -41,10 +41,10 @@ static int test_http_deamon_built_in_api()
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_http_deamon_built_in_api);
+REGISTER_TEST_FUNC(test_http_built_in_api);
 
 
-static int test_http_deamon_plugin_api()
+static int test_http_plugin_api()
 {
     allocator_t *allocator = allocator_get_default_instance();
     Command *command, *curl;
@@ -84,7 +84,7 @@ static int test_http_deamon_plugin_api()
     return ret;
 }
 #if (!defined(WINDOWS_USER_MODE))
-REGISTER_TEST_FUNC(test_http_deamon_plugin_api);
+REGISTER_TEST_FUNC(test_http_plugin_api);
 #endif
 
 static int test_http_wget()
@@ -119,7 +119,7 @@ REGISTER_TEST_FUNC(test_http_wget);
 static int test_http_range_request()
 {
     allocator_t *allocator = allocator_get_default_instance();
-    Command *httpd_command;
+    Command *httpd;
     int ret, i, status;
     char path[512] = {0};
     char cmd[512];
@@ -157,11 +157,11 @@ static int test_http_range_request()
         }
         
         // 启动HTTP服务器
-        httpd_command = object_new(allocator, "Httpd_Command", NULL);
-        httpd_command->set_args(httpd_command, 2, (char **)httpd_argv);
-        httpd_command->parse_args(httpd_command);
-        EXEC(httpd_command->run_option_actions(httpd_command));
-        EXEC(httpd_command->run_command(httpd_command));
+        httpd = object_new(allocator, "Httpd_Command", NULL);
+        httpd->set_args(httpd, 2, (char **)httpd_argv);
+        httpd->parse_args(httpd);
+        EXEC(httpd->run_option_actions(httpd));
+        EXEC(httpd->run_command(httpd));
         // 等待服务器启动
         sleep(2);
         
@@ -210,7 +210,7 @@ static int test_http_range_request()
     } FINALLY {
         if (test_file) fclose(test_file);
         if (fp) pclose(fp);
-        object_destroy(httpd_command);
+        object_destroy(httpd);
         
         // 清理测试文件
         snprintf(cmd, sizeof(cmd), "rm -f ~/.xtools/httpd/webroot/test_range.mp4 2>/dev/null");

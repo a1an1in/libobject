@@ -71,12 +71,9 @@ static int __http_write_file(Request *req, Response *res)
                     full_flag = 1;
                     THROW(0);
                 }
-            } else if (ret == 0) {
-                dbg_str(DBG_ERROR, "connection closed by peer during file write");
-            } else if (ret < 0) {
-                dbg_str(DBG_ERROR, "socket->send returned %d, error: %s", ret, strerror(errno));
             }
-            THROW_IF(ret <= 0, -1);
+            THROW_IF(ret == -ECONNRESET, 1); 
+            THROW_IF(ret <= 0, -1); 
 
             /* Successfully sent some data */
             res->file_bytes_written += ret;
