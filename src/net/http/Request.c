@@ -57,32 +57,6 @@ static char *__trim(char *str)
     return p;
 }
 
-static int __to_lower(char *str)
-{
-    int size = strlen(str);
-    int i;
-
-    for (i = 0; i < size; i++) {
-        if (isupper(str[i])) {
-            str[i] += 'a'-'A';
-        }
-    } 
-
-    return 1;
-}
-
-static Form_Data_Type __get_multipart_form_data_type(String *str)
-{
-    if (strstr(STR2A(str), "image") != NULL) {
-        return E_FORM_DATA_TYPE_IMAGE;
-    } else if (strstr(STR2A(str), "image") != NULL) {
-        return E_FORM_DATA_TYPE_VIDEO;
-    } else {
-        return E_FORM_DATA_TYPE_UNKNOW;
-    }
-}
-
-
 static int __construct(Request *request, char *init_str)
 {
     allocator_t *allocator = request->obj.allocator;
@@ -250,71 +224,6 @@ static int __read_form(Request *request)
     return 1;
 }
 
-static int __read_form_data(Request *request)
-{
-    Object_Chain *chain = request->chain;
-    Buffer *buffer = request->body;
-    Http_Server *server = (Http_Server *)request->server;
-    char *dir_name[E_FORM_DATA_TYPE_UNKNOW] = { "image", "video" };
-    char *regex = "filename=\"([a-z0-9A-Z_.,!&=-]+)\"";
-    char filename[MAX_FILE_NAME_LEN] = {0};
-    char path[MAX_FILE_NAME_LEN] = {0};
-    int len, start = 0, ret = 1;
-    String *str;
-    File *file;
-    Form_Data_Type form_data_type;
-
-    TRY {
-        file = chain->new(chain, "File", NULL);
-        while (buffer->get_len(buffer) > 2) {
-            len = buffer->get_needle_offset(buffer, "\r\n", 2);
-            if (len < 0) break;
-
-            str = chain->new(chain, "String", NULL);
-            THROW_IF(str == NULL, -1);
-            EXEC(buffer->read_to_string(buffer, str, len + 2));
-            __to_lower(STR2A(str));
-
-            if (str->equal(str, "\r\n") == 1) {
-                len = buffer->get_needle_offset(buffer, "\r\n--", 4);
-                snprintf(path + strlen(path), MAX_FILE_NAME_LEN, "/%s", filename);
-                dbg_str(NET_SUC, "write file len:%d, path:%s", len, path);
-                EXEC(file->open(file, path, "w+"));
-                file->write(file, buffer->addr + buffer->r_offset, len);
-                file->close(file);
-                buffer->r_offset += (len + 4);
-                request->file = file;
-                continue;
-            }
-            str->replace(str, "\r\n", "", -1);
-
-            if (strstr(STR2A(str), "content-disposition") != NULL) {
-                EXEC(str->get_substring(str, regex, 0, &start, &len));
-                THROW_IF(start > str->get_len(str), -1);
-                str->value[start + len] = '\0';
-                snprintf(filename, MAX_FILE_NAME_LEN, "%s", str->value + start);
-                dbg_str(NET_SUC, "form data filename:%s", filename);
-            } else if (strstr(STR2A(str), "content-type") != NULL) {
-                dbg_str(NET_SUC, "Line:%s", STR2A(str));
-                form_data_type = __get_multipart_form_data_type(str);
-                THROW_IF(form_data_type == E_FORM_DATA_TYPE_UNKNOW, -1);
-                snprintf(path, MAX_FILE_NAME_LEN, "%s/%s", STR2A(server->root), dir_name[form_data_type]);
-                dbg_str(NET_SUC, "path:%s", path);
-                ret = file->is_exist(file, path);
-                if (ret == 0) {
-                    EXEC(file->mkdir(file, path, 0777));
-                }
-            } else {
-                dbg_str(NET_SUC, "ignore Line:%s", STR2A(str));
-            }
-        }
-    } CATCH (ret) {
-        dbg_str(NET_ERROR, "len:%d, filename:%s", len, filename);
-        dbg_str(NET_ERROR, "str:%s", STR2A(str));
-    }
-    return ret;
-}
-
 static int __read_start_line(Request *request)
 {
     Ring_Buffer *buffer = request->buffer;
@@ -406,7 +315,7 @@ static int __read_headers(Request *request)
             value = str->get_splited_cstr(str, 1);
             key   = __trim(key);
             value = __trim(value);
-            __to_lower(key);
+            str_to_lower(key);
             dbg_str(NET_SUC, "key:%s, value:%s", key, value);
 
             headers->add(headers, key, value);
@@ -420,22 +329,7 @@ static int __read_headers(Request *request)
     return ret;
 }
 
-static int __is_body_multipart_form_data(Request *request)
-{
-    Map *headers = request->headers;
-    char *value = NULL;
-    int ret = 0;
 
-    TRY {
-        headers->search(headers, "content-type", (void **)&value);
-        THROW_IF(value == NULL, 0);
-        THROW_IF((strstr(value, "multipart/form-data") == NULL), 0);
-        THROW(1);
-    } CATCH (ret) {
-    }
-
-    return ret;
-}
 
 static int __read_body(Request *request)
 {
@@ -459,9 +353,6 @@ static int __read_body(Request *request)
         dbg_str(NET_SUC, "body wrote len = %d, body capacity=%d, "
                 "content_len =%d, want to wrote len=%d, ret = %d",
                 body->get_len(body), body->capacity, content_len, rb_len, ret);
-
-        THROW_IF(__is_body_multipart_form_data(request) == 0, 1); //如果没有form_data, 直接结束read_body
-        EXEC(__read_form_data(request)); /* 如果有form_data需要解析 */
     } CATCH (ret) {
     }
 

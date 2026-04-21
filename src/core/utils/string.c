@@ -133,3 +133,17 @@ int str_remove_spaces_around_comma(char *str)
 
     return 1;
 }
+
+int str_to_lower(char *str)
+{
+    int size = strlen(str);
+    int i;
+
+    for (i = 0; i < size; i++) {
+        if (isupper(str[i])) {
+            str[i] += 'a'-'A';
+        }
+    } 
+
+    return 1;
+}

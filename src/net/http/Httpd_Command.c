@@ -15,17 +15,6 @@
 #include <libobject/scripts/fshell/FShell.h>
 #include <libobject/concurrent/event_api.h>
 
-static int __handler_hello_world(Request *req, Response *res, void *opaque)
-{
-    char *body = "hello_world\n";
-
-    res->set_header(res, "Content-Type", "application/json");
-    res->set_body(res, body, strlen(body));
-    res->set_status_code(res, 200);
-    dbg_str(DBG_VIP,"run handler_hello_world");
-
-    return 0;
-}
 
 static int __option_version_callback(Option *option, void *opaque)
 {
@@ -76,7 +65,7 @@ static int __construct(Httpd_Command *command, char *init_str)
     command->server = server;
     command->loop_flag = 1;
 
-    server->register_handler(server, "GET", "/api/hello_world", __handler_hello_world, command);
+    http_server_register_builtin_handlers(command);
 
     c->add_option(c, "--version", "-v", "false", "display version", __option_version_callback, server);
     c->add_option(c, "--host", "-h", "", "set server ip address", __option_host_callback, server);
@@ -99,6 +88,9 @@ static int __construct(Httpd_Command *command, char *init_str)
 static int __deconstruct(Httpd_Command *command)
 {
     dbg_str(DBG_VIP, "deconstruct httpd");
+
+    http_server_deregister_handlers(command);
+
     object_destroy(command->plugins);
     object_destroy(command->server);
 
