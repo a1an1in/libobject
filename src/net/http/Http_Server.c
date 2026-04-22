@@ -415,10 +415,10 @@ static int __register_handler(Http_Server *server,
     handler_t *h = NULL;
 
     if (strcmp(method, "GET") == 0) {
-        dbg_str(DBG_INFO, "register get handler:%s", path);
+        dbg_str(NET_DETAIL, "register get handler:%s", path);
         map = server->get_handlers;
     } else if (strcmp(method, "POST") == 0) {
-        dbg_str(DBG_INFO, "register post handler:%s", path);
+        dbg_str(NET_DETAIL, "register post handler:%s", path);
         map = server->post_handlers;
     } else {
         map = server->other_handlers;
@@ -448,10 +448,10 @@ static int __deregister_handler(Http_Server *server, char *method, char *path)
     int ret;
 
     if (strcmp(method, "GET") == 0) {
-        dbg_str(DBG_INFO, "deregister get handler:%s", path);
+        dbg_str(NET_DETAIL, "deregister get handler:%s", path);
         map = server->get_handlers;
     } else if (strcmp(method, "POST") == 0) {
-        dbg_str(DBG_INFO, "deregister post handler:%s", path);
+        dbg_str(NET_DETAIL, "deregister post handler:%s", path);
         map = server->post_handlers;
     } else {
         map = server->other_handlers;

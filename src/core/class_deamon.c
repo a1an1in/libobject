@@ -130,7 +130,7 @@ int class_deamon_deregister_class(class_deamon_t *class_deamon, char *class_name
     }
 
     class_name = (uint8_t *)map_get_key(&it);
-    dbg_str(DBG_INFO, "deregister class %s", class_name);
+    dbg_str(DBG_DETAIL, "deregister class %s", class_name);
     return map_del(class_deamon->map, &it);
 }
 
