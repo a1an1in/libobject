@@ -151,7 +151,7 @@ int http_server_register_builtin_handlers(Httpd_Command *command)
     return 1;
 }
 
-int http_server_deregister_handlers(Httpd_Command *command)
+int http_server_deregister_buitin_handlers(Httpd_Command *command)
 {
     Http_Server *server = command->server;
 

@@ -89,7 +89,7 @@ static int __deconstruct(Httpd_Command *command)
 {
     dbg_str(DBG_VIP, "deconstruct httpd");
 
-    http_server_deregister_handlers(command);
+    http_server_deregister_buitin_handlers(command);
 
     object_destroy(command->plugins);
     object_destroy(command->server);

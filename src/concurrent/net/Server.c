@@ -245,7 +245,6 @@ static int __close_subsocket(Server *server, Socket *socket)
         dbg_str(NET_DETAIL, "add worker %p to leisure_list", worker);
     } else {
         dbg_str(NET_WARN, "worker %p has resigned", worker);
-        exit(-1);
     }
 
     return 1;
