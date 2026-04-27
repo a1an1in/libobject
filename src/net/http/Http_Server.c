@@ -262,7 +262,7 @@ static int __process_static_request(Http_Server *server, Request *r, Response *r
     FILE *file = NULL;
     int ret = 1;
     char *range_header = NULL;
-    handler_t *mp4_handler = NULL;
+    handler_t *range_handler = NULL;
 
     TRY {
         dbg_str(NET_VIP, "process_static_request, method:%s, uri:%s", r->method, r->uri);
@@ -283,10 +283,10 @@ static int __process_static_request(Http_Server *server, Request *r, Response *r
             // 查找MP4 Range handler
             server->get_handlers->search(server->get_handlers,
                                         "range_handler",
-                                        (void **)&mp4_handler);
-            if (mp4_handler != NULL && mp4_handler->callback != NULL) {
+                                        (void **)&range_handler);
+            if (range_handler != NULL && range_handler->callback != NULL) {
                 dbg_str(NET_VIP, "Calling range handler for file: %s", filename);
-                return mp4_handler->callback(r, resp, mp4_handler->opaque);
+                return range_handler->callback(r, resp, range_handler->opaque);
             } else {
                 resp->set_status_code(resp, 501);
                 dbg_str(NET_WARN, "Range handler not found, falling back to normal file transfer");
