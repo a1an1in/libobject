@@ -21,7 +21,7 @@ static Form_Data_Type __get_multipart_form_data_type(String *str)
 {
     if (strstr(STR2A(str), "image") != NULL) {
         return E_FORM_DATA_TYPE_IMAGE;
-    } else if (strstr(STR2A(str), "image") != NULL) {
+    } else if (strstr(STR2A(str), "video") != NULL) {
         return E_FORM_DATA_TYPE_VIDEO;
     } else {
         return E_FORM_DATA_TYPE_UNKNOW;
