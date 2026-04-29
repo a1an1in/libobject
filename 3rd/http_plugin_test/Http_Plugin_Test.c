@@ -54,7 +54,7 @@ static int __run_command(Command *command)
 
     TRY {
         dbg_str(DBG_VIP, "test plugin run, help:%d!", ((Http_Plugin_Test *)command)->help);
-        server->register_handler(server, "GET", "/api/http_plugin_test", __handler_http_plugin_test, command);
+        server->register_handler(server, "GET", "/api/http_plugin_test", NULL, __handler_http_plugin_test, NULL, command);
         dbg_str(DBG_VIP, "http test plugin registered handlers to http server!");
     } CATCH (ret) { }
 

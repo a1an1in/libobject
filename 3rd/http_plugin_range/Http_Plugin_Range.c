@@ -185,7 +185,7 @@ static int __run_command(Command *command)
 
     TRY {
         // 注册MP4 Range handler（使用特殊路径标记）
-        server->register_handler(server, "GET", "range_handler", __handler_range, command);
+        server->register_handler(server, "GET", "range_handler", NULL, __handler_range, NULL, command);
         
         dbg_str(DBG_VIP, "http mp4 plugin registered handlers to http server!");
     } CATCH (ret) { }

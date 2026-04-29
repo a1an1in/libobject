@@ -352,37 +352,50 @@ static int __process_dynamic_request(Http_Server *server, Request *r, Response *
     int (*handler_cb)(Request *, Response *, void *opaque) = NULL;
     handler_t *handler = NULL;
     wildcard_match_arg_t match_arg;
+    int ret = 1;
 
-    dbg_str(NET_VIP, "process_dynamic_request, method:%s, uri:%s", r->method, r->uri);
+    TRY {
+        dbg_str(NET_VIP, "process_dynamic_request, method:%s, uri:%s", r->method, r->uri);
+        if (strcmp(r->method, "GET") == 0) {
+            map = server->get_handlers;
+        } else if (strcmp(r->method, "POST") == 0) {
+            map = server->post_handlers;
+        } else {
+            map = server->other_handlers;
+        }
 
-    if (strcmp(r->method, "GET") == 0) {
-        map = server->get_handlers;
-    } else if (strcmp(r->method, "POST") == 0) {
-        map = server->post_handlers;
-    } else {
-        map = server->other_handlers;
-    }
+        /* 先尝试精确匹配 */
+        map->search(map, r->uri, (void **)&handler);
+        if (handler == NULL) { /* 精确匹配失败，尝试通配符匹配 */
+            match_arg.uri = r->uri;
+            match_arg.handler = NULL;
+            map->for_each_arg(map, __wildcard_match_callback, &match_arg);
+            handler = match_arg.handler;
+        }
 
-    /* 先尝试精确匹配 */
-    map->search(map, r->uri, (void **)&handler);
-    if (handler == NULL) { /* 精确匹配失败，尝试通配符匹配 */
-        match_arg.uri = r->uri;
-        match_arg.handler = NULL;
-        map->for_each_arg(map, __wildcard_match_callback, &match_arg);
-        handler = match_arg.handler;
-    }
+        THROW_IF(handler == NULL, -2);
 
-    if (handler) {
+        /* 调用前向回调 */
+        if (handler->pre_callback != NULL) {
+            EXEC(handler->pre_callback(r, resp, handler->opaque));
+        }
+        /* 调用主回调 */
         handler_cb = handler->callback;
-        handler_cb(r, resp, handler->opaque);
+        EXEC(handler_cb(r, resp, handler->opaque));
+        /* 调用后向回调 */
+        if (handler->post_callback != NULL) {
+            EXEC(handler->post_callback(r, resp, handler->opaque));
+        }
+    } CATCH (ret) {
+        if (ret == -2) {
+            dbg_str(NET_ERROR, "process_request, method %s, uri:%s is not supported!", r->method, r->uri);
+            handler_not_found(r, resp, server);
+        }
+    } FINALLY {
         server->response(server, r, resp);
-        return 1;
-    } else {
-        dbg_str(NET_ERROR, "process_request, method %s, uri:%s is not supported!", r->method, r->uri);
-        handler_not_found(r, resp, server);
-        server->response(server, r, resp);
-        return 1;
     }
+
+    return ret;
 }
 
 static int __process_request_cookie(Http_Server *server, Request *r, Response *resp)
@@ -449,7 +462,9 @@ static int __process_request(Http_Server *server, Request *r)
 
 static int __register_handler(Http_Server *server,
                               char *method, char *path,
+                              int (*pre_callback)(Request *, Response *, void *),
                               int (*handler)(Request *, Response *, void *),
+                              int (*post_callback)(Request *, Response *, void *),
                               void *opaque)
 {
     Map *map = NULL;
@@ -465,13 +480,20 @@ static int __register_handler(Http_Server *server,
         map = server->other_handlers;
     }
 
-    h = allocator_mem_alloc(server->obj.allocator, sizeof(handler_t));
-    h->method = method;
-    h->callback = handler;
-    h->path = path;
-    h->opaque = opaque;
+    /* 先查询是否已注册过该路径，有则更新，无则新建 */
+    map->search(map, path, (void **)&h);
+    if (h == NULL) {
+        h = allocator_mem_alloc(server->obj.allocator, sizeof(handler_t));
+        h->method = method;
+        h->path = path;
+        h->opaque = opaque;
+        map->add(map, path, h);
+        dbg_str(NET_DETAIL, "register_handler new handler, path:%s", path);
+    }
 
-    map->add(map, path, h);
+    if (handler != NULL) h->callback = handler;
+    if (pre_callback != NULL) h->pre_callback = pre_callback;
+    if (post_callback != NULL) h->post_callback = post_callback;
 
     dbg_str(NET_DETAIL, "register_handler map addr:%p, map trustee_flag=%d, map count:%d, method:%s path:%s",
             map, map->trustee_flag, map->count(map), method, path);

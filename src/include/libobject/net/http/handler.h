@@ -11,6 +11,8 @@ typedef struct handler_s{
     char *path;
     int (*callback)(Request *, Response *, void *);
     void *opaque;
+    int (*pre_callback)(Request *, Response *, void *);
+    int (*post_callback)(Request *, Response *, void *);
 } handler_t;
 
 int __handler_bad_request(Request *req, Response *res, void *opaque);

@@ -373,9 +373,9 @@ int http_server_register_builtin_handlers(Httpd_Command *command)
 {
     Http_Server *server = command->server;
 
-    server->register_handler(server, "GET", "/api/hello_world", __handler_hello_world, command);
-    server->register_handler(server, "POST", "/api/upload", __handler_upload, command);
-    server->register_handler(server, "POST", "/api/upload/*", __handler_upload_to_path, command);
+    server->register_handler(server, "GET", "/api/hello_world", NULL, __handler_hello_world, NULL, command);
+    server->register_handler(server, "POST", "/api/upload", NULL, __handler_upload, NULL, command);
+    server->register_handler(server, "POST", "/api/upload/*", NULL, __handler_upload_to_path, NULL, command);
 
     return 1;
 }

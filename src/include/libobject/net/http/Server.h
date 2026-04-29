@@ -25,7 +25,7 @@ struct http_server_s{
     /*virtual methods reimplement*/
     int (*start)(Http_Server *);
     int (*process_request)(Http_Server *hs, Request *r);
-    int (*register_handler)(Http_Server *hs, char *method, char *path, int (*handler)(Request *, Response *, void *), void *opaque);
+    int (*register_handler)(Http_Server *hs, char *method, char *path, int (*pre_callback)(Request *, Response *, void *), int (*handler)(Request *, Response *, void *), int (*post_callback)(Request *, Response *, void *), void *opaque);
     int (*deregister_handler)(Http_Server *hs, char *method, char *path);
     int (*response)(Http_Server *hs, Request *req, Response *res);
     int (*override_inner_handler)(Http_Server *server, char *key, int (*handler)(Request *, Response *, void *));
