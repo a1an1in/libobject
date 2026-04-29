@@ -1,5 +1,6 @@
 #include <math.h>
 #include <libobject/core/io/File.h>
+#include <libobject/core/io/file_system_api.h>
 #include <libobject/net/http/Client.h>
 #include <libobject/net/url/Url.h>
 #include <libobject/net/http/Server.h>
@@ -141,6 +142,129 @@ static int __handler_upload(Request *req, Response *res, void *opaque)
     return ret;
 }
 
+/*
+ * 从 multipart/form-data 中读取文件，保存到指定路径
+ * 与 __read_form_data 的区别：
+ * 1. 不依赖 content-type 判断文件类型
+ * 2. 直接保存到 upload_path 目录
+ */
+static int __read_form_data_to_path(Request *request, char *upload_path)
+{
+    Object_Chain *chain = request->chain;
+    Buffer *buffer = request->body;
+    char *regex = "filename=\"([a-z0-9A-Z_.,!&=-]+)\"";
+    char filename[MAX_FILE_NAME_LEN] = {0};
+    char path[MAX_FILE_NAME_LEN] = {0};
+    int len, start = 0, ret = 1;
+    String *str;
+    File *file;
+
+    TRY {
+        file = chain->new(chain, "File", NULL);
+        THROW_IF(file == NULL, -1);
+
+        if (!fs_is_exist(upload_path)) {
+            EXEC(fs_mkdir(upload_path, 0777));
+        }
+
+        while (buffer->get_len(buffer) > 2) {
+            len = buffer->get_needle_offset(buffer, "\r\n", 2);
+            if (len < 0) break;
+
+            str = chain->new(chain, "String", NULL);
+            THROW_IF(str == NULL, -1);
+            EXEC(buffer->read_to_string(buffer, str, len + 2));
+            str_to_lower(STR2A(str));
+
+            if (str->equal(str, "\r\n") == 1) {
+                len = buffer->get_needle_offset(buffer, "\r\n--", 4);
+                snprintf(path, MAX_FILE_NAME_LEN, "%s/%s", upload_path, filename);
+                dbg_str(NET_SUC, "write file len:%d, path:%s", len, path);
+                EXEC(file->open(file, path, "w+"));
+                file->write(file, buffer->addr + buffer->r_offset, len);
+                file->close(file);
+                buffer->r_offset += (len + 4);
+                request->file = file;
+                continue;
+            }
+            str->replace(str, "\r\n", "", -1);
+
+            if (strstr(STR2A(str), "content-disposition") != NULL) {
+                EXEC(str->get_substring(str, regex, 0, &start, &len));
+                THROW_IF(start > str->get_len(str), -1);
+                str->value[start + len] = '\0';
+                snprintf(filename, MAX_FILE_NAME_LEN, "%s", str->value + start);
+                dbg_str(NET_SUC, "form data filename:%s", filename);
+            } else {
+                dbg_str(NET_SUC, "ignore Line:%s", STR2A(str));
+            }
+        }
+    } CATCH (ret) {
+        dbg_str(NET_ERROR, "len:%d, filename:%s", len, filename);
+        dbg_str(NET_ERROR, "str:%s", STR2A(str));
+    }
+    return ret;
+}
+
+/*
+ * 上传文件到 URI 指定的路径
+ * URI 格式: POST /api/upload/{user}/{resource}/
+ * 例如: POST /api/upload/alan/res/  -> 文件保存到 {server->root}/alan/res/{filename}
+ */
+static int __handler_upload_to_path(Request *req, Response *res, void *opaque)
+{
+    Object_Chain *chain = res->chain;
+    Http_Server *server = (Http_Server *)req->server;
+    int ret = 1, start = 0, len = 0;
+    char regex[1024] = {0};
+    char body[1024] = {0};
+    char upload_path[MAX_FILE_NAME_LEN] = {0};
+    char relative_path[MAX_FILE_NAME_LEN] = {0};
+    String *str;
+
+    TRY {
+        THROW_IF(__is_body_multipart_form_data(req) == 0, -1);
+
+        // 从 URI 中提取路径参数：/api/upload/{user}/{resource}/
+        // 例如 /api/upload/alan/res/  -> 提取 alan/res
+        str = chain->new(chain, "String", NULL);
+        str->assign(str, (char *)req->uri);
+        str->replace(str, "/api/upload/", "", -1);
+        // 去掉末尾的 /
+        if (STR2A(str)[str->get_len(str) - 1] == '/') {
+            str->value[str->get_len(str) - 1] = '\0';
+        }
+        snprintf(relative_path, MAX_FILE_NAME_LEN, "%s", STR2A(str));
+
+        // 设置保存路径为 server->root/{relative_path}/
+        snprintf(upload_path, MAX_FILE_NAME_LEN, "%s/%s",
+                 STR2A(server->root), relative_path);
+
+        dbg_str(DBG_VIP, "upload to path:%s", upload_path);
+
+        EXEC(__read_form_data_to_path(req, upload_path));
+
+        // 从完整路径中提取文件名（最后一个 / 之后的部分）
+        char *filename = strrchr(STR2A(req->file->name), '/');
+        if (filename != NULL) {
+            filename++;
+        } else {
+            filename = STR2A(req->file->name);
+        }
+
+        snprintf(body, 1024, "{\"retCode\":%d, \"url\":\"/%s/%s\"}",
+                 1, relative_path, filename);
+        res->set_body(res, body, strlen(body));
+        res->set_status_code(res, 200);
+        dbg_str(DBG_VIP, "upload success, path:%s", upload_path);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "upload failed");
+        res->set_status_code(res, 500);
+    }
+
+    return ret;
+}
+
 int __handler_bad_request(Request *req, Response *res, void *opaque)
 {
     char body[1024];
@@ -251,6 +375,7 @@ int http_server_register_builtin_handlers(Httpd_Command *command)
 
     server->register_handler(server, "GET", "/api/hello_world", __handler_hello_world, command);
     server->register_handler(server, "POST", "/api/upload", __handler_upload, command);
+    server->register_handler(server, "POST", "/api/upload/*", __handler_upload_to_path, command);
 
     return 1;
 }
@@ -261,6 +386,7 @@ int http_server_deregister_buitin_handlers(Httpd_Command *command)
 
     server->deregister_handler(server, "GET", "/api/hello_world");
     server->deregister_handler(server, "POST", "/api/upload");
+    server->deregister_handler(server, "POST", "/api/upload/*");
 
     return 1;
 }

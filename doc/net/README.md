@@ -25,10 +25,11 @@ curl -ksX GET https://www.yunisona.top:51080/tangerine/api/hello_world
 curl -ksX GET  https://119.4.206.26:51080/tangerine/api/http_plugin_test
 curl -X GET 127.0.0.1:8081/api/hello_world
 curl -X GET 127.0.0.1:8081/api/http_plugin_test
-curl -F "filename=@\"lamp.jpg\"" -kX POST 127.0.0.1:8081/api/upload
+curl -F "filename=@\"./res/lamp.jpg\"" -kX POST 127.0.0.1:8081/api/upload
 
 
 ./sysroot/linux/x86_64/bin/xtools httpd --log-level=0x16 -h "0.0.0.0" -s "8081"
+./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x16 -f test_http_upload
 http://127.0.0.1:8081/test2.mp4
 
 sudo tcpdump -i any -w http_8081.pcap 'port 8081'

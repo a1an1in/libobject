@@ -274,7 +274,7 @@ static int test_http_upload()
         dbg_str(DBG_INFO, "Original MD5: %s", original_md5);
         
         // 确定上传文件的路径（根据handler_builtin.c，文件保存在webroot/image/下）
-        snprintf(uploaded_path, sizeof(uploaded_path), "%s/.xtools/httpd/webroot/image/lamp.jpg", getenv("HOME"));
+        snprintf(uploaded_path, sizeof(uploaded_path), "%s/.xtools/httpd/webroot/images/lamp.jpg", getenv("HOME"));
         dbg_str(DBG_INFO, "Expected uploaded file path: %s", uploaded_path);
         
         // 检查文件是否存在
@@ -312,4 +312,98 @@ static int test_http_upload()
     return ret;
 }
 REGISTER_TEST_FUNC(test_http_upload);
+
+static int test_http_upload_to_path()
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    Command *command;
+    int ret;
+    char cmd[512];
+    char http_code[10] = {0};
+    char original_md5[33] = {0};
+    char uploaded_md5[33] = {0};
+    char uploaded_path[256] = {0};
+    FILE *fp = NULL;
+    char *argv[2] = {"httpd", "--no-loop"};
+    
+    TRY {
+        // 启动HTTP服务器
+        command = object_new(allocator, "Httpd_Command", NULL);
+        command->set_args(command, 2, (char **)argv);
+        command->parse_args(command);
+        EXEC(command->run_option_actions(command));
+        EXEC(command->run_command(command));
+        // 等待服务器启动
+        sleep(2);
+        
+        // 使用系统curl测试上传到指定路径
+        // 使用-F进行multipart/form-data上传，-w获取状态码
+        snprintf(cmd, sizeof(cmd), "curl -s -F \"file=@./res/lamp.jpg\" -X POST -o /dev/null -w '%%{http_code}' http://127.0.0.1:8081/api/upload/alan/res/");
+        fp = popen(cmd, "r");
+        THROW_IF(fp == NULL, -1);
+        
+        // 读取状态码
+        fgets(http_code, sizeof(http_code), fp);
+        pclose(fp);
+        fp = NULL;
+        
+        dbg_str(DBG_INFO, "Upload to path HTTP status code: %s", http_code);
+        THROW_IF(atoi(http_code) != 200, -1);
+        
+        // 计算原始文件的MD5
+        dbg_str(DBG_INFO, "Calculating original file MD5...");
+        snprintf(cmd, sizeof(cmd), "md5sum ./res/lamp.jpg | cut -d' ' -f1");
+        fp = popen(cmd, "r");
+        THROW_IF(fp == NULL, -1);
+        fgets(original_md5, sizeof(original_md5), fp);
+        pclose(fp);
+        fp = NULL;
+        // 去除换行符
+        original_md5[strcspn(original_md5, "\n")] = 0;
+        dbg_str(DBG_INFO, "Original MD5: %s", original_md5);
+        
+        // 确定上传文件的路径（根据__handler_upload_to_path，文件保存在webroot/alan/res/下）
+        snprintf(uploaded_path, sizeof(uploaded_path), "%s/.xtools/httpd/webroot/alan/res/lamp.jpg", getenv("HOME"));
+        dbg_str(DBG_INFO, "Expected uploaded file path: %s", uploaded_path);
+        
+        // 检查文件是否存在
+        if (access(uploaded_path, F_OK) != 0) {
+            dbg_str(DBG_ERROR, "Uploaded file not found at %s", uploaded_path);
+            THROW(-1);
+        }
+        
+        // 计算上传文件的MD5
+        dbg_str(DBG_INFO, "Calculating uploaded file MD5...");
+        snprintf(cmd, sizeof(cmd), "md5sum %s | cut -d' ' -f1", uploaded_path);
+        fp = popen(cmd, "r");
+        THROW_IF(fp == NULL, -1);
+        fgets(uploaded_md5, sizeof(uploaded_md5), fp);
+        pclose(fp);
+        fp = NULL;
+        uploaded_md5[strcspn(uploaded_md5, "\n")] = 0;
+        dbg_str(DBG_INFO, "Uploaded MD5: %s", uploaded_md5);
+        
+        // 比较MD5
+        THROW_IF(strcmp(original_md5, uploaded_md5) != 0, -1);
+        dbg_str(DBG_INFO, "MD5 matches, upload to path successful.");
+        
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "Upload to path test failed: %d", ret);
+    } FINALLY {
+        if (fp) pclose(fp);
+        object_destroy(command);
+        // 清理上传的文件和目录
+        if (uploaded_path[0] != 0) {
+            remove(uploaded_path);
+            // 尝试清理空目录
+            snprintf(cmd, sizeof(cmd), "rmdir %s/.xtools/httpd/webroot/alan/res 2>/dev/null", getenv("HOME"));
+            system(cmd);
+            snprintf(cmd, sizeof(cmd), "rmdir %s/.xtools/httpd/webroot/alan 2>/dev/null", getenv("HOME"));
+            system(cmd);
+        }
+    }
+    
+    return ret;
+}
+REGISTER_TEST_FUNC(test_http_upload_to_path);
 

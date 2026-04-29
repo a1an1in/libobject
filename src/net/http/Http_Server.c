@@ -313,11 +313,45 @@ static int __process_cgi_request(Http_Server *server, Request *r, Response *resp
     dbg_str(NET_VIP, "process_cgi_request, method:%s, uri:%s", r->method, r->uri);
 }
 
+/*
+ * 通配符匹配回调：检查注册路径是否以 "/*" 结尾，
+ * 如果是，则判断请求 URI 是否以该前缀开头且后面还有内容。
+ * 例如：注册路径 "/api/upload/*" 可以匹配 "/api/upload/alan/res/"
+ */
+typedef struct wildcard_match_arg_s {
+    char *uri;
+    handler_t *handler;
+} wildcard_match_arg_t;
+
+static void __wildcard_match_callback(void *key, void *element, void *arg)
+{
+    wildcard_match_arg_t *match_arg = (wildcard_match_arg_t *)arg;
+    char *registered_path = (char *)key;
+    int registered_len, wildcard_len;
+
+    if (match_arg->handler != NULL) return;
+
+    registered_len = strlen(registered_path);
+    /* 检查是否以 "/*" 结尾 */
+    if (registered_len < 2) return;
+    if (registered_path[registered_len - 2] != '/' ||
+        registered_path[registered_len - 1] != '*') return;
+
+    /* 前缀长度去掉 "/*" */
+    wildcard_len = registered_len - 2;
+    /* 检查请求 URI 是否以前缀开头，且后面还有内容 */
+    if (strncmp(registered_path, match_arg->uri, wildcard_len) == 0 &&
+        strlen(match_arg->uri) > wildcard_len) {
+        match_arg->handler = (handler_t *)element;
+    }
+}
+
 static int __process_dynamic_request(Http_Server *server, Request *r, Response *resp)
 {
     Map *map = NULL;
     int (*handler_cb)(Request *, Response *, void *opaque) = NULL;
     handler_t *handler = NULL;
+    wildcard_match_arg_t match_arg;
 
     dbg_str(NET_VIP, "process_dynamic_request, method:%s, uri:%s", r->method, r->uri);
 
@@ -329,7 +363,14 @@ static int __process_dynamic_request(Http_Server *server, Request *r, Response *
         map = server->other_handlers;
     }
 
+    /* 先尝试精确匹配 */
     map->search(map, r->uri, (void **)&handler);
+    if (handler == NULL) { /* 精确匹配失败，尝试通配符匹配 */
+        match_arg.uri = r->uri;
+        match_arg.handler = NULL;
+        map->for_each_arg(map, __wildcard_match_callback, &match_arg);
+        handler = match_arg.handler;
+    }
 
     if (handler) {
         handler_cb = handler->callback;

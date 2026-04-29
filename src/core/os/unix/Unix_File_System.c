@@ -66,12 +66,17 @@ static int __mkdir(Unix_File_System *fs, char *path, mode_t mode)
         for (i = 0; i < cnt; i++) {
             p = string->get_splited_cstr(string, i);
             THROW_IF(p == NULL, -1);
+            /* 跳过空段（split 对连续分隔符的处理可能产生空段） */
+            if (strlen(p) == 0) continue;
             if (i == 0 && strncmp(p, ".", strlen(p)) == 0) {
                 strcpy(tmp, p);
             } else if (i == 0 && strncmp(p, "~", strlen(p)) == 0) {
                 fs_gethome(tmp, path_len);
             } else {
-                strcat(tmp, "/");
+                /* 如果路径以 / 开头，且已在开头添加了 /，则 i==0 时不再重复添加 */
+                if (!(path[0] == '/' && i == 0)) {
+                    strcat(tmp, "/");
+                }
                 strcat(tmp, p);
             }
             
