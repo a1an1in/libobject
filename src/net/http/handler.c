@@ -256,7 +256,7 @@ static int __handler_upload_to_path(Request *req, Response *res, void *opaque)
                  1, relative_path, filename);
         res->set_body(res, body, strlen(body));
         res->set_status_code(res, 200);
-        dbg_str(DBG_VIP, "upload success, path:%s", upload_path);
+        dbg_str(DBG_VIP, "upload success, path:%s/%s", relative_path, filename);
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "upload failed");
         res->set_status_code(res, 500);

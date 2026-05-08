@@ -486,11 +486,11 @@ static int __register_handler(Http_Server *server,
         h = allocator_mem_alloc(server->obj.allocator, sizeof(handler_t));
         h->method = method;
         h->path = path;
-        h->opaque = opaque;
         map->add(map, path, h);
         dbg_str(NET_DETAIL, "register_handler new handler, path:%s", path);
     }
 
+    if (opaque != NULL) h->opaque = opaque;
     if (handler != NULL) h->callback = handler;
     if (pre_callback != NULL) h->pre_callback = pre_callback;
     if (post_callback != NULL) h->post_callback = post_callback;
