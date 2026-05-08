@@ -25,6 +25,7 @@ struct Mockery_Command_s{
 	int argc;
 	int argument_flag;
 	int function_flag;
+	char *load_lib_path;
 
 	Vector *failed_cases;
 	Vector *success_cases;

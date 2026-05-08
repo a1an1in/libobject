@@ -45,7 +45,7 @@ static int test_http_builtin_api()
 REGISTER_TEST_FUNC(test_http_builtin_api);
 
 
-static int test_http_plugin_api()
+static int test_http_plugin_test_api()
 {
     allocator_t *allocator = allocator_get_default_instance();
     Command *command, *curl;
@@ -85,7 +85,7 @@ static int test_http_plugin_api()
     return ret;
 }
 #if (!defined(WINDOWS_USER_MODE))
-REGISTER_TEST_FUNC(test_http_plugin_api);
+REGISTER_TEST_FUNC(test_http_plugin_test_api);
 #endif
 
 static int test_http_wget()
@@ -406,4 +406,3 @@ static int test_http_upload_to_path()
     return ret;
 }
 REGISTER_TEST_FUNC(test_http_upload_to_path);
-

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <dlfcn.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/Vector.h>
 #include <libobject/core/Struct_Adapter.h>
@@ -168,11 +169,31 @@ int execute_designated_cmd(Mockery_Command *command, char *func_name, int arg1, 
     return 0;
 }
 
+static int __option_load_callback(Option *option, void *opaque)
+{
+    Mockery_Command *c = (Mockery_Command *)opaque;
+    c->load_lib_path = STR2A(option->value);
+    return 1;
+}
+
 static int __run_command(Mockery_Command *command)
 {
     Vector *failed = command->failed_cases;
+    void *lib_handle = NULL;
 
     dbg_str(DBG_VIP, "mockery %s start", command->func_name);
+
+    /* 如果指定了 --load，先 dlopen 加载测试库，触发 constructor 注册测试函数 */
+    if (command->load_lib_path != NULL) {
+        dbg_str(DBG_VIP, "mockery loading test lib: %s", command->load_lib_path);
+        lib_handle = dlopen(command->load_lib_path, RTLD_NOW | RTLD_GLOBAL);
+        if (lib_handle == NULL) {
+            dbg_str(DBG_ERROR, "mockery failed to load test lib: %s, dlerror: %s",
+                    command->load_lib_path, dlerror());
+            return 0;
+        }
+        dbg_str(DBG_VIP, "mockery loaded test lib: %s", command->load_lib_path);
+    }
 
     /* -f和arg为all， 则运行所有test */
     if (command->func_name != NULL && strcmp(command->func_name, "all") == 0 && command->function_flag == 1) {
@@ -184,6 +205,10 @@ static int __run_command(Mockery_Command *command)
     /* 只指定arg， 则运行匹配的mockery cmd */
     } else if (command->argument_flag == 1 && command->function_flag != 1) {
         execute_designated_cmd(command, command->func_name, command->argc, command->argv);
+    }
+
+    if (lib_handle != NULL) {
+        dlclose(lib_handle);
     }
 
     dbg_str(DBG_WIP, "mockery %s end", command->func_name);
@@ -238,6 +263,7 @@ static int __construct(Mockery_Command *mockery, char *init_str)
     uint8_t trustee_flag = 1;
     uint8_t value_type = VALUE_TYPE_STRUCT_POINTER;
 
+    command->add_option(command, "--load", "-l", "path", "dlopen test lib before running tests", __option_load_callback, command);
     command->add_option(command, "--function", "-f", NULL, "run mockery test function", __option_mockery_function_callback, command);
     command->add_argument(command, "", "function name to exec, which can be test func or command name", __argument_action_callback, command);
     command->set(command, "/Command/name", "mockery");
