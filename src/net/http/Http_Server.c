@@ -191,7 +191,7 @@ static int __http_work_for_read_callback(void *task)
         dbg_str(NET_ERROR,"http request error end, ret=%d", read_ret);
     }
 
-    if (read_ret < 0 || (read_ret == 1 && ret != 206)) {
+    if (read_ret < 0 || (read_ret == 1 && ((Response *)req->response)->file == NULL)) {
         dbg_str(DBG_VIP, "socket fd:%d release req", req->socket->fd);
         object_destroy(req);
         t->cache = NULL;
@@ -452,7 +452,6 @@ static int __process_request(Http_Server *server, Request *r)
                 break;
         }
 
-        THROW_IF(resp->get_status_code(resp) == 206, 206);
     } CATCH (ret) {
         CATCH_SHOW_INT_PARS(DBG_ERROR);
     }
@@ -541,7 +540,7 @@ __override_inner_handler(Http_Server *server, char *key,
     return 1;
 }
 
-static int 
+static int
 __response(Http_Server *server, Request *req, Response *res)
 {
     Worker * worker = (Worker *)req->worker;
@@ -549,7 +548,6 @@ __response(Http_Server *server, Request *req, Response *res)
     if (res->file != NULL) {
         worker->adjust(worker, EV_READ | EV_WRITE | EV_PERSIST);
     }
-    sleep(1);
 
     return res->write(res);
 }

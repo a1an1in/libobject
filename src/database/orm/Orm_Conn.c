@@ -103,6 +103,9 @@ static int __insert_model(Orm_Conn *conn, Model *model)
             if (entry->type <= ENTRY_TYPE_UINT64_T && entry->type >= ENTRY_TYPE_INT8_T) {
                 sql_values->format(sql_values, 1024, "%ld", *(int32_t *)member);
                 dbg_str(DB_DETAIL, "i:%d column:%s value:%ld", i, column, *(int32_t *)member);
+            } else if(entry->type == ENTRY_TYPE_FLOAT_T) {
+                sql_values->format(sql_values, 1024, "%f", *(float *)member);
+                dbg_str(DB_DETAIL, "i:%d column:%s value:%f", i, column, *(float *)member);
             } else if(entry->type == ENTRY_TYPE_STRING) {
                 char *value;
                 value = STR2A((*((String **)member)));
@@ -239,6 +242,8 @@ static int __update_model(Orm_Conn *conn, Model *model)
             
             if (entry->type <= ENTRY_TYPE_UINT64_T && entry->type >= ENTRY_TYPE_INT8_T) {
                 sql_set->format(sql_set, 1024, "%s=%ld", STR2A(field->name), (*((uint32_t *)member)));
+            } else if(entry->type == ENTRY_TYPE_FLOAT_T) {
+                sql_set->format(sql_set, 1024, "%s=%f", STR2A(field->name), *(float *)member);
             } else if(entry->type == ENTRY_TYPE_STRING) {
                 sql_set->format(sql_set, 1024, "%s='%s'", STR2A(field->name), STR2A((*((String **)member))));
             } else if(entry->type == ENTRY_TYPE_VECTOR) {
@@ -359,6 +364,9 @@ static int __query_model(Orm_Conn *conn, Model *model, char *sql_fmt, ...)
             if (entry->type <= ENTRY_TYPE_UINT64_T && entry->type >= ENTRY_TYPE_INT8_T) {
                 int v = strtol(STR2A(column), NULL, 10);
                 model->set(model, STR2A(column_name), &v);
+            } else if(entry->type == ENTRY_TYPE_FLOAT_T) {
+                float v = strtof(STR2A(column), NULL);
+                model->set(model, STR2A(column_name), &v);
             } else if(entry->type == ENTRY_TYPE_STRING) {
                 model->set(model, STR2A(column_name), STR2A(column));
             } else if(entry->type == ENTRY_TYPE_VECTOR) {
@@ -423,6 +431,9 @@ static int __query_table(Orm_Conn *conn, Table *table, char *sql_fmt, ...)
                 THROW_IF((entry = object_get_entry_of_class(model_name, STR2A(column_name))) == NULL, -1);
                 if (entry->type <= ENTRY_TYPE_UINT64_T && entry->type >= ENTRY_TYPE_INT8_T) {
                     int v = strtol(STR2A(column), NULL, 10);
+                    model->set(model, STR2A(column_name), &v);
+                } else if(entry->type == ENTRY_TYPE_FLOAT_T) {
+                    float v = strtof(STR2A(column), NULL);
                     model->set(model, STR2A(column_name), &v);
                 } else if(entry->type == ENTRY_TYPE_STRING) {
                     model->set(model, STR2A(column_name), STR2A(column));
@@ -567,6 +578,9 @@ static int __insert_or_update_model(Orm_Conn *conn, Model *model)
             if (entry->type <= ENTRY_TYPE_UINT64_T && entry->type >= ENTRY_TYPE_INT8_T) {
                 sql_values->format(sql_values, 1024, "%lld", *(int64_t *)member);
                 dbg_str(DB_DETAIL, "column:%s value:%lld", column, *(int64_t *)member);
+            } else if(entry->type == ENTRY_TYPE_FLOAT_T) {
+                sql_values->format(sql_values, 1024, "%f", *(float *)member);
+                dbg_str(DB_DETAIL, "column:%s value:%f", column, *(float *)member);
             } else if(entry->type == ENTRY_TYPE_STRING) {
                 char *value;
                 value = STR2A((*((String **)member)));
