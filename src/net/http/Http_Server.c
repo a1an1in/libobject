@@ -265,7 +265,7 @@ static int __process_static_request(Http_Server *server, Request *r, Response *r
     handler_t *range_handler = NULL;
 
     TRY {
-        dbg_str(NET_VIP, "process_static_request, method:%s, uri:%s", r->method, r->uri);
+        dbg_str(DBG_VIP, "socket fd:%d, process_static_request, method:%s, uri:%s", r->socket->fd, r->method, r->uri);
         snprintf(filename, MAX_FILE_NAME_LEN, "%s%s",
                 server->root->get_cstr(server->root),
                 (char *)r->uri);

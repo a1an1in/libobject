@@ -362,7 +362,7 @@ static int __write_body(Response *response)
     return 0;
 }
 
-//need optimize....
+//Abandoned func
 static int __write_file(Response *response)
 {
     char buf[2048];
