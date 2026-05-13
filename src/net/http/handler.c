@@ -1,4 +1,5 @@
 #include <math.h>
+#include <string.h>
 #include <libobject/core/io/File.h>
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/net/http/Client.h>
@@ -29,6 +30,27 @@ static Form_Data_Type __get_multipart_form_data_type(String *str)
     }
 }
 
+/*
+ * 从 Content-Type header 中提取 multipart boundary 字符串
+ * Content-Type 格式: multipart/form-data; boundary=----WebKitFormBoundary
+ * 返回 boundary 值（不含前面的 --），如 "----WebKitFormBoundary"
+ * 如果提取失败，返回 NULL
+ */
+static char *__get_multipart_boundary(Map *headers)
+{
+    char *content_type = NULL;
+    char *boundary_start;
+
+    headers->search(headers, "content-type", (void **)&content_type);
+    if (content_type == NULL) return NULL;
+
+    boundary_start = strstr(content_type, "boundary=");
+    if (boundary_start == NULL) return NULL;
+
+    boundary_start += 9; // 跳过 "boundary="
+    return boundary_start;
+}
+
 static int __is_body_multipart_form_data(Request *request)
 {
     Map *headers = request->headers;
@@ -46,6 +68,28 @@ static int __is_body_multipart_form_data(Request *request)
     return ret;
 }
 
+/*
+ * 构造完整的 boundary 分隔符用于搜索文件结束位置
+ * 在 multipart 中，每个 part 结束的标记是 \r\n--{boundary}
+ * 最后一个 part 结束的标记是 \r\n--{boundary}--
+ * 这里构造 \r\n--{boundary} 用于定位 part 边界
+ * boundary 参数来自 Content-Type header 中的 boundary= 值
+ * 返回在 needle_buf 中，返回拼接后的长度
+ */
+static int __build_boundary_needle(char *boundary, char *needle_buf, int needle_len)
+{
+    int blen = strlen(boundary);
+    int total = 4 + blen; // "\r\n--" + boundary
+
+    if (total >= needle_len) return -1;
+
+    memcpy(needle_buf, "\r\n--", 4);
+    memcpy(needle_buf + 4, boundary, blen);
+    needle_buf[total] = '\0';
+
+    return total;
+}
+
 static int __read_form_data(Request *request)
 {
     Object_Chain *chain = request->chain;
@@ -55,12 +99,23 @@ static int __read_form_data(Request *request)
     char *regex = "filename=\"([a-z0-9A-Z_.,!&=-]+)\"";
     char filename[MAX_FILE_NAME_LEN] = {0};
     char path[MAX_FILE_NAME_LEN] = {0};
-    int len, start = 0, ret = 1;
+    char boundary[256] = {0};
+    char needle[512] = {0};
+    int needle_len, len, start = 0, ret = 1;
     String *str;
     File *file;
     Form_Data_Type form_data_type;
+    char *b;
 
     TRY {
+        // 从 Content-Type 中提取 boundary
+        b = __get_multipart_boundary(request->headers);
+        THROW_IF(b == NULL, -1);
+        snprintf(boundary, 256, "%s", b);
+        needle_len = __build_boundary_needle(boundary, needle, 512);
+        THROW_IF(needle_len < 0, -1);
+        dbg_str(NET_SUC, "multipart boundary=%s, needle_len=%d", boundary, needle_len);
+
         file = chain->new(chain, "File", NULL);
         while (buffer->get_len(buffer) > 2) {
             len = buffer->get_needle_offset(buffer, "\r\n", 2);
@@ -72,13 +127,14 @@ static int __read_form_data(Request *request)
             str_to_lower(STR2A(str));
 
             if (str->equal(str, "\r\n") == 1) {
-                len = buffer->get_needle_offset(buffer, "\r\n--", 4);
+                // 使用完整的 boundary 分隔符搜索，避免二进制数据中的 \r\n-- 误匹配
+                len = buffer->get_needle_offset(buffer, needle, needle_len);
                 snprintf(path + strlen(path), MAX_FILE_NAME_LEN, "/%s", filename);
                 dbg_str(NET_SUC, "write file len:%d, path:%s", len, path);
                 EXEC(file->open(file, path, "w+"));
                 file->write(file, buffer->addr + buffer->r_offset, len);
                 file->close(file);
-                buffer->r_offset += (len + 4);
+                buffer->r_offset += (len + needle_len);
                 request->file = file;
                 continue;
             }
@@ -155,11 +211,22 @@ static int __read_form_data_to_path(Request *request, char *upload_path)
     char *regex = "filename=\"([a-z0-9A-Z_.,!&=-]+)\"";
     char filename[MAX_FILE_NAME_LEN] = {0};
     char path[MAX_FILE_NAME_LEN] = {0};
-    int len, start = 0, ret = 1;
+    char boundary[256] = {0};
+    char needle[512] = {0};
+    int needle_len, len, start = 0, ret = 1;
     String *str;
     File *file;
+    char *b;
 
     TRY {
+        // 从 Content-Type 中提取 boundary
+        b = __get_multipart_boundary(request->headers);
+        THROW_IF(b == NULL, -1);
+        snprintf(boundary, 256, "%s", b);
+        needle_len = __build_boundary_needle(boundary, needle, 512);
+        THROW_IF(needle_len < 0, -1);
+        dbg_str(NET_SUC, "multipart boundary=%s, needle_len=%d", boundary, needle_len);
+
         file = chain->new(chain, "File", NULL);
         THROW_IF(file == NULL, -1);
 
@@ -177,13 +244,14 @@ static int __read_form_data_to_path(Request *request, char *upload_path)
             str_to_lower(STR2A(str));
 
             if (str->equal(str, "\r\n") == 1) {
-                len = buffer->get_needle_offset(buffer, "\r\n--", 4);
+                // 使用完整的 boundary 分隔符搜索，避免二进制数据中的 \r\n-- 误匹配
+                len = buffer->get_needle_offset(buffer, needle, needle_len);
                 snprintf(path, MAX_FILE_NAME_LEN, "%s/%s", upload_path, filename);
                 dbg_str(NET_SUC, "write file len:%d, path:%s", len, path);
                 EXEC(file->open(file, path, "w+"));
                 file->write(file, buffer->addr + buffer->r_offset, len);
                 file->close(file);
-                buffer->r_offset += (len + 4);
+                buffer->r_offset += (len + needle_len);
                 request->file = file;
                 continue;
             }
