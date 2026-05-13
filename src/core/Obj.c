@@ -354,7 +354,7 @@ int __obj_set_float_policy(Obj *obj, class_info_entry_t *entry, void *value)
 int __obj_set_double_policy(Obj *obj, class_info_entry_t *entry, void *value)
 {
     uint8_t *base = (uint8_t *)obj;
-    float *addr = (float *)(base + entry->offset);
+    double *addr = (double *)(base + entry->offset);
     *addr = *((double *)value);
 
     return 1;

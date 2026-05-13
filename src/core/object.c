@@ -294,11 +294,18 @@ __object_set(void *obj, char *type_name,
 
             if (set) {
                 if (c->type & CJSON_NUMBER) {
-                    dbg_str(OBJ_DETAIL, "set number: %s value \"%d\"", c->string, c->valueint);
-                    set(obj, c->string, &(c->valueint));
                     /*
-                     *set(obj, c->string, &(c->valuedouble));
+                     * 对于浮点数（valuedouble != valueint），传 valuedouble 地址，
+                     * 否则传 valueint 地址。这样 float/double 字段能正确获取小数部分，
+                     * 整数字段也能正常工作（整数 set policy 用 int* 解引用）。
                      */
+                    if (c->valuedouble != c->valueint) {
+                        dbg_str(OBJ_DETAIL, "set float/double: %s value \"%f\"", c->string, c->valuedouble);
+                        set(obj, c->string, &(c->valuedouble));
+                    } else {
+                        dbg_str(OBJ_DETAIL, "set number: %s value \"%d\"", c->string, c->valueint);
+                        set(obj, c->string, &(c->valueint));
+                    }
                 } else if (c->type & CJSON_STRING) {
                     /*
                      * 这里只是识别到json 字符串， 具体到属性类型在set()判断，如果属性以字符串的形式赋值，就会走这个分支。
