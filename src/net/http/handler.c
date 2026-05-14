@@ -69,23 +69,22 @@ static int __is_body_multipart_form_data(Request *request)
 }
 
 /*
- * 构造完整的 boundary 分隔符用于搜索文件结束位置
- * 在 multipart 中，每个 part 结束的标记是 \r\n--{boundary}
- * 最后一个 part 结束的标记是 \r\n--{boundary}--
- * 这里构造 \r\n--{boundary} 用于定位 part 边界
+ * 构造 multipart part 结束分隔符，用于在 body 中定位文件数据的结尾
+ * 在 multipart 中，每个 part 的结束标记是 \r\n--{boundary}
+ * 这里将 boundary 拼接成 "\r\n--{boundary}" 作为搜索串
  * boundary 参数来自 Content-Type header 中的 boundary= 值
- * 返回在 needle_buf 中，返回拼接后的长度
+ * 返回拼接后的总长度，失败返回 -1
  */
-static int __build_boundary_needle(char *boundary, char *needle_buf, int needle_len)
+static int __build_part_end_delimiter(char *boundary, char *delimiter_buf, int buf_len)
 {
     int blen = strlen(boundary);
     int total = 4 + blen; // "\r\n--" + boundary
 
-    if (total >= needle_len) return -1;
+    if (total >= buf_len) return -1;
 
-    memcpy(needle_buf, "\r\n--", 4);
-    memcpy(needle_buf + 4, boundary, blen);
-    needle_buf[total] = '\0';
+    memcpy(delimiter_buf, "\r\n--", 4);
+    memcpy(delimiter_buf + 4, boundary, blen);
+    delimiter_buf[total] = '\0';
 
     return total;
 }
@@ -100,8 +99,8 @@ static int __read_form_data(Request *request)
     char filename[MAX_FILE_NAME_LEN] = {0};
     char path[MAX_FILE_NAME_LEN] = {0};
     char boundary[256] = {0};
-    char needle[512] = {0};
-    int needle_len, len, start = 0, ret = 1;
+    char delimiter[512] = {0};
+    int delimiter_len, len, start = 0, ret = 1;
     String *str;
     File *file;
     Form_Data_Type form_data_type;
@@ -112,9 +111,9 @@ static int __read_form_data(Request *request)
         b = __get_multipart_boundary(request->headers);
         THROW_IF(b == NULL, -1);
         snprintf(boundary, 256, "%s", b);
-        needle_len = __build_boundary_needle(boundary, needle, 512);
-        THROW_IF(needle_len < 0, -1);
-        dbg_str(NET_SUC, "multipart boundary=%s, needle_len=%d", boundary, needle_len);
+        delimiter_len = __build_part_end_delimiter(boundary, delimiter, 512);
+        THROW_IF(delimiter_len < 0, -1);
+        dbg_str(NET_SUC, "multipart boundary=%s, delimiter_len=%d", boundary, delimiter_len);
 
         file = chain->new(chain, "File", NULL);
         while (buffer->get_len(buffer) > 2) {
@@ -127,14 +126,14 @@ static int __read_form_data(Request *request)
             str_to_lower(STR2A(str));
 
             if (str->equal(str, "\r\n") == 1) {
-                // 使用完整的 boundary 分隔符搜索，避免二进制数据中的 \r\n-- 误匹配
-                len = buffer->get_needle_offset(buffer, needle, needle_len);
+                // 使用完整的 part 结束分隔符搜索，避免二进制数据中的 \r\n-- 误匹配
+                len = buffer->get_needle_offset(buffer, delimiter, delimiter_len);
                 snprintf(path + strlen(path), MAX_FILE_NAME_LEN, "/%s", filename);
                 dbg_str(NET_SUC, "write file len:%d, path:%s", len, path);
                 EXEC(file->open(file, path, "w+"));
                 file->write(file, buffer->addr + buffer->r_offset, len);
                 file->close(file);
-                buffer->r_offset += (len + needle_len);
+                buffer->r_offset += (len + delimiter_len);
                 request->file = file;
                 continue;
             }
@@ -212,8 +211,8 @@ static int __read_form_data_to_path(Request *request, char *upload_path)
     char filename[MAX_FILE_NAME_LEN] = {0};
     char path[MAX_FILE_NAME_LEN] = {0};
     char boundary[256] = {0};
-    char needle[512] = {0};
-    int needle_len, len, start = 0, ret = 1;
+    char delimiter[512] = {0};
+    int delimiter_len, len, start = 0, ret = 1;
     String *str;
     File *file;
     char *b;
@@ -223,9 +222,9 @@ static int __read_form_data_to_path(Request *request, char *upload_path)
         b = __get_multipart_boundary(request->headers);
         THROW_IF(b == NULL, -1);
         snprintf(boundary, 256, "%s", b);
-        needle_len = __build_boundary_needle(boundary, needle, 512);
-        THROW_IF(needle_len < 0, -1);
-        dbg_str(NET_SUC, "multipart boundary=%s, needle_len=%d", boundary, needle_len);
+        delimiter_len = __build_part_end_delimiter(boundary, delimiter, 512);
+        THROW_IF(delimiter_len < 0, -1);
+        dbg_str(NET_SUC, "multipart boundary=%s, delimiter_len=%d", boundary, delimiter_len);
 
         file = chain->new(chain, "File", NULL);
         THROW_IF(file == NULL, -1);
@@ -244,14 +243,14 @@ static int __read_form_data_to_path(Request *request, char *upload_path)
             str_to_lower(STR2A(str));
 
             if (str->equal(str, "\r\n") == 1) {
-                // 使用完整的 boundary 分隔符搜索，避免二进制数据中的 \r\n-- 误匹配
-                len = buffer->get_needle_offset(buffer, needle, needle_len);
+                // 使用完整的 part 结束分隔符搜索，避免二进制数据中的 \r\n-- 误匹配
+                len = buffer->get_needle_offset(buffer, delimiter, delimiter_len);
                 snprintf(path, MAX_FILE_NAME_LEN, "%s/%s", upload_path, filename);
                 dbg_str(NET_SUC, "write file len:%d, path:%s", len, path);
                 EXEC(file->open(file, path, "w+"));
                 file->write(file, buffer->addr + buffer->r_offset, len);
                 file->close(file);
-                buffer->r_offset += (len + needle_len);
+                buffer->r_offset += (len + delimiter_len);
                 request->file = file;
                 continue;
             }

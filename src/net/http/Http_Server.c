@@ -163,7 +163,7 @@ static int __http_work_for_read_callback(void *task)
         req->server = server;
         t->cache = req;
     } else {
-        dbg_str(NET_SUC,"http request continue");
+        dbg_str(NET_DETAIL,"http request continue");
         req = t->cache;
     }
     req->worker = t->worker;

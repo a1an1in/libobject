@@ -159,7 +159,15 @@ static int __get_request_type(Request *request)
     Http_Server *server = (Http_Server *)request->server;
     char filename[MAX_FILE_NAME_LEN];
 
-    snprintf(filename, MAX_FILE_NAME_LEN, "%s%s", 
+    /*
+     * 非 GET 请求（POST、PUT、DELETE 等）直接视为动态请求
+     * 避免 form 上传等 API 请求因文件系统路径存在而被误判为静态请求
+     */
+    if (strcmp(request->method, "GET") != 0) {
+        return REQUEST_TYPE_DYNAMIC;
+    }
+
+    snprintf(filename, MAX_FILE_NAME_LEN, "%s%s",
              server->root->get_cstr(server->root),
              (char *)request->uri);
 
