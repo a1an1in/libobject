@@ -321,7 +321,7 @@ static char *print_number(const cjson_t *item, printbuffer *p)
             } else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9)) {
                 sprintf(str, "%e", d);
             } else {
-                sprintf(str, "%f", d);
+                sprintf(str, "%.17g", d);
             }
         }
     }

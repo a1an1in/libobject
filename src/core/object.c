@@ -459,6 +459,8 @@ int __object_dump(void *obj, char *type_name, cjson_t *object)
                        entry[i].type == ENTRY_TYPE_UINT64_T) {
             } else if (entry[i].type == ENTRY_TYPE_FLOAT_T) {
                 cjson_add_number_to_object(object, name, *((float *)value));
+            } else if (entry[i].type == ENTRY_TYPE_DOUBLE_T) {
+                cjson_add_number_to_object(object, name, *((double *)value));
             } else if (entry[i].type == ENTRY_TYPE_STRING) {
                 String *s = *(String **)value;
                 if (s != NULL)

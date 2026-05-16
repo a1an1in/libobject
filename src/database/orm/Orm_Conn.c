@@ -106,6 +106,9 @@ static int __insert_model(Orm_Conn *conn, Model *model)
             } else if(entry->type == ENTRY_TYPE_FLOAT_T) {
                 sql_values->format(sql_values, 1024, "%f", *(float *)member);
                 dbg_str(DB_DETAIL, "i:%d column:%s value:%f", i, column, *(float *)member);
+            } else if(entry->type == ENTRY_TYPE_DOUBLE_T) {
+                sql_values->format(sql_values, 1024, "%.17g", *(double *)member);
+                dbg_str(DB_DETAIL, "i:%d column:%s value:%.17g", i, column, *(double *)member);
             } else if(entry->type == ENTRY_TYPE_STRING) {
                 char *value;
                 value = STR2A((*((String **)member)));
@@ -244,6 +247,8 @@ static int __update_model(Orm_Conn *conn, Model *model)
                 sql_set->format(sql_set, 1024, "%s=%ld", STR2A(field->name), (*((uint32_t *)member)));
             } else if(entry->type == ENTRY_TYPE_FLOAT_T) {
                 sql_set->format(sql_set, 1024, "%s=%f", STR2A(field->name), *(float *)member);
+            } else if(entry->type == ENTRY_TYPE_DOUBLE_T) {
+                sql_set->format(sql_set, 1024, "%s=%.17g", STR2A(field->name), *(double *)member);
             } else if(entry->type == ENTRY_TYPE_STRING) {
                 sql_set->format(sql_set, 1024, "%s='%s'", STR2A(field->name), STR2A((*((String **)member))));
             } else if(entry->type == ENTRY_TYPE_VECTOR) {
@@ -367,6 +372,9 @@ static int __query_model(Orm_Conn *conn, Model *model, char *sql_fmt, ...)
             } else if(entry->type == ENTRY_TYPE_FLOAT_T) {
                 float v = strtof(STR2A(column), NULL);
                 model->set(model, STR2A(column_name), &v);
+            } else if(entry->type == ENTRY_TYPE_DOUBLE_T) {
+                double v = strtod(STR2A(column), NULL);
+                model->set(model, STR2A(column_name), &v);
             } else if(entry->type == ENTRY_TYPE_STRING) {
                 model->set(model, STR2A(column_name), STR2A(column));
             } else if(entry->type == ENTRY_TYPE_VECTOR) {
@@ -434,6 +442,9 @@ static int __query_table(Orm_Conn *conn, Table *table, char *sql_fmt, ...)
                     model->set(model, STR2A(column_name), &v);
                 } else if(entry->type == ENTRY_TYPE_FLOAT_T) {
                     float v = strtof(STR2A(column), NULL);
+                    model->set(model, STR2A(column_name), &v);
+                } else if(entry->type == ENTRY_TYPE_DOUBLE_T) {
+                    double v = strtod(STR2A(column), NULL);
                     model->set(model, STR2A(column_name), &v);
                 } else if(entry->type == ENTRY_TYPE_STRING) {
                     model->set(model, STR2A(column_name), STR2A(column));
@@ -581,6 +592,9 @@ static int __insert_or_update_model(Orm_Conn *conn, Model *model)
             } else if(entry->type == ENTRY_TYPE_FLOAT_T) {
                 sql_values->format(sql_values, 1024, "%f", *(float *)member);
                 dbg_str(DB_DETAIL, "column:%s value:%f", column, *(float *)member);
+            } else if(entry->type == ENTRY_TYPE_DOUBLE_T) {
+                sql_values->format(sql_values, 1024, "%.17g", *(double *)member);
+                dbg_str(DB_DETAIL, "column:%s value:%.17g", column, *(double *)member);
             } else if(entry->type == ENTRY_TYPE_STRING) {
                 char *value;
                 value = STR2A((*((String **)member)));

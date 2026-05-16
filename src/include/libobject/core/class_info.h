@@ -75,6 +75,8 @@ typedef struct class_info_entry_s {
     [id] = {ENTRY_TYPE_UINT32_T, "", #value_name, value, sizeof(uint32_t), offset_of_class(class_name, value_name), id}
 #define Init_Float_Entry(id, class_name, value_name, value)                                                                          \
     [id] = {ENTRY_TYPE_FLOAT_T, "", #value_name, value, sizeof(float), offset_of_class(class_name, value_name), id}
+#define Init_Dbl___Entry(id, class_name, value_name, value)                                                                          \
+    [id] = {ENTRY_TYPE_DOUBLE_T, "", #value_name, value, sizeof(double), offset_of_class(class_name, value_name), id}
 #define Init_Str___Entry(id, class_name, value_name, value)                                                                          \
     [id] = {ENTRY_TYPE_STRING, "", #value_name, value, sizeof(void *), offset_of_class(class_name, value_name), id}
 #define Init_Vec___Entry(id, class_name, value_name, value, value_type)                                                              \
