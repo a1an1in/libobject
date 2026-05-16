@@ -436,6 +436,17 @@ end:
 #undef MAX_TIME_LEN
 }
 
+/*
+ * 目录列表访问控制 pre_callback
+ * 默认禁止访问，设置 403 状态码并返回 -1
+ */
+static int __handler_dir_list_pre_callback(Request *req, Response *res, void *opaque)
+{
+    res->set_status_code(res, 403);
+    dbg_str(NET_WARN, "forbidden: directory listing is disabled, uri:%s", req->uri);
+    return -1;
+}
+
 int http_server_register_builtin_handlers(Httpd_Command *command)
 {
     Http_Server *server = command->server;
@@ -443,6 +454,8 @@ int http_server_register_builtin_handlers(Httpd_Command *command)
     server->register_handler(server, "GET", "/api/hello_world", NULL, __handler_hello_world, NULL, command);
     server->register_handler(server, "POST", "/api/upload", NULL, __handler_upload, NULL, command);
     server->register_handler(server, "POST", "/api/upload/*", NULL, __handler_upload_to_path, NULL, command);
+    server->register_handler(server, "GET", "/api/get_dir_list",  __handler_dir_list_pre_callback,
+                             __handler_get_directory_list, NULL, command);  //这个不是动态方法， 还是放在get hanlder的map里面。
 
     return 1;
 }
@@ -454,6 +467,7 @@ int http_server_deregister_buitin_handlers(Httpd_Command *command)
     server->deregister_handler(server, "GET", "/api/hello_world");
     server->deregister_handler(server, "POST", "/api/upload");
     server->deregister_handler(server, "POST", "/api/upload/*");
+    server->deregister_handler(server, "GET", "/api/get_dir_list");
 
     return 1;
 }

@@ -262,7 +262,8 @@ static int __process_static_request(Http_Server *server, Request *r, Response *r
     FILE *file = NULL;
     int ret = 1;
     char *range_header = NULL;
-    handler_t *range_handler = NULL;
+    handler_t *handler = NULL;
+    Map *map = server->get_handlers;
 
     TRY {
         dbg_str(DBG_VIP, "socket fd:%d, process_static_request, method:%s, uri:%s", r->socket->fd, r->method, r->uri);
@@ -273,24 +274,32 @@ static int __process_static_request(Http_Server *server, Request *r, Response *r
 
         EXEC(stat(filename, &st));
         if ((st.st_mode & S_IFMT) == S_IFDIR) {
-            __handler_get_directory_list(r, resp, server);
-            server->response(server, r, resp);
-            return 1;
+            /* 通过 /api/get_dir_list 处理目录列表请求pre_callback 做访问控制
+             *（默认返回 -1，设置 403 状态码）, callback 执行目录列表渲染
+             * 可通过 register_handler 覆盖实现自定义权限控制 */
+            EXEC(map->search(map, "/api/get_dir_list", (void **)&handler));
+            if (handler != NULL && handler->pre_callback != NULL) {
+                EXEC(handler->pre_callback(r, resp, handler->opaque));
+            }
+            if (handler != NULL && handler->callback != NULL) {
+                EXEC(handler->callback(r, resp, handler->opaque));
+            } else {
+                resp->set_status_code(resp, 403);
+            }
+            /* 无论 pre_callback 失败（返回 -1 被 EXEC 捕获）还是 callback 成功返回，
+             * 都在 FINALLY 中统一调用 server->response 发送响应 */
+            THROW(1);
         }
 
         r->headers->search(r->headers, "range", (void **)&range_header);
-        if (range_header != NULL && strstr(range_header, "bytes=") != NULL) { // 检查是否有Range头
-            // 查找MP4 Range handler
-            server->get_handlers->search(server->get_handlers,
-                                        "range_handler",
-                                        (void **)&range_handler);
-            if (range_handler != NULL && range_handler->callback != NULL) {
+        if (range_header != NULL && strstr(range_header, "bytes=") != NULL) {
+            EXEC(map->search(map, "range_handler", (void **)&handler));
+            if (handler != NULL && handler->callback != NULL) {
                 dbg_str(NET_VIP, "Calling range handler for file: %s", filename);
-                return range_handler->callback(r, resp, range_handler->opaque);
+                return handler->callback(r, resp, handler->opaque);
             } else {
                 resp->set_status_code(resp, 501);
                 dbg_str(NET_WARN, "Range handler not found, falling back to normal file transfer");
-                EXEC(server->response(server, r, resp));
                 THROW(-1);
             }
         }
@@ -300,9 +309,10 @@ static int __process_static_request(Http_Server *server, Request *r, Response *r
         resp->file = file;
         resp->content_len = st.st_size;
         resp->set_status_code(resp, 200);
-        EXEC(server->response(server, r, resp));
     } CATCH (ret) {
         dbg_str(NET_ERROR, "process_static_request, filename:%s, ret:%d", filename, ret);
+    } FINALLY {
+        server->response(server, r, resp);
     }
 
     return ret;
