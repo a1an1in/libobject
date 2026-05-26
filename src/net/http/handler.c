@@ -98,6 +98,7 @@ static int __read_form_data(Request *request)
     char *regex = "filename=\"([a-z0-9A-Z_.,!&=-]+)\"";
     char filename[MAX_FILE_NAME_LEN] = {0};
     char path[MAX_FILE_NAME_LEN] = {0};
+    char raw_line[MAX_FILE_NAME_LEN];
     char boundary[256] = {0};
     char delimiter[512] = {0};
     int delimiter_len, len, start = 0, ret = 1;
@@ -123,7 +124,6 @@ static int __read_form_data(Request *request)
             str = chain->new(chain, "String", NULL);
             THROW_IF(str == NULL, -1);
             EXEC(buffer->read_to_string(buffer, str, len + 2));
-            str_to_lower(STR2A(str));
 
             if (str->equal(str, "\r\n") == 1) {
                 // 使用完整的 part 结束分隔符搜索，避免二进制数据中的 \r\n-- 误匹配
@@ -138,8 +138,11 @@ static int __read_form_data(Request *request)
                 continue;
             }
             str->replace(str, "\r\n", "", -1);
+            snprintf(raw_line, MAX_FILE_NAME_LEN, "%s", STR2A(str));
+            str_to_lower(STR2A(str));
 
             if (strstr(STR2A(str), "content-disposition") != NULL) {
+                str->assign(str, raw_line);
                 EXEC(str->get_substring(str, regex, 0, &start, &len));
                 THROW_IF(start > str->get_len(str), -1);
                 str->value[start + len] = '\0';
@@ -210,6 +213,7 @@ static int __read_form_data_to_path(Request *request, char *upload_path)
     char *regex = "filename=\"([a-z0-9A-Z_.,!&=-]+)\"";
     char filename[MAX_FILE_NAME_LEN] = {0};
     char path[MAX_FILE_NAME_LEN] = {0};
+    char raw_line[MAX_FILE_NAME_LEN];
     char boundary[256] = {0};
     char delimiter[512] = {0};
     int delimiter_len, len, start = 0, ret = 1;
@@ -240,7 +244,6 @@ static int __read_form_data_to_path(Request *request, char *upload_path)
             str = chain->new(chain, "String", NULL);
             THROW_IF(str == NULL, -1);
             EXEC(buffer->read_to_string(buffer, str, len + 2));
-            str_to_lower(STR2A(str));
 
             if (str->equal(str, "\r\n") == 1) {
                 // 使用完整的 part 结束分隔符搜索，避免二进制数据中的 \r\n-- 误匹配
@@ -255,8 +258,11 @@ static int __read_form_data_to_path(Request *request, char *upload_path)
                 continue;
             }
             str->replace(str, "\r\n", "", -1);
+            snprintf(raw_line, MAX_FILE_NAME_LEN, "%s", STR2A(str));
+            str_to_lower(STR2A(str));
 
             if (strstr(STR2A(str), "content-disposition") != NULL) {
+                str->assign(str, raw_line);
                 EXEC(str->get_substring(str, regex, 0, &start, &len));
                 THROW_IF(start > str->get_len(str), -1);
                 str->value[start + len] = '\0';
