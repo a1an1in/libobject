@@ -300,34 +300,23 @@ static int __update_table(Orm_Conn *conn, Table *table)
     return ret;
 }
 
-static int __update(Orm_Conn *conn, char *model_name, char *json)
+static int __update(Orm_Conn *conn, char *sql_fmt, ...)
 {
-    int ret;
-    Vector *vector = NULL;
     Sql *sql = conn->sql;
-    Object_Cache *cache = sql->cache;
-    char init_data[1024] = {0};
-    String *string;
-    int count , i;
-    Model *model = NULL;
+    char sql_buffer[2048] = {0};
+    va_list ap;
+    int ret = 1;
 
     TRY {
-        snprintf(init_data, 1024, "(%s):%s", model_name, json);
-        vector = cache->new(cache, "Vector", init_data);
-        count = vector->count(vector);
-        dbg_str(DBG_DETAIL, "vector to json:%s", vector->to_json(vector));
+        va_start(ap, sql_fmt);
+        EXEC(vsnprintf(sql_buffer, 2048, sql_fmt, ap));
+        va_end(ap);
 
-        for (i = 0; i < count; i++) {
-            vector->peek_at(vector, i, (void **)&model);
-            THROW_IF(model == NULL, -1);
-
-            EXEC(__update_model(conn, model));
-            model = NULL;
-        }
-    } CATCH(ret) {
-    } FINALLY {
-        object_destroy(vector);
+        EXEC(sql->update(sql, sql_buffer));
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "update error, sql:%s", sql_buffer);
     }
+
     return ret;
 }
 
