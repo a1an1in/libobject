@@ -95,7 +95,7 @@ static int __read_form_data(Request *request)
     Buffer *buffer = request->body;
     Http_Server *server = (Http_Server *)request->server;
     char *dir_name[E_FORM_DATA_TYPE_UNKNOW] = { "images", "videos" };
-    char *regex = "filename=\"([a-z0-9A-Z_.,!&=-]+)\"";
+    char *regex = "filename=\"([^\"]+)\"";
     char filename[MAX_FILE_NAME_LEN] = {0};
     char path[MAX_FILE_NAME_LEN] = {0};
     char raw_line[MAX_FILE_NAME_LEN];
@@ -210,7 +210,7 @@ static int __read_form_data_to_path(Request *request, char *upload_path)
 {
     Object_Chain *chain = request->chain;
     Buffer *buffer = request->body;
-    char *regex = "filename=\"([a-z0-9A-Z_.,!&=-]+)\"";
+    char *regex = "filename=\"([^\"]+)\"";
     char filename[MAX_FILE_NAME_LEN] = {0};
     char path[MAX_FILE_NAME_LEN] = {0};
     char raw_line[MAX_FILE_NAME_LEN];

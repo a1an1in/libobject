@@ -134,12 +134,21 @@ static int __write(Buffer *buffer, void *src, int len)
     } else {
         capacity = buffer->capacity;
         capacity = capacity > len ? capacity : len;
-        capacity *= 2;
+        /*
+         * 大 buffer 用线性增长，避免翻倍导致内存暴增（如 980MB → 2GB）。
+         * capacity > 256MB 时，每次增加 max(len, 1MB) 而不是翻倍。
+         */
+        if (capacity > (256 * 1024 * 1024)) {
+            int grow = len > (1024 * 1024) ? len : (1024 * 1024);
+            capacity += grow;
+        } else {
+            capacity *= 2;
+        }
         new_buf = allocator_mem_alloc(allocator, capacity);
         if (new_buf == NULL) {
-            dbg_str(DBG_ERROR, "buffer alloc buf failed!");
+            dbg_str(DBG_ERROR, "buffer alloc buf failed! capacity=%d", capacity);
             return -1;
-        } 
+        }
         memset(new_buf, 0, capacity);
         buffer->capacity = capacity;
         memmove(new_buf, buffer->addr, buffer->w_offset);

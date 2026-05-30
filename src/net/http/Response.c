@@ -348,7 +348,7 @@ static int __write_body(Response *response)
         len = len > 2048 ? 2048 : len;
         ret = socket->send(socket, response->body->addr + send_len , len, 0);
         if (ret == -1) {
-            dbg_str(DBG_ERROR, "http write body error, retry");
+            dbg_str(DBG_DETAIL, "http write body error, retry");
             usleep(1000);
             continue;
         } else if (ret < 0) {
