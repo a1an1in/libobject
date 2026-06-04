@@ -671,7 +671,7 @@ static class_info_entry_t conn_class_info[] = {
     Init_Vfunc_Entry(12, Orm_Conn, query_table, __query_table),
     Init_Vfunc_Entry(13, Orm_Conn, query_model, __query_model),
     Init_Vfunc_Entry(14, Orm_Conn, close, __close),
-    Init_Vfunc_Entry(15, Orm_Conn, __insert_or_update_model, __insert_or_update_model),
+    Init_Vfunc_Entry(15, Orm_Conn, insert_or_update_model, __insert_or_update_model),
     Init_Vfunc_Entry(16, Orm_Conn, insert_or_update_table, __insert_or_update_table),
     Init_End___Entry(17, Orm_Conn),
 };

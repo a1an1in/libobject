@@ -32,7 +32,7 @@ struct Orm_Conn_s{
     int (*update)(Orm_Conn *connection, char *sql_statement, ...);
     int (*query_model)(Orm_Conn *connection, Model *model, char *sql_statement, ...);
     int (*query_table)(Orm_Conn *conn, Table *table, char *sql_fmt, ...);
-    int (*__insert_or_update_model)(Orm_Conn *connection, Model *model);
+    int (*insert_or_update_model)(Orm_Conn *connection, Model *model);
     int (*insert_or_update_table)(Orm_Conn *connection, Table *table);
 
     /*attribs*/
