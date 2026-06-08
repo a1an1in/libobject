@@ -212,5 +212,5 @@ The latest version of the library is available at [GitHub](https://github.com/a1
 If you encounter any issues or have questions, feel free to contact me via email at `a1an1in@sina.com`.
 
 ## License
-This software is licensed under the LGPL license.  
-Copyright (c) 2015-2020.
+This software is licensed under the BSD 3-Clause license.
+Copyright (c) 2015-2020, alan lin <a1an1in@sina.com>.
