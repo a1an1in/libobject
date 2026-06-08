@@ -106,7 +106,7 @@ static int __test_orm_model_operations(Orm *orm)
         user->set(user, "mobile", "15440129084");
         user->set(user, "password", "123456");
         user->set(user, "age", &age);
-        EXEC(conn->update(conn, "Test_User_Model", user->to_json(user)));
+        EXEC(conn->update(conn, "UPDATE test_user_table SET mobile='15440129084' WHERE nickname='user1'"));
 
         /* 验证是否修改成功 */
         EXEC(conn->query_model(conn, (Model *)user, "select * from test_user_table where nickname='%s';", "user1"));
@@ -246,6 +246,97 @@ static int __test_orm_merge_table(Orm *orm)
     return ret;
 }
 
+/*
+ * 测试 Orm_Conn->query 接口
+ *
+ * query 接口直接执行 SQL 并返回 JSON 字符串，
+ * 不依赖 model 字段映射，因此可以处理 JOIN 查询的额外字段。
+ *
+ * 注意：仅使用测试专用表（test_user_table, test_order_table），
+ * 不影响业务表。
+ */
+static int __test_orm_query(Orm *orm)
+{
+    Orm_Conn *conn;
+    char json_buf[4096] = {0};
+    int ret, bytes;
+
+    TRY {
+        conn = orm->get_conn(orm);
+        THROW_IF(conn == NULL, -1);
+
+        /* 创建测试订单表 */
+        EXEC(conn->exec_sql(conn, "DROP TABLE IF EXISTS test_order_table"));
+        EXEC(conn->exec_sql(conn, "CREATE TABLE test_order_table ("
+                           "id INT AUTO_INCREMENT PRIMARY KEY, "
+                           "productName VARCHAR(255), "
+                           "price DECIMAL(10,2), "
+                           "user_id INT)"));
+
+        /* 清空并插入测试用户数据 */
+        EXEC(conn->exec_sql(conn, "DELETE FROM test_user_table"));
+        EXEC(conn->exec_sql(conn, "INSERT INTO test_user_table (nickname, mobile, password, age) "
+                           "VALUES ('test_user_a', '13400000001', 'pwd1', 25), "
+                           "('test_user_b', '13400000002', 'pwd2', 30)"));
+
+        /* 插入测试订单数据 */
+        EXEC(conn->exec_sql(conn, "INSERT INTO test_order_table (productName, price, user_id) "
+                           "VALUES ('test_product_1', 99.99, 1), "
+                           "('test_product_2', 199.99, 2), "
+                           "('test_product_3', 299.99, 1)"));
+
+        /* 1. 测试简单查询 */
+        dbg_str(DBG_INFO, "test_orm_query: simple query");
+        memset(json_buf, 0, sizeof(json_buf));
+        bytes = conn->query(conn, json_buf, sizeof(json_buf),
+                            "select id, nickname, mobile from test_user_table where nickname='%s'",
+                            "test_user_a");
+        THROW_IF(bytes <= 0, -1);
+        dbg_str(DBG_INFO, "query result: %s", json_buf);
+        THROW_IF(json_buf[0] != '[', -1);
+        THROW_IF(strstr(json_buf, "nickname") == NULL, -1);
+        THROW_IF(strstr(json_buf, "mobile") == NULL, -1);
+
+        /* 2. 测试 JOIN 查询 - 这是 query_table 做不到的 */
+        dbg_str(DBG_INFO, "test_orm_query: JOIN query");
+        memset(json_buf, 0, sizeof(json_buf));
+        bytes = conn->query(conn, json_buf, sizeof(json_buf),
+                            "SELECT a.id, a.productName, a.price, "
+                            "b.nickname, b.mobile "
+                            "FROM test_order_table a "
+                            "LEFT JOIN test_user_table b ON a.user_id = b.id "
+                            "LIMIT 3");
+        THROW_IF(bytes <= 0, -1);
+        dbg_str(DBG_INFO, "JOIN query result: %s", json_buf);
+        THROW_IF(json_buf[0] != '[', -1);
+        /* 验证 JOIN 的额外字段存在 */
+        THROW_IF(strstr(json_buf, "nickname") == NULL, -1);
+        THROW_IF(strstr(json_buf, "mobile") == NULL, -1);
+        /* 验证原表字段也存在 */
+        THROW_IF(strstr(json_buf, "productName") == NULL, -1);
+
+        /* 3. 测试空结果集 */
+        dbg_str(DBG_INFO, "test_orm_query: empty result");
+        memset(json_buf, 0, sizeof(json_buf));
+        bytes = conn->query(conn, json_buf, sizeof(json_buf),
+                            "SELECT * FROM test_order_table WHERE id = -1");
+        THROW_IF(bytes <= 0, -1);
+        dbg_str(DBG_INFO, "empty result: %s", json_buf);
+        THROW_IF(strcmp(json_buf, "[]") != 0, -1);
+
+        dbg_str(DBG_INFO, "command suc, func_name = %s,  file = %s, line = %d",
+                __func__, extract_filename_from_path(__FILE__), __LINE__);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "test_orm_query failed, json_buf:%s", json_buf);
+    } FINALLY {
+        /* 清理测试订单表 */
+        conn->exec_sql(conn, "DROP TABLE IF EXISTS test_order_table");
+        orm->add_conn(orm, conn);
+    }
+
+    return ret;
+}
+
 static int test_orm_drop_test_table(Orm *orm)
 {
     Orm_Conn *conn;
@@ -268,9 +359,10 @@ static int test_orm(TEST_ENTRY *entry)
     int ret;
     
     TRY {
+        dbg_str(DBG_VIP, "run orm");
         orm = object_new(allocator, "Orm", NULL);
 
-        orm->set(orm, "host", "139.159.231.27");
+        orm->set(orm, "host", "10.10.10.115");
         orm->set(orm, "user", "root");
         orm->set(orm, "password", "123456");
         orm->set(orm, "database_name", "test");
@@ -280,6 +372,7 @@ static int test_orm(TEST_ENTRY *entry)
         EXEC(__test_orm_model_operations(orm));
         EXEC(__test_orm_table_operations(orm));;
         EXEC(__test_orm_merge_table(orm));
+        EXEC(__test_orm_query(orm));
     } CATCH (ret) {} FINALLY {
         test_orm_drop_test_table(orm);
         object_destroy(orm);

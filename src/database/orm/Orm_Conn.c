@@ -320,6 +320,26 @@ static int __update(Orm_Conn *conn, char *sql_fmt, ...)
     return ret;
 }
 
+static int __exec_sql(Orm_Conn *conn, char *sql_fmt, ...)
+{
+    Sql *sql = conn->sql;
+    char sql_buffer[2048] = {0};
+    va_list ap;
+    int ret = 1;
+
+    TRY {
+        va_start(ap, sql_fmt);
+        EXEC(vsnprintf(sql_buffer, 2048, sql_fmt, ap));
+        va_end(ap);
+
+        EXEC(sql->update(sql, sql_buffer));
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "sql error, sql:%s", sql_buffer);
+    }
+
+    return ret;
+}
+
 static int __query_model(Orm_Conn *conn, Model *model, char *sql_fmt, ...)
 {
     Sql *sql = conn->sql;
@@ -452,6 +472,51 @@ static int __query_table(Orm_Conn *conn, Table *table, char *sql_fmt, ...)
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "row_count:%d", row_count);
         dbg_str(DBG_ERROR, "query table sql:%s", sql_buffer);
+    }
+
+    return ret;
+}
+
+static int __query(Orm_Conn *conn, char *json_buf, int buf_size, char *sql_fmt, ...)
+{
+    Sql *sql = conn->sql;
+    Result *result;
+    int i, j, row_count, column_count, ret, offset = 0;
+    String *column_name, *column;
+    Row *r;
+    char sql_buffer[2048] = {0};
+    va_list ap;
+
+    TRY {
+        va_start(ap, sql_fmt);
+        EXEC(vsnprintf(sql_buffer, 2048, sql_fmt, ap));
+        va_end(ap);
+
+        ret = sql->query(sql, sql_buffer);
+        result = sql->result;
+        row_count = result->get_row_count(result);
+        column_count = result->get_column_count(result);
+
+        offset += snprintf(json_buf + offset, buf_size - offset, "[");
+        for (i = 0; i < row_count; i++) {
+            r = result->get_row(result, i);
+            if (i > 0) offset += snprintf(json_buf + offset, buf_size - offset, ",");
+            offset += snprintf(json_buf + offset, buf_size - offset, "{");
+            for (j = 0; r != NULL && j < column_count; j++) {
+                column_name = result->get_column(result, j);
+                column = r->get_column(r, j);
+                if (j > 0) offset += snprintf(json_buf + offset, buf_size - offset, ",");
+                offset += snprintf(json_buf + offset, buf_size - offset,
+                    "\"%s\":\"%s\"",
+                    column_name != NULL ? STR2A(column_name) : "",
+                    column != NULL ? STR2A(column) : "");
+            }
+            offset += snprintf(json_buf + offset, buf_size - offset, "}");
+        }
+        offset += snprintf(json_buf + offset, buf_size - offset, "]");
+        THROW(offset);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "query sql:%s", sql_buffer);
     }
 
     return ret;
@@ -668,12 +733,14 @@ static class_info_entry_t conn_class_info[] = {
     Init_Vfunc_Entry(9 , Orm_Conn, update_model, __update_model),
     Init_Vfunc_Entry(10, Orm_Conn, update_table, __update_table),
     Init_Vfunc_Entry(11, Orm_Conn, update, __update),
-    Init_Vfunc_Entry(12, Orm_Conn, query_table, __query_table),
-    Init_Vfunc_Entry(13, Orm_Conn, query_model, __query_model),
-    Init_Vfunc_Entry(14, Orm_Conn, close, __close),
-    Init_Vfunc_Entry(15, Orm_Conn, insert_or_update_model, __insert_or_update_model),
-    Init_Vfunc_Entry(16, Orm_Conn, insert_or_update_table, __insert_or_update_table),
-    Init_End___Entry(17, Orm_Conn),
+    Init_Vfunc_Entry(12, Orm_Conn, exec_sql, __exec_sql),
+    Init_Vfunc_Entry(13, Orm_Conn, query, __query),
+    Init_Vfunc_Entry(14, Orm_Conn, query_table, __query_table),
+    Init_Vfunc_Entry(15, Orm_Conn, query_model, __query_model),
+    Init_Vfunc_Entry(16, Orm_Conn, close, __close),
+    Init_Vfunc_Entry(17, Orm_Conn, insert_or_update_model, __insert_or_update_model),
+    Init_Vfunc_Entry(18, Orm_Conn, insert_or_update_table, __insert_or_update_table),
+    Init_End___Entry(19, Orm_Conn),
 };
 REGISTER_CLASS(Orm_Conn, conn_class_info);
 

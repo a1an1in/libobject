@@ -263,7 +263,7 @@ static int __construct(Mockery_Command *mockery, char *init_str)
     uint8_t trustee_flag = 1;
     uint8_t value_type = VALUE_TYPE_STRUCT_POINTER;
 
-    command->add_option(command, "--load", "-l", "path", "dlopen test lib before running tests", __option_load_callback, command);
+    command->add_option(command, "--load", "-l", "", "dlopen test lib before running tests", __option_load_callback, command);
     command->add_option(command, "--function", "-f", NULL, "run mockery test function", __option_mockery_function_callback, command);
     command->add_argument(command, "", "function name to exec, which can be test func or command name", __argument_action_callback, command);
     command->set(command, "/Command/name", "mockery");
