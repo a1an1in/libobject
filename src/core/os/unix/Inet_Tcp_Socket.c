@@ -230,11 +230,14 @@ static ssize_t __send(Inet_Tcp_Socket *socket, const void *buf, size_t len, int 
     int ret;
 
     ret = send(socket->parent.fd, buf, len, flags);
-    if (ret <= 0 && (errno != EWOULDBLOCK && errno != ECONNRESET)) {
+    if (ret <= 0 && (errno != EWOULDBLOCK && errno != ECONNRESET && errno != EPIPE)) {
         dbg_str(DBG_VIP, "socket fd:%d send, errorno:%d, error str:%s, ret:%d", socket->parent.fd, errno, strerror(errno), ret);
     } else if (ret <= 0 && errno == ECONNRESET) {
         dbg_str(DBG_VIP, "socket fd %d send errrono:%d, error str:%s, ret:%d!", socket->parent.fd, errno, strerror(errno), ret);
         ret = -ECONNRESET;
+    } else if (ret <= 0 && errno == EPIPE) {
+        dbg_str(DBG_VIP, "socket fd %d send errrono:%d, error str:%s, ret:%d!", socket->parent.fd, errno, strerror(errno), ret);
+        ret = -EPIPE;
     } else if (ret <= 0 && errno == EWOULDBLOCK) {
         dbg_str(DBG_DETAIL, "socket fd %d send errrono:%d, error str:%s!", socket->parent.fd, errno, strerror(errno));
     }
