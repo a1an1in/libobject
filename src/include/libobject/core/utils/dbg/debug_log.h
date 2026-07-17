@@ -25,14 +25,21 @@
  */
 
 typedef struct debug_log_prive{
-#define MAX_DEBUG_LOG_FILE_NAME_LEN 50
+#define MAX_DEBUG_LOG_FILE_NAME_LEN 256
 	FILE *fp;
 	char log_file_name[MAX_DEBUG_LOG_FILE_NAME_LEN];
 	/*
 	 *pthread_mutex_t log_file_lock;
 	 */
 	sync_lock_t log_file_lock;
-#undef MAX_DEBUG_LOG_FILE_NAME_LEN 
+
+	/* daily rotation fields */
+	char log_file_base[MAX_DEBUG_LOG_FILE_NAME_LEN]; /* base path without date */
+	int  rotate_on_date;                              /* 1 = rotate by date, 0 = single file */
+	int  current_year;
+	int  current_mon;
+	int  current_mday;
+#undef MAX_DEBUG_LOG_FILE_NAME_LEN
 }debug_log_prive_t;
 int log_print_regester();
 
