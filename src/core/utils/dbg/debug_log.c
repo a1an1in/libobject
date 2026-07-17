@@ -48,6 +48,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <sys/time.h>
+#include <libgen.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/dbg/debug_log.h>
 #include <libobject/core/utils/registry/registry.h>
@@ -72,6 +73,8 @@ static int log_build_date_path(debug_log_prive_t *log_priv,
 
 /*
  * Check if the date has changed. If so, close the old file and open a new one.
+ * Also update the "log" symlink so that "tail -f log" always follows the
+ * current day's file.
  * Must be called with log_file_lock held.
  */
 static void log_check_date_rotation(debug_log_prive_t *log_priv)
@@ -79,6 +82,8 @@ static void log_check_date_rotation(debug_log_prive_t *log_priv)
     struct tm *local_time;
     struct timeval tv;
     char new_path[LOG_FILE_NAME_BUF_SIZE];
+    char link_path[LOG_FILE_NAME_BUF_SIZE];
+    char link_target[LOG_FILE_NAME_BUF_SIZE];
     FILE *new_fp;
 
     if (!log_priv->rotate_on_date) {
@@ -124,7 +129,20 @@ static void log_check_date_rotation(debug_log_prive_t *log_priv)
     log_priv->current_mon   = mon;
     log_priv->current_mday  = mday;
 
-    printf("log rotated to: %s\n", log_priv->log_file_name);
+    /*
+     * Update the "log" symlink so that "tail -f log" always points to the
+     * current day's file.
+     * e.g. /home/alan/.xtools/httpd/logs/log -> log-2026-07-17
+     */
+    snprintf(link_path, sizeof(link_path), "%s/log",
+             log_priv->log_file_base);
+    snprintf(link_target, sizeof(link_target), "log-%04d-%02d-%02d",
+             year, mon, mday);
+    unlink(link_path);
+    symlink(link_target, link_path);
+
+    printf("log rotated to: %s (symlink %s -> %s)\n",
+           log_priv->log_file_name, link_path, link_target);
 }
 
 /*init log file*/
@@ -214,6 +232,24 @@ void log_print_init(debugger_t *debugger)
         exit(1);
     }
     log_priv->fp = fp;
+
+    /*
+     * Create/update the "log" symlink on startup so that
+     * "tail -f log" works immediately.
+     * e.g. /home/alan/.xtools/httpd/logs/log -> log-2026-07-17
+     */
+    if (log_priv->rotate_on_date) {
+        char link_path[LOG_FILE_NAME_BUF_SIZE];
+        char link_target[LOG_FILE_NAME_BUF_SIZE];
+        snprintf(link_path, sizeof(link_path), "%s/log",
+                 log_priv->log_file_base);
+        snprintf(link_target, sizeof(link_target), "log-%04d-%02d-%02d",
+                 log_priv->current_year,
+                 log_priv->current_mon,
+                 log_priv->current_mday);
+        unlink(link_path);
+        symlink(link_target, link_path);
+    }
 
     printf("run at here.\n");
     sync_lock_init(&log_priv->log_file_lock, debugger->lock_type);
