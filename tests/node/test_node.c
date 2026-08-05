@@ -228,6 +228,7 @@ static int __test_node_mget_pointer(Node *node)
     return ret;
 }
 
+#ifndef __aarch64__
 static int __test_node_stub(Node *node)
 {
     allocator_t *allocator = allocator_get_default_instance();
@@ -242,8 +243,8 @@ static int __test_node_stub(Node *node)
         test_func(1, 2, 3, 4, 5, 6, &g);
         THROW_IF(g != 7, -1);
 
-        EXEC(node->call_fsh(node, "%s@fsh_add_stub_hooks(%s, \"%s\", \"%s\", \"%s\", \"%s\", %d)", 
-                            "node", stub_name, "test_func", "test_print_inbound", 
+        EXEC(node->call_fsh(node, "%s@fsh_add_stub_hooks(%s, \"%s\", \"%s\", \"%s\", \"%s\", %d)",
+                            "node", stub_name, "test_func", "test_print_inbound",
                             "test_target_func", "test_print_outbound", 7));
         test_func(1, 2, 3, 4, 5, 6, &g);
         THROW_IF(g != 8, -1);
@@ -252,7 +253,7 @@ static int __test_node_stub(Node *node)
         test_func(1, 2, 3, 4, 5, 6, &g);
         THROW_IF(g != 7, -1);
 
-        dbg_str(DBG_WIP, "command suc, func_name = %s, file = %s, line = %d", 
+        dbg_str(DBG_WIP, "command suc, func_name = %s, file = %s, line = %d",
                 __func__, extract_filename_from_path(__FILE__), __LINE__);
     } CATCH (ret) { } FINALLY {
         node->mfree(node, "node", stub_name);
@@ -260,6 +261,7 @@ static int __test_node_stub(Node *node)
 
     return ret;
 }
+#endif
 
 static int __test_node_lookup(Node *node)
 {
@@ -461,7 +463,9 @@ static int test_node(TEST_ENTRY *entry)
         EXEC(__test_node_call_fsh(node));
         EXEC(__test_node_call_fsh_object_method(node));
         EXEC(__test_node_mget_pointer(node));
+#ifndef __aarch64__
         EXEC(__test_node_stub(node));
+#endif
         EXEC(__test_node_lookup(node));
 
 #if (!defined(MAC_USER_MODE)) // 目前这个case mac测试不过

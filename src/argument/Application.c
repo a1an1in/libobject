@@ -78,6 +78,25 @@ static int __option_log_level_callback(Option *option, void *opaque)
     return ret;
 }
 
+static int __option_log_type_callback(Option *option, void *opaque)
+{
+    Application *app = (Application *)opaque;
+    int type, ret;
+
+    TRY {
+        RETURN_IF(option->set_flag != 1, 0);
+        THROW_IF(option->value == NULL, -1);
+
+        type = atoi(STR2A(option->value));
+        dbg_str(DBG_VIP, "application set log type, value:%s, type:%d",
+                STR2A(option->value), type);
+
+        EXEC(debugger_set_type(debugger_gp, type));
+    } CATCH (ret) { }
+
+    return ret;
+}
+
 static int __option_root_callback(Option *option, void *opaque)
 {
     Application *app = (Application *)opaque;
@@ -99,6 +118,8 @@ static int __construct(Application *app, char *init_str)
                         __option_help_callback, app);
     command->add_option(command, "--log-level", "", "5", "setting log display level, the default value is 6.",
                         __option_log_level_callback, app);
+    command->add_option(command, "--log-type", "", "0", "setting log output type, 0=console(shell), 1=log file, 2=network.",
+                        __option_log_type_callback, app);
 #if defined(ANDROID_USER_MODE)
     root = "/data/local/tmp/.xtools";
 #else
@@ -174,7 +195,9 @@ static int __run_command(Application *app)
 
         EXEC(producer_init_default_instance());
         EXEC(event_base_init_default_instance());
+#ifndef __aarch64__
         EXEC(stub_admin_init_default_instance());
+#endif
     } CATCH (ret) { }
 
     return 0;
@@ -231,7 +254,9 @@ int libobject_destroy()
 
     TRY {
         EXEC(fshell_destroy_default_instance());
+#ifndef __aarch64__
         EXEC(stub_admin_destroy_default_instance());
+#endif
         EXEC(event_base_destroy_default_instance());
         EXEC(producer_destroy_default_instance());
         

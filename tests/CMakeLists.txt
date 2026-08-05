@@ -18,6 +18,12 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch
     list(FILTER MOUDLE_SOURCES EXCLUDE REGEX ".*/database/.*")
 endif()
 
+# aarch64 平台暂不支持 stub，排除 tests/stub 测试文件
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+    message(STATUS "aarch64 platform detected. Skipping tests/stub sources.")
+    list(FILTER MOUDLE_SOURCES EXCLUDE REGEX ".*/stub/.*")
+endif()
+
 # 将头文件和源文件合并
 file(GLOB MOUDLE_SRC
     ${MOUDLE_HEADERS}

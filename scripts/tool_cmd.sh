@@ -20,10 +20,16 @@ function do_build_linux {
             SYSROOT_DIR="../../../sysroot/linux/x86_64"
             ;;
         "arm")
-            echo "Building for ARM architecture"
+            echo "Building for 32-bit ARM architecture"
             BUILD_DIR="build/linux/arm"
             TOOLCHAIN_FILE="../../../mk/linux-arm.toolchain.cmake"
             SYSROOT_DIR="../../../sysroot/linux/arm"
+            ;;
+        "aarch64"|"arm64")
+            echo "Building for 64-bit ARM (aarch64) architecture"
+            BUILD_DIR="build/linux/aarch64"
+            TOOLCHAIN_FILE="../../../mk/linux-aarch64.toolchain.cmake"
+            SYSROOT_DIR="../../../sysroot/linux/aarch64"
             ;;
         *)
             echo "Error: Unsupported architecture: $OPTION_ARCH"
@@ -284,11 +290,17 @@ function do_release_linux {
     fi
 
     # 根据架构设置 SYSROOT_DIR
-    if [[ $OPTION_ARCH == "arm" ]]; then
-        SYSROOT_DIR="sysroot/linux/arm"
-    else
-        SYSROOT_DIR="sysroot/linux/x86_64"
-    fi
+    case $OPTION_ARCH in
+        "arm")
+            SYSROOT_DIR="sysroot/linux/arm"
+            ;;
+        "aarch64"|"arm64")
+            SYSROOT_DIR="sysroot/linux/aarch64"
+            ;;
+        *)
+            SYSROOT_DIR="sysroot/linux/x86_64"
+            ;;
+    esac
 
     # 检查必要的文件和目录
     if [ ! -d "$SYSROOT_DIR" ]; then

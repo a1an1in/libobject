@@ -36,12 +36,19 @@ To build the project on Linux, you can specify the architecture or use the defau
 # Default architecture (x86_64)
 ./devops.sh build --platform=linux
 
-# Specify architecture (x86_64 or arm)
+# Specify architecture (x86_64, arm or aarch64)
 ./devops.sh build --platform=linux --arch=x86_64
 ./devops.sh build --platform=linux --arch=arm
+./devops.sh build --platform=linux --arch=aarch64
 ```
 
-The build output will be placed in the `sysroot/linux/<architecture>` directory, where `<architecture>` is either `x86_64` or `arm`.
+The build output will be placed in the `sysroot/linux/<architecture>` directory, where `<architecture>` is one of `x86_64`, `arm` (32-bit) or `aarch64` (64-bit).
+
+**ARM 架构说明**：
+- `arm`：32 位 ARM（armv7-a，硬浮点），使用 `arm-linux-gnueabihf` 交叉编译工具链，输出到 `sysroot/linux/arm`。
+- `aarch64`（或 `arm64`）：64 位 ARM，使用 `aarch64-linux-gnu` 交叉编译工具链，输出到 `sysroot/linux/aarch64`。
+
+两种 ARM 架构使用独立的工具链文件（`mk/linux-arm.toolchain.cmake` 与 `mk/linux-aarch64.toolchain.cmake`）和独立的构建/输出目录，可共存互不影响。
 
 #### Windows
 
@@ -89,9 +96,10 @@ To create a release package for Linux, you can specify the architecture or use t
 # Default architecture (x86_64)
 ./devops.sh release --platform=linux
 
-# Specify architecture (x86_64 or arm)
+# Specify architecture (x86_64, arm or aarch64)
 ./devops.sh release --platform=linux --arch=x86_64
 ./devops.sh release --platform=linux --arch=arm
+./devops.sh release --platform=linux --arch=aarch64
 ```
 
 The release package will be created in the `packages` directory with a name like `xtools_linux_<architecture>_v<version>.tar.gz`.

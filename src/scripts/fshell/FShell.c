@@ -323,7 +323,11 @@ int fsh_variable_info_alloc(allocator_t *allocator, uint32_t value_type, char *c
             }
             case VALUE_TYPE_STUB_POINTER:
                 info = allocator_mem_alloc(allocator, sizeof(fsh_malloc_variable_info_t) + sizeof(void *));
+#ifndef __aarch64__
                 info->addr = stub_alloc();
+#else
+                info->addr = NULL;
+#endif
                 dbg_str(DBG_DETAIL, "node stub alloc %s:%p", name, info->addr);
                 info->value_type = VALUE_TYPE_STUB_POINTER;
                 strcpy(info->name, name);
@@ -357,7 +361,9 @@ int fsh_variable_info_free(allocator_t *allocator, fsh_malloc_variable_info_t *i
         }
         case VALUE_TYPE_STUB_POINTER:
             dbg_str(DBG_VIP, "node_mfree stub, name:%s, addr:%p", info->name, info->addr);
+#ifndef __aarch64__
             stub_free(info->addr);
+#endif
             allocator_mem_free(allocator, info);
             break;
         case VALUE_TYPE_OBJ_POINTER:

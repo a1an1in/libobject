@@ -67,6 +67,22 @@ debugger_t *debugger_get_global_debugger()
     return debugger_gp;
 }
 
+/*
+ * 设置调试器输出类型，用于命令行覆盖 dbg.ini 中的 debugger:type 配置。
+ * type: 0=CONSOLE(shell 打印), 1=LOG(写入日志文件), 2=NETWORK
+ */
+int debugger_set_type(debugger_t *debugger, int type)
+{
+    if (debugger == NULL || type < 0 || type >= MAX_DEBUGGER_MODULES_NUM) {
+        return -1;
+    }
+
+    debugger->debugger_type = type;
+    debugger->dbg_ops = &debugger_modules[type].dbg_ops;
+
+    return 0;
+}
+
 int debugger_set_all_businesses_level(debugger_t *debugger,int sw, int level)
 {
     dictionary *d = debugger->d;;
@@ -361,10 +377,10 @@ int debugger_constructor()
                  REGISTRY_CTOR_PRIORITY_DEBUGGER);
 #if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
     snprintf(file_name, sizeof(file_name), "%s/%s", home, ".xtools");
-    mkdir(file_name, 0x777);
+    mkdir(file_name, 0777);
 #elif defined(ANDROID_USER_MODE)
     snprintf(file_name, sizeof(file_name), "/data/local/tmp/.xtools");
-    mkdir(file_name, 0x777);
+    mkdir(file_name, 0777);
 #else
     snprintf(file_name, sizeof(file_name), "%s/%s", home, ".xtools");
     mkdir(file_name);

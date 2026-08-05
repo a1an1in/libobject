@@ -113,6 +113,7 @@ void debugger_init(debugger_t *debugger);
 void debugger_destroy(debugger_t *debugger);
 debugger_t *debugger_get_global_debugger();
 int debugger_set_all_businesses_level(debugger_t *debugger,int sw, int level);
+int debugger_set_type(debugger_t *debugger, int type);
 
 static inline const char *
 extract_filename_from_path(const char *macro)

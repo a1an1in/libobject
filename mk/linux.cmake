@@ -11,13 +11,23 @@ macro (set_cmake_evironment_variable)
         set(DATABASE_LIB "object-db")        # x86_64 平台链接 object-db
         set(MYSQL_LIB "mysqlclient")         # x86_64 平台链接 mysqlclient
         set(Z_LIB "z")                       # x86_64 平台链接 z
-    elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
-        message(STATUS "ARM platform detected.")
+        set(STUB_LIB "object-stub")          # x86_64 平台链接 object-stub
+    elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+        message(STATUS "aarch64 platform detected.")
+        set(COMPRESS_LIB "")  # aarch64 平台不链接 object-compress
+        set(ATTACHER_LIB "")  # aarch64 平台不链接 object-attacher
+        set(DATABASE_LIB "")  # aarch64 平台不链接 object-db
+        set(MYSQL_LIB "")     # aarch64 平台不链接 mysqlclient
+        set(Z_LIB "")         # aarch64 平台不链接 z
+        set(STUB_LIB "")      # aarch64 平台暂不支持 object-stub
+    elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
+        message(STATUS "32-bit ARM platform detected.")
         set(COMPRESS_LIB "")  # ARM 平台不链接 object-compress
         set(ATTACHER_LIB "")  # ARM 平台不链接 object-attacher
         set(DATABASE_LIB "")  # ARM 平台不链接 object-db
         set(MYSQL_LIB "")     # ARM 平台不链接 mysqlclient
         set(Z_LIB "")         # ARM 平台不链接 z
+        set(STUB_LIB "object-stub")  # 32 位 ARM 平台链接 object-stub
     else()
         message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_PROCESSOR}")
     endif()
@@ -35,7 +45,7 @@ macro (set_cmake_evironment_variable)
             ${COMPRESS_LIB} # 动态控制是否链接 object-compress
             object-scripts
             ${ATTACHER_LIB} # 动态控制是否链接 object-attacher
-            object-stub
+            ${STUB_LIB}     # 动态控制是否链接 object-stub
             ${DATABASE_LIB} # 动态控制是否链接 object-db
             object-net
             object-concurrent
@@ -60,7 +70,6 @@ macro (add_module_lists)
         "src/mockery"
         "src/concurrent"
         "src/core"
-        "src/stub"
         "src/encoding"
         "src/net"
         "src/node"
@@ -82,8 +91,13 @@ macro (add_module_lists)
         list(APPEND module_lists "src/attacher") # 非 ARM 平台添加 attacher
         list(APPEND module_lists "src/database") # 非 ARM 平台添加 database
         list(APPEND module_lists "src/compress") # 非 ARM 平台添加 compress
+        list(APPEND module_lists "src/stub")     # 非 ARM 平台添加 stub
+    elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+        message(STATUS "aarch64 platform detected. Skipping stub module.")
+        # aarch64 平台暂不支持 stub（stub 依赖动态加载特性，arm64 先不支持）
     else()
         message(STATUS "ARM platform detected. Skipping attacher, database, and compress modules.")
+        list(APPEND module_lists "src/stub")     # 32 位 ARM 平台添加 stub
     endif()
 
     add_subdirectories("${module_lists}")
