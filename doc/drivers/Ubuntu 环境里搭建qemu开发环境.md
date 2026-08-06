@@ -502,7 +502,7 @@ devmem 0x0b000ff0 32 0
 > **说明**：
 > - `/sys/class/uio/uio0/event` 只读当前中断计数，**不阻塞**，触发中断后计数 +1。
 > - 中断为高电平触发（`interrupts = <0 70 4>`），触发后必须写 `0x0b000ff0` 为 0 清除，否则中断持续触发。
-> - **多次中断递增验证**（计数 +2、+3 等）在 QEMU 中较复杂：`uio_pdrv_genirq` 在每次中断后自动屏蔽中断，需读 `/dev/uio0` 重新使能，且读操作是阻塞的，时序难以控制。**推荐用 case 测试 `test_fpga_wait_irq` 验证多次中断**（自动触发 + 等待 + 验证计数，已确认可靠）。
+> - **多次中断递增验证**（计数 +2、+3 等）在 QEMU 中较复杂：`uio_pdrv_genirq` 在每次中断后自动屏蔽中断，需读 `/dev/uio0` 重新使能，且读操作是阻塞的，时序难以控制。**推荐用 case 测试 `test_fpga_irq` 验证多次中断**（自动触发 + 等待 + 验证计数，已确认可靠）。
 
 #### 4.4.2 case 测试
 
@@ -517,16 +517,16 @@ export LD_LIBRARY_PATH=/mnt/lib
 
 测试通过时日志显示 `test suc, func_name = test_uio`，且 `read register[0x0] = 0xdeadbeef`。
 
-##### 中断测试（test_fpga_wait_irq，自动触发）
+##### 中断测试（test_fpga_irq，自动触发）
 
-`test_fpga_wait_irq` 测试已实现**自动触发中断**：先使能中断，再写 `0xFF0` 触发 SPI 70 中断，然后 `wait_irq` 等待并验证中断计数。运行测试即可，无需手动注入：
+`test_fpga_irq` 测试已实现**自动触发中断**：先使能中断，再写 `0xFF0` 触发 SPI 70 中断，然后 `wait_irq` 等待并验证中断计数。运行测试即可，无需手动注入：
 
 ```sh
 mkdir -p /mnt
 mount -t 9p -o trans=virtio,version=9p2000.L host0 /mnt
 ls /mnt/bin/xtools 
 export LD_LIBRARY_PATH=/mnt/lib
-/mnt/bin/xtools --log-type=0 --log-level=0x16 mockery test_fpga_wait_irq
+/mnt/bin/xtools --log-type=0 --log-level=0x16 mockery test_fpga_irq
 ```
 
 预期日志：
@@ -536,5 +536,5 @@ export LD_LIBRARY_PATH=/mnt/lib
 [INFO]-[trigger irq ok (write 0xFF0 = 1)]
 [INFO]-[wait_irq ok, irq_count:1]
 [INFO]-[disable_irq ok]
-[WIP]-[command suc, func_name = test_fpga_wait_irq, ...]
+[WIP]-[command suc, func_name = test_fpga_irq, ...]
 ```

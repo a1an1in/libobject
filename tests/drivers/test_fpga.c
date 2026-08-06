@@ -122,59 +122,77 @@ static int test_fpga_write_registers(TEST_ENTRY *entry)
 REGISTER_TEST_CMD(test_fpga_write_registers);
 
 /*
- * 测试 Fpga 中断：使能中断，wait_irq 等待中断并验证。
+ * 异步中断处理函数（即 io_worker 的 work_callback）。
+ * opaque 为 io_worker 传入的 worker，通过 ((Worker *)opaque)->opaque
+ * 获取 register_irq 时传入的用户数据（此处为 Fpga 对象）。
+ * 中断次数由 __irq_ev_callback 保存到 uio->irq_count，此处读取并打印。
+ */
+static int test_fpga_irq_handler(void *opaque)
+{
+    Worker *worker = (Worker *)opaque;
+    Fpga *fpga = (Fpga *)worker->opaque;
+    Uio *uio = (Uio *)fpga;
+
+    dbg_str(DBG_INFO, "async irq handler called ok, fpga:%p, irq_count:%u",
+            fpga, uio->irq_count);
+
+    return 0;
+}
+
+/*
+ * 测试 Fpga 异步中断：使能中断，register_irq 注册异步中断处理函数，
+ * 触发中断后由 io_worker 异步调用 handler。
  *
  * 设备树 fpga 节点配置为 SPI 70 中断（interrupts = <0 70 4>）。
  * QEMU 中新增了 vfpga 模拟设备（hw/misc/vfpga.c），映射到 0x0b000000。
  * 其中 0xFF0 为中断控制寄存器：写 bit0=1 触发中断，写 bit0=0 清除中断。
  *
  * 本测试自动触发中断：先使能中断，再写 0xFF0 触发 SPI 70 中断，
- * 然后 wait_irq 等待并验证中断计数。
+ * 然后轮询等待异步 handler 被调用。
  */
-static int test_fpga_wait_irq(TEST_ENTRY *entry)
+static int test_fpga_irq(TEST_ENTRY *entry)
 {
     int ret = 1;
+    int i;
     allocator_t *allocator = allocator_get_default_instance();
     Fpga *fpga = NULL;
-    int irq_count;
 
     TRY {
-        dbg_str(DBG_INFO, "test_fpga_wait_irq");
+        dbg_str(DBG_INFO, "test_fpga_irq");
 
         /* 1. 创建 Fpga 对象（继承 Uio） */
         fpga = object_new(allocator, "Fpga", NULL);
         THROW_IF(fpga == NULL, -1);
 
         /* 2. 打开 FPGA UIO 设备并 mmap（open_device 内部完成 open + mmap） */
-        ret = fpga->open_device(fpga, NULL);
-        THROW_IF(ret < 0, -1);
+        EXEC(fpga->open_device(fpga, NULL));
 
         /* 3. 使能中断（继承 Uio 的 enable_irq） */
-        ret = fpga->enable_irq(fpga);
-        THROW_IF(ret < 0, -1);
+        EXEC(fpga->enable_irq(fpga));
         dbg_str(DBG_INFO, "enable_irq ok");
 
-        /* 4. 写中断控制寄存器 0xFF0 触发 SPI 70 中断（bit0=1） */
-        ret = fpga->write_register(fpga, 0xFF0, 1);
-        THROW_IF(ret < 0, -1);
+        /* 4. 注册异步中断处理函数（继承 Uio 的 register_irq，基于 io_worker） */
+        EXEC(fpga->register_irq(fpga, test_fpga_irq_handler, fpga));
+        dbg_str(DBG_INFO, "register_irq ok");
+
+        /* 5. 写中断控制寄存器 0xFF0 触发 SPI 70 中断（bit0=1） */
+        EXEC(fpga->write_register(fpga, 0xFF0, 1));
         dbg_str(DBG_INFO, "trigger irq ok (write 0xFF0 = 1)");
 
-        /* 5. 等待中断（继承 Uio 的 wait_irq，超时 10 秒） */
-        irq_count = fpga->wait_irq(fpga, 10000);
-        THROW_IF(irq_count < 0, -1);
-        dbg_str(DBG_INFO, "wait_irq ok, irq_count:%d", irq_count);
+        /* 6. 轮询等待异步 handler 被调用（最多 10 秒），
+         * 中断次数由 __irq_ev_callback 保存到 uio->irq_count */
+        for (i = 0; i < 1000 && fpga->parent.irq_count == 0; i++) {
+            usleep(10000);
+        }
+        THROW_IF(fpga->parent.irq_count == 0, -1);
+        dbg_str(DBG_INFO, "async irq handled ok, irq_count:%u", fpga->parent.irq_count);
 
-        /* 6. 清除中断（写 0xFF0 = 0，高电平触发需复位） */
-        ret = fpga->write_register(fpga, 0xFF0, 0);
-        THROW_IF(ret < 0, -1);
+        /* 7. 清除中断（写 0xFF0 = 0，高电平触发需复位） */
+        EXEC(fpga->write_register(fpga, 0xFF0, 0));
 
-        /* 7. 禁用中断（继承 Uio 的 disable_irq） */
-        ret = fpga->disable_irq(fpga);
-        THROW_IF(ret < 0, -1);
+        /* 8. 禁用中断（继承 Uio 的 disable_irq） */
+        EXEC(fpga->disable_irq(fpga));
         dbg_str(DBG_INFO, "disable_irq ok");
-
-        /* 全部成功，返回成功标志 */
-        ret = 1;
     } CATCH (ret) {
         CATCH_SHOW_INT_PARS(DBG_ERROR);
     } FINALLY {
@@ -183,4 +201,4 @@ static int test_fpga_wait_irq(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_CMD(test_fpga_wait_irq);
+REGISTER_TEST_CMD(test_fpga_irq);

@@ -52,7 +52,7 @@ struct Fpga_s {
     /* FPGA interrupt interface */
     int (*enable_irq)(Fpga *fpga);
     int (*disable_irq)(Fpga *fpga);
-    int (*wait_irq)(Fpga *fpga, int timeout_ms);
+    int (*register_irq)(Fpga *fpga, uio_irq_handler_t handler, void *opaque);
 
     /*attribs*/
     char *device_name;   /* FPGA UIO 设备名，默认 "fpga" */

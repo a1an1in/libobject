@@ -20,6 +20,8 @@
 #include <poll.h>
 #include <libobject/drivers/uio/Uio.h>
 #include <libobject/core/utils/dbg/debug.h>
+#include <libobject/concurrent/worker_api.h>
+#include <libobject/concurrent/Producer.h>
 
 #define UIO_SYSFS_PATH   "/sys/class/uio"
 #define UIO_DEV_PATH     "/dev"
@@ -350,50 +352,96 @@ static int __disable_irq(Uio *uio)
 }
 
 /*
- * 等待中断：阻塞读取 /dev/uioX，返回中断计数。
- * timeout_ms < 0 表示无限等待；0 表示非阻塞；>0 表示超时毫秒。
+ * io_worker 的事件回调：/dev/uioX 可读（有中断）时被异步调用。
+ * 读取中断计数并保存到 uio->irq_count，然后调用用户注册的中断处理函数
+ * （即 worker 的 work_callback），handler 可通过 uio->irq_count 获取中断次数。
  */
-static int __wait_irq(Uio *uio, int timeout_ms)
+static void __irq_ev_callback(int fd, short event, void *arg)
 {
-    struct pollfd pfd;
+    Worker *worker = (Worker *)arg;
+    Uio *uio = (Uio *)worker->opaque;
     uint32_t irq_count = 0;
     ssize_t ret;
-    int poll_ret;
+
+    /* 读取中断计数，清除 UIO 中断状态 */
+    ret = read(uio->fd, &irq_count, sizeof(irq_count));
+    if (ret != sizeof(irq_count)) {
+        dbg_str(DBG_ERROR, "read irq failed, errno:%d(%s)",
+                errno, strerror(errno));
+        return;
+    }
+
+    /* 保存中断计数，供 handler 读取 */
+    uio->irq_count = irq_count;
+    dbg_str(DBG_DETAIL, "uio irq triggered, irq_count:%u", irq_count);
+
+    /* 调用用户注册的中断处理函数（即 worker 的 work_callback） */
+    if (worker->work_callback != NULL) {
+        worker->work_callback(worker);
+    }
+}
+
+/*
+ * 注册异步中断处理函数（基于 io_worker）。
+ * 用户注册的 handler 直接作为 io_worker 的 work_callback，
+ * 通过 io_worker 监听 /dev/uioX 的 EV_READ | EV_PERSIST 事件，
+ * 中断到来时异步调用 handler，无需阻塞等待。
+ */
+static int __register_irq(Uio *uio, uio_irq_handler_t handler, void *opaque)
+{
+    allocator_t *allocator;
+    Worker *worker;
 
     if (uio == NULL || uio->fd < 0) {
         dbg_str(DBG_ERROR, "uio not initialized");
         return -1;
     }
-
-    if (timeout_ms >= 0) {
-        pfd.fd = uio->fd;
-        pfd.events = POLLIN;
-        poll_ret = poll(&pfd, 1, timeout_ms);
-        if (poll_ret == 0) {
-            dbg_str(DBG_WARN, "wait irq timeout");
-            return -1;
-        }
-        if (poll_ret < 0) {
-            dbg_str(DBG_ERROR, "poll failed, errno:%d(%s)",
-                    errno, strerror(errno));
-            return -1;
-        }
-    }
-
-    ret = read(uio->fd, &irq_count, sizeof(irq_count));
-    if (ret != sizeof(irq_count)) {
-        dbg_str(DBG_ERROR, "read irq failed, errno:%d(%s)",
-                errno, strerror(errno));
+    if (handler == NULL) {
+        dbg_str(DBG_ERROR, "irq handler is NULL");
         return -1;
     }
 
-    return (int)irq_count;
+    /* 若已注册过，先注销旧的 io_worker */
+    if (uio->irq_worker != NULL) {
+        worker_destroy(uio->irq_worker);
+        uio->irq_worker = NULL;
+    }
+
+    uio->irq_handler = handler;
+    uio->irq_opaque  = opaque;
+
+    allocator = uio->parent.allocator;
+    worker = io_worker(allocator, uio->fd, EV_READ | EV_PERSIST,
+                       NULL, NULL,
+                       __irq_ev_callback,
+                       handler,
+                       opaque);
+    if (worker == NULL) {
+        dbg_str(DBG_ERROR, "create io_worker for uio irq failed");
+        uio->irq_handler = NULL;
+        uio->irq_opaque  = NULL;
+        return -1;
+    }
+
+    uio->irq_worker = worker;
+    dbg_str(DBG_INFO, "uio register_irq ok, worker:%p, handler:%p",
+            worker, handler);
+
+    return 0;
 }
 
 static int __close(Uio *uio)
 {
     if (uio == NULL) {
         return -1;
+    }
+
+    /* 注销异步中断 io_worker */
+    if (uio->irq_worker != NULL) {
+        worker_destroy(uio->irq_worker);
+        uio->irq_worker = NULL;
+        uio->irq_handler = NULL;
+        uio->irq_opaque = NULL;
     }
 
     if (uio->base != NULL && uio->base != MAP_FAILED) {
@@ -423,6 +471,10 @@ static int __construct(Uio *module, char *init_str)
     module->size = 0;
     module->width = 32;   /* 默认 32 位寄存器 */
     module->irq_enabled = 0;
+    module->irq_worker = NULL;
+    module->irq_handler = NULL;
+    module->irq_opaque = NULL;
+    module->irq_count = 0;
     return 0;
 }
 
@@ -449,5 +501,5 @@ DEFINE_CLASS(Uio,
     Class_VFunc_Entry(write_registers, __write_registers),
     Class_VFunc_Entry(enable_irq, __enable_irq),
     Class_VFunc_Entry(disable_irq, __disable_irq),
-    Class_VFunc_Entry(wait_irq, __wait_irq)
+    Class_VFunc_Entry(register_irq, __register_irq)
 );

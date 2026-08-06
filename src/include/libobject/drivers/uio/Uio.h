@@ -5,8 +5,16 @@
 #include <stdint.h>
 #include <sys/mman.h>
 #include <libobject/core/Obj.h>
+#include <libobject/concurrent/Worker.h>
 
 typedef struct Uio_s Uio;
+
+/*
+ * UIO 异步中断处理函数（即 io_worker 的 work_callback）。
+ * opaque 为 io_worker 传入的 worker，可通过 ((Worker *)opaque)->opaque
+ * 获取 register_irq 时传入的用户数据。
+ */
+typedef int (*uio_irq_handler_t)(void *opaque);
 
 struct Uio_s {
     Obj parent;
@@ -39,7 +47,8 @@ struct Uio_s {
     /* interrupt interface */
     int (*enable_irq)(Uio *uio);
     int (*disable_irq)(Uio *uio);
-    int (*wait_irq)(Uio *uio, int timeout_ms);
+    /* 注册异步中断处理函数（基于 io_worker），中断到来时异步调用 handler */
+    int (*register_irq)(Uio *uio, uio_irq_handler_t handler, void *opaque);
 
     /*attribs*/
     int fd;                 /* /dev/uioX file descriptor */
@@ -49,6 +58,12 @@ struct Uio_s {
     uint32_t size;          /* mapped region size in bytes */
     int width;              /* register width in bits: 32 or 64, default 32 */
     int irq_enabled;        /* whether interrupt is enabled */
+
+    /* async irq (io_worker) fields */
+    Worker *irq_worker;     /* io_worker 监听 /dev/uioX 中断事件 */
+    uio_irq_handler_t irq_handler;  /* 用户注册的中断处理函数 */
+    void *irq_opaque;       /* 传给中断处理函数的用户数据 */
+    uint32_t irq_count;     /* 最近一次中断的中断计数（供 handler 读取） */
 };
 
 #endif

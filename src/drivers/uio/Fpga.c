@@ -72,7 +72,7 @@ static int __deconstruct(Fpga *module)
 /*
  * Fpga 注册 open_device（默认设备名 "fpga"）。
  * read_register/write_register/read_registers/write_registers/
- * enable_irq/wait_irq/disable_irq 等接口 value 为 NULL，继承 Uio 的实现。
+ * enable_irq/register_irq/disable_irq 等接口 value 为 NULL，继承 Uio 的实现。
  */
 DEFINE_CLASS(Fpga,
     Class_Obj___Entry(Uio, parent),
@@ -87,5 +87,5 @@ DEFINE_CLASS(Fpga,
     Class_VFunc_Entry(write_registers, NULL),
     Class_VFunc_Entry(enable_irq, NULL),
     Class_VFunc_Entry(disable_irq, NULL),
-    Class_VFunc_Entry(wait_irq, NULL)
+    Class_VFunc_Entry(register_irq, NULL)
 );
