@@ -13,9 +13,9 @@
  * 以及寄存器读写、中断接口（复用 Uio 的实现）。
  *
  * 设备树节点示例：
- *   fpga@50000000 {
+ *   fpga@b000000 {
  *       compatible = "generic-uio";
- *       reg = <0x0 0x50000000 0x0 0x1000>;
+ *       reg = <0x0 0xb000000 0x0 0x1000>;
  *       interrupts = <0 70 4>;
  *       interrupt-parent = <&intc>;
  *   };
