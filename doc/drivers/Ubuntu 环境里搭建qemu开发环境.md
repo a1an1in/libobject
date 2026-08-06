@@ -410,7 +410,7 @@ ls /mnt/bin/xtools   # 应能看到编译产物
 
 ```sh
 export LD_LIBRARY_PATH=/mnt/lib
-/mnt/bin/xtools mockery -f test_uio_fpga
+/mnt/bin/xtools --log-type=0 --log-level=0x16 mockery -f test_uio_fpga
 ```
 
 > **说明**：
@@ -443,7 +443,7 @@ devmem 0x50000000 32                  # 期望: 0x12345678
 7. `uio->close(uio)`
 
 ```sh
-/mnt/bin/xtools mockery -f test_uio_fpga
+/mnt/bin/xtools --log-type=0 --log-level=0x16 mockery -f test_uio_fpga
 ```
 
 测试通过时日志显示 `test suc, func_name = test_uio_fpga`，且 `read register[0x0] = 0xdeadbeef`。

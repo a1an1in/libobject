@@ -88,7 +88,7 @@ ls /mnt/bin/xtools   # 应能看到编译产物
 
 ```sh
 export LD_LIBRARY_PATH=/mnt/lib
-/mnt/bin/xtools mockery -f test_uio_fpga
+/mnt/bin/xtools --log-type=0 --log-level=0x16 mockery -f test_uio_fpga
 ```
 
 > **说明**：aarch64 平台已排除 stub 模块，`xtools` 不再依赖 `libobject-stub.so`。
@@ -170,10 +170,10 @@ timeout 3 cat /dev/uio0
 
 ```sh
 export LD_LIBRARY_PATH=/mnt/lib
-/mnt/bin/xtools mockery -f test_uio_fpga
+/mnt/bin/xtools --log-type=0 --log-level=0x16 mockery -f test_uio_fpga
 
 # 或运行所有测试
-/mnt/bin/xtools mockery -f all
+/mnt/bin/xtools --log-type=0 --log-level=0x16 mockery -f all
 ```
 
 `test_uio_fpga` 测试流程：
@@ -248,5 +248,5 @@ devmem 0x50000000 32                  # 期望: 0x12345678
 
 # 6. 运行 libobject UIO 测试
 export LD_LIBRARY_PATH=/mnt/lib
-/mnt/bin/xtools mockery -f test_uio_fpga
+/mnt/bin/xtools --log-type=0 --log-level=0x16 mockery -f test_uio_fpga
 ```

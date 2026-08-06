@@ -178,6 +178,13 @@ After deploying the project to a Linux server, you can verify the deployment usi
 ./sysroot/linux/x86_64/bin/xtools node_cli --host="139.159.231.27" --service="12345" lookup all
 ```
 
+The `xtools` binary also supports log-related options to control log output. The `--log-type` option overrides `debugger:type` in `~/.xtools/dbg.ini` (0 = console/shell print, 1 = log file, 2 = network), and `--log-level` sets the display level. These options must be followed by a subcommand:
+
+```bash
+# Print logs to the shell (no need to modify dbg.ini)
+./sysroot/linux/x86_64/bin/xtools --log-type=0 --log-level=0x16 mockery -f test_uio_fpga
+```
+
 #### Android Deployment Example
 
 To deploy the project to an Android device, use the following command:

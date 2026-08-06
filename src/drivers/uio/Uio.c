@@ -162,104 +162,143 @@ static int __get_size(Uio *uio)
     return (int)uio->size;
 }
 
-static int __read_register(Uio *uio, uint32_t offset, uint32_t *data)
+static int __set_width(Uio *uio, int width)
 {
-    uint32_t volatile *reg;
+    if (uio == NULL) {
+        return -1;
+    }
+    if (width != 32 && width != 64) {
+        dbg_str(DBG_ERROR, "unsupported register width:%d, only 32 or 64", width);
+        return -1;
+    }
+
+    uio->width = width;
+    dbg_str(DBG_INFO, "set register width:%d", width);
+
+    return 0;
+}
+
+static int __read_register(Uio *uio, uint64_t offset, uint64_t *data)
+{
+    uint8_t volatile *base;
 
     if (uio == NULL || uio->base == NULL || data == NULL) {
         dbg_str(DBG_ERROR, "uio not initialized");
         return -1;
     }
     if (offset >= uio->size) {
-        dbg_str(DBG_ERROR, "read offset out of range, offset:0x%x, size:0x%x",
-                offset, uio->size);
         return -1;
     }
 
-    /* 字节偏移 → 32 位字地址 */
-    reg = uio->base + (offset / 4);
-    *data = *reg;
+    /* 用一个字节基址指针，按位宽强制转换为对应类型访问 */
+    base = (uint8_t volatile *)uio->base + offset;
+    if (uio->width == 64) {
+        *data = *(uint64_t volatile *)base;
+    } else {
+        *data = *(uint32_t volatile *)base;
+    }
 
     return 0;
 }
 
-static int __write_register(Uio *uio, uint32_t offset, uint32_t data)
+static int __write_register(Uio *uio, uint64_t offset, uint64_t data)
 {
-    uint32_t volatile *reg;
+    uint8_t volatile *base;
 
     if (uio == NULL || uio->base == NULL) {
         dbg_str(DBG_ERROR, "uio not initialized");
         return -1;
     }
     if (offset >= uio->size) {
-        dbg_str(DBG_ERROR, "write offset out of range, offset:0x%x, size:0x%x",
-                offset, uio->size);
         return -1;
     }
 
-    reg = uio->base + (offset / 4);
-    *reg = data;
-
-    return 0;
-}
-
-static int __read_registers(Uio *uio, uint32_t offset, uint32_t *data,
-                            uint32_t *len)
-{
-    uint32_t volatile *reg;
-    uint32_t i, count;
-
-    if (uio == NULL || uio->base == NULL || data == NULL || len == NULL) {
-        dbg_str(DBG_ERROR, "uio not initialized");
-        return -1;
-    }
-    if (offset >= uio->size) {
-        dbg_str(DBG_ERROR, "read offset out of range, offset:0x%x, size:0x%x",
-                offset, uio->size);
-        return -1;
-    }
-
-    /* 防止读取超出 UIO 范围，截断长度（len 为字节数） */
-    if (offset + *len > uio->size) {
-        *len = uio->size - offset;
-    }
-
-    reg = uio->base + (offset / 4);
-    count = *len / 4;
-    for (i = 0; i < count; i++) {
-        data[i] = reg[i];
+    base = (uint8_t volatile *)uio->base + offset;
+    if (uio->width == 64) {
+        *(uint64_t volatile *)base = data;
+    } else {
+        *(uint32_t volatile *)base = (uint32_t)data;
     }
 
     return 0;
 }
 
-static int __write_registers(Uio *uio, uint32_t offset, uint32_t *data,
-                             uint32_t *len)
+static int __read_registers(Uio *uio, uint64_t offset, uint64_t *data,
+                            uint32_t len)
 {
-    uint32_t volatile *reg;
-    uint32_t i, count;
+    uint8_t volatile *base;
+    uint32_t i, count, reg_size;
 
-    if (uio == NULL || uio->base == NULL || data == NULL || len == NULL) {
+    if (uio == NULL || uio->base == NULL || data == NULL) {
         dbg_str(DBG_ERROR, "uio not initialized");
         return -1;
     }
     if (offset >= uio->size) {
-        dbg_str(DBG_ERROR, "write offset out of range, offset:0x%x, size:0x%x",
-                offset, uio->size);
+        dbg_str(DBG_ERROR, "read offset out of range, offset:0x%llx, size:0x%x",
+                (unsigned long long)offset, uio->size);
         return -1;
     }
 
-    if (offset + *len > uio->size) {
-        *len = uio->size - offset;
+    /* len 表示期望读取的寄存器个数 */
+    reg_size = (uio->width == 64) ? 8 : 4;
+    count = len;
+
+    /* 防止读取超出 UIO 范围，截断寄存器个数 */
+    if (offset + count * reg_size > uio->size) {
+        count = (uio->size - offset) / reg_size;
     }
 
-    reg = uio->base + (offset / 4);
-    count = *len / 4;
+    /* 用一个字节基址指针，按位宽用不同步长和类型访问 */
+    base = (uint8_t volatile *)uio->base + offset;
     for (i = 0; i < count; i++) {
-        reg[i] = data[i];
+        if (uio->width == 64) {
+            data[i] = *(uint64_t volatile *)(base + i * 8);
+        } else {
+            data[i] = *(uint32_t volatile *)(base + i * 4);
+        }
     }
 
-    return 0;
+    /* 返回实际读取的寄存器个数 */
+    return (int)count;
+}
+
+static int __write_registers(Uio *uio, uint64_t offset, uint64_t *data,
+                             uint32_t len)
+{
+    uint8_t volatile *base;
+    uint32_t i, count, reg_size;
+
+    if (uio == NULL || uio->base == NULL || data == NULL) {
+        dbg_str(DBG_ERROR, "uio not initialized");
+        return -1;
+    }
+    if (offset >= uio->size) {
+        dbg_str(DBG_ERROR, "write offset out of range, offset:0x%llx, size:0x%x",
+                (unsigned long long)offset, uio->size);
+        return -1;
+    }
+
+    /* len 表示期望写入的寄存器个数 */
+    reg_size = (uio->width == 64) ? 8 : 4;
+    count = len;
+
+    /* 防止写入超出 UIO 范围，截断寄存器个数 */
+    if (offset + count * reg_size > uio->size) {
+        count = (uio->size - offset) / reg_size;
+    }
+
+    /* 用一个字节基址指针，按位宽用不同步长和类型访问 */
+    base = (uint8_t volatile *)uio->base + offset;
+    for (i = 0; i < count; i++) {
+        if (uio->width == 64) {
+            *(uint64_t volatile *)(base + i * 8) = data[i];
+        } else {
+            *(uint32_t volatile *)(base + i * 4) = (uint32_t)data[i];
+        }
+    }
+
+    /* 返回实际写入的寄存器个数 */
+    return (int)count;
 }
 
 /*
@@ -382,6 +421,7 @@ static int __construct(Uio *module, char *init_str)
     module->fd = -1;
     module->base = NULL;
     module->size = 0;
+    module->width = 32;   /* 默认 32 位寄存器 */
     module->irq_enabled = 0;
     return 0;
 }
@@ -394,21 +434,20 @@ static int __deconstruct(Uio *module)
     return 0;
 }
 
-static class_info_entry_t module_class_info[] = {
-    Init_Obj___Entry(0, Obj, parent),
-    Init_Nfunc_Entry(1, Uio, construct, __construct),
-    Init_Nfunc_Entry(2, Uio, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Uio, open, __open),
-    Init_Vfunc_Entry(4, Uio, mmap, __mmap),
-    Init_Vfunc_Entry(5, Uio, get_size, __get_size),
-    Init_Vfunc_Entry(6, Uio, close, __close),
-    Init_Vfunc_Entry(7, Uio, read_register, __read_register),
-    Init_Vfunc_Entry(8, Uio, write_register, __write_register),
-    Init_Vfunc_Entry(9, Uio, read_registers, __read_registers),
-    Init_Vfunc_Entry(10, Uio, write_registers, __write_registers),
-    Init_Vfunc_Entry(11, Uio, enable_irq, __enable_irq),
-    Init_Vfunc_Entry(12, Uio, disable_irq, __disable_irq),
-    Init_Vfunc_Entry(13, Uio, wait_irq, __wait_irq),
-    Init_End___Entry(14, Uio),
-};
-REGISTER_CLASS(Uio, module_class_info);
+DEFINE_CLASS(Uio,
+    Class_Obj___Entry(Obj, parent),
+    Class_NFunc_Entry(construct, __construct),
+    Class_NFunc_Entry(deconstruct, __deconstruct),
+    Class_VFunc_Entry(open, __open),
+    Class_VFunc_Entry(mmap, __mmap),
+    Class_VFunc_Entry(get_size, __get_size),
+    Class_VFunc_Entry(close, __close),
+    Class_VFunc_Entry(set_width, __set_width),
+    Class_VFunc_Entry(read_register, __read_register),
+    Class_VFunc_Entry(write_register, __write_register),
+    Class_VFunc_Entry(read_registers, __read_registers),
+    Class_VFunc_Entry(write_registers, __write_registers),
+    Class_VFunc_Entry(enable_irq, __enable_irq),
+    Class_VFunc_Entry(disable_irq, __disable_irq),
+    Class_VFunc_Entry(wait_irq, __wait_irq)
+);

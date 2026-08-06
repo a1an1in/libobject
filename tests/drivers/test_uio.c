@@ -2,6 +2,7 @@
 #include <string.h>
 #include <libobject/mockery/mockery.h>
 #include <libobject/drivers/uio/Uio.h>
+#include <libobject/drivers/uio/Fpga.h>
 
 /*
  * 测试 UIO 驱动 + FPGA 寄存器接口。
@@ -17,18 +18,17 @@
  * 内核启动参数需包含：uio_pdrv_genirq.of_id=generic-uio
  * 设备名（/sys/class/uio/uioX/name）默认为节点名 "fpga"。
  */
-static int test_uio_fpga(TEST_ENTRY *entry)
+
+/*
+ * 打开 UIO 设备并 mmap 映射 FPGA 寄存器空间。
+ * 返回已初始化的 Uio 对象，失败返回 NULL。
+ */
+static Uio *__uio_open_and_mmap(allocator_t *allocator)
 {
-    int ret = 1;
-    allocator_t *allocator = allocator_get_default_instance();
     Uio *uio = NULL;
-    uint32_t val = 0, len;
-    uint32_t buf[4] = {0x11111111, 0x22222222, 0x33333333, 0x44444444};
-    uint32_t rbuf[4] = {0};
+    int ret;
 
     TRY {
-        dbg_str(DBG_INFO, "test_uio_fpga");
-
         /* 1. 创建 Uio 对象 */
         uio = object_new(allocator, "Uio", NULL);
         THROW_IF(uio == NULL, -1);
@@ -41,34 +41,52 @@ static int test_uio_fpga(TEST_ENTRY *entry)
         ret = uio->mmap(uio);
         THROW_IF(ret < 0, -1);
 
-        dbg_str(DBG_INFO, "uio size:0x%x", uio->get_size(uio));
+        dbg_str(DBG_INFO, "uio open success, size:0x%x", uio->get_size(uio));
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "uio open/mmap failed");
+        if (uio != NULL) {
+            object_destroy(uio);
+            uio = NULL;
+        }
+    }
 
-        /* 4. 写单个寄存器 */
-        ret = uio->write_register(uio, 0x0, 0xDEADBEEF);
+    return uio;
+}
+
+/*
+ * 测试写单个寄存器，写完 read 验证是否符合预期。
+ */
+static int test_uio_fpga_write_register(TEST_ENTRY *entry)
+{
+    int ret = 1;
+    allocator_t *allocator = allocator_get_default_instance();
+    Uio *uio = NULL;
+    uint64_t val = 0;
+    uint64_t expect = 0xDEADBEEF;
+
+    TRY {
+        dbg_str(DBG_INFO, "test_uio_fpga_write_register");
+
+        /* 1. 打开 UIO 设备并 mmap */
+        uio = __uio_open_and_mmap(allocator);
+        THROW_IF(uio == NULL, -1);
+
+        /* 2. 写单个寄存器（默认 32 位） */
+        ret = uio->write_register(uio, 0x0, expect);
         THROW_IF(ret < 0, -1);
 
-        /* 5. 读单个寄存器 */
+        /* 3. 读回验证是否符合预期 */
         ret = uio->read_register(uio, 0x0, &val);
         THROW_IF(ret < 0, -1);
-        dbg_str(DBG_INFO, "read register[0x0] = 0x%x", val);
+        dbg_str(DBG_INFO, "write register[0x0] = 0x%llx, read back = 0x%llx",
+                (unsigned long long)expect, (unsigned long long)val);
+        THROW_IF(val != expect, -1);
 
-        /* 6. 批量写寄存器 */
-        len = sizeof(buf);
-        ret = uio->write_registers(uio, 0x10, buf, &len);
-        THROW_IF(ret < 0, -1);
-
-        /* 7. 批量读寄存器 */
-        len = sizeof(rbuf);
-        ret = uio->read_registers(uio, 0x10, rbuf, &len);
-        THROW_IF(ret < 0, -1);
-        dbg_str(DBG_INFO, "read registers[0x10] = 0x%x 0x%x 0x%x 0x%x",
-                rbuf[0], rbuf[1], rbuf[2], rbuf[3]);
-
-        /* 8. 越界访问保护测试 */
+        /* 4. 越界访问保护测试 */
         ret = uio->read_register(uio, 0x100000, &val);
         THROW_IF(ret == 0, -1); /* 期望失败 */
 
-        /* 9. 关闭 */
+        /* 5. 关闭 */
         ret = uio->close(uio);
         THROW_IF(ret < 0, -1);
 
@@ -82,19 +100,46 @@ static int test_uio_fpga(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_uio_fpga);
+REGISTER_TEST_FUNC(test_uio_fpga_write_register);
 
-static int test_uio(TEST_ENTRY *entry)
+/*
+ * 测试批量写寄存器，写完 read 验证是否符合预期。
+ */
+static int test_uio_fpga_write_registers(TEST_ENTRY *entry)
 {
     int ret = 1;
     allocator_t *allocator = allocator_get_default_instance();
     Uio *uio = NULL;
+    uint64_t buf[4] = {0x11111111, 0x22222222, 0x33333333, 0x44444444};
+    uint64_t rbuf[4] = {0};
 
     TRY {
-        dbg_str(DBG_INFO, "test_uio");
-        uio = object_new(allocator, "Uio", NULL);
+        dbg_str(DBG_INFO, "test_uio_fpga_write_registers");
+
+        /* 1. 打开 UIO 设备并 mmap */
+        uio = __uio_open_and_mmap(allocator);
         THROW_IF(uio == NULL, -1);
-        dbg_str(DBG_INFO, "test_uio: Uio object created success");
+
+        /* 2. 批量写寄存器（默认 32 位，len 为寄存器个数，返回实际写入个数） */
+        ret = uio->write_registers(uio, 0x10, buf, 4);
+        THROW_IF(ret != 4, -1);
+
+        /* 3. 批量读回验证是否符合预期 */
+        ret = uio->read_registers(uio, 0x10, rbuf, 4);
+        THROW_IF(ret != 4, -1);
+        dbg_str(DBG_INFO, "write registers[0x10] = 0x%llx 0x%llx 0x%llx 0x%llx, read back = 0x%llx 0x%llx 0x%llx 0x%llx",
+                (unsigned long long)buf[0], (unsigned long long)buf[1],
+                (unsigned long long)buf[2], (unsigned long long)buf[3],
+                (unsigned long long)rbuf[0], (unsigned long long)rbuf[1],
+                (unsigned long long)rbuf[2], (unsigned long long)rbuf[3]);
+        THROW_IF(memcmp(buf, rbuf, sizeof(buf)) != 0, -1);
+
+        /* 4. 关闭 */
+        ret = uio->close(uio);
+        THROW_IF(ret < 0, -1);
+
+        /* 全部成功，返回成功标志 */
+        ret = 1;
     } CATCH (ret) {
         CATCH_SHOW_INT_PARS(DBG_ERROR);
     } FINALLY {
@@ -103,4 +148,110 @@ static int test_uio(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_FUNC(test_uio);
+REGISTER_TEST_FUNC(test_uio_fpga_write_registers);
+
+/*
+ * 测试 64 位位宽：写单个 64 位寄存器，写完 read 验证是否符合预期。
+ */
+static int test_uio_fpga_write_register_64(TEST_ENTRY *entry)
+{
+    int ret = 1;
+    allocator_t *allocator = allocator_get_default_instance();
+    Uio *uio = NULL;
+    uint64_t val = 0;
+    uint64_t expect = 0xDEADBEEF12345678ULL;
+
+    TRY {
+        dbg_str(DBG_INFO, "test_uio_fpga_write_register_64");
+
+        /* 1. 打开 UIO 设备并 mmap */
+        uio = __uio_open_and_mmap(allocator);
+        THROW_IF(uio == NULL, -1);
+
+        /* 2. 设置 64 位寄存器位宽 */
+        ret = uio->set_width(uio, 64);
+        THROW_IF(ret < 0, -1);
+
+        /* 3. 写单个 64 位寄存器 */
+        ret = uio->write_register(uio, 0x0, expect);
+        THROW_IF(ret < 0, -1);
+
+        /* 4. 读回验证是否符合预期 */
+        ret = uio->read_register(uio, 0x0, &val);
+        THROW_IF(ret < 0, -1);
+        dbg_str(DBG_INFO, "write 64-bit register[0x0] = 0x%llx, read back = 0x%llx",
+                (unsigned long long)expect, (unsigned long long)val);
+        THROW_IF(val != expect, -1);
+
+        /* 5. 越界访问保护测试 */
+        ret = uio->read_register(uio, 0x100000, &val);
+        THROW_IF(ret == 0, -1); /* 期望失败 */
+
+        /* 6. 关闭 */
+        ret = uio->close(uio);
+        THROW_IF(ret < 0, -1);
+
+        /* 全部成功，返回成功标志 */
+        ret = 1;
+    } CATCH (ret) {
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(uio);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_uio_fpga_write_register_64);
+
+/*
+ * 测试 64 位位宽：批量写 64 位寄存器，写完 read 验证是否符合预期。
+ */
+static int test_uio_fpga_write_registers_64(TEST_ENTRY *entry)
+{
+    int ret = 1;
+    allocator_t *allocator = allocator_get_default_instance();
+    Uio *uio = NULL;
+    uint64_t buf[4] = {0x1111111122222222ULL, 0x3333333344444444ULL,
+                       0x5555555566666666ULL, 0x7777777788888888ULL};
+    uint64_t rbuf[4] = {0};
+
+    TRY {
+        dbg_str(DBG_INFO, "test_uio_fpga_write_registers_64");
+
+        /* 1. 打开 UIO 设备并 mmap */
+        uio = __uio_open_and_mmap(allocator);
+        THROW_IF(uio == NULL, -1);
+
+        /* 2. 设置 64 位寄存器位宽 */
+        ret = uio->set_width(uio, 64);
+        THROW_IF(ret < 0, -1);
+
+        /* 3. 批量写 64 位寄存器（len 为寄存器个数，返回实际写入个数） */
+        ret = uio->write_registers(uio, 0x10, buf, 4);
+        THROW_IF(ret != 4, -1);
+
+        /* 4. 批量读回验证是否符合预期 */
+        ret = uio->read_registers(uio, 0x10, rbuf, 4);
+        THROW_IF(ret != 4, -1);
+        dbg_str(DBG_INFO, "write 64-bit registers[0x10] = 0x%llx 0x%llx 0x%llx 0x%llx, read back = 0x%llx 0x%llx 0x%llx 0x%llx",
+                (unsigned long long)buf[0], (unsigned long long)buf[1],
+                (unsigned long long)buf[2], (unsigned long long)buf[3],
+                (unsigned long long)rbuf[0], (unsigned long long)rbuf[1],
+                (unsigned long long)rbuf[2], (unsigned long long)rbuf[3]);
+        THROW_IF(memcmp(buf, rbuf, sizeof(buf)) != 0, -1);
+
+        /* 5. 关闭 */
+        ret = uio->close(uio);
+        THROW_IF(ret < 0, -1);
+
+        /* 全部成功，返回成功标志 */
+        ret = 1;
+    } CATCH (ret) {
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
+    } FINALLY {
+        object_destroy(uio);
+    }
+
+    return ret;
+}
+REGISTER_TEST_FUNC(test_uio_fpga_write_registers_64);

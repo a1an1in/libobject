@@ -7,10 +7,11 @@
 ./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x20016 -f all
 ```
 
-## log 
+## log
 ```
 ./sysroot/linux/x86_64/bin/xtools --log-level=0x6      open all business at 6 level
 ./sysroot/linux/x86_64/bin/xtools --log-level=0x20006  open bus log at 6 level,  4 bits are debug level, higher bits are bussiness num.
+./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery -f test_uio_fpga   set log output type, 0=console(shell), 1=log file, 2=network. (overrides debugger:type in dbg.ini)
 ```
 
 ## Test Iterfaces
