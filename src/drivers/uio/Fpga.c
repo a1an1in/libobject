@@ -74,8 +74,8 @@ static int __deconstruct(Fpga *module)
  * read_register/write_register/read_registers/write_registers/
  * enable_irq/register_irq/disable_irq 等接口 value 为 NULL，继承 Uio 的实现。
  */
-DEFINE_CLASS(Fpga,
-    Class_Obj___Entry(Uio, parent),
+DEFINE_CLASS(
+    EXTENDS(Fpga, Uio),
     Class_NFunc_Entry(construct, __construct),
     Class_NFunc_Entry(deconstruct, __deconstruct),
     Class_VFunc_Entry(open_device, __open_device),

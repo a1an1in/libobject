@@ -369,8 +369,8 @@ static int __deconstruct(Node_Cli_Command *command)
     return 0;
 }
 
-DEFINE_COMMAND(Node_Cli_Command,
-    Class_Obj___Entry(Command, parent),
+DEFINE_COMMAND(
+    EXTENDS(Node_Cli_Command, Command),
     Class_NFunc_Entry(construct, __construct),
     Class_NFunc_Entry(deconstruct, __deconstruct),
     Class_VFunc_Entry(set, NULL),

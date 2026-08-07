@@ -348,8 +348,8 @@ static int __deconstruct(I2c *module)
     return 0;
 }
 
-DEFINE_CLASS(I2c,
-    Class_Obj___Entry(Obj, parent),
+DEFINE_CLASS(
+    EXTENDS(I2c, Obj),
     Class_NFunc_Entry(construct, __construct),
     Class_NFunc_Entry(deconstruct, __deconstruct),
     Class_VFunc_Entry(open, __open),

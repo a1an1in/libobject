@@ -87,7 +87,10 @@ typedef struct class_info_entry_s {
 #define Init_End___Entry Init_End_Entry
 
 // 类型信息初始化v3版本
-#define Class_Obj___Entry(type_name, value_name) {ENTRY_TYPE_OBJ, #type_name, #value_name}
+// 两层字符串化：先展开参数（支持 EXTENDS(Obj) 这类嵌套宏），再字符串化
+#define __STRINGIFY(x) #x
+#define _STRINGIFY(x) __STRINGIFY(x)
+#define Class_Obj___Entry(type_name, value_name) {ENTRY_TYPE_OBJ, _STRINGIFY(type_name), _STRINGIFY(value_name)}
 #define Class_End___Entry(class_name) {ENTRY_TYPE_END, #class_name, "", NULL, sizeof(class_name), 0}
 #define Class_VFunc_Entry(value_name, value) {ENTRY_TYPE_VFUNC_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(__current_class_t, value_name)}
 #define Class_Ptr___Entry(value_name, value) {ENTRY_TYPE_NORMAL_POINTER, "", #value_name, value, sizeof(void *), offset_of_class(__current_class_t, value_name)}
@@ -106,20 +109,29 @@ typedef struct class_info_entry_s {
 #define Class_Str___Entry(value_name, value) {ENTRY_TYPE_STRING, "", #value_name, value, sizeof(void *), offset_of_class(__current_class_t, value_name)}
 #define Class_Vec___Entry(value_name, value, value_type) {ENTRY_TYPE_VECTOR, value_type, #value_name, value, sizeof(void *), offset_of_class(__current_class_t, value_name)}
 
-// 修改后的 DEFINE_CLASS：在 __VA_ARGS__ 后自动附加结束条目
-#define DEFINE_CLASS(cls, ...)                                                                                                       \
+// 继承关系宏：EXTENDS(A, B) 表示 A 继承 B，作为 DEFINE_CLASS 的第一个参数。
+// EXTENDS(A, B) 展开为 "A, B"，作为 cls, parent 传给 DEFINE_CLASS_IMPL。
+#define EXTENDS(cls, parent) cls, parent
+
+// DEFINE_CLASS：第一个参数为 EXTENDS(A, B)，自动生成父类条目（obj 名强制为 parent），
+// 在 __VA_ARGS__ 后自动附加结束条目
+#define DEFINE_CLASS(extends, ...) DEFINE_CLASS_IMPL(extends, __VA_ARGS__)
+#define DEFINE_CLASS_IMPL(cls, parent, ...)                                                                                          \
 	typedef cls __current_class_t;                                                                                                   \
 	static const char * const current_class_name = #cls;                                                                             \
 	static class_info_entry_t cls##_class_info[] = {                                                                                 \
+			Class_Obj___Entry(parent, parent),                                                                                       \
 			__VA_ARGS__,                                                                                                             \
 			Class_End___Entry(cls)                                                                                                   \
 	};                                                                                                                               \
 	REGISTER_CLASS(cls, cls##_class_info)
 
-#define DEFINE_COMMAND(cls, ...)                                                                                                     \
+#define DEFINE_COMMAND(extends, ...) DEFINE_COMMAND_IMPL(extends, __VA_ARGS__)
+#define DEFINE_COMMAND_IMPL(cls, parent, ...)                                                                                        \
 	typedef cls __current_class_t;                                                                                                   \
 	static const char * const current_class_name = #cls;                                                                             \
 	static class_info_entry_t cls##_class_info[] = {                                                                                 \
+			Class_Obj___Entry(parent, parent),                                                                                       \
 			__VA_ARGS__,                                                                                                             \
 			Class_End___Entry(cls)                                                                                                   \
 	};                                                                                                                               \

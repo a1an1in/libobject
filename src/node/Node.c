@@ -708,8 +708,8 @@ static int __call_cmd(Node *node, const char *fmt, ...)
     return ret;
 }
 
-DEFINE_CLASS(Node,
-    Class_Obj___Entry(Obj, parent),
+DEFINE_CLASS(
+    EXTENDS(Node, Obj),
     Class_NFunc_Entry(construct, __construct),
     Class_NFunc_Entry(deconstruct, __deconstruct),
     Class_NFunc_Entry(init, __init),

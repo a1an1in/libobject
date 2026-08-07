@@ -186,8 +186,8 @@ static int __stop(UnixAttacher *attacher)
     return 1;
 }
 
-DEFINE_CLASS(UnixAttacher,
-    Class_Obj___Entry(Attacher, parent),
+DEFINE_CLASS(
+    EXTENDS(UnixAttacher, Attacher),
     Class_VFunc_Entry(attach, __attach),
     Class_VFunc_Entry(detach, __detach),
     Class_VFunc_Entry(set_function_pars, __set_function_pars),

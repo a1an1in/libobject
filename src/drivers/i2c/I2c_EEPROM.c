@@ -123,8 +123,8 @@ static int __deconstruct(I2c_EEPROM *module)
  * read/write 覆盖为 EEPROM 封装（带从机地址和越界检查）。
  * set_width 继承 I2c 的实现（EEPROM 需配置 8/16 位地址宽度）。
  */
-DEFINE_CLASS(I2c_EEPROM,
-    Class_Obj___Entry(I2c, parent),
+DEFINE_CLASS(
+    EXTENDS(I2c_EEPROM, I2c),
     Class_NFunc_Entry(construct, __construct),
     Class_NFunc_Entry(deconstruct, __deconstruct),
     Class_NFunc_Entry(init, __init),

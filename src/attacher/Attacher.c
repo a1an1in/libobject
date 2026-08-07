@@ -447,8 +447,8 @@ static int __init(Attacher *attacher)
     return ret;
 }
 
-DEFINE_CLASS(Attacher,
-    Class_Obj___Entry(Obj, parent),
+DEFINE_CLASS(
+    EXTENDS(Attacher, Obj),
     Class_NFunc_Entry(construct, __construct),
     Class_NFunc_Entry(deconstruct, __deconstrcut),
     Class_VFunc_Entry(attach, NULL),

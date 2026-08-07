@@ -242,8 +242,8 @@ static int __deconstruct(I2c_TempSensor *module)
  * init/read_temp/set_limit 为温度传感器特有接口。
  * set_width 继承 I2c 的实现。
  */
-DEFINE_CLASS(I2c_TempSensor,
-    Class_Obj___Entry(I2c, parent),
+DEFINE_CLASS(
+    EXTENDS(I2c_TempSensor, I2c),
     Class_NFunc_Entry(construct, __construct),
     Class_NFunc_Entry(deconstruct, __deconstruct),
     Class_NFunc_Entry(init, __init),

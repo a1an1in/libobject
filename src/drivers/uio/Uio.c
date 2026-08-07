@@ -486,8 +486,8 @@ static int __deconstruct(Uio *module)
     return 0;
 }
 
-DEFINE_CLASS(Uio,
-    Class_Obj___Entry(Obj, parent),
+DEFINE_CLASS(
+    EXTENDS(Uio, Obj),
     Class_NFunc_Entry(construct, __construct),
     Class_NFunc_Entry(deconstruct, __deconstruct),
     Class_VFunc_Entry(open, __open),
