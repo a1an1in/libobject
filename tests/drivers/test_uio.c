@@ -60,7 +60,7 @@ static Uio *__uio_open_and_mmap(allocator_t *allocator)
 /*
  * 测试写单个寄存器（默认 32 位），写完 read 验证是否符合预期。
  */
-static int __test_write_register(Uio *uio)
+static int test_write_register(Uio *uio)
 {
     int ret = 1;
     uint64_t val = 0;
@@ -93,7 +93,7 @@ static int __test_write_register(Uio *uio)
 /*
  * 测试批量写寄存器（默认 32 位），写完 read 验证是否符合预期。
  */
-static int __test_write_registers(Uio *uio)
+static int test_write_registers(Uio *uio)
 {
     int ret = 1;
     uint64_t buf[4] = {0x11111111, 0x22222222, 0x33333333, 0x44444444};
@@ -125,7 +125,7 @@ static int __test_write_registers(Uio *uio)
 /*
  * 测试 64 位位宽：写单个 64 位寄存器，写完 read 验证是否符合预期。
  */
-static int __test_write_register_64(Uio *uio)
+static int test_write_register_64(Uio *uio)
 {
     int ret = 1;
     uint64_t val = 0;
@@ -162,7 +162,7 @@ static int __test_write_register_64(Uio *uio)
 /*
  * 测试 64 位位宽：批量写 64 位寄存器，写完 read 验证是否符合预期。
  */
-static int __test_write_registers_64(Uio *uio)
+static int test_write_registers_64(Uio *uio)
 {
     int ret = 1;
     uint64_t buf[4] = {0x1111111122222222ULL, 0x3333333344444444ULL,
@@ -214,19 +214,19 @@ static int test_uio(TEST_ENTRY *entry)
         THROW_IF(uio == NULL, -1);
 
         /* 2. 写单个寄存器（32 位） */
-        ret = __test_write_register(uio);
+        ret = test_write_register(uio);
         THROW_IF(ret < 0, -1);
 
         /* 3. 批量写寄存器（32 位） */
-        ret = __test_write_registers(uio);
+        ret = test_write_registers(uio);
         THROW_IF(ret < 0, -1);
 
         /* 4. 写单个 64 位寄存器 */
-        ret = __test_write_register_64(uio);
+        ret = test_write_register_64(uio);
         THROW_IF(ret < 0, -1);
 
         /* 5. 批量写 64 位寄存器 */
-        ret = __test_write_registers_64(uio);
+        ret = test_write_registers_64(uio);
         THROW_IF(ret < 0, -1);
 
         /* 6. 关闭 */
