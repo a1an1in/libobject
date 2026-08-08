@@ -253,6 +253,83 @@ static int __write(Mtd *mtd, uint32_t offset, const void *buf, uint32_t size)
     return ret;
 }
 
+/*
+ * 刷写镜像文件：分块读取文件，逐块擦除并写入 MTD。
+ * 内存占用仅一个 erasesize 块大小，适合大文件刷写场景。
+ * 返回 0 成功，失败返回负数错误码。
+ */
+static int __write_file(Mtd *mtd, uint32_t offset, const char *filepath)
+{
+    FILE *fp = NULL;
+    uint8_t *chunk = NULL;
+    uint32_t file_size, erase_size, chunk_size;
+    uint32_t remaining, written;
+    long fsize;
+    int ret = -1;
+
+    TRY {
+        THROW_IF(mtd == NULL || filepath == NULL, -MTD_ERR_INVALID_ARG);
+        THROW_IF(mtd->fd < 0, -MTD_ERR_NOT_INIT);
+
+        /* 1. 打开文件，获取文件大小 */
+        fp = fopen(filepath, "rb");
+        THROW_IF(fp == NULL, -MTD_ERR_ERROR);
+
+        fseek(fp, 0, SEEK_END);
+        fsize = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        THROW_IF(fsize <= 0, -MTD_ERR_INVALID_ARG);
+        file_size = (uint32_t)fsize;
+
+        /* 2. 边界检查 */
+        THROW_IF(offset + file_size > mtd->info.size, -MTD_ERR_INVALID_ARG);
+
+        /* 3. 计算需要擦除的大小（向上对齐到 erasesize 边界） */
+        erase_size = ((file_size + mtd->info.erasesize - 1)
+                      / mtd->info.erasesize) * mtd->info.erasesize;
+
+        /* 4. 先擦除整个目标区域 */
+        EXEC(mtd->erase(mtd, offset, erase_size));
+
+        /* 5. 分块读取并写入：每次读一个 erase block，写完释放 */
+        chunk_size = mtd->info.erasesize;
+        chunk = (uint8_t *)malloc(chunk_size);
+        THROW_IF(chunk == NULL, -MTD_ERR_ERROR);
+
+        remaining = file_size;
+        written = 0;
+        while (remaining > 0) {
+            uint32_t nread = (remaining < chunk_size) ? remaining : chunk_size;
+
+            /* 读一块 */
+            ret = (int)fread(chunk, 1, nread, fp);
+            THROW_IF(ret != (int)nread, -MTD_ERR_READ);
+
+            /* 写一块 */
+            ret = mtd->write(mtd, offset + written, chunk, nread);
+            THROW_IF(ret < 0, -MTD_ERR_WRITE);
+
+            written += nread;
+            remaining -= nread;
+        }
+
+        dbg_str(DBG_INFO, "mtd write_file ok, file:%s, offset:0x%x, "
+                "file_size:0x%x, erase_size:0x%x, chunk_size:0x%x",
+                filepath, offset, file_size, erase_size, chunk_size);
+        ret = 0;
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "mtd write_file failed, file:%s, offset:0x%x, "
+                "written:0x%x/%d, errno:%d(%s)",
+                filepath, offset, written,
+                (int)fsize, errno, strerror(errno));
+    } FINALLY {
+        if (fp != NULL) fclose(fp);
+        if (chunk != NULL) free(chunk);
+    }
+
+    return ret;
+}
+
 static int __construct(Mtd *module, char *init_str)
 {
     module->fd = -1;
@@ -280,5 +357,6 @@ DEFINE_CLASS(
     Class_VFunc_Entry(get_info, __get_info),
     Class_VFunc_Entry(erase, __erase),
     Class_VFunc_Entry(read, __read),
-    Class_VFunc_Entry(write, __write)
+    Class_VFunc_Entry(write, __write),
+    Class_VFunc_Entry(write_file, __write_file)
 );

@@ -205,12 +205,14 @@ qemu-system-aarch64 \
   -nographic \
   -drive file=/home/alan/workspace/qemu_virt_machine/flash.img,if=pflash,index=1,format=raw \
   -virtfs local,path=/home/alan/workspace/libobject/sysroot/linux/aarch64,mount_tag=host0,security_model=none,id=host0 \
+  -virtfs local,path=/home/alan/workspace/libobject/tests/board/res,mount_tag=host1,security_model=none,id=host1 \
   -append "console=ttyAMA0 rdinit=/linuxrc"
 ```
 
-> **说明**：`-virtfs` 必须在 QEMU 启动时就加上。如果启动时没加，guest 中
-> 执行 `mount -t 9p` 会报 `no channels available for device host0`，
-> 需要退出 QEMU（`Ctrl+A X`）重新带 `-virtfs` 启动。
+> **说明**：
+> - `host0`：共享 `sysroot/linux/aarch64`（bin/xtools + lib/）
+> - `host1`：共享 `tests/board/res`（测试资源文件，如 `test_sq.img`）
+> - `-virtfs` 必须在 QEMU 启动时就加上，否则 guest 中 mount 会报 `no channels available`
 
 ## 7. 运行 MTD 测试
 
@@ -232,12 +234,20 @@ dd if=/tmp/test.txt of=/dev/mtd0 bs=1 count=10
 dd if=/dev/mtd0 bs=1 count=10
 ```
 
-### 7.2 case 测试（test_mtd）
+### 7.2 case 测试
+
+进入 guest 后，先挂载 9p 共享目录：
 
 ```sh
-mkdir -p /mnt
+mkdir -p /mnt /mnt/res
 mount -t 9p -o trans=virtio,version=9p2000.L host0 /mnt
+mount -t 9p -o trans=virtio,version=9p2000.L host1 /mnt/res
 export LD_LIBRARY_PATH=/mnt/lib
+```
+
+#### test_mtd（基础擦写读 + 越界保护）
+
+```sh
 /mnt/bin/xtools --log-type=0 --log-level=0x16 mockery test_mtd
 ```
 
@@ -261,6 +271,30 @@ export LD_LIBRARY_PATH=/mnt/lib
 > 故意设计的越界保护测试（`test_mtd.c` 第 81 行），期望 read 失败 → 测试通过。
 > `errno:2` 是 `lseek` 超出设备边界时返回的错误码，属于预期行为。
 
+#### test_mtd_write_file（分块大文件刷写）
+
+```sh
+/mnt/bin/xtools --log-type=0 --log-level=0x16 mockery test_mtd_write_file
+```
+
+生成 `2 × erasesize + 256` 字节的测试文件（跨 3 个擦除块），
+通过 `write_file` 刷入 Flash 后校验头尾数据。
+
+#### test_mtd_squashfs（文件系统挂载）
+
+```sh
+/mnt/bin/xtools --log-type=0 --log-level=0x16 mockery test_mtd_squashfs
+```
+
+流程：`write_file` 刷 [`test_sq.img`](../../tests/board/res/test_sq.img) →
+`mount -t squashfs /dev/mtdblock0 /mnt/data` → 读文件验证 →
+`umount`。
+
+> **文件系统选择**：
+> - **squashfs**（✅ 推荐）：只读，兼容性好，适合固件镜像。内核需 `CONFIG_SQUASHFS=y`。
+> - **jffs2**（❌ QEMU virt 不兼容）：`jffs2_scan_medium` 在 x16 CFI NOR 上触发
+>   `Unable to handle kernel paging request` 内核崩溃，Linux 4.9 已知问题。
+
 ## 8. MTD 类接口说明
 
 libobject 的 MTD 类（`Mtd`）封装了 Linux MTD 子系统的访问，接口如下：
@@ -273,6 +307,7 @@ libobject 的 MTD 类（`Mtd`）封装了 Linux MTD 子系统的访问，接口�
 | `erase(mtd, offset, size)` | 按擦除块擦除（块对齐，MEMERASE） |
 | `read(mtd, offset, buf, size)` | 读取数据（lseek + read） |
 | `write(mtd, offset, buf, size)` | 写入数据（lseek + write，需先擦除） |
+| `write_file(mtd, offset, filepath)` | 从文件路径读取数据，自动擦除并按块写入 MTD（内存仅占一个 erasesize） |
 
 使用示例：
 
@@ -295,6 +330,15 @@ mtd->read(mtd, 0, rbuf, size);
 mtd->close(mtd);
 object_destroy(mtd);
 ```
+
+### write_file 示例
+
+```c
+/* 将 squashfs/jffs2 镜像刷入 Flash（自动擦除+分块写入） */
+mtd->write_file(mtd, 0, "/mnt/res/test_sq.img");
+```
+
+> `write_file` 按 `erasesize` 分块读取文件，逐块写入，内存占用仅一个擦除块大小，适合大文件刷写。
 
 ## 9. 常见问题
 

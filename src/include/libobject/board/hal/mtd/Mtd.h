@@ -69,6 +69,9 @@ struct Mtd_s {
     int (*read)(Mtd *mtd, uint32_t offset, void *buf, uint32_t size);
     /* 写：从 offset 写入 size 字节（写入前需先擦除），返回实际写入字节数（失败返回负数） */
     int (*write)(Mtd *mtd, uint32_t offset, const void *buf, uint32_t size);
+    /* 刷写镜像文件：从文件路径读取数据，擦除所需块，写入 MTD 指定偏移。
+     * 内部自动计算擦除块数并对齐，返回 0 成功，失败返回负数错误码 */
+    int (*write_file)(Mtd *mtd, uint32_t offset, const char *filepath);
 
     /*attribs*/
     int fd;                 /* /dev/mtdN 文件描述符（复用），-1 表示未打开 */

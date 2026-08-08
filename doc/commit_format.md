@@ -6,10 +6,10 @@ Description:
 Major Changes:
 1. 制作noded docker image.
 
-[Update:board] 新增eeprom_storage。
+[Add:mtd] 新增mtd。
 
 Description:
-基于eeprom设备创建eeprom_storage， 支持文本读写和存储缓存。
+mtd支持读写。
 
 Major Changes:
-1. 开发eeprom_storage。
+1. 开发mtd及驱动。
