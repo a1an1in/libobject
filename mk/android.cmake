@@ -35,7 +35,7 @@ macro (set_cmake_evironment_variable)
         -Wl,--whole-archive
             object-tests
             object-mockery
-            object-drivers
+            object-board
             object-node
             object-archive
             ${COMPRESS_LIB} # 动态控制是否链接 object-compress
@@ -83,7 +83,7 @@ macro (add_module_lists)
     list(APPEND module_lists "src/scripts")
     list(APPEND module_lists "src/archive")
 
-    list(APPEND module_lists "src/drivers")
+    list(APPEND module_lists "src/board")
     list(APPEND module_lists "3rd/test_process")
     list(APPEND module_lists "3rd/attacher-builtin")
     list(APPEND module_lists "3rd/testlib")

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <libobject/mockery/mockery.h>
-#include <libobject/drivers/uio/Uio.h>
-#include <libobject/drivers/uio/Fpga.h>
+#include <libobject/board/hal/uio/Uio.h>
+#include <libobject/board/hal/uio/Fpga.h>
 
 /*
  * 测试 UIO 驱动 + FPGA 寄存器接口。

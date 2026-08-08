@@ -24,7 +24,7 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <linux/i2c.h>
-#include <libobject/drivers/i2c/I2c.h>
+#include <libobject/board/hal/i2c/I2c.h>
 #include <libobject/core/utils/dbg/debug.h>
 
 #define I2C_DEV_PATH_PREFIX   "/dev/i2c-"

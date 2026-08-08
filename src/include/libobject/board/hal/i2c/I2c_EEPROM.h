@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <libobject/drivers/i2c/I2c.h>
+#include <libobject/board/hal/i2c/I2c.h>
 
 /*
  * I2c_EEPROM 类：I2C EEPROM 设备驱动。

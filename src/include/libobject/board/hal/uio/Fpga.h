@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <libobject/drivers/uio/Uio.h>
+#include <libobject/board/hal/uio/Uio.h>
 
 /*
  * Fpga 类：在通用 Uio 之上封装的 FPGA 专用驱动。

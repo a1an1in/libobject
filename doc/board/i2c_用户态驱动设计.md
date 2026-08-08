@@ -18,17 +18,17 @@
 Obj -> I2c
 ```
 
-- [`I2c`](../src/include/libobject/drivers/i2c/I2c.h)：通用 I2C 驱动基类，实现基于 `i2c-dev` 的通用逻辑。后续可按具体 I2C 设备继承扩展。
+- [`I2c`](../src/include/libobject/board/hal/i2c/I2c.h)：通用 I2C 驱动基类，实现基于 `i2c-dev` 的通用逻辑。后续可按具体 I2C 设备继承扩展。
 
 ## 2. 文件结构
 
 | 文件 | 作用 |
 |------|------|
-| [`src/include/libobject/drivers/i2c/I2c.h`](../src/include/libobject/drivers/i2c/I2c.h) | I2c 基类头文件：接口、属性、错误码 |
-| [`src/drivers/i2c/I2c.c`](../src/drivers/i2c/I2c.c) | I2c 基类实现 |
-| [`tests/drivers/test_i2c.c`](../tests/drivers/test_i2c.c) | 测试用例 |
+| [`src/include/libobject/board/hal/i2c/I2c.h`](../src/include/libobject/board/hal/i2c/I2c.h) | I2c 基类头文件：接口、属性、错误码 |
+| [`src/board/hal/i2c/I2c.c`](../src/board/hal/i2c/I2c.c) | I2c 基类实现 |
+| [`tests/board/test_i2c.c`](../tests/board/test_i2c.c) | 测试用例 |
 
-> 构建系统 [`src/drivers/CMakeLists.txt`](../src/drivers/CMakeLists.txt) 使用 `file(GLOB_RECURSE)`，新增 `.c`/`.h` 文件会自动纳入编译，无需修改 CMake。
+> 构建系统 [`src/board/hal/CMakeLists.txt`](../src/board/hal/CMakeLists.txt) 使用 `file(GLOB_RECURSE)`，新增 `.c`/`.h` 文件会自动纳入编译，无需修改 CMake。
 
 ## 3. API 设计
 
@@ -99,7 +99,7 @@ ioctl(fd, I2C_RDWR, &data);   /* 单次调用，原子事务 */
 ## 5. 使用示例
 
 ```c
-#include <libobject/drivers/i2c/I2c.h>
+#include <libobject/board/hal/i2c/I2c.h>
 
 allocator_t *allocator = allocator_get_default_instance();
 I2c *i2c = object_new(allocator, "I2c", NULL);
@@ -123,7 +123,7 @@ object_destroy(i2c);
 
 ## 6. 测试
 
-[`tests/drivers/test_i2c.c`](../tests/drivers/test_i2c.c) 使用 `REGISTER_TEST_CMD` 注册，覆盖 `read` / `write` 接口。
+[`tests/board/test_i2c.c`](../tests/board/test_i2c.c) 使用 `REGISTER_TEST_CMD` 注册，覆盖 `read` / `write` 接口。
 
 **运行前提**：需要真实 I2C 总线（`/dev/i2c-N`）或 QEMU 中模拟的 I2C 控制器。若指定总线不存在，`open` 失败，测试会失败。
 

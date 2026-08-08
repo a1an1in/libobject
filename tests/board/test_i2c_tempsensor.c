@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <libobject/mockery/mockery.h>
-#include <libobject/drivers/i2c/I2c_TempSensor.h>
+#include <libobject/board/hal/i2c/I2c_TempSensor.h>
 
 /*
  * 测试 I2C 温度传感器驱动（I2c_TempSensor 类）。

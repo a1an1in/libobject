@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <libobject/drivers/i2c/I2c_EEPROM.h>
+#include <libobject/board/hal/i2c/I2c_EEPROM.h>
 #include <libobject/core/utils/dbg/debug.h>
 
 /*

@@ -18,7 +18,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <poll.h>
-#include <libobject/drivers/uio/Uio.h>
+#include <libobject/board/hal/uio/Uio.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/concurrent/worker_api.h>
 #include <libobject/concurrent/Producer.h>

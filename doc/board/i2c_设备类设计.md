@@ -2,7 +2,7 @@
 
 ## 1. 概述
 
-在 [`I2c`](../src/include/libobject/drivers/i2c/I2c.h) 基类之上，为常见 I2C 总线设备创建**具体设备类**。每个设备类封装该芯片的寄存器协议（寄存器地址、数据格式、字节序），复用 `I2c` 的 `read`/`write`/`transfer` 原子事务。
+在 [`I2c`](../src/include/libobject/board/hal/i2c/I2c.h) 基类之上，为常见 I2C 总线设备创建**具体设备类**。每个设备类封装该芯片的寄存器协议（寄存器地址、数据格式、字节序），复用 `I2c` 的 `read`/`write`/`transfer` 原子事务。
 
 ### 1.1 设计目标
 
@@ -81,9 +81,9 @@ struct I2c_EEPROM_s {
 
 | 文件 | 作用 |
 |------|------|
-| `src/include/libobject/drivers/i2c/I2c_EEPROM.h` | EEPROM 类头文件 |
-| `src/drivers/i2c/I2c_EEPROM.c` | EEPROM 类实现 |
-| `tests/drivers/test_i2c_eeprom.c` | EEPROM 测试 |
+| `src/include/libobject/board/hal/i2c/I2c_EEPROM.h` | EEPROM 类头文件 |
+| `src/board/hal/i2c/I2c_EEPROM.c` | EEPROM 类实现 |
+| `tests/board/test_i2c_eeprom.c` | EEPROM 测试 |
 
 ## 4. I2c_TempSensor 类（已实现）
 

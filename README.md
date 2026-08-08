@@ -213,7 +213,7 @@ The following modules are included in the library. Click on a module name to vie
 - [Core Module](./doc/core/README.md): Provides the foundation for object-oriented programming in C, including inheritance, polymorphism, and encapsulation.
 - [Crypto Module](./doc/crypto/README.md): Provides cryptographic utilities, such as encryption and decryption.
 - [Database Module](./doc/database/README.md): Platform-specific module for database operations (not available on ARM).
-- [Drivers Module](./doc/drivers/README.md): Provides abstractions for hardware drivers.
+- [Board Module](./doc/drivers/README.md): Provides board-specific abstractions for hardware drivers (HAL) and reusable hardware services (Service).
 - [Encoding Module](./doc/encoding/README.md): Handles data encoding and decoding, such as Base64 and JSON.
 - [Event Module](./doc/event/README.md): Supports event-driven programming models, including event registration, dispatching, and handling.
 - [Net Module](./doc/net/README.md): Offers networking capabilities, such as TCP/UDP socket programming and HTTP support.

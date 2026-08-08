@@ -1,4 +1,4 @@
-project(object-drivers)
+project(object-board)
 
 file(GLOB_RECURSE MOUDLE_HEADERS
     "*.h"

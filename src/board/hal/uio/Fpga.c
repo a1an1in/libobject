@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <libobject/drivers/uio/Fpga.h>
+#include <libobject/board/hal/uio/Fpga.h>
 #include <libobject/core/utils/dbg/debug.h>
 
 #define FPGA_DEFAULT_DEVICE_NAME "fpga"

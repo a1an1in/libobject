@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <libobject/mockery/mockery.h>
-#include <libobject/drivers/i2c/I2c.h>
+#include <libobject/board/hal/i2c/I2c.h>
 
 /*
  * 测试通用用户态 I2C 驱动（I2c 类）的 read / write 接口。

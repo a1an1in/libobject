@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <libobject/mockery/mockery.h>
-#include <libobject/drivers/uio/Fpga.h>
+#include <libobject/board/hal/uio/Fpga.h>
 
 /*
  * 测试 Fpga 类：继承通用 Uio 类。

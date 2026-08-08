@@ -39,7 +39,7 @@ macro (set_cmake_evironment_variable)
         -Wl,--whole-archive
             object-tests
             object-mockery
-            object-drivers
+            object-board
             object-node
             object-archive
             ${COMPRESS_LIB} # 动态控制是否链接 object-compress
@@ -76,7 +76,7 @@ macro (add_module_lists)
         "src/crypto"
         "src/scripts"
         "src/archive"
-        "src/drivers"
+        "src/board"
         "3rd/attacher-builtin"
         "3rd/test_process"
         "3rd/testlib"
