@@ -24,6 +24,12 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
     list(FILTER MOUDLE_SOURCES EXCLUDE REGEX ".*/stub/.*")
 endif()
 
+# board 模块只在 linux 平台编译，非 linux 平台排除 tests/board 测试文件
+if(NOT PLATFORM STREQUAL "linux")
+    message(STATUS "Non-linux platform detected. Skipping tests/board sources.")
+    list(FILTER MOUDLE_SOURCES EXCLUDE REGEX ".*/board/.*")
+endif()
+
 # 将头文件和源文件合并
 file(GLOB MOUDLE_SRC
     ${MOUDLE_HEADERS}

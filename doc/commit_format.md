@@ -6,11 +6,10 @@ Description:
 Major Changes:
 1. 制作noded docker image.
 
-[Update:board] 重新设计嵌入式开发的目录结构。
+[Update:board] 新增eeprom_storage。
 
 Description:
-更改drivers为board， 这个库不光是driver，还包括基于driver
-的组件和app，这个board lib是专门开发嵌入式使用的。
+基于eeprom设备创建eeprom_storage， 支持文本读写和存储缓存。
 
 Major Changes:
-1. 规范目录结构。
+1. 开发eeprom_storage。
