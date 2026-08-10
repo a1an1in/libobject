@@ -6,10 +6,10 @@ Description:
 Major Changes:
 1. 制作noded docker image.
 
-[Add:mtd] 新增mtd。
+[Add:mtd] mtd测试挂载squash文件系统。
 
 Description:
-mtd支持读写。
+添加wtd写文件。
 
 Major Changes:
-1. 开发mtd及驱动。
+1. mtd挂载squash文件系统测试ok。
