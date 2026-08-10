@@ -1,5 +1,5 @@
 /**
- * @file Fpga.c
+ * @file Uio_Fpga.c
  * @Synopsis  FPGA 专用驱动，继承通用 Uio 类。
  * 在通用 Uio 之上封装 FPGA 特有的接口（默认设备名 "fpga"）。
  * 寄存器读写、中断等接口继承 Uio 的实现。
@@ -12,48 +12,44 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <libobject/board/hal/uio/Fpga.h>
+#include <libobject/board/hal/uio/Uio_Fpga.h>
 #include <libobject/core/utils/dbg/debug.h>
-
-#define FPGA_DEFAULT_DEVICE_NAME "fpga"
 
 /*
  * 打开 FPGA UIO 设备并 mmap 映射寄存器空间。
- * name 为空时使用默认设备名 "fpga"。
+ * dev_path 为 UIO 设备路径（如 "/dev/uio0"），直接传给 Uio.open。
  * 复用 Uio 的 open 和 mmap。
  */
-static int __open_device(Fpga *fpga, char *name)
+static int __open_device(Uio_Fpga *fpga, char *dev_path)
 {
     Uio *uio = (Uio *)fpga;
-    char *dev_name = name;
     int ret = -1;
 
     TRY {
-        if (dev_name == NULL || dev_name[0] == '\0') {
-            dev_name = FPGA_DEFAULT_DEVICE_NAME;
-        }
+        THROW_IF(dev_path == NULL || dev_path[0] == '\0', -1);
 
-        /* 1. 打开 UIO 设备 */
-        ret = uio->open(uio, dev_name);
+        /* 1. 打开 UIO 设备（按 /dev 路径） */
+        ret = uio->open(uio, dev_path);
         THROW_IF(ret < 0, -1);
 
         /* 2. mmap 映射 FPGA 寄存器空间 */
         ret = uio->mmap(uio);
         THROW_IF(ret < 0, -1);
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "fpga open_device failed, name:%s", dev_name);
+        dbg_str(DBG_ERROR, "fpga open_device failed, dev_path:%s",
+                dev_path ? dev_path : "?");
     }
 
     return ret;
 }
 
-static int __construct(Fpga *module, char *init_str)
+static int __construct(Uio_Fpga *module, char *init_str)
 {
     module->device_name = NULL;
     return 0;
 }
 
-static int __deconstruct(Fpga *module)
+static int __deconstruct(Uio_Fpga *module)
 {
     Uio *uio = (Uio *)module;
 
@@ -70,12 +66,12 @@ static int __deconstruct(Fpga *module)
 }
 
 /*
- * Fpga 注册 open_device（默认设备名 "fpga"）。
+ * Uio_Fpga 注册 open_device（默认设备名 "fpga"）。
  * read_register/write_register/read_registers/write_registers/
  * enable_irq/register_irq/disable_irq 等接口 value 为 NULL，继承 Uio 的实现。
  */
 DEFINE_CLASS(
-    EXTENDS(Fpga, Uio),
+    EXTENDS(Uio_Fpga, Uio),
     Class_NFunc_Entry(construct, __construct),
     Class_NFunc_Entry(deconstruct, __deconstruct),
     Class_VFunc_Entry(open_device, __open_device),

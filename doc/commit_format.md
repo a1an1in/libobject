@@ -6,10 +6,10 @@ Description:
 Major Changes:
 1. 制作noded docker image.
 
-[Add:mtd] mtd测试挂载squash文件系统。
+[Add:uio_pcie] 新增uio_pcie类。
 
 Description:
-添加wtd写文件。
+uio_pcie总线设备都可以通过这个总线接口访问了。
 
 Major Changes:
-1. mtd挂载squash文件系统测试ok。
+1. 实现uio_pcie总线接口。

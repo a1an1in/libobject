@@ -2,7 +2,7 @@
 #include <string.h>
 #include <libobject/mockery/mockery.h>
 #include <libobject/board/hal/uio/Uio.h>
-#include <libobject/board/hal/uio/Fpga.h>
+#include <libobject/board/hal/uio/Uio_Fpga.h>
 
 /*
  * 测试 UIO 驱动 + FPGA 寄存器接口。
@@ -30,6 +30,7 @@
 static Uio *__uio_open_and_mmap(allocator_t *allocator)
 {
     Uio *uio = NULL;
+    char dev_path[128] = {0};
     int ret;
 
     TRY {
@@ -37,8 +38,10 @@ static Uio *__uio_open_and_mmap(allocator_t *allocator)
         uio = object_new(allocator, "Uio", NULL);
         THROW_IF(uio == NULL, -1);
 
-        /* 2. 打开 UIO 设备（按 /sys/class/uio/uioX/name 匹配 "fpga"） */
-        ret = uio->open(uio, "fpga");
+        /* 2. 按设备名 "fpga" 解析成 /dev/uioX 并打开（统一按 /dev 路径） */
+        ret = uio_find_dev("fpga", dev_path, sizeof(dev_path));
+        THROW_IF(ret < 0, -1);
+        ret = uio->open(uio, dev_path);
         THROW_IF(ret < 0, -1);
 
         /* 3. mmap 映射 FPGA 寄存器空间 */

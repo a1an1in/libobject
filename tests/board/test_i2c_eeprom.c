@@ -12,7 +12,7 @@
  * 依赖 Linux i2c-dev 驱动（/dev/i2c-N）和 I2C EEPROM 从机。
  * 在 QEMU virt 机器中，已挂载 at24c02 EEPROM（地址 0x50，256 字节）。
  *
- * 使用 REGISTER_TEST_CMD 注册为命令（与 test_fpga 一致）。
+ * 使用 REGISTER_TEST_CMD 注册为命令（与 test_uio_fpga 一致）。
  */
 
 /*

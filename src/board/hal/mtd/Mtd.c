@@ -257,6 +257,7 @@ static int __write(Mtd *mtd, uint32_t offset, const void *buf, uint32_t size)
  * 刷写镜像文件：分块读取文件，逐块擦除并写入 MTD。
  * 内存占用仅一个 erasesize 块大小，适合大文件刷写场景。
  * 返回 0 成功，失败返回负数错误码。
+ * 添加offset参数， 大部分一个分区都是从0开始刷一个镜像，但是也有一个分区刷多个镜像的情况。
  */
 static int __write_file(Mtd *mtd, uint32_t offset, const char *filepath)
 {

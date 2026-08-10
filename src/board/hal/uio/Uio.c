@@ -29,10 +29,10 @@
 #define UIO_MAX_DEV_NUM  256
 
 /*
- * 根据 UIO 设备名（/sys/class/uio/uioX/name）匹配设备编号 X，
- * 返回 /dev/uioX 路径。
+ * 工具函数：根据 UIO 设备名（/sys/class/uio/uioX/name）匹配设备编号 X，
+ * 把 /dev/uioX 路径写入 dev_path。
  */
-static int __find_uio_dev(char *name, char *dev_path, int dev_path_len)
+int uio_find_dev(const char *name, char *dev_path, int dev_path_len)
 {
     char sysfs_name[UIO_MAX_NAME_LEN] = {0};
     char sysfs_path[UIO_MAX_NAME_LEN] = {0};
@@ -65,28 +65,23 @@ static int __find_uio_dev(char *name, char *dev_path, int dev_path_len)
     return -1;
 }
 
-static int __open(Uio *uio, char *name)
+static int __open(Uio *uio, char *dev_path)
 {
-    char dev_path[UIO_MAX_NAME_LEN] = {0};
     int ret = -1;
 
     TRY {
-        THROW_IF(uio == NULL || name == NULL, -1);
+        THROW_IF(uio == NULL || dev_path == NULL, -1);
 
-        /* 1. 通过 /sys/class/uio/uioX/name 匹配设备编号 */
-        ret = __find_uio_dev(name, dev_path, sizeof(dev_path));
-        THROW_IF(ret < 0, -1);
-
-        /* 2. 打开 /dev/uioX，O_SYNC 保证寄存器访问不被缓存 */
+        /* 1. 打开 /dev/uioX，O_SYNC 保证寄存器访问不被缓存 */
         uio->fd = open(dev_path, O_RDWR | O_SYNC);
         THROW_IF(uio->fd < 0, -1);
 
-        /* 3. 记录设备信息 */
+        /* 2. 记录设备信息 */
         if (uio->name == NULL) {
-            uio->name = strdup(name);
+            uio->name = strdup(dev_path);
         } else {
             free(uio->name);
-            uio->name = strdup(name);
+            uio->name = strdup(dev_path);
         }
         if (uio->dev_path == NULL) {
             uio->dev_path = strdup(dev_path);
@@ -94,13 +89,14 @@ static int __open(Uio *uio, char *name)
             free(uio->dev_path);
             uio->dev_path = strdup(dev_path);
         }
+        THROW_IF(uio->name == NULL || uio->dev_path == NULL, -1);
 
-        dbg_str(DBG_INFO, "uio open success, name:%s, dev:%s, fd:%d",
-                name, dev_path, uio->fd);
+        dbg_str(DBG_INFO, "uio open success, dev:%s, fd:%d",
+                dev_path, uio->fd);
         ret = 0;
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "uio open failed, name:%s, errno:%d(%s)",
-                name, errno, strerror(errno));
+        dbg_str(DBG_ERROR, "uio open failed, dev:%s, errno:%d(%s)",
+                dev_path, errno, strerror(errno));
         if (uio->fd >= 0) {
             close(uio->fd);
             uio->fd = -1;
@@ -114,16 +110,19 @@ static int __mmap(Uio *uio)
 {
     char sysfs_path[UIO_MAX_NAME_LEN] = {0};
     char buf[UIO_MAX_NAME_LEN] = {0};
-    unsigned long long addr = 0, size = 0;
-    int fd, len, ret = -1;
+    unsigned long long size = 0, page;
+    int fd, len, map_index, ret = -1;
 
     TRY {
         THROW_IF(uio == NULL || uio->fd < 0, -1);
 
-        /* 1. 从 /sys/class/uio/uioX/maps/map0/size 读取映射大小 */
+        map_index = uio->map_index;
+        THROW_IF(map_index < 0, -1);
+
+        /* 1. 从 /sys/class/uio/uioX/maps/mapN/size 读取该 map 的映射大小 */
         snprintf(sysfs_path, sizeof(sysfs_path),
-                 "%s/uio%d/maps/map0/size", UIO_SYSFS_PATH,
-                 atoi(uio->dev_path + strlen(UIO_DEV_PATH) + 3));
+                 "%s/uio%d/maps/map%d/size", UIO_SYSFS_PATH,
+                 atoi(uio->dev_path + strlen(UIO_DEV_PATH) + 3), map_index);
         fd = open(sysfs_path, O_RDONLY);
         THROW_IF(fd < 0, -1);
         len = read(fd, buf, sizeof(buf) - 1);
@@ -133,20 +132,30 @@ static int __mmap(Uio *uio)
         size = strtoull(buf, NULL, 0);
 
         /* 2. 页对齐后的映射大小 */
-        size = (size + getpagesize() - 1) & ~(getpagesize() - 1);
+        page = getpagesize();
+        size = (size + page - 1) & ~(page - 1);
 
-        /* 3. mmap 映射 FPGA 寄存器空间 */
+        /* 3. 若已映射，先解除 */
+        if (uio->base != NULL && uio->base != MAP_FAILED) {
+            munmap(uio->base, uio->size);
+            uio->base = NULL;
+        }
+
+        /* 4. mmap 映射：UIO 约定 offset = map 序号 * PAGE_SIZE
+         *    （内核 uio_find_mem_index 用 vm_pgoff 即 map 索引查表，
+         *     map0 → offset 0，mapN → offset N*PAGE_SIZE）。
+         *    与驱动无关，uio_pdrv_genirq / uio_pci_generic 通用 */
         uio->base = mmap(NULL, size, PROT_READ | PROT_WRITE,
-                         MAP_SHARED, uio->fd, 0);
+                         MAP_SHARED, uio->fd, (off_t)map_index * page);
         THROW_IF(uio->base == MAP_FAILED, -1);
 
         uio->size = size;
-        dbg_str(DBG_INFO, "uio mmap success, base:%p, size:0x%x",
-                uio->base, uio->size);
+        dbg_str(DBG_INFO, "uio mmap success, map:%d, size:0x%llx, base:%p",
+                map_index, size, uio->base);
         ret = 0;
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "uio mmap failed, errno:%d(%s)",
-                errno, strerror(errno));
+        dbg_str(DBG_ERROR, "uio mmap failed, map:%d, errno:%d(%s)",
+                uio ? uio->map_index : -1, errno, strerror(errno));
         if (uio->base != NULL && uio->base != MAP_FAILED) {
             munmap(uio->base, uio->size);
             uio->base = NULL;
@@ -469,6 +478,7 @@ static int __construct(Uio *module, char *init_str)
     module->fd = -1;
     module->base = NULL;
     module->size = 0;
+    module->map_index = 0;  /* 默认映射 map0 */
     module->width = 32;   /* 默认 32 位寄存器 */
     module->irq_enabled = 0;
     module->irq_worker = NULL;

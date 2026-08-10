@@ -4,10 +4,10 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <libobject/mockery/mockery.h>
-#include <libobject/board/hal/uio/Fpga.h>
+#include <libobject/board/hal/uio/Uio_Fpga.h>
 
 /*
- * 测试 Fpga 类：继承通用 Uio 类。
+ * 测试 Uio_Fpga 类：继承通用 Uio 类。
  *
  * 设备树节点示例：
  *   fpga@b000000 {
@@ -22,26 +22,29 @@
  */
 
 /*
- * 测试 Fpga 写单个寄存器，写完 read 验证是否符合预期。
+ * 测试 Uio_Fpga 写单个寄存器，写完 read 验证是否符合预期。
  */
-static int test_fpga_write_register(TEST_ENTRY *entry)
+static int test_uio_fpga_write_register(TEST_ENTRY *entry)
 {
     int ret = 1;
     allocator_t *allocator = allocator_get_default_instance();
-    Fpga *fpga = NULL;
+    Uio_Fpga *fpga = NULL;
     uint64_t val = 0;
     uint64_t expect = 0xDEADBEEF;
+    char dev_path[128] = {0};
 
     TRY {
-        dbg_str(DBG_INFO, "test_fpga_write_register");
+        dbg_str(DBG_INFO, "test_uio_fpga_write_register");
 
-        /* 1. 创建 Fpga 对象（继承 Uio） */
-        fpga = object_new(allocator, "Fpga", NULL);
+        /* 1. 创建 Uio_Fpga 对象（继承 Uio） */
+        fpga = object_new(allocator, "Uio_Fpga", NULL);
         THROW_IF(fpga == NULL, -1);
-        dbg_str(DBG_INFO, "step1: Fpga object created");
+        dbg_str(DBG_INFO, "step1: Uio_Fpga object created");
 
-        /* 2. 打开 FPGA UIO 设备并 mmap（open_device 内部完成 open + mmap） */
-        ret = fpga->open_device(fpga, NULL);
+        /* 2. 按设备名 "fpga" 解析出 /dev/uioX 路径，再 open_device(dev_path) */
+        ret = uio_find_dev("fpga", dev_path, sizeof(dev_path));
+        THROW_IF(ret < 0, -1);
+        ret = fpga->open_device(fpga, dev_path);
         THROW_IF(ret < 0, -1);
         dbg_str(DBG_INFO, "step2: open_device ok");
 
@@ -69,28 +72,31 @@ static int test_fpga_write_register(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_CMD(test_fpga_write_register);
+REGISTER_TEST_CMD(test_uio_fpga_write_register);
 
 /*
- * 测试 Fpga 批量写寄存器，写完 read 验证是否符合预期。
+ * 测试 Uio_Fpga 批量写寄存器，写完 read 验证是否符合预期。
  */
-static int test_fpga_write_registers(TEST_ENTRY *entry)
+static int test_uio_fpga_write_registers(TEST_ENTRY *entry)
 {
     int ret = 1;
     allocator_t *allocator = allocator_get_default_instance();
-    Fpga *fpga = NULL;
+    Uio_Fpga *fpga = NULL;
     uint64_t buf[4] = {0x11111111, 0x22222222, 0x33333333, 0x44444444};
     uint64_t rbuf[4] = {0};
+    char dev_path[128] = {0};
 
     TRY {
-        dbg_str(DBG_INFO, "test_fpga_write_registers");
+        dbg_str(DBG_INFO, "test_uio_fpga_write_registers");
 
-        /* 1. 创建 Fpga 对象（继承 Uio） */
-        fpga = object_new(allocator, "Fpga", NULL);
+        /* 1. 创建 Uio_Fpga 对象（继承 Uio） */
+        fpga = object_new(allocator, "Uio_Fpga", NULL);
         THROW_IF(fpga == NULL, -1);
 
-        /* 2. 打开 FPGA UIO 设备并 mmap（open_device 内部完成 open + mmap） */
-        ret = fpga->open_device(fpga, NULL);
+        /* 2. 按设备名 "fpga" 解析出 /dev/uioX 路径，再 open_device(dev_path) */
+        ret = uio_find_dev("fpga", dev_path, sizeof(dev_path));
+        THROW_IF(ret < 0, -1);
+        ret = fpga->open_device(fpga, dev_path);
         THROW_IF(ret < 0, -1);
 
         /* 3. 批量写寄存器（继承 Uio 的 write_registers，len 为寄存器个数，返回实际写入个数） */
@@ -119,18 +125,18 @@ static int test_fpga_write_registers(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_CMD(test_fpga_write_registers);
+REGISTER_TEST_CMD(test_uio_fpga_write_registers);
 
 /*
  * 异步中断处理函数（即 io_worker 的 work_callback）。
  * opaque 为 io_worker 传入的 worker，通过 ((Worker *)opaque)->opaque
- * 获取 register_irq 时传入的用户数据（此处为 Fpga 对象）。
+ * 获取 register_irq 时传入的用户数据（此处为 Uio_Fpga 对象）。
  * 中断次数由 __irq_ev_callback 保存到 uio->irq_count，此处读取并打印。
  */
-static int test_fpga_irq_handler(void *opaque)
+static int test_uio_fpga_irq_handler(void *opaque)
 {
     Worker *worker = (Worker *)opaque;
-    Fpga *fpga = (Fpga *)worker->opaque;
+    Uio_Fpga *fpga = (Uio_Fpga *)worker->opaque;
     Uio *uio = (Uio *)fpga;
 
     dbg_str(DBG_INFO, "async irq handler called ok, fpga:%p, irq_count:%u",
@@ -140,7 +146,7 @@ static int test_fpga_irq_handler(void *opaque)
 }
 
 /*
- * 测试 Fpga 异步中断：使能中断，register_irq 注册异步中断处理函数，
+ * 测试 Uio_Fpga 异步中断：使能中断，register_irq 注册异步中断处理函数，
  * 触发中断后由 io_worker 异步调用 handler。
  *
  * 设备树 fpga 节点配置为 SPI 70 中断（interrupts = <0 70 4>）。
@@ -150,29 +156,32 @@ static int test_fpga_irq_handler(void *opaque)
  * 本测试自动触发中断：先使能中断，再写 0xFF0 触发 SPI 70 中断，
  * 然后轮询等待异步 handler 被调用。
  */
-static int test_fpga_irq(TEST_ENTRY *entry)
+static int test_uio_fpga_irq(TEST_ENTRY *entry)
 {
     int ret = 1;
     int i;
     allocator_t *allocator = allocator_get_default_instance();
-    Fpga *fpga = NULL;
+    Uio_Fpga *fpga = NULL;
+    char dev_path[128] = {0};
 
     TRY {
-        dbg_str(DBG_INFO, "test_fpga_irq");
+        dbg_str(DBG_INFO, "test_uio_fpga_irq");
 
-        /* 1. 创建 Fpga 对象（继承 Uio） */
-        fpga = object_new(allocator, "Fpga", NULL);
+        /* 1. 创建 Uio_Fpga 对象（继承 Uio） */
+        fpga = object_new(allocator, "Uio_Fpga", NULL);
         THROW_IF(fpga == NULL, -1);
 
-        /* 2. 打开 FPGA UIO 设备并 mmap（open_device 内部完成 open + mmap） */
-        EXEC(fpga->open_device(fpga, NULL));
+        /* 2. 按设备名 "fpga" 解析出 /dev/uioX 路径，再 open_device(dev_path) */
+        ret = uio_find_dev("fpga", dev_path, sizeof(dev_path));
+        THROW_IF(ret < 0, -1);
+        EXEC(fpga->open_device(fpga, dev_path));
 
         /* 3. 使能中断（继承 Uio 的 enable_irq） */
         EXEC(fpga->enable_irq(fpga));
         dbg_str(DBG_INFO, "enable_irq ok");
 
         /* 4. 注册异步中断处理函数（继承 Uio 的 register_irq，基于 io_worker） */
-        EXEC(fpga->register_irq(fpga, test_fpga_irq_handler, fpga));
+        EXEC(fpga->register_irq(fpga, test_uio_fpga_irq_handler, fpga));
         dbg_str(DBG_INFO, "register_irq ok");
 
         /* 5. 写中断控制寄存器 0xFF0 触发 SPI 70 中断（bit0=1） */
@@ -201,4 +210,4 @@ static int test_fpga_irq(TEST_ENTRY *entry)
 
     return ret;
 }
-REGISTER_TEST_CMD(test_fpga_irq);
+REGISTER_TEST_CMD(test_uio_fpga_irq);

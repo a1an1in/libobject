@@ -28,7 +28,12 @@ struct Uio_s {
     char *(*to_json)(Uio *); 
 
     /* UIO device interface */
-    int (*open)(Uio *uio, char *name);
+    /* 打开 UIO 设备：统一按设备路径打开（如 "/dev/uio0"）。
+     * 若只有设备名（如 "fpga"），先用 uio_find_dev() 解析成路径 */
+    int (*open)(Uio *uio, char *dev_path);
+    /* 映射 uio->map_index 指定的 map（默认 0）。内部从 /sys/class/uio/uioX/maps/mapN/
+     * 读取该 map 的大小；mmap offset = map 序号 * PAGE_SIZE（UIO 约定，
+     * map0 → 0，mapN → N*PAGE_SIZE）。PCIe 多 BAR 设备设置 uio->map_index = BAR 序号后复用 */
     int (*mmap)(Uio *uio);
     int (*get_size)(Uio *uio);
     int (*close)(Uio *uio);
@@ -55,7 +60,8 @@ struct Uio_s {
     char *dev_path;         /* /dev/uioX path */
     char *name;             /* UIO device name (matched via /sys/class/uio) */
     uint8_t *base;          /* mmap'd virtual base address (byte addressing) */
-    uint32_t size;          /* mapped region size in bytes */
+    uint64_t size;          /* mapped region size in bytes */
+    int map_index;          /* mmap 的 map 序号（默认 0，PCIe 多 BAR 设备用它选择 BAR） */
     int width;              /* register width in bits: 32 or 64, default 32 */
     int irq_enabled;        /* whether interrupt is enabled */
 
@@ -65,5 +71,9 @@ struct Uio_s {
     void *irq_opaque;       /* 传给中断处理函数的用户数据 */
     uint32_t irq_count;     /* 最近一次中断的中断计数（供 handler 读取） */
 };
+
+/* 工具函数：按 UIO 设备名（/sys/class/uio/uioX/name）查找对应的 /dev/uioX 路径。
+ * 返回 0 成功并把路径写入 dev_path；找不到返回 -1。 */
+int uio_find_dev(const char *name, char *dev_path, int dev_path_len);
 
 #endif

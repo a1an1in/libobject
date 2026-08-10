@@ -13,7 +13,7 @@
  * 注意：本测试需要真实 I2C 总线（或 QEMU 中模拟的 I2C 控制器）。
  * 若指定总线不存在，open 会失败，测试会失败。
  *
- * 使用 REGISTER_TEST_CMD 注册为命令（与 test_fpga 一致），
+ * 使用 REGISTER_TEST_CMD 注册为命令（与 test_uio_fpga 一致），
  * 仅在具备 /dev/i2c-N 的环境中运行。
  */
 
