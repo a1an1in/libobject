@@ -1,4 +1,8 @@
-Ubuntu 环境里搭建qemu开发环境
+# Ubuntu 环境里搭建 QEMU 开发环境
+
+> 本文介绍如何在 Ubuntu（WSL2）里从零搭建一套 **QEMU + ARM64 Linux** 开发环境，
+> 用于开发板级用户态驱动。搭建完成、能启动系统后，各设备的用户态驱动开发文档见
+> [`doc/board/README.md`](README.md) 的索引。
 
 ## 1. 编译qemu
 
@@ -79,7 +83,7 @@ qemu-aarch64 -L /usr/aarch64-linux-gnu ./test_arm64
 
 * 版本选择
 
-​       选用 ‌**linux-4.9.263**‌ 版本，这是一个经典的长期支持版本，稳定且兼容性好，适合在 QEMU 中模拟 ARM 平台。
+​       选用 **linux-4.9.263** 版本，这是一个经典的长期支持版本，稳定且兼容性好，适合在 QEMU 中模拟 ARM 平台。
 
 * 下载链接
 
@@ -100,13 +104,13 @@ qemu-aarch64 -L /usr/aarch64-linux-gnu ./test_arm64
   make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
   ```
   
-编译完成后，内核镜像位于 `arch/arm64/boot/zImage`，在 ARM64 的 virt 平台上，编译内核后‌**不会生成单独的 DTB 文件**。
+编译完成后，内核镜像位于 `arch/arm64/boot/zImage`，在 ARM64 的 virt 平台上，编译内核后**不会生成单独的 DTB 文件**。
 
 #### 3.4.2 编译busybox
 
 * 版本选择
 
-  选用 ‌**busybox-1.32.1**‌ 版本，该版本稳定可靠，与 4.9 内核配合良好。
+  选用 **busybox-1.32.1** 版本，该版本稳定可靠，与 4.9 内核配合良好。
 
 * 下载链接
 
@@ -251,290 +255,8 @@ qemu-system-aarch64 \
 
 启动后按回车，就能看到 shell 提示符，一个完整的 ARM Linux 系统就在 QEMU 中运行起来了。
 
-## 4. 开发UIO 应用层驱动
-
-开发 UIO 应用层驱动分为四步：**创建虚拟 fpga 设备**、**修改 Linux 内核**、**实现 libobject FPGA 驱动**、**测试**。
-
-### 4.1 创建虚拟 fpga 设备
-
-创建虚拟 fpga 设备需要两步：**修改 QEMU 源码添加 `vfpga` 模拟设备**（让 QEMU 能模拟一个会触发中断的 FPGA），**修改设备树**（让 guest 内核识别该设备）。
-
-#### 4.1.1 概述：修改 QEMU 添加 vfpga 模拟设备
-
-QEMU `virt` 机器默认没有 FPGA 外设模型，`0x0b000000` 地址上没有任何设备，写寄存器不会触发中断。因此需要在 QEMU 源码中新增一个 `vfpga`（Virtual FPGA）模拟设备，guest 写其寄存器即可触发 SPI 70 中断。
-
-修改涉及以下文件：
-
-| 文件 | 修改内容 |
-|------|---------|
-| `include/hw/misc/vfpga.h` | 新增：vfpga 设备模型头文件（定义寄存器偏移、状态结构） |
-| `hw/misc/vfpga.c` | 新增：vfpga 设备模型实现（MMIO 读写、中断控制） |
-| `include/hw/arm/virt.h` | 添加 `VIRT_FPGA` 枚举项 |
-| `hw/arm/virt.c` | 分配 MMIO 地址 `0x0b000000`、连接 GIC SPI 70、生成设备树节点、调用 `create_vfpga()` |
-| `hw/misc/Kconfig` | 添加 `VFPGA` 配置 |
-| `hw/misc/meson.build` | 添加编译条目 |
-| `hw/arm/Kconfig` | `ARM_VIRT` 添加 `select VFPGA` |
-
-`vfpga` 设备模型的核心逻辑（`hw/misc/vfpga.c`）：
-
-```c
-/* 中断控制寄存器 0xFF0：写 bit0=1 触发中断，bit0=0 清除 */
-case VFPGA_REG_IRQ_CTRL:   // 0xFF0
-    if (value & 1) {
-        s->irq_pending = 1;
-        qemu_set_irq(s->irq, 1);   // 拉高中断线 → GIC 收到 SPI 70
-    } else {
-        s->irq_pending = 0;
-        qemu_set_irq(s->irq, 0);   // 拉低中断线
-    }
-    break;
-```
-
-在 `hw/arm/virt.c` 中，将设备的中断输出连接到 GIC 的 SPI 70：
-
-```c
-static void create_vfpga(const VirtMachineState *vms)
-{
-    ...
-    s = SYS_BUS_DEVICE(qdev_new(TYPE_VFPGA));
-    sysbus_realize_and_unref(s, &error_fatal);
-    sysbus_mmio_map(s, 0, base);                       // 映射到 0x0b000000
-    sysbus_connect_irq(s, 0, qdev_get_gpio_in(vms->gic, irq));  // 连接 GIC SPI 70
-    ...
-}
-```
-
-修改完成后重新编译 QEMU：
-
-```bash
-cd ~/workspace/qemu/build
-ninja qemu-system-aarch64
-```
-
-> **说明**：`vfpga` 设备寄存器布局（相对 `0x0b000000`）：`0x00`-`0xFEC` 为数据寄存器（支持 32/64 位读写），`0xFF0` 为中断控制寄存器（写 bit0=1 触发中断），`0xFF4` 为中断状态寄存器（只读）。
-
-#### 4.1.2 导出默认设备树
-
-```
-qemu-system-aarch64 \
-  -M virt,dumpdtb=virt_default.dtb \
-  -cpu cortex-a57 \
-  -m 2G \
-  -kernel ~/workspace/linux-4.9.263/arch/arm64/boot/Image \
-  -nographic
-```
-
-#### 4.1.3 反编译为可编辑格式
-
-```
-dtc -I dtb -O dts virt_default.dtb -o virt_custom.dts
-```
-
-#### 4.1.4 修改设备树节点
-
-````
-对于你的虚拟 FPGA 设备，建议使用70，这个编号明确未被占用且远离已分配区域：
-fpga@b000000 {
-    compatible = "generic-uio";
-    reg = <0x0 0xb000000 0x0 0x1000>;
-    interrupts = <0 70 4>;
-    interrupt-parent = <&intc>;
-};
-````
-
-> **注意**：`0x0b000000` 是 QEMU `virt` 机器中为 FPGA 模拟设备预留的 MMIO 地址（见 `hw/arm/virt.c` 的 `VIRT_FPGA`）。该地址对应 QEMU 中新增的 `vfpga` 模拟设备（`hw/misc/vfpga.c`），guest 写其 `0xFF0` 寄存器（bit0=1）即可触发 SPI 70 中断。若使用 QEMU 自动生成的设备树，该节点会自动生成，无需手动添加。
-
-#### 4.1.5 编译回 DTB
-
-```
-dtc -I dts -O dtb virt_custom.dts -o virt_custom.dtb
-```
-
-### 4.2 修改 Linux 内核（启用 UIO 驱动）
-
-许多嵌入式或通用内核的默认配置为了精简体积，会关闭非核心驱动。请按照以下步骤强制启用 UIO 支持：
-
-#### 4.2.1 直接修改 `.config` 文件
-
-打开内核根目录下的 `.config` 文件，找到以下行（如果存在）：
-
-```
-# CONFIG_UIO is not set
-```
-
-将其修改为：
-
-```
-textCONFIG_UIO=y
-CONFIG_UIO_PDRV_GENIRQ=y
-```
-
-*注意：如果文件中完全没有 `CONFIG_UIO` 相关行，直接在文件末尾添加这两行即可。*
-
-#### 4.2.2 更新配置依赖
-
-保存文件后，执行以下命令以解析依赖关系并更新配置：
-
-```
-make ARCH=arm64 olddefconfig
-```
-
-这一步会根据你手动添加的 `CONFIG_UIO=y` 自动检查并启用必要的依赖项。
-
-#### 4.2.3 验证配置
-
-再次检查 `.config` 文件，确认配置已生效：
-
-```
-grep CONFIG_UIO .config
-```
-
-输出应显示：
-
-```
-textCONFIG_UIO=y
-CONFIG_UIO_PDRV_GENIRQ=y
-```
-
-#### 4.2.4 重新编译内核
-
-配置生效后，必须重新编译内核才能将 UIO 驱动包含进去：
-
-```
-make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
-```
-
-#### 4.2.5 使用新的 DTB 和内核运行
-
-```
-qemu-system-aarch64 \
-  -M virt \
-  -cpu cortex-a57 \
-  -m 2G \
-  -kernel ~/workspace/linux-4.9.263/arch/arm64/boot/Image \
-  -dtb ~/workspace/qemu_virt_machine/virt_custom.dtb \
-  -initrd ~/workspace/busybox-1.33.1/initramfs.cpio.gz \
-  -nographic \
-  -append "console=ttyAMA0 rdinit=/linuxrc uio_pdrv_genirq.compat_id=generic-uio uio_pdrv_genirq.of_id=generic-uio"
-```
-
-#### 4.2.6 验证 UIO 设备
-
-```
-dmesg | grep -i uio
-ls /dev/uio*
-```
-
-### 4.3 实现 libobject FPGA 驱动
-
-#### 4.3.1 编译 libobject（aarch64）
-
-在 libobject 仓库根目录执行：
-
-```bash
-./devops.sh build --platform=linux --arch=aarch64
-```
-
-编译产物位于 `sysroot/linux/aarch64/bin/xtools`，动态库位于 `sysroot/linux/aarch64/lib/`。
-
-#### 4.3.2 部署代码到 QEMU（推荐：9p 共享目录）
-
-由于代码会经常修改，推荐使用 **9p virtfs 共享目录**，宿主机与 guest 共享一个目录，改代码后只需重新编译，guest 里直接看到新文件，**无需重启 QEMU**。
-
-内核已确认支持 9p（`CONFIG_NET_9P=y`、`CONFIG_NET_9P_VIRTIO=y`、`CONFIG_9P_FS=y`）。
-启动 QEMU 时追加 `-virtfs` 参数，共享 libobject 的 `sysroot/linux/aarch64` 目录：
-
-```bash
-qemu-system-aarch64 \
-  -M virt \
-  -cpu cortex-a57 \
-  -m 2G \
-  -kernel ~/workspace/linux-4.9.263/arch/arm64/boot/Image \
-  -dtb ~/workspace/qemu_virt_machine/virt_custom.dtb \
-  -initrd ~/workspace/busybox-1.33.1/initramfs.cpio.gz \
-  -nographic \
-  -virtfs local,path=/home/alan/workspace/libobject/sysroot/linux/aarch64,mount_tag=host0,security_model=none,id=host0 \
-  -append "console=ttyAMA0 rdinit=/linuxrc uio_pdrv_genirq.compat_id=generic-uio uio_pdrv_genirq.of_id=generic-uio"
-```
-
-### 4.4 测试
-
-测试分为两部分：**手动测试**（用 shell 命令直接验证）和 **case 测试**（运行 libobject 的自动化测试用例）。
-
-#### 4.4.1 手动测试
-
-##### 验证 UIO 设备
-
-```sh
-# 查看 UIO 设备
-ls -l /dev/uio*
-cat /sys/class/uio/uio0/name          # 期望: fpga
-cat /sys/class/uio/uio0/maps/map0/addr # 期望: 0x0b000000
-cat /sys/class/uio/uio0/maps/map0/size # 期望: 0x1000
-```
-
-##### 验证寄存器读写
-
-```sh
-# 用 devmem 读写寄存器（若 busybox 有 devmem）
-devmem 0x0b000000 32 0x12345678
-devmem 0x0b000000 32                  # 期望: 0x12345678
-```
-
-##### 验证中断
-
-手动验证中断只需验证**第一次中断**（计数从 0 变 1），简单可靠：
-
-```sh
-# 1. 查看当前中断计数（初始应为 0）
-cat /sys/class/uio/uio0/event
-
-# 2. 触发中断（写 vfpga 中断控制寄存器 0xFF0 的 bit0=1）
-devmem 0x0b000ff0 32 1
-
-# 3. 再次查看中断计数，应 +1
-cat /sys/class/uio/uio0/event         # 期望: 1
-
-# 4. 清除中断（高电平触发需复位，写 0xFF0 = 0）
-devmem 0x0b000ff0 32 0
-```
-
-> **说明**：
-> - `/sys/class/uio/uio0/event` 只读当前中断计数，**不阻塞**，触发中断后计数 +1。
-> - 中断为高电平触发（`interrupts = <0 70 4>`），触发后必须写 `0x0b000ff0` 为 0 清除，否则中断持续触发。
-> - **多次中断递增验证**（计数 +2、+3 等）在 QEMU 中较复杂：`uio_pdrv_genirq` 在每次中断后自动屏蔽中断，需读 `/dev/uio0` 重新使能，且读操作是阻塞的，时序难以控制。**推荐用 case 测试 `test_uio_fpga_irq` 验证多次中断**（自动触发 + 等待 + 验证计数，已确认可靠）。
-
-#### 4.4.2 case 测试
-
-##### 运行 UIO 驱动测试（test_uio）
-
-```sh
-mkdir -p /mnt
-mount -t 9p -o trans=virtio,version=9p2000.L host0 /mnt
-export LD_LIBRARY_PATH=/mnt/lib
-/mnt/bin/xtools --log-type=0 --log-level=0x16 mockery test_uio
-```
-
-测试通过时日志显示 `test suc, func_name = test_uio`，且 `read register[0x0] = 0xdeadbeef`。
-
-##### 中断测试（test_uio_fpga_irq，自动触发）
-
-`test_uio_fpga_irq` 测试已实现**自动触发中断**：先使能中断，再写 `0xFF0` 触发 SPI 70 中断，然后 `wait_irq` 等待并验证中断计数。运行测试即可，无需手动注入：
-
-```sh
-mkdir -p /mnt
-mount -t 9p -o trans=virtio,version=9p2000.L host0 /mnt
-ls /mnt/bin/xtools 
-export LD_LIBRARY_PATH=/mnt/lib
-/mnt/bin/xtools --log-type=0 --log-level=0x16 mockery test_uio_fpga_irq
-```
-
-预期日志：
-
-```
-[INFO]-[enable_irq ok]
-[INFO]-[trigger irq ok (write 0xFF0 = 1)]
-[INFO]-[wait_irq ok, irq_count:1]
-[INFO]-[disable_irq ok]
-[WIP]-[command suc, func_name = test_uio_fpga_irq, ...]
-```
+## 4. 下一步：开发用户态驱动
+
+环境就绪后，各设备的用户态驱动开发文档见 [`doc/board/README.md`](README.md) 的索引
+（UIO FPGA / I2C / SPI / PCIe / VFIO / MTD），其中 [`uio_fpga驱动开发.md`](uio_fpga驱动开发.md)
+是「QEMU 造设备 → 设备树 → 内核 UIO → 用户态驱动 → 测试」全流程的完整示例。

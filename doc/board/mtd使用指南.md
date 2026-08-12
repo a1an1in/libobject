@@ -7,7 +7,7 @@ MTD（Memory Technology Device）用于访问 Flash 存储设备（NAND/NOR/QSPI
 guest 内核启用 MTD 相关驱动后，会出现 `/dev/mtd0`、`/dev/mtdblock0` 等设备节点，
 应用层即可通过 `open + ioctl(MEMGETINFO/MEMERASE) + read/write` 访问。
 
-本指南基于 [`Ubuntu 环境里搭建qemu开发环境.md`](Ubuntu 环境里搭建qemu开发环境.md) 搭建的
+本指南基于 [`Ubuntu 环境里搭建qemu开发环境.md`](<Ubuntu 环境里搭建qemu开发环境.md>) 搭建的
 QEMU + Linux 4.9 + busybox 环境，说明如何在 `virt` 机器上挂载 pflash 并运行 libobject 的 MTD 测试。
 
 ## 2. 为什么用 pflash 而不是 m25p80
