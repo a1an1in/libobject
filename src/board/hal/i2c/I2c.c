@@ -73,8 +73,7 @@ static int __open(I2c *i2c, int bus_number)
                  I2C_DEV_PATH_PREFIX, bus_number);
 
         /* 3. 打开设备文件（复用 fd） */
-        i2c->fd = open(dev_path, O_RDWR);
-        THROW_IF(i2c->fd < 0, -1);
+        EXEC(i2c->fd = open(dev_path, O_RDWR));
 
         i2c->bus_number = bus_number;
 
@@ -130,7 +129,7 @@ static int __transfer(I2c *i2c, int slave_addr, struct i2c_msg *msgs, int nmsgs)
         THROW_IF(i2c == NULL || msgs == NULL, -I2C_ERR_INVALID_ARG);
         THROW_IF(i2c->fd < 0, -I2C_ERR_ERROR);
         THROW_IF(nmsgs <= 0, -I2C_ERR_INVALID_ARG);
-        THROW_IF(__check_addr(slave_addr) < 0, -I2C_ERR_INVALID_ARG);
+        EXEC(__check_addr(slave_addr));
 
         /* 统一设置每个 msg 的从机地址 */
         for (i = 0; i < nmsgs; i++) {
@@ -241,8 +240,7 @@ static int __read(I2c *i2c, int slave_addr, uint16_t reg,
         msgs[nmsgs - 1].buf = (__u8 *)read_buf;
 
         /* 抛出 transfer 的错误码（如 -I2C_ERR_NACK），不抹平为 -1 */
-        ret = i2c->transfer(i2c, slave_addr, msgs, nmsgs);
-        THROW_IF(ret < 0, ret);
+        EXEC(i2c->transfer(i2c, slave_addr, msgs, nmsgs));
         ret = 0;
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "i2c read failed, addr:0x%x, reg:0x%x, "
@@ -290,8 +288,7 @@ static int __write(I2c *i2c, int slave_addr, uint16_t reg,
         msg.buf = txbuf;
 
         /* 抛出 transfer 的错误码（如 -I2C_ERR_NACK），不抹平为 -1 */
-        ret = i2c->transfer(i2c, slave_addr, &msg, 1);
-        THROW_IF(ret < 0, ret);
+        EXEC(i2c->transfer(i2c, slave_addr, &msg, 1));
         ret = 0;
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "i2c write failed, addr:0x%x, reg:0x%x, size:%d",

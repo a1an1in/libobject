@@ -73,8 +73,7 @@ static int __open(Uio *uio, char *dev_path)
         THROW_IF(uio == NULL || dev_path == NULL, -1);
 
         /* 1. 打开 /dev/uioX，O_SYNC 保证寄存器访问不被缓存 */
-        uio->fd = open(dev_path, O_RDWR | O_SYNC);
-        THROW_IF(uio->fd < 0, -1);
+        EXEC(uio->fd = open(dev_path, O_RDWR | O_SYNC));
 
         /* 2. 记录设备信息 */
         if (uio->name == NULL) {
@@ -123,8 +122,7 @@ static int __mmap(Uio *uio)
         snprintf(sysfs_path, sizeof(sysfs_path),
                  "%s/uio%d/maps/map%d/size", UIO_SYSFS_PATH,
                  atoi(uio->dev_path + strlen(UIO_DEV_PATH) + 3), map_index);
-        fd = open(sysfs_path, O_RDONLY);
-        THROW_IF(fd < 0, -1);
+        EXEC(fd = open(sysfs_path, O_RDONLY));
         len = read(fd, buf, sizeof(buf) - 1);
         close(fd);
         THROW_IF(len <= 0, -1);

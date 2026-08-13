@@ -66,8 +66,7 @@ static int __open(Spi *spi, int bus, int cs)
         THROW_IF(spi->dev_path == NULL, -SPI_ERR_ERROR);
 
         /* 4. 打开设备 */
-        spi->fd = open(path, O_RDWR);
-        THROW_IF(spi->fd < 0, -SPI_ERR_OPEN);
+        EXEC(spi->fd = open(path, O_RDWR));
 
         /* 5. 应用默认配置 */
         spi->config = default_config;
@@ -197,17 +196,10 @@ static int __configure(Spi *spi, spi_config_t *config)
         THROW_IF(spi == NULL || config == NULL, -SPI_ERR_INVALID_ARG);
         THROW_IF(spi->fd < 0, -SPI_ERR_NOT_INIT);
 
-        ret = ioctl(spi->fd, SPI_IOC_WR_MODE, &config->mode);
-        THROW_IF(ret < 0, -SPI_ERR_ERROR);
-
-        ret = ioctl(spi->fd, SPI_IOC_WR_MAX_SPEED_HZ, &config->max_speed_hz);
-        THROW_IF(ret < 0, -SPI_ERR_ERROR);
-
-        ret = ioctl(spi->fd, SPI_IOC_WR_BITS_PER_WORD, &config->bits_per_word);
-        THROW_IF(ret < 0, -SPI_ERR_ERROR);
-
-        ret = ioctl(spi->fd, SPI_IOC_WR_LSB_FIRST, &config->lsb_first);
-        THROW_IF(ret < 0, -SPI_ERR_ERROR);
+        EXEC(ioctl(spi->fd, SPI_IOC_WR_MODE, &config->mode));
+        EXEC(ioctl(spi->fd, SPI_IOC_WR_MAX_SPEED_HZ, &config->max_speed_hz));
+        EXEC(ioctl(spi->fd, SPI_IOC_WR_BITS_PER_WORD, &config->bits_per_word));
+        EXEC(ioctl(spi->fd, SPI_IOC_WR_LSB_FIRST, &config->lsb_first));
 
         spi->config = *config;
         ret = 0;

@@ -42,8 +42,7 @@ static int __open(Gpio *gpio, char *chip_path)
         memset(&cinfo, 0, sizeof(cinfo));
 
         /* 1. 打开 /dev/gpiochipN */
-        gpio->fd = open(chip_path, O_RDONLY | O_CLOEXEC);
-        THROW_IF(gpio->fd < 0, -1);
+        EXEC(gpio->fd = open(chip_path, O_RDONLY | O_CLOEXEC));
 
         if (gpio->dev_path == NULL) {
             gpio->dev_path = strdup(chip_path);
@@ -54,7 +53,7 @@ static int __open(Gpio *gpio, char *chip_path)
         THROW_IF(gpio->dev_path == NULL, -1);
 
         /* 2. 获取 chip 信息 */
-        THROW_IF(ioctl(gpio->fd, GPIO_GET_CHIPINFO_IOCTL, &cinfo) < 0, -1);
+        EXEC(ioctl(gpio->fd, GPIO_GET_CHIPINFO_IOCTL, &cinfo));
         snprintf(gpio->info.name, sizeof(gpio->info.name), "%s", cinfo.name);
         snprintf(gpio->info.label, sizeof(gpio->info.label), "%s", cinfo.label);
         gpio->info.num_lines = cinfo.lines;
@@ -144,7 +143,7 @@ static int __request_lines(Gpio *gpio, gpio_line_config_t *configs, int num)
         snprintf(req.consumer_label, sizeof(req.consumer_label), "%s",
                  GPIO_CONSUMER);
 
-        THROW_IF(ioctl(gpio->fd, GPIO_GET_LINEHANDLE_IOCTL, &req) < 0, -1);
+        EXEC(ioctl(gpio->fd, GPIO_GET_LINEHANDLE_IOCTL, &req));
         THROW_IF(req.fd < 0, -1);
 
         /* 释放旧的 line handle（若已请求） */
@@ -187,8 +186,8 @@ static int __set_value(Gpio *gpio, int index, int value)
 
         memset(&data, 0, sizeof(data));
         data.values[index] = (__u8)(value ? 1 : 0);
-        THROW_IF(ioctl(gpio->req_fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL,
-                       &data) < 0, -1);
+        EXEC(ioctl(gpio->req_fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL,
+                   &data));
         ret = 0;
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "gpio set_value failed, index:%d, errno:%d(%s)",
@@ -215,8 +214,8 @@ static int __get_value(Gpio *gpio, int index, int *value)
         locked = 1;
 
         memset(&data, 0, sizeof(data));
-        THROW_IF(ioctl(gpio->req_fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL,
-                       &data) < 0, -1);
+        EXEC(ioctl(gpio->req_fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL,
+                   &data));
         *value = data.values[index] ? 1 : 0;
         ret = 0;
     } CATCH (ret) {
@@ -247,8 +246,8 @@ static int __set_values(Gpio *gpio, int *values, int num)
         for (i = 0; i < num; i++) {
             data.values[i] = (__u8)(values[i] ? 1 : 0);
         }
-        THROW_IF(ioctl(gpio->req_fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL,
-                       &data) < 0, -1);
+        EXEC(ioctl(gpio->req_fd, GPIOHANDLE_SET_LINE_VALUES_IOCTL,
+                   &data));
         ret = 0;
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "gpio set_values failed, num:%d, errno:%d(%s)",
@@ -275,8 +274,8 @@ static int __get_values(Gpio *gpio, int *values, int num)
         locked = 1;
 
         memset(&data, 0, sizeof(data));
-        THROW_IF(ioctl(gpio->req_fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL,
-                       &data) < 0, -1);
+        EXEC(ioctl(gpio->req_fd, GPIOHANDLE_GET_LINE_VALUES_IOCTL,
+                   &data));
         for (i = 0; i < num; i++) {
             values[i] = data.values[i] ? 1 : 0;
         }
@@ -361,7 +360,7 @@ static int __register_event(Gpio *gpio, int offset, gpio_edge_t edge,
         snprintf(req.consumer_label, sizeof(req.consumer_label), "%s",
                  GPIO_CONSUMER);
 
-        THROW_IF(ioctl(gpio->fd, GPIO_GET_LINEEVENT_IOCTL, &req) < 0, -1);
+        EXEC(ioctl(gpio->fd, GPIO_GET_LINEEVENT_IOCTL, &req));
         THROW_IF(req.fd < 0, -1);
 
         /* 若已注册过，先注销旧的 io_worker 并关闭旧事件 fd */

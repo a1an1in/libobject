@@ -20,6 +20,37 @@
 | [`pcie设计文档.md`](pcie设计文档.md) | PCIe 用户态驱动（`Uio_Pcie` 类，基于 uio_pci_generic + mmap BAR） |
 | [`vfio设计文档.md`](vfio设计文档.md) | VFIO 用户态驱动（`Vfio` / `Vfio_Pcie` / `Vfio_Pcie_Edu` 类，含 DMA 与中断） |
 
+## 驱动覆盖情况（已实现 / 待实现）
+
+**已实现**（`src/board/hal/` + `src/board/service/`）：
+
+| 驱动 | 实现 | 说明 |
+|------|------|------|
+| GPIO | [`Gpio.c`](../src/board/hal/gpio/Gpio.c) | gpiochip 字符设备，含边沿事件中断 |
+| I2C | [`I2c.c`](../src/board/hal/i2c/I2c.c) | I2C 总线访问 |
+| I2C EEPROM | [`I2c_EEPROM.c`](../src/board/hal/i2c/I2c_EEPROM.c) | 24Cxx EEPROM |
+| I2C 温度传感器 | [`I2c_TempSensor.c`](../src/board/hal/i2c/I2c_TempSensor.c) | 温度传感器 |
+| SPI | [`Spi.c`](../src/board/hal/spi/Spi.c) | spidev 用户态 SPI |
+| MTD/Flash | [`Mtd.c`](../src/board/hal/mtd/Mtd.c) | `/dev/mtdX` Flash 访问 |
+| UIO 家族 | [`Uio.c`](../src/board/hal/uio/Uio.c) / [`Uio_Pcie.c`](../src/board/hal/uio/Uio_Pcie.c) | 平台/PCIe/FPGA |
+| VFIO 家族 | [`Vfio.c`](../src/board/hal/vfio/Vfio.c) / [`Vfio_Pcie.c`](../src/board/hal/vfio/Vfio_Pcie.c) | IOMMU / DMA / 中断 |
+| EEPROM 存储服务 | [`Eeprom_Storage.c`](../src/board/service/eeprom_storage/Eeprom_Storage.c) | service 层存储服务 |
+
+**待实现（驱动缺口）**：
+
+| 驱动 | 用户态接入点 | 优先级 |
+|------|------------|--------|
+| Watchdog | `/dev/watchdog` | 高（产品稳定性刚需） |
+| PWM | `/sys/class/pwm` | 高（背光/蜂鸣器/电机） |
+| RTC | `/dev/rtc0` | 中 |
+| ADC / DAC | IIO `/sys/bus/iio` 或 I2C | 中 |
+| Input / evdev | `/dev/input/event*` | 中（按键/触摸） |
+| CAN | SocketCAN | 低（用到再补） |
+| USB | libusb | 低（用到再补） |
+
+> **UART**：控制台/调试串口由内核 + getty 使用，**无需应用层驱动**；只有驱动外设串口
+> （GPS/传感器/Modem）才需要 `Uart` HAL 类，按需再补。
+
 ## 架构与设计
 
 | 文档 | 说明 |

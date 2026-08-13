@@ -40,8 +40,7 @@ static int __init(I2c_TempSensor *sensor, int bus_number, int slave_addr)
         THROW_IF(sensor == NULL, -I2C_ERR_INVALID_ARG);
 
         /* 1. 打开 /dev/i2c-N（复用 I2c 的 open） */
-        ret = i2c->open(i2c, bus_number);
-        THROW_IF(ret < 0, ret);
+        EXEC(i2c->open(i2c, bus_number));
 
         /* 2. 配置从机地址 */
         sensor->slave_addr = slave_addr;
@@ -76,9 +75,8 @@ static int __read(I2c_TempSensor *sensor, float *temp)
         THROW_IF(sensor->temp_reg_len > 4, -I2C_ERR_INVALID_ARG);
 
         /* 读温度寄存器（temp_reg_len 字节） */
-        ret = i2c->read(i2c, sensor->slave_addr, sensor->temp_reg,
-                        NULL, 0, buf, sensor->temp_reg_len);
-        THROW_IF(ret < 0, ret);
+        EXEC(i2c->read(i2c, sensor->slave_addr, sensor->temp_reg,
+                       NULL, 0, buf, sensor->temp_reg_len));
 
         /* 组合原始值（按字节序） */
         if (sensor->big_endian) {
@@ -175,9 +173,8 @@ static int __set_limit(I2c_TempSensor *sensor, float high, float low)
                 raw >>= 8;
             }
         }
-        ret = i2c->write(i2c, sensor->slave_addr,
-                         sensor->temp_high_reg, buf, sensor->temp_reg_len);
-        THROW_IF(ret < 0, ret);
+        EXEC(i2c->write(i2c, sensor->slave_addr,
+                        sensor->temp_high_reg, buf, sensor->temp_reg_len));
 
         /* 下限 */
         raw = (int32_t)(low / sensor->resolution);
@@ -195,9 +192,8 @@ static int __set_limit(I2c_TempSensor *sensor, float high, float low)
                 raw >>= 8;
             }
         }
-        ret = i2c->write(i2c, sensor->slave_addr,
-                         sensor->temp_low_reg, buf, sensor->temp_reg_len);
-        THROW_IF(ret < 0, ret);
+        EXEC(i2c->write(i2c, sensor->slave_addr,
+                        sensor->temp_low_reg, buf, sensor->temp_reg_len));
 
         dbg_str(DBG_INFO, "tempsensor set_limit ok, high:%.2f, low:%.2f",
                 high, low);

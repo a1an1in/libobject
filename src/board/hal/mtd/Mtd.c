@@ -58,12 +58,10 @@ static int __open(Mtd *mtd, char *device)
         THROW_IF(mtd->dev_path == NULL, -1);
 
         /* 3. 打开设备文件（复用 fd） */
-        mtd->fd = open(device, O_RDWR | O_SYNC);
-        THROW_IF(mtd->fd < 0, -1);
+        EXEC(mtd->fd = open(device, O_RDWR | O_SYNC));
 
         /* 4. 获取设备信息（内核 struct mtd_info_user） */
-        ret = ioctl(mtd->fd, MEMGETINFO, &kinfo);
-        THROW_IF(ret < 0, -1);
+        EXEC(ioctl(mtd->fd, MEMGETINFO, &kinfo));
 
         /* 5. 复制到自定义 mtd_dev_info_t */
         mtd->info.size       = kinfo.size;
@@ -164,8 +162,7 @@ static int __erase(Mtd *mtd, uint32_t offset, uint32_t size)
         for (block = offset; block < end; block += mtd->info.erasesize) {
             erase.start = block;
             erase.length = mtd->info.erasesize;
-            ret = ioctl(mtd->fd, MEMERASE, &erase);
-            THROW_IF(ret < 0, -MTD_ERR_ERASE);
+            EXEC(ioctl(mtd->fd, MEMERASE, &erase));
         }
         pthread_mutex_unlock(&mtd->lock);
 
@@ -197,8 +194,7 @@ static int __read(Mtd *mtd, uint32_t offset, void *buf, uint32_t size)
 
         /* 1. 加锁，定位到 offset */
         pthread_mutex_lock(&mtd->lock);
-        ret = lseek(mtd->fd, offset, SEEK_SET);
-        THROW_IF(ret < 0, -MTD_ERR_READ);
+        EXEC(lseek(mtd->fd, offset, SEEK_SET));
 
         /* 2. 读取数据 */
         nread = read(mtd->fd, buf, size);
@@ -233,8 +229,7 @@ static int __write(Mtd *mtd, uint32_t offset, const void *buf, uint32_t size)
 
         /* 1. 加锁，定位到 offset */
         pthread_mutex_lock(&mtd->lock);
-        ret = lseek(mtd->fd, offset, SEEK_SET);
-        THROW_IF(ret < 0, -MTD_ERR_WRITE);
+        EXEC(lseek(mtd->fd, offset, SEEK_SET));
 
         /* 2. 写入数据 */
         nwrite = write(mtd->fd, buf, size);
@@ -307,8 +302,7 @@ static int __write_file(Mtd *mtd, uint32_t offset, const char *filepath)
             THROW_IF(ret != (int)nread, -MTD_ERR_READ);
 
             /* 写一块 */
-            ret = mtd->write(mtd, offset + written, chunk, nread);
-            THROW_IF(ret < 0, -MTD_ERR_WRITE);
+            EXEC(mtd->write(mtd, offset + written, chunk, nread));
 
             written += nread;
             remaining -= nread;

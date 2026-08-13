@@ -31,8 +31,7 @@ static int __read(I2c_EEPROM *eeprom, uint16_t addr, void *buf, size_t len)
         /* 地址越界检查 */
         THROW_IF(addr + len > eeprom->size, -I2C_ERR_INVALID_ARG);
 
-        ret = i2c->read(i2c, eeprom->slave_addr, addr, NULL, 0, buf, len);
-        THROW_IF(ret < 0, ret);
+        EXEC(i2c->read(i2c, eeprom->slave_addr, addr, NULL, 0, buf, len));
         ret = 0;
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "eeprom read failed, addr:0x%x, len:%d",
@@ -57,8 +56,7 @@ static int __write(I2c_EEPROM *eeprom, uint16_t addr, const void *buf, size_t le
         /* 地址越界检查 */
         THROW_IF(addr + len > eeprom->size, -I2C_ERR_INVALID_ARG);
 
-        ret = i2c->write(i2c, eeprom->slave_addr, addr, buf, len);
-        THROW_IF(ret < 0, ret);
+        EXEC(i2c->write(i2c, eeprom->slave_addr, addr, buf, len));
         ret = 0;
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "eeprom write failed, addr:0x%x, len:%d",
@@ -81,8 +79,7 @@ static int __init(I2c_EEPROM *eeprom, int bus_number, int slave_addr, uint32_t s
         THROW_IF(size == 0, -I2C_ERR_INVALID_ARG);
 
         /* 1. 打开 /dev/i2c-N（复用 I2c 的 open） */
-        ret = i2c->open(i2c, bus_number);
-        THROW_IF(ret < 0, ret);
+        EXEC(i2c->open(i2c, bus_number));
 
         /* 2. 配置从机地址和容量 */
         eeprom->slave_addr = slave_addr;

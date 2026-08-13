@@ -108,8 +108,7 @@ static int __open(Vfio *vfio, char *group_path, char *device_name)
         locked = 1;
 
         /* 1. 打开 container：/dev/vfio/vfio，校验 API 版本与 TYPE1 IOMMU 支持 */
-        vfio->container_fd = open(VFIO_CONTAINER_PATH, O_RDWR);
-        THROW_IF(vfio->container_fd < 0, -1);
+        EXEC(vfio->container_fd = open(VFIO_CONTAINER_PATH, O_RDWR));
         api_version = ioctl(vfio->container_fd, VFIO_GET_API_VERSION);
         THROW_IF(api_version != VFIO_API_VERSION, -1);
         THROW_IF(ioctl(vfio->container_fd, VFIO_CHECK_EXTENSION,
@@ -117,24 +116,21 @@ static int __open(Vfio *vfio, char *group_path, char *device_name)
 
         /* 2. 打开 group：/dev/vfio/<N>（无 devtmpfs 时先 mknod），并设置 container */
         __ensure_group_devnode(group_path);
-        vfio->group_fd = open(group_path, O_RDWR);
-        THROW_IF(vfio->group_fd < 0, -1);
-        THROW_IF(ioctl(vfio->group_fd, VFIO_GROUP_SET_CONTAINER,
-                       &vfio->container_fd) < 0, -1);
+        EXEC(vfio->group_fd = open(group_path, O_RDWR));
+        EXEC(ioctl(vfio->group_fd, VFIO_GROUP_SET_CONTAINER,
+                   &vfio->container_fd));
 
         /* 3. 为 container 设置 TYPE1 IOMMU */
-        THROW_IF(ioctl(vfio->container_fd, VFIO_SET_IOMMU,
-                       VFIO_TYPE1_IOMMU) < 0, -1);
+        EXEC(ioctl(vfio->container_fd, VFIO_SET_IOMMU,
+                   VFIO_TYPE1_IOMMU));
 
         /* 4. 获取设备 fd，并读取设备信息 */
-        vfio->device_fd = ioctl(vfio->group_fd, VFIO_GROUP_GET_DEVICE_FD,
-                                device_name);
-        THROW_IF(vfio->device_fd < 0, -1);
+        EXEC(vfio->device_fd = ioctl(vfio->group_fd, VFIO_GROUP_GET_DEVICE_FD,
+                                     device_name));
 
         memset(&dev_info, 0, sizeof(dev_info));
         dev_info.argsz = sizeof(dev_info);
-        THROW_IF(ioctl(vfio->device_fd, VFIO_DEVICE_GET_INFO, &dev_info) < 0,
-                 -1);
+        EXEC(ioctl(vfio->device_fd, VFIO_DEVICE_GET_INFO, &dev_info));
         memset(&vfio->info, 0, sizeof(vfio->info));
         vfio->info.flags = dev_info.flags;
         vfio->info.num_regions = dev_info.num_regions;
@@ -233,8 +229,7 @@ static int __get_region_info(Vfio *vfio, int index, vfio_region_info_t *info)
         memset(&reg, 0, sizeof(reg));
         reg.argsz = sizeof(reg);
         reg.index = (__u32)index;
-        THROW_IF(ioctl(vfio->device_fd, VFIO_DEVICE_GET_REGION_INFO, &reg) < 0,
-                 -1);
+        EXEC(ioctl(vfio->device_fd, VFIO_DEVICE_GET_REGION_INFO, &reg));
 
         info->index = (int)reg.index;
         info->offset = reg.offset;
@@ -274,8 +269,7 @@ static int __map_region(Vfio *vfio, int index)
         memset(&reg, 0, sizeof(reg));
         reg.argsz = sizeof(reg);
         reg.index = (__u32)index;
-        THROW_IF(ioctl(vfio->device_fd, VFIO_DEVICE_GET_REGION_INFO, &reg) < 0,
-                 -1);
+        EXEC(ioctl(vfio->device_fd, VFIO_DEVICE_GET_REGION_INFO, &reg));
         THROW_IF(!(reg.flags & VFIO_REGION_INFO_FLAG_MMAP), -1);
         THROW_IF(reg.size == 0, -1);
 
@@ -419,8 +413,7 @@ static int __register_irq(Vfio *vfio, int irq_index, int sub_index,
         }
 
         /* 1. 创建 eventfd */
-        efd = eventfd(0, EFD_NONBLOCK);
-        THROW_IF(efd < 0, -1);
+        EXEC(efd = eventfd(0, EFD_NONBLOCK));
 
         /* 2. 把该向量绑定到 eventfd（count=1，绑定单个向量 sub_index）。
          *    MSI-X 支持逐向量增量绑定（每次 SET_IRQS 一个向量），
@@ -433,8 +426,7 @@ static int __register_irq(Vfio *vfio, int irq_index, int sub_index,
         irq_pack.set.start = (__u32)sub_index;
         irq_pack.set.count = 1;
         irq_pack.data = efd;
-        THROW_IF(ioctl(vfio->device_fd, VFIO_DEVICE_SET_IRQS, irq_set) < 0,
-                 -1);
+        EXEC(ioctl(vfio->device_fd, VFIO_DEVICE_SET_IRQS, irq_set));
 
         /* 3. 填充该向量 ctx，并挂到 worker->opaque（回调按 ctx 定位/分发） */
         ctx->vfio = vfio;
@@ -500,8 +492,7 @@ static int __mask_unmask_irq(Vfio *vfio, int irq_index, int sub_index,
         irq_set.index = (__u32)irq_index;
         irq_set.start = (__u32)sub_index;
         irq_set.count = 1;
-        THROW_IF(ioctl(vfio->device_fd, VFIO_DEVICE_SET_IRQS, &irq_set) < 0,
-                 -1);
+        EXEC(ioctl(vfio->device_fd, VFIO_DEVICE_SET_IRQS, &irq_set));
         ret = 0;
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "vfio mask/unmask irq failed, index:%d, "
@@ -563,8 +554,7 @@ static int __dma_map(Vfio *vfio, void *buf, uint64_t size, uint64_t *iova)
         dma_map.vaddr = (uint64_t)(uintptr_t)buf;
         dma_map.iova = base;
         dma_map.size = size;
-        THROW_IF(ioctl(vfio->container_fd, VFIO_IOMMU_MAP_DMA, &dma_map) < 0,
-                 -1);
+        EXEC(ioctl(vfio->container_fd, VFIO_IOMMU_MAP_DMA, &dma_map));
 
         *iova = dma_map.iova;
         vfio->iova = base + size;
@@ -602,8 +592,8 @@ static int __dma_unmap(Vfio *vfio, uint64_t iova, uint64_t size)
         dma_unmap.argsz = sizeof(dma_unmap);
         dma_unmap.iova = iova;
         dma_unmap.size = size;
-        THROW_IF(ioctl(vfio->container_fd, VFIO_IOMMU_UNMAP_DMA,
-                       &dma_unmap) < 0, -1);
+        EXEC(ioctl(vfio->container_fd, VFIO_IOMMU_UNMAP_DMA,
+                   &dma_unmap));
         ret = 0;
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "vfio dma_unmap failed, iova:0x%llx, size:0x%llx, "

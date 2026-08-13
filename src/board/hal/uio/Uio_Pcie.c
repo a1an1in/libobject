@@ -234,8 +234,7 @@ static int __read_config(Uio_Pcie *pcie, int offset, uint32_t *data)
 
         snprintf(path, sizeof(path), "%s/%s/%s", PCIE_SYSFS_PATH,
                  pcie->bdf, PCIE_CONFIG_NAME);
-        fd = open(path, O_RDONLY);
-        THROW_IF(fd < 0, -1);
+        EXEC(fd = open(path, O_RDONLY));
 
         n = pread(fd, data, sizeof(*data), offset);
         close(fd);
@@ -264,8 +263,7 @@ static int __write_config(Uio_Pcie *pcie, int offset, uint32_t data)
 
         snprintf(path, sizeof(path), "%s/%s/%s", PCIE_SYSFS_PATH,
                  pcie->bdf, PCIE_CONFIG_NAME);
-        fd = open(path, O_WRONLY);
-        THROW_IF(fd < 0, -1);
+        EXEC(fd = open(path, O_WRONLY));
 
         n = pwrite(fd, &data, sizeof(data), offset);
         close(fd);
@@ -326,8 +324,7 @@ static int __bind_to_uio(Uio_Pcie *pcie)
         __read_sysfs_u32(path, &device);
 
         snprintf(path, sizeof(path), "%s/new_id", PCIE_UIO_DRV_PATH);
-        fd = open(path, O_WRONLY);
-        THROW_IF(fd < 0, -1);
+        EXEC(fd = open(path, O_WRONLY));
         snprintf(id, sizeof(id), "%x %x", vendor, device);
         n = write(fd, id, strlen(id));
         close(fd);
@@ -495,26 +492,22 @@ static int __bind_uio(Uio_Pcie *pcie, int bar)
         /* 1. 查找已绑定的 uio 编号；未绑定则尝试绑定 uio_pci_generic */
         pcie->uio_num = __find_uio_num(pcie);
         if (pcie->uio_num < 0) {
-            ret = __bind_to_uio(pcie);
-            THROW_IF(ret < 0, -1);
-            pcie->uio_num = __find_uio_num(pcie);
-            THROW_IF(pcie->uio_num < 0, -1);
+            EXEC(__bind_to_uio(pcie));
+            EXEC(pcie->uio_num = __find_uio_num(pcie));
         }
 
         /* 2. 确保 /dev/uioX 节点存在（无 devtmpfs 时 mknod） */
-        THROW_IF(__ensure_uio_devnode(pcie) < 0, -1);
+        EXEC(__ensure_uio_devnode(pcie));
 
         /* 3. 打开 /dev/uioX（仅首次；多 BAR 重复 bind 复用同一 fd 用于中断） */
         snprintf(dev_path, sizeof(dev_path), "/dev/uio%d", pcie->uio_num);
         if (uio->fd < 0) {
-            ret = uio->open(uio, dev_path);
-            THROW_IF(ret < 0, -1);
+            EXEC(uio->open(uio, dev_path));
         }
 
         /* 4. 通过 /dev/mem 按物理地址映射指定 BAR（可多次 bind 映射多个 BAR 并存），
          *    之后寄存器访问用偏移编码：read_register((bar<<bar_shift)|off) */
-        ret = __map_bar(pcie, bar);
-        THROW_IF(ret < 0, -1);
+        EXEC(__map_bar(pcie, bar));
 
         dbg_str(DBG_INFO, "pcie bind_uio success, bdf:%s, dev:%s, fd:%d, bar:%d",
                 pcie->bdf, dev_path, uio->fd, pcie->bar);

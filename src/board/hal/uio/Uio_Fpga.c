@@ -29,12 +29,11 @@ static int __open_device(Uio_Fpga *fpga, char *dev_path)
         THROW_IF(dev_path == NULL || dev_path[0] == '\0', -1);
 
         /* 1. 打开 UIO 设备（按 /dev 路径） */
-        ret = uio->open(uio, dev_path);
-        THROW_IF(ret < 0, -1);
+        EXEC(uio->open(uio, dev_path));
 
         /* 2. mmap 映射 FPGA 寄存器空间 */
-        ret = uio->mmap(uio);
-        THROW_IF(ret < 0, -1);
+        EXEC(uio->mmap(uio));
+        ret = 0;
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "fpga open_device failed, dev_path:%s",
                 dev_path ? dev_path : "?");

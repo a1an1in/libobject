@@ -122,8 +122,7 @@ static int __bind_to_vfio(Vfio_Pcie *pcie)
         __read_sysfs_u32(path, &device);
 
         snprintf(path, sizeof(path), "%s/new_id", PCIE_VFIO_DRV_PATH);
-        fd = open(path, O_WRONLY);
-        THROW_IF(fd < 0, -1);
+        EXEC(fd = open(path, O_WRONLY));
         snprintf(id, sizeof(id), "%x %x", vendor, device);
         n = write(fd, id, strlen(id));
         close(fd);
@@ -245,7 +244,7 @@ static int __open_device(Vfio_Pcie *pcie, uint32_t vendor, uint32_t device)
                                           sizeof(group_path)) < 0, -1);
 
                 /* 绑定 vfio-pci */
-                THROW_IF(__bind_to_vfio(pcie) < 0, -1);
+                EXEC(__bind_to_vfio(pcie));
 
                 /* 读取 BAR 大小（region size 用 VFIO_DEVICE_GET_REGION_INFO，
                  * 此处仅用于 bar_shift 估算） */
@@ -301,8 +300,7 @@ static int __map_bar(Vfio_Pcie *pcie, int bar)
         }
 
         /* 3. 映射 region（父类 Vfio.map_region，多 region 并存） */
-        ret = vfio->map_region(vfio, bar);
-        THROW_IF(ret < 0, -1);
+        EXEC(vfio->map_region(vfio, bar));
         pcie->bar_size[bar] = info.size;
         pcie->bar_mapped[bar] = 1;
 
