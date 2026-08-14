@@ -99,7 +99,10 @@ static int __search_central_directory_end_header_position(Zip *zip, uint64_t *of
         dbg_str(DBG_INFO, "search_central_dir_position, file size:%d", size);
 
         read_size = size > 512 ? 512 : size;
-        a->read(a, buf, read_size);
+        /* the EOCD record (plus any comment) resides at the tail of the file,
+         * so seek to the last read_size bytes before reading. */
+        EXEC(a->seek(a, size - read_size, SEEK_SET));
+        EXEC(a->read(a, buf, read_size));
         buffer->set_capacity(buffer, read_size);
         buffer->write(buffer, buf, read_size);
         addr = buffer->rfind(buffer, needle, sizeof(needle));
@@ -123,11 +126,11 @@ static int __read_central_directory_end_header(Zip *zip)
 
     TRY {
         dbg_str(DBG_INFO, "central_dir_end_header_position:%lld", zip->central_dir_end_header_position);
-        a->seek(a, zip->central_dir_end_header_position, SEEK_SET);
-        a->read(a, (uint8_t *)header, sizeof(zip->central_directory_end_header));
-        dbg_buf(DBG_INFO, "offset:", header, 22);
+        EXEC(a->seek(a, zip->central_dir_end_header_position, SEEK_SET));
+        EXEC(a->read(a, (uint8_t *)header, ZIP_CENTROL_DIR_END_HEADER_SIZE));
+        dbg_buf(DBG_INFO, "offset:", header, ZIP_CENTROL_DIR_END_HEADER_SIZE);
 
-        LE32_TO_CPU(header->central_directory_total_number);
+        LE16_TO_CPU(header->central_directory_total_number);
         LE32_TO_CPU(header->central_directory_size);
         LE32_TO_CPU(header->central_directory_start_offset);
 
@@ -284,12 +287,21 @@ static int __read_file_header(Zip *zip, zip_central_directory_header_t *record, 
         dbg_str(DBG_INFO, "file_header, extract_version:%x", header->extract_version);
         dbg_str(DBG_INFO, "file_header, general_purpose_bit_flag:%x", header->general_purpose_bit_flag);
 
-        THROW_IF(header->crc32 != record->crc32, -1);
+        /* if bit 3 (data descriptor) is set, the local header's crc32 /
+         * compressed_size / uncompressed_size are zeroed and the real values
+         * are stored in the central directory (via the data descriptor). */
+        if (header->general_purpose_bit_flag & 0x08) {
+            header->crc32 = record->crc32;
+            header->compressed_size = record->compressed_size;
+            header->uncompressed_size = record->uncompressed_size;
+        } else {
+            THROW_IF(header->crc32 != record->crc32, -1);
+            THROW_IF(header->compressed_size != record->compressed_size, -1);
+            THROW_IF(header->uncompressed_size != record->uncompressed_size, -1);
+        }
         THROW_IF(header->last_mode_time != record->last_mode_time, -1);
         THROW_IF(header->last_mode_date != record->last_mode_date, -1);
         THROW_IF(header->compression_method != record->compression_method, -1);
-        THROW_IF(header->compressed_size != record->compressed_size, -1);
-        THROW_IF(header->uncompressed_size != record->uncompressed_size, -1);
         THROW_IF(header->extract_version != record->extract_version, -1);
         THROW_IF(header->general_purpose_bit_flag != record->general_purpose_bit_flag, -1);
     } CATCH (ret) {}
@@ -300,6 +312,7 @@ static int __read_file_header(Zip *zip, zip_central_directory_header_t *record, 
 static int __store_file(Zip *zip, File *a, long size, File *out, long *out_size)
 {
     int ret, read_len;
+    long written = 0;
     unsigned char buffer[1024];
 
     TRY {
@@ -307,9 +320,10 @@ static int __store_file(Zip *zip, File *a, long size, File *out, long *out_size)
             read_len = size > 1024 ? 1024 : size;
             EXEC(a->read(a, buffer, read_len));
             EXEC(out->write(out, buffer, read_len));
+            written += read_len;
             size -= read_len;
         }
-        *out_size = size;
+        *out_size = written;
     } CATCH (ret) {}
 
     return ret;
@@ -323,7 +337,8 @@ static int __decompress_file(Zip *zip, zip_file_header_t *header)
     allocator_t *allocator = zip->parent.parent.allocator;
     File *a = archive->file, *out = zip->file;
     char file_name[1024];
-    int ret, out_len;
+    int ret;
+    long out_len;
 
     TRY {
         THROW_IF(header->compression_method >= ZIP_COMPRESSION_METHOD_MAX, -1);
@@ -331,8 +346,11 @@ static int __decompress_file(Zip *zip, zip_file_header_t *header)
         dbg_str(DBG_INFO, "decompress method:%x", header->compression_method);
         dbg_str(DBG_INFO, "decompress file data_offset:%x", header->data_offset);
         
+        /* guard against path overflow and directory traversal */
+        THROW_IF(strlen(STR2A(archive->extracting_path)) + strlen((char *)header->file_name) >= sizeof(file_name), -1);
+        THROW_IF(strstr((char *)header->file_name, "..") != NULL, -1);
         strcpy(file_name, STR2A(archive->extracting_path));
-        strcat(file_name, header->file_name);
+        strcat(file_name, (char *)header->file_name);
         EXEC(fs_mkfile(file_name, 0777));
         EXEC(a->seek(a, header->data_offset, SEEK_SET));
         EXEC(out->open(out, file_name, "wb+"));
@@ -357,7 +375,7 @@ static int __extract_file(Zip *zip, archive_file_info_t *info)
     File *a = archive->file, *file = zip->file;
     allocator_t *allocator = zip->parent.parent.allocator;
     zip_central_directory_header_t *element;
-    zip_file_header_t *header;
+    zip_file_header_t *header = NULL;
     int ret;
     char buf[512] = {0};
 
@@ -397,7 +415,8 @@ static int __write_file_header(Zip *zip, char *file_name, zip_file_header_t *hea
         header->signature = 0x04034b50;
         header->extract_version = 0x14;
         header->general_purpose_bit_flag = 0;
-        header->compression_method = ZIP_COMPRESSION_METHOD_DEFLATED;
+        /* compression_method is configured at __add_file (deflate by default,
+         * stored if the caller asked for it) and is used by __write_file. */
         header->last_mode_time = 0;
         header->last_mode_date = 0;
         header->file_name_length = strlen(file_name);
@@ -444,7 +463,7 @@ static int __write_file(Zip *zip, char *file_name, zip_file_header_t *header)
     Compress *c = NULL;
     Archive *archive = (Archive *)&zip->parent;
     File *a = archive->file, *file = zip->file;
-    uint32_t write_len = 0;
+    long write_len = 0;
     Vector *headers = zip->compressors;
     allocator_t *allocator = zip->parent.parent.allocator;
     int ret;
@@ -489,7 +508,7 @@ static int __add_central_directory_header(Zip *zip, zip_file_header_t *file_head
     TRY {
         dir_header = allocator_mem_zalloc(allocator, sizeof(zip_central_directory_header_t));
         dir_header->signature = CPU_TO_LE32(signature);
-        dir_header->create_version = 2;
+        dir_header->create_version = 0x14;
         dir_header->extract_version = file_header->extract_version;
         dir_header->general_purpose_bit_flag = file_header->general_purpose_bit_flag;
         dir_header->compression_method = file_header->compression_method;
@@ -507,20 +526,20 @@ static int __add_central_directory_header(Zip *zip, zip_file_header_t *file_head
         dir_header->offset = CPU_TO_LE32(zip->central_dir_position);
 
         /* set file name for dir */
-        dir_header->file_name = allocator_mem_zalloc(allocator, LE32_TO_CPU(file_header->file_name_length) + 1);
+        dir_header->file_name = allocator_mem_zalloc(allocator, LE16_TO_CPU(file_header->file_name_length) + 1);
         THROW_IF(dir_header->file_name == NULL, -1);
         strcpy(dir_header->file_name, file_header->file_name);
 
         /* extra_field not support now */
-        THROW_IF(LE32_TO_CPU(file_header->extra_field_length) != 0, -1);
+        THROW_IF(LE16_TO_CPU(file_header->extra_field_length) != 0, -1);
 
         /* set opaque for for each func */
         dir_header->opaque = zip;
 
         /* set central_dir_position */
-        zip->central_dir_position += (ZIP_FILE_HEADER_SIZE + 
-                                      LE32_TO_CPU(file_header->file_name_length) + 
-                                      LE32_TO_CPU(file_header->extra_field_length) +
+        zip->central_dir_position += (ZIP_FILE_HEADER_SIZE +
+                                      LE16_TO_CPU(file_header->file_name_length) +
+                                      LE16_TO_CPU(file_header->extra_field_length) +
                                       LE32_TO_CPU(file_header->compressed_size));
         zip->central_dir_end_header_position = zip->central_dir_position;
         dir_headers->add(dir_headers, dir_header);
@@ -577,7 +596,14 @@ static int __add_file(Zip *zip, archive_file_info_t *info)
              file_header->data_offset, zip->central_dir_position,
              ZIP_FILE_HEADER_SIZE, strlen(file_name), extra_field_length);
         dbg_str(DBG_INFO, "file name:%s", file_name);
-        file_header->compression_method = ZIP_COMPRESSION_METHOD_DEFLATED;
+        /* honor the caller's compression method when it is supported,
+         * otherwise fall back to deflate */
+        if (info->compression_method == ZIP_COMPRESSION_METHOD_STORED ||
+            info->compression_method == ZIP_COMPRESSION_METHOD_DEFLATED) {
+            file_header->compression_method = info->compression_method;
+        } else {
+            file_header->compression_method = ZIP_COMPRESSION_METHOD_DEFLATED;
+        }
 
         EXEC(__write_file(zip, file_name, file_header));
         EXEC(__write_file_header(zip, file_name, file_header));

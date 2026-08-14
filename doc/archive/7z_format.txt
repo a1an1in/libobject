@@ -1,0 +1,205 @@
+# 7z 归档格式与 libobject 实现说明
+
+## 1. 概述
+
+7z 是 7-Zip 使用的**归档容器格式**（archive container），不是压缩算法本身。
+它把多个文件打包并记录元数据，内部再调用某种压缩算法（默认 **LZMA/LZMA2**）
+对数据流进行压缩。
+
+libobject 中的实现位于：
+
+- `src/archive/7z/SevenZip.h` / `SevenZip.c` —— 7z 容器（读取 + 写入）
+- `src/compress/lzma/LzmaCompress.c` —— LZMA2 编解码（依赖系统 liblzma）
+
+编码流使用 **raw LZMA2**（7z 格式要求的裸流，不带 .xz 容器头），由
+liblzma 的 `lzma_raw_encoder` / `lzma_raw_decoder` 提供。
+
+## 2. 7z 文件格式
+
+### 2.1 整体布局
+
+```
+[文件头 32 字节]
+   签名 6 字节        : 0x37 0x7A 0xBC 0xAF 0x27 0x1C ("7z" + BC AF 27 1C)
+   版本 2 字节        : 主版本(4) 次版本(0)
+   StartHeaderCRC 4   : 偏移 8，CRC32(文件头 12..32，共 20 字节)
+   NextHeaderOffset 8 : 偏移 12，相对"32 字节头之后"的偏移（绝对 = 32 + 值）
+   NextHeaderSize   8 : 偏移 20，下一个头的字节数
+   NextHeaderCRC    4 : 偏移 28，下一个头的 CRC32
+[数据区]
+   所有被压缩（packed）的编码流，从偏移 32 开始连续存放
+[NextHeader]
+   类型字节：0x01 = kHeader（明文头） 或 0x17 = kEncodedHeader（头本身被压缩）
+```
+
+### 2.2 NextHeader（kHeader）记录结构
+
+每条记录以 1 字节类型开头：
+
+| 类型 | 名称 | 说明 |
+|---|---|---|
+| 0x00 | kEnd | 记录结束 |
+| 0x01 | kHeader | 顶层头 |
+| 0x02 | kArchiveProperties | 归档属性 |
+| 0x04 | kMainStreamsInfo | 描述数据区如何被编码 |
+| 0x05 | kFilesInfo | 文件列表 |
+| 0x06 | kPackInfo | 打包流信息 |
+| 0x07 | kUnpackInfo | 解包（folder/coder）信息 |
+| 0x08 | kSubStreamsInfo | 文件夹内 substream 划分 |
+| 0x0a | kCRC | CRC 段 |
+| 0x0b | kFolder | 文件夹 |
+| 0x0c | kCodersUnpackSize | 各 coder 输出大小 |
+| 0x0d | kNumUnpackStream | 各 folder 的 substream 数量 |
+| 0x0e | kEmptyStream | 位向量：哪些文件是"空流" |
+| 0x0f | kEmptyFile | 位向量：空流中哪些是空文件 |
+| 0x11 | kName | UTF-16LE 文件名序列 |
+| 0x17 | kEncodedHeader | 头本身被压缩 |
+
+### 2.3 数字与位向量编码
+
+- **数字（VLV）**：首字节 `b`：
+  - `b == 0` → 0；
+  - `b` 的最高置位位在第 `i` 位 → 后面跟 `i` 个字节；首字节低 `i` 位作为
+    结果的高位，后续 `i` 字节依次作为低 8×`i` 位。
+- **位向量（bit vector）**：`N` 个位占 `ceil(N/8)` 字节，低位在前（第 `i` 位在
+  字节 `i/8` 的 `i%8` 位）。
+
+### 2.4 PackInfo / UnpackInfo / SubStreamsInfo
+
+```
+PackInfo(0x06):
+  PackPos            : 打包数据相对"数据起始(32)"的偏移（通常 = 0）
+  NumPackStreams     : 打包流数量
+  kSize(0x09)        : 标记，随后是每个打包流大小 PackedSize × N
+  [kCRC] kEnd
+
+UnpackInfo(0x07):
+  kFolder(0x0b)      : NumFolders + External + [DataOffset] + 每个 Folder
+  [kCodersUnpackSize(0x0c): 每个 coder 输出流大小]
+  [kCRC] kEnd
+
+Folder（编码链）:
+  NumCoders
+  每个 coder: flags | method_id | [num_in, num_out] | [props_size, props]
+    flags 低 4 位 = 方法 ID 长度；bit0x10 = 流数量显式给出；bit0x20 = 带属性
+    （单 coder 1 进 1 出时省略 bind pairs / packed stream 索引）
+  [NumBindPairs + (in_index, out_index)*]
+  [NumPackedStreams + 局部打包流索引]
+
+SubStreamsInfo(0x08):
+  kNumUnpackStream(0x0d): 每个 folder 的 substream 数量
+  kSize(0x09)           : 每个 folder 除最后一个 substream 外的大小
+  kCRC(0x0a)            : substream 的 CRC
+```
+
+固实压缩（solid）：多个文件共用一个 folder，其解码输出按 substream 大小切片，
+每个切片对应一个文件。
+
+### 2.5 FilesInfo
+
+```
+FilesInfo(0x05):
+  NumFiles
+  kEmptyStream(0x0e): 位向量（哪些是目录/无数据）
+  kEmptyFile(0x0f)  : 位向量（空流中哪些是空文件）
+  kName(0x11)       : NamesSize + 0x00 前缀 + 一串以 \0 结尾的 UTF-16LE 文件名
+  kEnd
+  （文件 CRC 放在 SubStreamsInfo 的 kCRC，不放在 FilesInfo）
+```
+
+文件到数据的映射：**非空流**的文件按顺序依次消费各 folder 的 substream；
+空流文件不消费 substream。
+
+## 3. 本实现支持的子集
+
+**读取（list / extract）：**
+- 明文头（kHeader）与编码头（kEncodedHeader，递归解码）。
+- Folder 仅支持**单 coder、无 bind pair、单 packed stream**（覆盖 7-Zip 默认产出）；
+  多 coder / 绑定链返回不支持。
+- 压缩算法：LZMA2、LZMA（alone）、copy（不压缩）。
+- 固实（solid）多 substream 切片。
+- 文件名：读取端完整支持 UTF-16LE → UTF-8（含代理对）。
+
+**写入（add / save）：**
+- 生成最小合法 7z：每个文件一个 folder（非固实）、单 LZMA2 coder
+  （dict = 1<<24，属性字节 = 24）、FilesInfo 含 UTF-16 名与 CRC。
+- 文件名写入为 BMP 级 UTF-8 → UTF-16（辅助平面字符转 `?`）。
+
+## 4. 数据结构
+
+见 `src/archive/7z/SevenZip.h`：
+
+- `sz_coder_t`：单个 coder（method id、流数、属性）。
+- `sz_folder_t`：编码链（coders / bind pairs / packed streams）+ substream 划分。
+- `sz_file_info_t`：文件（名字、大小、CRC、所属 folder + substream）。
+- `X_7Z_s`：归档状态（packed sizes/crcs、folders、files、NextHeader 原始字节、
+  写入游标）。
+
+## 5. 读取流程
+
+```
+open(archive_name, "r")
+  ├─ 读 32 字节文件头，校验签名 "7zBCAF271C"
+  ├─ 解析 StartHeader（NextHeader 的 offset/size/crc）
+  ├─ 读 NextHeader 区域
+  │   ├─ kHeader        → 直接解析
+  │   └─ kEncodedHeader → 先解析其 MainStreamsInfo，用 liblzma 解码出真正的头，再解析
+  │       · parse MainStreamsInfo:
+  │           · parse PackInfo       → pack_pos / packed_sizes / packed_crcs
+  │           · parse UnpackInfo     → folders（coder、bind pairs、packed streams、unpack sizes）
+  │           · parse SubStreamsInfo → 各 folder 的 substream 数量/大小/CRC
+  │       · parse FilesInfo          → 文件名、空流/空文件标记、文件 CRC
+  └─ map_files_to_substreams: 把每个文件绑定到 (folder, substream) 并算大小
+
+list()          → 遍历 files，填充 extracting_file_infos
+extract_file()  →
+  ├─ 按名字定位文件
+  ├─ decode_folder: 读出该 folder 的 packed 流，用 liblzma 解码整段
+  ├─ get_substream_span: 在解码结果里按 substream 切片（偏移/长度）
+  ├─ fs_mkfile 建父目录 → 写入文件 → close 刷新
+  └─ 按需校验 CRC32
+```
+
+## 6. 写入流程
+
+```
+open(archive_name, "w+")
+add_file(info) →
+  ├─ 读源文件 → 计算 CRC32
+  ├─ __lzma_raw_encode(raw LZMA2, dict=1<<24) → packed 流
+  ├─ 追加写入数据区（游标 central_dir_position）
+  └─ 登记一个 folder（单 LZMA2 coder，属性字节 24）与该文件元数据
+save() →
+  ├─ 构建 NextHeader（kHeader: MainStreamsInfo + FilesInfo）
+  ├─ 计算 NextHeader 的 CRC32
+  └─ 写 32 字节文件头（签名/版本/NextHeader 偏移/大小/CRC）
+```
+
+## 7. 依赖
+
+- 系统 **liblzma**（提供 LZMA2/LZMA 编解码）：
+  - CMake 检测：`src/compress/CMakeLists.txt` 用 `find_package(LibLZMA)`，
+    缺失时打印安装提示。
+  - 链接：`mk/linux.cmake` 的 `LZMA_LIB "lzma"`。
+  - 安装：`sudo apt-get install liblzma-dev`（Debian/Ubuntu）。
+
+## 8. 测试
+
+- `tests/compress/test_lzma_compress.c`：LzmaCompress 的 buf/file 回环。
+- `tests/archive/test_7z.c`：
+  - `test_7z_add_roundtrip`：单文件 add→save→reopen→list→extract→逐字节比对。
+  - `test_7z_add_roundtrip_two`：双文件回环。
+  - `test_7z_interop_tool`：用 `7z`/`7za` 校验（工具缺失自动跳过）。
+
+## 9. 已知限制与后续扩展
+
+- 解码仅支持单 coder、无 bind pair、单 packed stream 的 folder；
+  可扩展为解析 bind pair 组成的一般编码链。
+- 写入为非固实；可扩展为多文件共用一个 folder 的固实压缩。
+- 文件名写入为 BMP 级 UTF-8→UTF-16；可扩展为完整 UTF-8（含代理对）。
+- 尚未支持：加密、分卷、NTFS 时间/属性等扩展字段（读取时按大小跳过）。
+
+## 10. 参考
+
+- 7-Zip 官方格式文档（7zFormat.txt，7-Zip 源码内）。
+- liblzma / xz-utils 文档（raw filter：`lzma_raw_encoder` / `lzma_raw_decoder`）。

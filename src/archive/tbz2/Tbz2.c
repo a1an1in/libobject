@@ -47,6 +47,8 @@ static int __compress(Tbz2 *Tbz2, char *file_in, char **file_out)
         } else { fmt = "%s/%s.bz2"; }
 
         file_name = Tbz2->file_name;
+        /* String::format appends, so reset the shared buffer first */
+        file_name->reset(file_name);
         file_name->format(file_name, 1024, fmt, STR2A(archive->extracting_path), name);
         dbg_str(DBG_VIP, "tbz2 compress file:%s, file_out:%s", file_in, STR2A(file_name));
         *file_out = STR2A(file_name);
@@ -63,6 +65,7 @@ static int __uncompress(Tbz2 *Tbz2, char *file_in, char **file_out)
     char *name, *fmt, *str;
     Archive *archive = &Tbz2->parent.parent;
     char in_tmp[1024] = {0};
+    char in_path[1024] = {0};
     String *file_name;
     Compress *c;
     int ret, len;
@@ -70,9 +73,14 @@ static int __uncompress(Tbz2 *Tbz2, char *file_in, char **file_out)
     TRY {
         THROW_IF(file_out == NULL, -1);
 
+        /* file_in may alias Tbz2->file_name (e.g. the path returned by a
+         * previous compress), which is rewritten below, so keep a private
+         * copy of the input path before touching the shared buffer. */
+        strcpy(in_path, file_in);
+
         strcpy(in_tmp, file_in);
         EXEC(fs_get_path_and_name(in_tmp, NULL, &name));
-        str = strstr(name, ".gz2");
+        str = strstr(name, ".bz2");
         THROW_IF(str == NULL, -1);
         memset(str, 0, strlen(str));
 
@@ -82,12 +90,14 @@ static int __uncompress(Tbz2 *Tbz2, char *file_in, char **file_out)
         } else { fmt = "%s/%s"; }
 
         file_name = Tbz2->file_name;
+        /* String::format appends, so reset the shared buffer first */
+        file_name->reset(file_name);
         file_name->format(file_name, 1024, fmt, STR2A(archive->extracting_path), name);
-        dbg_str(DBG_VIP, "Tbz2 uncompress file:%s, file_out:%s", file_in, STR2A(file_name));
+        dbg_str(DBG_VIP, "Tbz2 uncompress file:%s, file_out:%s", in_path, STR2A(file_name));
         *file_out = STR2A(file_name);
 
         c = Tbz2->c;
-        EXEC(c->uncompress_file(c, file_in, *file_out));
+        EXEC(c->uncompress_file(c, in_path, *file_out));
     } CATCH (ret) {}
     
     return ret;

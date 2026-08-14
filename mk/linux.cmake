@@ -11,6 +11,8 @@ macro (set_cmake_evironment_variable)
         set(DATABASE_LIB "object-db")        # x86_64 平台链接 object-db
         set(MYSQL_LIB "mysqlclient")         # x86_64 平台链接 mysqlclient
         set(Z_LIB "z")                       # x86_64 平台链接 z
+        set(BZ2_LIB "bz2")                   # x86_64 平台链接 bz2
+        set(LZMA_LIB "lzma")                 # x86_64 平台链接 lzma
         set(STUB_LIB "object-stub")          # x86_64 平台链接 object-stub
     elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
         message(STATUS "aarch64 platform detected.")
@@ -19,6 +21,8 @@ macro (set_cmake_evironment_variable)
         set(DATABASE_LIB "")  # aarch64 平台不链接 object-db
         set(MYSQL_LIB "")     # aarch64 平台不链接 mysqlclient
         set(Z_LIB "")         # aarch64 平台不链接 z
+        set(BZ2_LIB "")       # aarch64 平台不链接 bz2
+        set(LZMA_LIB "")      # aarch64 平台不链接 lzma
         set(STUB_LIB "")      # aarch64 平台暂不支持 object-stub
     elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
         message(STATUS "32-bit ARM platform detected.")
@@ -27,6 +31,8 @@ macro (set_cmake_evironment_variable)
         set(DATABASE_LIB "")  # ARM 平台不链接 object-db
         set(MYSQL_LIB "")     # ARM 平台不链接 mysqlclient
         set(Z_LIB "")         # ARM 平台不链接 z
+        set(BZ2_LIB "")       # ARM 平台不链接 bz2
+        set(LZMA_LIB "")      # ARM 平台不链接 lzma
         set(STUB_LIB "object-stub")  # 32 位 ARM 平台链接 object-stub
     else()
         message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_PROCESSOR}")
@@ -54,7 +60,7 @@ macro (set_cmake_evironment_variable)
             object-argument
             object-core
         -Wl,--no-whole-archive
-        ${MYSQL_LIB} dl pthread m ${Z_LIB} # 动态控制是否链接 mysqlclient 和 z
+        ${MYSQL_LIB} dl pthread m ${Z_LIB} ${BZ2_LIB} ${LZMA_LIB} # 动态控制是否链接 mysqlclient、z、bz2 和 lzma
     )
 endmacro()
 

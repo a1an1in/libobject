@@ -223,3 +223,77 @@ In the future this internal cache may be replaced with an implementation which
 uses the kernel page cache.  Because the page cache operates on page sized
 units this may introduce additional complexity in terms of locking and
 associated race conditions.
+
+=======================================================================
+
+LIBOBJECT Squashfs 归档模块实现说明
+===================================
+
+Squashfs 本质上是只读文件系统，本模块把它当作归档格式使用，提供与
+Zip/Tar 一致的接口：add_file / save / open / list / extract_file。
+
+1. 实现范围
+-----------
+- 读取端：解析 superblock、元数据块(inode/目录/id 表)、基本文件/目录
+  inode、目录遍历、数据块解压、fragment 尾部(仅读取)。
+- 写入端：生成"最小合法" SquashFS 4.0 镜像，可被标准工具 unsquashfs
+  识别解压；反向也可读取标准 mksquashfs 生成的简单镜像。
+
+2. 读取端要点
+-------------
+- 元数据块：每块压缩后 2 字节头，bit15 置位表示未压缩(原样存储)，
+  低 15 位为压缩后大小；压缩流为 zlib 格式(uncompress 解压)。
+- inode 定位：48 位 (block<<16|offset)，block 为 inode 表内元数据块索引。
+- 基本文件 inode(32 字节头 + block_list)：
+    basic(16) + start_block(4) + fragment(4) + offset(4,恒存在) + file_size(4)
+  数据块在磁盘上"无长度头"，每块大小与压缩标志记录在 block_list：
+    block_list[i] 低 24 位 = 该块 on-disk 大小；bit24 置位 = 未压缩。
+- 基本目录 inode(32 字节)：
+    basic(16) + start_block(4,目录数据所在块在目录表内的相对偏移)
+    + nlink(4) + file_size(2,=目录数据大小+3) + offset(2,块内偏移)
+    + parent_inode(4)
+  目录数据按 (start_block, offset) 定位。
+- 目录条目：count 字段存"条目数-1"；条目含 inode 偏移(2)/inode 号差值(2)/
+  类型(2)/名字长度-1(2)/名字[]。名字是"裸文件名"(不含 '/' )。
+- 目录 inode 的 file_size 存的是"实际目录数据大小 + 3"，读时要减 3。
+- id 表仅用于 uid/gid 映射，list/extract 用不到，未加载。
+
+3. 写入端要点(生成最小合法镜像)
+-------------------------------
+镜像布局：
+    superblock(96B) + 数据块区 + inode 表(元数据块)
+    + 目录表(元数据块) + id 数据(元数据块) + id 索引(原始 8 字节)
+    + 回写 superblock
+
+- 数据块：无长度头；能压缩则存压缩流，否则原样存储。
+  block_list[i] = 大小 | (未压缩 ? SQFS_BLOCK_UNCOMPRESSED_BIT : 0)。
+- 文件 inode：基本文件 inode(32 字节头)，fragment=0xFFFFFFFF(NO_FRAGMENT)，
+  offset=0；block_list 直接来自 add 时的记录。
+- 根目录 inode：基本目录 inode(32 字节)，start_block=0、offset=0、
+  file_size = 目录数据大小+3、nlink=子目录数+2。
+- 目录表：count=条目数-1，条目只存 basename，且按名字升序排序并唯一
+  (unsquashfs 的 check_directory 会校验)。
+- 不存在的表用哨兵值：
+    xattr_table_start / lookup_table_start = 0xFFFFFFFFFFFFFFFF (INVALID_BLK)
+    fragment_table_start = 0 (fragment_count=0)
+    flags = SQFS_FLAG_NOXATTR(0x100)
+  id 索引(原始 8 字节，无元数据块头)必须紧贴镜像末尾，以满足 unsquashfs
+  的 length == table_start - id_table_start 校验。
+- superblock 的 root_inode 指向根目录 inode(位于 inode 表 block0 offset0)。
+
+4. 测试(tests/archive/test_squashfs.c)
+---------------------------------------
+- test_squashfs_add_roundtrip: 单文件 add/save → 重开 → list/extract → 内容比对
+- test_squashfs_add_roundtrip_two: 双文件回环
+- test_squashfs_our_image_unsquashfs_extract: 本模块生成的镜像由 unsquashfs
+  解压并校验内容(工具缺失时跳过)
+- test_squashfs_mksquashfs_image_our_extract: mksquashfs 生成的镜像由本模块
+  解压并校验内容(工具缺失时跳过)
+
+5. 已知限制
+-----------
+- 只支持基本(非扩展)文件/目录 inode；不支持扩展 inode(LREG/LDIR)。
+- 目录表仅支持单块(start_block=0)的简单目录。
+- 写入端不使用 fragment / export / xattr / 硬链接 / 稀疏文件；
+  读取端可读含 fragment 的基本文件 inode(未在测试中覆盖)。
+- 目录条目只存 basename，同一目录下同名文件会冲突(与 mksquashfs 约定一致)。

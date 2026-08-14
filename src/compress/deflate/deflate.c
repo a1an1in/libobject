@@ -27,7 +27,7 @@ int deflate_compress(FILE *source, long in_len, FILE *dest, long *out_len)
     if (ret != Z_OK)
         return ret;
 
-    /* compress until end of file */
+    /* compress until all in_len bytes are consumed (or the input is empty) */
     do {
         read_len = in_len > CHUNK ? CHUNK : in_len;
         strm.avail_in = fread(in, 1, read_len, source);
@@ -35,9 +35,14 @@ int deflate_compress(FILE *source, long in_len, FILE *dest, long *out_len)
             (void)deflateEnd(&strm);
             return Z_ERRNO;
         }
-        flush = (in_len == 0 || feof(source)) ? Z_FINISH : Z_NO_FLUSH;
+        if (strm.avail_in == 0 && in_len != 0) {
+            /* short read before all input was consumed */
+            (void)deflateEnd(&strm);
+            return Z_ERRNO;
+        }
         strm.next_in = in;
-        in_len -= in_len;
+        in_len -= strm.avail_in;        /* track remaining input bytes */
+        flush = (in_len == 0) ? Z_FINISH : Z_NO_FLUSH;
 
         /* run deflate() on input until output buffer not full, finish
            compression if all of source has been read in */
@@ -100,7 +105,7 @@ int deflate_uncompress(FILE *source, long in_len, FILE *dest, long *out_len)
         if (strm.avail_in == 0)
             break;
         strm.next_in = in;
-        in_len -= in_len;
+        in_len -= strm.avail_in;        /* track remaining input bytes */
 
         /* run inflate() on input until output buffer not full */
         do {
