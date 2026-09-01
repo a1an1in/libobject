@@ -22,8 +22,7 @@ struct inet_udp_socket_s{
     ssize_t (*send)(Inet_Udp_Socket *socket, const void *buf, size_t len, int flags);
     ssize_t (*recv)(Inet_Udp_Socket *socket, void *buf, size_t len, int flags);
     ssize_t (*sendto)(Inet_Udp_Socket *socket, const void *buf, size_t len, int flags,
-                      const struct sockaddr *dest_addr,
-                      socklen_t addrlen);
+                      char *remote_host, char *remote_service);
     ssize_t (*recvfrom)(Inet_Udp_Socket *socket, void *buf, size_t len, int flags,
                         char *remote_host, int host_len,
                         char *remote_service, int service_len);

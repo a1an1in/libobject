@@ -191,21 +191,51 @@ static ssize_t __recv(Inet_Udp_Socket *socket, void *buf, size_t len, int flags)
     return recv(socket->parent.fd, buf, len, flags);
 }
 
-static ssize_t 
+static ssize_t
 __sendto(Inet_Udp_Socket *socket, const void *buf, size_t len, int flags,
          char *host, char *service)
 {
-    dbg_str(NET_DETAIL, "not supported now");
-    return -1;
+    struct addrinfo hints, *res = NULL;
+    ssize_t n;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+
+    if (getaddrinfo(host, service, &hints, &res) != 0) {
+        return -1;
+    }
+    n = sendto(socket->parent.fd, buf, len, flags, res->ai_addr, res->ai_addrlen);
+    freeaddrinfo(res);
+
+    return n;
 }
 
-static ssize_t 
-__recvfrom(Inet_Udp_Socket *socket, void *buf, size_t len, int flags, 
+static ssize_t
+__recvfrom(Inet_Udp_Socket *socket, void *buf, size_t len, int flags,
            char *remote_host, int host_len,
            char *remote_service, int service_len)
 {
-    dbg_str(NET_DETAIL, "not supported now");
-    return -1;
+    struct sockaddr_in cli;
+    socklen_t cli_len = sizeof(cli);
+    ssize_t n;
+
+    n = recvfrom(socket->parent.fd, buf, len, flags, (struct sockaddr *)&cli, &cli_len);
+    if (n < 0) {
+        return -1;
+    }
+    if (remote_host != NULL) {
+        /* inet_ntop 线程安全（inet_ntoa 用静态缓冲区，多线程并发会崩溃） */
+        char ip_str[INET_ADDRSTRLEN];
+        if (inet_ntop(AF_INET, &cli.sin_addr, ip_str, sizeof(ip_str)) != NULL) {
+            snprintf(remote_host, host_len, "%s", ip_str);
+        }
+    }
+    if (remote_service != NULL) {
+        snprintf(remote_service, service_len, "%d", ntohs(cli.sin_port));
+    }
+
+    return n;
 }
 
 static int __getsockopt(Inet_Udp_Socket *socket, sockoptval *val)

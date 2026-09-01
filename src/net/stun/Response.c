@@ -60,6 +60,51 @@ static int __read_head(Response *response)
     return 0;
 }
 
+/*
+ * XOR-MAPPED-ADDRESS (RFC 5389) 解码。
+ * 对 MAPPED-ADDRESS 的 value 布局做 XOR 逆变换得到真实地址：
+ *   port: 与 (magic_cookie >> 16) 异或
+ *   IPv4: 与 magic_cookie 的 4 个大端字节异或
+ *   IPv6: 与 magic_cookie(96bit) + transaction_id(128bit) 异或
+ * header->magic_cookie 保持网络序（未做 ntohl），直接取其大端字节。
+ */
+static int __xor_decode_mapped_address(stun_header_t *header, stun_attrib_t *attr)
+{
+    uint8_t *value = (uint8_t *)&attr->u.mapped_address;
+    uint8_t family = value[1];
+    uint8_t *ip;
+    uint16_t port;
+    uint32_t cookie_be = header->magic_cookie;
+    int i, addr_len;
+
+    memcpy(&port, value + 2, 2);
+    port = ntohs(port) ^ (ntohl(header->magic_cookie) >> 16);
+    port = htons(port);
+    memcpy(value + 2, &port, 2);
+
+    addr_len = (family == 0x01) ? 4 : 16;
+    ip = value + 4;
+    for (i = 0; i < addr_len; i++) {
+        ip[i] ^= ((uint8_t *)&cookie_be)[i % 4];
+    }
+
+    return 0;
+}
+
+/* 在线性策略表中查找指定属性类型的解析策略 */
+static attrib_parse_policy_t *__find_policy(int type)
+{
+    int i;
+
+    for (i = 0; i < g_stun_parse_attr_policies_count; i++) {
+        if (g_stun_parse_attr_policies[i].type == type) {
+            return &g_stun_parse_attr_policies[i];
+        }
+    }
+
+    return NULL;
+}
+
 static int __read_attribs(Response *response)
 {
     allocator_t *allocator = response->parent.allocator;
@@ -67,19 +112,29 @@ static int __read_attribs(Response *response)
     uint8_t *attr_addr = header->attr;
     Map *map = response->attribs;
     stun_attrib_t *raw, *attr;
-    int ret = 0, i = 0;
+    attrib_parse_policy_t *policy;
+    int ret = 0, i = 0, attr_total;
 
     TRY {
         for (i = 0; i < header->msglen; ) {
             raw = (stun_attrib_t *)(attr_addr + i);
             raw->type = ntohs(raw->type);
             raw->len = ntohs(raw->len);
-            i +=  sizeof(int) + raw->len;
-            dbg_str(DBG_DETAIL, "raw  type :%d , len:%d", raw->type, raw->len);
-            CONTINUE_IF((raw->type > STUN_ATR_TYPE_MAX) || (g_stun_parse_attr_policies[raw->type].policy == NULL));
+            /* 属性按 4 字节对齐，头 4 字节 + 对齐后的 value 长度 */
+            attr_total = STUN_ATTR_HEADER_LEN + ((raw->len + STUN_ATTR_ALIGN - 1) & ~(STUN_ATTR_ALIGN - 1));
+            i += attr_total;
+            dbg_str(DBG_DETAIL, "raw  type :%d , len:%d, total:%d", raw->type, raw->len, attr_total);
+
+            /* XOR-MAPPED-ADDRESS 需要先做 XOR 解码（依赖 header 的 cookie/transaction_id） */
+            if (raw->type == STUN_ATR_TYPE_XOR_MAPPED_ADDR) {
+                __xor_decode_mapped_address(header, raw);
+            }
+
+            policy = __find_policy(raw->type);
+            CONTINUE_IF(policy == NULL);
 
             attr = allocator_mem_alloc(allocator, sizeof(stun_attrib_t));
-            EXEC(g_stun_parse_attr_policies[raw->type].policy(raw, attr));
+            EXEC(policy->policy(raw, attr));
             map->add(map, raw->type, attr);
         }
     } CATCH (ret) {
@@ -118,4 +173,3 @@ static class_info_entry_t response_class_info[] = {
     Init_End___Entry(4, Response),
 };
 REGISTER_CLASS(Stun_Response, response_class_info);
-

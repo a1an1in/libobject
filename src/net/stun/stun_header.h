@@ -7,41 +7,57 @@
 #include <libobject/core/Map.h>
 
 #define STUN_BINDREQ    0x0001
-#define STUN_BINDRESP   0x0101
-#define STUN_BINDERROR  0x0111
-#define STUN_SECREQ     0x0002
-#define STUN_SECRESP    0x0102
-#define STUN_SECERROR   0x0112
+#define STUN_BINDRESP   0x0101
+#define STUN_BINDERROR  0x0111
+#define STUN_SECREQ     0x0002
+#define STUN_SECRESP    0x0102
+#define STUN_SECERROR   0x0112
 
+/* STUN magic cookie (RFC 5389) */
+#define STUN_MAGIC_COOKIE 0x2112A442
+
+/* 属性头长度: 2(type) + 2(len) */
+#define STUN_ATTR_HEADER_LEN 4
+#define STUN_ATTR_ALIGN      4
+
+/* RFC 3489 经典属性 */
 #define STUN_ATR_TYPE_MAPPED_ADDR           0x0001
-#define STUN_ATR_TYPE_RESPONSE_ADDRESS	    0x0002
-#define STUN_ATR_TYPE_CHANGE_REQUEST	    0x0003
-#define STUN_ATR_TYPE_SOURCE_ADDRESS	    0x0004
-#define STUN_ATR_TYPE_CHANGED_ADDRESS	    0x0005
-#define STUN_ATR_TYPE_USERNAME			    0x0006
-#define STUN_ATR_TYPE_PASSWORD			    0x0007
-#define STUN_ATR_TYPE_INTEGRITY		        0x0008
-#define STUN_ATR_TYPE_ERROR_CODE			0x0009
-#define STUN_ATR_TYPE_UNKNOWN_ATTRIBUTES	0x000a
-#define STUN_ATR_TYPE_REFLECTED_FROM		0x000b
-#define STUN_ATR_TYPE_XOR-MAPPED-ADDRESS	0x0020
-#define STUN_ATR_TYPE_MAX	                0x0021
+#define STUN_ATR_TYPE_RESPONSE_ADDRESS      0x0002
+#define STUN_ATR_TYPE_CHANGE_REQUEST        0x0003
+#define STUN_ATR_TYPE_SOURCE_ADDRESS        0x0004
+#define STUN_ATR_TYPE_CHANGED_ADDRESS       0x0005
+#define STUN_ATR_TYPE_USERNAME              0x0006
+#define STUN_ATR_TYPE_PASSWORD              0x0007
+#define STUN_ATR_TYPE_INTEGRITY             0x0008
+#define STUN_ATR_TYPE_ERROR_CODE            0x0009
+#define STUN_ATR_TYPE_UNKNOWN_ATTRIBUTES    0x000a
+#define STUN_ATR_TYPE_REFLECTED_FROM        0x000b
+/* RFC 5389 属性 */
+#define STUN_ATR_TYPE_XOR_MAPPED_ADDR       0x0020
+#define STUN_ATR_TYPE_PRIORITY              0x0024
+#define STUN_ATR_TYPE_USE_CANDIDATE         0x0025
+#define STUN_ATR_TYPE_SOFTWARE              0x8022
+#define STUN_ATR_TYPE_ALTERNATE_SERVER      0x8023
+#define STUN_ATR_TYPE_FINGERPRINT           0x8028
+/* 兼容旧宏名（带连字符，仅历史遗留） */
+#define STUN_ATR_TYPE_XOR_MAPPED_ADDRESS    STUN_ATR_TYPE_XOR_MAPPED_ADDR
+#define STUN_ATR_TYPE_MAX                   0x8029
 
 typedef struct Request_s Request;
 
 /* STUN Message Structure
  *
- *  0                   1                   2                   3
- *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |0 0|     STUN Message Type     |         Message Length        |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |                         Magic Cookie                          |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |                                                               |
- * |                     Transaction ID (96 bits)                  |
- * |                                                               |
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  0                   1                   2                   3
+ *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |0 0|     STUN Message Type     |         Message Length        |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                         Magic Cookie                          |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                                                               |
+ * |                     Transaction ID (96 bits)                  |
+ * |                                                               |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
 
 typedef struct stun_header_s {
@@ -71,31 +87,43 @@ typedef struct stun_header_s {
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
 
+/*
+ * MAPPED-ADDRESS / XOR-MAPPED-ADDRESS / CHANGED-ADDRESS 的 value 布局：
+ *  0                   1                   2                   3
+ *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |0 0 0 0 0 0 0 0|    Family     |           Port                |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                             Address                           |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * family: 0x01 = IPv4, 0x02 = IPv6
+ */
+
 typedef struct mapped_address_s {
     uint8_t reserved;
     uint8_t family;
     uint16_t port;
-    uint8_t ip[8];
-    char host[32];
-    char service[8];
+    uint8_t ip[16];
+    char host[64];
+    char service[16];
 } mapped_address_t;
 
 typedef struct changed_address_s {
     uint8_t reserved;
     uint8_t family;
     uint16_t port;
-    uint8_t ip[8];
-    char host[32];
-    char service[8];
+    uint8_t ip[16];
+    char host[64];
+    char service[16];
 } changed_address_t;
 
 typedef struct xor_mapped_address_s {
     uint8_t reserved;
     uint8_t family;
     uint16_t port;
-    uint8_t ip[8];
-    char host[32];
-    char service[8];
+    uint8_t ip[16];
+    char host[64];
+    char service[16];
 } xor_mapped_address_t;
 
 typedef struct change_request_s {

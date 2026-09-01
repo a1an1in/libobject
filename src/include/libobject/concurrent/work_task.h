@@ -18,6 +18,9 @@ typedef struct work_task_s{
     allocator_t *allocator;
     short event;
     void *worker;
+    /* UDP 收包时的对端源地址（recvfrom 填充，用于服务器回包等） */
+    char remote_host[64];
+    char remote_service[16];
     // char name[24];
 } work_task_t;
 

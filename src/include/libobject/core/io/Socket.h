@@ -35,7 +35,8 @@ struct socket_s{
     ssize_t (*sendto)(Socket *socket, const void *buf, size_t len, int flags,
             char *remote_host, char *remote_service);
     ssize_t (*recvfrom)(Socket *socket, void *buf, size_t len, int flags,
-            char *remote_host, char *remote_service);
+            char *remote_host, int host_len,
+            char *remote_service, int service_len);
     int (*getsockopt)(Socket *socket, sockoptval *val);
     int (*setsockopt)(Socket *socket, sockoptval *val);
     int (*setnonblocking)(Socket *socket);

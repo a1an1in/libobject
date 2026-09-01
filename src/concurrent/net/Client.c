@@ -88,8 +88,16 @@ static ssize_t __ev_callback(int fd, short event, void *arg)
     int ret;
 
     TRY {
-        if (fd == socket->fd)
-            len = socket->recv(socket, buf, buf_len, 0);
+        if (fd == socket->fd) {
+            if (socket->recvfrom != NULL) {
+                /* UDP：用 recvfrom 拿到对端源地址，供服务器/收包方回复使用 */
+                len = socket->recvfrom(socket, buf, buf_len, 0,
+                                       task->remote_host, sizeof(task->remote_host),
+                                       task->remote_service, sizeof(task->remote_service));
+            } else {
+                len = socket->recv(socket, buf, buf_len, 0);
+            }
+        }
 
         if (len <= 0) {
             dbg_str(DBG_ERROR, "client ev_callback error, fd:%d, len=%d", fd, len);
