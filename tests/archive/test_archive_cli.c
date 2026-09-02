@@ -6,6 +6,9 @@
  *     "<当前 xtools 可执行> archive <子命令> ...",
  *     校验进程退出码、stdout 输出与落盘结果是否符合预期
  *     (覆盖命令行参数解析、魔数识别、分发、打包/解包正确性).
+ *
+ *     每个子命令步骤(create/list/extract/-w/add)抽成可复用的 test_cli_* 函数,
+ *     各格式测试(test_archive_cli_*)按顺序组合这些步骤.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -90,7 +93,57 @@ static int __assert_cli(const char *cmd, const char *expect)
     return 1;
 }
 
-/* -w 通配符校验(list/extract 只保留匹配项), 放到每个格式 extract 校验之后 */
+/* ================= 子命令步骤(可复用) ================= */
+
+/* create: 用 archive_path 的扩展名打包 CMD_RES 目录 */
+static int test_cli_create(const char *archive_path)
+{
+    int ret = 0;
+    char cmd[2048];
+
+    TRY {
+        snprintf(cmd, sizeof(cmd), "%s archive create %s %s", __xt_bin(), archive_path, CMD_RES);
+        THROW_IF(__assert_cli(cmd, "created") != 1, -1);
+        THROW_IF(fs_is_exist((char *)archive_path) != 1, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+/* list: 应能看到 CMD_RES 下的 test.txt / test2.txt */
+static int test_cli_list(const char *archive_path)
+{
+    int ret = 0;
+    char cmd[2048];
+
+    TRY {
+        snprintf(cmd, sizeof(cmd), "%s archive list %s", __xt_bin(), archive_path);
+        THROW_IF(__assert_cli(cmd, "test.txt") != 1, -1);
+        THROW_IF(__assert_cli(cmd, "test2.txt") != 1, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+/* extract: 解压到 CMD_OUT/out, 校验 test.txt/test2.txt/add.txt 与源一致 */
+static int test_cli_extract(const char *archive_path)
+{
+    int ret = 0;
+    char cmd[2048];
+
+    TRY {
+        snprintf(cmd, sizeof(cmd), "%s archive extract %s -o %s/out", __xt_bin(), archive_path, CMD_OUT);
+        THROW_IF(__assert_cli(cmd, "extracted") != 1, -1);
+
+        THROW_IF(assert_file_equal(CMD_OUT "/out/test.txt",  CMD_RES "/test.txt")  != 1, -1);
+        THROW_IF(assert_file_equal(CMD_OUT "/out/test2.txt", CMD_RES "/test2.txt") != 1, -1);
+        THROW_IF(assert_file_equal(CMD_OUT "/out/add.txt",   CMD_RES "/add.txt")   != 1, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+/* -w 通配符校验(list/extract 只保留匹配项), 放到 extract 校验之后 */
 static int test_cli_wildcard(const char *archive_path)
 {
     int ret = 0;
@@ -126,32 +179,37 @@ static int test_cli_wildcard(const char *archive_path)
     return ret;
 }
 
-/* ================= 各格式: create -> list -> extract -> 校验 ================= */
+/* add(仅 tar 支持): 向已有 tar 追加一个文件并能在 list 中看到 */
+static int test_cli_add(const char *archive_path)
+{
+    int ret = 0;
+    char cmd[2048];
+
+    TRY {
+        /* 追加一个不在源目录里的已有文件 */
+        snprintf(cmd, sizeof(cmd), "%s archive add %s ./tests/archive/res/test.txt", __xt_bin(), archive_path);
+        THROW_IF(__assert_cli(cmd, "added") != 1, -1);
+
+        snprintf(cmd, sizeof(cmd), "%s archive list %s", __xt_bin(), archive_path);
+        THROW_IF(__assert_cli(cmd, "res/test.txt") != 1, -1);
+    } CATCH (ret) {}
+
+    return ret;
+}
+
+/* ================= 各格式: create -> list -> extract -> -w (tar 追加 add) ================= */
 
 static int test_archive_cli_tar(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
-    char cmd[2048];
 
     TRY {
         fs_mkdir(CMD_OUT, 0777);
-        snprintf(cmd, sizeof(cmd), "%s archive create %s/t.tar %s", __xt_bin(), CMD_OUT, CMD_RES);
-        THROW_IF(__assert_cli(cmd, "created") != 1, -1);
-        THROW_IF(fs_is_exist(CMD_OUT "/t.tar") != 1, -1);
-
-        snprintf(cmd, sizeof(cmd), "%s archive list %s/t.tar", __xt_bin(), CMD_OUT);
-        THROW_IF(__assert_cli(cmd, "test.txt") != 1, -1);
-        THROW_IF(__assert_cli(cmd, "test2.txt") != 1, -1);
-
-        snprintf(cmd, sizeof(cmd), "%s archive extract %s/t.tar -o %s/out", __xt_bin(), CMD_OUT, CMD_OUT);
-        THROW_IF(__assert_cli(cmd, "extracted") != 1, -1);
-
-        THROW_IF(assert_file_equal(CMD_OUT "/out/test.txt", CMD_RES "/test.txt") != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/out/test2.txt", CMD_RES "/test2.txt") != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/out/add.txt", CMD_RES "/add.txt") != 1, -1);
-
-        /* -w 通配符 list/extract */
+        EXEC(test_cli_create(CMD_OUT "/t.tar"));
+        EXEC(test_cli_list(CMD_OUT "/t.tar"));
+        EXEC(test_cli_extract(CMD_OUT "/t.tar"));
         EXEC(test_cli_wildcard(CMD_OUT "/t.tar"));
+        EXEC(test_cli_add(CMD_OUT "/t.tar"));       /* add 仅 tar 支持 */
     } CATCH (ret) { } FINALLY {
         fs_rmfile(CMD_OUT "/t.tar");
         fs_rmfile(CMD_OUT "/out/test.txt");
@@ -168,26 +226,12 @@ REGISTER_TEST_FUNC(test_archive_cli_tar);
 static int test_archive_cli_zip(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
-    char cmd[2048];
 
     TRY {
         fs_mkdir(CMD_OUT, 0777);
-        snprintf(cmd, sizeof(cmd), "%s archive create %s/t.zip %s", __xt_bin(), CMD_OUT, CMD_RES);
-        THROW_IF(__assert_cli(cmd, "created") != 1, -1);
-        THROW_IF(fs_is_exist(CMD_OUT "/t.zip") != 1, -1);
-
-        snprintf(cmd, sizeof(cmd), "%s archive list %s/t.zip", __xt_bin(), CMD_OUT);
-        THROW_IF(__assert_cli(cmd, "test.txt") != 1, -1);
-        THROW_IF(__assert_cli(cmd, "test2.txt") != 1, -1);
-
-        snprintf(cmd, sizeof(cmd), "%s archive extract %s/t.zip -o %s/out", __xt_bin(), CMD_OUT, CMD_OUT);
-        THROW_IF(__assert_cli(cmd, "extracted") != 1, -1);
-
-        THROW_IF(assert_file_equal(CMD_OUT "/out/test.txt", CMD_RES "/test.txt") != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/out/test2.txt", CMD_RES "/test2.txt") != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/out/add.txt", CMD_RES "/add.txt") != 1, -1);
-
-        /* -w 通配符 list/extract */
+        EXEC(test_cli_create(CMD_OUT "/t.zip"));
+        EXEC(test_cli_list(CMD_OUT "/t.zip"));
+        EXEC(test_cli_extract(CMD_OUT "/t.zip"));
         EXEC(test_cli_wildcard(CMD_OUT "/t.zip"));
     } CATCH (ret) { } FINALLY {
         fs_rmfile(CMD_OUT "/t.zip");
@@ -205,26 +249,12 @@ REGISTER_TEST_FUNC(test_archive_cli_zip);
 static int test_archive_cli_squashfs(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
-    char cmd[2048];
 
     TRY {
         fs_mkdir(CMD_OUT, 0777);
-        snprintf(cmd, sizeof(cmd), "%s archive create %s/t.sqfs %s", __xt_bin(), CMD_OUT, CMD_RES);
-        THROW_IF(__assert_cli(cmd, "created") != 1, -1);
-        THROW_IF(fs_is_exist(CMD_OUT "/t.sqfs") != 1, -1);
-
-        snprintf(cmd, sizeof(cmd), "%s archive list %s/t.sqfs", __xt_bin(), CMD_OUT);
-        THROW_IF(__assert_cli(cmd, "test.txt") != 1, -1);
-        THROW_IF(__assert_cli(cmd, "test2.txt") != 1, -1);
-
-        snprintf(cmd, sizeof(cmd), "%s archive extract %s/t.sqfs -o %s/out", __xt_bin(), CMD_OUT, CMD_OUT);
-        THROW_IF(__assert_cli(cmd, "extracted") != 1, -1);
-
-        THROW_IF(assert_file_equal(CMD_OUT "/out/test.txt", CMD_RES "/test.txt") != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/out/test2.txt", CMD_RES "/test2.txt") != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/out/add.txt", CMD_RES "/add.txt") != 1, -1);
-
-        /* -w 通配符 list/extract */
+        EXEC(test_cli_create(CMD_OUT "/t.sqfs"));
+        EXEC(test_cli_list(CMD_OUT "/t.sqfs"));
+        EXEC(test_cli_extract(CMD_OUT "/t.sqfs"));
         EXEC(test_cli_wildcard(CMD_OUT "/t.sqfs"));
     } CATCH (ret) { } FINALLY {
         fs_rmfile(CMD_OUT "/t.sqfs");
@@ -242,26 +272,12 @@ REGISTER_TEST_FUNC(test_archive_cli_squashfs);
 static int test_archive_cli_7z(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
-    char cmd[2048];
 
     TRY {
         fs_mkdir(CMD_OUT, 0777);
-        snprintf(cmd, sizeof(cmd), "%s archive create %s/t.7z %s", __xt_bin(), CMD_OUT, CMD_RES);
-        THROW_IF(__assert_cli(cmd, "created") != 1, -1);
-        THROW_IF(fs_is_exist(CMD_OUT "/t.7z") != 1, -1);
-
-        snprintf(cmd, sizeof(cmd), "%s archive list %s/t.7z", __xt_bin(), CMD_OUT);
-        THROW_IF(__assert_cli(cmd, "test.txt") != 1, -1);
-        THROW_IF(__assert_cli(cmd, "test2.txt") != 1, -1);
-
-        snprintf(cmd, sizeof(cmd), "%s archive extract %s/t.7z -o %s/out", __xt_bin(), CMD_OUT, CMD_OUT);
-        THROW_IF(__assert_cli(cmd, "extracted") != 1, -1);
-
-        THROW_IF(assert_file_equal(CMD_OUT "/out/test.txt", CMD_RES "/test.txt") != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/out/test2.txt", CMD_RES "/test2.txt") != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/out/add.txt", CMD_RES "/add.txt") != 1, -1);
-
-        /* -w 通配符 list/extract */
+        EXEC(test_cli_create(CMD_OUT "/t.7z"));
+        EXEC(test_cli_list(CMD_OUT "/t.7z"));
+        EXEC(test_cli_extract(CMD_OUT "/t.7z"));
         EXEC(test_cli_wildcard(CMD_OUT "/t.7z"));
     } CATCH (ret) { } FINALLY {
         fs_rmfile(CMD_OUT "/t.7z");
@@ -279,26 +295,12 @@ REGISTER_TEST_FUNC(test_archive_cli_7z);
 static int test_archive_cli_tgz(TEST_ENTRY *entry, int argc, void **argv)
 {
     int ret;
-    char cmd[2048];
 
     TRY {
         fs_mkdir(CMD_OUT, 0777);
-        snprintf(cmd, sizeof(cmd), "%s archive create %s/t.tgz %s", __xt_bin(), CMD_OUT, CMD_RES);
-        THROW_IF(__assert_cli(cmd, "created") != 1, -1);
-        THROW_IF(fs_is_exist(CMD_OUT "/t.tgz") != 1, -1);
-
-        snprintf(cmd, sizeof(cmd), "%s archive list %s/t.tgz", __xt_bin(), CMD_OUT);
-        THROW_IF(__assert_cli(cmd, "test.txt") != 1, -1);
-        THROW_IF(__assert_cli(cmd, "test2.txt") != 1, -1);
-
-        snprintf(cmd, sizeof(cmd), "%s archive extract %s/t.tgz -o %s/out", __xt_bin(), CMD_OUT, CMD_OUT);
-        THROW_IF(__assert_cli(cmd, "extracted") != 1, -1);
-
-        THROW_IF(assert_file_equal(CMD_OUT "/out/test.txt", CMD_RES "/test.txt") != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/out/test2.txt", CMD_RES "/test2.txt") != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/out/add.txt", CMD_RES "/add.txt") != 1, -1);
-
-        /* -w 通配符 list/extract */
+        EXEC(test_cli_create(CMD_OUT "/t.tgz"));
+        EXEC(test_cli_list(CMD_OUT "/t.tgz"));
+        EXEC(test_cli_extract(CMD_OUT "/t.tgz"));
         EXEC(test_cli_wildcard(CMD_OUT "/t.tgz"));
     } CATCH (ret) { } FINALLY {
         fs_rmfile(CMD_OUT "/t.tgz");
@@ -313,33 +315,6 @@ static int test_archive_cli_tgz(TEST_ENTRY *entry, int argc, void **argv)
     return ret;
 }
 REGISTER_TEST_FUNC(test_archive_cli_tgz);
-
-/* ================= add(仅 tar 支持) ================= */
-
-static int test_archive_cli_add(TEST_ENTRY *entry, int argc, void **argv)
-{
-    int ret;
-    char cmd[2048];
-
-    TRY {
-        fs_mkdir(CMD_OUT, 0777);
-        snprintf(cmd, sizeof(cmd), "%s archive create %s/t.tar %s", __xt_bin(), CMD_OUT, CMD_RES);
-        THROW_IF(__assert_cli(cmd, "created") != 1, -1);
-
-        /* add 一个不在源目录里的已有文件 */
-        snprintf(cmd, sizeof(cmd), "%s archive add %s/t.tar ./tests/archive/res/test.txt", __xt_bin(), CMD_OUT);
-        THROW_IF(__assert_cli(cmd, "added") != 1, -1);
-
-        snprintf(cmd, sizeof(cmd), "%s archive list %s/t.tar", __xt_bin(), CMD_OUT);
-        THROW_IF(__assert_cli(cmd, "res/test.txt") != 1, -1);
-    } CATCH (ret) { } FINALLY {
-        fs_rmfile(CMD_OUT "/t.tar");
-        fs_rmdir(CMD_OUT);
-    }
-
-    return ret;
-}
-REGISTER_TEST_FUNC(test_archive_cli_add);
 
 /* ================= 非法子命令应报错(退出码非 0) ================= */
 
