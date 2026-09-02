@@ -37,7 +37,7 @@ tests/archive/
 | Tgz | `src/archive/tgz/Tgz.c` | 102 行 | tar + gzip |
 | Tbz2 | `src/archive/tbz2/Tbz2.c` | 113 行 | tar + bzip2 |
 | 7z | `src/archive/7z/SevenZip.c` | 1345 行 | LZMA/LZMA2、固实压缩 folder/substream、加密头解析 |
-| Squashfs | `src/archive/squashfs/Squashfs.c` | 1003 行 | SquashFS 4.0 完整读写（superblock/inode/目录/fragment/id 表） |
+| Squashfs | `src/archive/squashfs/Squashfs.c` | 1197 行 | SquashFS 4.0 完整读写（superblock/inode/多级目录树/fragment/id 表） |
 
 ## 三、实现得比较全面的地方
 
@@ -170,7 +170,7 @@ static Archive        *__open(allocator_t *allocator, const char *path, const ch
 - **目录路径归一**：create/extract 会把源目录 / 输出目录补结尾 `/`（`fs_get_relative_path` 与 `extracting_path` 拼接均要求），否则 tar 类格式会拼接错乱。
 - **tgz / tbz2**：create 走"先打 tar 再 gzip/bzip2"；list/extract 走"先解外层流再读内层 tar"。
 - **add（对已存在归档追加）**：目前仅 tar 支持；zip 打开已存在归档后保存旧 central dir 条目缺 `opaque` 回指会崩溃（Zip.c 局限），squashfs / 7z / tgz 也不支持——见能力矩阵。
-- **条目名策略（已统一）**：`create` 打包目录时各格式均存"相对源目录的条目名"（zip/7z 在 `add_file` 中归一化、对齐 tar；squashfs 存裸文件名），解压一律平铺；仅当源目录含子目录时才保留相对子目录。
+- **条目名策略（已统一）**：`create` 打包目录时各格式均存"相对源目录的条目名"（zip/7z/tgz 在 `add_file` 中归一化、对齐 tar；squashfs 亦存相对名）。tar/zip/7z/tgz 一条目一条相对名（可含 `/`，子目录即路径一部分）；squashfs 写端由相对名构建真正的多级目录树（目录 inode + 嵌套目录项），子目录内文件可与其它目录同名。解压统一按相对名落盘到 `输出目录/<相对名>`（需要时建子目录），互不混淆。
 - **单文件压缩流**（纯 gzip/bzip2/xz 等非归档容器）：提示"是压缩流而非归档容器"，不按归档打开。
 - **扩展性**：新增格式只需三步——枚举加一项、`class_name` 加映射、魔数表加一行。
 
@@ -182,7 +182,7 @@ static Archive        *__open(allocator_t *allocator, const char *path, const ch
 | tgz / tbz2 | ✅ | ✅ | ✅ | ❌ | 内层 tar，相对名 |
 | zip | ✅ | ✅ | ✅ | ❌* | 相对名，平铺；*Zip.c 不支持对已存在归档追加 |
 | 7z | ✅ | ✅ | ✅ | ❌* | 相对名，平铺 |
-| squashfs | ✅ | ✅ | ✅ | ❌ | 裸文件名 |
+| squashfs | ✅ | ✅ | ✅ | ❌ | 相对名→写多级目录树（支持子目录/同名） |
 
 ### 7. 魔数表（识别用）
 

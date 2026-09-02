@@ -273,6 +273,8 @@ static int __add(Archive *a)
 
             len = strlen(fs_file_info->file_name);
             if (fs_file_info->file_name[len - 1] == '.') continue;
+            /* 跳过目录节点(如子目录名): fs_tree 已递归收录其下文件, 避免把目录当文件写入各格式 */
+            if (S_ISDIR(fs_file_info->st.st_mode)) continue;
             archive_file_info.file_name = fs_file_info->file_name;
             a->add_adding_file_info(a, &archive_file_info);
         }

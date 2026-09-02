@@ -125,7 +125,8 @@ static int test_cli_list(const char *archive_path)
     return ret;
 }
 
-/* extract: 解压到 CMD_OUT/out, 校验 test.txt/test2.txt/add.txt 与源一致 */
+/* extract: 解压到 CMD_OUT/out, 校验 test.txt/test2.txt/add.txt/sub/test.txt 与源一致
+ * (子目录内文件名可与顶层同名, 解压后必须落到 out/sub/ 下而非混淆) */
 static int test_cli_extract(const char *archive_path)
 {
     int ret = 0;
@@ -135,43 +136,47 @@ static int test_cli_extract(const char *archive_path)
         snprintf(cmd, sizeof(cmd), "%s archive extract %s -o %s/out", __xt_bin(), archive_path, CMD_OUT);
         THROW_IF(__assert_cli(cmd, "extracted") != 1, -1);
 
-        THROW_IF(assert_file_equal(CMD_OUT "/out/test.txt",  CMD_RES "/test.txt")  != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/out/test2.txt", CMD_RES "/test2.txt") != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/out/add.txt",   CMD_RES "/add.txt")   != 1, -1);
+        THROW_IF(assert_file_equal(CMD_OUT "/out/test.txt",      CMD_RES "/test.txt")      != 1, -1);
+        THROW_IF(assert_file_equal(CMD_OUT "/out/test2.txt",     CMD_RES "/test2.txt")     != 1, -1);
+        THROW_IF(assert_file_equal(CMD_OUT "/out/add.txt",       CMD_RES "/add.txt")       != 1, -1);
+        THROW_IF(assert_file_equal(CMD_OUT "/out/sub/test.txt",  CMD_RES "/sub/test.txt")  != 1, -1);
     } CATCH (ret) {}
 
     return ret;
 }
 
-/* -w 通配符校验(list/extract 只保留匹配项), 放到 extract 校验之后 */
+/* -w 通配符校验(list/extract 只保留匹配项), 放到 extract 校验之后.
+ * 注意 res/cmd 里子目录也有 sub/test.txt, 而 -w 是子串匹配, 故用唯一命中的
+ * test2.txt 作通配符, 保证恰好 total 1, 不依赖条目录数. */
 static int test_cli_wildcard(const char *archive_path)
 {
     int ret = 0;
     char cmd[2048], out[8192];
 
     TRY {
-        /* list -w test.txt: res/cmd 三个文件中只匹配 test.txt, 应 total 1 */
-        snprintf(cmd, sizeof(cmd), "%s archive list %s -w test.txt", __xt_bin(), archive_path);
+        /* list -w test2.txt: 应只列出 test2.txt, 不含 test.txt/sub/test.txt */
+        snprintf(cmd, sizeof(cmd), "%s archive list %s -w test2.txt", __xt_bin(), archive_path);
         THROW_IF(__assert_cli(cmd, "total 1 entries") != 1, -1);
         THROW_IF(__cli_run(cmd, out, sizeof(out)) != 0, -1);
-        THROW_IF(strstr(out, "test2.txt") != NULL, -1);
+        THROW_IF(strstr(out, "test2.txt") == NULL, -1);
+        THROW_IF(strstr(out, "test.txt") != NULL, -1);
 
         /* 先清空 outw, 保证"应不存在"断言不受上次残留影响 */
-        fs_rmfile(CMD_OUT "/outw/test.txt");
         fs_rmfile(CMD_OUT "/outw/test2.txt");
+        fs_rmfile(CMD_OUT "/outw/test.txt");
         fs_rmfile(CMD_OUT "/outw/add.txt");
         fs_rmdir(CMD_OUT "/outw");
 
-        /* extract -w test.txt: 只应解出 test.txt */
-        snprintf(cmd, sizeof(cmd), "%s archive extract %s -o %s/outw -w test.txt", __xt_bin(), archive_path, CMD_OUT);
+        /* extract -w test2.txt: 只应解出 test2.txt */
+        snprintf(cmd, sizeof(cmd), "%s archive extract %s -o %s/outw -w test2.txt", __xt_bin(), archive_path, CMD_OUT);
         THROW_IF(__assert_cli(cmd, "extracted") != 1, -1);
-        THROW_IF(fs_is_exist(CMD_OUT "/outw/test.txt") != 1, -1);
-        THROW_IF(assert_file_equal(CMD_OUT "/outw/test.txt", CMD_RES "/test.txt") != 1, -1);
-        THROW_IF(fs_is_exist(CMD_OUT "/outw/test2.txt") == 1, -1);
+        THROW_IF(fs_is_exist(CMD_OUT "/outw/test2.txt") != 1, -1);
+        THROW_IF(assert_file_equal(CMD_OUT "/outw/test2.txt", CMD_RES "/test2.txt") != 1, -1);
+        THROW_IF(fs_is_exist(CMD_OUT "/outw/test.txt") == 1, -1);
         THROW_IF(fs_is_exist(CMD_OUT "/outw/add.txt") == 1, -1);
     } CATCH (ret) { } FINALLY {
-        fs_rmfile(CMD_OUT "/outw/test.txt");
         fs_rmfile(CMD_OUT "/outw/test2.txt");
+        fs_rmfile(CMD_OUT "/outw/test.txt");
         fs_rmfile(CMD_OUT "/outw/add.txt");
         fs_rmdir(CMD_OUT "/outw");
     }
@@ -215,6 +220,8 @@ static int test_archive_cli_tar(TEST_ENTRY *entry, int argc, void **argv)
         fs_rmfile(CMD_OUT "/out/test.txt");
         fs_rmfile(CMD_OUT "/out/test2.txt");
         fs_rmfile(CMD_OUT "/out/add.txt");
+        fs_rmfile(CMD_OUT "/out/sub/test.txt");
+        fs_rmdir(CMD_OUT "/out/sub");
         fs_rmdir(CMD_OUT "/out");
         fs_rmdir(CMD_OUT);
     }
@@ -238,6 +245,8 @@ static int test_archive_cli_zip(TEST_ENTRY *entry, int argc, void **argv)
         fs_rmfile(CMD_OUT "/out/test.txt");
         fs_rmfile(CMD_OUT "/out/test2.txt");
         fs_rmfile(CMD_OUT "/out/add.txt");
+        fs_rmfile(CMD_OUT "/out/sub/test.txt");
+        fs_rmdir(CMD_OUT "/out/sub");
         fs_rmdir(CMD_OUT "/out");
         fs_rmdir(CMD_OUT);
     }
@@ -261,6 +270,8 @@ static int test_archive_cli_squashfs(TEST_ENTRY *entry, int argc, void **argv)
         fs_rmfile(CMD_OUT "/out/test.txt");
         fs_rmfile(CMD_OUT "/out/test2.txt");
         fs_rmfile(CMD_OUT "/out/add.txt");
+        fs_rmfile(CMD_OUT "/out/sub/test.txt");
+        fs_rmdir(CMD_OUT "/out/sub");
         fs_rmdir(CMD_OUT "/out");
         fs_rmdir(CMD_OUT);
     }
@@ -284,6 +295,8 @@ static int test_archive_cli_7z(TEST_ENTRY *entry, int argc, void **argv)
         fs_rmfile(CMD_OUT "/out/test.txt");
         fs_rmfile(CMD_OUT "/out/test2.txt");
         fs_rmfile(CMD_OUT "/out/add.txt");
+        fs_rmfile(CMD_OUT "/out/sub/test.txt");
+        fs_rmdir(CMD_OUT "/out/sub");
         fs_rmdir(CMD_OUT "/out");
         fs_rmdir(CMD_OUT);
     }
@@ -308,6 +321,8 @@ static int test_archive_cli_tgz(TEST_ENTRY *entry, int argc, void **argv)
         fs_rmfile(CMD_OUT "/out/test.txt");
         fs_rmfile(CMD_OUT "/out/test2.txt");
         fs_rmfile(CMD_OUT "/out/add.txt");
+        fs_rmfile(CMD_OUT "/out/sub/test.txt");
+        fs_rmdir(CMD_OUT "/out/sub");
         fs_rmdir(CMD_OUT "/out");
         fs_rmdir(CMD_OUT);
     }

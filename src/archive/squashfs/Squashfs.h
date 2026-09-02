@@ -104,6 +104,7 @@ struct Squashfs_s {
     uint64_t fragment_index_size;
 
     uint32_t num_files;
+    uint32_t num_inodes;          /* save 时统计的全部 inode 数(目录+文件) */
     sqfs_file_entry_t *files;
 
     /* ---- 写入阶段状态 ---- */
@@ -112,5 +113,38 @@ struct Squashfs_s {
     uint32_t *pending_sizes;        /* 待写入文件的块大小 */
     uint32_t pending_count;
 };
+
+/* ---- 写入端目录树(NTree)用到的 squashfs 类型 ---- */
+
+/* 目录树节点 data: squashfs 专属字段(目录/文件、inode 号/偏移、目录块偏移/大小),
+ * 由 NTree 的 alloc_data/free_data 回调分配/释放 */
+typedef struct sq_node_meta_s {
+    allocator_t *alloc;
+    int is_dir;
+    int file_idx;                /* 文件叶子: sq->files 下标; 目录为 -1 */
+    uint32_t inode_no;
+    uint32_t inode_off;          /* inode 在 8KB inode 块内的字节偏移 */
+    uint32_t dir_off, dir_size;  /* 仅目录: 目录数据在 8KB 目录块内的偏移/大小 */
+} sq_node_meta_t;
+
+/* 建节点参数: 每次 node_new(name, &arg), 由 alloc_data 据此构造 data */
+typedef struct sq_node_arg_s {
+    Squashfs *sq;
+    int is_dir;
+    int file_idx;
+} sq_node_arg_t;
+
+/* 写端 save 三趟前序访问器(layout/serialize/write)共享的"工作台" */
+typedef struct sq_ctx_s {
+    Squashfs *sq;
+    uint8_t *dirs;               /* 8KB 目录块缓冲 */
+    uint8_t *inodes;             /* 8KB inode 块缓冲 */
+    uint32_t inode_no;           /* layout 游标: inode 号 */
+    uint32_t inode_off;          /* layout 游标: inode 块字节偏移 */
+    uint32_t dir_count;          /* layout 统计目录数 */
+    uint32_t dir_off;            /* serialize 游标: 目录块已用偏移 */
+    uint32_t inode_len;          /* write 累计 inode 块用到的最大长度 */
+    int err;
+} sq_ctx_t;
 
 #endif

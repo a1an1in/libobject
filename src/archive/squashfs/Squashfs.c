@@ -27,6 +27,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/byteorder.h>
 #include <libobject/core/io/File.h>
+#include <libobject/core/NTree.h>
 #include "Squashfs.h"
 
 /* ------------------------------------------------------------------ */
@@ -613,12 +614,20 @@ static int __extract_file(Squashfs *sq, archive_file_info_t *info)
     int ret = 0;
 
     TRY {
-        /* 镜像内存的是裸文件名(如 test.txt), 用请求名的 basename 匹配 */
-        wanted = __basename(info->file_name);
+        /* 优先按完整相对路径精确匹配(支持子目录); 未命中再退回按 basename 匹配(旧行为) */
         for (i = 0; i < sq->num_files; i++) {
-            if (strcmp((char *)sq->files[i].name, wanted) == 0) {
+            if (strcmp((char *)sq->files[i].name, info->file_name) == 0) {
                 fi = i;
                 break;
+            }
+        }
+        if (fi == 0xFFFFFFFF) {
+            wanted = __basename(info->file_name);
+            for (i = 0; i < sq->num_files; i++) {
+                if (strcmp((char *)sq->files[i].name, wanted) == 0) {
+                    fi = i;
+                    break;
+                }
             }
         }
         THROW_IF(fi == 0xFFFFFFFF, -1);
@@ -675,8 +684,9 @@ static int __extract_file(Squashfs *sq, archive_file_info_t *info)
 /* 写入端: 生成最小合法 squashfs 镜像                                   */
 /*   - 数据区: 每文件拆成 block_size 数据块, zlib 压缩(无收益则原样存储) */
 /*   - 不使用 fragment / export / lookup 表                             */
-/*   - inode 表: 根目录 inode + 每文件一个 inode                         */
-/*   - directory 表: 根目录项                                          */
+/*   - 目录: 相对名(可含 '/') 用 core NTree 建多级目录树                 */
+/*   - inode 表: 目录树前序 = 根/子目录 inode + 文件 inode                */
+/*   - directory 表: 每个目录一份条目数据, 铺进单一 8KB 元数据块          */
 /* ------------------------------------------------------------------ */
 
 /* 压缩一块数据, 返回压缩后长度; -1 表示压缩失败 */
@@ -720,6 +730,23 @@ static int __write_metadata_block(Squashfs *sq, uint64_t *pos, const uint8_t *da
     } CATCH (ret) {}
 
     return ret;
+}
+
+/* 归档内条目名: 若 file_name 位于 adding_path(真实子目录) 之下, 存相对路径(可含 '/',
+ * 由写入端构目录树); 否则沿用旧语义存裸文件名(SquashFS 目录项名不能含 '/'). */
+static char *__sqfs_stored_name(Archive *archive, char *file_name)
+{
+    char *adding_path = STR2A(archive->adding_path);
+    int len = strlen(adding_path);
+    char *rel;
+
+    if (len > 2 && strncmp(file_name, adding_path, len) == 0) {
+        rel = file_name + len;
+        while (*rel == '/') rel++;
+        if (*rel) return rel;
+    }
+
+    return (char *)__basename(file_name);
 }
 
 static int __add_file(Squashfs *sq, archive_file_info_t *info)
@@ -800,9 +827,10 @@ static int __add_file(Squashfs *sq, archive_file_info_t *info)
         sq->files = nf;
         f = &sq->files[sq->num_files];
         memset(f, 0, sizeof(*f));
+        /* 存储名: 相对 adding_path 或裸文件名; sq->files 下标保持与 pending_sizes/block_list 对齐 */
         f->name = allocator_mem_zalloc(allocator, strlen(info->file_name) + 1);
         THROW_IF(f->name == NULL, -1);
-        strcpy((char *)f->name, info->file_name);
+        strcpy((char *)f->name, __sqfs_stored_name(archive, info->file_name));
         f->size = data_size;
         f->inode_block = sq->pending_count - 1;   /* 数据起始偏移的下标, save 时用 */
         f->block_list = blist;
@@ -818,6 +846,145 @@ static int __add_file(Squashfs *sq, archive_file_info_t *info)
     return ret;
 }
 
+/* ------------------------------------------------------------------ */
+/* 写入端目录树: 用 core 通用 N 叉树容器 NTree(src/core/NTree.c) 组织.     */
+/*   - 结构(子节点按名有序、find、所有权、递归释放)与遍历(NTree.preorder)   */
+/*     都在容器里; 节点 data = sq_node_meta_t(squashfs 专属字段), 其构造与 */
+/*     释放由容器回调注入(alloc_data/free_data), 无需自建节点 helper.    */
+/* ------------------------------------------------------------------ */
+
+/* NTree->alloc_data: 容器建好节点后回调, 用 arg 分配并初始化 data(meta) */
+static void *__sq_meta_alloc(ntree_node_t *node, void *arg)
+{
+    sq_node_arg_t *b = (sq_node_arg_t *)arg;
+    allocator_t *allocator = b->sq->parent.parent.allocator;
+    sq_node_meta_t *m = allocator_mem_zalloc(allocator, sizeof(*m));
+    if (m == NULL) return NULL;
+    m->alloc = allocator;
+    m->is_dir = b->is_dir;
+    m->file_idx = b->file_idx;
+    return m;
+}
+
+/* NTree->free_data: 释放节点时顺带释放 data(meta) */
+static void __sq_meta_free(void *data)
+{
+    sq_node_meta_t *m = (sq_node_meta_t *)data;
+    if (m) allocator_mem_free(m->alloc, m);
+}
+
+
+/* ---- 前序"节点访问器"(由 NTree->preorder 按前序逐节点调用) ----
+ * 遍历/顺序算法在容器(NTree)里, 这里只定义"每个节点做什么":
+ *   layout_visit    : 分 inode 号 / inode 块内偏移, 统计目录数(须最先跑)
+ *   serialize_visit : 目录节点把自身条目序列化进 8KB 目录块(记 dir_off/dir_size)
+ *   write_visit     : 把节点 inode 写进 8KB inode 块
+ * 三趟共享同一份"工作台" sq_ctx_t(缓冲/游标都在其中, 而非散成多份). */
+
+/* 访问器 1(layout, 须最先跑): 按前序给每个节点分配 inode 号与 inode 块内偏移,
+ * 并累计目录数. 前序保证"父先于子", 后续目录项/base inode、目录 parent_inode
+ * 都依赖这次分配的 inode 号. (文件 inode = 32 + 4*num_blocks, 目录 inode = 32) */
+static int __sq_layout_visit(ntree_node_t *n, void *v)
+{
+    sq_ctx_t *c = (sq_ctx_t *)v;
+    sq_node_meta_t *m = (sq_node_meta_t *)n->data;
+
+    m->inode_no = c->inode_no++;
+    m->inode_off = c->inode_off;
+    if (m->is_dir) {
+        c->inode_off += 32;
+        c->dir_count++;
+    } else {
+        c->inode_off += 32 + 4 * c->sq->files[m->file_idx].num_blocks;
+    }
+    return 0;
+}
+
+/* 访问器 2(serialize): 只处理目录节点——把该目录的子项按序序列化成 squashfs
+ * 目录数据段(目录头+条目), 直接铺进 8KB 目录块 c->dirs; 偏移/大小记入本节点
+ * 的 dir_off/dir_size, 供访问器 3 写目录 inode 时引用. 块放不下则置 ctx->err. */
+static int __sq_serialize_visit(ntree_node_t *n, void *v)
+{
+    sq_ctx_t *c = (sq_ctx_t *)v;
+    sq_node_meta_t *m = (sq_node_meta_t *)n->data;
+    uint8_t *buf;
+    uint32_t cap, len = 12;
+    int i;
+
+    if (!m->is_dir) return 0;
+    buf = c->dirs + c->dir_off;
+    cap = 8192 - c->dir_off;
+    m->dir_off = c->dir_off;
+
+    if (n->nchild == 0) return 0;                     /* 空目录不写(本实现不会产生) */
+    if (cap < 12) { c->err = -1; return -1; }         /* 目录段放不进剩余空间 */
+    __put_le32(buf, (uint32_t)(n->nchild - 1));       /* 磁盘存 count-1 */
+    __put_le32(buf + 4, 0);                           /* start_block: inode 表 block0 */
+    __put_le32(buf + 8, ((sq_node_meta_t *)n->child[0]->data)->inode_no);
+    for (i = 0; i < n->nchild; i++) {
+        sq_node_meta_t *cm = (sq_node_meta_t *)n->child[i]->data;
+        const char *nm = n->child[i]->name;
+        uint32_t nl = (uint32_t)strlen(nm);
+        if (len + 8 + nl > cap) { c->err = -1; return -1; }
+        __put_le16(buf + len, (uint16_t)cm->inode_off);
+        __put_le16(buf + len + 2, (uint16_t)((int32_t)cm->inode_no -
+                                             (int32_t)((sq_node_meta_t *)n->child[0]->data)->inode_no));
+        __put_le16(buf + len + 4, cm->is_dir ? SQFS_INODE_DIR : SQFS_INODE_FILE);
+        __put_le16(buf + len + 6, (uint16_t)(nl - 1));
+        memcpy(buf + len + 8, nm, nl);
+        len += 8 + nl;
+    }
+    m->dir_size = len;
+    c->dir_off += len;
+    return 0;
+}
+
+/* 访问器 3(write): 把每个节点(目录/文件)的 inode 写到该节点 inode_off 处.
+ * 目录 inode 引用访问器 2 填好的 dir_off/dir_size 与父 inode 号; 文件 inode
+ * 直接引用 sq->files[file_idx]/pending_sizes. inode 块用到的最大长度累计进 ctx. */
+static int __sq_write_visit(ntree_node_t *n, void *v)
+{
+    sq_ctx_t *c = (sq_ctx_t *)v;
+    Squashfs *sq = c->sq;
+    sq_node_meta_t *m = (sq_node_meta_t *)n->data;
+    uint8_t *p = c->inodes + m->inode_off;
+    int i;
+
+    if (m->is_dir) {
+        int subdirs = 0, k;
+        __put_le16(p, SQFS_INODE_DIR);
+        __put_le16(p + 2, 0x41ED);
+        __put_le16(p + 4, 0);
+        __put_le16(p + 6, 0);
+        __put_le32(p + 8, 0);
+        __put_le32(p + 12, m->inode_no);
+        __put_le32(p + 16, 0);                     /* start_block(单 dir 块=0) */
+        for (k = 0; k < n->nchild; k++)
+            if (((sq_node_meta_t *)n->child[k]->data)->is_dir) subdirs++;
+        __put_le32(p + 20, (uint32_t)(subdirs + 2));  /* nlink */
+        __put_le16(p + 24, (uint16_t)(m->dir_size + 3));
+        __put_le16(p + 26, (uint16_t)m->dir_off);
+        __put_le32(p + 28, n->parent ? ((sq_node_meta_t *)n->parent->data)->inode_no : 1);
+    } else {
+        sqfs_file_entry_t *f = &sq->files[m->file_idx];
+        uint32_t start = sq->pending_sizes[m->file_idx];
+        __put_le16(p, SQFS_INODE_FILE);
+        __put_le16(p + 2, 0x81A4);
+        __put_le16(p + 4, 0);
+        __put_le16(p + 6, 0);
+        __put_le32(p + 8, 0);
+        __put_le32(p + 12, m->inode_no);
+        __put_le32(p + 16, start);
+        __put_le32(p + 20, SQFS_NO_FRAGMENT);
+        __put_le32(p + 24, 0);
+        __put_le32(p + 28, (uint32_t)f->size);
+        p += 32;
+        for (i = 0; i < (int)f->num_blocks; i++) { __put_le32(p, f->block_list[i]); p += 4; }
+    }
+    if ((uint32_t)(p - c->inodes) > c->inode_len) c->inode_len = (uint32_t)(p - c->inodes);
+    return 0;
+}
+
 /* 写 96 字节 superblock(放在最后, 此时所有表的位置已知) */
 static int __write_superblock(Squashfs *sq, uint32_t root_inode_loc)
 {
@@ -829,24 +996,24 @@ static int __write_superblock(Squashfs *sq, uint32_t root_inode_loc)
     TRY {
         memset(sb, 0, sizeof(sb));
         __put_le32(sb, SQFS_MAGIC);
-        __put_le32(sb + 4, sq->num_files + 1);              /* inode_count(根目录 + 文件) */
+        __put_le32(sb + 4, sq->num_inodes);                 /* inode_count */
         __put_le32(sb + 8, 0);                              /* mtime */
         __put_le32(sb + 12, sq->super.block_size);
         __put_le32(sb + 16, 0);                             /* fragment_count */
         __put_le16(sb + 20, SQFS_COMPRESSION_ZLIB);
         __put_le16(sb + 22, sq->super.block_log);
-        __put_le16(sb + 24, SQFS_FLAG_NOXATTR);             /* flags: 无 xattr 表 */
+        __put_le16(sb + 24, SQFS_FLAG_NOXATTR);
         __put_le16(sb + 26, 1);                             /* id_count */
-        __put_le16(sb + 28, 4);                             /* major */
-        __put_le16(sb + 30, 0);                             /* minor */
+        __put_le16(sb + 28, 4);
+        __put_le16(sb + 30, 0);
         __put_le64(sb + 32, root_inode_loc);
         __put_le64(sb + 40, sq->write_pos);                 /* bytes_used */
         __put_le64(sb + 48, sq->super.id_table_start);
-        __put_le64(sb + 56, SQFS_INVALID_BLK);              /* xattr: 无 xattr 表用 INVALID_BLK */
+        __put_le64(sb + 56, SQFS_INVALID_BLK);              /* xattr */
         __put_le64(sb + 64, sq->super.inode_table_start);
         __put_le64(sb + 72, sq->super.directory_table_start);
-        __put_le64(sb + 80, 0);                             /* fragment_table_start(无 fragment) */
-        __put_le64(sb + 88, SQFS_INVALID_BLK);              /* lookup(export)表不存在用 INVALID_BLK */
+        __put_le64(sb + 80, 0);                             /* fragment_table_start */
+        __put_le64(sb + 88, SQFS_INVALID_BLK);              /* lookup */
 
         EXEC(a->seek(a, 0, SEEK_SET));
         EXEC(a->write(a, sb, 96));
@@ -860,116 +1027,109 @@ static int __save(Squashfs *sq)
     Archive *archive = (Archive *)&sq->parent;
     File *a = archive->file;
     allocator_t *allocator = sq->parent.parent.allocator;
+    NTree *ntree = NULL;
+    ntree_node_t *root = NULL, *cur = NULL;
     uint8_t *inodes = NULL, *dirs = NULL;
-    uint64_t inode_len = 0, dir_len = 0;
-    uint32_t i, j, k, base_inode, dir_off;
+    sq_ctx_t ctx;
+    sq_node_arg_t arg;
+    uint32_t i, k, nseg;
     uint64_t id_data_pos;
     uint8_t id_data[4] = {0, 0, 0, 0};
     uint8_t id_index[8];
-    sqfs_file_entry_t *f;
     int ret = 0;
 
     TRY {
         THROW_IF(sq->add_flag == 0, 1);
 
-        /* 目录项必须按名字升序且唯一(unsquashfs 会校验), 先按 basename
-         * 排序 files 及其对应的 pending_sizes(数据偏移) */
-        for (i = 1; i < sq->num_files; i++) {
-            k = i;
-            while (k > 0 && strcmp(__basename((char *)sq->files[k].name),
-                                   __basename((char *)sq->files[k - 1].name)) < 0) {
-                sqfs_file_entry_t tf = sq->files[k];
-                uint32_t ts = sq->pending_sizes[k];
-                sq->files[k] = sq->files[k - 1];
-                sq->files[k - 1] = tf;
-                sq->pending_sizes[k] = sq->pending_sizes[k - 1];
-                sq->pending_sizes[k - 1] = ts;
-                k--;
-            }
-        }
+        /* 0. 建 core 通用 N 叉树; data 构造/释放都由容器回调完成 */
+        ntree = object_new(allocator, "NTree", NULL);
+        THROW_IF(ntree == NULL, -1);
+        ntree->alloc_data = __sq_meta_alloc;
+        ntree->free_data = __sq_meta_free;
 
-        /* ---- 构建 inode 表: 根目录 inode + 每文件 inode ---- */
-        /* 根目录 inode(32 字节): basic(16) + start_block(4) + nlink(4)
-         * + file_size(2) + offset(2) + parent_inode(4) */
-        inodes = allocator_mem_zalloc(allocator, 8192);
-        THROW_IF(inodes == NULL, -1);
-        __put_le16(inodes + 0, SQFS_INODE_DIR);
-        __put_le16(inodes + 2, 0x41ED);                  /* S_IFDIR | 0755 */
-        __put_le16(inodes + 4, 0);                       /* uid 索引 */
-        __put_le16(inodes + 6, 0);                       /* gid 索引 */
-        __put_le32(inodes + 8, 0);                       /* mtime */
-        __put_le32(inodes + 12, 1);                      /* inode_number = 1 */
-        __put_le32(inodes + 16, 0);                      /* start_block: dir 表内相对字节偏移(单块=0) */
-        __put_le32(inodes + 20, 2);                      /* nlink = 子目录数 + 2 */
-        __put_le16(inodes + 24, 0);                      /* file_size = 目录大小+3(由下面计算) */
-        __put_le16(inodes + 26, 0);                      /* offset: 解压块内字节偏移 */
-        __put_le32(inodes + 28, 1);                      /* parent_inode */
-        inode_len = 32;
-
-        /* 每个文件的 inode: block_list 直接来自 add 时记录的 on-disk 大小 */
+        /* 1. 由每个文件的相对名拆段, 建多级目录树 */
+        arg.sq = sq;
+        arg.is_dir = 1;
+        arg.file_idx = -1;
+        root = ntree->node_new(ntree, NULL, &arg);          /* 根目录 */
+        THROW_IF(root == NULL, -1);
+        ntree->set_root(ntree, root);
         for (i = 0; i < sq->num_files; i++) {
-            uint64_t start = sq->pending_sizes[i];
-            uint32_t blocks = sq->files[i].num_blocks;
-            uint8_t *p = inodes + inode_len;
+            char tmp2[1024];
+            char segs[64][256];
+            int nseg = 0;
+            char *pp;
 
-            /* 文件 inode(32 字节头 + block_list): basic(16) + start_block(4)
-             * + fragment(4) + offset(4, 恒存在) + file_size(4) */
-            __put_le16(p, SQFS_INODE_FILE);
-            __put_le16(p + 2, 0x81A4);                       /* S_IFREG | 0644 */
-            __put_le16(p + 4, 0);
-            __put_le16(p + 6, 0);
-            __put_le32(p + 8, 0);
-            __put_le32(p + 12, 2 + i);                       /* inode_number */
-            __put_le32(p + 16, (uint32_t)start);             /* start_block */
-            __put_le32(p + 20, SQFS_NO_FRAGMENT);            /* fragment */
-            __put_le32(p + 24, 0);                           /* offset(碎片内偏移, 无 fragment=0) */
-            __put_le32(p + 28, (uint32_t)sq->files[i].size); /* file_size */
-            p += 32;
-            for (j = 0; j < blocks; j++) {
-                __put_le32(p, sq->files[i].block_list[j]);
-                p += 4;
+            cur = root;
+            strncpy(tmp2, (char *)sq->files[i].name, sizeof(tmp2) - 1);
+            tmp2[sizeof(tmp2) - 1] = '\0';
+            pp = tmp2;
+            while (pp) {
+                char *sl = strchr(pp, '/');
+                if (sl == NULL) {
+                    if (pp[0]) { strncpy(segs[nseg], pp, 255); segs[nseg][255] = 0; nseg++; }
+                    break;
+                }
+                *sl = '\0';
+                if (pp[0]) { strncpy(segs[nseg], pp, 255); segs[nseg][255] = 0; nseg++; }
+                pp = sl + 1;
             }
-            inode_len = (uint64_t)(p - inodes);
+            THROW_IF(nseg == 0 || nseg >= 64, -1);
+            for (k = 0; k < nseg; k++) {
+                ntree_node_t *nx;
+
+                /* 中间段为目录、末段为文件叶子: 用 alloc_data 按 arg 建不同载荷 */
+                if (k < nseg - 1) {
+                    arg.is_dir = 1;
+                    arg.file_idx = -1;
+                } else {
+                    arg.is_dir = 0;
+                    arg.file_idx = (int)i;
+                }
+                nx = ntree->node_find(ntree, cur, segs[k]);
+                if (nx != NULL) {
+                    /* 已存在: 目录段须是目录(复用); 叶子段视为"同目录同名"冲突 */
+                    if (k == nseg - 1 || !((sq_node_meta_t *)nx->data)->is_dir) THROW(-1);
+                } else {
+                    nx = ntree->node_new(ntree, segs[k], &arg);
+                    THROW_IF(nx == NULL, -1);
+                    if (ntree->node_insert(ntree, cur, nx) != 0) {  /* 同父同名 */
+                        ntree->node_free(ntree, nx);
+                        THROW(-1);
+                    }
+                }
+                cur = nx;
+            }
         }
 
-        /* 写入 inode 表(根目录 inode 位于 block0 offset0, 所以 root_inode_loc=0) */
-        sq->super.inode_table_start = sq->write_pos;
-        EXEC(__write_metadata_block(sq, &sq->write_pos, inodes, (uint32_t)inode_len));
+        /* 2. layout 趟: 由 NTree 前序逐节点访问, 分 inode 号/块内偏移, 统计目录数 */
+        memset(&ctx, 0, sizeof(ctx));
+        ctx.sq = sq;
+        ctx.inode_no = 1;
+        ntree->preorder(ntree, NULL, __sq_layout_visit, &ctx);
+        sq->num_inodes = sq->num_files + ctx.dir_count;
 
-        /* ---- 构建 directory 表: 根目录项 ---- */
+        /* 3. serialize 趟: 每个目录节点把自身条目铺进单一 8KB 目录块 */
         dirs = allocator_mem_zalloc(allocator, 8192);
         THROW_IF(dirs == NULL, -1);
-        base_inode = 2;                                       /* 第一个文件的 inode 号 */
-        __put_le32(dirs, sq->num_files > 0 ? sq->num_files - 1 : 0);  /* 磁盘存 count-1 */
-        __put_le32(dirs + 4, 0);                              /* 共享 start_block = inode 表 block0 */
-        __put_le32(dirs + 8, base_inode);                     /* base inode_number */
-        dir_len = 12;
-        dir_off = 32;                                         /* 第一个文件 inode 在 inode 表内的偏移 */
-        for (i = 0; i < sq->num_files; i++) {
-            const char *nm = __basename((char *)sq->files[i].name);
-            uint32_t name_len = (uint32_t)strlen(nm);
-            uint8_t *p = dirs + dir_len;
-            __put_le16(p, (uint16_t)dir_off);                 /* inode 偏移 */
-            __put_le16(p + 2, (uint16_t)((int)(2 + i) - (int)base_inode));  /* inode 号差值 */
-            __put_le16(p + 4, SQFS_INODE_FILE);
-            __put_le16(p + 6, (uint16_t)(name_len - 1));      /* size = 名字长 - 1 */
-            memcpy(p + 8, nm, name_len);
-            dir_len += 8 + name_len;
-            dir_off += 32 + 4 * sq->files[i].num_blocks;
-        }
-        /* 回填根目录 inode 的 dir file_size(实际大小 + 3) */
-        __put_le16(inodes + 24, (uint16_t)(dir_len + 3));
-        /* 覆盖更新 inode 表(根目录 inode 在 block0 内, 需要重新写块) */
-        sq->write_pos = sq->super.inode_table_start;
-        EXEC(__write_metadata_block(sq, &sq->write_pos, inodes, (uint32_t)inode_len));
+        ctx.dirs = dirs;
+        ntree->preorder(ntree, NULL, __sq_serialize_visit, &ctx);
+        THROW_IF(ctx.err != 0, -1);
+
+        /* 4. write 趟: 每个节点把 inode 写进 8KB inode 块(偏移与 layout 一致) */
+        inodes = allocator_mem_zalloc(allocator, 8192);
+        THROW_IF(inodes == NULL, -1);
+        ctx.inodes = inodes;
+        ntree->preorder(ntree, NULL, __sq_write_visit, &ctx);
+        THROW_IF(ctx.inode_len > 8192, -1);
+
+        /* 5. 写 inode 表 / 目录表 / id 表 / superblock */
+        sq->super.inode_table_start = sq->write_pos;
+        EXEC(__write_metadata_block(sq, &sq->write_pos, inodes, ctx.inode_len));
 
         sq->super.directory_table_start = sq->write_pos;
-        EXEC(__write_metadata_block(sq, &sq->write_pos, dirs, (uint32_t)dir_len));
+        EXEC(__write_metadata_block(sq, &sq->write_pos, dirs, ctx.dir_off));
 
-        /* ---- id 表: 一个 id(0) ----
-         * 格式: id_data 元数据块(存 id 值) + 末尾原始 8 字节索引(指向 id_data).
-         * 索引不含元数据块头, 且须紧贴镜像末尾, 以通过 unsquashfs 的
-         * length == table_start - id_table_start 校验 */
         id_data_pos = sq->write_pos;
         EXEC(__write_metadata_block(sq, &sq->write_pos, id_data, 4));
         sq->super.id_table_start = sq->write_pos;
@@ -978,10 +1138,10 @@ static int __save(Squashfs *sq)
         EXEC(a->write(a, id_index, 8));
         sq->write_pos += 8;
 
-        /* ---- 写 superblock ---- */
-        EXEC(__write_superblock(sq, 0));                     /* root_inode = (block0<<16)|0 */
+        EXEC(__write_superblock(sq, 0));                     /* root inode @ block0,off0 */
         sq->add_flag = 0;
     } CATCH (ret) {} FINALLY {
+        if (ntree) object_destroy(ntree);       /* 释放整棵目录树(含 meta) */
         if (inodes) allocator_mem_free(allocator, inodes);
         if (dirs) allocator_mem_free(allocator, dirs);
     }

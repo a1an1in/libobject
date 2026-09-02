@@ -255,11 +255,14 @@ Zip/Tar 一致的接口：add_file / save / open / list / extract_file。
   目录数据按 (start_block, offset) 定位。
 - 目录条目：count 字段存"条目数-1"；条目含 inode 偏移(2)/inode 号差值(2)/
   类型(2)/名字长度-1(2)/名字[]。名字是"裸文件名"(不含 '/' )。
+- 从根目录 inode 递归遍历目录：目录项名拼上父路径得到完整相对路径
+  (如 sub/test.txt)，list 输出即该相对路径；extract 先按完整相对路径精确匹配，
+  未命中再退化为按裸文件名匹配(旧行为)。
 - 目录 inode 的 file_size 存的是"实际目录数据大小 + 3"，读时要减 3。
 - id 表仅用于 uid/gid 映射，list/extract 用不到，未加载。
 
-3. 写入端要点(生成最小合法镜像)
--------------------------------
+3. 写入端要点(最小合法镜像 + 多级目录树)
+---------------------------------------
 镜像布局：
     superblock(96B) + 数据块区 + inode 表(元数据块)
     + 目录表(元数据块) + id 数据(元数据块) + id 索引(原始 8 字节)
@@ -267,11 +270,24 @@ Zip/Tar 一致的接口：add_file / save / open / list / extract_file。
 
 - 数据块：无长度头；能压缩则存压缩流，否则原样存储。
   block_list[i] = 大小 | (未压缩 ? SQFS_BLOCK_UNCOMPRESSED_BIT : 0)。
-- 文件 inode：基本文件 inode(32 字节头)，fragment=0xFFFFFFFF(NO_FRAGMENT)，
-  offset=0；block_list 直接来自 add 时的记录。
-- 根目录 inode：基本目录 inode(32 字节)，start_block=0、offset=0、
-  file_size = 目录数据大小+3、nlink=子目录数+2。
-- 目录表：count=条目数-1，条目只存 basename，且按名字升序排序并唯一
+- add_file 的"归档条目名"归一化为相对源目录(adding_path)的路径，允许含 '/'
+  (位于 adding_path 之外则回退为裸文件名)；save 时按 '/' 拆分，用 core 通用
+  N 叉树容器 NTree(src/core/NTree.c, 见 tests/core/test_ntree.c)构建多级目录树：
+  节点 name = 路径段、data = sq_node_meta_t(目录/文件、inode 号/偏移等 squashfs
+  语义，随节点一并释放)。遍历/顺序算法在 NTree.preorder(前序逐节点调用注入的
+  visit)，本模块只提供三个节点访问器(layout/serialize/write，共享 sq_ctx_t
+  工作台)。子目录内的文件可与其它目录同名(如 sub/test.txt 与 test.txt)。
+- inode 表：前序遍历目录树分配 inode 号(从 1 递增)与块内偏移 inode_off；
+  文件 inode 占 32 + 4*num_blocks 字节、目录 inode 占 32 字节。
+  superblock 的 inode_count = 文件数 + 目录数。
+- 目录 inode(基本目录，32 字节)：start_block=0、offset=0、
+  file_size = 该目录数据大小+3、nlink = 子目录数+2、
+  parent_inode = 父目录的 inode 号(根为 1)。
+- 文件 inode(基本文件，32 字节头)：fragment=0xFFFFFFFF(NO_FRAGMENT)、
+  offset=0；block_list 直接来自 add 时的记录，数据起始偏移取 add 时记录值。
+- 目录表：单一 8KB(8192)元数据块，按前序把每个目录的数据(目录头+条目)
+  顺次铺进这块，位置 (off,size) 写入对应目录 inode；目录头 base_inode 取
+  该目录首个条目 inode 号，条目按名字升序排序且同目录内名字唯一
   (unsquashfs 的 check_directory 会校验)。
 - 不存在的表用哨兵值：
     xattr_table_start / lookup_table_start = 0xFFFFFFFFFFFFFFFF (INVALID_BLK)
@@ -293,7 +309,10 @@ Zip/Tar 一致的接口：add_file / save / open / list / extract_file。
 5. 已知限制
 -----------
 - 只支持基本(非扩展)文件/目录 inode；不支持扩展 inode(LREG/LDIR)。
-- 目录表仅支持单块(start_block=0)的简单目录。
+- 目录表仅支持单一 8KB 元数据块：写入端把所有目录数据(合计 ≤8192B)塞进这一块，
+  读取端也只解析目录表首块(start_block=0)。超大/超多目录(数据>8KB)或带目录
+  索引(index)的镜像暂不支持读写。
 - 写入端不使用 fragment / export / xattr / 硬链接 / 稀疏文件；
   读取端可读含 fragment 的基本文件 inode(未在测试中覆盖)。
-- 目录条目只存 basename，同一目录下同名文件会冲突(与 mksquashfs 约定一致)。
+- 目录条目只存"裸文件名"，同一目录内不允许同名(与 mksquashfs 约定一致)；
+  不同目录下的同名文件(如 sub/test.txt 与 test.txt)已由多级目录树支持。
