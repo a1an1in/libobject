@@ -1067,6 +1067,23 @@ static void __grow_array(allocator_t *allocator, void **ptr, uint32_t old_n, uin
 /* 写入阶段: 把源文件读入内存, 用 raw LZMA2(dict=1<<24) 压缩成 packed 流,
  * 追加写入归档数据区; 并登记一个 folder(单 LZMA2 coder) 与该文件的元数据
  * (名字/大小/CRC). 每个文件一个 folder(非固实), 便于实现与校验. */
+/* 归档内条目名: 若 file_name 位于 adding_path(真实子目录) 之下, 存相对名(去掉前缀),
+ * 与 tar/zip 行为一致, 由目录打包的 7z 解压后平铺; 默认 "./" 时保持原样. */
+static char *__sevenzip_stored_name(Archive *archive, char *file_name)
+{
+    char *adding_path = STR2A(archive->adding_path);
+    int len = strlen(adding_path);
+    char *rel;
+
+    if (len > 2 && strncmp(file_name, adding_path, len) == 0) {
+        rel = file_name + len;
+        while (*rel == '/') rel++;
+        if (*rel != '\0') return rel;
+    }
+
+    return file_name;
+}
+
 static int __add_file(SevenZip *sz, archive_file_info_t *info)
 {
     Archive *archive = (Archive *)&sz->parent;
@@ -1075,12 +1092,16 @@ static int __add_file(SevenZip *sz, archive_file_info_t *info)
     uint8_t *data = NULL, *packed = NULL;
     uint64_t data_size, packed_size;
     uint32_t idx;
+    char *store_name;
     sz_folder_t *f;
     sz_file_info_t *fi;
     int ret = 0;
 
     TRY {
         THROW_IF(info == NULL || info->file_name == NULL, -1);
+        /* 读源仍用完整路径, 存储名用相对 adding_path 的名字 */
+        store_name = __sevenzip_stored_name(archive, info->file_name);
+        THROW_IF(store_name == NULL || store_name[0] == '\0', -1);
 
         /* read the source file */
         EXEC(file->open(file, info->file_name, "r+"));
@@ -1150,9 +1171,9 @@ static int __add_file(SevenZip *sz, archive_file_info_t *info)
         THROW_IF(sz->files == NULL, -1);
         fi = &sz->files[sz->num_files];
         memset(fi, 0, sizeof(*fi));
-        fi->name = allocator_mem_zalloc(allocator, strlen(info->file_name) + 1);
+        fi->name = allocator_mem_zalloc(allocator, strlen(store_name) + 1);
         THROW_IF(fi->name == NULL, -1);
-        strcpy((char *)fi->name, info->file_name);
+        strcpy((char *)fi->name, store_name);
         fi->size = data_size;
         fi->crc = (uint32_t)crc32(0, data, (unsigned int)data_size);
         fi->empty_stream = 0;

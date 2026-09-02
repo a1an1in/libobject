@@ -11,6 +11,7 @@ lib/
 sysroot/
 cmake-build-debug/
 tests/output/
+tests/archive/output/
 tests/node/output/
 packages/
 

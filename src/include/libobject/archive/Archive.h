@@ -77,4 +77,30 @@ struct Archive_s {
     String *tmp;
 };
 
+/* ------------------------------------------------------------------ */
+/* 归档格式枚举 —— 供 Archive_Command 内部魔数识别/分发的契约使用       */
+/* (识别/分发函数不对外暴露, 全部在 Archive_Command.c 内部实现)          */
+/* ------------------------------------------------------------------ */
+typedef enum archive_format_e {
+    ARCHIVE_FORMAT_UNKNOWN = 0,
+    ARCHIVE_FORMAT_TAR,         /* tar       */
+    ARCHIVE_FORMAT_TGZ,         /* tar+gzip  */
+    ARCHIVE_FORMAT_TBZ2,        /* tar+bzip2 */
+    ARCHIVE_FORMAT_GZIP,        /* 单文件 gzip  流(非归档容器) */
+    ARCHIVE_FORMAT_BZIP2,       /* 单文件 bzip2 流(非归档容器) */
+    ARCHIVE_FORMAT_XZ,          /* 单文件 xz    流(暂未实现)   */
+    ARCHIVE_FORMAT_ZSTD,        /* 单文件 zstd   流(暂未实现)   */
+    ARCHIVE_FORMAT_LZ4,         /* 单文件 lz4    流(暂未实现)   */
+    ARCHIVE_FORMAT_ZIP,         /* zip            */
+    ARCHIVE_FORMAT_7Z,          /* 7z             */
+    ARCHIVE_FORMAT_RAR,         /* rar   (暂未实现) */
+    ARCHIVE_FORMAT_SQUASHFS,    /* squashfs       */
+    ARCHIVE_FORMAT_ISO,         /* iso9660 (暂未实现) */
+    ARCHIVE_FORMAT_CPIO,        /* cpio  (暂未实现)   */
+    ARCHIVE_FORMAT_AR,          /* ar    (暂未实现)   */
+    ARCHIVE_FORMAT_CAB,         /* cab   (暂未实现)   */
+    ARCHIVE_FORMAT_Z,           /* unix compress (暂未实现) */
+    MAX_ARCHIVE_FORMAT,
+} archive_format_e;
+
 #endif

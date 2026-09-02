@@ -573,29 +573,51 @@ static int __write_central_directory_header_callback(int index, void *element)
     return ret;
 }
 
+/* 归档内条目名: 若 file_name 位于 adding_path(真实子目录) 之下, 存相对名(去掉前缀),
+ * 这样由目录打包的 zip 解压后是平铺而非重建源目录链, 与 tar 行为一致;
+ * 默认 adding_path("./") 时保持原样, 维持"存储名 == 传入名"的既有按名查找语义. */
+static char *__zip_stored_name(Archive *archive, char *file_name)
+{
+    char *adding_path = STR2A(archive->adding_path);
+    int len = strlen(adding_path);
+    char *rel;
+
+    if (len > 2 && strncmp(file_name, adding_path, len) == 0) {
+        rel = file_name + len;
+        while (*rel == '/') rel++;
+        if (*rel != '\0') return rel;
+    }
+
+    return file_name;
+}
+
 static int __add_file(Zip *zip, archive_file_info_t *info)
 {
     zip_file_header_t *file_header;
     uint32_t extra_field_length = 0;
     allocator_t *allocator = zip->parent.parent.allocator;
-    char *file_name;
+    Archive *archive = (Archive *)&zip->parent;
+    char *file_name, *store_name;
     int ret;
 
     TRY {
         THROW_IF(info == NULL, -1);
         file_name = info->file_name;
+        /* 读源仍用完整路径, 存储用相对名(若在 adding_path 之下) */
+        store_name = __zip_stored_name(archive, file_name);
+        THROW_IF(store_name == NULL || store_name[0] == '\0', -1);
 
         zip->add_flag = 1;
         file_header = allocator_mem_zalloc(allocator, sizeof(zip_file_header_t));
         THROW_IF(file_header == NULL, -1);
-        file_header->data_offset = zip->central_dir_position 
+        file_header->data_offset = zip->central_dir_position
                                    + ZIP_FILE_HEADER_SIZE
-                                   + strlen(file_name)
+                                   + strlen(store_name)
                                    + extra_field_length;
         dbg_str(DBG_INFO, "data_offset:%x, central_dir_position:%x, fileheadsize:%x, filelen:%x, exfl:%x",
              file_header->data_offset, zip->central_dir_position,
-             ZIP_FILE_HEADER_SIZE, strlen(file_name), extra_field_length);
-        dbg_str(DBG_INFO, "file name:%s", file_name);
+             ZIP_FILE_HEADER_SIZE, strlen(store_name), extra_field_length);
+        dbg_str(DBG_INFO, "file name:%s, stored as:%s", file_name, store_name);
         /* honor the caller's compression method when it is supported,
          * otherwise fall back to deflate */
         if (info->compression_method == ZIP_COMPRESSION_METHOD_STORED ||
@@ -606,7 +628,7 @@ static int __add_file(Zip *zip, archive_file_info_t *info)
         }
 
         EXEC(__write_file(zip, file_name, file_header));
-        EXEC(__write_file_header(zip, file_name, file_header));
+        EXEC(__write_file_header(zip, store_name, file_header));
         EXEC(__add_central_directory_header(zip, file_header));
     } CATCH (ret) {} FINALLY {
         __free_file_header_callback(allocator, file_header);

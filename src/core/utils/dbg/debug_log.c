@@ -160,8 +160,6 @@ void log_print_init(debugger_t *debugger)
     char log_dir[LOG_FILE_NAME_BUF_SIZE];
     char *p;
 
-    printf("debug log init\n");
-
     /* --- read log file name: env var > ini config > default --- */
     env_name = getenv("DBG_LOG_DIR");
     if (env_name) {
@@ -201,9 +199,6 @@ void log_print_init(debugger_t *debugger)
     /* --- read daily rotation config --- */
     rotate_on_date = iniparser_getint(d, (char *)"log:rotate_on_date", 1);
     log_priv->rotate_on_date = (rotate_on_date != 0) ? 1 : 0;
-
-    printf("debug log: base=%s, rotate_on_date=%d\n",
-           log_priv->log_file_base, log_priv->rotate_on_date);
 
     /* --- determine the actual log file path --- */
     gettimeofday(&tv, NULL);
@@ -251,9 +246,7 @@ void log_print_init(debugger_t *debugger)
         symlink(link_target, link_path);
     }
 
-    printf("run at here.\n");
     sync_lock_init(&log_priv->log_file_lock, debugger->lock_type);
-    printf("debug log init end, log file: %s\n", log_priv->log_file_name);
 }
 
 uint32_t log_print_write_log(FILE *fp, char *str)
