@@ -261,23 +261,6 @@ static ssize_t __recv(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags)
     return ret;
 }
 
-static ssize_t 
-__sendto(Inet_Tcp_Socket *socket, const void *buf, size_t len, int flags, 
-         char *remote_host, char *remote_service)
-{
-    dbg_str(NET_DETAIL, "not supported now");
-    return -1;
-}
-
-static ssize_t 
-__recvfrom(Inet_Tcp_Socket *socket, void *buf, size_t len, int flags, 
-           char *remote_host, int host_len,
-           char *remote_service, int service_len)
-{
-    dbg_str(NET_DETAIL, "not supported now");
-    return -1;
-}
-
 static int __getsockopt(Inet_Tcp_Socket *socket, sockoptval *val)
 {
     dbg_str(NET_DETAIL, "not supported now");
@@ -350,8 +333,10 @@ static class_info_entry_t inet_tcp_socket_class_info[] = {
     Init_Vfunc_Entry(8 , Inet_Tcp_Socket, connect, __connect),
     Init_Vfunc_Entry(9 , Inet_Tcp_Socket, send, __send),
     Init_Vfunc_Entry(10, Inet_Tcp_Socket, recv, __recv),
-    Init_Vfunc_Entry(11, Inet_Tcp_Socket, sendto, __sendto),
-    Init_Vfunc_Entry(12, Inet_Tcp_Socket, recvfrom, __recvfrom),
+    /* sendto/recvfrom 仅对数据报(UDP)有意义，TCP 置空(继承基类 NULL)：
+     * 目的地址在 connect 时已固定，收/发只需 recv()/send()。 */
+    Init_Vfunc_Entry(11, Inet_Tcp_Socket, sendto, NULL),
+    Init_Vfunc_Entry(12, Inet_Tcp_Socket, recvfrom, NULL),
     Init_Vfunc_Entry(13, Inet_Tcp_Socket, getsockopt, __getsockopt),
     Init_Vfunc_Entry(14, Inet_Tcp_Socket, setsockopt, __setsockopt),
     Init_Vfunc_Entry(15, Inet_Tcp_Socket, setnonblocking, __setnonblocking),

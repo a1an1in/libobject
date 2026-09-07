@@ -43,10 +43,11 @@ To deploy the Node Service on a Linux system, use the following commands:
 ```bash
 ./devops.sh build --platform=linux
 ./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_x86_64_v2.15.0.187.tar.gz
-./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x14 -f test_node
-./sysroot/linux/x86_64/bin/xtools node --log-level=0x30016 --host=127.0.0.1 --service=12345 --deamon=t
-./sysroot/linux/x86_64/bin/xtools node --log-level=0x20016 --host=139.159.231.27 --service=12345
+./devops.sh deploy -p=linux --host=119.4.206.14 --package-path=./packages/xtools_linux_x86_64_v2.15.0.187.tar.gz
+./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x14 -f test_node
+./sysroot/linux/x86_64/bin/xtools --log-type=0 node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t
+./sysroot/linux/x86_64/bin/xtools --log-type=0 node --log-level=0x20016 --host=119.4.206.14 --service=12345
+./sysroot/linux/x86_64/bin/xtools --log-type=0 node_cli --host="119.4.206.14" --service="12345" lookup all
 ```
 
 ### 1.2 Deploying on Android
@@ -58,11 +59,11 @@ To deploy the Node Service on an Android device, use the following commands:
 adb shell 
 cd  /data/local/tmp/.xtools/
 export LD_LIBRARY_PATH=/data/local/tmp/.xtools/sysroot/lib:$LD_LIBRARY_PATH
-./sysroot/bin/xtools node --log-level=0x30015 --host=139.159.231.27 --service=12345
-./sysroot/bin/xtools --log-level=0x20017 node -h
-nohup ./sysroot/bin/xtools node --log-level=0x30015 --host=139.159.231.27 --service=12345 >/data/local/tmp/.xtools/logs 2>&1 &
-./sysroot/linux/x86_64/bin/xtools node_cli --host="139.159.231.27" --service="12345" lookup all
-./sysroot/linux/x86_64/bin/xtools node_cli --host="127.0.0.1" --service="12345" lookup all
+./sysroot/bin/xtools --log-type=0 node --log-level=0x30015 --host=119.4.206.14 --service=12345
+./sysroot/bin/xtools --log-type=0 --log-level=0x20017 node -h
+nohup ./sysroot/bin/xtools --log-type=0 node --log-level=0x30015 --host=119.4.206.14 --service=12345 >/data/local/tmp/.xtools/logs 2>&1 &
+./sysroot/linux/x86_64/bin/xtools --log-type=0 node_cli --host="119.4.206.14" --service="12345" lookup all
+./sysroot/linux/x86_64/bin/xtools --log-type=0 node_cli --host="127.0.0.1" --service="12345" lookup all
 ```
 
 ---
@@ -89,7 +90,7 @@ node_cli() {
         return 1
     fi
 
-    $ND_CLI --host="$HOST" --service="$SERVICE" "$@"
+    $ND_CLI --log-type=0 --host="$HOST" --service="$SERVICE" "$@"
 }
 
 或者：
@@ -164,7 +165,7 @@ node_cli call_bus $node_id@{"mfree(#node_command)"}
 Allocate and manage memory on the node.
 ```bash
 node_cli call_bus $node_id@{"malloc(10, \"null\", #node_config, 128)"}
-node_cli mset $node_id@#node_config{0-127} "{\"log-level\": \"0x30016\",\"host\": \"139.159.231.27\",\"service\": \"12345\"}"
+node_cli mset $node_id@#node_config{0-127} "{\"log-level\": \"0x30016\",\"host\": \"119.4.206.14\",\"service\": \"12345\"}"
 node_cli mget $node_id@#node_config /100s
 node_cli call_bus $node_id@{"mfree(#node_config)"}
 ```
@@ -256,7 +257,7 @@ attacher destroy
 
 #### 2.10.1 Starting the Node Service
 ```bash
-./sysroot/windows/x86_64/bin/xtools node --log-level=0x15 --host=139.159.231.27 --service=12345
+./sysroot/windows/x86_64/bin/xtools --log-type=0 node --log-level=0x15 --host=119.4.206.14 --service=12345
 source ./sysroot/windows/x86_64/bin/node_cli.sh www.yunisona.top 12345
 ```
 

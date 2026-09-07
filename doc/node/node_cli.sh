@@ -18,5 +18,5 @@ node_cli() {
         return 1
     fi
 
-    $ND_CLI --host="$HOST" --service="$SERVICE" "$@"
+    $ND_CLI --log-type=0 --host="$HOST" --service="$SERVICE" "$@"
 }
