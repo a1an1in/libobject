@@ -477,7 +477,8 @@ static int __parse_attrib_changed_addr(stun_attrib_t *raw, stun_attrib_t *out)
 }
 
 /*
- * 一键运行一个 peer 会话（通用入口）：
+ * 一键运行一个 peer 会话（打洞路径）：
+ *  - 内部创建一个 Stun 对象，通过 *stun 返回给调用方（调用方负责 object_destroy）；
  *  - 把 local_host/local_service、opaque、recv_callback 应用到 stun；
  *  - connect(信令)；
  *  - NAT 探测：cfg->stun2_host 非空则 stun->probe(stun_host, stun2_host) 两次
@@ -489,8 +490,10 @@ static int __parse_attrib_changed_addr(stun_attrib_t *raw, stun_attrib_t *out)
  *    让对端完成，或直到 timeout_ms。
  * 返回：1=已互通；0=找到对端但未收到其数据；-1=失败；-2=双对称 NAT 需 TURN。
  */
-int stun_peer_run(Stun *stun, const stun_peer_cfg_t *cfg)
+int stun_peer_run(Stun **stun, const stun_peer_cfg_t *cfg)
 {
+    allocator_t *allocator;
+    Stun *s = NULL;
     char peer_host[64] = {0};
     char peer_port_str[16];
     char *service;
@@ -505,45 +508,51 @@ int stun_peer_run(Stun *stun, const stun_peer_cfg_t *cfg)
         THROW_IF(cfg->stun_host == NULL || cfg->stun_service == NULL, -1);
         THROW_IF(cfg->id == NULL || cfg->peer_id == NULL, -1);
 
+        /* 内部创建 Stun 对象，经出参 *stun 交给调用方持有(由调用方负责释放) */
+        allocator = allocator_get_default_instance();
+        s = object_new(allocator, "Stun", NULL);
+        THROW_IF(s == NULL, -1);
+        *stun = s;
+
         /* Ctrl+C(SIGINT) 时框架把默认 event base 的 break_flag 置 1，
          * 下面的等待/重试循环据此提前退出，进程才能响应中断退出。 */
         event_base = event_base_get_default_instance();
 
-        if (cfg->local_host != NULL)    stun->local_host    = (char *)cfg->local_host;
-        if (cfg->local_service != NULL) stun->local_service = (char *)cfg->local_service;
-        if (cfg->opaque != NULL)        stun->opaque        = cfg->opaque;
+        if (cfg->local_host != NULL)    s->local_host    = (char *)cfg->local_host;
+        if (cfg->local_service != NULL) s->local_service = (char *)cfg->local_service;
+        if (cfg->opaque != NULL)        s->opaque        = cfg->opaque;
         if (cfg->recv_callback != NULL) {
-            EXEC(stun->set_recv_callback(stun, cfg->recv_callback));
+            EXEC(s->set_recv_callback(s, cfg->recv_callback));
         }
 
-        stun->data_received = 0;
-        stun->nat_type      = STUN_NAT_TYPE_UNKNOWN;
-        stun->peer_nat_type = STUN_NAT_TYPE_UNKNOWN;
+        s->data_received = 0;
+        s->nat_type      = STUN_NAT_TYPE_UNKNOWN;
+        s->peer_nat_type = STUN_NAT_TYPE_UNKNOWN;
 
         /* 1) 连信令中心 */
-        EXEC(stun->connect(stun, (char *)cfg->signal_host, (char *)cfg->signal_service));
+        EXEC(s->connect(s, (char *)cfg->signal_host, (char *)cfg->signal_service));
 
         /* 2) NAT 探测 + 采址：
          *    给了第二 STUN(stun2) -> probe(主, 第二) 两次采址比较外部端口写 nat_type；
          *    否则 -> discovery(主 STUN) 采真实公网映射，nat_type 置 UNKNOWN。 */
         if (cfg->stun2_host != NULL && cfg->stun2_service != NULL) {
-            EXEC(stun->probe(stun, (char *)cfg->stun_host, (char *)cfg->stun_service,
-                             (char *)cfg->stun2_host, (char *)cfg->stun2_service));
+            EXEC(s->probe(s, (char *)cfg->stun_host, (char *)cfg->stun_service,
+                          (char *)cfg->stun2_host, (char *)cfg->stun2_service));
         } else {
-            EXEC(stun->discovery(stun, (char *)cfg->stun_host, (char *)cfg->stun_service));
+            EXEC(s->discovery(s, (char *)cfg->stun_host, (char *)cfg->stun_service));
         }
         dbg_str(DBG_INFO, "[%s] stun_peer_run mapped: %s:%d, nat_type=%d",
-                cfg->id, stun->mapped_host, stun->mapped_port, stun->nat_type);
+                cfg->id, s->mapped_host, s->mapped_port, s->nat_type);
 
         /* 3) 公告注册（带上 nat_type） */
-        EXEC(stun->register_addr(stun, (char *)cfg->id));
+        EXEC(s->register_addr(s, (char *)cfg->id));
 
         /* 4) 查对端（带重试，step 500ms） */
         step_ms = 500;
         max_it = cfg->timeout_ms > 0 ? cfg->timeout_ms / step_ms : 30;
         for (i = 0; i < max_it && event_base->eb->break_flag == 0; i++) {
-            ret = stun->lookup_addr(stun, (char *)cfg->peer_id,
-                                    peer_host, sizeof(peer_host), &peer_port);
+            ret = s->lookup_addr(s, (char *)cfg->peer_id,
+                                 peer_host, sizeof(peer_host), &peer_port);
             if (ret >= 0) {
                 break;
             }
@@ -551,10 +560,10 @@ int stun_peer_run(Stun *stun, const stun_peer_cfg_t *cfg)
         }
         THROW_IF(ret < 0, -1);
         dbg_str(DBG_INFO, "[%s] peer %s address: %s:%d, nat_type=%d",
-                cfg->id, cfg->peer_id, peer_host, peer_port, stun->peer_nat_type);
+                cfg->id, cfg->peer_id, peer_host, peer_port, s->peer_nat_type);
 
-        if (stun->nat_type == STUN_NAT_TYPE_SYMMETRIC &&
-            stun->peer_nat_type == STUN_NAT_TYPE_SYMMETRIC) {
+        if (s->nat_type == STUN_NAT_TYPE_SYMMETRIC &&
+            s->peer_nat_type == STUN_NAT_TYPE_SYMMETRIC) {
             /* 5) 两端都对称：打洞必败，直接转 TURN */
             dbg_str(DBG_ERROR,
                     "[%s] local & peer both SYMMETRIC NAT, hole punching impossible, need TURN",
@@ -563,7 +572,7 @@ int stun_peer_run(Stun *stun, const stun_peer_cfg_t *cfg)
         } else {
             /* 6) 打洞 */
             snprintf(peer_port_str, sizeof(peer_port_str), "%d", peer_port);
-            EXEC(stun->punch(stun, peer_host, peer_port_str));
+            EXEC(s->punch(s, peer_host, peer_port_str));
             usleep(200000);
 
             /* 7) 周期发送 payload，直到收到对端数据后再续发几轮或超时 */
@@ -575,10 +584,10 @@ int stun_peer_run(Stun *stun, const stun_peer_cfg_t *cfg)
             max_it   = cfg->timeout_ms > 0 ? cfg->timeout_ms / step_ms : 30;
             for (i = 0; i < max_it && event_base->eb->break_flag == 0; i++) {
                 if (data != NULL && data_len > 0) {
-                    EXEC(stun->send(stun, (void *)data, data_len));
+                    EXEC(s->send(s, (void *)data, data_len));
                     dbg_str(DBG_INFO, "[%s] stun_peer_run send(%d)", cfg->id, i + 1);
                 }
-                if (stun->data_received) {
+                if (s->data_received) {
                     if (got < 0) {
                         got = i;
                         dbg_str(DBG_INFO, "[%s] stun_peer_run: received peer data", cfg->id);

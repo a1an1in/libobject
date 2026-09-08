@@ -1,15 +1,16 @@
 # STUN / UDP P2P 模块使用说明
 
-本模块实现基于 RFC 5389 STUN 的 **UDP NAT 穿透（打洞）**，让处于不同 NAT 之后的两个 peer 能点对点直连。中心服务器（`Stun_Server`）兼任 **STUN 查询 + 信令/地址簿** 双重角色。
+本模块实现基于 RFC 5389 STUN 的 **UDP NAT 穿透（打洞）**，让处于不同 NAT 之后的两个 peer 能点对点直连。中心服务器（`P2p_Server`）兼任 **信令/地址簿 + STUN 回显** 角色，未来 TURN 中继也将并入同一进程。
 
 ## 架构与文件
 
 | 文件 | 作用 |
 | --- | --- |
-| [`src/net/stun/Stun_Server.c`](../../src/net/stun/Stun_Server.c) | 中心服务器：回显 XOR-MAPPED-ADDRESS、维护 peer 地址簿、支持 `REG/GET` 文本信令 |
-| [`src/net/stun/Stun.c`](../../src/net/stun/Stun.c) | 统一 Peer 客户端：`connect/discovery/probe/register_addr/lookup_addr/punch/send/keepalive` |
-| [`src/net/stun/Request.c`](../../src/net/stun/Request.c) / `Response.c` | STUN 请求/响应编解码（TLV、XOR-MAPPED-ADDRESS） |
-| [`src/net/stun/Stun.h`](../../src/net/stun/Stun.h) / `Stun_Server.h` | 类定义与消息宏（`STUN_P2P_MAGIC` 等） |
+| [`src/net/p2p/P2p_Server.c`](../../src/net/p2p/P2p_Server.c) | 中心服务器：信令 `REG/GET`(含 nat_type) + STUN 回显（预留 TURN 中继，同一进程） |
+| [`src/include/libobject/net/p2p/p2p.h`](../../src/include/libobject/net/p2p/p2p.h) / [`src/net/p2p/p2p.c`](../../src/net/p2p/p2p.c) | **对外统一入口** `p2p_peer_run(cfg)`：探测 NAT + 信令交换 + 决策（打洞 or TURN），内部走打洞客户端 |
+| [`src/net/p2p/stun/Stun.c`](../../src/net/p2p/stun/Stun.c) | STUN 打洞客户端（内部实现，仅 STUN 协议）：`discovery/probe/register_addr/lookup_addr/punch/send` |
+| [`src/net/p2p/stun/Request.c`](../../src/net/p2p/stun/Request.c) / `Response.c` | STUN 请求/响应编解码（TLV、XOR-MAPPED-ADDRESS） |
+| [`src/net/turn/`](../../src/net/turn/) | TURN 中继（独立模块，预留接入中心服务器） |
 | [`tests/net/test_p2p.c`](../../tests/net/test_p2p.c) | 测试命令：`test_p2p_server` / `test_p2p_peer` |
 
 ### 工作原理
@@ -175,11 +176,11 @@ ss -lunp | grep 12345   # 应看到 UDP 0.0.0.0:12345
 
 若不想/不能自建公网 STUN（例如和信令同 NAT 的 peer 需要拿到真实公网地址），可把 **discovery 指向免费公共 STUN**，信令服务器只做地址交换。
 
-> **为什么目前只把自建 Stun_Server 当“信令”用、而 discovery 走公共 STUN（不使用其 STUN 回显）？**
-> 因为存在 **hairpin 问题**：若 STUN 服务器与某个 peer 在同一个 NAT 之后——
-> - peer 访问 STUN 服务器的**外网映射地址**时，需要该 NAT 支持 hairpin 才能回环到内网服务器（多数不支持，peer 连不上）；
-> - 而 peer 若访问 STUN 服务器的**内网地址**，服务器只会看到 peer 的内网源，**取不到 peer 自己的外网地址**。
-> 所以同 NAT 的 peer 无法用“与它同 NAT 的 STUN”发现自己的公网地址；只有让 discovery 指向一个**真正在公网、peer 能直接外拨到达**的 STUN（如免费公共 STUN），peer 才能拿到真实公网映射。自建服务器于是只承担 **REG/GET 地址交换（信令）**。
+> **为什么目前只把自建 P2p_Server 当“信令”用、而 discovery 走公共 STUN（不使用其 STUN 回显）？**
+> 因为存在 **hairpin 问题**：若 P2p_Server 与某个 peer 在同一个 NAT 之后——
+> - peer 访问服务器的**外网映射地址**时，需要该 NAT 支持 hairpin 才能回环到内网服务器（多数不支持，peer 连不上）；
+> - 而 peer 若访问服务器的**内网地址**，服务器只会看到 peer 的内网源，**取不到 peer 自己的外网地址**。
+> 所以同 NAT 的 peer 无法用“与它同 NAT 的服务器”发现自己的公网地址；只有让 discovery 指向一个**真正在公网、peer 能直接外拨到达**的 STUN（如免费公共 STUN），peer 才能拿到真实公网映射。中心服务器于是只承担 **REG/GET 地址交换（信令）+ 预留 TURN 中继**。
 
 **可用（已从本机实测能正确回 STUN Binding，魔数 0x2112a442）：**
 | 主机 | 端口 | 备注 |
@@ -196,7 +197,7 @@ ss -lunp | grep 12345   # 应看到 UDP 0.0.0.0:12345
 2. （可选 NAT 探测）再向**另一个公共 STUN** 采址，比较外部端口 → 判断本端是否对称（写 `nat_type`，两个 STUN 建议 `stun.cloudflare.com` + `stun1.l.google.com`）；
 3. 各自把公网地址**与 nat_type** 报到自己的信令服务器：`REG <id> <host> <port> <nat_type>`（服务器可放任意双方可达处，与 peer 同 NAT 也没关系）；
 4. 信令服务器把 Peer1 地址/类型给 Peer2、Peer2 地址/类型给 Peer1：`PEER <host> <port> <nat_type>`（按 id/session 交换）；
-5. 双方判定：**任一端非对称 → 直接打洞**（跨不同 NAT，不需要 hairpin）；**两端都对称 → 打洞必败，`stun_peer_run` 返回 `-2`，转 TURN 中继**。
+5. 双方判定：**任一端非对称 → 直接打洞**（跨不同 NAT，不需要 hairpin）；**两端都对称 → 打洞必败，对外 `p2p_peer_run` 返回 `-2`，转 TURN 中继（预留）**。
 
 ### 约束
 - discovery/probe 与打洞必须是**同一个 socket**（否则 STUN 报告的公网端口与打洞用的映射不一致，公告地址失效）；
@@ -204,6 +205,8 @@ ss -lunp | grep 12345   # 应看到 UDP 0.0.0.0:12345
 - 需持续保活，维持 NAT 映射端口不回收。
 
 ## 测试相关代码位置
-- 测试用例与命令：`tests/net/test_p2p.c`
-- Peer 客户端状态机：`src/net/stun/Stun.c`
-- 服务器/信令：`src/net/stun/Stun_Server.c`
+- 测试用例与命令：`tests/net/test_p2p.c`（peer 经对外统一入口 `p2p_peer_run` 建立会话）
+- 对外建链接口：`src/include/libobject/net/p2p/p2p.h` + `src/net/p2p/p2p.c`
+- 中心服务器（信令+STUN 回显，预留 TURN）：`src/net/p2p/P2p_Server.c`
+- STUN 打洞客户端（内部实现/原语）：`src/net/p2p/stun/Stun.c`
+- TURN 中继实现（预留接入）：`src/net/turn/`

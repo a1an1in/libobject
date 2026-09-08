@@ -37,9 +37,8 @@
 #include <unistd.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/mockery/mockery.h>
-#include <libobject/concurrent/event_api.h>
-#include "../../src/net/stun/Stun.h"
-#include "../../src/net/stun/Stun_Server.h"
+#include "../../src/net/p2p/stun/Stun.h"
+#include <libobject/net/p2p/p2p.h>
 
 #define STUN_SERVER_DEFAULT_PORT 9000
 
@@ -65,19 +64,12 @@ static int p2p_on_recv(Stun *stun, uint8_t *buf, int len)
 
 /* ======================= 测试命令 ======================= */
 
-/* 1) 启动 STUN 服务器（中心服务器，兼任地址交换/信令），阻塞至 Ctrl+C。
- *    可选参数：端口（默认 9000）。
- *    说明：Ctrl+C 会由框架信号机制把默认 event base 的 break_flag 置 1
- *    （该 event base 正是 UDP client 所在的 producer 事件线程），
- *    因此这里轮询它即可让进程正常退出。 */
+/* 1) 启动中心服务器（P2p_Server：信令 + STUN 回显，预留 TURN 中继），
+ *    经对外 p2p_server_run 阻塞至 Ctrl+C。可选参数：端口（默认 9000） */
 static int test_p2p_server(TEST_ENTRY *entry, int argc, char **argv)
 {
-    allocator_t *allocator = allocator_get_default_instance();
-    Stun_Server *server = NULL;
-    struct event_base *event_base;
     char port_str[16];
     int port = STUN_SERVER_DEFAULT_PORT;
-    int ret = 0;
 
     /* mockery 下发的 argv[0] 是命令名，真实参数从 argv[1] 开始 */
     if (argc > 1) {
@@ -85,36 +77,17 @@ static int test_p2p_server(TEST_ENTRY *entry, int argc, char **argv)
     }
     snprintf(port_str, sizeof(port_str), "%d", port);
 
-    TRY {
-        server = object_new(allocator, "Stun_Server", NULL);
-        THROW_IF(server == NULL, -1);
-        EXEC(server->start(server, (char *)"0.0.0.0", port_str));
-        dbg_str(NET_SUC, "stun server running on port %d, Ctrl+C to stop", port);
-
-        event_base = event_base_get_default_instance();
-        while (event_base->eb->break_flag == 0) {
-            sleep(1);
-        }
-        dbg_str(NET_SUC, "stun server stopped by Ctrl+C");
-    } CATCH (ret) {
-        dbg_str(DBG_ERROR, "test_p2p_server failed, ret=%d", ret);
-    } FINALLY {
-        if (server != NULL) {
-            object_destroy(server);
-        }
-    }
-
-    return ret;
+    return p2p_server_run("0.0.0.0", port_str);
 }
 REGISTER_TEST_CMD(test_p2p_server);
 
-/* 2) 单 peer：构造 stun_peer_cfg_t 后直接调通用 stun_peer_run
- * （新架构：公共 STUN 采址 + 信令交换，真机部署）
+/* 2) 单 peer：构造对外 p2p_cfg_t 调 p2p_peer_run（P2P 建链统一入口，
+ *    内部先打洞；双对称需 TURN 返回 -2）
  * 参数: <id> <local_port> <signal_host> <signal_port> <peer_id>
  *       [<stun_host> <stun_port> [<stun2_host> <stun2_port>]]
- *   signal_* : 自己的信令服务器（地址交换）
+ *   signal_* : 自己的信令服务器（P2p_Server，地址交换）
  *   stun_*   : 第一个免费公共 STUN（如 stun.cloudflare.com 3478）；省略则取信令地址(一体模式)
- *   stun2_*  : 可选第二个公共 STUN，用于 NAT 对称性探测；给了它 stun_peer_run 会
+ *   stun2_*  : 可选第二个公共 STUN，用于 NAT 对称性探测；给了它 p2p_peer_run 会
  *              probe（两次采址比较外部端口），双方都对称时返回 -2(需 TURN)
  * 示例:
  *   真机跨 NAT（自动探测对称性）:
@@ -125,13 +98,11 @@ REGISTER_TEST_CMD(test_p2p_server);
  */
 static int test_p2p_peer(TEST_ENTRY *entry, int argc, char **argv)
 {
-    allocator_t *allocator = allocator_get_default_instance();
     const char *id, *local_service, *signal_host, *signal_service;
     const char *peer_id, *stun_host, *stun_service;
     const char *stun2_host = NULL, *stun2_service = NULL;
     p2p_demo_ctx_t ctx;
-    Stun *stun = NULL;
-    stun_peer_cfg_t cfg;
+    p2p_cfg_t cfg;
     char msg[128];
     int ret = 0;
 
@@ -180,18 +151,9 @@ static int test_p2p_peer(TEST_ENTRY *entry, int argc, char **argv)
     cfg.payload_len    = (int)strlen(msg);
     cfg.interval_ms    = 1000;
     cfg.timeout_ms     = 60000;
+    /* TURN 预留：demo 未配置 TURN，双对称时 p2p_peer_run 返回 -2 */
 
-    TRY {
-        stun = object_new(allocator, "Stun", NULL);
-        THROW_IF(stun == NULL, -1);
-        ret = stun_peer_run(stun, &cfg);
-    } CATCH (ret) {
-        dbg_str(DBG_ERROR, "[%s] stun_peer_run failed, ret=%d", id, ret);
-    } FINALLY {
-        if (stun != NULL) {
-            object_destroy(stun);
-        }
-    }
+    ret = p2p_peer_run(&cfg);
 
     return ret;
 }

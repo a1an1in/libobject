@@ -183,7 +183,8 @@ typedef struct stun_peer_cfg_s {
 } stun_peer_cfg_t;
 
 /*
- * 一键运行一个 peer 会话：
+ * 一键运行一个 peer 会话（打洞路径）：
+ *  - 内部创建一个 Stun 对象，通过 *stun 返回给调用方（调用方负责 object_destroy）；
  *  - 把 local_host/local_service、opaque、recv_callback 应用到 stun；
  *  - connect(signal)；
  *  - 探测 NAT 类型：cfg->stun2_host 非空则 stun->probe(stun_host, stun2_host)
@@ -195,7 +196,7 @@ typedef struct stun_peer_cfg_s {
  *  - 否则 punch -> 周期发送 payload，直到收到对端 DATA 或超时。
  * 返回：1=已互通；0=找到对端但未收到其数据；-1=失败；-2=双对称 NAT 需 TURN。
  */
-int stun_peer_run(Stun *stun, const stun_peer_cfg_t *cfg);
+int stun_peer_run(Stun **stun, const stun_peer_cfg_t *cfg);
 
 typedef struct attrib_parse_policy_s {
     int type;

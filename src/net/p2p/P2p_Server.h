@@ -6,9 +6,9 @@
 #include <libobject/core/Obj.h>
 #include <libobject/core/Map.h>
 #include <libobject/concurrent/net/api.h>
-#include "stun_header.h"
+#include "stun/stun_header.h"
 
-typedef struct Stun_Server_s Stun_Server;
+typedef struct P2p_Server_s P2p_Server;
 
 /* 地址簿项：peer id → 公网映射地址（含其上报的 NAT 类型） */
 typedef struct stun_server_peer_s {
@@ -29,15 +29,15 @@ typedef struct stun_server_peer_s {
  * 部署在公网。peer（Stun 统一客户端）连上后即可：查自己映射地址、
  * 注册自己、查询对端、打洞。
  */
-struct Stun_Server_s{
+struct P2p_Server_s{
     Obj obj;
 
-    int (*construct)(Stun_Server *, char *);
-    int (*deconstruct)(Stun_Server *);
-    int (*set)(Stun_Server *, char *attrib, void *value);
+    int (*construct)(P2p_Server *, char *);
+    int (*deconstruct)(P2p_Server *);
+    int (*set)(P2p_Server *, char *attrib, void *value);
     void *(*get)(void *, char *attrib);
-    int (*start)(Stun_Server *server, char *host, char *service);
-    int (*stop)(Stun_Server *server);
+    int (*start)(P2p_Server *server, char *host, char *service);
+    int (*stop)(P2p_Server *server);
 
     Client *client;   /* UDP client：bind 端口，client_trustee 收包 */
     Map *peers;       /* key: peer id 字符串, value: stun_server_peer_t* */

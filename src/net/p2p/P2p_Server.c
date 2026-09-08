@@ -1,8 +1,8 @@
 /**
- * @file Stun_Server.c
+ * @file P2p_Server.c
  * @Synopsis  STUN 服务器（RFC 5389 Binding + 地址簿/信令）
  *
- * 说明：当前 Stun_Server 一台同时支持两类能力：
+ * 说明：当前 P2p_Server 一台同时支持两类能力：
  *   1) STUN：收到 Binding 请求时回显观测到的源地址(XOR-MAPPED-ADDRESS)，供
  *      peer 做“我是谁”的公网地址发现(discovery)；
  *   2) 信令：文本 REG/GET 地址簿，REG <id> [<host> <port>] 登记(支持公告地址
@@ -28,12 +28,12 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <libobject/concurrent/work_task.h>
-#include "Stun_Server.h"
-#include "Stun.h"   /* STUN_NAT_TYPE_* 枚举 */
+#include "P2p_Server.h"
+#include "stun/Stun.h"   /* STUN_NAT_TYPE_* 枚举 */
 
 static int __stun_server_callback(void *task);
 
-static int __construct(Stun_Server *server, char *init_str)
+static int __construct(P2p_Server *server, char *init_str)
 {
     allocator_t *allocator = server->obj.allocator;
     int ret = 0, trustee_flag = 1;
@@ -53,7 +53,7 @@ static int __construct(Stun_Server *server, char *init_str)
     return ret;
 }
 
-static int __deconstruct(Stun_Server *server)
+static int __deconstruct(P2p_Server *server)
 {
     if (server->client != NULL) {
         client_destroy(server->client);
@@ -80,7 +80,7 @@ static int __deconstruct(Stun_Server *server)
 static int __stun_server_callback(void *task)
 {
     work_task_t *t = (work_task_t *)task;
-    Stun_Server *server = (Stun_Server *)t->opaque;
+    P2p_Server *server = (P2p_Server *)t->opaque;
     allocator_t *allocator;
     Socket *socket;
     Map *peers;
@@ -210,7 +210,7 @@ static int __stun_server_callback(void *task)
     return 0;
 }
 
-static int __start(Stun_Server *server, char *host, char *service)
+static int __start(P2p_Server *server, char *host, char *service)
 {
     allocator_t *allocator = server->obj.allocator;
     int ret = 0;
@@ -227,7 +227,7 @@ static int __start(Stun_Server *server, char *host, char *service)
     return ret;
 }
 
-static int __stop(Stun_Server *server)
+static int __stop(P2p_Server *server)
 {
     int ret = 0;
 
@@ -244,12 +244,12 @@ static int __stop(Stun_Server *server)
 
 static class_info_entry_t stun_server_class_info[] = {
     Init_Obj___Entry(0, Obj, obj),
-    Init_Nfunc_Entry(1, Stun_Server, construct, __construct),
-    Init_Nfunc_Entry(2, Stun_Server, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Stun_Server, set, NULL),
-    Init_Vfunc_Entry(4, Stun_Server, get, NULL),
-    Init_Vfunc_Entry(5, Stun_Server, start, __start),
-    Init_Vfunc_Entry(6, Stun_Server, stop, __stop),
-    Init_End___Entry(7, Stun_Server),
+    Init_Nfunc_Entry(1, P2p_Server, construct, __construct),
+    Init_Nfunc_Entry(2, P2p_Server, deconstruct, __deconstruct),
+    Init_Vfunc_Entry(3, P2p_Server, set, NULL),
+    Init_Vfunc_Entry(4, P2p_Server, get, NULL),
+    Init_Vfunc_Entry(5, P2p_Server, start, __start),
+    Init_Vfunc_Entry(6, P2p_Server, stop, __stop),
+    Init_End___Entry(7, P2p_Server),
 };
-REGISTER_CLASS(Stun_Server, stun_server_class_info);
+REGISTER_CLASS(P2p_Server, stun_server_class_info);
