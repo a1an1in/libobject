@@ -45,9 +45,11 @@ To deploy the Node Service on a Linux system, use the following commands:
 ./devops.sh release -p=linux
 ./devops.sh deploy -p=linux --host=119.4.206.14 --package-path=./packages/xtools_linux_x86_64_v2.15.0.187.tar.gz
 ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x14 -f test_node
+./sysroot/linux/x86_64/bin/xtools --log-type=0 node --log-level=0x30016 --host=0.0.0.0 --service=12346 --deamon=t
+./sysroot/linux/x86_64/bin/xtools --log-type=0 node_cli --host="119.4.206.14" --service="12346" lookup all
 ./sysroot/linux/x86_64/bin/xtools --log-type=0 node --log-level=0x30016 --host=0.0.0.0 --service=12345 --deamon=t
-./sysroot/linux/x86_64/bin/xtools --log-type=0 node --log-level=0x20016 --host=119.4.206.14 --service=12345
 ./sysroot/linux/x86_64/bin/xtools --log-type=0 node_cli --host="119.4.206.14" --service="12345" lookup all
+./sysroot/linux/x86_64/bin/xtools --log-type=0 node --log-level=0x20016 --host=119.4.206.14 --service=12346
 ```
 
 ### 1.2 Deploying on Android

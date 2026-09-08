@@ -44,6 +44,7 @@ static int __deconstruct(Response *response)
 
     allocator_mem_free(allocator, response->header);
     object_destroy(response->attribs);
+    object_destroy(response->buffer);
 
     return 0;
 }

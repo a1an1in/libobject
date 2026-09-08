@@ -10,11 +10,12 @@
 
 typedef struct Stun_Server_s Stun_Server;
 
-/* 地址簿项：peer id → 公网映射地址 */
+/* 地址簿项：peer id → 公网映射地址（含其上报的 NAT 类型） */
 typedef struct stun_server_peer_s {
     char id[32];
     char host[64];
     int port;
+    int nat_type;   /* peer 上报的 NAT 类型，取值见 Stun.h 枚举 */
 } stun_server_peer_t;
 
 /*

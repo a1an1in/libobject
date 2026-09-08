@@ -1,16 +1,31 @@
 /**
  * @file test_p2p.c
- * @Synopsis  UDP P2P 穿透 demo：STUN 服务器（兼任地址交换）+ peer 打洞/保活
+ * @Synopsis  UDP P2P 穿透 demo：公共 STUN 采址 + 轻量信令交换 + peer 打洞/保活
  *
- * 运行方式（构建后）：
- *   1) 单进程全流程验证（本机，自动起 STUN 服务器 + 两个 peer）：
- *        ./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x6 test_p2p_punch
- *   2) 真机部署：
- *        # 在公网机器上启动 STUN 服务器（STUN + 地址簿/信令一体）：
- *        ./sysroot/linux/x86_64/bin/xtools mockery test_p2p_server 3478
- *        # NAT 后的 peer 1 / peer 2：
- *        ./sysroot/linux/x86_64/bin/xtools mockery test_p2p_peer peer1 19001 <server_host> 3478 peer2
- *        ./sysroot/linux/x86_64/bin/xtools mockery test_p2p_peer peer2 19002 <server_host> 3478 peer1
+ * 新架构：STUN（取公网映射地址）与信令（REG/GET 地址交换）是两个不同地址。
+ *
+ * 运行方式（构建后，均建议加 --log-type=0，--log-level 可用 0x16 或 0x1ffff）：
+ *   1) 本机回环验证（无需任何外部服务器；起 3 个子进程/终端，信令=STUN 共用）：
+ *        # 终端1：信令服务器
+ *        ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 test_p2p_server 9000
+ *        # 终端2：peerA（本机打洞口 19001）
+ *        ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
+ *              test_p2p_peer peerA 19001 127.0.0.1 9000 peerB 127.0.0.1 9000
+ *        # 终端3：peerB
+ *        ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
+ *              test_p2p_peer peerB 19002 127.0.0.1 9000 peerA 127.0.0.1 9000
+ *   2) 真机跨 NAT（拆分架构；末尾两段为可选的第二个公共 STUN，用于 NAT 对称性探测，
+ *      双方都对称时 stun_peer_run 返回 -2(需 TURN)，否则自动打洞）：
+ *        # 双方可达的主机 S 起信令服务器（需放行 UDP <signal_port>）：
+ *        ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 test_p2p_server 12345
+ *        # 机器 A(NAT-A 后) peer1：信令走公网 S，采址+探测走两个公共 STUN
+ *        ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 test_p2p_peer peer1 19001 119.4.206.14 12345 peer2 stun.cloudflare.com 3478 stun1.l.google.com 3478
+ *        # 机器 B(NAT-B 后，与 A 不同公网出口) peer2：
+ *        ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
+ *              test_p2p_peer peer2 19002 <S> 12345 peer1 stun.cloudflare.com 3478 stun1.l.google.com 3478
+ *   3) 与信令服务器同机的 peer：信令地址用本机内网 IP(勿用 127.0.0.1，否则
+ *      回环先行会导致 discovery 收不到公共 STUN 回包)，采址仍走公共 STUN：
+ *        ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 test_p2p_peer peer2 12346 10.10.10.115 12345 peer1 stun.cloudflare.com 3478
  *
  * @author Zoo
  * @date 2026-08-13
@@ -20,9 +35,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/mockery/mockery.h>
+#include <libobject/concurrent/event_api.h>
 #include "../../src/net/stun/Stun.h"
 #include "../../src/net/stun/Stun_Server.h"
 
@@ -44,112 +59,29 @@ static int p2p_on_recv(Stun *stun, uint8_t *buf, int len)
     ctx->recv_count++;
     memcpy(ctx->last_msg, buf, n);
     ctx->last_msg[n] = 0;
-    dbg_str(NET_SUC, "[%s] recv %d bytes: %s", ctx->id, len, ctx->last_msg);
+    dbg_str(DBG_INFO, "[%s] recv %d bytes: %s", ctx->id, len, ctx->last_msg);
     return 0;
-}
-
-/*
- * 运行一个 P2P peer：
- *  - 连接中心服务器（STUN+信令一体）
- *  - discovery：查询自己的公网映射地址
- *  - register_addr：注册自己（服务器记录 UDP 源地址）
- *  - lookup_addr：查询对端地址
- *  - punch：打洞；send：互发业务数据；keepalive：保活
- */
-static int p2p_peer_run(const char *id, int local_port,
-                        const char *server_host, int server_port,
-                        const char *peer_id)
-{
-    allocator_t *allocator = allocator_get_default_instance();
-    p2p_demo_ctx_t ctx;
-    Stun *stun = NULL;
-    char local_port_str[16], server_port_str[16], peer_port_str[16];
-    char peer_host[64];
-    int peer_port, ret = 0, i;
-    char msg[128];
-
-    memset(&ctx, 0, sizeof(ctx));
-    snprintf(ctx.id, sizeof(ctx.id), "%s", id);
-    snprintf(local_port_str, sizeof(local_port_str), "%d", local_port);
-    snprintf(server_port_str, sizeof(server_port_str), "%d", server_port);
-
-    TRY {
-        stun = object_new(allocator, "Stun", NULL);
-        THROW_IF(stun == NULL, -1);
-        stun->opaque = &ctx;
-        stun->local_service = local_port_str;
-        EXEC(stun->set_recv_callback(stun, p2p_on_recv));
-
-        /* 连接中心服务器（STUN 查询 + 信令共用同一 UDP socket） */
-        EXEC(stun->connect(stun, (char *)server_host, server_port_str));
-
-        /* 查询自己的公网映射地址 */
-        EXEC(stun->discovery(stun));
-        for (i = 0; i < 50 && stun->mapped_port == 0; i++) {
-            usleep(100000);
-        }
-        dbg_str(NET_SUC, "[%s] my mapped address: %s:%d",
-                id, stun->mapped_host, stun->mapped_port);
-
-        /* 注册自己（服务器记录 UDP 源地址为公网映射地址） */
-        EXEC(stun->register_addr(stun, (char *)id));
-
-        /* 查询对端地址（成功返回 1，EXEC 仅检查 <0） */
-        EXEC(stun->lookup_addr(stun, (char *)peer_id,
-                               peer_host, sizeof(peer_host), &peer_port));
-        dbg_str(NET_SUC, "[%s] peer %s address: %s:%d", id, peer_id, peer_host, peer_port);
-
-        /* 打洞：向对端公网地址发送打洞包，建立 NAT 映射 */
-        snprintf(peer_port_str, sizeof(peer_port_str), "%d", peer_port);
-        EXEC(stun->punch(stun, peer_host, peer_port_str));
-        usleep(200000);
-
-        /* 互发业务数据 */
-        snprintf(msg, sizeof(msg), "hello from %s", id);
-        EXEC(stun->send(stun, msg, (int)strlen(msg)));
-        dbg_str(NET_SUC, "[%s] sent: %s", id, msg);
-
-        /* 保活：周期性发送 keepalive 维持 NAT 映射 */
-        EXEC(stun->keepalive_start(stun, 1000));
-
-        /* 等待对端数据 */
-        for (i = 0; i < 30 && ctx.recv_count == 0; i++) {
-            usleep(100000);
-        }
-        if (ctx.recv_count > 0) {
-            dbg_str(NET_SUC, "[%s] P2P OK, received: %s", id, ctx.last_msg);
-            ret = 1;
-        } else {
-            dbg_str(DBG_ERROR, "[%s] P2P FAIL, no data received", id);
-            ret = -1;
-        }
-
-        EXEC(stun->keepalive_stop(stun));
-    } CATCH (ret) {
-        dbg_str(DBG_ERROR, "[%s] p2p_peer_run failed, ret=%d", id, ret);
-    } FINALLY {
-        if (stun != NULL) {
-            object_destroy(stun);
-        }
-    }
-
-    return ret;
 }
 
 /* ======================= 测试命令 ======================= */
 
-/* 1) 启动 STUN 服务器（中心服务器，兼任地址交换/信令），阻塞。
- *    可选参数：端口（默认 9000） */
+/* 1) 启动 STUN 服务器（中心服务器，兼任地址交换/信令），阻塞至 Ctrl+C。
+ *    可选参数：端口（默认 9000）。
+ *    说明：Ctrl+C 会由框架信号机制把默认 event base 的 break_flag 置 1
+ *    （该 event base 正是 UDP client 所在的 producer 事件线程），
+ *    因此这里轮询它即可让进程正常退出。 */
 static int test_p2p_server(TEST_ENTRY *entry, int argc, char **argv)
 {
     allocator_t *allocator = allocator_get_default_instance();
     Stun_Server *server = NULL;
+    struct event_base *event_base;
     char port_str[16];
     int port = STUN_SERVER_DEFAULT_PORT;
     int ret = 0;
 
-    if (argc > 0) {
-        port = atoi(argv[0]);
+    /* mockery 下发的 argv[0] 是命令名，真实参数从 argv[1] 开始 */
+    if (argc > 1) {
+        port = atoi(argv[1]);
     }
     snprintf(port_str, sizeof(port_str), "%d", port);
 
@@ -158,9 +90,12 @@ static int test_p2p_server(TEST_ENTRY *entry, int argc, char **argv)
         THROW_IF(server == NULL, -1);
         EXEC(server->start(server, (char *)"0.0.0.0", port_str));
         dbg_str(NET_SUC, "stun server running on port %d, Ctrl+C to stop", port);
-        while (1) {
+
+        event_base = event_base_get_default_instance();
+        while (event_base->eb->break_flag == 0) {
             sleep(1);
         }
+        dbg_str(NET_SUC, "stun server stopped by Ctrl+C");
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "test_p2p_server failed, ret=%d", ret);
     } FINALLY {
@@ -173,88 +108,91 @@ static int test_p2p_server(TEST_ENTRY *entry, int argc, char **argv)
 }
 REGISTER_TEST_CMD(test_p2p_server);
 
-typedef struct peer_thread_arg_s {
-    char id[16];
-    int local_port;
-    char peer_id[16];
-    int result;
-} peer_thread_arg_t;
-
-static void *peer_thread(void *arg)
-{
-    peer_thread_arg_t *a = (peer_thread_arg_t *)arg;
-
-    a->result = p2p_peer_run(a->id, a->local_port,
-                             "127.0.0.1", STUN_SERVER_DEFAULT_PORT, a->peer_id);
-    return NULL;
-}
-
-/* 2) 单进程全流程验证：STUN 服务器 + 两个 peer（本机） */
-static int test_p2p_punch(TEST_ENTRY *entry, int argc, char **argv)
+/* 2) 单 peer：构造 stun_peer_cfg_t 后直接调通用 stun_peer_run
+ * （新架构：公共 STUN 采址 + 信令交换，真机部署）
+ * 参数: <id> <local_port> <signal_host> <signal_port> <peer_id>
+ *       [<stun_host> <stun_port> [<stun2_host> <stun2_port>]]
+ *   signal_* : 自己的信令服务器（地址交换）
+ *   stun_*   : 第一个免费公共 STUN（如 stun.cloudflare.com 3478）；省略则取信令地址(一体模式)
+ *   stun2_*  : 可选第二个公共 STUN，用于 NAT 对称性探测；给了它 stun_peer_run 会
+ *              probe（两次采址比较外部端口），双方都对称时返回 -2(需 TURN)
+ * 示例:
+ *   真机跨 NAT（自动探测对称性）:
+ *     peer1: test_p2p_peer peer1 19001 <S> 12345 peer2 stun.cloudflare.com 3478 stun1.l.google.com 3478
+ *     peer2: test_p2p_peer peer2 19002 <S> 12345 peer1 stun.cloudflare.com 3478 stun1.l.google.com 3478
+ *   本机回环（信令=STUN=本机，不探测）:
+ *     test_p2p_peer peerA 19001 127.0.0.1 9000 peerB 127.0.0.1 9000
+ */
+static int test_p2p_peer(TEST_ENTRY *entry, int argc, char **argv)
 {
     allocator_t *allocator = allocator_get_default_instance();
-    Stun_Server *server = NULL;
-    peer_thread_arg_t pa, pb;
-    pthread_t ta, tb;
-    char port_str[16];
+    const char *id, *local_service, *signal_host, *signal_service;
+    const char *peer_id, *stun_host, *stun_service;
+    const char *stun2_host = NULL, *stun2_service = NULL;
+    p2p_demo_ctx_t ctx;
+    Stun *stun = NULL;
+    stun_peer_cfg_t cfg;
+    char msg[128];
     int ret = 0;
 
-    snprintf(port_str, sizeof(port_str), "%d", STUN_SERVER_DEFAULT_PORT);
+    /* mockery 下发的 argv[0] 是命令名，真实参数从 argv[1] 开始 */
+    if (argc < 6) {
+        dbg_str(DBG_ERROR,
+                "usage: test_p2p_peer <id> <local_port> <signal_host> <signal_port> <peer_id>"
+                " [<stun_host> <stun_port> [<stun2_host> <stun2_port>]]");
+        return -1;
+    }
+    id            = argv[1];
+    local_service = argv[2];
+    signal_host   = argv[3];
+    signal_service = argv[4];
+    peer_id       = argv[5];
+    if (argc >= 8) {
+        stun_host    = argv[6];
+        stun_service = argv[7];
+    } else {
+        /* 省略 STUN：取信令地址，走 STUN+信令一体模式 */
+        stun_host    = signal_host;
+        stun_service = signal_service;
+    }
+    if (argc >= 10) {
+        stun2_host    = argv[8];
+        stun2_service = argv[9];
+    }
+
+    memset(&ctx, 0, sizeof(ctx));
+    snprintf(ctx.id, sizeof(ctx.id), "%s", id);
+    snprintf(msg, sizeof(msg), "hello from %s", id);
+
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.id             = id;
+    cfg.peer_id        = peer_id;
+    cfg.local_service  = local_service;
+    cfg.signal_host    = signal_host;
+    cfg.signal_service = signal_service;
+    cfg.stun_host      = stun_host;
+    cfg.stun_service   = stun_service;
+    cfg.stun2_host     = stun2_host;
+    cfg.stun2_service  = stun2_service;
+    cfg.recv_callback  = p2p_on_recv;
+    cfg.opaque         = &ctx;
+    cfg.payload        = (uint8_t *)msg;
+    cfg.payload_len    = (int)strlen(msg);
+    cfg.interval_ms    = 1000;
+    cfg.timeout_ms     = 60000;
 
     TRY {
-        server = object_new(allocator, "Stun_Server", NULL);
-        THROW_IF(server == NULL, -1);
-        EXEC(server->start(server, (char *)"127.0.0.1", port_str));
-
-        memset(&pa, 0, sizeof(pa));
-        memset(&pb, 0, sizeof(pb));
-        snprintf(pa.id, sizeof(pa.id), "%s", "peerA");
-        pa.local_port = 19001;
-        snprintf(pa.peer_id, sizeof(pa.peer_id), "%s", "peerB");
-        snprintf(pb.id, sizeof(pb.id), "%s", "peerB");
-        pb.local_port = 19002;
-        snprintf(pb.peer_id, sizeof(pb.peer_id), "%s", "peerA");
-
-        pthread_create(&ta, NULL, peer_thread, &pa);
-        pthread_create(&tb, NULL, peer_thread, &pb);
-        pthread_join(ta, NULL);
-        pthread_join(tb, NULL);
-
-        dbg_str(DBG_VIP, "peerA result: %d, peerB result: %d", pa.result, pb.result);
-        THROW_IF(!(pa.result > 0 && pb.result > 0), -1);
-        dbg_str(NET_SUC, "P2P PUNCH TEST PASSED");
-        ret = 1;
+        stun = object_new(allocator, "Stun", NULL);
+        THROW_IF(stun == NULL, -1);
+        ret = stun_peer_run(stun, &cfg);
     } CATCH (ret) {
-        dbg_str(DBG_ERROR, "P2P PUNCH TEST FAILED, ret=%d", ret);
+        dbg_str(DBG_ERROR, "[%s] stun_peer_run failed, ret=%d", id, ret);
     } FINALLY {
-        if (server != NULL) {
-            object_destroy(server);
+        if (stun != NULL) {
+            object_destroy(stun);
         }
     }
 
     return ret;
-}
-REGISTER_TEST_CMD(test_p2p_punch);
-
-/* 3) 单 peer（真机部署）
- * 参数: <id> <local_port> <server_host> <server_port> <peer_id>
- */
-static int test_p2p_peer(TEST_ENTRY *entry, int argc, char **argv)
-{
-    const char *id, *server_host, *peer_id;
-    int local_port, server_port;
-
-    if (argc < 5) {
-        dbg_str(DBG_ERROR,
-                "usage: test_p2p_peer <id> <local_port> <server_host> <server_port> <peer_id>");
-        return -1;
-    }
-    id = argv[0];
-    local_port = atoi(argv[1]);
-    server_host = argv[2];
-    server_port = atoi(argv[3]);
-    peer_id = argv[4];
-
-    return p2p_peer_run(id, local_port, server_host, server_port, peer_id);
 }
 REGISTER_TEST_CMD(test_p2p_peer);
