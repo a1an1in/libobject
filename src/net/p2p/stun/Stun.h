@@ -27,11 +27,11 @@ typedef struct stun_peer_addr_s {
     int port;
 } stun_peer_addr_t;
 
-/* P2P UDP 消息（打洞/保活/业务数据共用，区别于 STUN 报文） */
+/* P2P UDP 消息（对端打洞/保活共用同一 KEEPALIVE 报文，业务数据 DATA 报文；
+ * 区别于 STUN 报文）。收到任一 P2P 报文都证明“对端→本端”可达。 */
 #define STUN_P2P_MAGIC        0x50325021   /* 'P2P!' */
-#define STUN_P2P_MSG_PUNCH    1            /* 打洞 */
-#define STUN_P2P_MSG_KEEPALIVE 2           /* 保活 */
-#define STUN_P2P_MSG_DATA     3            /* 业务数据 */
+#define STUN_P2P_MSG_KEEPALIVE 1           /* 保活/打洞（建链期与链路上统一用） */
+#define STUN_P2P_MSG_DATA     2            /* 业务数据 */
 #define STUN_P2P_MAX_PAYLOAD  1400
 
 typedef struct stun_p2p_msg_s {
@@ -111,6 +111,22 @@ struct Stun_s{
      */
     int (*probe)(Stun *stun, char *hostA, char *serviceA,
                  char *hostB, char *serviceB);
+    /*
+     * 主叫(发起方)：向 peer_id 发起连接(异步)。内部发 CALL，收到服务器 PEER 后
+     * 自动打洞并复用保活线程发 PUNCH，收到对端包后内部上报 PUNCHOK，服务器回
+     * CONNECTED 后置 stun->connected。返回 0=已发出 CALL。
+     */
+    int (*connect_peer)(Stun *stun, char *peer_id);
+    /*
+     * 向服务器(server_client)发送一行信令文本命令（REG/CALL/ACCEPT/PUNCHOK/BYE…
+     * 自动加 '\n'）。返回 0=成功；-1=失败。
+     */
+    int (*send_server)(Stun *stun, const char *line);
+    /*
+     * 向指定对端地址(host:service)经 peer_client sendto 一包（不 connect；
+     * 打洞/保活/采址等原始 P2P 报文）。返回 0=成功；-1=失败。
+     */
+    int (*send_peer)(Stun *stun, char *host, char *service, void *buf, int len);
 
     /* 本地绑定地址（字符串由调用方持有，本对象不管理生命周期） */
     char *local_host;
@@ -121,8 +137,19 @@ struct Stun_s{
      */
     char *signal_host;
     char *signal_service;
-    /* UDP client（STUN 查询 + 信令 + P2P 打洞/保活/数据共用） */
-    Client *c;
+    /*
+     * 两个 UDP client（信令口与打洞口分开，各自独立收包回调）：
+     *  - server_client：信令(控制) client。绑临时端口，connect() 常驻中心服务器，
+     *    只收发服务器信令（REG/GET/CALL/ACCEPT/PUNCHOK/BYE 与 OK/WAIT/PEER/
+     *    NOPEER/CONNECTED 回复），收包回调 = __stun_signal_callback；
+     *  - peer_client：P2P(打洞/数据) client。绑 local_service（公告/打洞地址，
+     *    对端打洞与服务器 INVITE/CONNECTED 都投到这个地址），它保持【不 connect】，
+     *    与对端/公共 STUN 的收发一律 sendto，故既能收到对端 P2P 包，也能在打洞
+     *    期间收到服务器投递到公告地址的信令（被叫侧 INVITE/CONNECTED），
+     *    不会被内核按 connect 目标过滤。收包回调 = __stun_peer_callback。
+     */
+    Client *server_client;
+    Client *peer_client;
     /* STUN 公网映射地址查询结果 */
     char mapped_host[64];
     int mapped_port;
@@ -144,6 +171,13 @@ struct Stun_s{
     /* stun_peer_run 使用：收到对端 DATA 后置 1（内部接收包装更新） */
     int data_received;
 
+    /* 撮合/建链状态（Stun 内部处理；connect/listen 上层只读 connected） */
+    char id[32];          /* 本端注册 id（register_addr 记录） */
+    char peer_id[32];     /* 当前呼叫对端：主叫=目标，被叫=邀请方 */
+    int  connected;       /* 服务器 CONNECTED：双方打洞都成功，可通信 */
+    int  dialing;         /* 主叫：已发 CALL，等 PEER */
+    int  send_punch;      /* 建立期：保活线程未收到对端包时发 PUNCH，收到后上报 PUNCHOK */
+
     /* 保活线程 */
     pthread_t keepalive_thread;
     int keepalive_interval_ms;
@@ -152,51 +186,6 @@ struct Stun_s{
     Request *req;
     Response *response;
 };
-
-/*
- * stun_peer_run 配置：集中一个结构配置 peer 会话，尽量所有可配项都放这里。
- */
-typedef struct stun_peer_cfg_s {
-    /* 身份 / 本地绑定 */
-    const char *id;             /* 本 peer 注册 id */
-    const char *peer_id;        /* 对端 id */
-    const char *local_host;     /* 本地绑定 host，可空(默认 0.0.0.0) */
-    const char *local_service;  /* 本地端口(打洞口)，如 "12346" */
-
-    /* 服务器地址 */
-    const char *signal_host;    /* 信令中心地址 */
-    const char *signal_service; /* 信令中心端口 */
-    const char *stun_host;      /* 第一个公共 STUN(discovery) 地址 */
-    const char *stun_service;   /* 第一个公共 STUN 端口 */
-    const char *stun2_host;     /* 可选：第二个公共 STUN 地址，用于 NAT 对称性探测(probe) */
-    const char *stun2_service;  /* 可选：第二个公共 STUN 端口 */
-
-    /* 业务 */
-    int (*recv_callback)(Stun *stun, uint8_t *buf, int len); /* 业务数据回调 */
-    void *opaque;                /* 业务回调上下文 */
-
-    /* 发送 / 超时 */
-    const uint8_t *payload;     /* 打洞后周期发送的业务数据，可空(只打洞不主动发) */
-    int payload_len;
-    int interval_ms;            /* 发送周期(兼保活)，如 1000 */
-    int timeout_ms;             /* 总时长/最长等待 */
-} stun_peer_cfg_t;
-
-/*
- * 一键运行一个 peer 会话（打洞路径）：
- *  - 内部创建一个 Stun 对象，通过 *stun 返回给调用方（调用方负责 object_destroy）；
- *  - 把 local_host/local_service、opaque、recv_callback 应用到 stun；
- *  - connect(signal)；
- *  - 探测 NAT 类型：cfg->stun2_host 非空则 stun->probe(stun_host, stun2_host)
- *    两次采址判断是否对称并写 stun->nat_type；否则 discovery(公共STUN) 且
- *    nat_type=UNKNOWN；
- *  - register_addr(id)（上报含 nat_type）-> lookup_addr(peer_id, 带重试，
- *    对端 nat_type 写 stun->peer_nat_type）；
- *  - 若本端与对端都 SYMMETRIC -> 不打洞，返回 -2(需 TURN)；
- *  - 否则 punch -> 周期发送 payload，直到收到对端 DATA 或超时。
- * 返回：1=已互通；0=找到对端但未收到其数据；-1=失败；-2=双对称 NAT 需 TURN。
- */
-int stun_peer_run(Stun **stun, const stun_peer_cfg_t *cfg);
 
 typedef struct attrib_parse_policy_s {
     int type;
