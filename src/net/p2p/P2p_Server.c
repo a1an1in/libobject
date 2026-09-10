@@ -1,24 +1,21 @@
 /**
  * @file P2p_Server.c
- * @Synopsis  STUN 服务器（RFC 5389 Binding + 地址簿/信令）
+ * @Synopsis  STUN/信令中心服务器：Binding 回显 + 多会话撮合(会话地址交换)
  *
- * 说明：当前 P2p_Server 一台同时支持两类能力：
- *   1) STUN：收到 Binding 请求时回显观测到的源地址(XOR-MAPPED-ADDRESS)，供
- *      peer 做“我是谁”的公网地址发现(discovery)；
- *   2) 信令：文本 REG/GET 地址簿，REG <id> [<host> <port>] 登记(支持公告地址
- *      与观测源地址两种)，GET <id> 返回对端地址供打洞。
- *
- * 使用现状（备注）：在“公共 STUN 采址 + 轻量信令交换”的拆分架构中，本服务器
- * 目前只被当作【信令(REG/GET)】使用，discovery(公网地址发现)走公共 STUN——
- * 原因是 hairpin 问题：若本服务器与某个 peer 在同一个 NAT 之后，
- *   - peer 访问服务器的外网映射地址需该 NAT 支持 hairpin(多数不支持，连不上)；
- *   - peer 访问服务器的内网地址则服务器只看到 peer 的内网源，取不到其外网地址。
- * 因此同 NAT 的 peer 无法用“与它同 NAT 的服务器”发现自己的公网地址，只有让
- * discovery 指向真正在公网、peer 能外拨到达的 STUN(如公共 STUN)才拿得到真实
- * 公网映射。故本服务器在拆分模式下仅承担 REG/GET 地址交换。
+ * v3 模型：每个 stun 节点连上后 SIGNIN 登记自己（服务器记其信令源地址，用于投递
+ * INVITE/MATCH/CONNECTED/NOPEER）。打洞目标(本会话地址)不提前上报，而在撮合信令中
+ * 交换：
+ *   CALL <caller> <callee> <caller_sess_host> <caller_sess_port>
+ *      -> 服务器查 callee 在线，向 callee 信令地址发 INVITE(带 caller 会话地址)；
+ *   ACCEPT <callee> <caller> <callee_sess_host> <callee_sess_port>
+ *      -> 服务器向 caller 信令地址回 MATCH(带 callee 会话地址)；
+ *   PUNCHOK <id> <peer_id>
+ *      -> 服务器按 pending 判定主/被叫打洞成功，双 ok 回双方 CONNECTED；
+ *   SIGNOUT <stun_id> 下线。
+ * 多路：pending key = "caller|callee"，同一节点可同时作主叫连多个、作被叫被多个连。
  *
  * @author Zoo
- * @date 2026-08-13
+ * @date 2026-09-09
  */
 
 #include <stdlib.h>
@@ -29,9 +26,14 @@
 #include <sys/socket.h>
 #include <libobject/concurrent/work_task.h>
 #include "P2p_Server.h"
-#include "stun/Stun.h"   /* STUN_NAT_TYPE_* 枚举 */
 
 static int __stun_server_callback(void *task);
+
+/* 撮合 key = "caller|callee" */
+static void __call_key(char *out, int out_len, const char *caller, const char *callee)
+{
+    snprintf(out, out_len, "%s|%s", caller, callee);
+}
 
 static int __construct(P2p_Server *server, char *init_str)
 {
@@ -42,11 +44,11 @@ static int __construct(P2p_Server *server, char *init_str)
     TRY {
         pthread_mutex_init(&server->lock, NULL);
 
-        server->peers = object_new(allocator, "RBTree_Map", NULL);
-        THROW_IF(server->peers == NULL, -1);
-        server->peers->set_cmp_func(server->peers, string_key_cmp_func);
-        server->peers->set(server->peers, "/Map/trustee_flag", &trustee_flag);
-        server->peers->set(server->peers, "/Map/value_type", &value_type);
+        server->stuns = object_new(allocator, "RBTree_Map", NULL);
+        THROW_IF(server->stuns == NULL, -1);
+        server->stuns->set_cmp_func(server->stuns, string_key_cmp_func);
+        server->stuns->set(server->stuns, "/Map/trustee_flag", &trustee_flag);
+        server->stuns->set(server->stuns, "/Map/value_type", &value_type);
 
         server->pending = object_new(allocator, "RBTree_Map", NULL);
         THROW_IF(server->pending == NULL, -1);
@@ -67,26 +69,20 @@ static int __deconstruct(P2p_Server *server)
     }
     pthread_mutex_destroy(&server->lock);
 
-    if (server->peers != NULL) {
-        /* Map destroy 会释放 value（VALUE_TYPE_STRUCT_POINTER + trustee_flag） */
-        object_destroy(server->peers);
-        server->peers = NULL;
+    if (server->stuns != NULL) {
+        object_destroy(server->stuns);   /* Map destroy 释放 value */
+        server->stuns = NULL;
     }
-
     if (server->pending != NULL) {
         object_destroy(server->pending);
         server->pending = NULL;
     }
-
     return 0;
 }
 
 /*
- * UDP client 统一收包回调（client_trustee）：
- * 处理来自任意 peer 的报文，源地址由 work_task 的 remote_host/remote_service 提供。
- *  - STUN Binding Request → 回显 XOR-MAPPED-ADDRESS（请求者源地址）
- *  - "REG <id>" → 记录请求者源地址到地址簿，回复 "OK"
- *  - "GET <id>" → 返回对端地址 "PEER host port" 或 "NOPEER"
+ * UDP client 统一收包回调：处理 STUN Binding + 信令文本
+ * (SIGNIN/SIGNOUT/CALL/ACCEPT/PUNCHOK)。
  */
 static int __stun_server_callback(void *task)
 {
@@ -94,17 +90,21 @@ static int __stun_server_callback(void *task)
     P2p_Server *server = (P2p_Server *)t->opaque;
     allocator_t *allocator;
     Socket *socket;
-    Map *peers;
+    Map *stuns;
     Map *pending;
     stun_header_t *h;
-    stun_server_peer_t *p = NULL, *new_peer;
-    stun_server_peer_t *pc = NULL;
+    stun_node_t *n = NULL, *new_node;
+    stun_node_t *callee = NULL;
     p2p_server_call_t *call = NULL, *new_call;
     uint8_t resp[512];
     int resp_len = 0;
     char id[32], from_id[32], to_id[32];
     char p1[32], p2[32];
-    char sport[16], aport[16];
+    char key[96];
+    char sport[16];
+    char sess_host[64];
+    int sess_port = 0, n_arg;
+    int sess_nat = 0;
 
     if (server == NULL || t->buf_len <= 0) {
         return 0;
@@ -112,17 +112,16 @@ static int __stun_server_callback(void *task)
 
     allocator = server->obj.allocator;
     socket = server->client->socket;
-    peers = server->peers;
+    stuns = server->stuns;
     pending = server->pending;
     h = (stun_header_t *)t->buf;
 
-    dbg_str(DBG_INFO, "[server] recv %d bytes from %s:%s", t->buf_len,
+    dbg_str(DBG_DETAIL, "server received %d bytes from %s:%s", t->buf_len,
             t->remote_host, t->remote_service);
 
     if (t->buf_len >= (int)sizeof(stun_header_t) &&
         ntohl(h->magic_cookie) == STUN_MAGIC_COOKIE) {
-        /* STUN Binding Request → 回显公网映射地址 */
-        dbg_str(DBG_INFO, "[server] STUN Binding from %s:%s", t->remote_host, t->remote_service);
+        /* STUN Binding Request -> 回显公网映射地址 */
         stun_header_t *rh = (stun_header_t *)resp;
         uint8_t *attr = resp + sizeof(stun_header_t);
         uint16_t port;
@@ -133,252 +132,192 @@ static int __stun_server_callback(void *task)
         if (inet_pton(AF_INET, t->remote_host, ip) != 1) {
             return 0;
         }
-
         memset(resp, 0, sizeof(resp));
         rh->msgtype = htons(STUN_BINDRESP);
-        rh->msglen = htons(12); /* XOR-MAPPED-ADDRESS 属性: 4 头 + 8 值 */
+        rh->msglen = htons(12);
         rh->magic_cookie = h->magic_cookie;
         memcpy(rh->transaction_id, h->transaction_id, 12);
-
-        attr[0] = 0x00; attr[1] = 0x20;          /* type = 0x0020 */
-        attr[2] = 0x00; attr[3] = 0x08;          /* len = 8 */
-        attr[4] = 0x00;                          /* reserved */
-        attr[5] = 0x01;                          /* family = IPv4 */
+        attr[0] = 0x00; attr[1] = 0x20;
+        attr[2] = 0x00; attr[3] = 0x08;
+        attr[4] = 0x00; attr[5] = 0x01;
         port = (uint16_t)atoi(t->remote_service) ^ (cookie >> 16);
         attr[6] = (uint8_t)(port >> 8);
         attr[7] = (uint8_t)(port & 0xff);
-        attr[8] = ip[0] ^ ((uint8_t *)&cookie_be)[0];
-        attr[9] = ip[1] ^ ((uint8_t *)&cookie_be)[1];
+        attr[8]  = ip[0] ^ ((uint8_t *)&cookie_be)[0];
+        attr[9]  = ip[1] ^ ((uint8_t *)&cookie_be)[1];
         attr[10] = ip[2] ^ ((uint8_t *)&cookie_be)[2];
         attr[11] = ip[3] ^ ((uint8_t *)&cookie_be)[3];
         resp_len = (int)sizeof(stun_header_t) + 12;
-
         socket->sendto(socket, resp, resp_len, 0, t->remote_host, t->remote_service);
         return 0;
     }
 
-    /* 地址簿文本命令（信令） */
     ((char *)t->buf)[t->buf_len] = 0;
-    if (sscanf((char *)t->buf, "REG %31s", id) == 1) {
-        char adv_host[64] = {0};
-        int adv_port = 0, adv_nat = STUN_NAT_TYPE_UNKNOWN, n, rec_port, rec_nat;
-        const char *rec_host;
 
-        /*
-         * REG <id>                          : 记录观测源地址（旧流程，STUN+信令一体）
-         * REG <id> <host> <port>            : 记录 peer 上报(公告)的公网地址，nat=UNKNOWN
-         * REG <id> <host> <port> <nat_type> : 同上，并记录 peer 的 NAT 类型（当前版本）
-         */
-        n = sscanf((char *)t->buf, "REG %31s %63s %d %d",
-                   id, adv_host, &adv_port, &adv_nat);
-        if (n >= 3 && adv_host[0] != 0 && adv_port > 0) {
-            rec_host = adv_host;
-            rec_port = adv_port;
-            rec_nat  = (n >= 4) ? adv_nat : STUN_NAT_TYPE_UNKNOWN;
-        } else {
-            rec_host = t->remote_host;
-            rec_port = atoi(t->remote_service);
-            rec_nat  = STUN_NAT_TYPE_UNKNOWN;
-        }
-        dbg_str(DBG_INFO, "[server] REG id=%s record %s:%d nat=%d (src %s:%s)",
-                id, rec_host, rec_port, rec_nat, t->remote_host, t->remote_service);
-
+    if (sscanf((char *)t->buf, "SIGNIN %31s", id) == 1) {
+        /* 登记/更新 stun 节点：记其信令源地址（INVITE/CONNECTED/MATCH 投递用） */
+        dbg_str(DBG_INFO, "SIGNIN: %s registered (src %s:%s)", id,
+                t->remote_host, t->remote_service);
         pthread_mutex_lock(&server->lock);
-        p = NULL;
-        peers->search(peers, (void *)id, &p);
-        if (p == NULL) {
-            new_peer = (stun_server_peer_t *)allocator_mem_alloc(allocator,
-                                                                 sizeof(stun_server_peer_t));
-            if (new_peer != NULL) {
-                snprintf(new_peer->id, sizeof(new_peer->id), "%s", id);
-                /* 打洞(公告公网)地址：取 REG 报文里 peer 上报的映射 */
-                snprintf(new_peer->punch_host, sizeof(new_peer->punch_host), "%s", rec_host);
-                new_peer->punch_port = rec_port;
-                new_peer->nat_type   = rec_nat;
-                /* 信令地址：取 REG 这个包的源（peer 的信令口，服务器必可达） */
-                snprintf(new_peer->signal_host, sizeof(new_peer->signal_host),
+        n = NULL;
+        stuns->search(stuns, (void *)id, &n);
+        if (n == NULL) {
+            new_node = (stun_node_t *)allocator_mem_alloc(allocator,
+                                                          sizeof(stun_node_t));
+            if (new_node != NULL) {
+                snprintf(new_node->id, sizeof(new_node->id), "%s", id);
+                snprintf(new_node->signal_host, sizeof(new_node->signal_host),
                          "%s", t->remote_host);
-                new_peer->signal_port = atoi(t->remote_service);
-                peers->add(peers, new_peer->id, new_peer);
+                new_node->signal_port = atoi(t->remote_service);
+                stuns->add(stuns, new_node->id, new_node);
             }
         } else {
-            /* 已存在：更新两个地址 */
-            snprintf(p->punch_host, sizeof(p->punch_host), "%s", rec_host);
-            p->punch_port = rec_port;
-            p->nat_type   = rec_nat;
-            snprintf(p->signal_host, sizeof(p->signal_host), "%s", t->remote_host);
-            p->signal_port = atoi(t->remote_service);
+            snprintf(n->signal_host, sizeof(n->signal_host), "%s", t->remote_host);
+            n->signal_port = atoi(t->remote_service);
         }
         pthread_mutex_unlock(&server->lock);
-
         strcpy((char *)resp, "OK\n");
         resp_len = 3;
         socket->sendto(socket, resp, resp_len, 0, t->remote_host, t->remote_service);
-    } else if (sscanf((char *)t->buf, "GET %31s", id) == 1) {
-        dbg_str(DBG_INFO, "[server] GET id=%s from %s:%s", id, t->remote_host, t->remote_service);
+    } else if (sscanf((char *)t->buf, "SIGNOUT %31s", id) == 1) {
+        dbg_str(DBG_INFO, "SIGNOUT: %s offline (src %s:%s)", id,
+                t->remote_host, t->remote_service);
         pthread_mutex_lock(&server->lock);
-        p = NULL;
-        peers->search(peers, (void *)id, &p);
-        if (p != NULL) {
-            /* GET 返回打洞(公网)地址：让请求者据它向该 peer 打洞 */
-            snprintf((char *)resp, sizeof(resp), "PEER %s %d %d\n",
-                     p->punch_host, p->punch_port, p->nat_type);
-            resp_len = (int)strlen((char *)resp);
-        } else {
-            strcpy((char *)resp, "NOPEER\n");
-            resp_len = 7;
+        n = NULL;
+        stuns->search(stuns, (void *)id, &n);
+        if (n != NULL) {
+            stuns->del(stuns, (void *)id);
+            allocator_mem_free(allocator, n);
         }
         pthread_mutex_unlock(&server->lock);
-        socket->sendto(socket, resp, resp_len, 0, t->remote_host, t->remote_service);
-    } else if (sscanf((char *)t->buf, "CALL %31s %31s", from_id, to_id) == 2) {
-        const char *caller_host = t->remote_host;
-        int caller_port = atoi(t->remote_service);
-
-        dbg_str(DBG_INFO, "[server] CALL from=%s to=%s (src %s:%s)",
-                from_id, to_id, t->remote_host, t->remote_service);
+    } else if ((n_arg = sscanf((char *)t->buf, "CALL %31s %31s %63s %d %d",
+                               from_id, to_id, sess_host, &sess_port,
+                               &sess_nat)) >= 4) {
+        if (n_arg < 5) {
+            sess_nat = 0;
+        }
+        dbg_str(DBG_INFO, "CALL: %s calls %s session address=%s:%d nat=%d (src %s:%s)",
+                from_id, to_id, sess_host, sess_port, sess_nat,
+                t->remote_host, t->remote_service);
 
         pthread_mutex_lock(&server->lock);
-        p = NULL;
-        peers->search(peers, (void *)to_id, &p);
-        if (p == NULL) {
+        callee = NULL;
+        stuns->search(stuns, (void *)to_id, &callee);
+        if (callee == NULL) {
+            /* 被叫不在线 -> 回主叫 NOPEER */
             pthread_mutex_unlock(&server->lock);
-            strcpy((char *)resp, "NOPEER\n");
-            resp_len = 7;
+            snprintf((char *)resp, sizeof(resp), "NOPEER %s\n", to_id);
+            resp_len = (int)strlen((char *)resp);
             socket->sendto(socket, resp, resp_len, 0, t->remote_host, t->remote_service);
             return 0;
         }
-        /* 发起方打洞(公告)地址（优先取其在册地址，保证对端可 punch 到它） */
-        pc = NULL;
-        peers->search(peers, (void *)from_id, &pc);
-        if (pc != NULL) {
-            caller_host = pc->punch_host;
-            caller_port = pc->punch_port;
-        }
+
         new_call = (p2p_server_call_t *)allocator_mem_alloc(allocator,
                                                             sizeof(p2p_server_call_t));
         if (new_call != NULL) {
+            __call_key(key, sizeof(key), from_id, to_id);
+            snprintf(new_call->key, sizeof(new_call->key), "%s", key);
             snprintf(new_call->from_id, sizeof(new_call->from_id), "%s", from_id);
-            snprintf(new_call->from_host, sizeof(new_call->from_host), "%s",
-                     t->remote_host);
+            /* 主叫信令源地址：撮合回执投递 */
+            snprintf(new_call->from_host, sizeof(new_call->from_host),
+                     "%s", t->remote_host);
             new_call->from_port = atoi(t->remote_service);
             snprintf(new_call->to_id, sizeof(new_call->to_id), "%s", to_id);
-            /* to_* = 被叫打洞地址快照（ACCEPT 后回给发起方打洞用） */
-            snprintf(new_call->to_host, sizeof(new_call->to_host), "%s", p->punch_host);
-            new_call->to_port = p->punch_port;
-            new_call->to_nat = p->nat_type;
+            /* to_host/port 被叫会话地址，ACCEPT 后填 */
+            new_call->to_host[0] = 0;
+            new_call->to_port = 0;
+            new_call->from_nat = sess_nat;
+            new_call->to_nat = 0;
             new_call->caller_ok = 0;
             new_call->callee_ok = 0;
 
             call = NULL;
-            pending->search(pending, (void *)from_id, &call);
+            pending->search(pending, (void *)new_call->key, &call);
             if (call != NULL) {
-                pending->del(pending, (void *)from_id);
-                allocator_mem_free(allocator, call);   /* 替换旧呼叫：释放旧记录 */
+                pending->del(pending, (void *)new_call->key);
+                allocator_mem_free(allocator, call);
             }
-            pending->add(pending, new_call->from_id, new_call);
-        }
-        strcpy((char *)resp, "WAIT\n");
-        resp_len = 5;
-        socket->sendto(socket, resp, resp_len, 0, t->remote_host, t->remote_service);
-
-        /* 通知被叫(INVITE)走信令地址（服务器必可达，如与服务器同机/LAN）；
-         * 文本里给被叫的 caller 地址仍用发起方的打洞(公告公网)地址 */
-        snprintf((char *)resp, sizeof(resp), "INVITE %s %s %d\n",
-                 from_id, caller_host, caller_port);
-        resp_len = (int)strlen((char *)resp);
-        if (p->signal_host[0] != 0) {
-            snprintf(sport, sizeof(sport), "%d", p->signal_port);
-            socket->sendto(socket, resp, resp_len, 0, p->signal_host, sport);
-        } else {   /* 旧单口兜底 */
-            snprintf(sport, sizeof(sport), "%d", p->punch_port);
-            socket->sendto(socket, resp, resp_len, 0, p->punch_host, sport);
+            pending->add(pending, new_call->key, new_call);
         }
         pthread_mutex_unlock(&server->lock);
-    } else if (sscanf((char *)t->buf, "ACCEPT %31s", from_id) == 1) {
-        /* 被叫 B 接受邀请(ACCEPT)，但≠成功：服务器把 B 的打洞地址用 MATCH 回发起方 A，
-         * A 收到 MATCH 即去打 B；pending 保留，等双方 PUNCHOK 上报后再判 CONNECTED。
-         * （MATCH 与 GET 的 PEER 区分开：PEER 只是查询结果，不触发打洞。） */
-        dbg_str(DBG_INFO, "[server] ACCEPT from=%s (src %s:%s)",
-                from_id, t->remote_host, t->remote_service);
+
+        /* 通知被叫 INVITE：带主叫 id + 主叫会话(打洞目标)地址 */
+        snprintf((char *)resp, sizeof(resp), "INVITE %s %s %d %d\n",
+                 from_id, sess_host, sess_port, sess_nat);
+        resp_len = (int)strlen((char *)resp);
         pthread_mutex_lock(&server->lock);
+        callee = NULL;
+        stuns->search(stuns, (void *)to_id, &callee);
+        if (callee != NULL) {
+            snprintf(sport, sizeof(sport), "%d", callee->signal_port);
+            socket->sendto(socket, resp, resp_len, 0, callee->signal_host, sport);
+        }
+        pthread_mutex_unlock(&server->lock);
+    } else if ((n_arg = sscanf((char *)t->buf, "ACCEPT %31s %31s %63s %d %d",
+                               to_id, from_id, sess_host, &sess_port,
+                               &sess_nat)) >= 4) {
+        if (n_arg < 5) {
+            sess_nat = 0;
+        }
+        dbg_str(DBG_INFO, "ACCEPT: %s accepts %s session address=%s:%d nat=%d",
+                to_id, from_id, sess_host, sess_port, sess_nat);
+        pthread_mutex_lock(&server->lock);
+        __call_key(key, sizeof(key), from_id, to_id);
         call = NULL;
-        pending->search(pending, (void *)from_id, &call);
+        pending->search(pending, (void *)key, &call);
         if (call != NULL) {
-            snprintf(aport, sizeof(aport), "%d", call->from_port);
-            snprintf((char *)resp, sizeof(resp), "MATCH %s %d %d\n",
-                     call->to_host, call->to_port, call->to_nat);
+            snprintf(call->to_host, sizeof(call->to_host), "%s", sess_host);
+            call->to_port = sess_port;
+            call->to_nat = sess_nat;
+            /* 撮合回执给主叫：MATCH 带被叫 id + 被叫会话地址 + 被叫 nat */
+            snprintf(sport, sizeof(sport), "%d", call->from_port);
+            snprintf((char *)resp, sizeof(resp), "MATCH %s %s %d %d\n",
+                     call->to_id, call->to_host, call->to_port, call->to_nat);
             resp_len = (int)strlen((char *)resp);
-            socket->sendto(socket, resp, resp_len, 0, call->from_host, aport);
+            socket->sendto(socket, resp, resp_len, 0, call->from_host, sport);
         }
         pthread_mutex_unlock(&server->lock);
     } else if (sscanf((char *)t->buf, "PUNCHOK %31s %31s", p1, p2) == 2) {
-        /* p1 上报：已成功打洞到 p2。发起方/被叫方都上报后，服务器才判定两端 ok */
+        /* p1 上报已成功打洞到 p2；主/被叫都上报才判定两端 ok */
         pthread_mutex_lock(&server->lock);
         call = NULL;
-        pending->search(pending, (void *)p1, &call);
-        if (call != NULL && strcmp(call->to_id, p2) == 0) {
-            call->caller_ok = 1;   /* p1 为发起方 */
-            dbg_str(DBG_INFO, "[server] punch ok: caller %s -> %s", p1, p2);
+        __call_key(key, sizeof(key), p1, p2);
+        pending->search(pending, (void *)key, &call);
+        if (call != NULL) {
+            call->caller_ok = 1;   /* p1=主叫 */
         } else {
             call = NULL;
-            pending->search(pending, (void *)p2, &call);
-            if (call != NULL && strcmp(call->to_id, p1) == 0) {
-                call->callee_ok = 1;   /* p1 为被叫方 */
-                dbg_str(DBG_INFO, "[server] punch ok: callee %s -> %s", p1, p2);
+            __call_key(key, sizeof(key), p2, p1);
+            pending->search(pending, (void *)key, &call);
+            if (call != NULL) {
+                call->callee_ok = 1;   /* p1=被叫 */
             }
         }
         if (call != NULL && call->caller_ok && call->callee_ok) {
-            /* 双方都打洞成功：判定两端 ok，回双方 CONNECTED */
-            dbg_str(DBG_VIP, "[server] both punch ok %s<->%s, send CONNECTED",
+            dbg_str(DBG_INFO, "CONNECTED: both punched ok (%s<->%s)",
                     call->from_id, call->to_id);
+            /* 主叫 CONNECTED <to_id>，投主叫信令地址 */
             snprintf(sport, sizeof(sport), "%d", call->from_port);
             snprintf((char *)resp, sizeof(resp), "CONNECTED %s\n", call->to_id);
-            resp_len = (int)strlen((char *)resp);
-            socket->sendto(socket, resp, resp_len, 0, call->from_host, sport);
-            /* 给被叫的 CONNECTED 投到其信令地址（服务器可达，兼容同机/LAN） */
-            snprintf((char *)resp, sizeof(resp), "CONNECTED %s\n", call->from_id);
-            resp_len = (int)strlen((char *)resp);
-            p = NULL;
-            peers->search(peers, (void *)call->to_id, &p);
-            if (p != NULL && p->signal_host[0] != 0) {
-                snprintf(sport, sizeof(sport), "%d", p->signal_port);
-                socket->sendto(socket, resp, resp_len, 0, p->signal_host, sport);
-            } else {   /* 旧单口兜底 */
-                snprintf(sport, sizeof(sport), "%d", call->to_port);
-                socket->sendto(socket, resp, resp_len, 0, call->to_host, sport);
+            socket->sendto(socket, resp, (int)strlen((char *)resp), 0,
+                           call->from_host, sport);
+            /* 被叫 CONNECTED <from_id>，投被叫登记信令地址 */
+            n = NULL;
+            stuns->search(stuns, (void *)call->to_id, &n);
+            if (n != NULL) {
+                snprintf(sport, sizeof(sport), "%d", n->signal_port);
+                snprintf((char *)resp, sizeof(resp), "CONNECTED %s\n", call->from_id);
+                socket->sendto(socket, resp, (int)strlen((char *)resp), 0,
+                               n->signal_host, sport);
             }
-            pending->del(pending, (void *)call->from_id);
-            allocator_mem_free(allocator, call);   /* CONNECTED 后释放呼叫记录 */
+            pending->del(pending, (void *)call->key);
+            allocator_mem_free(allocator, call);
         }
         pthread_mutex_unlock(&server->lock);
-    } else if (sscanf((char *)t->buf, "REJECT %31s", from_id) == 1) {
-        dbg_str(DBG_INFO, "[server] REJECT from=%s (src %s:%s)",
-                from_id, t->remote_host, t->remote_service);
-        pthread_mutex_lock(&server->lock);
-        call = NULL;
-        pending->search(pending, (void *)from_id, &call);
-        if (call != NULL) {
-            snprintf(aport, sizeof(aport), "%d", call->from_port);
-            strcpy((char *)resp, "NOPEER\n");
-            resp_len = 7;
-            socket->sendto(socket, resp, resp_len, 0, call->from_host, aport);
-            pending->del(pending, (void *)from_id);
-            allocator_mem_free(allocator, call);   /* REJECT 后释放呼叫记录 */
-        }
-        pthread_mutex_unlock(&server->lock);
-    } else if (sscanf((char *)t->buf, "BYE %31s", id) == 1) {
-        /* 下线：peer 正常退出时通知服务器从在线表删除自身。
-         * 之后他人 CALL/GET 该 id 查不到即视为不在线(NOPEER)。 */
-        dbg_str(DBG_INFO, "[server] BYE id=%s (src %s:%s)",
-                id, t->remote_host, t->remote_service);
-        pthread_mutex_lock(&server->lock);
-        p = NULL;
-        peers->search(peers, (void *)id, &p);
-        if (p != NULL) {
-            peers->del(peers, (void *)id);
-            allocator_mem_free(allocator, p);   /* 释放 peer 记录 */
-        }
-        pthread_mutex_unlock(&server->lock);
+    } else {
+        /* 忽略未知命令；n_arg 引用避免未用告警 */
+        n_arg = 0;
+        (void)n_arg;
     }
 
     return 0;
@@ -397,7 +336,6 @@ static int __start(P2p_Server *server, char *host, char *service)
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "stun server start failed, ret=%d", ret);
     }
-
     return ret;
 }
 
@@ -412,7 +350,6 @@ static int __stop(P2p_Server *server)
         }
     } CATCH (ret) {
     }
-
     return ret;
 }
 

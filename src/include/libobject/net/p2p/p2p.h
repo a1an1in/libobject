@@ -4,97 +4,104 @@
 #include <stdint.h>
 
 /*
- * P2P 网络模块（对外接口）。
+ * P2P 网络模块（对外接口）——多会话模型。
+ *
+ * 概念（与内部 Stun 对齐，去 peer_id，用 stun id）：
+ *  - p2p 节点(node) = 一个 Stun 节点（stun_id、与信令服务器的常驻会话、会话表）。
+ *    先 p2p_node_create 上线(SIGNIN)，后 p2p_node_close 下线(SIGNOUT)。
+ *  - p2p 会话(session) = 一条到某 remote stun id 的链路；每会话独立 UDP 数据口，
+ *    打洞目标(会话地址)经信令交换。主叫 p2p_session_create 发起 CALL(异步)；被叫
+ *    收到 INVITE 自动建会话并配合打洞。
+ *  - 连接"真正成功"以服务器为准：双方各自打洞成功上报(PUNCHOK)，服务器收齐回
+ *    CONNECTED；p2p_session_is_connected 变 0 即打通，可 send。
  *
  * 目录/职责：
- *   - P2p_Server    : 中心服务器（信令 REG/GET/BYE + 撮合 CALL/ACCEPT/REJECT/
- *                     PUNCHOK/CONNECTED + STUN 回显；预留 TURN 中继）。
- *   - p2p_session_* : 一个 peer 节点 = 一个“在线会话”：
- *                       · p2p_session_open：构造 + 上线(REG) + 内置处理服务器
- *                         信令/预打洞消息（不阻塞）；
- *                       · 作为被叫收到 CALL 时内置自动应答打洞；
- *                       · 要主动连别人时由发起方调 p2p_peer_connect；
- *                       · 连接“真正成功”以服务器为准：双方各自打洞成功后上报
- *                         (PUNCHOK)，服务器收齐两边上报判定两端 ok，回 CONNECTED；
- *                       · 打洞成功后才置 connected，业务数据(打洞后)经 recv 回调，
- *                         打洞前的握手/保活消息内置消化，不外发。
+ *   - P2p_Server    : 中心服务器（SIGNIN/SIGNOUT 登记 + CALL/INVITE/ACCEPT/PUNCHOK 撮合 +
+ *                     STUN 回显；预留 TURN 中继）。
+ *   - p2p_node_*    : 节点(Stun) 生命周期。
+ *   - p2p_session_* : 一条链路。
  *   - p2p_server_run: 运行中心服务器。
- *
- * 本公共头不暴露内部实现（打洞客户端 stun/、P2p_Server 只在内部 .c 引用）。
  */
+typedef struct p2p_node_s p2p_node_t;        /* 不透明节点句柄 */
+typedef struct p2p_session_s p2p_session_t;  /* 不透明会话句柄 */
 
-/* ===== 业务配置（扁平） ===== */
+/* 业务收包回调：某会话收到对端业务数据时调用；session 为该会话句柄，
+ * data/len 仅在回调内有效。 */
+typedef int (*p2p_recv_fn)(void *opaque, p2p_session_t *session,
+                           const uint8_t *data, int len);
+
+/* ===== 业务配置 ===== */
 typedef struct p2p_cfg_s {
     /* 身份 / 本地绑定 */
-    const char *id;             /* 本 peer 注册 id */
-    const char *peer_id;        /* 对端 id（p2p_peer_connect 的目标） */
-    const char *local_host;     /* 本地绑定 host，可空(默认 0.0.0.0) */
-    const char *local_service;  /* 本地端口(打洞口)，如 "12346" */
+    const char *stun_id;        /* 本节点 stun id（SIGNIN 上报，被寻址用） */
+    const char *local_host;     /* 本地绑定 host，可空(默认 0.0.0.0)；会话 data socket 绑它 */
+    const char *local_service;  /* peer/data socket 本地端口，可空=NULL 随机；指定便于安全组放行/验证 */
 
-    /* 服务器 */
-    const char *signal_host;    /* 信令中心(P2p_Server)地址 */
-    const char *signal_service; /* 信令中心端口 */
-    const char *stun_host;      /* 第一个公共 STUN 地址(采址) */
-    const char *stun_service;   /* 第一个公共 STUN 端口 */
-    const char *stun2_host;     /* 可选：第二个公共 STUN 地址(NAT 对称探测) */
-    const char *stun2_service;  /* 可选：第二个公共 STUN 端口 */
+    /* 信令中心(必填) */
+    const char *signal_host;
+    const char *signal_service;
 
-    /* 周期 / 超时 */
-    int interval_ms;            /* 打洞/保活周期，如 1000 */
-    int timeout_ms;             /* 建链/连接最长等待，如 60000 */
+    /* 公共 STUN 采址服务器（可空=用信令服务器自身做采址，同机/loopback 可用） */
+    const char *stun_host;
+    const char *stun_service;
+    /* 第二 STUN 采址服务器（可空=不做 nat 对称探测）；可配成信令服(它兼 STUN 回显) */
+    const char *stun2_host;
+    const char *stun2_service;
 
-    /* TURN 中继（预留，后续接入 src/net/turn） */
-    const char *turn_host;      /* TURN 服务器地址（可空） */
-    const char *turn_service;   /* TURN 服务器端口（可空） */
+    /* 周期 */
+    int interval_ms;            /* 打洞/保活周期，如 200 */
+
+    /* TURN 中继（预留） */
+    const char *turn_host;
+    const char *turn_service;
 } p2p_cfg_t;
 
-/* ===== 在线节点（peer session） ===== */
-
-typedef struct p2p_session_s p2p_session_t;  /* 不透明节点句柄 */
-
-/* 业务收包回调：仅在“打洞成功建立链路后”收到对端业务数据时调用。
- * data/len 仅在回调内有效。 */
-typedef int (*p2p_recv_fn)(void *opaque, const uint8_t *data, int len);
+/* ===== 节点 ===== */
 
 /*
- * 构造本端 P2P 节点并上线（**不阻塞**）：
- *  - 建打洞客户端、连信令中心、采址/探测 NAT、向服务器 REG（上线）；
- *  - 返回后本端在线，并**内置**处理信令/预打洞消息：
- *      · 作为被叫收到服务器 INVITE -> 自动 ACCEPT(愿意配合打洞) -> 打洞对齐
- *        -> 上报服务器 -> 服务器确认双方 ok 回 CONNECTED -> 置 connected；
- *      · 作为发起方，p2p_peer_connect 所需的 PEER/NOPEER/CONNECTED 通知同样内置。
- *  - 打洞成功前的握手消息不外发；打洞成功后对端业务数据经 recv 上报。
- * @param out    [out] 节点句柄(用 p2p_session_close 释放=下线)
- * @param recv   业务收包回调(仅打洞成功后)
- * @param cfg    配置(cfg->peer_id 为将来 p2p_peer_connect 的目标)
+ * 创建节点并上线(SIGNIN，同步等服务器 OK)：
+ *  - 内部建 Stun、连信令服务器、定 stun_id 并 SIGNIN；收包回调桥接 node 级 recv。
+ *  - 返回后节点在线，可 p2p_session_create 主动连别人，也可被叫（INVITE 自动应答打洞）。
+ * @param out    [out] 节点句柄(用 p2p_node_close 下线释放)
+ * @param recv   节点默认业务收包回调(被叫自动会话 / 未 config 的会话都走它；session 定位对端)
+ * @param cfg    配置（stun_id 必填；stun_host 为空则用信令服务器采址）
  * @param opaque 传给 recv 的上下文
- * 返回：0=已上线(在线、可被叫、可 connect)；-1=失败。
+ * 返回：0=在线；-1=失败。
  */
-int p2p_session_open(p2p_session_t **out, p2p_recv_fn recv,
-                     const p2p_cfg_t *cfg, void *opaque);
+int p2p_node_create(p2p_node_t **out, p2p_recv_fn recv,
+                    const p2p_cfg_t *cfg, void *opaque);
+
+/* 关闭节点：下线(SIGNOUT)、关闭全部会话、释放内部 Stun 与句柄。幂等。 */
+int p2p_node_close(p2p_node_t *node);
+
+/* 查询节点是否在线：0=在线；-1=已关闭/无效。 */
+int p2p_node_is_alive(p2p_node_t *node);
+
+/* ===== 会话 ===== */
 
 /*
- * 主动连接 cfg->peer_id 的目标（仅发起方，本端须已 p2p_session_open）——**异步**：
- *  - 发 CALL 即返回；后续(INVITE/ACCEPT/PEER/打洞/PUNCHOK/CONNECTED)由 Stun 内部
- *    自动完成，无需轮询线程；
- *  - 结果查询 p2p_session_is_connected()：变为 0 即打通(服务器已确认双方打洞成功，
- *    可 p2p_session_send)。
- * @param s 已 open(上线) 的节点
- * 返回：0=已发出 CALL(进行中)；-1=失败(未上线/参数错)。
+ * 创建一条到 remote_stun_id 的会话并异步发起 CALL。**不阻塞**：
+ *  - Stun 为 remote 建会话(data socket+采址)，发 CALL(带本会话地址)，等撮合回执；
+ *  - 打通与否查 p2p_session_is_connected()：变 0 即服务器已确认双方打洞成功。
+ * @param node 已上线节点
+ * @param remote_stun_id 目标节点 stun id
+ * @param out  [out] 会话句柄(用 p2p_session_close 关闭；节点关闭时会一并关闭)
+ * 返回：0=已发起；-1=失败。
  */
-int p2p_session_connect(p2p_session_t *s);
+int p2p_session_create(p2p_node_t *node, const char *remote_stun_id,
+                       p2p_session_t **out);
 
-/* 向对端发送业务包。返回 0 成功；负值失败(未打通/已关闭/参数错)。 */
+/* 配置会话：绑定该会话业务收包回调与上下文（覆盖节点默认）。可空 recv=沿用节点默认。 */
+int p2p_session_config(p2p_session_t *s, p2p_recv_fn recv, void *opaque);
+
+/* 向该会话对端发业务包。返回 0 成功；负值失败(未通/已关闭/参数错)。 */
 int p2p_session_send(p2p_session_t *s, const uint8_t *data, int len);
 
-/* 查询节点是否已建立链路：0=已打通(可 send)；-1=未建立/已关闭。 */
+/* 查询该会话是否打通：0=可 send；-1=未建立/已关闭。 */
 int p2p_session_is_connected(p2p_session_t *s);
 
-/* 关闭节点：停内置处理与保活、释放句柄并向服务器 BYE 下线。幂等。 */
+/* 关闭该会话：停保活、关 data socket、从节点会话表移除。幂等。 */
 int p2p_session_close(p2p_session_t *s);
-
-/* 查询节点是否在线：0=在线；负值=已关闭/无效。 */
-int p2p_session_is_alive(p2p_session_t *s);
 
 /* ===== 中心服务器 ===== */
 

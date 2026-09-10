@@ -1,20 +1,17 @@
 /**
  * @file p2p.c
- * @Synopsis  P2P 对外接口实现：薄层封装 Stun(peer 客户端) + 中心服务器 p2p_server_run
+ * @Synopsis  P2P 对外接口实现（node + session 两层，多会话）——薄层封装 Stun
  *
- * 建链/撮合逻辑集中在 Stun（stun/Stun.c）：上线(REG)、被叫收到 INVITE 自动
- * ACCEPT、主叫 connect_peer 发 CALL、收到 PEER/INVITE 后自动打洞（复用保活线程发
- * PUNCH，收到对端包后内部上报 PUNCHOK），服务器确认双方打洞都成功回 CONNECTED，
- * Stun 置 connected。本层只：
- *  - open：创建 Stun、连信令、采址/探测 NAT、REG 上线；
- *  - connect_peer(异步)：发起 CALL；结果查询 p2p_session_is_connected；
- *  - recv：仅 connected 后的业务数据才上抛（打洞前消息由 Stun 内置消化）；
- *  - close：停保活 + BYE 下线。
- *
- * 本文件是 p2p 模块内部实现，打洞客户端头(stun/Stun.h)只在 .c 里引用。
+ * 概念：会话与信令全部由 Stun 管理。p2p 只：
+ *  - p2p_node：持有 Stun；create 建 Stun+连信令+SIGNIN(stun_id)，close 下线+销毁。
+ *  - p2p_session：句柄 = Stun 内 stun_session（Stun 管理其生命周期与并发多路）；
+ *    p2p 不持有会话表、不分配会话内存，只做中转：create 转 Stun.call、send/close/
+ *    is_connected 转 Stun。
+ *  - 收包统一经 Stun 节点级 recv_callback(stun, session, data, len) 上抛，p2p 桥接
+ *    为带 session 句柄的用户 recv；主叫与被叫(自动)会话都能被覆盖。
  *
  * @author Zoo
- * @date 2026-08-13
+ * @date 2026-09-09
  */
 
 #include <stdlib.h>
@@ -27,173 +24,188 @@
 #include "stun/Stun.h"
 #include "P2p_Server.h"
 
-/* 薄层节点：持有打洞客户端(Stun)，recv 仅业务数据 */
-struct p2p_session_s {
+struct p2p_node_s {
     Stun *stun;
-    p2p_recv_fn recv;
-    void *opaque;
-    char id[32];
-    char peer_id[32];
+    p2p_recv_fn recv;      /* 节点默认业务收包回调 */
+    void *opaque;          /* 传给 recv 的上下文 */
+    char stun_id[32];
     int  alive;
 };
 
-/* Stun 业务收包回调 -> 用户 recv（仅在 connected 后；打洞前消息不外发） */
-static int __p2p_recv(Stun *stun, uint8_t *buf, int len)
+/* Stun 业务收包回调（带 session） -> 用户 recv：p2p_session 句柄即 stun_session */
+static int __p2p_recv(Stun *stun, stun_session_t *session,
+                      uint8_t *buf, int len)
 {
-    p2p_session_t *s = (p2p_session_t *)stun->opaque;
+    p2p_node_t *node = (p2p_node_t *)stun->opaque;
 
-    if (s != NULL && stun->connected && s->recv != NULL) {
-        return s->recv(s->opaque, buf, len);
+    if (node == NULL || node->recv == NULL || buf == NULL || len < 0) {
+        return 0;
     }
-    return 0;
+    return node->recv(node->opaque, (p2p_session_t *)session, buf, len);
 }
 
-int p2p_session_open(p2p_session_t **out, p2p_recv_fn recv,
-                     const p2p_cfg_t *cfg, void *opaque)
+int p2p_node_create(p2p_node_t **out, p2p_recv_fn recv,
+                    const p2p_cfg_t *cfg, void *opaque)
 {
     allocator_t *allocator = allocator_get_default_instance();
-    p2p_session_t *s = NULL;
+    p2p_node_t *node = NULL;
     Stun *stun = NULL;
-    int ret = -1;
 
-    if (out == NULL || recv == NULL || cfg == NULL || cfg->id == NULL ||
-        cfg->signal_host == NULL || cfg->signal_service == NULL ||
-        cfg->stun_host == NULL || cfg->stun_service == NULL) {
+    if (out == NULL || cfg == NULL || cfg->stun_id == NULL ||
+        cfg->signal_host == NULL || cfg->signal_service == NULL) {
         return -1;
     }
 
-    s = (p2p_session_t *)calloc(1, sizeof(*s));
-    if (s == NULL) {
+    node = (p2p_node_t *)calloc(1, sizeof(*node));
+    if (node == NULL) {
         return -1;
     }
-    s->recv = recv;
-    s->opaque = opaque;
-    snprintf(s->id, sizeof(s->id), "%s", cfg->id);
-    if (cfg->peer_id != NULL) {
-        snprintf(s->peer_id, sizeof(s->peer_id), "%s", cfg->peer_id);
-    }
+    node->recv = recv;
+    node->opaque = opaque;
+    snprintf(node->stun_id, sizeof(node->stun_id), "%s", cfg->stun_id);
 
     stun = object_new(allocator, "Stun", NULL);
     if (stun == NULL) {
-        free(s);
+        free(node);
         return -1;
     }
-    s->stun = stun;
-    stun->opaque = s;
+    node->stun = stun;
+    stun->opaque = node;
     if (cfg->local_host != NULL)    stun->local_host    = (char *)cfg->local_host;
     if (cfg->local_service != NULL) stun->local_service = (char *)cfg->local_service;
     if (cfg->interval_ms > 0)       stun->keepalive_interval_ms = cfg->interval_ms;
-    if (stun->set_recv_callback(stun, __p2p_recv) <= 0) {
+
+    if (stun->connect(stun, (char *)cfg->signal_host,
+                      (char *)cfg->signal_service) < 0) {
         goto fail;
     }
-
-    if (stun->connect(stun, (char *)cfg->signal_host, (char *)cfg->signal_service) < 0) {
-        goto fail;
+    if (cfg->stun_host != NULL && cfg->stun_service != NULL) {
+        stun->set_stun_server(stun, (char *)cfg->stun_host,
+                              (char *)cfg->stun_service);
     }
     if (cfg->stun2_host != NULL && cfg->stun2_service != NULL) {
-        if (stun->probe(stun, (char *)cfg->stun_host, (char *)cfg->stun_service,
-                        (char *)cfg->stun2_host, (char *)cfg->stun2_service) < 0) {
-            goto fail;
-        }
-    } else {
-        if (stun->discovery(stun, (char *)cfg->stun_host, (char *)cfg->stun_service) < 0) {
-            goto fail;
-        }
+        stun->stun2_host    = (char *)cfg->stun2_host;
+        stun->stun2_service = (char *)cfg->stun2_service;
     }
-    if (stun->register_addr(stun, (char *)cfg->id) < 0) {
+    if (stun->set_recv_callback(stun, __p2p_recv) < 0) {
+        goto fail;
+    }
+    if (stun->signin(stun, (char *)cfg->stun_id) < 0) {
         goto fail;
     }
 
-    s->alive = 1;
-    *out = s;
-    dbg_str(DBG_VIP, "[%s] online, peer_id=%s", s->id, s->peer_id);
+    node->alive = 1;
+    *out = node;
+    dbg_str(DBG_VIP, "%s node online", node->stun_id);
     return 0;
 
 fail:
     object_destroy(stun);
-    s->stun = NULL;
-    free(s);
+    node->stun = NULL;
+    free(node);
     return -1;
 }
 
-int p2p_session_connect(p2p_session_t *s)
+int p2p_node_close(p2p_node_t *node)
 {
-    int ret;
+    if (node == NULL) {
+        return -1;
+    }
+    if (!node->alive) {
+        free(node);
+        return 0;
+    }
+    node->alive = 0;
+    if (node->stun != NULL) {
+        if (node->stun->signout != NULL) {
+            node->stun->signout(node->stun);
+        }
+        object_destroy(node->stun);   /* 析构：清空全部会话 + 关信令口 */
+        node->stun = NULL;
+    }
+    free(node);
+    return 0;
+}
 
-    if (s == NULL || s->stun == NULL || !s->alive ||
-        s->id[0] == 0 || s->peer_id[0] == 0) {
-        dbg_str(DBG_ERROR, "p2p_session_connect: bad state (alive=%d id=%s peer=%s)",
-                s ? s->alive : -9, s ? s->id : "", s ? s->peer_id : "");
+int p2p_node_is_alive(p2p_node_t *node)
+{
+    return (node != NULL && node->alive) ? 0 : -1;
+}
+
+int p2p_session_create(p2p_node_t *node, const char *remote_stun_id,
+                       p2p_session_t **out)
+{
+    stun_session_t *ss = NULL;
+
+    if (node == NULL || node->stun == NULL || !node->alive ||
+        remote_stun_id == NULL || out == NULL) {
+        dbg_str(DBG_ERROR, "p2p_session_create: bad state");
         return -1;
     }
-    if (s->stun->connect_peer == NULL) {
-        dbg_str(DBG_ERROR, "p2p_session_connect: connect_peer not bound");
+    if (node->stun->create_session(node->stun, (char *)remote_stun_id, 0,
+                                   &ss) < 0 || ss == NULL) {
         return -1;
     }
-    ret = s->stun->connect_peer(s->stun, s->peer_id);
-    dbg_str(DBG_INFO, "[%s] session_connect ret=%d", s->id, ret);
-    return ret;
+    *out = (p2p_session_t *)ss;
+    dbg_str(DBG_INFO, "%s created session to %s",
+            node->stun_id, remote_stun_id);
+    return 0;
+}
+
+int p2p_session_config(p2p_session_t *s, p2p_recv_fn recv, void *opaque)
+{
+    stun_session_t *ss = (stun_session_t *)s;
+    p2p_node_t *node;
+
+    if (ss == NULL || ss->stun == NULL) {
+        return -1;
+    }
+    node = (p2p_node_t *)ss->stun->opaque;
+    if (node == NULL) {
+        return -1;
+    }
+    if (recv != NULL) {
+        node->recv = recv;
+    }
+    if (opaque != NULL) {
+        node->opaque = opaque;
+    }
+    return 0;
 }
 
 int p2p_session_send(p2p_session_t *s, const uint8_t *data, int len)
 {
-    if (s == NULL || s->stun == NULL || data == NULL || len < 0) {
+    stun_session_t *ss = (stun_session_t *)s;
+
+    if (ss == NULL || ss->stun == NULL || data == NULL || len < 0) {
         return -1;
     }
-    if (!s->alive || !s->stun->connected) {
-        return -1;   /* 尚未打通/已关闭 */
-    }
-    return s->stun->send(s->stun, (void *)data, len);
+    return ss->stun->send_session_data(ss->stun, ss->remote_id, (void *)data, len);
 }
 
 int p2p_session_is_connected(p2p_session_t *s)
 {
-    if (s == NULL || s->stun == NULL || !s->alive) {
-        return -1;
-    }
-    return (s->stun->connected) ? 0 : -1;
-}
+    stun_session_t *ss = (stun_session_t *)s;
 
-int p2p_session_is_alive(p2p_session_t *s)
-{
-    if (s == NULL || !s->alive || s->stun == NULL) {
+    if (ss == NULL || ss->stun == NULL) {
         return -1;
     }
-    return 0;
+    return ss->stun->is_connected(ss->stun, ss->remote_id);
 }
 
 int p2p_session_close(p2p_session_t *s)
 {
-    char buf[64];
+    stun_session_t *ss = (stun_session_t *)s;
 
-    if (s == NULL) {
+    if (ss == NULL || ss->stun == NULL) {
         return -1;
     }
-    s->alive = 0;
-    if (s->stun != NULL) {
-        if (s->stun->keepalive_stop != NULL) {
-            s->stun->keepalive_stop(s->stun);
-        }
-        /* 优雅下线：经信令 client(server_client) 通知服务器删除本端在线表项 */
-        if (s->id[0] != 0 && s->stun->server_client != NULL &&
-            s->stun->signal_host != NULL && s->stun->signal_service != NULL) {
-            client_connect(s->stun->server_client, s->stun->signal_host,
-                           s->stun->signal_service);
-            snprintf(buf, sizeof(buf), "BYE %s\n", s->id);
-            client_send(s->stun->server_client, buf, (int)strlen(buf), 0);
-            dbg_str(DBG_INFO, "[%s] BYE sent, offline from server", s->id);
-        }
-        object_destroy(s->stun);
-        s->stun = NULL;
-    }
-    free(s);
-
-    return 0;
+    return ss->stun->close_session(ss->stun, ss->remote_id);
 }
 
 /*
- * 运行中心服务器（P2p_Server）：信令 REG/GET/BYE + 撮合 CALL/ACCEPT/REJECT/
- * PUNCHOK/CONNECTED + STUN 回显（预留 TURN 中继），阻塞直到 Ctrl+C(SIGINT)。
+ * 运行中心服务器（P2p_Server）：信令 SIGNIN/SIGNOUT 登记 + CALL/INVITE/ACCEPT/PUNCHOK 撮合
+ * + STUN 回显（预留 TURN 中继），阻塞直到 Ctrl+C(SIGINT)。
  */
 int p2p_server_run(const char *host, const char *service)
 {
