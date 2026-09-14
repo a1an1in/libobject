@@ -47,18 +47,18 @@ mmap 寄存器（IOMMU 隔离）→ eventfd 收中断 → dma_map 做 DMA。全�
 ### 2.2 类划分（谁负责什么）
 
 - **`Vfio`**：与总线无关的通用机制——三层 fd 生命周期、region 信息/mmap、eventfd 中断、dma_map；
-  只**声明**设备级 `dma_config/dma_run`（默认 -1，供多态）。
+  只**声明**设备级 `dma_run`（默认 -1，供多态）。主机内存端的准备统一走 `dma_map`/`dma_unmap`。
 - **`Vfio_Pcie`**：PCIe 语义——按 vendor/device 发现、iommu_group 解析、绑定 vfio-pci、BAR=region、
-  偏移编码寄存器访问、通用 `dma_config`（dma_map ×2）+ `dma_copy`。
-- **`Vfio_Pcie_Edu`**：具体设备（edu）——override `dma_run`，用 edu 寄存器做两段中转 + 中断完成。
+  偏移编码寄存器访问；并暴露 `dma_*` 入参块（由调用方填充，供 `dma_run` 读取）。
+- **`Vfio_Pcie_Edu`**：具体设备（edu）——override `dma_run`，读入参块用 edu 寄存器做两段中转 + 中断完成。
 
 ### 2.3 完整流水线（对应真实代码函数）
 
 #### 阶段 1：发现设备 + 拿 group ID（[`Vfio_Pcie.c`](../src/board/hal/vfio/Vfio_Pcie.c) `__open_device` 等）
 
 1. 按 vendor/device 遍历 `/sys/bus/pci/devices`，`readdir` 找到匹配 BDF（如 `0000:00:03.0`）。
-2. [`__read_bar_sizes`](../src/board/hal/vfio/Vfio_Pcie.c:67)：读 `/sys/bus/pci/devices/<bdf>/resource`，拿各 BAR 大小（供 `bar_shift` 估算）。
-3. [`__get_group_path`](../src/board/hal/vfio/Vfio_Pcie.c:163)：`readlink /sys/bus/pci/devices/<bdf>/iommu_group`，
+2. BAR 大小不再单独读 sysfs：`map_region` 用 `VFIO_DEVICE_GET_REGION_INFO`（region size）即可。
+3. [`__get_group_path`](../src/board/hal/vfio/Vfio_Pcie.c:138)：`readlink /sys/bus/pci/devices/<bdf>/iommu_group`，
    取链接目标**最后一段数字** = group ID N。
 4. [`__bind_to_vfio`](../src/board/hal/vfio/Vfio_Pcie.c:96)：`echo <BDF> > uio_pci_generic/unbind`（解绑旧驱动）→
    `echo <vendor> <device> > vfio-pci/new_id` → 必要时 `.../vfio-pci/bind`。
@@ -79,12 +79,12 @@ mmap 寄存器（IOMMU 隔离）→ eventfd 收中断 → dma_map 做 DMA。全�
 
 > 错误处理：任一步失败按"设备→组→容器"逆序 close。
 
-#### 阶段 3：映射 BAR（[`__map_region`](../src/board/hal/vfio/Vfio.c:261) / [`__map_bar`](../src/board/hal/vfio/Vfio_Pcie.c:283)）
+#### 阶段 3：映射 BAR/region（[`__map_region`](../src/board/hal/vfio/Vfio.c:261)，BAR n = region n）
 
 - `VFIO_DEVICE_GET_REGION_INFO(index)` → `reg.offset/size/flags`；
 - 若 `flags & VFIO_REGION_INFO_FLAG_MMAP`，在**设备 fd** 上 `mmap(reg.size, MAP_SHARED, reg.offset)`；
-- `bar_shift` 按已映射 BAR 大小动态增大，保证多 BAR 编码一致；
-- 寄存器访问：`vfio_pcie_bar_addr(bar, off) = (bar<<bar_shift)|off`，[`__read/write_register(s)`](../src/board/hal/vfio/Vfio_Pcie.c:377) 按 width(32/64) 访问。
+- BAR n = region n（VFIO-PCI 约定），映射 BAR 直接用父类 `map_region(bar)`（已无独立 map_bar），无独立地址编码；
+- 寄存器访问统一用父类 [`region_read/region_write`](../src/board/hal/vfio/Vfio.c:342)（index=region/BAR 号、region 内偏移；位宽用 `set_width` 配置，默认 32）。
 
 #### 阶段 4：中断（[`__register_irq`](../src/board/hal/vfio/Vfio.c:384)）
 
@@ -99,20 +99,22 @@ mmap 寄存器（IOMMU 隔离）→ eventfd 收中断 → dma_map 做 DMA。全�
 
 #### 阶段 5：DMA（[`__dma_map`](../src/board/hal/vfio/Vfio.c:537) / [`__dma_unmap`](../src/board/hal/vfio/Vfio.c:590)）
 
-- `VFIO_IOMMU_MAP_DMA(container_fd, vaddr→iova, size)`：用户缓冲 → IOVA；
-  IOVA 从内部游标 `vfio->iova`（**0x0F000000 高位窗口**）起按 4K 递增分配，避开低地址保留区/guest RAM，
-  满足 edu 28 位 dma_mask；
+- `VFIO_IOMMU_MAP_DMA(container_fd, {vaddr, iova, size})`：把**用户缓冲 VA** 与**自选 IOVA**
+  一起交给内核，建立 `IOVA → 物理页(PA)` 映射并 pin 住物理页（**IOVA 是输入，不是翻译结果**，
+  详见 6.4.1）；IOVA 从内部游标 `vfio->iova` 起按 4K 递增分配，**起点优先用 `vfio->iova_base`**
+  （调用方/子类可设，未设置则取默认安全值 `VFIO_IOVA_BASE_DEFAULT = 0x0F000000`，避开低地址保留区）；
 - `VFIO_IOMMU_UNMAP_DMA(container_fd, iova, size)` 解除。
 
-#### 阶段 6：设备级搬运（[`Vfio_Pcie.__dma_config`](../src/board/hal/vfio/Vfio_Pcie.c:483) → [`Vfio_Pcie_Edu.__dma_run`](../src/board/hal/vfio/Vfio_Pcie_Edu.c:116) → [`Vfio_Pcie.__dma_copy`](../src/board/hal/vfio/Vfio_Pcie.c:535)）
+#### 阶段 6：设备级搬运（[`Vfio.__dma_map`](../src/board/hal/vfio/Vfio.c:528) → 填 `dma_*` 入参块 → [`Vfio_Pcie_Edu.__dma_run`](../src/board/hal/vfio/Vfio_Pcie_Edu.c:116) → [`Vfio.__dma_unmap`](../src/board/hal/vfio/Vfio.c:580)）
 
-- `dma_config(buf_src, buf_dst, len, dir)`：`dma_map` ×2 得到 src/dst IOVA，记录到
-  `pcie->dma_src_va/dma_dst_va/dma_src/dma_dst/dma_len/dma_dir`；同配置反复 run 不重映射，
-  地址/长度变化先 unmap 旧、再 map 新。
-- `dma_run()`：由具体设备 override（edu 两段中转 guest→dma_buf→guest），触发时 CMD 带 `EDU_DMA_IRQ`，
-  用**中断完成**（[`__edu_dma_irq_handler`](../src/board/hal/vfio/Vfio_Pcie_Edu.c:50) 清中断 → 置 volatile
-  `dma_done`，[`__wait_dma_done`](../src/board/hal/vfio/Vfio_Pcie_Edu.c:77) 轮询）。
-- `dma_copy()`：config→run→unmap 复位状态，一行完成。
+库层不再提供 `dma_config`/`dma_copy`，只保留通用 `dma_map`/`dma_unmap` + 设备相关 `dma_run`：
+
+- 准备（CPU/IOMMU）：调用方 `dma_map(buf_src) → iova_src`、`dma_map(buf_dst) → iova_dst`；
+- 投递（入参块）：把 `iova_src/iova_dst/len` 写入 `pcie->dma_src/dma_dst/dma_len`；
+- `dma_run()`：由具体设备 override（edu 读入参块做两段中转 guest→dma_buf→guest），触发时 CMD 带
+  `EDU_DMA_IRQ`，用**中断完成**（[`__edu_dma_irq_handler`](../src/board/hal/vfio/Vfio_Pcie_Edu.c:50) 清中断 →
+  置 volatile `dma_done`，[`__wait_dma_done`](../src/board/hal/vfio/Vfio_Pcie_Edu.c:77) 轮询）；
+- 清理：调用方 `dma_unmap(iova_src/iova_dst)`（或在 `dma_src_va/dma_dst_va` 标记后由析构自动解除）。
 
 #### 阶段 7：析构（[`Vfio_Pcie.__deconstruct`](../src/board/hal/vfio/Vfio_Pcie.c:584) → [`Vfio.__deconstruct`](../src/board/hal/vfio/Vfio.c:703)，逆序）
 
@@ -127,7 +129,8 @@ mmap 寄存器（IOMMU 隔离）→ eventfd 收中断 → dma_map 做 DMA。全�
 3. 设备 fd 是 **GET_DEVICE_FD 动态拿的匿名 fd**，不是 `/dev` 下的设备节点。
 4. 中断必须用 **eventfd**（device_fd 只能 ioctl，不能 read/poll 拿中断）。
 5. MMIO 的 offset 是**设备 fd 地址空间内的 region 偏移**（VFIO 返回），不是物理地址。
-6. IOVA 从**高位窗口 0x0F000000** 起按页分配，避开低地址保留区，满足 edu 28 位 dma_mask。
+6. IOVA 由**自己挑选**（并非由 VA 翻译而来），起点优先用 `vfio->iova_base`（未设置则用默认
+   `0x0F000000` 高位窗口，避开低地址保留区）；映射完成后设备用 IOVA，由 IOMMU 翻译成物理地址。
 7. `dma_run` 是设备相关唯一接口，藏在具体设备类 override；上层只依赖通用签名。
 
 ## 3. VFIO 用户态 API（Linux 4.9 uapi）
@@ -154,7 +157,7 @@ VFIO_DEVICE_GET_REGION_INFO(dev_fd, &reg)  // vfio_region_info{argsz,flags,index
 mmap(dev_fd, size, R|W, MAP_SHARED, reg.offset)   // region mmap
 VFIO_DEVICE_SET_IRQS(dev_fd, &irqset)  // eventfd 中断
 /* DMA */
-VFIO_IOMMU_MAP_DMA(container_fd, &dma_map)     // vaddr->iova
+VFIO_IOMMU_MAP_DMA(container_fd, &dma_map)     // 入参 (vaddr, iova, size)，建立 IOVA->PA 映射
 VFIO_IOMMU_UNMAP_DMA(container_fd, &dma_unmap)
 ```
 
@@ -211,11 +214,11 @@ Obj
 ```
 
 - `Vfio` 负责**通用机制**：三层 fd 生命周期、region 信息/mmap、eventfd 中断、DMA 映射，
-  并**声明**设备级 DMA 搬运接口 `dma_config`/`dma_run`（默认返回 -1 不支持，供多态）。
+  并**声明**设备级 DMA 搬运接口 `dma_run`（默认返回 -1 不支持，供多态）。
 - `Vfio_Pcie` 负责**PCIe 语义**：按 vendor/device 发现、`iommu_group` 解析、BAR=region、
   寄存器访问复用偏移编码（高位 region、低位偏移，与 `Uio_Pcie.pcie_bar_addr` 一致）；
-  并提供通用 `dma_config`（映射+记录）与 `dma_copy`（config→run→unmap 便捷封装）。
-- `Vfio_Pcie_Edu` 负责**具体设备**（edu）：override `dma_run`，用 edu 寄存器做两段中转搬运。
+  并暴露 `dma_*` 入参块（由调用方填充，供 `dma_run` 读取）。
+- `Vfio_Pcie_Edu` 负责**具体设备**（edu）：override `dma_run`，读入参块用 edu 寄存器做两段中转搬运。
 
 ## 5. API 设计
 
@@ -250,9 +253,14 @@ struct Vfio_s {
     /* 信息 */
     int (*get_info)(Vfio *vfio, vfio_dev_info_t *info);
     int (*get_region_info)(Vfio *vfio, int index, vfio_region_info_t *info);
-    /* region（BAR）mmap */
+    /* region mmap */
     int (*map_region)(Vfio *vfio, int index);   /* 多 region 并存，region_base[] */
     int (*unmap_region)(Vfio *vfio, int index);
+    /* 配置 region 访问位宽：32/64（默认 32，设备相关） */
+    int (*set_width)(Vfio *vfio, int width);
+    /* 通用 region 访问：index/offset；位宽用 set_width 配置的 reg_width */
+    int (*region_read)(Vfio *vfio, int index, uint64_t offset, uint64_t *data);
+    int (*region_write)(Vfio *vfio, int index, uint64_t offset, uint64_t data);
     /* 中断：eventfd + io_worker 异步 */
     int (*register_irq)(Vfio *vfio, int irq_index, int sub_index,
                         vfio_irq_handler_t handler, void *opaque);
@@ -262,9 +270,7 @@ struct Vfio_s {
     int (*dma_map)(Vfio *vfio, void *buf, uint64_t size, uint64_t *iova);
     int (*dma_unmap)(Vfio *vfio, uint64_t iova, uint64_t size);
     /* 设备级 DMA 搬运接口（多态：Vfio 只声明，默认返回 -1 不支持；
-     * 通用 dma_config 由 Vfio_Pcie 提供，dma_run 由具体设备类如 Vfio_Pcie_Edu override） */
-    int (*dma_config)(Vfio *vfio, void *buf_src, void *buf_dst,
-                      uint32_t len, int direction);
+     * 主机内存端由调用方 dma_map 准备，dma_run 由具体设备类如 Vfio_Pcie_Edu override） */
     int (*dma_run)(Vfio *vfio);
 
     /*attribs*/
@@ -287,38 +293,26 @@ struct Vfio_s {
 ```c
 struct Vfio_Pcie_s {
     Vfio parent;
-    /* 按 vendor/device 发现 + 打开（sysfs → iommu_group → 父类 open） */
+    /* 按 vendor/device 发现 + 打开（sysfs → iommu_group → 父类 open）；
+     * 映射/访问 BAR 用父类 region 接口（BAR n = region n） */
     int (*open_device)(Vfio_Pcie *p, uint32_t vendor, uint32_t device);
-    /* 映射指定 BAR（= region），多 BAR 并存 */
-    int (*map_bar)(Vfio_Pcie *p, int bar);
-    /* 寄存器位宽设置（32/64，默认 32） */
-    int (*set_width)(Vfio_Pcie *p, int width);
-    /* 寄存器访问：偏移编码（高位 BAR、低位偏移，同 Uio_Pcie） */
-    int (*read_register)(Vfio_Pcie *p, uint64_t offset, uint64_t *data);
-    int (*write_register)(Vfio_Pcie *p, uint64_t offset, uint64_t data);
-    int (*read_registers)(Vfio_Pcie *p, uint64_t offset, uint64_t *data, uint32_t len);
-    int (*write_registers)(Vfio_Pcie *p, uint64_t offset, uint64_t *data, uint32_t len);
-    /* 设备级 DMA：dma_config（通用实现：dma_map ×2 + 记录）、dma_run（接口，
-     * 默认继承 Vfio 不支持，由具体设备类如 Vfio_Pcie_Edu override）、dma_copy（便捷封装） */
-    int (*dma_config)(Vfio_Pcie *p, void *buf_src, void *buf_dst, uint32_t len, int direction);
+    /* 设备级 DMA：dma_run（接口，默认继承 Vfio 不支持，由具体设备类如
+     * Vfio_Pcie_Edu override）；主机内存端由调用方 dma_map 准备，并写入 dma_* 入参块 */
     int (*dma_run)(Vfio_Pcie *p);
-    int (*dma_copy)(Vfio_Pcie *p, void *buf_src, void *buf_dst, uint32_t len);
     /*attribs*/
     char *bdf;
-    int width;                      /* 寄存器位宽：32 或 64，默认 32 */
-    int bar_shift;                  /* 同 Uio_Pcie，多 BAR 地址编码（默认 12，按需增大） */
-    uint64_t bar_size[6];           /* 各 BAR 大小（字节），0 表示无效 */
-    int bar_mapped[6];              /* 各 BAR 是否已映射（0/1） */
+    /* DMA 搬运入参块（调用方填充，dma_run 读取执行） */
+    void *dma_src_va;               /* 已映射的源缓冲 VA（标记后析构自动 unmap） */
+    void *dma_dst_va;               /* 已映射的目的缓冲 VA（标记后析构自动 unmap） */
+    uint64_t dma_src;               /* 源 IOVA */
+    uint64_t dma_dst;               /* 目的 IOVA */
+    uint32_t dma_len;               /* 长度（字节） */
+    int dma_dir;                    /* 抽象方向：VFIO_DMA_TO_DEVICE/FROM_DEVICE */
 };
-
-/* 把 (BAR 序号, BAR 内偏移) 编码成寄存器访问地址：高位 BAR、低位偏移（同 Uio_Pcie.pcie_bar_addr） */
-static inline uint64_t vfio_pcie_bar_addr(Vfio_Pcie *p, int bar, uint64_t offset)
-{
-    return ((uint64_t)bar << p->bar_shift) | offset;
-}
 ```
-> 说明：`Vfio_Pcie` 不继承 `Uio_Pcie`（两者后端不同：VFIO vs UIO+/dev/mem），
-> 但**复用同样的"偏移编码"约定**（高位 region/BAR、低位偏移），上层使用一致。
+> 说明：`Vfio_Pcie` 不继承 `Uio_Pcie`（两者后端不同：VFIO vs UIO+/dev/mem）。
+> VFIO 侧把 BAR 归一到 region，寄存器访问统一走父类 `region_read/region_write(index, offset, width)`，
+> 不再有独立的偏移编码 / `bar_shift`。
 
 ## 6. 核心实现要点
 
@@ -367,30 +361,144 @@ __register_irq(vfio, irq_index, sub_index, handler, opaque):
 ### 6.4 DMA
 ```c
 __dma_map(vfio, buf, size, *iova):
-  dma = { .argsz, .flags = READ|WRITE, .vaddr = (uint64_t)buf, .iova = <自选/内核建议>, .size };
+  /* ① 先挑一个「设备侧虚拟地址」（IOVA）：内部游标按页递增分配 */
+  if (vfio->iova == 0)                               /* 起点优先 iova_base，未设置用默认高位窗口 */
+      vfio->iova = vfio->iova_base ? vfio->iova_base : 0x0F000000ULL;
+  base = (vfio->iova + PAGE - 1) & ~(PAGE - 1);
+  /* ② 把 (VA, IOVA) 一起交给内核：建立 IOVA->PA 映射并 pin 住物理页 */
+  dma = { .argsz, .flags = READ|WRITE, .vaddr = (uint64_t)buf, .iova = base, .size };
   ioctl(container_fd, VFIO_IOMMU_MAP_DMA, &dma);
-  *iova = dma.iova;   // 设备用 iova 访问
+  *iova = dma.iova;           /* 回传：即上面挑选的 base，设备用它发 DMA */
+  vfio->iova = base + size;   /* 游标前进，下次分配新地址 */
 __dma_unmap(vfio, iova, size):
-  un = { .argsz, .iova, .size };
+  un = { .argsz, .iova, .size };   /* 解映射只能用 IOVA（IOMMU 里登记的就是它） */
   ioctl(container_fd, VFIO_IOMMU_UNMAP_DMA, &un);
 ```
-> IOVA 分配：本实现用内部游标 `vfio->iova` 从 **0x0F000000（240MB）高位窗口**起按页
-> （4K）递增分配，避开低地址保留区/guest RAM 区；同时满足设备 dma_mask
-> （edu 的 dma_mask 为 28 位 < 256MB，该高位窗口兼容）。
+> IOVA 分配：本实现用内部游标 `vfio->iova` 按页（4K）递增；**起点优先用 `vfio->iova_base`**
+> （调用方/子类可设）；未设置时取默认安全值 `VFIO_IOVA_BASE_DEFAULT = 0x0F000000（240MB）`
+> （避开低地址保留区/guest RAM 区，并为常见设备 dma_mask 留出空间）。IOVA 空间/位宽由设备
+> (dma_mask) 与 IOMMU 决定，通用类不假设。
 
-### 6.5 设备级 DMA 搬运接口（dma_config / dma_run / dma_copy）
+#### 6.4.1 地址模型：VA / PA / IOVA 三者关系（重点澄清）
+
+DMA 里同时出现三种地址，最容易混淆，务必区分：
+
+| 地址 | 全称 | 属于谁 | 谁认识它 | 说明 |
+|------|------|--------|----------|------|
+| **VA** | CPU 虚拟地址 | 进程 | MMU | `dma_map` 的入参 `buf` 就是 VA；进程私有，设备不认识 |
+| **PA** | 物理地址 | 内存 | 内存控制器 | VA 与 IOVA 最终都翻译到它 |
+| **IOVA** | I/O 虚拟地址（设备侧虚拟地址） | 设备 | IOMMU | 设备 DMA 寄存器里填的就是它 |
+
+**五条关键结论（易错点）：**
+
+1. **VA 不能直接给设备**：设备 DMA 寄存器不认 CPU 的 VA；把 VA 填进去会被当成总线地址，
+   翻译不到期望内存，甚至触发 IOMMU fault（DMAR fault / SMMU abort）。
+2. **IOVA 不是"把 VA 翻译得到的"**：IOVA 是**独立的 I/O 地址空间**，由驱动/内核
+   **自行挑选或分配**，与 VA 的数值没有换算关系。三者的正确关系是"两条路汇聚到同一块 PA"：
+
+       VA  --(MMU 页表)-->  PA  <--(IOMMU 页表)--  IOVA
+
+   即 **VA 与 IOVA 是平级的两个虚拟地址**，各自翻译到同一块物理内存（`buf`），
+   而不是"VA → IOVA"的翻译关系。
+3. **IOVA 是 dma_map 的"输入"，不是输出**：`VFIO_IOMMU_MAP_DMA` 接收 `(vaddr, iova, size)`
+   —— `vaddr` 告诉内核"要映射哪块内存"，`iova` 是**调用方事先选好的设备侧地址**。
+   ioctl 只负责"建立 `IOVA → PA` 映射表项并 pin 住物理页"，**不替调用方分配 IOVA**
+   （因此 `*iova` 回传的就是传入值）。这正是本实现要维护 `vfio->iova` 游标的原因。
+4. **翻译的终点一定是 PA**：IOMMU 页表项里存的是**输出物理地址（PFN）+ 权限位**；
+   设备从不看页表，是 IOMMU 代替设备去查表；页表基址存在 IOMMU 硬件寄存器里，不属于 IOVA。
+5. **无 IOMMU 时**：总线地址就等于物理地址（直通/无转换），此时 DMA 寄存器要填 PA，
+   "IOVA"这个概念不存在。本类依赖 `CONFIG_VFIO_IOMMU_TYPE1`，**必有 IOMMU**，
+   所以这里的"总线地址"恒为 IOVA。
+
+**本实现的完整数据流：**
+
+```
+   CPU 侧   buf(VA) ──(MMU)──► PA ─┐
+                                   │ 同一块物理内存
+   VFIO 侧  dma_map(buf, size, &iova) ── 建立 IOVA→PA 映射、pin 物理页
+                                   │
+   设备侧   DMA 寄存器 := IOVA ──(IOMMU 翻译)──► PA ──► 读写 buf 的真实物理页
+```
+
+> 一句话记忆：**VA 和 IOVA 是两个门牌，指向同一栋房子（PA）；IOVA 是给设备的门牌，
+> 由你挑选后连同 VA 一起交给 IOMMU 登记，而不是从 VA 换算来的。**
+
+#### 6.4.2 一次 DMA 的两端地址：谁提供、谁投递（常见误区澄清）
+
+> **常见误区**：以为"做 DMA 要给外设配置它在总线上的虚拟地址"、或者"把外设 BAR 的地址
+> 填进 `dma_map` 就能让数据搬进外设"。**这两点都是错的**——见下。
+
+一次 DMA 要访问两个端点，但**两个端点的地址来源与投递方式并不相同**：
+
+| 端点 | 地址从哪来 | 需要 `dma_map` 吗 | 怎么交给设备 |
+|------|-----------|------------------|-------------|
+| **主机内存** | 你 `dma_map` 产出的 IOVA | ✅ 需要 | 写进设备 DMA 寄存器（MMIO） |
+| **设备自身**（内部 FIFO/缓冲，隐含端） | 无地址，设备内部固定 | ❌ 不需要 | 不用配（设备自己知道） |
+| **另一个可寻址端点**（另一块内存 / 对端 BAR） | 内存→IOVA；BAR→其总线物理地址 | 内存要 map；**BAR 不能 map** | 写进设备 DMA 寄存器（MMIO） |
+
+**两阶段模型（准备 + 投递），不是"两端各管各的"：**
+
+```
+① 准备（VFIO / IOMMU）：dma_map(VA) ──► 产出 IOVA，并在 IOMMU 建 IOVA→PA，
+                        使这块主机内存可被设备 DMA 访问
+② 投递（MMIO 寄存器）：把设备需要访问的地址（内存端 IOVA；若有第二端点则还有它的地址）
+                        写进设备 DMA 寄存器（SRC/DST/CNT…）
+③ 触发（MMIO 寄存器）：写 DMA 启动位 ──► 设备作为 master 按这些地址搬运
+```
+
+**五条要点：**
+
+1. **VFIO 和 MMIO 不是"各管一端"**，而是同一条链路的"**准备**"与"**投递**"两步，都服务于
+   "让设备访问那块内存"。
+2. **`dma_map` 只负责主机内存端**：它建立 `IOVA→PA` 映射，但**不会把 IOVA 告诉设备**——
+   投递必须靠 MMIO 寄存器（如 `dma_run` 里写 `SRC/DST/CNT`）。
+3. **"设备端地址通过寄存器配置"要修正**：通过寄存器配的通常是**内存端的 IOVA**；
+   **设备自身端一般没有地址、不配置**。以 edu 为例，`dma_run` 写 `EDU_DMA_SRC/EDU_DMA_DST`
+   填的都是**内存端 IOVA**（见 [`Vfio_Pcie_Edu.c`](../src/board/hal/vfio/Vfio_Pcie_Edu.c:146)）。
+4. **不要把外设 BAR 的地址填进 `dma_map.vaddr`**：BAR 是 MMIO（VMA 带 `VM_IO|VM_PFNMAP`），
+   没有可 pin 的页，`VFIO_IOMMU_MAP_DMA` 会失败。要 DMA 到 BAR / 对端设备只能走 **P2P**：
+   把对端 **BAR 的总线物理地址**直接写进设备 DMA 目标寄存器（需拓扑/IOMMU 支持），
+   **不经过 `dma_map`**。
+5. **"只配一端"何时成立**：当另一端就是设备自身（隐含端）时，CPU 只需 `dma_map` 内存端并把 IOVA
+   投递给设备；若两端都要显式地址（如 edu 的复制机模型），则两端都要 map、都要投递。
+
+**三种典型场景：**
+
+```
+A. 单端（设备端隐含，真设备读/写内存）
+   dma_map(RAM) → iova ──[MMIO]──► 设备寄存器 SRC := iova
+   设备自己 DMA 读内存进内部（设备端无地址，不配）
+
+B. 两端都是内存（edu 复制机）
+   dma_map(src) → iova_s ──[MMIO]──► SRC := iova_s
+   dma_map(dst) → iova_d ──[MMIO]──► DST := iova_d
+
+C. 一端内存 + 一端外设 BAR（P2P，当前实现不支持）
+   dma_map(RAM) → iova  ──[MMIO]──► 设备寄存器 := iova       （内存端 IOVA）
+   对端 BAR 总线物理地址 ──[MMIO]──► 设备寄存器 := peer_bar   （不 map）
+```
+
+> 一句话：**`dma_map` 准备内存端的 IOVA，MMIO 把地址"投递"给设备；设备端若是自身则无地址可配。**
+> **不需要、也不能给 `dma_map` 配置"外设的总线虚拟地址"。**
+
+> 与当前实现的关系：库层已**移除** `dma_config`/`dma_copy`，只保留通用 `dma_map`/`dma_unmap` +
+> 设备相关 `dma_run`。三种场景统一表达为：
+>   A. 单端（设备端隐含）：`dma_map(内存)` 得到 IOVA，填 `dma_src`，调 `dma_run`；
+>   B. 两端都是内存（edu 复制机）：`dma_map ×2`，填 `dma_src/dma_dst`，调 `dma_run`；
+>   C. 一端内存 + 一端外设 BAR（P2P）：`dma_map` 只 map 内存端，BAR 端直接填其**总线物理地址**。
+> "设备端配置"仍由具体设备类的 `dma_run` 决定（库不预设），映射/解映射由调用方负责
+> （或在 `dma_src_va/dma_dst_va` 标记后由 `Vfio_Pcie.__deconstruct` 自动解除）。
+
+### 6.5 设备级 DMA 搬运接口（dma_run）
 ```c
 /* 抽象方向：VFIO_DMA_TO_DEVICE（设备读 guest）/ VFIO_DMA_FROM_DEVICE（设备写 guest） */
-int (*dma_config)(Vfio *vfio, void *buf_src, void *buf_dst,
-                  uint32_t len, int direction);   /* 配置（映射+记录），不触发 */
-int (*dma_run)(Vfio *vfio);                        /* 触发并等待完成（同步阻塞） */
-int (*dma_copy)(Vfio_Pcie *p, void *buf_src, void *buf_dst, uint32_t len);
+int (*dma_run)(Vfio *vfio);   /* 读 Vfio_Pcie.dma_* 入参块，触发并等待完成（同步阻塞） */
 ```
-- **分层**：`Vfio` 只声明 `dma_config`/`dma_run` 接口（默认返回 -1，供多态）；
-  `Vfio_Pcie` 提供通用实现 `dma_config`（内部 `dma_map` ×2 得到 IOVA，记录到
-  `pcie->dma_src_va/dma_dst_va/dma_src/dma_dst/dma_len/dma_dir`；**同一配置反复
-  `dma_run` 不重映射，地址/长度变化时先解除旧映射再重新映射**，避免 IOVA 泄漏）与
-  `dma_copy`（`dma_config` → `dma_run` → 解除映射并复位状态，一行完成）；
+- **分层**：库层**只保留通用的 `dma_map`/`dma_unmap`**（CPU/IOMMU 侧）与设备相关的
+  `dma_run`（`Vfio` 声明，默认返回 -1；`Vfio_Pcie_Edu` override）。原先"两端都是内存"的
+  `dma_config`/`dma_copy` 已移除——它们只适配 edu 复制机模型，不通用。
+- **调用方职责**：先 `dma_map(VA) → IOVA`，把 IOVA/长度写入 `pcie->dma_src/dma_dst/dma_len`
+  入参块，再调 `dma_run`；最后自己 `dma_unmap`。
   `Vfio_Pcie_Edu` override `dma_run`（edu 只能 guest↔dma_buf，故两段中转）。
 - **中断完成（无锁）**：`Vfio_Pcie_Edu.dma_run` 触发时 CMD 置 `EDU_DMA_IRQ(0x4)`，
   用 `register_irq`（eventfd + io_worker）把 edu 的 DMA_IRQ 绑到中断处理函数；
@@ -407,31 +515,12 @@ int (*dma_copy)(Vfio_Pcie *p, void *buf_src, void *buf_dst, uint32_t len);
   后读 `irq_status(0x24)=0x100`（设备侧 `edu_raise_irq` 已置 DMA_IRQ 并 `msi_notify`），
   但 **guest 一直收不到该 LPI** → `dma_run` 超时。结论：代码路径正确（INTx 中断完成
   正常），断点位于 **QEMU TCG 的 MSI→ITS→LPI 投递**（本环境 QEMU v11.1 已启用
-  `tcg_its`，`virt.c:2934` AUTO→ITS，`create_its()` 正常创建）。定位手段：
-  ```sh
-  # QEMU 侧（重启加 -d trace，事件名以 hw/intc/trace-events 为准，无 arm_ 前缀）。
-  # -d 的 item 是逗号分隔，多个 trace: 用逗号连成一条即可，追加在 11.2 启动命令末尾：
-  -d trace:gicv3_its_translation_write,trace:gicv3_its_write,\
-trace:gicv3_its_process_command,trace:gicv3_its_cmd_mapd,\
-trace:gicv3_its_cmd_mapti,trace:gicv3_its_dte_read,\
-trace:gicv3_its_dte_read_fault,trace:gicv3_its_ite_read,\
-trace:gicv3_its_ite_read_fault,trace:gicv3_its_cte_read,\
-trace:gicv3_its_cte_read_fault
-  # 判读：
-  #  - gicv3_its_translation_write 无输出          → MSI 写没到 ITS（地址/路由问题）
-  #  - translation_write 有，但 dte/ite/cte 显示 fault
-  #    或 *_read 无对应记录                          → 设备表/ITT/CTT 查找失败（guest ITS
-  #      driver 没建表，或 requester_id 与 devid 不匹配）
-  #  - gicv3_its_write 里没看到 GITS_CTLR 使能位    → ITS 未被 guest 启用
-  # guest 侧可核对：
-  #   dmesg | grep -i its        # ITS 驱动是否初始化
-  #   cat /proc/interrupts | grep -i msi
-  ```
-  在 QEMU TCG 环境建议用 **INTx（默认）**，MSI 需 KVM/真实硬件或待 QEMU ITS 投递修复。
+  `tcg_its`，`virt.c:2934` AUTO→ITS，`create_its()` 正常创建）。
 - **设备差异封装**：`dma_run` 触发方式每台设备不同（写 CMD 位/doorbell/描述符环），
   全部藏在具体设备类的 override 中；上层只依赖通用签名。
-- **自动清理**：`Vfio_Pcie.__deconstruct` 会自动对 `dma_config` 遗留的映射
-  `dma_unmap` ×2（析构顺序子类先、父类后，此时容器 fd 仍有效），调用方无需显式 unmap。
+- **可选自动清理**：若调用方在 `dma_src_va/dma_dst_va` 里标记了已映射缓冲，
+  `Vfio_Pcie.__deconstruct` 会自动 `dma_unmap`（析构顺序子类先、父类后，此时容器 fd
+  仍有效）；未标记则由调用方显式 unmap。
 
 ## 7. 错误处理与线程安全
 
@@ -467,7 +556,7 @@ trace:gicv3_its_cte_read_fault
 - 确认 `/sys/bus/pci/devices/0000:00:02.0/iommu_group` 存在。
 
 ### 8.3 测试用例建议
-- `test_vfio_pcie`：open_device(edu) → map_bar(0) → 读 ID 寄存器（0x10000ed）→
+- `test_vfio_pcie`：open_device(edu) → map_region(0) → 读 ID 寄存器（0x10000ed）→
   写读 addr4 往返（同 test_uio_pcie，但走 VFIO region mmap）。
 - `test_vfio_dma`：`dma_map` 两段缓冲（src/dst）→ 触发 edu DMA 引擎做**两段式内存搬运**
   `buf_src →(FROM_PCI)→ edu dma_buf →(TO_PCI)→ buf_dst` → 轮询 RUN 位完成 →
@@ -479,10 +568,10 @@ trace:gicv3_its_cte_read_fault
 | `src/include/libobject/board/hal/vfio/Vfio.h` | Vfio 基类头文件（已实现） |
 | `src/board/hal/vfio/Vfio.c` | Vfio 实现：三层 fd/open/close、get_info/get_region_info、map_region/unmap_region、register_irq（eventfd+io_worker）、mask/unmask_irq、dma_map/dma_unmap（IOVA 高位窗口游标） |
 | `src/include/libobject/board/hal/vfio/Vfio_Pcie.h` | Vfio_Pcie 头文件（已实现） |
-| `src/board/hal/vfio/Vfio_Pcie.c` | Vfio_Pcie 实现：open_device（sysfs 发现 + iommu_group 解析 + 绑定 vfio-pci + 读 BAR size）、map_bar（bar_shift 动态）、set_width + 偏移编码寄存器访问（`vfio_pcie_bar_addr`，高位 BAR 低位偏移）、通用 dma_config/dma_copy |
+| `src/board/hal/vfio/Vfio_Pcie.c` | Vfio_Pcie 实现：open_device（sysfs 发现 + iommu_group 解析 + 绑定 vfio-pci）、`dma_*` 入参块（供 dma_run 使用）；映射/访问 BAR 走父类 region 接口 |
 | `src/include/libobject/board/hal/vfio/Vfio_Pcie_Edu.h` | Vfio_Pcie_Edu 头文件（已实现）：继承 Vfio_Pcie，override dma_run |
 | `src/board/hal/vfio/Vfio_Pcie_Edu.c` | Vfio_Pcie_Edu 实现：edu DMA 两段中转（guest→dma_buf→guest）触发，DMA 完成用中断（register_irq + 条件变量）等待（已实现） |
-| `tests/board/test_vfio_dma.c` | 测试：edu DMA 引擎演示 `pcie->dma_copy` → 两段式 mem-to-mem 往返（guest mem → edu dma_buf → guest mem）校验（已实现） |
+| `tests/board/test_vfio_dma.c` | 测试：edu DMA 引擎演示 —— `dma_map ×2` + 填 `dma_*` 入参块 + `dma_run` → 两段式 mem-to-mem 往返（guest mem → edu dma_buf → guest mem）校验，测试自行 `dma_unmap`（已实现） |
 | `doc/board/vfio设计文档.md` | 本文档 |
 
 > 构建：`src/board/CMakeLists.txt` 与 `tests/CMakeLists.txt` 都用 `file(GLOB_RECURSE)`，
@@ -499,22 +588,31 @@ trace:gicv3_its_cte_read_fault
 - **register_irq**：eventfd + `VFIO_DEVICE_SET_IRQS(DATA_EVENTFD|ACTION_TRIGGER)` + io_worker
   异步（同 [`Uio.register_irq`](../src/board/hal/uio/Uio.c:399)）。`vfio_irq_set.data[]` 为柔性数组，
   用"内嵌 set + 尾随 `__s32`"的局部结构体避免堆分配（消除 memcpy 溢出警告）。
-- **dma_map**：`VFIO_IOMMU_MAP_DMA`，内部 IOVA 游标 `vfio->iova` 从 **0x0F000000（240MB）高位
-  窗口**起按页（4K）递增分配，避开低地址保留区/guest RAM，同时满足 edu 的 28 位 dma_mask。
+- **dma_map**：`VFIO_IOMMU_MAP_DMA`，IOVA 游标 `vfio->iova` 按页（4K）递增；**起点优先用**
+  `vfio->iova_base`（未设置则默认 `0x0F000000` 高位窗口，避开低地址保留区/guest RAM）。
 
 ### 10.2 Vfio_Pcie 子类（[`Vfio_Pcie.c`](../src/board/hal/vfio/Vfio_Pcie.c)）
 - **open_device**：按 vendor/device 扫 `/sys/bus/pci/devices` → 解析
   `/sys/bus/pci/devices/<BDF>/iommu_group`（symlink 末尾数字 → `/dev/vfio/<N>`）→
-  绑定 vfio-pci（先解绑 uio_pci_generic，再写 `new_id`，必要时显式 bind）→
-  读 `/sys/.../resource` 各 BAR 大小（供 `bar_shift` 估算）→ 调父类 `open`。
-- **map_bar**：BAR = region 索引，先 `get_region_info` 确认可 mmap 且 size>0；
-  `vfio_pcie_bar_addr(bar, off) = (bar<<bar_shift)|off`；`bar_shift` 默认 12，
-  按**所有已映射 BAR** 取最大动态增大（保证多 BAR 编码一致），并记录 `bar_mapped[]`。
-- 寄存器访问在 **region mmap 基址**上做（非 `/dev/mem`）：`set_width(32/64)` 设位宽（默认 32）；
-  `read/write_register` 访问单个寄存器，`read/write_registers` 批量访问（返回实际读写个数，
-  越界自动按 BAR 大小截断）。
+  绑定 vfio-pci（先解绑 uio_pci_generic，再写 `new_id`，必要时显式 bind）→ 调父类 `open`。
+- **BAR 映射**：BAR n = region n（VFIO-PCI 约定），直接调用父类 `map_region(bar)`（已无独立 map_bar）；
+  无独立地址编码，也不需 `bar_shift`/`bar_size[]`/`bar_mapped[]`。
+- 寄存器访问统一用父类 `region_read`/`region_write`（index=region/BAR 号、region 内偏移；
+  位宽用父类 `set_width` 配置——edu 在 construct 里 `set_width(32)`），
+  在 **region mmap 基址**上做（非 `/dev/mem`），越界按 region size 校验。
 
 ## 11. 环境准备（guest 验证前）
+### 11.0 编译xtools
+> 编译host 侧，必做：本 guest 是 aarch64（`-M virt,iommu=smmuv3`），且 QEMU 用
+> `-virtfs` 直接共享 host 的 `sysroot/linux/aarch64`。因此**每次改完代码都要用 aarch64 目标
+> 重新编译**，否则 guest 里跑的还是旧 `xtools`（表现为日志内容/行号不更新）：
+> ```sh
+> ./devops.sh build --platform=linux --arch=aarch64
+> ```
+> - 产物：`sysroot/linux/aarch64/bin/xtools`（guest 经 9p 直接使用，**无需再拷贝**）；
+> - **默认 `./devops.sh build --platform=linux` 是 x86_64**，不能用于本 guest；
+> - ARM 构建会自动排除 `src/archive`、`object-stub` 等模块（见 [`mk/linux.cmake`](../mk/linux.cmake)）；
+> - 改完可先自检：`strings -a sysroot/linux/aarch64/bin/xtools | grep "edu DMA done"`。
 
 ### 11.1 内核（[`linux-4.9.263/.config`](../linux-4.9.263/.config)）
 已具备：`CONFIG_VFIO=y`、`CONFIG_VFIO_IOMMU_TYPE1=y`、`CONFIG_VFIO_PCI=y`。
@@ -571,8 +669,9 @@ export LD_LIBRARY_PATH=/mnt/lib
 #   test_vfio_dma
 #   edu device opened via VFIO, num_regions:..., num_irqs:...
 #   edu id reg[0x00] = 0x10000ed
-#   dma_map ok, src:...->iova:0x..., dst:...->iova:0x..., len:4096
-#   edu DMA done, src[0..3] = 00 01 02 03, dst[0..3] = 00 01 02 03
+#   vfio dma_map success, buf:..., size:0x1000, iova:0x...
+#   vfio register_irq ok, index:0, sub:0, ...
+#   edu DMA done 2, src[0..3] = 00 01 02 03, dst[0..3] = 00 01 02 03
 #   mem-to-mem DMA round-trip ok (guest mem -> edu dma_buf -> guest mem)
 #   vfio dma demo ok (FROM_PCI + TO_PCI)
 ```
@@ -592,7 +691,7 @@ xtools mockery test_uio_pcie     # edu 寄存器路径（32 位取反修复验�
 | DMA | 不支持 | `VFIO_IOMMU_MAP_DMA`（共享内存/IOVA） |
 | 隔离 | 无（/dev/mem） | IOMMU group 隔离 |
 | 依赖 | UIO + CONFIG_DEVMEM | IOMMU（SMMU）+ vfio-pci |
-| 寄存器偏移编码 | `pcie_bar_addr`（高位 BAR 低位偏移） | `vfio_pcie_bar_addr`（同约定） |
+| 寄存器访问 | `pcie_bar_addr` + read/write_register（偏移编码） | region_read/region_write（index=BAR/region、offset、width） |
 
 ## 13. VFIO 核心概念与理论（FAQ 整理）
 
@@ -787,4 +886,16 @@ vIRQ、或 virtio 软件模拟的 MSI-X。
    （设备位于 IOMMU 后就有，与驱动无关）；但 `/dev/vfio/<N>` 节点、组 viable
    需要设备**绑定 vfio-pci** 才会具备（由
    [`__bind_to_vfio`](../src/board/hal/vfio/Vfio_Pcie.c:96) 完成）。
+
+### 13.10 IOVA 是"把 CPU 虚拟地址翻译过来"的吗？设备 DMA 寄存器认 IOVA 还是物理地址？
+
+- **不是**。IOVA 是**独立的设备侧虚拟地址**，由驱动/内核自行挑选或分配，与 VA 无换算关系；
+  VA 和 IOVA 是平级的两个虚拟地址，各自经 MMU / IOMMU 翻译到**同一块物理地址（PA）**。
+- **设备 DMA 寄存器认的是"总线地址"**（Linux 里叫 `dma_addr_t`）：
+  - **有 IOMMU 时**（本类场景，依赖 `CONFIG_VFIO_IOMMU_TYPE1`）→ 填 **IOVA**，由 IOMMU 翻成 PA；
+  - **无 IOMMU / 直通时** → 填 **物理地址**，不经转换。
+  两种情况驱动代码写法一致，因为 `dma_map` 已把"该填什么"抽象好了。
+- **IOVA 是 dma_map 的输入**：ioctl 收到的是 `(vaddr, iova, size)`，只建 `IOVA→PA` 表项，
+  不替你分配 IOVA（`*iova` 回传的就是传入值）；本实现用 `vfio->iova` 游标自行分配。
+- 详细推导见 **6.4.1 地址模型：VA / PA / IOVA 三者关系**。
 

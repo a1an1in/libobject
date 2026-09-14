@@ -16,13 +16,13 @@ enum {
 /*
  * Vfio_Pcie_Edu 类：QEMU edu 教学设备（vendor 0x1234, device 0x11e8）的具体 VFIO 驱动。
  *
- * 继承 Vfio_Pcie 的通用机制（发现/BAR/寄存器访问、dma_config 通用配置、dma_copy
- * 便捷搬运），只实现 edu 特有的 DMA 触发 dma_run：
- *   - dma_run：把 dma_config 记录的 (dma_src, dma_dst, dma_len) 通过 edu 的
+ * 继承 Vfio_Pcie 的通用机制（发现/BAR/寄存器访问、dma_* 入参块），只实现 edu 特有的
+ * DMA 触发 dma_run：
+ *   - dma_run：读取调用方填好的 Vfio_Pcie.dma_src/dma_dst/dma_len，通过 edu 的
  *     SRC/DST/CNT/CMD 寄存器做两段中转搬运（guest→dma_buf→guest）并等待完成。
- *   - dma_config / dma_copy：继承 Vfio_Pcie 的通用实现（DEFINE_CLASS 里 value 为 NULL）。
+ *   （主机内存端由调用方先 dma_map 得到 IOVA 并填入 dma_*，调用方负责 dma_unmap。）
  *
- * 注意：edu DMA 寄存器是 32 位，搬运前需 set_width(32)。
+ * 注意：edu DMA 寄存器是 32 位，region_read/region_write 固定传 reg_width=32。
  *
  * 继承关系：Obj -> Vfio -> Vfio_Pcie -> Vfio_Pcie_Edu
  */
@@ -37,12 +37,8 @@ struct Vfio_Pcie_Edu_s {
     void *(*get)(Vfio_Pcie_Edu *, char *attrib);
     char *(*to_json)(Vfio_Pcie_Edu *);
 
-    /* 以下接口继承 Vfio_Pcie（DEFINE_CLASS 里 value 为 NULL，dma_run 除外） */
-    int (*dma_config)(Vfio_Pcie_Edu *, void *buf_src, void *buf_dst,
-                      uint32_t len, int direction);
+    /* override Vfio.dma_run：读取 Vfio_Pcie.dma_src/dma_dst/dma_len 触发 edu 两段搬运 */
     int (*dma_run)(Vfio_Pcie_Edu *);
-    int (*dma_copy)(Vfio_Pcie_Edu *, void *buf_src, void *buf_dst,
-                    uint32_t len);
 
     /*attribs*/
     int dma_timeout_ms;  /* 完成超时（ms），默认 5000 */

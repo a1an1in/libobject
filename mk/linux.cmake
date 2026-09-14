@@ -14,6 +14,7 @@ macro (set_cmake_evironment_variable)
         set(BZ2_LIB "bz2")                   # x86_64 平台链接 bz2
         set(LZMA_LIB "lzma")                 # x86_64 平台链接 lzma
         set(STUB_LIB "object-stub")          # x86_64 平台链接 object-stub
+        set(ARCHIVE_LIB "object-archive")    # x86_64 平台链接 object-archive
     elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
         message(STATUS "aarch64 platform detected.")
         set(COMPRESS_LIB "")  # aarch64 平台不链接 object-compress
@@ -24,6 +25,7 @@ macro (set_cmake_evironment_variable)
         set(BZ2_LIB "")       # aarch64 平台不链接 bz2
         set(LZMA_LIB "")      # aarch64 平台不链接 lzma
         set(STUB_LIB "")      # aarch64 平台暂不支持 object-stub
+        set(ARCHIVE_LIB "")   # aarch64 平台暂不支持 object-archive（arm 编译先去掉 archive 库）
     elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
         message(STATUS "32-bit ARM platform detected.")
         set(COMPRESS_LIB "")  # ARM 平台不链接 object-compress
@@ -34,6 +36,7 @@ macro (set_cmake_evironment_variable)
         set(BZ2_LIB "")       # ARM 平台不链接 bz2
         set(LZMA_LIB "")      # ARM 平台不链接 lzma
         set(STUB_LIB "object-stub")  # 32 位 ARM 平台链接 object-stub
+        set(ARCHIVE_LIB "")          # 32 位 ARM 平台暂不支持 object-archive
     else()
         message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_PROCESSOR}")
     endif()
@@ -47,7 +50,7 @@ macro (set_cmake_evironment_variable)
             object-mockery
             object-board
             object-node
-            object-archive
+            ${ARCHIVE_LIB}  # 动态控制是否链接 object-archive
             ${COMPRESS_LIB} # 动态控制是否链接 object-compress
             object-scripts
             ${ATTACHER_LIB} # 动态控制是否链接 object-attacher
@@ -81,7 +84,6 @@ macro (add_module_lists)
         "src/node"
         "src/crypto"
         "src/scripts"
-        "src/archive"
         "src/board"
         "3rd/attacher-builtin"
         "3rd/test_process"
@@ -98,11 +100,12 @@ macro (add_module_lists)
         list(APPEND module_lists "src/database") # 非 ARM 平台添加 database
         list(APPEND module_lists "src/compress") # 非 ARM 平台添加 compress
         list(APPEND module_lists "src/stub")     # 非 ARM 平台添加 stub
+        list(APPEND module_lists "src/archive")  # 非 ARM 平台添加 archive
     elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
-        message(STATUS "aarch64 platform detected. Skipping stub module.")
-        # aarch64 平台暂不支持 stub（stub 依赖动态加载特性，arm64 先不支持）
+        message(STATUS "aarch64 platform detected. Skipping stub and archive modules.")
+        # aarch64 平台暂不支持 stub（依赖动态加载特性）；暂不支持 archive（arm 编译先去掉 archive 库）
     else()
-        message(STATUS "ARM platform detected. Skipping attacher, database, and compress modules.")
+        message(STATUS "ARM platform detected. Skipping attacher, database, compress and archive modules.")
         list(APPEND module_lists "src/stub")     # 32 位 ARM 平台添加 stub
     endif()
 

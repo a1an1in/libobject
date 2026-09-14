@@ -12,16 +12,17 @@
  *
  * 用 QEMU 的 edu 设备（vendor 0x1234, device 0x11e8）+ SMMUv3（IOMMU）：
  *   1. open_device 发现 + 绑定 vfio-pci + 三层 fd（container/group/device）
- *   2. map_bar(0) 映射 BAR0（region mmap，IOMMU 隔离，替代 /dev/mem）
+ *   2. map_region(0) 映射 region 0（= BAR0，IOMMU 隔离，替代 /dev/mem）
  *   3. 读 ID 寄存器验证 region mmap 路径
  *   4. 分配两个页对齐缓冲 buf_src/buf_dst
- *   5. 用 dma_config/dma_run 做"内存到内存"搬运（显式使用配置/触发接口）：
- *        dma_config(buf_src, buf_dst, len, dir)：
- *          内部 dma_map ×2（用户缓冲 → IOVA）+ 记录配置，不触发
+ *   5. 用 dma_map + dma_run 做"内存到内存"搬运（库只提供通用 dma_map/dma_unmap 与
+ *      设备相关 dma_run；映射/解映射由本测试自己负责，不再有 dma_config/dma_copy）：
+ *        dma_map(buf_src) → iova_src；dma_map(buf_dst) → iova_dst   （CPU 侧准备）
+ *        填 pcie->dma_src/dma_dst/dma_len                           （投递入参块）
  *        dma_run()：触发搬运并等待完成；edu 内部经 dma_buf 两段中转
  *          第 1 段（VFIO_DMA_TO_DEVICE）：guest(iova_src) → edu dma_buf
  *          第 2 段（VFIO_DMA_FROM_DEVICE）：edu dma_buf → guest(iova_dst)
- *      解除映射由析构自动完成（Vfio_Pcie.__deconstruct 自动 dma_unmap ×2）
+ *      测试在 FINALLY 里自己 dma_unmap ×2（不依赖析构自动清理）
  *   6. 校验 buf_dst 内容 == buf_src 原数据（验证 IOVA 读 + IOVA 写两条 DMA 路径）
  *
  * 注意：edu 的 dma_buf 是设备内部缓冲，guest 不能通过 BAR mmap 直接读写它，所以
@@ -46,6 +47,7 @@ static int test_vfio_dma(TEST_ENTRY *entry)
     Vfio_Pcie *pcie = NULL;
     Vfio *vfio = NULL;
     uint64_t val = 0;
+    uint64_t src_iova = 0, dst_iova = 0;
     int len = 4096, i;
     uint8_t *buf_src = NULL;
     uint8_t *buf_dst = NULL;
@@ -68,18 +70,17 @@ static int test_vfio_dma(TEST_ENTRY *entry)
             dbg_str(DBG_INFO, "edu device opened via VFIO, num_regions:%u, "
                     "num_irqs:%u", vfio->info.num_regions, vfio->info.num_irqs);
 
-            /* 2. 映射 BAR0（region mmap）+ 寄存器位宽（edu DMA 寄存器是 32 位） */
-            EXEC(pcie->map_bar(pcie, 0));
-            EXEC(pcie->set_width(pcie, 32));
+            /* 2. 映射 region 0（= BAR0，region mmap；BAR n = region n） */
+            EXEC(vfio->map_region(vfio, 0));
 
-            /* 3. 读 ID 寄存器（验证 region mmap 路径，期望 0x010000ed） */
-            EXEC(pcie->read_register(pcie, vfio_pcie_bar_addr(pcie, 0, EDU_REG_ID),
-                                     &val));
+            /* 3. 读 ID 寄存器（通用 region_read：index=0=BAR0；位宽用已配置的
+             *    默认值——edu 在 construct 里 set_width(32)；期望 0x010000ed） */
+            EXEC(vfio->region_read(vfio, 0, EDU_REG_ID, &val));
             dbg_str(DBG_INFO, "edu id reg[0x00] = 0x%llx",
                     (unsigned long long)val);
             THROW_IF(val != EDU_ID_EXPECT, -1);
 
-            /* 4. 分配两个页对齐缓冲（dma_config 内部会 dma_map） */
+            /* 4. 分配两个页对齐缓冲（下面 dma_map 会映射它们，需页对齐） */
             buf_src = mmap(NULL, len, PROT_READ | PROT_WRITE,
                            MAP_SHARED | MAP_ANONYMOUS, -1, 0);
             THROW_IF(buf_src == MAP_FAILED, -1);
@@ -93,20 +94,25 @@ static int test_vfio_dma(TEST_ENTRY *entry)
             }
             memset(buf_dst, 0, len);
 
-            /* 6. 内存到内存搬运：用 dma_config/dma_run 显式执行
+            /* 6. 内存到内存搬运：dma_map 准备 IOVA → 填 dma_* 入参块 → dma_run 触发
              *    - 中断方式可切换：dma_irq_mode = EDU_IRQ_INTX / EDU_IRQ_MSI；
              *      默认 INTx（本 QEMU TCG 环境 MSI→ITS→LPI 投递不可用，
              *      register_irq 能注册、设备会发 MSI，但 guest 收不到中断；
              *      改为 EDU_IRQ_MSI 可在 KVM/真实硬件上验证，边沿触发无需 unmask）；
-             *    - dma_config：映射 src/dst 缓冲 → IOVA 并记录配置（内部 dma_map ×2，
-             *      不触发；同配置可反复 dma_run 复用，此处演示一次）；
-             *    - dma_run    ：触发搬运并等待完成（edu 内部经 dma_buf 两段中转）。 */
+             *    - dma_map    ：把主机内存 buf_src/buf_dst 映射为 IOVA（CPU 侧准备）；
+             *    - dma_* 入参块：把 IOVA/长度投递给设备（dma_run 读取执行）；
+             *    - dma_run    ：触发搬运并等待完成（edu 内部经 dma_buf 两段中转）。
+             *      映射由本测试负责解除（下面显式 dma_unmap ×2）。 */
             ((Vfio_Pcie_Edu *)pcie)->dma_irq_mode = EDU_IRQ_INTX;
             dbg_str(DBG_INFO, "edu dma irq mode = %s",
                     (((Vfio_Pcie_Edu *)pcie)->dma_irq_mode == EDU_IRQ_MSI)
                     ? "MSI" : "INTx");
-            EXEC(pcie->dma_config(pcie, buf_src, buf_dst, len,
-                                 VFIO_DMA_TO_DEVICE));
+            EXEC(vfio->dma_map(vfio, buf_src, (uint64_t)len, &src_iova));
+            EXEC(vfio->dma_map(vfio, buf_dst, (uint64_t)len, &dst_iova));
+            pcie->dma_src = src_iova;
+            pcie->dma_dst = dst_iova;
+            pcie->dma_len = (uint32_t)len;
+            pcie->dma_dir = VFIO_DMA_TO_DEVICE;
             EXEC(pcie->dma_run(pcie));
 
             dbg_str(DBG_INFO, "edu DMA done, src[0..3] = %02x %02x %02x %02x, "
@@ -118,6 +124,17 @@ static int test_vfio_dma(TEST_ENTRY *entry)
     } CATCH (ret) {
         CATCH_SHOW_INT_PARS(DBG_ERROR);
     } FINALLY {
+        /* 异常路径下若仍有未解除的 IOVA 映射，补一次 dma_unmap（此时对象仍有效） */
+        if (vfio != NULL) {
+            if (src_iova != 0) {
+                vfio->dma_unmap(vfio, src_iova, (uint64_t)len);
+                src_iova = 0;
+            }
+            if (dst_iova != 0) {
+                vfio->dma_unmap(vfio, dst_iova, (uint64_t)len);
+                dst_iova = 0;
+            }
+        }
         if (buf_src != NULL && buf_src != MAP_FAILED) {
             munmap(buf_src, len);
         }

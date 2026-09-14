@@ -10,7 +10,7 @@
 
 typedef struct Vfio_s Vfio;
 
-/* 中断组数（INTx/MSI/MSI-X/ERR/REQ）与每组最多向量数（MSI-X 常见 ≤64，可按需调大） */
+/* 中断组数与每组最多向量数（具体含义由设备/总线定义，如 PCIe 的 INTx/MSI/MSI-X/ERR/REQ） */
 #define VFIO_MAX_IRQ_GROUPS        5
 #define VFIO_MAX_IRQ_VECTORS_PER_GROUP 64
 
@@ -27,7 +27,7 @@ typedef int (*vfio_irq_handler_t)(void *opaque);
  */
 typedef struct vfio_irq_ctx {
     Vfio *vfio;                    /* 所属 Vfio 对象 */
-    int irq_index;                 /* 中断组（INTx/MSI/MSI-X/ERR/REQ） */
+    int irq_index;                 /* 中断组索引（含义由设备定义，如 PCIe 的 INTx/MSI/MSI-X） */
     int sub_index;                 /* 组内向量号 */
     int efd;                       /* 该向量 eventfd，-1=未注册 */
     Worker *worker;                /* 该向量 io_worker（异步中断） */
@@ -44,16 +44,16 @@ static inline Vfio *vfio_irq_get_vfio(void *opaque)
 
 /* VFIO 设备信息（对应内核 vfio_device_info） */
 typedef struct vfio_dev_info {
-    uint32_t flags;        /* VFIO_DEVICE_FLAGS_*（PCI=1<<1） */
+    uint32_t flags;        /* VFIO_DEVICE_FLAGS_*（由总线类型决定） */
     uint32_t num_regions;  /* region 数量 */
     uint32_t num_irqs;     /* irq 组数量 */
     char group_path[64];   /* /dev/vfio/N */
-    char device_name[32];  /* 如 "0000:00:02.0" */
+    char device_name[32];  /* group 内设备名（PCI 设备形如 "0000:00:02.0"） */
 } vfio_dev_info_t;
 
 /* VFIO region 信息（对应内核 vfio_region_info） */
 typedef struct vfio_region_info_ex {
-    int      index;        /* region 索引（PCIe: BAR0-5） */
+    int      index;        /* region 索引（PCIe 设备里 BAR0-5 对应 0-5） */
     uint64_t offset;       /* 设备 fd mmap 偏移（内核返回） */
     uint64_t size;         /* 大小 */
     uint32_t flags;        /* VFIO_REGION_INFO_FLAG_* */
@@ -95,7 +95,7 @@ struct Vfio_s {
     char *(*to_json)(Vfio *);
 
     /* VFIO device interface */
-    /* 打开：按 group_path（如 "/dev/vfio/12"）+ device_name（如 "0000:00:02.0"） */
+    /* 打开：按 group_path（如 "/dev/vfio/12"）+ group 内设备名（PCI 设备如 BDF） */
     int (*open)(Vfio *vfio, char *group_path, char *device_name);
     int (*close)(Vfio *vfio);
     /* 获取设备信息 */
@@ -105,22 +105,31 @@ struct Vfio_s {
     /* 映射/解除映射 region（多 region 并存，region_base[]/region_size[]） */
     int (*map_region)(Vfio *vfio, int index);
     int (*unmap_region)(Vfio *vfio, int index);
-    /* 中断：eventfd + io_worker 异步，sub_index 为 MSI/MSI-X 向量子序号 */
+    /* 配置 region 访问位宽：32 或 64（设备相关，默认 32）。 */
+    int (*set_width)(Vfio *vfio, int width);
+    /* 通用 region 访问（与总线无关，需先 map_region）：
+     *   index=region 序号，offset=region 内字节偏移；位宽用 set_width 配置的 reg_width。 */
+    int (*region_read)(Vfio *vfio, int index, uint64_t offset, uint64_t *data);
+    int (*region_write)(Vfio *vfio, int index, uint64_t offset, uint64_t data);
+    /* 中断：eventfd + io_worker 异步，sub_index 为组内向量号（如 MSI/MSI-X 向量） */
     int (*register_irq)(Vfio *vfio, int irq_index, int sub_index,
                         vfio_irq_handler_t handler, void *opaque);
     int (*mask_irq)(Vfio *vfio, int irq_index, int sub_index);
     int (*unmask_irq)(Vfio *vfio, int irq_index, int sub_index);
-    /* DMA：把 buf（用户虚拟地址）映射为 iova，设备用 iova 访问 */
+    /* DMA 映射：把 buf（CPU 虚拟地址 VA）映射为设备侧虚拟地址（IOVA），设备用 IOVA 访问。
+     *   - 入参 buf=VA、size=字节数；出参 *iova=设备侧地址（IOVA）。
+     *   - 注意：IOVA 是【给 IOMMU 的输入地址】，由本类内部游标分配，并非把 VA 翻译得来；
+     *     VA 与 IOVA 是平级的两个虚拟地址，各自经 MMU / IOMMU 翻译到同一块物理地址(PA)。
+     *   - 设备发 DMA 时只认 IOVA，由 IOMMU 查表翻成 PA。详见
+     *     doc/board/vfio设计文档.md 6.4.1「地址模型：VA / PA / IOVA 三者关系」。 */
     int (*dma_map)(Vfio *vfio, void *buf, uint64_t size, uint64_t *iova);
+    /* 解除映射：只能用 IOVA（IOMMU 里登记的就是它），不能用 VA */
     int (*dma_unmap)(Vfio *vfio, uint64_t iova, uint64_t size);
     /* 设备级 DMA 搬运接口（多态：Vfio 只声明接口，默认返回 -1 表示不支持）。
-     *   - dma_config：配置一次搬运，入参为【用户虚拟地址】buf_src/buf_dst，
-     *     内部 dma_map ×2 得到 IOVA 并记录到 pcie->dma_src/dma_dst/dma_len/dma_dir，
-     *     不触发；通用实现由 Vfio_Pcie 提供，可复用（同配置反复 dma_run 不重映射）。
-     *   - dma_run    ：触发一次搬运并等待完成（同步阻塞），设备相关，
-     *     由具体设备类（如 Vfio_Pcie_Edu）override，读取 dma_* 属性执行。 */
-    int (*dma_config)(Vfio *vfio, void *buf_src, void *buf_dst,
-                      uint32_t len, int direction);
+     * 只声明"触发"这一步：主机内存端由调用方用父类 dma_map 准备为 IOVA（并自行
+     * 负责 dma_unmap），再把地址写入具体设备类的入参块（如 Vfio_Pcie 的
+     * dma_src/dma_dst/dma_len）；dma_run 读取该入参块投递并触发一次搬运
+     * （同步阻塞等待完成）。设备相关，由具体设备类（如 Vfio_Pcie_Edu）override。 */
     int (*dma_run)(Vfio *vfio);
 
     /*attribs*/
@@ -128,13 +137,15 @@ struct Vfio_s {
     int group_fd;           /* /dev/vfio/<N> */
     int device_fd;          /* VFIO_GROUP_GET_DEVICE_FD 返回的设备 fd */
     char *group_path;       /* 如 "/dev/vfio/12" */
-    char device_name[32];   /* 如 "0000:00:02.0" */
+    char device_name[32];   /* group 内设备名（PCI 设备形如 "0000:00:02.0"） */
     vfio_dev_info_t info;   /* 设备信息 */
     uint8_t *region_base[16];   /* 各 region mmap 基址，NULL 表示未映射 */
     uint64_t region_size[16];   /* 各 region 大小 */
     vfio_irq_ctx_t irq_ctx[VFIO_MAX_IRQ_GROUPS][VFIO_MAX_IRQ_VECTORS_PER_GROUP]; /* 各向量的中断状态（efd/worker/handler/opaque 合一） */
     uint32_t irq_count;              /* 最近一次中断计数（供 handler 读取） */
     pthread_mutex_t lock;            /* 进程内互斥锁，保护所有操作 */
+    int reg_width;                   /* region 访问默认位宽：32/64，默认 32（set_width 配置） */
+    uint64_t iova_base;              /* IOVA 分配起始地址；0=用默认安全值（dma_map 前可设） */
     uint64_t iova;                   /* 内部 IOVA 分配游标（dma_map 按页递增分配） */
 };
 

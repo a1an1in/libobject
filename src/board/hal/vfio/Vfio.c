@@ -1,16 +1,18 @@
 /**
  * @file Vfio.c
- * @Synopsis  VFIO 通用用户态设备访问基类（与总线无关）。
+ * @Synopsis  VFIO 通用用户态设备访问基类（与总线无关；PCI / platform 等通用）。
  * 基于 /dev/vfio/vfio（container）+ /dev/vfio/<N>（group）+ 设备 fd 三层 fd：
  *   - open/close：三层 fd 生命周期（container → group → device）。
- *   - get_info/get_region_info：设备信息与 region（BAR）信息。
+ *   - get_info/get_region_info：设备信息与 region 信息（region 是 VFIO 通用概念；
+ *     PCIe 设备里 BAR n 恰好对应 region n，但本类不感知总线）。
  *   - map_region/unmap_region：按 region 索引在设备 fd 上 mmap（VFIO 返回 offset，
  *     IOMMU 隔离，替代 UIO 的 /dev/mem）。多 region 并存。
+ *   - region_read/region_write：按 (region 索引, 偏移, 位宽) 通用访问已映射的 region。
  *   - register_irq：eventfd + VFIO_DEVICE_SET_IRQS + io_worker 异步（参考 Uio.register_irq）。
  *   - mask/unmask_irq：电平触发（AUTOMASKED）中断的手动 mask/unmask。
  *   - dma_map/dma_unmap：VFIO_IOMMU_MAP_DMA 把用户缓冲映射为 IOVA，设备经 IOMMU 访问。
- * 本类依赖内核 CONFIG_VFIO + CONFIG_VFIO_IOMMU_TYPE1 + CONFIG_VFIO_PCI，且设备须落在
- * 某个 iommu_group（有 SMMU/IOMMU）并绑定 vfio-pci 驱动。
+ * 本类依赖内核 CONFIG_VFIO + CONFIG_VFIO_IOMMU_TYPE1；设备须落在某个 iommu_group
+ * （有 IOMMU，如 ARM SMMU / x86 VT-d），并由对应总线驱动绑定（vfio-pci / vfio-platform 等）。
  * @author alan lin
  * @version
  * @date 2026-08-11
@@ -40,6 +42,9 @@
 #define VFIO_SYSFS_PATH     "/sys/class/vfio"
 #define VFIO_DEV_PATH       "/dev/vfio"
 #define VFIO_MAX_PATH_LEN   256
+/* dma_map 未显式指定 iova_base 时的默认 IOVA 起点：高位窗口，
+ * 避开低地址保留区/guest RAM 区，并为常见设备 dma_mask 留出空间 */
+#define VFIO_IOVA_BASE_DEFAULT  0x0F000000ULL
 
 /*
  * 若 /dev/vfio/<N> 节点不存在（如 busybox 无 devtmpfs/udev），从
@@ -92,8 +97,9 @@ static int __ensure_group_devnode(const char *group_path)
 }
 
 /*
- * 打开 VFIO 设备：按 group_path（如 "/dev/vfio/12"）+ device_name（如 "0000:00:02.0"）
- * 完成三层 fd 绑定。任一步失败按"设备→组→容器"逆序回滚已打开的 fd。
+ * 打开 VFIO 设备：按 group_path（如 "/dev/vfio/12"）+ device_name（group 内设备名，
+ * PCI 设备通常形如 "0000:00:02.0"，platform 设备为其名称）完成三层 fd 绑定。
+ * 任一步失败按"设备→组→容器"逆序回滚已打开的 fd。
  */
 static int __open(Vfio *vfio, char *group_path, char *device_name)
 {
@@ -212,7 +218,7 @@ static int __get_info(Vfio *vfio, vfio_dev_info_t *info)
 
 /*
  * 获取指定 region 的信息（VFIO_DEVICE_GET_REGION_INFO）。
- * region 索引即 PCIe 的 BAR0-5（vfio-pci 固定映射）。
+ * region 由设备定义（PCIe 设备里 BAR0-5 对应 region 0-5），本类不感知总线。
  */
 static int __get_region_info(Vfio *vfio, int index, vfio_region_info_t *info)
 {
@@ -249,7 +255,7 @@ static int __get_region_info(Vfio *vfio, int index, vfio_region_info_t *info)
 }
 
 /*
- * 映射 region（BAR）：在设备 fd 上 mmap，offset 用 VFIO 返回的 reg.offset
+ * 映射 region：在设备 fd 上 mmap，offset 用 VFIO 返回的 reg.offset
  * （设备 fd 地址空间内的 region 偏移，非物理地址；由 IOMMU 隔离）。
  * 多 region 并存：region_base[]/region_size[] 各存一份。
  */
@@ -340,6 +346,103 @@ static int __unmap_region(Vfio *vfio, int index)
 }
 
 /*
+ * 配置 region 访问位宽（32/64）。
+ * region_read/region_write 使用本配置值（不必每次调用都传位宽）。
+ */
+static int __set_width(Vfio *vfio, int width)
+{
+    if (vfio == NULL) {
+        return -1;
+    }
+    if (width != 32 && width != 64) {
+        dbg_str(DBG_ERROR, "vfio set_width unsupported width:%d (only 32/64)",
+                width);
+        return -1;
+    }
+    vfio->reg_width = width;
+    return 0;
+}
+
+/*
+ * 通用 region 访问：与总线无关。
+ * index=region 序号，offset=region 内字节偏移；位宽用 set_width 配置的 reg_width。
+ * 要求该 region 已 map_region（region_base[index] 有效），并做越界校验。
+ */
+static int __region_read(Vfio *vfio, int index, uint64_t offset, uint64_t *data)
+{
+    uint8_t volatile *base;
+    uint64_t size, reg_size;
+    int reg_width;
+
+    if (vfio == NULL || data == NULL) {
+        return -1;
+    }
+    reg_width = vfio->reg_width;       /* 位宽由 set_width 配置（默认 32） */
+    if (index < 0 || index >= VFIO_MAX_REGIONS ||
+        vfio->region_base[index] == NULL ||
+        vfio->region_base[index] == MAP_FAILED) {
+        dbg_str(DBG_ERROR, "vfio region_read invalid region index:%d", index);
+        return -1;
+    }
+    if (reg_width != 32 && reg_width != 64) {
+        dbg_str(DBG_ERROR, "vfio region_read unsupported width:%d", reg_width);
+        return -1;
+    }
+    reg_size = (uint64_t)(reg_width / 8);
+    size = vfio->region_size[index];
+    if (offset + reg_size > size) {
+        dbg_str(DBG_ERROR, "vfio region_read out of range, index:%d, off:0x%llx, "
+                "size:0x%llx", index, (unsigned long long)offset,
+                (unsigned long long)size);
+        return -1;
+    }
+    base = (uint8_t volatile *)vfio->region_base[index] + offset;
+    if (reg_width == 64) {
+        *data = *(uint64_t volatile *)base;
+    } else {
+        *data = *(uint32_t volatile *)base;
+    }
+    return 0;
+}
+
+static int __region_write(Vfio *vfio, int index, uint64_t offset, uint64_t data)
+{
+    uint8_t volatile *base;
+    uint64_t size, reg_size;
+    int reg_width;
+
+    if (vfio == NULL) {
+        return -1;
+    }
+    reg_width = vfio->reg_width;       /* 位宽由 set_width 配置（默认 32） */
+    if (index < 0 || index >= VFIO_MAX_REGIONS ||
+        vfio->region_base[index] == NULL ||
+        vfio->region_base[index] == MAP_FAILED) {
+        dbg_str(DBG_ERROR, "vfio region_write invalid region index:%d", index);
+        return -1;
+    }
+    if (reg_width != 32 && reg_width != 64) {
+        dbg_str(DBG_ERROR, "vfio region_write unsupported width:%d", reg_width);
+        return -1;
+    }
+    reg_size = (uint64_t)(reg_width / 8);
+    size = vfio->region_size[index];
+    if (offset + reg_size > size) {
+        dbg_str(DBG_ERROR, "vfio region_write out of range, index:%d, off:0x%llx, "
+                "size:0x%llx", index, (unsigned long long)offset,
+                (unsigned long long)size);
+        return -1;
+    }
+    base = (uint8_t volatile *)vfio->region_base[index] + offset;
+    if (reg_width == 64) {
+        *(uint64_t volatile *)base = data;
+    } else {
+        *(uint32_t volatile *)base = (uint32_t)data;
+    }
+    return 0;
+}
+
+/*
  * io_worker 的事件回调：eventfd 可读（有中断）时被异步调用。
  * 读取 eventfd 计数（8 字节）清除事件，保存到 vfio->irq_count，
  * 然后调用用户注册的中断处理函数（worker 的 work_callback）。
@@ -402,7 +505,7 @@ static int __register_irq(Vfio *vfio, int irq_index, int sub_index,
         ctx = &vfio->irq_ctx[irq_index][sub_index];
 
         /* 若该 (index, 向量) 已注册过，先注销旧 io_worker 并关闭旧 eventfd。
-         * 不同向量的注册互不影响 → 支持 MSI-X 多向量各自 handler。 */
+         * 不同向量的注册互不影响 → 支持多向量各自 handler（如 PCIe MSI-X）。 */
         if (ctx->worker != NULL) {
             worker_destroy(ctx->worker);
             ctx->worker = NULL;
@@ -416,7 +519,7 @@ static int __register_irq(Vfio *vfio, int irq_index, int sub_index,
         EXEC(efd = eventfd(0, EFD_NONBLOCK));
 
         /* 2. 把该向量绑定到 eventfd（count=1，绑定单个向量 sub_index）。
-         *    MSI-X 支持逐向量增量绑定（每次 SET_IRQS 一个向量），
+         *    部分设备支持逐向量增量绑定（每次 SET_IRQS 一个向量），
          *    因此可分别注册多个向量、各绑一个 eventfd/handler。 */
         memset(&irq_pack, 0, sizeof(irq_pack));
         irq_pack.set.argsz = sizeof(irq_pack);
@@ -538,11 +641,12 @@ static int __dma_map(Vfio *vfio, void *buf, uint64_t size, uint64_t *iova)
         THROW_IF(pthread_mutex_lock(&vfio->lock) != 0, -1);
         locked = 1;
 
-        /* 若未初始化 IOVA 游标，从高位窗口起（避开低地址保留区/guest RAM 区；
-         * SMMUv3 stage-1 的 IOVA 空间独立，用接近真实 IOVA 的高位更可靠）。
-         * 注意仍需满足设备 dma_mask（edu dma_mask 28 位，此处选 < 256MB 的高位页） */
+        /* IOVA 分配起点：优先用调用方/子类设置的 iova_base；未设置(0) 时取默认安全值。
+         * 本类与设备/总线无关，不假设具体 dma_mask（位宽因设备而异）：调用方若需满足
+         * 某设备的 dma_mask，可在 dma_map 前设置 vfio->iova_base。 */
         if (vfio->iova == 0) {
-            vfio->iova = 0x0F000000ULL; /* 240MB 起，按页递增，避开低 64MB */
+            vfio->iova = (vfio->iova_base != 0) ? vfio->iova_base
+                                                : VFIO_IOVA_BASE_DEFAULT;
         }
 
         page = VFIO_PAGE_SIZE;
@@ -685,6 +789,8 @@ static int __construct(Vfio *module, char *init_str)
         }
     }
     module->irq_count = 0;
+    module->reg_width = 32;
+    module->iova_base = 0;
     module->iova = 0;
     pthread_mutex_init(&module->lock, NULL);
     return 0;
@@ -702,17 +808,9 @@ static int __deconstruct(Vfio *module)
 
 /*
  * 设备级 DMA 搬运的默认"不支持"实现。
- * 通用 Vfio 无法知道设备如何触发 DMA，返回 -1；具体设备类（如 Vfio_Edu）
- * 通过同名 Class_VFunc_Entry override 这两个虚函数。
+ * 通用 Vfio 无法知道设备如何触发 DMA，返回 -1；具体设备类（如 Vfio_Pcie_Edu）
+ * 通过同名 Class_VFunc_Entry override 本虚函数。
  */
-static int __dma_config(Vfio *vfio, uint64_t src_iova,
-                        uint64_t dst_iova, uint32_t len,
-                        int direction)
-{
-    dbg_str(DBG_ERROR, "vfio dma_config not supported by this device");
-    return -1;
-}
-
 static int __dma_run(Vfio *vfio)
 {
     dbg_str(DBG_ERROR, "vfio dma_run not supported by this device");
@@ -729,11 +827,13 @@ DEFINE_CLASS(
     Class_VFunc_Entry(get_region_info, __get_region_info),
     Class_VFunc_Entry(map_region, __map_region),
     Class_VFunc_Entry(unmap_region, __unmap_region),
+    Class_VFunc_Entry(set_width, __set_width),
+    Class_VFunc_Entry(region_read, __region_read),
+    Class_VFunc_Entry(region_write, __region_write),
     Class_VFunc_Entry(register_irq, __register_irq),
     Class_VFunc_Entry(mask_irq, __mask_irq),
     Class_VFunc_Entry(unmask_irq, __unmask_irq),
     Class_VFunc_Entry(dma_map, __dma_map),
     Class_VFunc_Entry(dma_unmap, __dma_unmap),
-    Class_VFunc_Entry(dma_config, __dma_config),
     Class_VFunc_Entry(dma_run, __dma_run)
 );
