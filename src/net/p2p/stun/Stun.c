@@ -70,8 +70,17 @@ static void __session_keepalive_timer_callback(void *opaque)
     msg->len = 0;
     snprintf(service, sizeof(service), "%d", s->peer_port);
     sr = sock->sendto(sock, buf, sizeof(buf), 0, s->peer_host, service);
-    dbg_str(DBG_INFO, "%s sent KEEPALIVE to %s:%s ret=%d (own %s:%d)",
-            s->stun->stun_id, s->peer_host, service, sr, s->own_host, s->own_port);
+    /* 建链/打洞阶段逐包打印便于观察；链路建立(connected)后不再刷屏，
+     * 只在发送失败时告警（保活仍在后台继续发，只是不打日志）。
+     * 判据用 connected：它由服务器 CONNECTED 置位，是实现里真正维护的状态。 */
+    if (!s->connected) {
+        dbg_str(DBG_INFO, "%s sent KEEPALIVE to %s:%s ret=%d (own %s:%d)",
+                s->stun->stun_id, s->peer_host, service, sr,
+                s->own_host, s->own_port);
+    } else if (sr < 0) {
+        dbg_str(DBG_ERROR, "%s KEEPALIVE to %s:%s failed ret=%d",
+                s->stun->stun_id, s->peer_host, service, sr);
+    }
 }
 
 static stun_session_t *__get_session(Stun *stun, char *remote_id)
@@ -722,6 +731,9 @@ static int __stun_signal_callback(void *task)
             dbg_str(DBG_INFO, "%s CONNECTED to %s, link up", stun->stun_id, peer);
             ss = __get_session(stun, peer);
             if (ss != NULL) {
+                /* state 为设计上的权威状态，connected 是其等价缓存，两者同步置位
+                 * （此前只置 connected，导致按 state 判断的地方全部失效）。 */
+                ss->state = STUN_SESSION_CONNECTED;
                 ss->connected = 1;
                 ss->send_punch = 0;
             }

@@ -1,7 +1,7 @@
 # P2P-VPN 模块设计定稿（net/vpn）
 
-> 状态：定稿待实现。基于 p2p 通道基础设施做上层 VPN（站点间网段互访）。
-> 归属：architect 产出；实现另起 code 任务，按末尾任务清单推进。
+> 状态：**首版已实现**（Linux TUN + L3 路由点对点）。使用/命令/权限/排障见 [`README.md`](README.md)。
+> 归属：architect 产出（设计）；实现见 [`src/net/vpn/Vpn.c`](../../src/net/vpn/Vpn.c) 与 `src/net/vpn/tun/`。
 
 ## 0. 结论速览（已定）
 
@@ -20,14 +20,28 @@
 src/net/
   p2p/                 # 基础设施（已有）：P2p_Server、stun/ 打洞客户端、turn/(预留)
   vpn/
-    Vpn.h  Vpn.c       # 对外 VPN 入口 vpn_run + 配置
+    Vpn.c              # 对外 VPN 入口 vpn_run + 配置（实现在此）
+    Vpn_Command.c      # 命令行：xtools vpn ...
+    Vpn_Server_Command.c # 服务端命令行：xtools vpnserver ...（复用 p2p_server_run）
     tun/
-      Tun.h  Tun.c     # 虚拟网卡抽象
+      Tun.h            # 虚拟网卡抽象（平台无关接口；vpn 内部）
       os/unix/Tun.c    # Linux TUN 实现（首版）
-      os/window/Tap.c  # Windows TAP（后续）
+      os/window/Tap.c  # Windows TAP（后续，未做）
+src/include/libobject/net/vpn/
+    Vpn.h              # 对外公共头：vpn_cfg_t + vpn_run
+    Vpn_Command.h      # xtools vpn 的 Command 定义
+    Vpn_Server_Command.h # xtools vpnserver 的 Command 定义
+tests/net/
+    test_vpn.c         # 测试命令 test_vpn_tun / test_vpn_peer
 ```
 
 ## 2. P2P 常驻会话 API（新增，公共头 p2p.h）
+
+> 实现说明（2026-09）：p2p V3 已定为「node + session」多会话模型并**已实现**
+> （[`p2p.h`](../../src/include/libobject/net/p2p/p2p.h) 的 `p2p_node_create` /
+> `p2p_session_create / send / is_connected / close`，见 [`../p2p/p2p_design.md`](../p2p/p2p_design.md) §13）。
+> **VPN 直接使用该既有 API**，本节原提案的 `p2p_session_open/set_recv` 不再单独新增，
+> 「常驻会话 + 保活」由 node/session 模型天然满足（保活由 Stun 事件定时器维持）。
 
 ```
 typedef struct p2p_session_s p2p_session_t;   /* 不透明句柄 */
@@ -108,13 +122,15 @@ flowchart TD
 
 ## 7. 实现任务清单
 
-1. p2p：公共层新增 `p2p_session_open/send/set_recv/close`（包 Stun，含 keepalive；
-   recv 转 `(opaque,data,len)`）；补一个常驻会话自测命令（两端持续互发）。
-2. p2p：`p2p_peer_run` 与会话 API 二选一去重（建议 p2p_peer_run 改为基于会话的演示）。
-3. vpn/tun：Tun 抽象 + Linux TUN 实现 + tun 自测（能与 ping 联调）。
-4. vpn：Vpn.h/Vpn.c + `vpn_cfg_t` + `vpn_run`，打通 会话↔Tun 双向转发。
-5. 对外 CLI（仿 test_p2p_*）双端互 ping 验收。
-6. 文档 doc/net/vpn/README.md（架构/命令/权限/排障）。
+1. ~~p2p：公共层新增 `p2p_session_open/send/set_recv/close`~~ —— **已由 p2p V3 的
+   node/session API 覆盖**（见 §2 说明），无需新增。
+2. ~~p2p：`p2p_peer_run` 与会话 API 去重~~ —— V3 已统一为 node/session 模型。
+3. [x] vpn/tun：Tun 抽象 + Linux TUN 实现 + tun 自测
+   （`test_vpn_tun`，CMD 无参、单机全自动探针自检，需 root）。
+4. [x] vpn：`Vpn.h`/`Vpn.c` + `vpn_cfg_t` + [`vpn_run`](../../src/include/libobject/net/vpn/Vpn.h:50)，
+   打通 会话↔Tun 双向转发。
+5. [x] 对外 CLI：`tests/net/test_vpn.c`（`test_vpn_peer` 双端互 ping 验收）。
+6. [x] 文档 [`doc/net/vpn/README.md`](README.md)（架构/命令/权限/排障）。
 
 ## 8. 已决取舍记录
 
