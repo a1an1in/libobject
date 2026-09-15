@@ -69,9 +69,10 @@ typedef struct vpn_cfg_s {
     const char *stun_host, *stun_service, *stun2_host, *stun2_service;
     /* 虚拟网卡 / 网段 */
     const char *tun_name;     /* tun0，可空(自动) */
-    const char *local_ip;     /* 本端 tun IP */
+    const char *tunnel_ip;    /* 本端隧道地址（tun 网卡），可带 "/len" */
     const char *netmask;
-    const char *remote_cidr;  /* 对端网段，决定要加的路由 */
+    const char *local_net;    /* 本端内网网段：链路建立后自动通告对端 */
+    const char *remote_net;   /* 静态对端网段（逃生口；CLI 不暴露） */
     /* 事件 */
     void (*on_ready)(void *opaque);
     void (*on_error)(void *opaque, int ret);
@@ -87,7 +88,8 @@ int vpn_run(const vpn_cfg_t *cfg);   /* 阻塞运行，Ctrl+C 停止 */
 struct Tun_s {
     int fd; char name[16]; int mtu;
     open(dev)  -> create tun /dev/net/tun + TUNSETIFF
-    configure(ip, netmask, remote_cidr)  -> 调外部 ip 命令配地址与路由
+    configure(tunnel_ip, netmask, route_net) -> 调外部 ip 命令配地址与路由
+    route_add(route_net)                 -> 追加一条到 route_net 的路由（链路建立后按对端通告调用）
     read / write / set_mtu / close
 };
 ```
@@ -139,3 +141,6 @@ flowchart TD
 - 公共头只暴露扁平 p2p_cfg_t 与不透明会话句柄；内部 Stun 仅在 p2p 与 vpn? ——
   仅 p2p 内部引用（vpn 只用公共头）。
 - Tun 先内聚 vpn；出现第二使用者再上提抽象层。
+- 网段信息**自动交换**：两端只填自己的内网网段（CLI `--local-net` / API `local_net`），
+  链路建立后用 VPN 层控制帧互相通告，对端自动 `ip route replace`——不再要求用户填"对端网段"
+  （API 保留 `remote_net` 作为静态路由逃生口，命令行不暴露）。

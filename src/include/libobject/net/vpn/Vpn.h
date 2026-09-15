@@ -41,9 +41,18 @@ typedef struct vpn_cfg_s {
 
     /* ---- 虚拟网卡 / 网段 ---- */
     const char *tun_name;       /* 设备名，可空(自动 tunN) */
-    const char *local_ip;       /* 本端 tun IP（必填） */
+    const char *tunnel_ip;      /* 本端隧道地址（tun 网卡地址，必填；可带 "/len" 前缀） */
     const char *netmask;        /* 掩码：点分("255.255.255.0")或前缀("24")；空=24 */
-    const char *remote_cidr;    /* 对端网段，决定要加的路由，如 "10.0.0.0/24"；可空 */
+
+    /* 本端内网网段（写成"网络地址/前缀长度"，如 "172.16.10.0/23"）：**只填自己的**，
+     * 链路建立后会自动通告给对端，对端据此自动 `ip route replace <它> dev tun`。可空=不通告。
+     * 与下面 remote_net 的区别：这是"我是谁"，那是"我要去哪（对端的网段，需手动填）"。 */
+    const char *local_net;
+
+    /* 静态对端网段路由（如 "10.10.10.0/24"）：**程序化使用**的逃生口，
+     * 启动时直接 `ip route replace <它> dev tun`。
+     * 注意：`xtools vpn` 命令行已不暴露它——两端各填 local_net 自动交换即可。可空。 */
+    const char *remote_net;
 
     /* ---- 事件 ---- */
     void (*on_ready)(void *opaque);          /* 隧道打通、可转发时回调(可空) */

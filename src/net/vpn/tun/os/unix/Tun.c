@@ -103,8 +103,26 @@ static int __tun_open(Tun *tun, const char *name)
     return 0;
 }
 
+/* 加/改一条到 cidr 的路由（ip route replace <cidr> dev <tun>）；失败告警返回负值。 */
+static int __tun_route_add(Tun *tun, const char *cidr)
+{
+    char cmd[256];
+
+    if (tun == NULL || tun->fd < 0 || cidr == NULL || cidr[0] == '\0') {
+        return -1;
+    }
+    snprintf(cmd, sizeof(cmd), "ip route replace %s dev %s", cidr, tun->name);
+    if (__run_cmd(cmd) < 0) {
+        dbg_str(DBG_INFO, "tun: route %s dev %s not added (may be covered by"
+                " connected route)", cidr, tun->name);
+        return -1;
+    }
+    dbg_str(DBG_INFO, "tun: route %s dev %s added", cidr, tun->name);
+    return 0;
+}
+
 static int __tun_configure(Tun *tun, const char *ip, const char *netmask,
-                           const char *remote_cidr)
+                           const char *route_net)
 {
     char cmd[256], ipstr[80];
     int prefix;
@@ -131,18 +149,14 @@ static int __tun_configure(Tun *tun, const char *ip, const char *netmask,
     if (__run_cmd(cmd) < 0) {
         return -1;
     }
-    if (remote_cidr != NULL && remote_cidr[0] != '\0') {
-        /* 对端网段路由：两端同网段(如都配 x.x.x.0/24)时已由本机地址的直连路由覆盖，
-         * 此处 replace 失败只告警、不中止（点对点同网段场景无需额外路由）。 */
-        snprintf(cmd, sizeof(cmd), "ip route replace %s dev %s", remote_cidr, tun->name);
-        if (__run_cmd(cmd) < 0) {
-            dbg_str(DBG_INFO, "tun: route %s dev %s not added (may be covered by"
-                    " connected route)", remote_cidr, tun->name);
-        }
+    /* 静态对端网段路由：两端同网段(如都配 x.x.x.0/24)时已由本机地址的直连路由覆盖，
+     * 故失败只告警、不中止（点对点同网段场景无需额外路由）。 */
+    if (route_net != NULL && route_net[0] != '\0') {
+        __tun_route_add(tun, route_net);
     }
-    dbg_str(DBG_INFO, "tun: %s configured ip=%s remote=%s",
+    dbg_str(DBG_INFO, "tun: %s configured ip=%s route=%s",
             tun->name, ipstr,
-            (remote_cidr != NULL) ? remote_cidr : "-");
+            (route_net != NULL) ? route_net : "-");
     return 0;
 }
 
@@ -224,6 +238,7 @@ Tun *tun_create(void)
 
     tun->open      = __tun_open;
     tun->configure = __tun_configure;
+    tun->route_add = __tun_route_add;
     tun->read      = __tun_read;
     tun->write     = __tun_write;
     tun->set_mtu   = __tun_set_mtu;

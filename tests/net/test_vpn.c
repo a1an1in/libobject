@@ -14,31 +14,30 @@
  *        sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
  *             test_vpn_tun
  *      全用默认值(10.99.0.1/24 + 10.99.9.0/24)：自造探针包(UDP -> 10.99.9.2)按
- *      remote_cidr 路由读回，读到即 PASS；无需第二个终端 ping，也无需对端。
+ *      <对端网段>路由读回，读到即 PASS；无需第二个终端 ping，也无需对端。
  *
  *   2) 真机跨 NAT（服务器放行 UDP 12345；两端分别在各自 NAT 后）：
  *        ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
  *             test_p2p_server 12345
- *        # 节点 B（被叫）：会话口固定 12346；本端 tun 10.0.0.2，要访问 A 侧 172.16.10.0/23
- *        #   （服务器内网口 10.10.10.115；B 侧内网 10.10.10.0/24 即 10.10.10.115/24）
+ *        # 节点 B（被叫）：会话口 12346；本端 tun 10.0.0.2；**只填自己的**内网 10.10.10.0/24
+ *        #   （服务器内网口 10.10.10.115）
  *        sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
- *             test_vpn_peer vpnB 12346 10.10.10.115 12345 10.0.0.2 172.16.10.0/23
+ *             test_vpn_peer vpnB 12346 10.10.10.115 12345 10.0.0.2 10.10.10.0/24
  *        # 等价命令行: xtools vpn -i vpnB -l 12346 -s 10.10.10.115:12345 \
- *        #              --ip 10.0.0.2/24 -r 172.16.10.0/23
- *        # 节点 A（主叫）：会话口固定 19001；本端 tun 10.0.0.1，要访问 B 侧 10.10.10.0/24
- *        #   （A 侧内网 172.16.10.33/23，netmask 255.255.254.0）
+ *        #              --tunnel-ip 10.0.0.2/24 --local-net 10.10.10.0/24
+ *        # 节点 A（主叫）：会话口 19001；本端 tun 10.0.0.1；**只填自己的**内网 172.16.10.0/23
  *        sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
- *             test_vpn_peer vpnA 19001 119.4.206.14 12345 10.0.0.1 10.10.10.0/24 vpnB
+ *             test_vpn_peer vpnA 19001 119.4.206.14 12345 10.0.0.1 172.16.10.0/23 vpnB
  *        # 等价命令行: xtools vpn -i vpnA -p vpnB -l 19001 -s 119.4.206.14:12345 \
- *        #              --ip 10.0.0.1/24 -r 10.10.10.0/24
+ *        #              --tunnel-ip 10.0.0.1/24 --local-net 172.16.10.0/23
  *
  *   3) 单机回环（信令服务器兼 STUN；末尾 <stun_host> <stun_port> 覆盖成 127.0.0.1 9000）：
  *        ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
  *             test_p2p_server 9000
  *        sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
- *             test_vpn_peer vpnB 12346 127.0.0.1 9000 10.0.0.2 10.0.0.0/24 auto 127.0.0.1 9000
+ *             test_vpn_peer vpnB 12346 127.0.0.1 9000 10.0.0.2 auto auto 127.0.0.1 9000
  *        sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
- *             test_vpn_peer vpnA 19001 127.0.0.1 9000 10.0.0.1 10.0.0.0/24 vpnB auto 127.0.0.1 9000
+ *             test_vpn_peer vpnA 19001 127.0.0.1 9000 10.0.0.1 auto vpnB auto 127.0.0.1 9000
  *
  *      注：mockery 会把以 '-' 开头的实参当自己的选项处理，**选项式传不进来**，所以本测试
  *          只能收**位置参数**（上面 '#' 行是对应的等价命令行，见 xtools vpn --help）。
@@ -80,26 +79,26 @@
  */
 #define VPN_TUN_TEST_IP          "10.99.0.1"      /* 本端 tun 地址（host） */
 #define VPN_TUN_TEST_MASK        "24"             /* 上面地址的掩码（也可写 255.255.255.0） */
-#define VPN_TUN_TEST_REMOTE_CIDR "10.99.9.0/24"   /* 路由目的网段（与上面刻意不同网段） */
+#define VPN_TUN_TEST_REMOTE_NET  "10.99.9.0/24"   /* 路由目的网段（与上面刻意不同网段） */
 #define VPN_TUN_TEST_NAME        NULL             /* NULL=内核自动分配 tunN */
 #define VPN_TUN_TEST_PROBE_PORT  33445            /* 探针 UDP 目的端口 */
 
 /*
- * 取 remote_cidr 内的探针地址：网段基址 + 2（避开 .0/.1 常用网关）；/31、/32 用其自身。
+ * 取"目的网段"内的探针地址：网段基址 + 2（避开 .0/.1 常用网关）；/31、/32 用其自身。
  * 必须避开 local_ip：否则内核判定"目的地址是本机"→ 本地投递，包不会进 tun，导致误判 FAIL。
  */
-static int __probe_addr_from_cidr(const char *cidr, const char *local_ip,
-                                  char *out, int outlen)
+static int __probe_addr_from_net(const char *net, const char *local_ip,
+                                 char *out, int outlen)
 {
     char tmp[64], lip[64], *slash;
     struct in_addr addr, laddr;
     uint32_t ip, mask, probe, local = 0;
     int len = 32, n;
 
-    if (cidr == NULL || out == NULL || outlen <= 0) {
+    if (net == NULL || out == NULL || outlen <= 0) {
         return -1;
     }
-    snprintf(tmp, sizeof(tmp), "%s", cidr);
+    snprintf(tmp, sizeof(tmp), "%s", net);
     slash = strchr(tmp, '/');
     if (slash != NULL) {
         *slash = '\0';
@@ -139,7 +138,7 @@ static int test_vpn_tun(TEST_ENTRY *entry, int argc, char **argv)
     Tun *tun;
     const char *ip   = VPN_TUN_TEST_IP;        /* 全部写死，不接受命令行参数 */
     const char *mask = VPN_TUN_TEST_MASK;
-    const char *cidr = VPN_TUN_TEST_REMOTE_CIDR;
+    const char *net  = VPN_TUN_TEST_REMOTE_NET;
     const char *name = VPN_TUN_TEST_NAME;
     char probe[64];
     int i, fd, n, got = 0, sent = 0;
@@ -150,8 +149,8 @@ static int test_vpn_tun(TEST_ENTRY *entry, int argc, char **argv)
     (void)argc;      /* CMD 形态保留签名，但本用例不使用任何参数 */
     (void)argv;
 
-    if (__probe_addr_from_cidr(cidr, ip, probe, sizeof(probe)) < 0) {
-        dbg_str(DBG_ERROR, "test_vpn_tun: bad remote_cidr '%s'", cidr);
+    if (__probe_addr_from_net(net, ip, probe, sizeof(probe)) < 0) {
+        dbg_str(DBG_ERROR, "test_vpn_tun: bad remote net '%s'", net);
         return -1;
     }
 
@@ -164,13 +163,13 @@ static int test_vpn_tun(TEST_ENTRY *entry, int argc, char **argv)
         return -1;
     }
     tun->set_mtu(tun, tun->mtu);
-    if (tun->configure(tun, ip, mask, cidr) < 0) {
+    if (tun->configure(tun, ip, mask, net) < 0) {
         dbg_str(DBG_ERROR, "test_vpn_tun: configure failed");
         tun_destroy(tun);
         return -1;
     }
     dbg_str(DBG_VIP, "test_vpn_tun: %s up ip=%s/%s remote=%s, probing %s ...",
-            tun->name, ip, mask, cidr, probe);
+            tun->name, ip, mask, net, probe);
 
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) {
@@ -227,8 +226,12 @@ REGISTER_TEST_CMD(test_vpn_tun);
 /* ======================= 2) VPN 端点（走 vpn 命令行实现） ======================= */
 /*
  * test_vpn_peer <stun_id> <local_service> <signal_host> <signal_port>
- *               <local_ip> <remote_cidr> [<peer_id> [<tun_name>
+ *               <tunnel_ip> <local_cidr> [<peer_id> [<tun_name>
  *               [<stun_host> <stun_port>]]]
+ *
+ *   <local_cidr>：**本端**内网网段（如 172.16.10.0/23）；链路建立后自动通告给对端，
+ *   对端据此自动 `ip route replace <它> dev tun`——所以两端各自只填自己的网段即可，
+ *   不需要知道对方的内网。`auto`/`0`=不通告（只做隧道连通性测试时用）。
  *
  * 实现方式：**复用正式命令行** —— 构造 Vpn_Command，把位置参数逐项写进它的 Option，
  * 再跑它的 run_command（与 `xtools vpn` 完全同一条路径，不再自己拼 vpn_cfg_t，
@@ -263,13 +266,14 @@ static int test_vpn_peer(TEST_ENTRY *entry, int argc, char **argv)
 
     if (argc < 7) {
         dbg_str(DBG_ERROR, "usage: test_vpn_peer <stun_id> <local_service>"
-                " <signal_host> <signal_port> <local_ip> <remote_cidr>"
+                " <signal_host> <signal_port> <tunnel_ip> <local_cidr>"
                 " [<peer_id> [<tun_name> [<stun_host> <stun_port>]]]\n"
                 "  <local_service> auto/0=随机（mockery 会丢 '-' 开头的参数，别写 '-'）\n"
+                "  <local_cidr> 本端内网网段(自动通告给对端)；auto/0=不通告\n"
                 "  <tun_name> auto/省略=自动分配 tunN\n"
                 "  带 <peer_id> = 主叫；不带 = 被叫\n"
                 "  等价命令行: xtools vpn -i <id> [-p <peer>] -l <svc> -s <host:port>"
-                " --ip <ip/len> -r <cidr>");
+                " --tunnel-ip <ip/len> --local-net <本端内网网段>");
         return -1;
     }
 
@@ -286,8 +290,11 @@ static int test_vpn_peer(TEST_ENTRY *entry, int argc, char **argv)
                       (strcmp(argv[2], "0") != 0)) ? argv[2] : NULL);
     snprintf(signal, sizeof(signal), "%s:%s", argv[3], argv[4]);
     __set_cmd_option(cmd, "--signal", signal);
-    __set_cmd_option(cmd, "--ip", argv[5]);
-    __set_cmd_option(cmd, "--route", argv[6]);
+    __set_cmd_option(cmd, "--tunnel-ip", argv[5]);
+    /* 第 6 个参数是**本端内网网段**（自动通告给对端）；auto/0 表示不通告 */
+    __set_cmd_option(cmd, "--local-net",
+                     ((strcmp(argv[6], "auto") != 0) &&
+                      (strcmp(argv[6], "0") != 0)) ? argv[6] : NULL);
     if (argc >= 8) {
         __set_cmd_option(cmd, "--peer", argv[7]);
     }

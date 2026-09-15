@@ -32,10 +32,13 @@ struct Tun_s {
 
     /* 打开设备：name 为空则自动分配；返回 0 成功，负值失败。 */
     int (*open)(Tun *tun, const char *name);
-    /* 配置地址与路由：调外部 ip 命令（地址=local_ip/netmask，路由=remote_cidr dev）。
-     * netmask 支持点分("255.255.255.0")或前缀("24")，为空按 24 处理；remote_cidr 可空。 */
+    /* 配置地址与路由：调外部 ip 命令（地址=ip/netmask，路由=route_net dev）。
+     * netmask 支持点分("255.255.255.0")或前缀("24")，为空按 24 处理；route_net 可空。 */
     int (*configure)(Tun *tun, const char *ip, const char *netmask,
-                     const char *remote_cidr);
+                     const char *route_net);
+    /* 追加/更新一条到 route_net 的路由（`ip route replace <route_net> dev <tun>`）。
+     * 用于"链路建立后按对端通告的网段自动加路由"；失败返回负值（调用方通常只告警）。 */
+    int (*route_add)(Tun *tun, const char *route_net);
     /* 读一个 IP 包（阻塞，被信号打断自动重试）；返回字节数，负值失败/已关闭。 */
     int (*read)(Tun *tun, uint8_t *buf, int len);
     /* 写一个 IP 包；返回写入字节数，负值失败。入站注入用。 */

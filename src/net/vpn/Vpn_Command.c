@@ -10,7 +10,7 @@
  *     用户看到的命令名由 "/Command/name" 决定（这里 = "vpn"）。
  *
  * 用法：
- *   xtools vpn -i vpnA -p vpnB -s 119.4.206.14:12345 --ip 10.0.0.1/24 -r 10.10.10.0/24
+ *   xtools vpn -i vpnA -p vpnB -s 119.4.206.14:12345 --tunnel-ip 10.0.0.1/24 --local-net 172.16.10.0/23
  *   xtools vpn --help
  *
  * @author Zoo
@@ -136,14 +136,15 @@ static int __construct(Vpn_Command *command, char *init_str)
     c->add_option(c, "--tun", "-t", "",
                   "虚拟网卡名；省略=自动分配 tunN",
                   __option_str_callback, &command->tun_name);
-    /* 前缀直接写在 --ip 里（a.b.c.d/len），省略 /len 时按 /24，故不再单列 --netmask */
-    c->add_option(c, "--ip", "", "",
+    /* 前缀直接写在 --tunnel-ip 里（a.b.c.d/len），省略 /len 时按 /24，故不再单列 --netmask */
+    c->add_option(c, "--tunnel-ip", "", "",
                   "本端隧道地址(必填)，如 10.0.0.1/24；两端必须同网段(对端如 10.0.0.2/24)才能互通",
-                  __option_str_callback, &command->local_ip);
-    c->add_option(c, "--route", "-r", "",
-                  "给本机加路由：发往该网段的包走 VPN(tun)，如 -r 192.168.2.0/24；"
-                  "要访问对端内网就得填",
-                  __option_str_callback, &command->remote_cidr);
+                  __option_str_callback, &command->tunnel_ip);
+    /* 只填"自己的"内网网段：链路建立后自动通告给对端，对端据此自动加路由。
+     * 这样两端各自只需知道自己的网络，不必知道对方的内网。 */
+    c->add_option(c, "--local-net", "", "",
+                  "本端内网网段(如 172.16.10.0/23)：链路通了自动通告对端、对端自动加路由；省略=不通告",
+                  __option_str_callback, &command->local_net);
 
     c->set(c, "/Command/name", "vpn");
     c->set(c, "/Command/description",
@@ -170,8 +171,8 @@ static int __run_command(Vpn_Command *command)
         dbg_str(DBG_ERROR, "vpn: --id 必填（-i <stun_id>）；--help 查看用法");
         return -1;
     }
-    if (__or_null(command->local_ip) == NULL) {
-        dbg_str(DBG_ERROR, "vpn: --ip 必填（本端 tun 地址，如 10.0.0.1/24）");
+    if (__or_null(command->tunnel_ip) == NULL) {
+        dbg_str(DBG_ERROR, "vpn: --tunnel-ip 必填（本端隧道地址，如 10.0.0.1/24）");
         return -1;
     }
     if (__or_null(command->signal) == NULL) {
@@ -212,11 +213,12 @@ static int __run_command(Vpn_Command *command)
     cfg.stun2_service  = __or_null(stun2_port);
     cfg.interval_ms    = command->interval_ms;
     cfg.tun_name       = __or_null(command->tun_name);       /* NULL=自动 */
-    cfg.local_ip       = command->local_ip;                  /* 前缀写在 --ip 的 /len 里 */
-    cfg.remote_cidr    = __or_null(command->remote_cidr);
+    cfg.tunnel_ip      = command->tunnel_ip;                 /* 前缀写在 --tunnel-ip 的 /len 里 */
+    cfg.local_net      = __or_null(command->local_net);
+    cfg.remote_net     = NULL;                               /* 对端网段改为运行时自动交换，不再手工填 */
 
     dbg_str(DBG_VIP, "vpn: id=%s peer=%s signal=%s:%s service=%s stun=%s:%s stun2=%s:%s "
-            "ip=%s route=%s tun=%s interval=%d",
+            "tunnel-ip=%s local-net=%s tun=%s interval=%d",
             cfg.id, cfg.peer_id ? cfg.peer_id : "(callee)",
             cfg.signal_host, cfg.signal_service,
             cfg.local_service ? cfg.local_service : "(random)",
@@ -224,13 +226,13 @@ static int __run_command(Vpn_Command *command)
             cfg.stun_service ? cfg.stun_service : "-",
             cfg.stun2_host ? cfg.stun2_host : "-",
             cfg.stun2_service ? cfg.stun2_service : "-",
-            cfg.local_ip,
-            cfg.remote_cidr ? cfg.remote_cidr : "-",
+            cfg.tunnel_ip,
+            cfg.local_net ? cfg.local_net : "-",
             cfg.tun_name ? cfg.tun_name : "(auto)", cfg.interval_ms);
 
-    if (cfg.remote_cidr == NULL) {
-        dbg_str(DBG_WARN, "vpn: 未指定 --route/-r：本机只通到对端隧道地址(如 10.0.0.2)；"
-                "要访问对端内网请在两端各自加 -r <对端内网网段>");
+    if (cfg.local_net == NULL) {
+        dbg_str(DBG_WARN, "vpn: 未指定 --local-net：本端不会向对端通告内网网段，"
+                "对端也就不会自动加路由（只做隧道连通性测试时可忽略）");
     }
 
     return vpn_run(&cfg);   /* 阻塞至 Ctrl+C */
