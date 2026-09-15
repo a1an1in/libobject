@@ -10,7 +10,11 @@
  *     用户看到的命令名由 "/Command/name" 决定（这里 = "vpn"）。
  *
  * 用法：
- *   xtools vpn -i vpnA -p vpnB -s 119.4.206.14:12345 --tunnel-ip 10.0.0.1/24 --local-net 172.16.10.0/23
+ *   # 被动方（被叫/hub，同时也是**地址分配者**）：隧道地址建议用网段内的大地址，
+ *   # 分配池就是它所在网段（对端会依次拿到 .1/.2/...）
+ *   xtools vpn -i vpnB -s 119.4.206.14:12345 --tunnel-ip 10.0.0.254/24 --local-net 10.10.10.0/24
+ *   # 主动方（主叫）：可以不配 --tunnel-ip，地址由对端在应答里分配
+ *   xtools vpn -i vpnA -p vpnB -s 119.4.206.14:12345 --local-net 172.16.10.0/23
  *   xtools vpn --help
  *
  * @author Zoo
@@ -138,7 +142,8 @@ static int __construct(Vpn_Command *command, char *init_str)
                   __option_str_callback, &command->tun_name);
     /* 前缀直接写在 --tunnel-ip 里（a.b.c.d/len），省略 /len 时按 /24，故不再单列 --netmask */
     c->add_option(c, "--tunnel-ip", "", "",
-                  "本端隧道地址(必填)，如 10.0.0.1/24；两端必须同网段(对端如 10.0.0.2/24)才能互通",
+                  "本端隧道地址(如 10.0.0.1/24)：被动方(被叫)必填且建议 x.x.x.254/24"
+                  "（它同时是分配池）；主动方(主叫)可省，由对端分配",
                   __option_str_callback, &command->tunnel_ip);
     /* 只填"自己的"内网网段：链路建立后自动通告给对端，对端据此自动加路由。
      * 这样两端各自只需知道自己的网络，不必知道对方的内网。 */
@@ -171,8 +176,11 @@ static int __run_command(Vpn_Command *command)
         dbg_str(DBG_ERROR, "vpn: --id 必填（-i <stun_id>）；--help 查看用法");
         return -1;
     }
-    if (__or_null(command->tunnel_ip) == NULL) {
-        dbg_str(DBG_ERROR, "vpn: --tunnel-ip 必填（本端隧道地址，如 10.0.0.1/24）");
+    /* 被动方（被叫）是地址分配者：必须有自己的地址（也是分配池）；
+     * 主动方（主叫）可以省——地址由对端在应答里分配。 */
+    if (__or_null(command->tunnel_ip) == NULL && __or_null(command->peer_id) == NULL) {
+        dbg_str(DBG_ERROR, "vpn: 被叫必须配 --tunnel-ip（自身地址 + 分配池，"
+                "建议 x.x.x.254/24）；主叫可省（由对端分配）");
         return -1;
     }
     if (__or_null(command->signal) == NULL) {
@@ -215,7 +223,6 @@ static int __run_command(Vpn_Command *command)
     cfg.tun_name       = __or_null(command->tun_name);       /* NULL=自动 */
     cfg.tunnel_ip      = command->tunnel_ip;                 /* 前缀写在 --tunnel-ip 的 /len 里 */
     cfg.local_net      = __or_null(command->local_net);
-    cfg.remote_net     = NULL;                               /* 对端网段改为运行时自动交换，不再手工填 */
 
     dbg_str(DBG_VIP, "vpn: id=%s peer=%s signal=%s:%s service=%s stun=%s:%s stun2=%s:%s "
             "tunnel-ip=%s local-net=%s tun=%s interval=%d",
@@ -226,7 +233,7 @@ static int __run_command(Vpn_Command *command)
             cfg.stun_service ? cfg.stun_service : "-",
             cfg.stun2_host ? cfg.stun2_host : "-",
             cfg.stun2_service ? cfg.stun2_service : "-",
-            cfg.tunnel_ip,
+            cfg.tunnel_ip ? cfg.tunnel_ip : "(由对端分配)",
             cfg.local_net ? cfg.local_net : "-",
             cfg.tun_name ? cfg.tun_name : "(auto)", cfg.interval_ms);
 

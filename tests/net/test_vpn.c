@@ -163,11 +163,14 @@ static int test_vpn_tun(TEST_ENTRY *entry, int argc, char **argv)
         return -1;
     }
     tun->set_mtu(tun, tun->mtu);
-    if (tun->configure(tun, ip, mask, net) < 0) {
+    if (tun->configure(tun, ip, mask) < 0) {
         dbg_str(DBG_ERROR, "test_vpn_tun: configure failed");
         tun_destroy(tun);
         return -1;
     }
+    /* 探针子网是"对端网段"：真实场景由 notify 交换后由 vpn 层 route_add() 装，
+     * 这里自测单机没有对端，就手工补一条，模拟"已交换到对端网段"的结果。 */
+    tun->route_add(tun, net);
     dbg_str(DBG_VIP, "test_vpn_tun: %s up ip=%s/%s remote=%s, probing %s ...",
             tun->name, ip, mask, net, probe);
 
@@ -226,10 +229,10 @@ REGISTER_TEST_CMD(test_vpn_tun);
 /* ======================= 2) VPN 端点（走 vpn 命令行实现） ======================= */
 /*
  * test_vpn_peer <stun_id> <local_service> <signal_host> <signal_port>
- *               <tunnel_ip> <local_cidr> [<peer_id> [<tun_name>
+ *               <tunnel_ip> <local_net> [<peer_id> [<tun_name>
  *               [<stun_host> <stun_port>]]]
  *
- *   <local_cidr>：**本端**内网网段（如 172.16.10.0/23）；链路建立后自动通告给对端，
+ *   <local_net>：**本端**内网网段（如 172.16.10.0/23）；链路建立后自动通告给对端，
  *   对端据此自动 `ip route replace <它> dev tun`——所以两端各自只填自己的网段即可，
  *   不需要知道对方的内网。`auto`/`0`=不通告（只做隧道连通性测试时用）。
  *
@@ -266,10 +269,10 @@ static int test_vpn_peer(TEST_ENTRY *entry, int argc, char **argv)
 
     if (argc < 7) {
         dbg_str(DBG_ERROR, "usage: test_vpn_peer <stun_id> <local_service>"
-                " <signal_host> <signal_port> <tunnel_ip> <local_cidr>"
+                " <signal_host> <signal_port> <tunnel_ip> <local_net>"
                 " [<peer_id> [<tun_name> [<stun_host> <stun_port>]]]\n"
                 "  <local_service> auto/0=随机（mockery 会丢 '-' 开头的参数，别写 '-'）\n"
-                "  <local_cidr> 本端内网网段(自动通告给对端)；auto/0=不通告\n"
+                "  <local_net> 本端内网网段(自动通告给对端，对端回执后不再重发)；auto/0=不通告\n"
                 "  <tun_name> auto/省略=自动分配 tunN\n"
                 "  带 <peer_id> = 主叫；不带 = 被叫\n"
                 "  等价命令行: xtools vpn -i <id> [-p <peer>] -l <svc> -s <host:port>"

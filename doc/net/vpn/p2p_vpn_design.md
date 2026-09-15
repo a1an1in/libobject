@@ -1,6 +1,7 @@
 # P2P-VPN 模块设计定稿（net/vpn）
 
-> 状态：**首版已实现**（Linux TUN + L3 路由点对点）。使用/命令/权限/排障见 [`README.md`](README.md)。
+> 状态：**已实现**（Linux TUN + L3 路由；一个 tun 复用给多条链路 = 多对端）。
+> 使用/命令/权限/排障见 [`README.md`](README.md)。
 > 归属：architect 产出（设计）；实现见 [`src/net/vpn/Vpn.c`](../../src/net/vpn/Vpn.c) 与 `src/net/vpn/tun/`。
 
 ## 0. 结论速览（已定）
@@ -11,7 +12,7 @@
 - **在公共 p2p 暴露常驻会话 API**（内部包 Stun）：`p2p_session_open / send /
   set_recv / close`。VPN 只用公共头。
 - Tun 放 vpn 内部 `src/net/vpn/tun/`（Linux 先做，Windows 后续）。
-- 首版：Linux TUN + **L3 路由模式** + 点对点；`configure` 用外部 `ip` 命令；
+- 首版：Linux TUN + **L3 路由模式**（一个 tun 可复用给多条链路）；`configure` 用外部 `ip` 命令；
   不加隧道头、不加加密；保活由 p2p 会话内部维持。
 
 ## 1. 目录
@@ -109,18 +110,19 @@ flowchart TD
   H --> I
 ```
 
-- 出站：tun->read 到 IP 包 → p2p_session_send（点对点，直接透传 IP 帧）。
-- 入站：p2p_session_set_recv → tun->write。
-- 首版不加隧道头（点对点单通道无需区分对端）；多 peer 时再加头。
+- 出站：tun->read 到 IP 包 → 按目的地址选链路 → p2p_session_send（直接透传 IP 帧）。
+- 入站：p2p_session_set_recv（回调带 session，可区分对端）→ tun->write。
+- 首版不加隧道头：**"发给哪个对端"**由 vpn 层的"目的地址→链路"表决定，包内不需要对端标识。
 
 ## 6. 首版范围
 
-- Linux TUN，L3 路由点对点；Linux /dev/net/tun，进程需 root 或 CAP_NET_ADMIN；
+- Linux TUN，L3 路由；Linux /dev/net/tun，进程需 root 或 CAP_NET_ADMIN；
 - 配置地址/路由用外部 ip 命令；
 - 本机/两台 NAT 后“互 ping 对端 tun IP / 对端网段主机”为验收。
 
-不做（后续增强）：多 peer 网格与 cidr→peer 路由、TAP/二层+ARP、Windows TAP、
-加密、TURN 中继。
+不做（后续增强）：对端网段冲突检测/仲裁、跨对端中转（A↔C 经 hub）、TAP/二层+ARP、
+Windows TAP、加密、TURN 中继。
+（"多对端：一个 tun 复用给多条链路 + 目的地址→链路选路"本轮已实现，见 §8。）
 
 ## 7. 实现任务清单
 
@@ -143,4 +145,13 @@ flowchart TD
 - Tun 先内聚 vpn；出现第二使用者再上提抽象层。
 - 网段信息**自动交换**：两端只填自己的内网网段（CLI `--local-net` / API `local_net`），
   链路建立后用 VPN 层控制帧互相通告，对端自动 `ip route replace`——不再要求用户填"对端网段"
-  （API 保留 `remote_net` 作为静态路由逃生口，命令行不暴露）。
+  （API 保留 `remote_net` 作为静态路由逃生口，命令行不暴露；多条可用逗号分隔）。
+- **一个 tun 复用给多条链路（多对端）**：被叫为**每个主叫**单独登记一条 link——recv 回调
+  本身带 session 参数，天然能区分是谁，无需身份字段；出站按"对端隧道地址（精确）→
+  对端内网网段（最长前缀）"选 link，内核路由只负责"把包引进 tun"（TUN 是无 ARP 设备，
+  给不出 per-peer 下一跳，所以选路必须在 vpn 层）。
+  随之把通告内容从"网段"扩展为"**隧道地址 + 网段**"，并新增"目的地址为对端隧道地址"这条
+  精确选路；发送入口**只保留一个**：转发循环的周期 tick（`__vpn_notify_sweep`），
+  "首次通告"与"丢包重传"是同一件事，于是 wait_link 之后新到的对端无需特殊处理。
+  权衡：单对端（主叫）时退化为直发，行为与之前一致。
+  未做：对端网段冲突仲裁、跨对端中转、CLI 多 `-p`（主叫仍只连一个对端）。

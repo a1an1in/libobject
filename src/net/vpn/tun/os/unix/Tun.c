@@ -121,8 +121,7 @@ static int __tun_route_add(Tun *tun, const char *cidr)
     return 0;
 }
 
-static int __tun_configure(Tun *tun, const char *ip, const char *netmask,
-                           const char *route_net)
+static int __tun_configure(Tun *tun, const char *ip, const char *netmask)
 {
     char cmd[256], ipstr[80];
     int prefix;
@@ -149,14 +148,8 @@ static int __tun_configure(Tun *tun, const char *ip, const char *netmask,
     if (__run_cmd(cmd) < 0) {
         return -1;
     }
-    /* 静态对端网段路由：两端同网段(如都配 x.x.x.0/24)时已由本机地址的直连路由覆盖，
-     * 故失败只告警、不中止（点对点同网段场景无需额外路由）。 */
-    if (route_net != NULL && route_net[0] != '\0') {
-        __tun_route_add(tun, route_net);
-    }
-    dbg_str(DBG_INFO, "tun: %s configured ip=%s route=%s",
-            tun->name, ipstr,
-            (route_net != NULL) ? route_net : "-");
+    /* 只管地址：路由由调用方（vpn 层）按运行时交换到的对端网段用 route_add() 逐条加。 */
+    dbg_str(DBG_INFO, "tun: %s configured ip=%s", tun->name, ipstr);
     return 0;
 }
 
