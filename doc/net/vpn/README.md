@@ -1,8 +1,8 @@
 # VPN 模块使用说明（net/vpn）
 
-基于 [`p2p`](../p2p/README.md) 穿透通道的上层 **站点间网段互访（L3 点对点 VPN）**：
-两端各建一个 Linux TUN 虚拟网卡，本机发往对端网段的 IP 包经 p2p 直连通道透传，
-对端收到后写入自己的 TUN 注入协议栈，从而 `ping` 通对端 tun IP / 对端内网主机。
+基于 [`p2p`](../p2p/README.md) 穿透通道的上层 **站点间网段互访（L3 VPN）**：
+每个节点建一个 Linux TUN 虚拟网卡，本机发往对端网段的 IP 包经 p2p 直连通道透传，
+对端收到后写入自己的 TUN 注入协议栈，从而 `ping` 通对端隧道地址 / 对端内网主机。
 
 设计与取舍见 [`p2p_vpn_design.md`](p2p_vpn_design.md)。
 
@@ -10,26 +10,30 @@
 
 | 文件 | 作用 |
 | --- | --- |
-| [`src/include/libobject/net/vpn/Vpn.h`](../../src/include/libobject/net/vpn/Vpn.h) | **对外接口**：`vpn_cfg_t` + [`vpn_run()`](../../src/include/libobject/net/vpn/Vpn.h:50) |
-| [`src/net/vpn/Vpn.c`](../../src/net/vpn/Vpn.c) | 入口实现：Tun ↔ p2p 会话双向转发、建链与退出 |
+| [`src/include/libobject/net/vpn/vpn.h`](../../src/include/libobject/net/vpn/vpn.h) | **对外接口**：`vpn_cfg_t` + [`vpn_run()`](../../src/include/libobject/net/vpn/vpn.h) |
+| [`src/net/vpn/Vpn_Internal.h`](../../src/net/vpn/Vpn_Internal.h) | **模块内部定义**：常量、控制帧协议（`vpn_ctrl_t`）、`vpn_net_t`/`vpn_link_t`/`vpn_ctx_t`、结果码 |
+| [`src/net/vpn/Vpn.c`](../../src/net/vpn/Vpn.c) | 入口实现：建链 → 交换地址 → 配 tun → 双向转发（多对端选路） |
 | [`src/net/vpn/Vpn_Command.c`](../../src/net/vpn/Vpn_Command.c) | **命令行** `xtools vpn ...`（解析选项 → 组装 `vpn_cfg_t` → `vpn_run`） |
 | [`src/net/vpn/Vpn_Server_Command.c`](../../src/net/vpn/Vpn_Server_Command.c) | **服务端命令行** `xtools vpnserver ...`（信令+STUN 服务器，复用 `p2p_server_run`） |
-| [`src/net/vpn/tun/Tun.h`](../../src/net/vpn/tun/Tun.h) | Tun 抽象（vpn 内部；`open/configure/read/write/set_mtu/close`） |
+| [`src/net/vpn/tun/Tun.h`](../../src/net/vpn/tun/Tun.h) | Tun 抽象（vpn 内部；`open/configure/route_add/read/write/set_mtu/close`） |
 | [`src/net/vpn/tun/os/unix/Tun.c`](../../src/net/vpn/tun/os/unix/Tun.c) | Linux 实现（`/dev/net/tun`，L3 `IFF_TUN\|IFF_NO_PI`） |
-| [`tests/net/test_vpn.c`](../../tests/net/test_vpn.c) | 测试命令：`test_vpn_tun`（Tun 自检）/ `test_vpn_peer`（双端互访） |
+| [`tests/net/test_vpn.c`](../../tests/net/test_vpn.c) | 测试命令：`test_vpn_tun`（Tun 自检）/ `test_vpn_peer`（端点，复用 `Vpn_Command`） |
 
 分层：`src/net/vpn` 与 `src/net/p2p` **平级并列**，`vpn -> p2p` 单向依赖；VPN 只用 p2p 公共头。
 Tun **内聚在 vpn 内部**，等出现第二使用者再上提为公共抽象层（见设计文档 §8）。
 
-## 首版范围
+## 能力范围
 
-- Linux TUN、**L3 路由模式**、**点对点**；
-- 配置地址/路由走**外部 `ip` 命令**；MTU 走 `ioctl`；
-- **不加隧道头**（点对点单通道无需区分对端）、**不加加密**；
+- Linux TUN、**L3 路由模式**；配置地址/路由走**外部 `ip` 命令**，MTU 走 `ioctl`；
+- **一个 tun 复用给多条链路（多对端）**：被动方（被连的一方）可同时接多个对端（上限 8），
+  出站按目的地址选链路（对端隧道地址精确 / 对端内网网段最长前缀）；
+- **隧道地址由被动方分配**：主动方可以完全不带隧道地址，由对端在应答里分配；
+- **对端内网网段只来自运行时交换**（无静态路由配置入口）；
+- **不加隧道头**（一个对端一个会话 socket，身份由 socket 决定）、**不加加密**；
 - 保活由 p2p 会话内部维持（VPN 不感知）。
 
-不做（后续增强）：多 peer 网格与 cidr→peer 路由、TAP/二层 + ARP、Windows TAP、
-加密、TURN 中继。
+不做（后续增强）：对端网段冲突仲裁、跨对端中转（A↔C 经 hub）、TAP/二层 + ARP、
+Windows TAP、加密、TURN 中继。
 
 ## 权限要求
 
@@ -45,7 +49,7 @@ vpn: tun open failed (need root/CAP_NET_ADMIN?)
 
 ```bash
 ./devops.sh build --platform=linux
-# 或增量（新增文件后需先重跑一次 cmake 以刷新 GLOB）
+# 或增量（新增 .c 文件后需先重跑一次 cmake 以刷新 GLOB；只加 .h 不需要）
 cmake -S . -B build/linux/x86_64 -DPLATFORM=linux && make -C build/linux/x86_64 -j$(nproc)
 ```
 
@@ -54,11 +58,12 @@ cmake -S . -B build/linux/x86_64 -DPLATFORM=linux && make -C build/linux/x86_64 
 ### 服务端：`xtools vpnserver`
 
 VPN 没有独立服务端，它复用 p2p 的中心服务器（同一 UDP 端口兼**信令地址簿/撮合 + STUN 回显**，
-预留 TURN）。`vpnserver` 就是它的正式入口（`test_p2p_server` 只是测试命令）：
+预留 TURN）：
 
 ```bash
 # 监听 0.0.0.0:12345（UDP），阻塞运行，Ctrl+C 停止
-./sysroot/linux/x86_64/bin/xtools --log-type=0 vpnserver -l 0.0.0.0:12345
+# （端口 >1024，普通用户即可；只有 vpn 节点需要 root）
+./sysroot/linux/x86_64/bin/xtools vpnserver -l 0.0.0.0:12345
 ss -lunp | grep 12345        # 确认 UDP 在听
 ```
 
@@ -68,104 +73,57 @@ ss -lunp | grep 12345        # 确认 UDP 在听
 
 ### 节点：`xtools vpn`
 
-```bash
-# 节点 A（主叫）：本端隧道地址 10.0.0.1/24；只填自己的内网 172.16.10.0/23；数据口固定 19001
-sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 --log-level=0x16 vpn \
-     -i vpnA -p vpnB -l 19001 -s 119.4.206.14:12345 \
-     --tunnel-ip 10.0.0.1/24 --local-net 172.16.10.0/23
+**被动方（被连的一方）= hub，同时也是隧道地址的分配者**：它必须有自己的隧道地址，
+并把它所在网段当作地址池（建议用网段内的大地址，如 `.254`）。**主动方可以不填隧道地址**。
 
-# 节点 B（被叫）：省略 -p；本端隧道地址 10.0.0.2/24；只填自己的内网 10.10.10.0/24；数据口固定 12346
-sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 --log-level=0x16 vpn \
-     -i vpnB -l 12346 -s 10.10.10.115:12345 \
-     --tunnel-ip 10.0.0.2/24 --local-net 10.10.10.0/24
+```bash
+# 节点 B（被动方/hub）：隧道地址 10.0.0.254/24（= 地址池），自己的内网 10.10.10.0/24
+sudo ./sysroot/linux/x86_64/bin/xtools vpn \
+     -i vpnB -l 12346 -s <服务器>:12345 \
+     --tunnel-ip 10.0.0.254/24 --local-net 10.10.10.0/24
+
+# 节点 A（主动方）：不填 --tunnel-ip，地址由 B 分配；只填自己的内网 172.16.10.0/23
+sudo ./sysroot/linux/x86_64/bin/xtools vpn \
+     -i vpnA -p vpnB -l 19001 -s <服务器>:12345 \
+     --local-net 172.16.10.0/23
 ```
 
 | 选项 | 必填 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `-i, --id <stun_id>` | ✅ | — | 本端 stun id |
-| `-p, --peer <stun_id>` | | 空 | 对端 stun id；**省略=被叫**（常驻等被叫） |
+| `-p, --peer <stun_id>` | | 空 | 对端 stun id；**省略=被动方**（常驻等被连） |
 | `-s, --signal <host:port>` | ✅ | — | 信令服务器；**必须带端口** |
-| `--stun <host[:port]>` | | `stun.cloudflare.com:3478` | 采址用 STUN（探测本机公网地址）；`none`/`off`=禁用（回退到**用信令服采址**） |
-| `--stun2 <host[:port]>` | | `stun.l.google.com:19302` | 第二个 STUN（判断 NAT 是否对称）；`none`/`off`=禁用 |
-| `-l, --local-service <port>` | | 空=随机 | 本端数据口(UDP)；**防火墙只放行特定端口时必须固定它**（如 `-l 12346`），见「端口与防火墙」 |
-| `--tunnel-ip <a.b.c.d[/len]>` | ✅ | — | **本端隧道地址**（tun 网卡地址）；前缀写在 `/len`（省略按 `/24`）。**两端必须同网段**（A `10.0.0.1/24` + B `10.0.0.2/24`）才开箱即通 |
-| `--local-net <本端网段>` | | 空=不通告 | **只填自己的内网网段**（如 `172.16.10.0/23`）；链路建立后自动通告对端、对端自动加路由。详见下方说明 |
+| `--tunnel-ip <a.b.c.d[/len]>` | **被动方必填** | — | 本端隧道地址。被动方建议 `x.x.x.254/24`：**它同时是地址池**（对端依次分到 `.1/.2/...`）；**主动方可省**（由对端分配） |
+| `--local-net <本端网段>` | | 空=不通告 | **只填自己的内网网段**（如 `172.16.10.0/23`）；链路建立后自动交换，对端自动加路由 |
+| `--stun <host[:port]>` | | `stun.cloudflare.com:3478` | 采址用 STUN；`none`/`off`/`0`=禁用（回退到**用信令服采址**，同机回环常用） |
+| `--stun2 <host[:port]>` | | `stun.l.google.com:19302` | 第二个 STUN（判断 NAT 是否对称）；`none`/`off`/`0`=禁用 |
+| `-l, --local-service <port>` | | 空=随机 | 本端数据口(UDP)；**防火墙只放行特定端口时必须固定它** |
 | `-t, --tun <name>` | | 空=自动 | tun 设备名（自动时内核分配 `tunN`） |
 | `--interval <ms>` | | `200` | 打洞/保活周期 |
 
-### `--local-net`：只填自己的网段，链路通了自动交换（最常问）
+> 被动方**必须**有自己的隧道地址（它既是自身地址、也是分配池）；漏填会在启动时直接报错。
 
-**本质**：两端各自只声明"**我的内网是哪个网段**"；程序在链路建立后把它**通告给对端**，
-对端收到就自动执行 `ip route replace <你的网段> dev <它的 tun>`。
-于是双方各自获得"去对端内网"的路由——**你不需要知道对方的内网是什么**。
+### 地址交换：一个来回拿到双方地址（先交换、后配 tun）
 
 ```
-A: --local-net 172.16.10.0/23            B: --local-net 10.10.10.0/24
-        │  链路 CONNECTED 后互相通告（VPN 层控制帧，走 p2p 数据通道）
-        ├──────────────► B: ip route replace 172.16.10.0/23 dev tunB
-        ◄──────────────  A: ip route replace 10.10.10.0/24  dev tunA
+主动方 A                                      被动方 B（hub = 分配者）
+  │── NET_NOTIFY    payload = "A 的内网网段"（可空） ──►│
+  │                                        B: 从地址池分配一个隧道地址给 A
+  │◄── NET_NOTIFY_ACK payload = "0 <分给A的地址/len> <B 的隧道地址/len>[ <B 的内网网段>]" ──│
+  │   A: 记下自己的地址 + B 的地址/网段        B: 记下 A 的地址/网段
+  └────────── 双方各自配 tun（本端地址 + 对端网段路由），随后开始转发 ──────────┘
 ```
+
+关键点：
 
 | 项 | 说明 |
 | --- | --- |
-| 填什么 | 本端内网网段，写成"网络地址/前缀长度"，如 `172.16.10.0/23`（等价掩码 `255.255.254.0`） |
-| 谁填 | **两端各填自己的**（A 填 A 的、B 填 B 的），**不需要交叉**、也不需要知道对方 |
-| 何时生效 | 链路 `connected` 后自动交换；日志可见 `vpn: sent local net notify ... (waiting ack)` 与 `vpn: peer notified local net ..., adding route` |
-| 省略会怎样 | 不通告、也不给对方加路由；此时只能 `ping` 通对端**隧道地址**（`10.0.0.x`），访问不了对端内网（程序会打告警提醒） |
-| 安全校验 | 对端通告的网段会校验：必须是合法网段、`/1`~`/32`，且拒绝 `0.0.0.0/x`；非法则忽略并告警 |
-| 收包即回执 | 对端收到通知会**立刻回一个回执（NET_ACK）**；本端收到回执后**不再重发**，日志 `vpn: peer acked local net notify, stop resending` |
-| 兜底重传 | 回执丢失才重发：约 **1s 一次、最多 10 次**（收到回执即停），所以"不通告的网段不会无限刷日志" |
-| 重复去重 | 同一网段只装一次路由、只打一次日志（重复通知被去重，但仍会回执，让对端停止重发） |
-
-要点：
-
-- 通告来的只是**一条路由**（`ip route replace`），**不创建子网、不改本端地址**；
-- 想让对端网段**里的其它主机**（不是对端节点自己）也能被访问，对端还需
-  `net.ipv4.ip_forward=1` 并做 SNAT（或给那些主机加回程路由）；
-- 别填不存在的网段，也别与隧道段（`10.0.0.0/24`）重叠；
-- 判据：某地址能不能走隧道，只看本机路由表里有没有到它的**非默认**路由（`ip route get <addr>`）。
-  隧道段内的地址（`10.0.0.0/24`，由 `--tunnel-ip` 派生直连路由）天然走 tun；
-  其余对端内网地址则依赖上面这条**自动交换来的路由**；
-- 需要**静态**路由时（例如只想放行对端某个具体网段、或对端不支持通告），可在 API 层用
-  [`vpn_cfg_t.remote_net`](../../src/include/libobject/net/vpn/Vpn.h)（命令行已不再暴露）。
-
-### 为什么"两端隧道地址必须在同一网段"
-
-因为两端隧道地址是**互相直连**的关系，而不是"经过网关转发"：
-
-- `--tunnel-ip 10.0.0.1/24` 会让内核派生一条直连路由 `10.0.0.0/24 dev tunA`；
-- 对端隧道地址 `10.0.0.2` 落在这条路由里 → 内核认为"**链路直连可达**" → 出接口就是 tunA
-  → 不需要 `-r`；对端同理（它也有 `10.0.0.0/24 dev tunB`），所以回程也天然通。
-
-推论（也是常见的坑）：
-
-| 两端 `--tunnel-ip` 配置 | 结果 |
-| --- | --- |
-| A `10.0.0.1/24` + B `10.0.0.2/24` | ✅ 互相直连通（**推荐写法**） |
-| A `10.0.0.1/24` + B `10.0.0.2/16` | ⚠️ 勉强能通但不对称，`/16` 会吞掉大量地址，别这么配 |
-| A `10.0.0.1/32` + B `10.0.0.2/32` | ❌ 没有直连路由；两端要把"对方隧道地址"也当网段通告/加路由（`/32`）才能通 |
-
-> **别把两种"网关"搞混**：
-> - **隧道对端地址**（`10.0.0.2`，经典 VPN 里 `... via 10.0.0.2 dev tun` 的那个"网关"）：与本端隧道地址
->   **同段**，默认就走 tun，无需任何额外配置；
-> - **对端内网的物理网关**（如 B 内网出口 `10.10.10.1`）：与本机 LAN 网关（如 `192.168.1.1`）
->   **不需要、也不应该**同段；本机默认会把它发给自己的默认网关（走 eth0、不进隧道），
->   所以要靠 `--local-net 10.10.10.0/24` 交换来的那条路由，把整个对端网段引到 tun 上。
-
-### 端口与防火墙
-
-| 端口 | 是谁 | 放行 |
-| --- | --- | --- |
-| `<服务器>:12345`（UDP） | 信令 + STUN 服务器（所有节点共用） | 服务器侧放行**入向** UDP 12345 |
-| `-l` 指定的**本端数据口**（UDP） | 本端 p2p 会话自己的 socket | 防火墙只放行特定端口时：固定它并放行**入向**（如 `-l 12346`） |
-| 出向 UDP | 本机 → 服务器 / 对端 | 一般默认放行；打洞链路靠出向建立、保活维持 |
-
-- `-l` 省略 = 随机端口（NAT 后普通场景够用）；**只有"防火墙只放行特定端口"的机器才必须固定**。
-- 启动日志会打印实际生效的端口，便于确认：
-  `vpn: id=vpnB peer=(callee) signal=10.10.10.115:12345 service=12346 ...`
-- 被叫方也要放行自己的 `-l` 端口（它是被动收包的一方）；服务器端口只有一个，不需要每对端一个。
-- 一个 `vpn` 进程**可以接多个对端，共用一个 tun**（见下节）：主叫（带 `-p`）连一个对端；
-  被叫（不带 `-p`）可同时被多个主叫连接（上限 8），每个对端一条独立 p2p 会话与独立数据口。
+| 谁发通告 | **只有主动建链方**发一次 `NET_NOTIFY`（未收到应答时约 1s 重发，最多 10 次，之后报超时） |
+| 谁分配地址 | **被动方**（被连的一方）。池 = 它的 `--tunnel-ip` 所在网段，占用表管理 |
+| 地址回收 | 被动方在转发循环里巡检：连续 5 轮不可用判定断链 → 关会话 + **归还地址** + 空出槽位；**只回收被动链路**（主动方那条保留，留 p2p 自愈余地） |
+| 何时配 tun | 地址齐备之后**一次性**配好（本端地址 + 各对端网段路由），不会"先配错再改" |
+| 无 `--local-net` | 通告 payload 为空：不交换网段，只能 `ping` 通对端**隧道地址** |
+| 网段校验 | 对端网段必须是合法 `a.b.c.d/len`（`/1`~`/32`，拒绝 `0.0.0.0/x` 与 `/0`）；非法则回拒绝码并告警 |
 
 ### 多对端：一个 hub 接多个 peer（单 tun 复用）
 
@@ -179,48 +137,77 @@ A: --local-net 172.16.10.0/23            B: --local-net 10.10.10.0/24
 | 都不命中、且只有一条链路 | 就用它（点对点兼容退化） |
 | 都不命中、且有多条链路 | **丢弃**（不猜，避免串给别的对端），日志 `出站包无匹配的对端` |
 
-因此链路建立后两端会互换 **"本端隧道地址 + 本端内网网段"**（控制帧）：
-发送方日志 `已通告对端本端隧道地址/网段 '...'（等回执）`，接收方日志
-`对端隧道地址 = ...` / `对端内网网段 ..., 加路由`。通告由转发循环的周期 tick 统一补发/重传，
-**收到对端回执（NET_ACK）即停**——所以新的对端随时加入都能被自动纳入。
-
-**怎么用**（B 做 hub，只跑一个进程、一个 tun，不需要预配置"谁会来连我"）：
-
 ```bash
-# B（被叫，hub）：隧道地址 10.0.0.2，自己的内网 10.10.10.0/24
-xtools vpn -i vpnB -s <server>:12345 --tunnel-ip 10.0.0.2/24 --local-net 10.10.10.0/24
+# B（被动方/hub）：只跑一个进程、一个 tun，不需要预配置"谁会来连我"
+sudo xtools vpn -i vpnB -s <server>:12345 --tunnel-ip 10.0.0.254/24 --local-net 10.10.10.0/24
 
-# A、C（主叫）：各自连 B，各填自己的内网网段
-xtools vpn -i vpnA -p vpnB -s <server>:12345 --tunnel-ip 10.0.0.1/24 --local-net 172.16.10.0/23
-xtools vpn -i vpnC -p vpnB -s <server>:12345 --tunnel-ip 10.0.0.3/24 --local-net 192.168.5.0/24
+# A、C（主动方）：各自连 B，**不填隧道地址**（由 B 分配），只填自己的内网网段
+sudo xtools vpn -i vpnA -p vpnB -s <server>:12345 --local-net 172.16.10.0/23
+sudo xtools vpn -i vpnC -p vpnB -s <server>:12345 --local-net 192.168.5.0/24
 ```
 
-B 的日志会依次出现 `新增对端链路 #0（当前 1 条）`、`#1（当前 2 条）`，随后 A↔B、C↔B 各自直达。
+B 的日志会依次出现：
+
+```
+vpn: 新增对端链路 slot=0（在线 1 条，被动）
+vpn: 分配隧道地址 10.0.0.1 给新对端
+vpn: 已接受对端通告，分配 10.0.0.1/24 给对端（本端 10.0.0.254/24）
+```
+
+A/C 侧：
+
+```
+vpn: 已向对端通告本端内网 172.16.10.0/23，等对端分配地址
+vpn: 对端已接受本端通告，分配本端隧道地址 10.0.0.1/24
+vpn: tun tunX up, tunnel-ip=10.0.0.1/24 mtu=1400
+```
 
 | 注意 | 说明 |
 | --- | --- |
-| 共享隧道段 | A 的直连路由 `10.0.0.0/24` 会把 C 的隧道地址也算进去（A 以为 C 直连），包会先进 tunA、由 B **二次转发**给 C（B 侧按"对端隧道地址"选路）。想严格避免这种借道，就给每对端一条独立隧道段（A-B 用 `10.0.0.0/30`、C-B 用 `10.0.1.0/30`） |
-| A↔C 的内网互访 | 当前**只保证"每个对端 ↔ hub"**：B 不会把 A 的内网网段再通告给 C，也不做跨对端中转（需要 B 开 `ip_forward` 并显式配路由） |
-| 对端网段重叠 | 本版**不检测**冲突：两个对端通告同一网段时按链路先后选路（先到者优先）。规划网段的能力仍在用户手里 |
+| 共享隧道段 | 各对端隧道地址都在 `10.0.0.0/24` 里 → 本机直连路由包含它们；A ping C 的隧道地址会被 B **二次转发**给 C（B 按"对端隧道地址"选路）。想彻底避免借道，就给每对端一条独立隧道段 |
+| A↔C 的内网互访 | 当前**只保证"每个对端 ↔ hub"**：B 不把 A 的网段再通告给 C，也不做跨对端中转（需要 B 开 `ip_forward` 并显式配路由） |
+| 对端网段重叠 | 本版**不检测**冲突：两个对端通告同一网段时按最长前缀 + 先到者优先 |
+| 被动方上限 | 同时在线对端最多 `VPN_MAX_LINKS`（8）；地址池容量相同，满了回 `VPN_NOTIFY_ENOADDR` |
+
+### 端口与防火墙
+
+| 端口 | 是谁 | 放行 |
+| --- | --- | --- |
+| `<服务器>:12345`（UDP） | 信令 + STUN 服务器（所有节点共用） | 服务器侧放行**入向** UDP 12345 |
+| `-l` 指定的**本端数据口**（UDP） | 本端每个会话自己的 socket | 防火墙只放行特定端口时：固定它并放行**入向** |
+| 出向 UDP | 本机 → 服务器 / 对端 | 一般默认放行；打洞链路靠出向建立、保活维持 |
+
+- `-l` 省略 = 随机端口（NAT 后普通场景够用）；**只有"防火墙只放行特定端口"的机器才必须固定**。
+- 启动日志会打印实际生效的端口：`vpn: id=vpnB peer=(callee) signal=... service=12346 ...`
+- 被动方也要放行自己的 `-l` 端口；服务器端口只有一个，不需要每对端一个。
+- 一个 `vpn` 进程**可以接多个对端共用一个 tun**（被动方）；主动方（带 `-p`）主动连一个对端。
 
 ### 排障：两端迟迟看不到 `connected`
 
 按可能性排序：
 
-1. **采址 STUN 不合适（最常见）**：若把 `--stun` 指向**与被叫同网段的信令服**，被叫采到的是
-   **内网地址**，对端拿这个地址去打洞必然打不通。CLI 默认已用公网 STUN
-   （`stun.cloudflare.com:3478`）；也可显式把两端 `--stun` 都指到**公网可达**的 STUN。
-   日志锚点：`nat_type=`、`received MATCH from ...`、STUN 目标地址。
+1. **采址 STUN 不合适（最常见）**：若把 `--stun` 指向**与被连方同网段的信令服**，它会采到
+   **内网地址**，对端拿这个地址去打洞必然打不通。默认已用公网 STUN；也可显式把两端
+   `--stun` 都指到**公网可达**的 STUN。日志锚点：`nat_type=`、`received MATCH from ...`。
 2. **UDP 未放行**：服务器侧入向 UDP `12345`；本机出向 UDP（`-l` 只管入向）。
    `sudo tcpdump -i any -n -vv udp port 12345` 确认有来包。
-3. **id / peer 不匹配**：A 用 `-p vpnB`；B 必须 `-i vpnB` 且**不带 `-p`**（被叫）。
+3. **id / peer 不匹配**：主动方用 `-p vpnB`；被动方必须 `-i vpnB` 且**不带 `-p`**。
 4. **两端连的不是同一台信令服**：`-s` 的 host 可以是内网口或公网口，但必须是同一台。
 5. **双对称 NAT**：两端都 `SYMMETRIC` 时打洞大概率失败（需 TURN，首版预留）。
+
+已 `connected` 但链路建不起来，看这几条：
+
+| 日志 | 原因 |
+| --- | --- |
+| `等待对端分配隧道地址超时(60s)` | 被动方没回应答：确认它是被动方、`--tunnel-ip` 合法、地址池未满 |
+| `无法分配隧道地址（池未配置或已耗尽）` | 被动方 `--tunnel-ip` 未配/非法，或同时在线对端已达 8 |
+| `出站包无匹配的对端` | 目的地址既不是对端隧道地址、也不在任何对端网段里（对端没配 `--local-net`？） |
+| `链路连续 5 轮不可用，判定断链并回收` / `释放链路（归还隧道地址 x.x.x.x）` | 对端掉线，地址已归还（正常回收，不是错误） |
 
 抓流程用日志锚点：`MATCH` → `KEEPALIVE(打洞)` → `PUNCHOK` → `CONNECTED`，缺哪一环就查哪一环。
 
 `xtools vpn --help` 可看全部选项。**注意**：`vpn`/`vpnserver` 都是常驻命令
-（`vpn` 阻塞转发至 Ctrl+C，`vpnserver` 阻塞服务至 Ctrl+C），请在独立终端运行。
+（阻塞到 Ctrl+C），请在独立终端运行。
 
 ## 测试与验证
 
@@ -228,18 +215,15 @@ B 的日志会依次出现 `新增对端链路 #0（当前 1 条）`、`#1（当
 >
 > | 方式 | 命令 | 覆盖范围 | 前置条件 |
 > | --- | --- | --- | --- |
-> | **命令行（推荐）** | `xtools vpnserver` + `xtools vpn` | 完整隧道（真机跨 NAT，**已实测通过**） | ≥2 台机器，各需 root |
+> | **命令行（推荐）** | `xtools vpnserver` + `xtools vpn` | 完整隧道（真机跨 NAT / 同机回环 / 多对端） | ≥1 台机器，需 root |
 > | mockery 等价写法 | `test_p2p_server` + `test_vpn_peer` | 同上（**同一条实现路径**） | 同上 |
-> | 单机自检 | `test_vpn_tun` | 只到 Tun 层（open/configure/read） | 单机 + root |
+> | 单机自检 | `test_vpn_tun` | 只到 Tun 层（open/configure/route_add/read） | 单机 + root |
 >
 > - `test_vpn_peer` 与 `xtools vpn` **同实现、同默认值**：内部就是构造 `Vpn_Command`、跑同一个
->   `run_command`；区别只是它只能用**位置参数**（mockery 会把 `-` 开头的实参当自己的选项处理，
->   `-i/-s/...` 传不进来）。位置参数顺序见 **2.4**。
-> - **完整隧道不能单机测**：同一 netns 里两个 tun 配同网段会被本机直连路由短路；
->   单机能验的只有 Tun 层与 p2p 通道（`-f test_p2p_loopback`）。
+>   `run_command`；区别只是它只能用**位置参数**（mockery 会把 `-` 开头的实参当自己的选项处理）。
 > - `vpn` / `vpnserver` / `test_vpn_peer` 都是**常驻阻塞**命令（Ctrl+C 退出），请放在独立终端运行。
 > - 下文示例地址：服务器公网 `119.4.206.14` / 内网口 `10.10.10.115`；A 侧内网 `172.16.10.33/23`；
->   B 侧内网 `10.10.10.115/24`。
+>   B 侧内网 `10.10.10.115/24`；隧道段 `10.0.0.0/24`（B 用 `.254`，A/C 由 B 分配 `.1/.2`）。
 
 ### 1) 真机跨 NAT：命令行（推荐）
 
@@ -250,162 +234,167 @@ B 的日志会依次出现 `新增对端链路 #0（当前 1 条）`、`#1（当
 ss -lunp | grep 12345        # 确认 UDP 在听；Ctrl+C 停止
 ```
 
-**② 节点 B**（被叫；`-s` 用 B 可达的地址；`-l` 固定本端数据口；`--local-net` 只填 B 自己的内网）
+**② 节点 B**（被动方/hub）：隧道地址用 `10.0.0.254/24`（= 地址池），`-s` 用 B 可达的服务器地址
 
 ```bash
 sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 --log-level=0x16 vpn \
      -i vpnB -l 12346 -s 10.10.10.115:12345 \
-     --tunnel-ip 10.0.0.2/24 \
+     --tunnel-ip 10.0.2.1/24 \
      --local-net 10.10.10.0/24
 ```
 
-**③ 节点 A**（主叫；`-p vpnB` 表示主动去连 B；`--local-net` 只填 A 自己的内网）
+**③ 节点 A**（主动方）：`-p vpnB` 主动连 B；**不填 `--tunnel-ip`**
 
 ```bash
 sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 --log-level=0x16 vpn \
      -i vpnA -p vpnB -l 19001 -s 119.4.206.14:12345 \
-     --tunnel-ip 10.0.0.1/24 \
+     --local-net 172.16.10.0/23
+
+sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 --log-level=0x16 vpn \
+     -i vpnC -p vpnB -l 19002 -s 119.4.206.14:12345 \
      --local-net 172.16.10.0/23
 ```
 
-> 两端都**只填自己的**网段；链路通了自动交换，各自对对方网段执行 `ip route replace`（无需人工交叉配置）。
-
-**④ 验收（另开终端 `ping`）**
+**④ 验收（另开终端）**
 
 ```bash
-# 在 A 上：
-ping -c 2 10.0.0.2        # 通 B 的隧道地址（隧道段两端直连）
-ping -c 2 10.10.10.115    # 通 B 主机（靠自动交换来的 10.10.10.0/24 路由）
+# 在 A 上（先看它拿到的地址：应为 10.0.0.1/24，由 B 分配）
+ip addr show dev tun0
+ping -c 2 10.0.0.254      # 通 B 的隧道地址（交换到的对端隧道地址精确选路）
+ping -c 2 10.10.10.115    # 通 B 主机（靠交换到的 10.10.10.0/24 路由）
 
-# 在 B 上：
-ping -c 2 10.0.0.1        # 通 A 的隧道地址
-ping -c 2 172.16.10.33    # 通 A 主机（靠自动交换来的 172.16.10.0/23 路由）
+# 在 B 上
+ip addr show dev tun0     # 10.0.0.254/24
+ping -c 2 10.0.0.1        # 通 A 的隧道地址（B 自己分配的）
+ping -c 2 172.16.10.33    # 通 A 主机（靠交换到的 172.16.10.0/23 路由）
 ```
 
-交换成功可看两端日志：`vpn: advertised local net 172.16.10.0/23 to peer` 与
-`vpn: peer advertised local net 10.10.10.0/24, adding route`；
-`ip route show dev tunN` 里也应能看到对方网段。
-
-成功标志：两端日志出现
-`vpn: <id> <-> <peer> connected (server-confirmed)` 与 `vpn: tunnel up (...)`，
-随后 `ping` 有回包。
-
-> 单机自检（无需对端）见下文 **2.1 单机自检**。
-
-> 以上 ④ 里 ping 的是**对端节点自己**的地址（B 本机 `10.10.10.115` / A 本机 `172.16.10.33`），
+> 上面 ping 的是**对端节点自己**的地址（B 本机 `10.10.10.115` / A 本机 `172.16.10.33`），
 > 属于"本机收"，两端都不需要 `ip_forward`。若要访问对端网段**里的其它主机**，
 > 对端还需 `net.ipv4.ip_forward=1` 并做 SNAT（或给那些主机加回程路由）。
 
-### 2) mockery 测试命令（单机自检 / 真机 / 回环）
+### 2) 同机回环（一个信令服 + 两个节点，验证"分配地址"全流程）
 
-> 用法与 p2p 一致：`xtools <全局选项> mockery <选项> <命令> <参数...>`，`argv[0]` 是命令名；
-> 统一加 `--log-type=0` 让日志输出到控制台。
+同机没有公网 STUN 可用时，把 `--stun` 指向信令服自身（它兼 STUN 回显）：
+
+```bash
+# 终端1：信令服务器（兼 STUN；无需 root）
+./sysroot/linux/x86_64/bin/xtools vpnserver -l 127.0.0.1:12345
+
+# 终端2：被动方 B（地址池 = 10.0.0.0/24，自己的地址取 .254）
+sudo ./sysroot/linux/x86_64/bin/xtools vpn -i vpnB -s 127.0.0.1:12345 \
+     --tunnel-ip 10.0.0.254/24 --local-net 10.10.10.0/24 --stun 127.0.0.1:12345
+
+# 终端3：主动方 A（不填隧道地址；同机回环给个独立设备名更直观）
+sudo ./sysroot/linux/x86_64/bin/xtools vpn -i vpnA -p vpnB -s 127.0.0.1:12345 \
+     --local-net 172.16.10.0/23 --tun tunA --stun 127.0.0.1:12345
+```
+
+打通后：
+
+```bash
+ip addr show tunA          # 应出现 10.0.0.1/24（B 分配的）
+ip route get 10.0.0.254    # -> dev tunA
+ping -c 2 10.0.0.254       # ping B 的隧道地址
+```
+
+> 再开一个 `-i vpnC -p vpnB ...` 就能看到 B 依次分配 `.1`、`.2`；
+> `Ctrl+C` 掉 C 后，B 会在 ≤5s 打印 `判定断链并回收` + `归还隧道地址 10.0.0.2`；
+> 重新起 C 会**复用** `10.0.0.2`。
+
+### 3) mockery 测试命令（单机自检 / 真机 / 回环）
+
+> 用法与 p2p 一致：`xtools <全局选项> mockery <选项> <命令> <参数...>`，`argv[0]` 是命令名。
 >
 > **三个容易踩的坑**：
 >
 > 1. **请复制本文的 bash 代码块**，不要从源码注释里复制示例命令——C 注释每行带 ` * `
 >    前缀，那个 `*` 会被 shell 通配展开成当前目录一堆文件名，mockery 解析错乱后
->    会把末尾参数(如 `172.16.10.0/23`)当成要 dlopen 的库，然后卡在
->    `default_producer not ready, waiting...`。
-> 2. `test_vpn_peer` 是**常驻阻塞**命令（设计如此，Ctrl+C 退出）：被叫会一直等被叫。
->    务必在**独立终端**运行，不要前台裸跑；仅自检时才用 `timeout 20 sudo ...` 包裹。
-> 3. mockery 的参数解析会把以 `-` 开头的实参当作选项丢弃，因此"随机/自动"请写
->    `auto`（或 `0`），**不要写 `-`**（旧 p2p 文档里的 `-` 实际会被吞掉）。
+>    会把末尾参数当成要 dlopen 的库，然后卡在 `default_producer not ready, waiting...`。
+> 2. `test_vpn_peer` 是**常驻阻塞**命令：务必在**独立终端**运行；仅自检时才用
+>    `timeout 20 sudo ...` 包裹。
+> 3. mockery 会把以 `-` 开头的实参当自己的选项丢弃，所以"随机/自动"请写 `auto`（或 `0`），
+>    **不要写 `-`**。
 
-#### 2.1 单机自检（`test_vpn_tun`；需 root）
+#### 3.1 单机自检（`test_vpn_tun`；需 root）
 
 ```bash
 # 命令名直接跑，不带任何参数；无需第二个终端/对端（需 root）
-sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 test_vpn_tun
+sudo ./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x16 test_vpn_tun
 ```
 
-它是 `REGISTER_TEST_CMD`（**不是** `-f` 函数用例），**不接受命令行参数**（无参可配）；
+它是 `REGISTER_TEST_CMD`（**不是** `-f` 函数用例），**不接受命令行参数**；
 原因：它需要 root，做成 FUNC 会被"跑全量用例"自动执行、在无特权环境误报失败。
-所有取值写死在 [`test_vpn.c`](../../tests/net/test_vpn.c) 顶部的 `#define`，要改就改那里再重新编译：
+所有取值写死在 [`test_vpn.c`](../../tests/net/test_vpn.c) 顶部的 `#define`：
 
 | 宏 | 默认值 | 含义 | 落在哪条命令 |
 | --- | --- | --- | --- |
 | `VPN_TUN_TEST_IP` | `10.99.0.1` | 本端 tun 网卡地址（"我是谁"） | `ip addr replace 10.99.0.1/24 dev tun` |
-| `VPN_TUN_TEST_MASK` | `24` | 上面地址的掩码（也可写 `255.255.255.0`） | 拼出 `/24` 前缀 |
-| `VPN_TUN_TEST_REMOTE_NET` | `10.99.9.0/24` | 路由目的网段（"我要去哪"） | `ip route replace 10.99.9.0/24 dev tun` |
-| `VPN_TUN_TEST_NAME` | `NULL` | 设备名，`NULL`=内核自动分配 `tunN` | `TUNSETIFF` |
+| `VPN_TUN_TEST_MASK` | `24` | 上面地址的掩码 | 拼出 `/24` 前缀 |
+| `VPN_TUN_TEST_REMOTE_NET` | `10.99.9.0/24` | "对端网段"（探针目的地） | `ip route replace 10.99.9.0/24 dev tun`（由 `route_add` 装） |
+| `VPN_TUN_TEST_NAME` | `NULL` | 设备名，`NULL`=内核分配 `tunN` | `TUNSETIFF` |
 | `VPN_TUN_TEST_PROBE_PORT` | `33445` | 探针 UDP 目的端口 | `sendto()` |
 
-内部流程：建 tun → 配 `10.99.0.1/24` → 按"目的网段"加路由 → 自动向
-`10.99.9.2` 发一个 UDP 探针包（内核按那条路由交给 tun）→ 从 tun 读回并校验
-（IPv4 + UDP + 目的地址）。出现下面任一行即 PASS：
+内部流程：建 tun → `configure(ip, mask)` 只配地址 → **显式 `route_add(对端网段)`**
+（真实场景里这条路由由"交换到的对端网段"产生，单机自测就手工补上）→ 自动向
+`10.99.9.2` 发一个 UDP 探针（内核按那条路由交给 tun）→ 从 tun 读回并校验。
+出现下面任一行即 PASS：
 
 ```
 test_vpn_tun: got probe packet N bytes (udp -> 10.99.9.2)
 test_vpn_tun: <tunN> PASS (sent=3, got=1)
 ```
 
-- 探针地址取"目的网段"的**网段基址 + 2**（避开 `.0`/`.1` 常用网关），且**避开本端地址**；
-- 两个网段刻意**不同**，这样探针包只能靠 `ip route replace <网段> dev <tun>` 进 tun，
-  才验证得到那道路由（若写成同网段，走的是 `addr` 派生的直连路由，测不到它）；
-- 返回 `1`=PASS、`0`=未读到(FAIL)、负=环境/权限错误；无 root 时报
-  `test_vpn_tun: open failed (need root/CAP_NET_ADMIN?)`。
+- 探针地址取"对端网段"的**网段基址 + 2**，且**避开本端地址**；
+- 两个网段刻意**不同**，探针包只能靠 `route_add` 那条路由进 tun，才验证得到它；
+- 返回 `1`=PASS、`0`=未读到(FAIL)、负=环境/权限错误。
 
-> 手动辅助观察也行：配好 tun 后在另开终端 `ping 10.99.9.2`，同样能看到 Tun 读到包——
-> 但自动化判定以 `test_vpn_tun` 自身为准。
+#### 3.2 真机跨 NAT（`test_vpn_peer`，与 1) 等价）
 
-#### 2.2 真机跨 NAT（`test_vpn_peer`，与 1) 等价）
-
-> `test_vpn_peer` **复用正式命令行实现**：内部构造 `Vpn_Command`、把位置参数逐项写进它的选项，
-> 再跑同一条 `run_command`——所以默认值（公网 STUN 等）、校验、转发逻辑都只有一份，
-> 不会像早先那样出现"测试与 CLI 行为不一致"。等价命令行见「实际测试命令」一节。
->
-> 之所以用**位置参数**：mockery 会把以 `-` 开头的实参当自己的选项处理，`-i/-s/...` 传不进来。
+位置参数见 3.4；第 5 参是被连方的隧道地址，第 6 参是它自己的内网网段：
 
 ```bash
 # 服务器（公网 IP，放行 UDP 12345）
-./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 test_p2p_server 12345
+./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x16 test_p2p_server 12345
 
-# 节点 B（被叫）：会话口 12346；本端 tun 10.0.0.2；第 6 参只填**B 自己的**内网 10.10.10.0/24
-#   <signal_host> 填 B 这边可达的服务器地址（服务器内网口 10.10.10.115）
-sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
-     test_vpn_peer vpnB 12346 10.10.10.115 12345 10.0.0.2 10.10.10.0/24
+# 节点 B（被动方）：会话口 12346；隧道地址 10.0.0.254/24（= 地址池）；只填 B 自己的内网
+sudo ./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x16 \
+     test_vpn_peer vpnB 12346 10.10.10.115 12345 10.0.0.254/24 10.10.10.0/24
 
-# 节点 A（主叫）：会话口 19001；本端 tun 10.0.0.1；第 6 参只填**A 自己的**内网 172.16.10.0/23
-sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
-     test_vpn_peer vpnA 19001 119.4.206.14 12345 10.0.0.1 172.16.10.0/23 vpnB
+# 节点 A（主动方）：会话口 19001；第 5 参写 auto = 隧道地址由 B 分配
+sudo ./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x16 \
+     test_vpn_peer vpnA 19001 119.4.206.14 12345 auto 172.16.10.0/23 vpnB
 ```
 
-验收：A 上 `ping 10.0.0.2`（B 的 tun）与 `ping 10.10.10.115`（B 主机）通；
-B 上 `ping 10.0.0.1`（A 的 tun）与 `ping 172.16.10.33`（A 主机）通。
-STUN 采址用默认公共服务器（同 `test_p2p_peer` 真机示例）。
+验收：A 上 `ping 10.0.0.254`（B 的隧道地址）与 `ping 10.10.10.115`（B 主机）通；
+B 上 `ping <A 被分配到的地址>`（B 日志里会打印）与 `ping 172.16.10.33` 通。
 
-> 网段写法换算：`255.255.254.0` = `/23`（`172.16.10.0/23` 覆盖 172.16.10.0 ~ 172.16.11.255），
-> `255.255.255.0` = `/24`。第 6 参是**本端**内网网段（自动通告给对端），两端各填自己的。
-> 隧道段独立于两侧内网（示例用 10.0.0.0/24，两端各 10.0.0.1 / 10.0.0.2）。
+> 网段写法换算：`255.255.254.0` = `/23`，`255.255.255.0` = `/24`。
+> 第 6 参是**本端**内网网段，两端各填自己的；隧道地址由被动方给（`.254`）或分配。
 
-#### 2.3 单机回环（信令服务器兼 STUN；对应 CLI 加 `--stun 127.0.0.1:9000`）
+#### 3.3 单机回环（信令服务器兼 STUN）
 
 ```bash
-# 终端1：信令服务器（同时兼 STUN 采址，同机回环无需公网 STUN）
-./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 test_p2p_server 9000
+# 终端1：信令服务器（同时兼 STUN 采址）
+./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x16 test_p2p_server 9000
 
-# 终端2：B 被叫（会话口 12346；本端 tun 10.0.0.2）
-#   第 6 参 auto=本端不做内网通告（回环只验隧道）；末尾两参把 STUN 指向信令服自身；auto 占位 <tun_name>
-sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
-     test_vpn_peer vpnB 12346 127.0.0.1 9000 10.0.0.2 auto auto 127.0.0.1 9000
+# 终端2：B 被动方（隧道地址 10.0.0.254/24 = 地址池；第 6 参 auto=不做内网通告；
+#        末尾两参把 STUN 指向信令服自身；auto 占位 <tun_name>）
+sudo ./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x16 \
+     test_vpn_peer vpnB 12346 127.0.0.1 9000 10.0.0.254/24 auto auto 127.0.0.1 9000
 
-# 终端3：A 主叫（会话口 19001；本端 tun 10.0.0.1）
-sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
-     test_vpn_peer vpnA 19001 127.0.0.1 9000 10.0.0.1 auto vpnB auto 127.0.0.1 9000
+# 终端3：A 主动方（第 5 参 auto = 隧道地址由 B 分配）
+sudo ./sysroot/linux/x86_64/bin/xtools mockery --log-level=0x16 \
+     test_vpn_peer vpnA 19001 127.0.0.1 9000 auto auto vpnB auto 127.0.0.1 9000
 ```
 
-> 无公网时把主 STUN 覆盖为信令服务器自身（它兼 STUN 回显）：即末尾
-> `<stun_host> <stun_port>` 传 `127.0.0.1 9000`；`<tun_name>` 位置写 `auto` 占位。
-> 有公网时省略这两个参数、用默认公共 STUN（见上一节真机示例）。
-
-打通后：
+打通后（A 的地址由 B 分配，看它日志或 `ip addr show`）：
 
 ```bash
-ping 10.0.0.2        # 在 A 上 ping B 的 tun IP
+ping -c 2 10.0.0.254      # 在 A 上 ping B 的隧道地址
 ```
 
-#### 2.4 `test_vpn_peer` 参数说明
+#### 3.4 `test_vpn_peer` 参数说明
 
 ```
 test_vpn_peer <stun_id> <local_service> <signal_host> <signal_port>
@@ -414,50 +403,50 @@ test_vpn_peer <stun_id> <local_service> <signal_host> <signal_port>
 ```
 
 - `<stun_id>`：本节点标识（需与对方的 `<peer_id>` 互相指认）；
-- `<local_service>`：会话(data)口端口；**建议固定端口**（如 `12346`/`19001`，与
-  `test_p2p_peer` 真机示例一致，便于安全组放行与排障）；`auto`/`0`=随机；
+- `<local_service>`：会话(data)口端口；建议固定（如 `12346`/`19001`，便于安全组放行）；`auto`/`0`=随机；
 - `<signal_host> <signal_port>`：信令服务器地址（必填）；
-- `<tunnel_ip>`：**本端隧道地址**（会 `ip addr replace <tunnel_ip>/<prefix> dev <tun>`）；
-- `<local_net>`：**本端内网网段**（如 `172.16.10.0/23`）；链路建立后自动通告给对端，
-  对端据此自动加路由——**两端各填自己的**，不用知道对方；`auto`/`0`=不通告（只测隧道）；
-- `<peer_id>`：**带 = 主叫**（主动建链）；**不带 = 被叫**（常驻等被叫）；
+- `<tunnel_ip>`：**本端隧道地址**；**被动方必填**（建议 `x.x.x.254/24`，它同时是地址池）；
+  `auto`/`0` = 不填，**由对端分配**（仅主动方可用）；
+- `<local_net>`：**本端内网网段**（如 `172.16.10.0/23`）；链路建立后自动交换；`auto`/`0`=不通告；
+- `<peer_id>`：**带 = 主动方**（主动建链）；**不带 = 被动方**（常驻等被连）；
 - `<tun_name>`：设备名，`auto`/省略=内核分配 `tunN`；
-- `<stun_host> <stun_port>`：可选，覆盖主 STUN（采址用）；同机回环可传信令服自身。
+- `<stun_host> <stun_port>`：可选，覆盖主 STUN；同机回环可传信令服自身。
 
 STUN 采址缺省用公共 `stun.cloudflare.com:3478`（需网络可达；否则覆盖成信令服）。
 
 ## 转发模型
 
 ```
-出站：Tun.read(IP 包) -> p2p_session_send          （主循环 poll tun fd，200ms 超时以响应 Ctrl+C）
-入站：p2p recv 回调 -> Tun.write(注入协议栈)         （p2p 事件线程；回调内不阻塞）
+建链：p2p 建链 -> 等 CONNECTED -> 交换地址（主叫发 NET_NOTIFY，被动方应答并分配）
+      -> 一次性配 tun（本端地址 + 各对端网段路由）-> 进入转发循环
+出站：Tun.read(IP 包) -> 按目的地址选链路 -> p2p_session_send
+      （主循环 poll tun fd，200ms 超时以响应 Ctrl+C；空闲 tick 里回收断链/补装路由）
+入站：p2p recv 回调（带 session，可区分对端）-> Tun.write(注入协议栈)
 ```
 
-- 出站包直接透传，**不加隧道头**（点对点单通道）；
-- **被叫**没有 `p2p_session_create`，其会话句柄是在**收到对端第一个包时**从 recv 回调
-  里"学到"的，之后即可出站回发（日志 `vpn: learned peer session (callee path)`）；
-- 未打通时丢弃出站包（不排队），避免无界缓冲；
-- 等打通：主叫等服务器 `CONNECTED`（60s 超时失败）；被叫常驻不超时；
-- `Ctrl+C` → 关会话、下线节点、销毁 Tun。Tun 设备是"**进程持有 fd 才存在**"的
-  （我们用 `open("/dev/net/tun")+TUNSETIFF`，**未设** `TUNSETPERSIST`），所以
-  `close(fd)` 后内核注销该设备，**绑在它上面的地址与路由会一并自动删除**，
-  无需手动 `ip addr del` / `ip route del`。若你另用 `ip tuntap add ... mode tun`
-  建过同名**持久**设备，才会残留。
+- 出站包直接透传，**不加隧道头**：一个对端一个会话 socket，"这包是谁的"由 socket 决定；
+- 选路表来自交换：`link->peer_tun_ip`（对端隧道地址，精确）+ `link->peer_net`（对端内网网段，最长前缀）；
+- 未打通 / 选不到链路时**丢弃**出站包（不排队），避免无界缓冲；
+- **被动链路**断链会被回收（关会话 + 归还隧道地址 + 空出槽位，可被后来的对端复用）；
+  **主动链路**保留（`vpn_run` 只在启动时建一次，回收等于永久断线）；
+- `Ctrl+C` → 关全部会话、下线节点、销毁 Tun。Tun 设备是"**进程持有 fd 才存在**"的
+  （`open("/dev/net/tun")+TUNSETIFF`，**未设** `TUNSETPERSIST`），所以 `close(fd)` 后内核注销该设备，
+  **绑在它上面的地址与路由会一并自动删除**，无需手动 `ip addr del` / `ip route del`。
 
 ## 日志与排障
 
-- 成功：`vpn: tun <name> up, tunnel-ip=... netmask=... route=... mtu=1400`、
-  `vpn: <id> <-> <peer> connected (server-confirmed)`、`vpn: tunnel up`；
-- 权限：见上文"权限要求"；
-- 网段交换（正常各出现一次）：
-  `vpn: sent local net notify <本端网段> to peer (waiting ack)`、
-  `vpn: peer notified local net <对端网段>, adding route`、
-  `vpn: peer acked local net notify, stop resending`；
-  若只看到 `sent ... waiting ack` 反复出现，说明对端回执没到（丢包/对端未升级），
-  最多重发 10 次后自行停止；
+- 成功：`vpn: tun <name> opened (mtu=1400)，待地址交换后配置` →
+  `vpn: tun <name> up, tunnel-ip=... mtu=1400` → `vpn: <id> <-> <peer> connected (server-confirmed)`；
+- 地址交换（正常各一次）：
+  `vpn: 已向对端通告本端内网 <网段>，等对端分配地址`、
+  `vpn: 对端已接受本端通告，分配本端隧道地址 <ip/len>`、
+  `vpn: 分配隧道地址 <ip> 给新对端` / `vpn: 已接受对端通告，分配 <ip/len> 给对端（本端 <ip>）`、
+  `vpn: 对端内网网段 <网段>，加路由`；
+- 链路：`vpn: 新增对端链路 slot=N（在线 M 条，主动/被动）`、
+  `vpn: 释放链路（归还隧道地址 <ip>）`；
 - 路由：`ip route replace <net> dev <tun>` 失败只告警
   （`tun: route ... not added (may be covered by connected route)`）；
-- 收不到包先查通道：用 `test_p2p_peer` 或 `doc/net/p2p/README.md` 的排障（UDP 放行等）；
+- 收不到包先查通道：用 `test_p2p_peer` 或 [`../p2p/README.md`](../p2p/README.md) 的排障（UDP 放行等）；
 - MTU：默认 1400，与 p2p 单包上限对齐；两端同值可避免分片丢失。
 
 ## 相关

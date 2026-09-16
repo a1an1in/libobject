@@ -2,7 +2,7 @@
 #define __VPN_INTERNAL_H__
 
 /*
- * VPN 内部定义（模块私有，不对外暴露；对外只有 libobject/net/vpn/Vpn.h 的
+ * VPN 内部定义（模块私有，不对外暴露；对外只有 libobject/net/vpn/vpn.h 的
  * vpn_cfg_t + vpn_run）。
  *
  * 集中放在这里的东西：
@@ -15,13 +15,16 @@
 
 #include <stdint.h>
 #include <libobject/net/p2p/p2p.h>
-#include <libobject/net/vpn/Vpn.h>
+#include <libobject/net/vpn/vpn.h>
 #include "tun/Tun.h"
 
 /* 出站读缓冲：需 >= 单包上限(MTU 1400 + IP 头余量)，取 4K 足够。 */
 #define VPN_RW_BUF_SIZE 4096
 /* 等待打通/等地址分配的最长轮次：300 * 200ms = 60s。 */
 #define VPN_WAIT_ROUNDS 300
+/* 转发空闲 tick 周期（毫秒）：回收断链对端 + 兜底装路由（幂等），原先由出站
+ * poll 循环的 5 × 200ms 实现，现在由一个定时 worker 驱动。 */
+#define VPN_FORWARD_TICK_MS 1000
 
 /* ---- VPN 层控制帧（走 p2p 数据通道，与业务 IP 包区分）----
  * 首字节 0xFF 在合法 IP 包里不可能出现（版本号必须是 4/6），所以零误判。 */
@@ -93,7 +96,7 @@ typedef struct vpn_link_s {
 
 typedef struct vpn_ctx_s {
     const vpn_cfg_t *cfg;
-    Tun *tun;                     /* 地址交换完成、配 tun 之后才非空 */
+    Tun *tun;                     /* 非空 = 已配好地址并 up（"能转发"的标志） */
     p2p_node_t *node;
     int dial;                     /* 1=主动方（主动连 cfg->peer_id）；0=被动方（等别人连） */
     int n_links;                  /* **在线**链路数（空槽被回收后会被复用，故不是数组长度） */
@@ -114,6 +117,15 @@ typedef struct vpn_ctx_s {
      * 地址由占用表管理（而不是 link 下标），所以对端断链后归还的地址
      * 可以被后来的对端复用，且不同槽位之间永远不会撞。 */
     uint32_t addr_used[VPN_MAX_LINKS];
+
+    /* ---- 转发用 worker（都挂在默认 producer 的事件线程上，vpn_close_tun 里销毁）----
+     *   tun_worker ：tun fd 可读 -> 出站转发（io_worker，回调里只读一个包）
+     *   tick_worker：约每 VPN_FORWARD_TICK_MS 一次兜底 tick（timer_worker）
+     * 二者与 tun 同生共死（见 vpn_open_tun / vpn_close_tun：tun 起来就挂上，
+     * 关 tun 先撤 worker）；用 void* 承载，避免这个模块内部头反过来依赖
+     * concurrent 的 Worker 类型。 */
+    void *tun_worker;
+    void *tick_worker;
 } vpn_ctx_t;
 
 /* ---- 控制帧处理：表驱动分派（新增帧类型只需加一行表项，不必改分派逻辑）----

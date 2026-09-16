@@ -91,9 +91,6 @@ int p2p_node_is_alive(p2p_node_t *node);
 int p2p_session_create(p2p_node_t *node, const char *remote_stun_id,
                        p2p_session_t **out);
 
-/* 配置会话：绑定该会话业务收包回调与上下文（覆盖节点默认）。可空 recv=沿用节点默认。 */
-int p2p_session_config(p2p_session_t *s, p2p_recv_fn recv, void *opaque);
-
 /* 向该会话对端发业务包。返回 0 成功；负值失败(未通/已关闭/参数错)。 */
 int p2p_session_send(p2p_session_t *s, const uint8_t *data, int len);
 

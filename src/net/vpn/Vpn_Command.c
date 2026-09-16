@@ -27,10 +27,10 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/argument/Command.h>
 #include <libobject/argument/Application.h>   /* REGISTER_APP_CMD / app_register_cmd */
-#include <libobject/net/vpn/Vpn.h>
+#include <libobject/net/vpn/vpn.h>
 #include <libobject/net/vpn/Vpn_Command.h>
 
-/* 采址 STUN / 保活周期的默认值统一来自 Vpn.h（test_vpn 共用同一份） */
+/* 采址 STUN / 保活周期的默认值统一来自 vpn.h（test_vpn 共用同一份） */
 #define VPN_DEFAULT_INTERVAL  VPN_DEFAULT_INTERVAL_MS
 
 /* 通用字符串选项回调：opaque 传的是目标字段地址(char **)，直接写进去。 */

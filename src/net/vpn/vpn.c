@@ -3,13 +3,17 @@
  * @Synopsis  VPN 对外入口实现：p2p 会话 <-> Tun 双向转发（Linux TUN，L3 路由）
  *
  * 流程（见 doc/net/vpn/p2p_vpn_design.md §5）：
- *   解析 vpn_cfg -> 打开 Tun（只 open + MTU）-> p2p 建链
+ *   解析 vpn_cfg -> p2p 建链
  *     （主动方 p2p_session_create / 被动方等 INVITE 自动建会话）-> 等 CONNECTED
  *     -> **交换地址**（主动方发 NET_NOTIFY；被动方在应答里分配对端地址 + 带回本端地址）
- *     -> 一次性创建并配置 Tun（本端地址 + 各对端网段路由）-> on_ready -> 转发循环：
- *          出站：tun->read 出 IP 包 -> 按目的地址选 link -> p2p_session_send（透传，不加隧道头）
- *          入站：p2p recv 回调（p2p 事件线程）-> tun->write 注入本机协议栈
- *     -> Ctrl+C：回收全部链路（关会话 + 归还地址）与 Tun
+ *     -> 地址齐了才建 Tun：open + MTU + 地址/掩码 + 对端网段路由，并**同时**把转发
+ *        挂到事件线程（io_worker 听 tun fd / timer_worker 兜底 tick）-> on_ready -> 转发：
+ *          出站：tun fd 可读（io_worker）-> tun->read 出 IP 包 -> 按目的地址选 link
+ *                -> p2p_session_send（透传，不加隧道头）  [事件线程]
+ *          入站：p2p recv 回调（同一事件线程）-> tun->write 注入本机协议栈
+ *          兜底：约 1s 一次回收断链对端 / 补装对端网段路由（timer_worker）[事件线程]
+ *          主线程只等 break_flag（Ctrl+C）后收尾
+ *     -> Ctrl+C：vpn_close_tun（撤 worker + 关 Tun）+ 回收全部链路（关会话 + 归还地址）
  *
  * 多对端（一个 tun 复用给多条链路）：被动方为**每个对端**单独登记一条 link
  * （recv 回调带 session 参数即可区分，无需身份字段），并充当**地址分配者**
@@ -26,15 +30,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #include <unistd.h>
-#include <poll.h>
 #include <libobject/core/utils/dbg/debug.h>
+#include <libobject/core/try.h>                      /* TRY/CATCH/FINALLY/EXEC */
+#include <libobject/core/utils/alloc/allocator.h>    /* allocator_get_default_instance */
 #include <libobject/concurrent/event_api.h>
+#include <libobject/concurrent/worker_api.h>         /* io_worker/timer_worker/worker_destroy */
 #include <libobject/net/p2p/p2p.h>
-#include <libobject/net/vpn/Vpn.h>
+#include <libobject/net/vpn/vpn.h>
 #include "tun/Tun.h"
-#include "Vpn_Internal.h"    /* 模块私有定义（常量/协议/结构体/结果码）都在这里 */
+#include "vpn_Internal.h"    /* 模块私有定义（常量/协议/结构体/结果码）都在这里 */
 
 /* 常量、协议（vpn_ctrl_t）、结构体（vpn_net_t / vpn_link_t / vpn_ctx_t）、
  * 结果码与分派类型，全部集中在 Vpn_Internal.h。 */
@@ -161,7 +166,7 @@ static int __netmask_len(const char *netmask)
  * is_dialer：该链路是否由本端主动建（决定"谁发 NET_NOTIFY"）。
  * 空槽（session==NULL，如对端断链被回收后）会被**复用**，所以 n_links 是
  * "在线链路数"而非数组长度——遍历请用 VPN_MAX_LINKS 并跳过空槽。 */
-static vpn_link_t *__vpn_link_get(vpn_ctx_t *ctx, p2p_session_t *session,
+static vpn_link_t *vpn_link_get(vpn_ctx_t *ctx, p2p_session_t *session,
                                   int is_dialer)
 {
     int i, slot = -1;
@@ -192,7 +197,7 @@ static vpn_link_t *__vpn_link_get(vpn_ctx_t *ctx, p2p_session_t *session,
  *   2) 对端内网网段，最长前缀匹配 -> 该 link；
  *   3) 都没命中且只有一条 link -> 用它（点对点/主叫场景的兼容退化）；
  *   4) 多 link 且不命中 -> NULL（丢弃而不猜，避免把包串给别的对端）。 */
-static vpn_link_t *__vpn_link_pick(vpn_ctx_t *ctx, uint32_t dst)
+static vpn_link_t *vpn_link_pick(vpn_ctx_t *ctx, uint32_t dst)
 {
     vpn_link_t *best = NULL, *only = NULL;
     int i, n_online = 0, best_prefix = -1;
@@ -227,10 +232,10 @@ static vpn_link_t *__vpn_link_pick(vpn_ctx_t *ctx, uint32_t dst)
 }
 
 /* 发一个控制帧（可能运行在 p2p 事件线程里，所以不阻塞、不 sleep）：
- *   NET_NOTIFY     payload = 本端内网网段（可空）——只有主动方发一次，见 __vpn_exchange_addr
- *   NET_NOTIFY_ACK payload = 见 __vpn_reply_notify()
- * 只负责"发一帧"；发送时机见 __vpn_exchange_addr 与转发循环的兜底。 */
-static int __vpn_send_ctrl(vpn_link_t *link, uint8_t type,
+ *   NET_NOTIFY     payload = 本端内网网段（可空）——只有主动方发一次，见 vpn_exchange_addr
+ *   NET_NOTIFY_ACK payload = 见 vpn_reply_notify()
+ * 只负责"发一帧"；发送时机见 vpn_exchange_addr 与转发循环的兜底。 */
+static int vpn_send_ctrl(vpn_link_t *link, uint8_t type,
                            const char *payload, int payload_len)
 {
     vpn_ctrl_t f;
@@ -259,10 +264,10 @@ static int __vpn_send_ctrl(vpn_link_t *link, uint8_t type,
 /* 结果码 enum（VPN_NOTIFY_*）见 Vpn_Internal.h。 */
 
 /* 记录对端的隧道地址 / 内网网段（都用于出站选路与装路由）；ip / net 均可为 NULL。
- * **只记录、不碰 tun**：配置类动作统一在 __vpn_configure_tun / __vpn_install_link_routes——
+ * **只记录、不碰 tun**：配置类动作统一在 vpn_open_tun / vpn_install_link_routes——
  * 本函数可能跑在 p2p 事件线程，而且地址交换发生在建 tun 之前。
  * 返回 VPN_NOTIFY_OK 或拒绝码（调用方据此决定应答里的码）。 */
-static int __vpn_link_set_peer_info(vpn_ctx_t *ctx, vpn_link_t *link,
+static int vpn_link_set_peer_info(vpn_ctx_t *ctx, vpn_link_t *link,
                                     const char *ip, const char *net)
 {
     vpn_net_t pnet;
@@ -297,7 +302,7 @@ static int __vpn_link_set_peer_info(vpn_ctx_t *ctx, vpn_link_t *link,
 
 /* 地址池初始化（**被动方 = 分配者**）：网段取自 --tunnel-ip（本端地址也就是它）。
  * 没配 --tunnel-ip 或非法 -> 无法当分配者（vpn_run 会据此报错）。 */
-static void __vpn_pool_init(vpn_ctx_t *ctx)
+static void vpn_pool_init(vpn_ctx_t *ctx)
 {
     const vpn_cfg_t *cfg = ctx->cfg;
     char text[64];
@@ -331,7 +336,7 @@ static void __vpn_pool_init(vpn_ctx_t *ctx)
 
 /* 地址分配：从**占用表**里取第一个空闲地址（= pool_net|(i+1)，跳过本端地址）。
  * 占用表与 link 槽位无关，所以对端断链归还的地址可以被后来者复用。 */
-static uint32_t __vpn_pool_alloc(vpn_ctx_t *ctx)
+static uint32_t vpn_pool_alloc(vpn_ctx_t *ctx)
 {
     int i;
 
@@ -355,7 +360,7 @@ static uint32_t __vpn_pool_alloc(vpn_ctx_t *ctx)
 }
 
 /* 归还地址（对端断链/链路释放时调用）：对应槽置空闲，供后来的对端复用。 */
-static void __vpn_pool_free(vpn_ctx_t *ctx, uint32_t ip)
+static void vpn_pool_free(vpn_ctx_t *ctx, uint32_t ip)
 {
     int i;
 
@@ -371,7 +376,7 @@ static void __vpn_pool_free(vpn_ctx_t *ctx, uint32_t ip)
 }
 
 /* 取第一条"主动建链且在线"的链路（没有则 NULL）。 */
-static vpn_link_t *__vpn_link_dialer(vpn_ctx_t *ctx)
+static vpn_link_t *vpn_link_dialer(vpn_ctx_t *ctx)
 {
     int i;
 
@@ -384,13 +389,13 @@ static vpn_link_t *__vpn_link_dialer(vpn_ctx_t *ctx)
 }
 
 /* 释放一条链路：关会话 + **归还隧道地址** + 清空槽（可被后续对端复用）。 */
-static void __vpn_link_release(vpn_ctx_t *ctx, vpn_link_t *link)
+static void vpn_link_release(vpn_ctx_t *ctx, vpn_link_t *link)
 {
     if (link == NULL || link->session == NULL) {
         return;
     }
     p2p_session_close(link->session);
-    __vpn_pool_free(ctx, link->peer_tun_ip);
+    vpn_pool_free(ctx, link->peer_tun_ip);
     dbg_str(DBG_INFO, "vpn: 释放链路（归还隧道地址 %u.%u.%u.%u）",
             (link->peer_tun_ip >> 24) & 0xFF, (link->peer_tun_ip >> 16) & 0xFF,
             (link->peer_tun_ip >> 8) & 0xFF, link->peer_tun_ip & 0xFF);
@@ -402,14 +407,14 @@ static void __vpn_link_release(vpn_ctx_t *ctx, vpn_link_t *link)
 
 /* 释放**被动侧**已判定断链的链路（转发循环的空闲 tick 里调用，约 1s 一次）：
  * 遍历链路，连续 VPN_LINK_BAD_ROUNDS 轮 `p2p_session_is_connected()` 都不可用
- * 才调 __vpn_link_release()（关会话 + 归还隧道地址 + 空出槽位），避免瞬时抖动误判。
+ * 才调 vpn_link_release()（关会话 + 归还隧道地址 + 空出槽位），避免瞬时抖动误判。
  *
  * **只回收被动链路**（is_dialer==0）：
  *   - 被动方分配出去的隧道地址与 link 槽位都是有限资源（hub 会被陆续连接），必须归还；
  *   - 主动方只有自己建的那一条：不涉及地址池，`p2p_session_close()` 之后也不会再
  *     create（vpn_run 只在启动时建一次），回收等于**永久断线**，还丢掉 p2p 保活
  *     自愈的机会——所以主动链路即使暂时不可用也保留，出站包由 is_connected 检查丢弃。 */
-static void __vpn_release_dead_links(vpn_ctx_t *ctx)
+static void vpn_release_dead_links(vpn_ctx_t *ctx)
 {
     int i;
 
@@ -426,7 +431,7 @@ static void __vpn_release_dead_links(vpn_ctx_t *ctx)
         if (++l->bad_rounds >= VPN_LINK_BAD_ROUNDS) {
             dbg_str(DBG_INFO, "vpn: 链路连续 %d 轮不可用，判定断链并回收",
                     l->bad_rounds);
-            __vpn_link_release(ctx, l);
+            vpn_link_release(ctx, l);
         }
     }
 }
@@ -434,7 +439,7 @@ static void __vpn_release_dead_links(vpn_ctx_t *ctx)
 /* 给"已记下对端网段但还没装路由"的链路装路由（幂等）：
  * 地址信息在交换/收包阶段只记录；这里统一装——配 tun 后调用一次，
  * 转发循环的 tick 里再兜底（覆盖配置之后才到来的对端）。 */
-static void __vpn_install_link_routes(vpn_ctx_t *ctx)
+static void vpn_install_link_routes(vpn_ctx_t *ctx)
 {
     int i;
 
@@ -457,20 +462,20 @@ static void __vpn_install_link_routes(vpn_ctx_t *ctx)
  *         [+ 本端内网网段]，于是主动方一个来回就拿到"自己的地址 + 对端的地址"；
  *   码非 0：只带码（拒绝 / 地址池不可用），不带地址。
  * payload："<码> <给对端的地址/len> <本端隧道地址>[ <本端内网网段>]" */
-static int __vpn_reply_notify(vpn_ctx_t *ctx, vpn_link_t *link, uint8_t code)
+static int vpn_reply_notify(vpn_ctx_t *ctx, vpn_link_t *link, uint8_t code)
 {
     char payload[VPN_CTRL_CIDR_MAX];
     char given[20], mine[20];
 
     if (code == VPN_NOTIFY_OK && link->peer_tun_ip == 0) {
-        link->peer_tun_ip = __vpn_pool_alloc(ctx);   /* 占用表里取一个空闲地址 */
+        link->peer_tun_ip = vpn_pool_alloc(ctx);   /* 占用表里取一个空闲地址 */
     }
     if (code == VPN_NOTIFY_OK && link->peer_tun_ip == 0) {
         code = VPN_NOTIFY_ENOADDR;
     }
     if (code != VPN_NOTIFY_OK) {
         snprintf(payload, sizeof(payload), "%u", (unsigned)code);
-        return __vpn_send_ctrl(link, VPN_CTRL_NET_NOTIFY_ACK, payload,
+        return vpn_send_ctrl(link, VPN_CTRL_NET_NOTIFY_ACK, payload,
                                (int)strlen(payload));
     }
 
@@ -493,7 +498,7 @@ static int __vpn_reply_notify(vpn_ctx_t *ctx, vpn_link_t *link, uint8_t code)
         }
     }
     dbg_str(DBG_VIP, "vpn: 已接受对端通告，分配 %s 给对端（本端 %s）", given, mine);
-    return __vpn_send_ctrl(link, VPN_CTRL_NET_NOTIFY_ACK, payload,
+    return vpn_send_ctrl(link, VPN_CTRL_NET_NOTIFY_ACK, payload,
                            (int)strlen(payload));
 }
 
@@ -501,7 +506,7 @@ static int __vpn_reply_notify(vpn_ctx_t *ctx, vpn_link_t *link, uint8_t code)
  *   payload = 对端的内网网段（可空）；本端按下标给它分配隧道地址，并回应答（带本端地址）。
  *   只记录对端信息，不碰 tun（配 tun 在地址交换之后统一做）。
  * 返回 0=已接受；负值=已拒绝（两种情况应答都已发出，码在应答 payload 里）。 */
-static int __vpn_link_handle_notify(vpn_ctx_t *ctx, vpn_link_t *link,
+static int vpn_link_handle_notify(vpn_ctx_t *ctx, vpn_link_t *link,
                                     const vpn_ctrl_t *f, int len)
 {
     char payload[VPN_CTRL_CIDR_MAX];
@@ -520,14 +525,14 @@ static int __vpn_link_handle_notify(vpn_ctx_t *ctx, vpn_link_t *link,
     if (n > 0) {
         memcpy(payload, f->payload, n);
         payload[n] = '\0';
-        code = (uint8_t)__vpn_link_set_peer_info(ctx, link, NULL, payload);
+        code = (uint8_t)vpn_link_set_peer_info(ctx, link, NULL, payload);
         if (code != VPN_NOTIFY_OK) {
             dbg_str(DBG_ERROR, "vpn: 对端通告的网段不合法('%s')，拒绝", payload);
         }
     }
 
 reply:
-    __vpn_reply_notify(ctx, link, code);   /* 接受/拒绝都回，只是码不同 */
+    vpn_reply_notify(ctx, link, code);   /* 接受/拒绝都回，只是码不同 */
     return (code == VPN_NOTIFY_OK) ? 0 : -1;
 }
 
@@ -535,7 +540,7 @@ reply:
  *   payload = "<码> <分配给本端的隧道地址/len> <对端隧道地址>[ <对端内网网段>]"
  *   码 0：记下"本端隧道地址"（稍后据此配 tun）+ "对端地址/网段"（选路用）；
  *   码非 0：拒绝 / 地址池不可用，告警——避免本端以为通了、实际对端没装路由。 */
-static int __vpn_ctrl_on_notify_ack(vpn_ctx_t *ctx, vpn_link_t *link,
+static int vpn_ctrl_on_notify_ack(vpn_ctx_t *ctx, vpn_link_t *link,
                                     const vpn_ctrl_t *f, int len)
 {
     char payload[VPN_CTRL_CIDR_MAX];
@@ -580,7 +585,7 @@ static int __vpn_ctrl_on_notify_ack(vpn_ctx_t *ctx, vpn_link_t *link,
 
     /* 2) 对端隧道地址 [+ 对端内网网段]：选路用 */
     if (got >= 3 &&
-        __vpn_link_set_peer_info(ctx, link, peer,
+        vpn_link_set_peer_info(ctx, link, peer,
                                  (got >= 4) ? net : NULL) != VPN_NOTIFY_OK) {
         dbg_str(DBG_ERROR, "vpn: 应答里的对端地址/网段不合法('%s'/'%s')，忽略",
                 peer, net);
@@ -589,15 +594,15 @@ static int __vpn_ctrl_on_notify_ack(vpn_ctx_t *ctx, vpn_link_t *link,
 }
 
 static const vpn_ctrl_entry_t g_vpn_ctrl_table[] = {
-    { VPN_CTRL_NET_NOTIFY,     "NET_NOTIFY",     __vpn_link_handle_notify },
-    { VPN_CTRL_NET_NOTIFY_ACK, "NET_NOTIFY_ACK", __vpn_ctrl_on_notify_ack },
+    { VPN_CTRL_NET_NOTIFY,     "NET_NOTIFY",     vpn_link_handle_notify },
+    { VPN_CTRL_NET_NOTIFY_ACK, "NET_NOTIFY_ACK", vpn_ctrl_on_notify_ack },
 };
 #define VPN_CTRL_TABLE_NUM \
     (sizeof(g_vpn_ctrl_table) / sizeof(g_vpn_ctrl_table[0]))
 
 /* 处理某个对端（link）发来的控制帧：按 type 查表分派。
  * 未知类型只记 detail 日志并忽略——这样将来加新帧类型时，新旧版本可共存。 */
-static int __vpn_handle_ctrl(vpn_ctx_t *ctx, vpn_link_t *link,
+static int vpn_handle_ctrl(vpn_ctx_t *ctx, vpn_link_t *link,
                              const uint8_t *data, int len)
 {
     const vpn_ctrl_t *f = (const vpn_ctrl_t *)data;
@@ -620,8 +625,8 @@ static int __vpn_handle_ctrl(vpn_ctx_t *ctx, vpn_link_t *link,
 /* 入站：控制帧在 VPN 层消化；业务 IP 包注入本机 Tun。
  * 运行于 p2p 事件线程，回调内不得阻塞。
  * 多对端：按回调带来的 session 认领/登记 link，于是被叫能同时服务多个主叫。 */
-static int __vpn_recv(void *opaque, p2p_session_t *session,
-                      const uint8_t *data, int len)
+static int vpn_p2p_recv_callback(void *opaque, p2p_session_t *session,
+                                   const uint8_t *data, int len)
 {
     vpn_ctx_t *ctx = (vpn_ctx_t *)opaque;
     vpn_link_t *link;
@@ -629,7 +634,7 @@ static int __vpn_recv(void *opaque, p2p_session_t *session,
     if (ctx == NULL || data == NULL || len <= 0) {
         return -1;
     }
-    link = __vpn_link_get(ctx, session, 0);   /* 0=被动链路：本端只应答、不发通告 */
+    link = vpn_link_get(ctx, session, 0);   /* 0=被动链路：本端只应答、不发通告 */
     if (link == NULL) {
         return -1;                       /* 已达对端上限：不再接受新对端 */
     }
@@ -637,7 +642,7 @@ static int __vpn_recv(void *opaque, p2p_session_t *session,
      * 控制帧（通告/应答）必须能收下——**地址交换发生在建 tun 之前**，那时 tun 还不存在。 */
     if (len >= VPN_CTRL_HDR_LEN && (uint8_t)data[0] == 0xFF &&
         memcmp(data, VPN_CTRL_MAGIC, VPN_CTRL_MAGIC_LEN) == 0) {
-        return __vpn_handle_ctrl(ctx, link, data, len);
+        return vpn_handle_ctrl(ctx, link, data, len);
     }
     if (ctx->tun == NULL) {
         return -1;                       /* 还在地址交换阶段：业务包先丢 */
@@ -645,50 +650,169 @@ static int __vpn_recv(void *opaque, p2p_session_t *session,
     return ctx->tun->write(ctx->tun, data, len);
 }
 
-/* 打开 tun：**只 open + 设 MTU**，不配地址——地址要等交换完成后一次性配置
- * （见 __vpn_configure_tun），避免"先配错地址、拿到后再改"的过程。 */
-static int __vpn_open_tun(vpn_ctx_t *ctx)
+/* 出站转发：tun fd 可读时被 io_worker 异步调用（运行在默认 producer 的事件线程，
+ * 与 p2p 收包回调**同线程**——所以对 ctx/links 的读写天然互斥，不需要加锁）。
+ * 一次只读一个包：tun 是阻塞 fd，循环读到 EAGAIN 会阻塞事件线程；select 是水平触发，
+ * 还有数据下一次 dispatch 会再通知。多对端：读到一个包后按目的地址选 link 发送。 */
+static void vpn_tun_recv_cb(int fd, short events, void *arg)
 {
-    const vpn_cfg_t *cfg = ctx->cfg;
+    Worker *worker = (Worker *)arg;              /* io_worker 里 ev_arg = worker */
+    vpn_ctx_t *ctx  = (worker != NULL) ? (vpn_ctx_t *)worker->opaque : NULL;
+    uint8_t buf[VPN_RW_BUF_SIZE];
+    vpn_link_t *l;
+    int n;
 
-    ctx->tun = tun_create();
-    if (ctx->tun == NULL) {
-        dbg_str(DBG_ERROR, "vpn: tun_create failed");
-        return -1;
+    (void)fd;
+    (void)events;
+    if (ctx == NULL || ctx->tun == NULL) {
+        return;
     }
-    if (ctx->tun->open(ctx->tun, cfg->tun_name) < 0) {
-        dbg_str(DBG_ERROR, "vpn: tun open failed (need root/CAP_NET_ADMIN?)");
-        return -1;
+    n = ctx->tun->read(ctx->tun, buf, sizeof(buf));
+    if (n <= 0) {
+        return;
     }
-    ctx->tun->set_mtu(ctx->tun, ctx->tun->mtu);
-    dbg_str(DBG_INFO, "vpn: tun %s opened (mtu=%d)，待地址交换后配置",
-            ctx->tun->name, ctx->tun->mtu);
+    /* 按目的地址选对端：对端隧道地址（精确）/ 对端内网网段（最长前缀）。
+     * 多对端且都不命中 -> 丢弃，绝不"猜"着发给某一条链路。 */
+    l = vpn_link_pick(ctx, __ipv4_dst(buf, n));
+    if (l == NULL) {
+        static int drop_logs;
+
+        if ((drop_logs++ % 64) == 0) {
+            dbg_str(DBG_INFO, "vpn: 出站包无匹配的对端（需对端通告内网网段，"
+                    "或目的为对端隧道地址），已丢弃");
+        }
+        return;
+    }
+    if (p2p_session_is_connected(l->session) != 0) {
+        return;   /* 还没打通：丢弃出站包（等建链完成） */
+    }
+    if (p2p_session_send(l->session, buf, n) < 0) {
+        dbg_str(DBG_INFO, "vpn: send %d bytes failed", n);
+    }
+}
+
+/* 空闲 tick（timer_worker 驱动，约每 VPN_FORWARD_TICK_MS 一次，同事件线程）：
+ *   1) 回收断链的对端（关会话 + 归还隧道地址 + 腾出槽位）；
+ *   2) 兜底安装"后到的对端"的内网网段路由（幂等）。
+ * 以 ctx->tun 是否已发布为界：tun 为空（建链/地址交换阶段）直接返回——那时 tun
+ * 还没配地址，既不该装路由，也不该从主线程手里抢着回收 link；这与原来"配好 tun
+ * 才进转发循环"的行为一致。 */
+static int vpn_timer_cb(void *opaque)
+{
+    vpn_ctx_t *ctx = (vpn_ctx_t *)opaque;
+
+    if (ctx == NULL || ctx->tun == NULL) {
+        return 0;
+    }
+    vpn_release_dead_links(ctx);
+    vpn_install_link_routes(ctx);
     return 0;
 }
 
-/* 地址交换完成后**一次性**配置 tun：本端地址（对端分配的 / 自己配的）
- * + 各对端的内网网段路由（那些网段在交换/收包阶段已经记下）。 */
-static int __vpn_configure_tun(vpn_ctx_t *ctx)
+/* 打开 tun 并**一次性配好**（调用时机：地址交换已完成，本端隧道地址已确定）：
+ *   open + MTU + 地址/掩码 + 对端网段路由 + 挂转发 worker
+ * 于是没有"先开空 tun、稍后再配"的中间状态——ctx->tun 一旦非空就是"能转发"的。
+ * 转发 worker 随 tun 的 fd 建立（tun 的生命周期就是转发的生命周期）：
+ *   tun fd 可读         -> vpn_tun_recv_cb（io_worker，EV_READ|EV_PERSIST）
+ *   VPN_FORWARD_TICK_MS -> vpn_timer_cb（timer_worker）
+ * 前提：默认 producer/event_base 已初始化（Application 启动流程会做）。 */
+static int vpn_open_tun(vpn_ctx_t *ctx)
 {
     const vpn_cfg_t *cfg = ctx->cfg;
     const char *ip = (ctx->my_tun_ip_text[0] != '\0') ? ctx->my_tun_ip_text
                                                       : cfg->tunnel_ip;
+    allocator_t *allocator = allocator_get_default_instance();
+    Producer *producer = producer_get_default_instance();
+    struct timeval tv;
+    Tun *tun = NULL;
+    void *tun_worker = NULL, *tick_worker = NULL;
 
+    if (ctx->tun != NULL) {
+        return 0;                        /* 幂等：已经打开并配好了 */
+    }
     if (ip == NULL || ip[0] == '\0') {
         dbg_str(DBG_ERROR, "vpn: 无本端隧道地址（对端未分配，且未配 --tunnel-ip）");
         return -1;
     }
-    if (ctx->tun->configure(ctx->tun, ip, cfg->netmask) < 0) {
-        dbg_str(DBG_ERROR, "vpn: tun configure failed (need root/CAP_NET_ADMIN?)");
+    if (producer == NULL) {
+        dbg_str(DBG_ERROR, "vpn: 默认 producer 未初始化，无法挂载转发 worker"
+                "（请用 Application 启动）");
         return -1;
     }
-    __vpn_install_link_routes(ctx);      /* 对端内网网段路由（全部来自 notify 交换） */
-    dbg_str(DBG_VIP, "vpn: tun %s up, tunnel-ip=%s mtu=%d", ctx->tun->name, ip,
-            ctx->tun->mtu);
+
+    if ((tun = tun_create()) == NULL) {
+        dbg_str(DBG_ERROR, "vpn: tun_create failed");
+        return -1;
+    }
+    if (tun->open(tun, cfg->tun_name) < 0) {
+        dbg_str(DBG_ERROR, "vpn: tun open failed (need root/CAP_NET_ADMIN?)");
+        goto fail;
+    }
+    tun->set_mtu(tun, tun->mtu);
+    if (tun->configure(tun, ip, cfg->netmask) < 0) {
+        dbg_str(DBG_ERROR, "vpn: tun configure failed (need root/CAP_NET_ADMIN?)");
+        goto fail;
+    }
+
+    /* ev_tv 传 NULL：纯 IO 事件，不参与定时器（Timer 对 0 超时会直接忽略） */
+    tun_worker = io_worker(allocator, tun->fd, EV_READ | EV_PERSIST,
+                           NULL, producer, vpn_tun_recv_cb, NULL, ctx);
+    if (tun_worker == NULL) {
+        dbg_str(DBG_ERROR, "vpn: 创建 tun 转发 worker 失败");
+        goto fail;
+    }
+    tv.tv_sec  = VPN_FORWARD_TICK_MS / 1000;
+    tv.tv_usec = (VPN_FORWARD_TICK_MS % 1000) * 1000;
+    tick_worker = timer_worker(allocator, EV_READ | EV_PERSIST, &tv,
+                               vpn_timer_cb, ctx);
+    if (tick_worker == NULL) {
+        dbg_str(DBG_ERROR, "vpn: 创建转发 tick worker 失败");
+        goto fail;
+    }
+
+    /* 发布到 ctx：地址已配好、worker 已就绪，事件线程此刻起可以安全转发 */
+    ctx->tun         = tun;
+    ctx->tun_worker  = tun_worker;
+    ctx->tick_worker = tick_worker;
+    vpn_install_link_routes(ctx);      /* 对端内网网段路由（全部来自 notify 交换） */
+    dbg_str(DBG_VIP, "vpn: tun %s opened, tunnel-ip=%s mtu=%d，转发已挂事件线程"
+            "（fd=%d, tick=%dms）", tun->name, ip, tun->mtu, tun->fd,
+            VPN_FORWARD_TICK_MS);
     return 0;
+
+fail:
+    /* 还没发布给事件线程，就地回滚（worker 先撤，tun 后销毁） */
+    if (tick_worker != NULL) {
+        worker_destroy((Worker *)tick_worker);
+    }
+    if (tun_worker != NULL) {
+        worker_destroy((Worker *)tun_worker);
+    }
+    if (tun != NULL) {
+        tun_destroy(tun);
+    }
+    return -1;
 }
 
-static int __vpn_open_p2p(vpn_ctx_t *ctx)
+/* 关闭 tun：**与 vpn_open_tun 成对**——先撤掉两个转发 worker（保证事件线程
+ * 不再访问 ctx->tun），再销毁 tun 本体。幂等，可在任意失败路径调用。 */
+static void vpn_close_tun(vpn_ctx_t *ctx)
+{
+    if (ctx->tick_worker != NULL) {
+        worker_destroy((Worker *)ctx->tick_worker);
+        ctx->tick_worker = NULL;
+    }
+    if (ctx->tun_worker != NULL) {
+        worker_destroy((Worker *)ctx->tun_worker);
+        ctx->tun_worker = NULL;
+    }
+    if (ctx->tun != NULL) {
+        tun_destroy(ctx->tun);
+        ctx->tun = NULL;
+    }
+}
+
+static int vpn_open_p2p(vpn_ctx_t *ctx)
 {
     const vpn_cfg_t *cfg = ctx->cfg;
     p2p_cfg_t p2p_cfg;
@@ -704,7 +828,7 @@ static int __vpn_open_p2p(vpn_ctx_t *ctx)
     p2p_cfg.stun2_service  = cfg->stun2_service;
     p2p_cfg.interval_ms    = (cfg->interval_ms > 0) ? cfg->interval_ms : 200;
 
-    if (p2p_node_create(&ctx->node, __vpn_recv, &p2p_cfg, ctx) != 0) {
+    if (p2p_node_create(&ctx->node, vpn_p2p_recv_callback, &p2p_cfg, ctx) != 0) {
         dbg_str(DBG_ERROR, "vpn: %s p2p node online failed", cfg->id);
         return -1;
     }
@@ -719,7 +843,7 @@ static int __vpn_open_p2p(vpn_ctx_t *ctx)
                     cfg->id, cfg->peer_id);
             return -1;
         }
-        if (__vpn_link_get(ctx, session, 1) == NULL) {   /* 1=主动链路：由本端发通告 */
+        if (vpn_link_get(ctx, session, 1) == NULL) {   /* 1=主动链路：由本端发通告 */
             p2p_session_close(session);
             return -1;
         }
@@ -729,7 +853,7 @@ static int __vpn_open_p2p(vpn_ctx_t *ctx)
 
 /* 等第一条链路可用：主叫等自己的会话 CONNECTED（超时失败）；
  * 被叫等任一主叫把会话带进来（常驻不超时，之后仍会继续接受新对端）。 */
-static int __vpn_wait_link(vpn_ctx_t *ctx)
+static int vpn_wait_link(vpn_ctx_t *ctx)
 {
     struct event_base *eb = event_base_get_default_instance();
     int i;
@@ -739,7 +863,7 @@ static int __vpn_wait_link(vpn_ctx_t *ctx)
             return -1;   /* Ctrl+C */
         }
         if (ctx->dial) {
-            vpn_link_t *l = __vpn_link_dialer(ctx);
+            vpn_link_t *l = vpn_link_dialer(ctx);
 
             if (l != NULL && p2p_session_is_connected(l->session) == 0) {
                 dbg_str(DBG_VIP, "vpn: %s <-> %s connected (server-confirmed)",
@@ -767,7 +891,7 @@ static int __vpn_wait_link(vpn_ctx_t *ctx)
  *   "分配给本端的隧道地址 + 对端自己的隧道地址 [+ 对端内网网段]"。
  * 没收到就约每 1s 重发，最多 VPN_NET_NOTIFY_MAX_RETRY 次；超时返回 -1。
  * 被动方（被叫/hub）不等：它用 --tunnel-ip 作为自身地址，收到通告时就地分配并在应答里带回。 */
-static int __vpn_exchange_addr(vpn_ctx_t *ctx)
+static int vpn_exchange_addr(vpn_ctx_t *ctx)
 {
     struct event_base *eb = event_base_get_default_instance();
     int i, rounds = 0;
@@ -819,7 +943,7 @@ static int __vpn_exchange_addr(vpn_ctx_t *ctx)
                             (payload[0] != '\0') ? " " : "",
                             (payload[0] != '\0') ? payload : "(未配 --local-net)");
                 }
-                __vpn_send_ctrl(l, VPN_CTRL_NET_NOTIFY, payload,
+                vpn_send_ctrl(l, VPN_CTRL_NET_NOTIFY, payload,
                                 (int)strlen(payload));
             }
         }
@@ -833,132 +957,65 @@ static int __vpn_exchange_addr(vpn_ctx_t *ctx)
     }
 }
 
-/* 转发循环（出站）：poll 带超时以便响应 Ctrl+C；入站走 __vpn_recv 回调，无额外线程。
- * 多对端：读到一个包后按目的地址选 link 发送；空闲 tick 里兜底安装后到对端的网段路由。 */
-static void __vpn_forward(vpn_ctx_t *ctx)
-{
-    struct event_base *eb = event_base_get_default_instance();
-    uint8_t buf[VPN_RW_BUF_SIZE];
-    int idle_rounds = 0;
-
-    for (;;) {
-        struct pollfd pfd;
-        int n, i;
-
-        if (eb != NULL && eb->eb != NULL && eb->eb->break_flag) {
-            break;
-        }
-        memset(&pfd, 0, sizeof(pfd));
-        pfd.fd = ctx->tun->fd;
-        pfd.events = POLLIN;
-        n = poll(&pfd, 1, 200);
-        if (n < 0) {
-            if (errno == EINTR) {
-                continue;
-            }
-            dbg_str(DBG_ERROR, "vpn: poll failed: %s", strerror(errno));
-            break;
-        }
-        if (n == 0) {
-            /* 空闲 tick（5 × 200ms ≈ 1s）：
-             *   1) 回收断链的对端（关会话 + 归还隧道地址 + 腾出槽位）；
-             *   2) 兜底安装"后到的对端"的内网网段路由（幂等）。 */
-            if (++idle_rounds >= 5) {
-                idle_rounds = 0;
-                __vpn_release_dead_links(ctx);
-                __vpn_install_link_routes(ctx);
-            }
-            continue;   /* 超时：回到循环顶检查退出标志 */
-        }
-        n = ctx->tun->read(ctx->tun, buf, sizeof(buf));
-        if (n <= 0) {
-            continue;
-        }
-        /* 按目的地址选对端：对端隧道地址（精确）/ 对端内网网段（最长前缀）。
-         * 多对端且都不命中 -> 丢弃，绝不"猜"着发给某一条链路。 */
-        {
-            vpn_link_t *l = __vpn_link_pick(ctx, __ipv4_dst(buf, n));
-
-            if (l == NULL) {
-                static int drop_logs;
-
-                if ((drop_logs++ % 64) == 0) {
-                    dbg_str(DBG_INFO, "vpn: 出站包无匹配的对端（需对端通告内网网段，"
-                            "或目的为对端隧道地址），已丢弃");
-                }
-                continue;
-            }
-            if (p2p_session_is_connected(l->session) != 0) {
-                continue;   /* 还没打通：丢弃出站包（等建链完成） */
-            }
-            if (p2p_session_send(l->session, buf, n) < 0) {
-                dbg_str(DBG_INFO, "vpn: send %d bytes failed", n);
-            }
-        }
-    }
-}
-
 int vpn_run(const vpn_cfg_t *cfg)
 {
     vpn_ctx_t ctx;
-    int i, ret = -1;      /* i：下面关闭全部 link 时用 */
+    int i, ret = -1;      /* i：FINALLY 里关闭全部 link 时用 */
 
-    if (cfg == NULL || cfg->id == NULL ||
-        cfg->signal_host == NULL || cfg->signal_service == NULL) {
-        dbg_str(DBG_ERROR, "vpn: bad cfg (id/signal_* required)");
-        return -1;
+    TRY {
+        THROW_IF(cfg == NULL || cfg->id == NULL || cfg->signal_host == NULL || 
+                 cfg->signal_service == NULL, -1);
+
+        memset(&ctx, 0, sizeof(ctx));
+        ctx.cfg = cfg;
+        ctx.dial = (cfg->peer_id != NULL);
+
+        /* 被动方（被连的一方）是**地址分配者**：必须有自己的隧道地址（也是地址池来源） */
+        THROW_IF(!ctx.dial && (cfg->tunnel_ip == NULL || cfg->tunnel_ip[0] == '\0'), -1);
+        vpn_pool_init(&ctx);
+
+        EXEC(vpn_open_p2p(&ctx));
+        EXEC(vpn_wait_link(&ctx));
+        EXEC(vpn_exchange_addr(&ctx));  /* 主叫：发通告 + 等对端分配地址 */
+        /* 地址齐了才建 tun：open + MTU + 地址/掩码 + 对端网段路由 + 挂转发 worker，
+         * 一次做完（所以不存在"tun 已开但没配地址"的中间状态）。 */
+        EXEC(vpn_open_tun(&ctx));
+
+        if (cfg->on_ready != NULL) {
+            cfg->on_ready(cfg->opaque);
+        }
+        dbg_str(DBG_VIP, "vpn: tunnel up (%s, ip=%s, %d link(s)), Ctrl+C to stop",
+                ctx.tun->name,
+                (ctx.my_tun_ip_text[0] != '\0') ? ctx.my_tun_ip_text
+                                                : cfg->tunnel_ip,
+                ctx.n_links);
+
+        /* 收发都在事件线程里（出站=io_worker，入站=p2p 回调），主线程只负责"等退出"：
+         * 不再碰 ctx/links，故无需加锁；Ctrl+C 会把 break_flag 置 1。 */
+        {
+            struct event_base *eb = event_base_get_default_instance();
+
+            while (eb == NULL || eb->eb == NULL || !eb->eb->break_flag) {
+                sleep(1);
+            }
+        }
+        dbg_str(DBG_VIP, "vpn: stopped");
+    } CATCH (ret) {} FINALLY {
+        /* 收尾：成功与失败都走这里（FINALLY 块无条件执行）。
+         * ret 归一为 0=正常退出 / -1=失败——两种 TRY 实现（goto / setjmp）
+         * 成功时的 ret 分别是 1 与 TRY 内所设的值，故在这里统一。 */
+        ret = (ret < 0) ? -1 : 0;
+        vpn_close_tun(&ctx);           /* 停转发 worker + 关 tun（与 open 对称） */
+        if (ret < 0 && cfg->on_error != NULL) {
+            cfg->on_error(cfg->opaque, ret);
+        }
+        for (i = 0; i < VPN_MAX_LINKS; i++) {
+            vpn_link_release(&ctx, &ctx.links[i]);   /* 关会话 + 归还隧道地址 */
+        }
+        if (ctx.node != NULL) {
+            p2p_node_close(ctx.node);
+        }
     }
 
-    memset(&ctx, 0, sizeof(ctx));
-    ctx.cfg = cfg;
-    ctx.dial = (cfg->peer_id != NULL);
-
-    /* 被动方（被连的一方）是**地址分配者**：必须有自己的隧道地址（也是地址池来源） */
-    if (!ctx.dial && (cfg->tunnel_ip == NULL || cfg->tunnel_ip[0] == '\0')) {
-        dbg_str(DBG_ERROR, "vpn: 被动方必须配 tunnel_ip（自身地址 + 地址池）");
-        return -1;
-    }
-    __vpn_pool_init(&ctx);
-
-    if (__vpn_open_tun(&ctx) < 0) {          /* 只 open + MTU，不配地址 */
-        goto out;
-    }
-    if (__vpn_open_p2p(&ctx) < 0) {
-        goto out;
-    }
-    if (__vpn_wait_link(&ctx) < 0) {
-        goto out;
-    }
-    if (__vpn_exchange_addr(&ctx) < 0) {     /* 主叫：发通告 + 等对端分配地址 */
-        goto out;
-    }
-    if (__vpn_configure_tun(&ctx) < 0) {     /* 地址齐了，再一次性配 tun */
-        goto out;
-    }
-
-    if (cfg->on_ready != NULL) {
-        cfg->on_ready(cfg->opaque);
-    }
-    dbg_str(DBG_VIP, "vpn: tunnel up (%s, ip=%s, %d link(s)), Ctrl+C to stop",
-            ctx.tun->name,
-            (ctx.my_tun_ip_text[0] != '\0') ? ctx.my_tun_ip_text : cfg->tunnel_ip,
-            ctx.n_links);
-    __vpn_forward(&ctx);
-    dbg_str(DBG_VIP, "vpn: stopped");
-    ret = 0;
-
-out:
-    if (ret < 0 && cfg->on_error != NULL) {
-        cfg->on_error(cfg->opaque, ret);
-    }
-    for (i = 0; i < VPN_MAX_LINKS; i++) {
-        __vpn_link_release(&ctx, &ctx.links[i]);   /* 关会话 + 归还隧道地址 */
-    }
-    if (ctx.node != NULL) {
-        p2p_node_close(ctx.node);
-    }
-    if (ctx.tun != NULL) {
-        tun_destroy(ctx.tun);
-    }
     return ret;
 }

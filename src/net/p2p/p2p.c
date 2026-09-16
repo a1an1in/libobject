@@ -152,27 +152,6 @@ int p2p_session_create(p2p_node_t *node, const char *remote_stun_id,
     return 0;
 }
 
-int p2p_session_config(p2p_session_t *s, p2p_recv_fn recv, void *opaque)
-{
-    stun_session_t *ss = (stun_session_t *)s;
-    p2p_node_t *node;
-
-    if (ss == NULL || ss->stun == NULL) {
-        return -1;
-    }
-    node = (p2p_node_t *)ss->stun->opaque;
-    if (node == NULL) {
-        return -1;
-    }
-    if (recv != NULL) {
-        node->recv = recv;
-    }
-    if (opaque != NULL) {
-        node->opaque = opaque;
-    }
-    return 0;
-}
-
 int p2p_session_send(p2p_session_t *s, const uint8_t *data, int len)
 {
     stun_session_t *ss = (stun_session_t *)s;

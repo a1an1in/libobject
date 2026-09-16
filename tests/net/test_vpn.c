@@ -17,8 +17,7 @@
  *      <对端网段>路由读回，读到即 PASS；无需第二个终端 ping，也无需对端。
  *
  *   2) 真机跨 NAT（服务器放行 UDP 12345；两端分别在各自 NAT 后）：
- *        ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
- *             test_p2p_server 12345
+ *        ./sysroot/linux/x86_64/bin/xtools --log-type=0 --log-level=0x16 mockery test_p2p_server 12345
  *        # 节点 B（被叫）：会话口 12346；本端 tun 10.0.0.2；**只填自己的**内网 10.10.10.0/24
  *        #   （服务器内网口 10.10.10.115）
  *        sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x16 \
@@ -58,7 +57,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/mockery/mockery.h>
 #include <libobject/argument/Command.h>   /* Command vfunc: set_args/parse_args/run_command */
-#include <libobject/net/vpn/Vpn.h>
+#include <libobject/net/vpn/vpn.h>
 #include "../../src/net/vpn/tun/Tun.h"
 
 /* 采址 STUN / 数据口等默认值统一在 Vpn_Command.c 里定义；
@@ -232,6 +231,9 @@ REGISTER_TEST_CMD(test_vpn_tun);
  *               <tunnel_ip> <local_net> [<peer_id> [<tun_name>
  *               [<stun_host> <stun_port>]]]
  *
+ *   <tunnel_ip>：本端隧道地址（如 10.0.0.254/24）。被叫**必须**填（它同时是地址
+ *   分配池，建议用网段内大地址）；主叫可填 `auto`/`0` = 不填，由对端分配。
+ *
  *   <local_net>：**本端**内网网段（如 172.16.10.0/23）；链路建立后自动通告给对端，
  *   对端据此自动 `ip route replace <它> dev tun`——所以两端各自只填自己的网段即可，
  *   不需要知道对方的内网。`auto`/`0`=不通告（只做隧道连通性测试时用）。
@@ -272,11 +274,12 @@ static int test_vpn_peer(TEST_ENTRY *entry, int argc, char **argv)
                 " <signal_host> <signal_port> <tunnel_ip> <local_net>"
                 " [<peer_id> [<tun_name> [<stun_host> <stun_port>]]]\n"
                 "  <local_service> auto/0=随机（mockery 会丢 '-' 开头的参数，别写 '-'）\n"
-                "  <local_net> 本端内网网段(自动通告给对端，对端回执后不再重发)；auto/0=不通告\n"
+                "  <tunnel_ip> 本端隧道地址(如 10.0.0.254/24)；auto/0=不填，由对端分配(仅主叫可用)\n"
+                "  <local_net> 本端内网网段(自动通告给对端)；auto/0=不通告\n"
                 "  <tun_name> auto/省略=自动分配 tunN\n"
-                "  带 <peer_id> = 主叫；不带 = 被叫\n"
-                "  等价命令行: xtools vpn -i <id> [-p <peer>] -l <svc> -s <host:port>"
-                " --tunnel-ip <ip/len> --local-net <本端内网网段>");
+                "  带 <peer_id> = 主叫；不带 = 被叫（被叫必须给 <tunnel_ip>：它也是地址分配池）\n"
+                "  等价命令行: xtools vpn -i <id> [-p <peer>] [-l <svc>] -s <host:port>"
+                " [--tunnel-ip <ip/len>] [--local-net <本端内网网段>]");
         return -1;
     }
 
@@ -293,7 +296,10 @@ static int test_vpn_peer(TEST_ENTRY *entry, int argc, char **argv)
                       (strcmp(argv[2], "0") != 0)) ? argv[2] : NULL);
     snprintf(signal, sizeof(signal), "%s:%s", argv[3], argv[4]);
     __set_cmd_option(cmd, "--signal", signal);
-    __set_cmd_option(cmd, "--tunnel-ip", argv[5]);
+    /* 第 5 参 = 本端隧道地址；auto/0 = 不填 -> 由对端在应答里分配（仅主叫可用） */
+    __set_cmd_option(cmd, "--tunnel-ip",
+                     ((strcmp(argv[5], "auto") != 0) &&
+                      (strcmp(argv[5], "0") != 0)) ? argv[5] : NULL);
     /* 第 6 个参数是**本端内网网段**（自动通告给对端）；auto/0 表示不通告 */
     __set_cmd_option(cmd, "--local-net",
                      ((strcmp(argv[6], "auto") != 0) &&

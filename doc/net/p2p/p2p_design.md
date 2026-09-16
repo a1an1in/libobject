@@ -194,7 +194,6 @@ int p2p_node_is_alive(p2p_node_t *node);
 /* ===== 会话 ===== */
 int p2p_session_create(p2p_node_t *node, const char *remote_stun_id,
                        p2p_session_t **out);               /* 异步 CALL，不阻塞 */
-int p2p_session_config(p2p_session_t *s, p2p_recv_fn recv, void *opaque);
 int p2p_session_send(p2p_session_t *s, const uint8_t *data, int len);
 int p2p_session_is_connected(p2p_session_t *s);            /* 0=可 send */
 int p2p_session_close(p2p_session_t *s);                   /* 幂等 */
