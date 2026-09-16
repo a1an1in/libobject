@@ -10,14 +10,14 @@
  *  - p2p 节点(node) = 一个 Stun 节点（stun_id、与信令服务器的常驻会话、会话表）。
  *    先 p2p_node_create 上线(SIGNIN)，后 p2p_node_close 下线(SIGNOUT)。
  *  - p2p 会话(session) = 一条到某 remote stun id 的链路；每会话独立 UDP 数据口，
- *    打洞目标(会话地址)经信令交换。主叫 p2p_session_create 发起 CALL(异步)；被叫
- *    收到 INVITE 自动建会话并配合打洞。
+ *    打洞目标(会话地址)经信令交换。主叫 p2p_session_create 发起 INVITE(异步)；被叫
+ *    收到 INVITE 自动建会话并回 INVITE_REPLY(accept|reject) 配合打洞（资源不足则 reject）。
  *  - 连接"真正成功"以服务器为准：双方各自打洞成功上报(PUNCHOK)，服务器收齐回
  *    CONNECTED；p2p_session_is_connected 变 0 即打通，可 send。
  *
  * 目录/职责：
- *   - P2p_Server    : 中心服务器（SIGNIN/SIGNOUT 登记 + CALL/INVITE/ACCEPT/PUNCHOK 撮合 +
- *                     STUN 回显；预留 TURN 中继）。
+ *   - P2p_Server    : 中心服务器（SIGNIN/SIGNOUT 登记 + INVITE/INVITE_REPLY 撮合 +
+ *                     PUNCHOK/CONNECTED + STUN 回显；预留 TURN 中继）。
  *   - p2p_node_*    : 节点(Stun) 生命周期。
  *   - p2p_session_* : 一条链路。
  *   - p2p_server_run: 运行中心服务器。
@@ -35,7 +35,13 @@ typedef struct p2p_cfg_s {
     /* 身份 / 本地绑定 */
     const char *stun_id;        /* 本节点 stun id（SIGNIN 上报，被寻址用） */
     const char *local_host;     /* 本地绑定 host，可空(默认 0.0.0.0)；会话 data socket 绑它 */
-    const char *local_service;  /* peer/data socket 本地端口，可空=NULL 随机；指定便于安全组放行/验证 */
+    /* peer/data socket 本地端口**池**（可空=NULL：每会话随机口）。三种写法：
+     *   "12346"              单端口（只支持 1 条链路）
+     *   "12346,12347,12348"  逗号列表（支持 3 条链路）
+     *   "12346-12350"        范围（含端点，支持 5 条链路）；可与逗号混写
+     * 每个会话从池里取一个空闲端口 -> **池容量就是本节点能用固定口同时承载的链路数**；
+     * 指定它便于云主机安全组按固定端口放行/验证；池耗尽或未配则该链路回落随机口。 */
+    const char *local_service;
 
     /* 信令中心(必填) */
     const char *signal_host;
@@ -80,8 +86,8 @@ int p2p_node_is_alive(p2p_node_t *node);
 /* ===== 会话 ===== */
 
 /*
- * 创建一条到 remote_stun_id 的会话并异步发起 CALL。**不阻塞**：
- *  - Stun 为 remote 建会话(data socket+采址)，发 CALL(带本会话地址)，等撮合回执；
+ * 创建一条到 remote_stun_id 的会话并异步发起 INVITE。**不阻塞**：
+ *  - Stun 为 remote 建会话(data socket+采址)，发 INVITE(带本会话地址)，等 INVITE_REPLY；
  *  - 打通与否查 p2p_session_is_connected()：变 0 即服务器已确认双方打洞成功。
  * @param node 已上线节点
  * @param remote_stun_id 目标节点 stun id

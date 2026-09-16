@@ -95,7 +95,7 @@ static int __run_command(Vpn_Server_Command *command)
 
     if (__split_host_port(listen, host, sizeof(host), port, sizeof(port)) < 0 ||
         port[0] == '\0') {
-        dbg_str(DBG_ERROR, "vpnserver: --listen 需为 host:port，如 0.0.0.0:12345");
+        dbg_str(DBG_ERROR, "vpnserver: --listen must be host:port, e.g. 0.0.0.0:12345");
         return -1;
     }
 

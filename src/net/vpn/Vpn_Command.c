@@ -130,7 +130,8 @@ static int __construct(Vpn_Command *command, char *init_str)
                   "第二个 STUN（判断 NAT 是否对称）；none/off 可禁用",
                   __option_str_callback, &command->stun2);
     c->add_option(c, "--local-service", "-l", "",
-                  "本端数据口(UDP)：防火墙只放行特定端口时请固定它(如 -l 12346)；省略=随机",
+                  "本端数据口(UDP)端口池：单端口/逗号列表/范围(如 12346 或 12346,12347 "
+                  "或 12346-12350)，每个对端取一个空闲口；省略=随机",
                   __option_str_callback, &command->local_service);
     c->add_option(c, "--interval", "", "200",
                   "打洞/保活周期(毫秒)，默认 200",
@@ -173,38 +174,38 @@ static int __run_command(Vpn_Command *command)
     char stun2_host[128]  = {0}, stun2_port[32]  = {0};
 
     if (__or_null(command->stun_id) == NULL) {
-        dbg_str(DBG_ERROR, "vpn: --id 必填（-i <stun_id>）；--help 查看用法");
+        dbg_str(DBG_ERROR, "vpn: --id required (-i <stun_id>); see --help");
         return -1;
     }
     /* 被动方（被叫）是地址分配者：必须有自己的地址（也是分配池）；
      * 主动方（主叫）可以省——地址由对端在应答里分配。 */
     if (__or_null(command->tunnel_ip) == NULL && __or_null(command->peer_id) == NULL) {
-        dbg_str(DBG_ERROR, "vpn: 被叫必须配 --tunnel-ip（自身地址 + 分配池，"
-                "建议 x.x.x.254/24）；主叫可省（由对端分配）");
+        dbg_str(DBG_ERROR, "vpn: callee must set --tunnel-ip (own ip + assign pool,"
+                " e.g. x.x.x.254/24); caller may omit it (assigned by peer)");
         return -1;
     }
     if (__or_null(command->signal) == NULL) {
-        dbg_str(DBG_ERROR, "vpn: --signal 必填（信令服务器 host:port）");
+        dbg_str(DBG_ERROR, "vpn: --signal required (signaling server host:port)");
         return -1;
     }
     if (__split_host_port(command->signal, signal_host, sizeof(signal_host),
                           signal_port, sizeof(signal_port), NULL) < 0 ||
         signal_port[0] == '\0') {
-        dbg_str(DBG_ERROR, "vpn: --signal 需为 host:port，如 119.4.206.14:12345");
+        dbg_str(DBG_ERROR, "vpn: --signal must be host:port, e.g. 119.4.206.14:12345");
         return -1;
     }
     /* --stun/--stun2：none/off/0 表示禁用（此时回退为"用信令服采址"） */
     if (__or_null(command->stun) != NULL && !__is_off(command->stun)) {
         if (__split_host_port(command->stun, stun_host, sizeof(stun_host),
                               stun_port, sizeof(stun_port), VPN_DEFAULT_STUN_PORT) < 0) {
-            dbg_str(DBG_ERROR, "vpn: --stun 格式错（应为 host[:port]）");
+            dbg_str(DBG_ERROR, "vpn: bad --stun format (expect host[:port])");
             return -1;
         }
     }
     if (__or_null(command->stun2) != NULL && !__is_off(command->stun2)) {
         if (__split_host_port(command->stun2, stun2_host, sizeof(stun2_host),
                               stun2_port, sizeof(stun2_port), VPN_DEFAULT_STUN2_PORT) < 0) {
-            dbg_str(DBG_ERROR, "vpn: --stun2 格式错（应为 host[:port]）");
+            dbg_str(DBG_ERROR, "vpn: bad --stun2 format (expect host[:port])");
             return -1;
         }
     }
@@ -233,13 +234,13 @@ static int __run_command(Vpn_Command *command)
             cfg.stun_service ? cfg.stun_service : "-",
             cfg.stun2_host ? cfg.stun2_host : "-",
             cfg.stun2_service ? cfg.stun2_service : "-",
-            cfg.tunnel_ip ? cfg.tunnel_ip : "(由对端分配)",
+            cfg.tunnel_ip ? cfg.tunnel_ip : "(assigned by peer)",
             cfg.local_net ? cfg.local_net : "-",
             cfg.tun_name ? cfg.tun_name : "(auto)", cfg.interval_ms);
 
     if (cfg.local_net == NULL) {
-        dbg_str(DBG_WARN, "vpn: 未指定 --local-net：本端不会向对端通告内网网段，"
-                "对端也就不会自动加路由（只做隧道连通性测试时可忽略）");
+        dbg_str(DBG_WARN, "vpn: --local-net not set: local net will not be advertised,"
+                " so peer will not add routes (ignore if only testing tunnel)");
     }
 
     return vpn_run(&cfg);   /* 阻塞至 Ctrl+C */

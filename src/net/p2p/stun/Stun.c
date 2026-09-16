@@ -10,18 +10,19 @@
  *      采址(own) / 打洞 / 保活 / 业务数据都走各自会话 socket，彼此独立。
  *
  * 信令(文本，经 server_client)：
- *   SIGNIN <stun_id> -> OK                   上线登记(服务器记信令源地址)
- *   CALL <my> <callee> <own_host> <own_port> 主叫发 CALL(带本会话地址)
- *   INVITE <caller> <caller_host> <caller_port>  服务器投给被叫
- *   ACCEPT <my> <caller> <own_host> <own_port>   被叫回 ACCEPT(带本会话地址)
- *   MATCH <callee_id> <host> <port>              服务器撮合回执给主叫(带被叫会话地址)
- *   PUNCHOK <my> <peer>                         本端打洞成功上报
- *   CONNECTED <peer_id>                          服务器确认双方 ok
- * 免 GET：两端打洞目标(会话地址)经 CALL/INVITE/ACCEPT/MATCH 交换。
+ *   SIGNIN <stun_id> -> SIGNIN_REPLY <stun_id>   上线登记(服务器记信令源地址)
+ *   INVITE <my> <callee> <own_host> <own_port> [nat]   主叫发 INVITE(带本会话地址)
+ *   INVITE <caller> <caller_host> <caller_port> [nat]  服务器原样投给被叫
+ *   INVITE_REPLY <callee> <caller> accept <host> <port> [nat]  被叫接受(带本会话地址)
+ *   INVITE_REPLY <callee> <caller> reject <reason>             被叫/服务器拒绝(见原因码)
+ *   PUNCHOK <my> <peer>                          本端打洞成功上报
+ *   CONNECTED <peer_id>                           服务器确认双方 ok
+ * 免 GET：两端打洞目标(会话地址)靠 INVITE / INVITE_REPLY 一问一答交换。
  *
  * 事件驱动状态机（不在回调内阻塞）：
  *  建会话 -> 会话 peer_client 发 STUN Binding 采址 -> 收响应解析 own(own_ready)
- *    -> 主叫发 CALL / 被叫发 ACCEPT -> 得对端会话地址后互发 KEEPALIVE 打洞
+ *    -> 主叫发 INVITE / 被叫回 INVITE_REPLY(accept) -> 得对端会话地址后互发 KEEPALIVE 打洞
+ *       （被叫若资源不足则回 INVITE_REPLY(reject)，主叫直接失败，不进打洞）
  *    -> 收对端包上报 PUNCHOK -> 服务器 CONNECTED -> 置 connected。
  * 所有信令/采址响应/对端包都在事件线程回调推进，无额外线程、无线程锁。
  *
@@ -32,6 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/socket.h>      /* sockaddr_in */
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <libobject/core/io/Socket.h>
@@ -94,6 +96,104 @@ static stun_session_t *__get_session(Stun *stun, char *remote_id)
     return s;
 }
 
+/* ---------------- 本地端口池：local_service 支持 单值 / 逗号列表 / 范围 ----------------
+ * 语义：配置的端口是给会话 data socket 用的**端口池**，每会话一个，容量就是
+ * "本节点能用固定端口同时支撑多少条链路"；不配置 = 每会话随机口。
+ * 为什么需要池：UDP 未开 SO_REUSEPORT，同一 host:port 第二次 bind 必失败，
+ * 且 client() 会忽略该失败（静默落到未绑定 -> 内核首次 sendto 时给随机口，
+ * 固定口形同虚设、安全组放行失效）。 */
+
+/* 解析 local_service 为端口池（惰性，只做一次）："12346" / "12346,12347" / "12346-12350" */
+static void __parse_ports(Stun *stun)
+{
+    char buf[512];
+    char *tok, *save = NULL;
+    int n = 0;
+
+    stun->pool_num = 0;
+    stun->pool_parsed = 1;
+    /* 未配置，或显式写 "0"/"auto"/"-"（命令行/测试里表示"随机口"）：不进池 */
+    if (stun->local_service == NULL || stun->local_service[0] == '\0' ||
+        strcmp(stun->local_service, "0") == 0 ||
+        strcmp(stun->local_service, "auto") == 0 ||
+        strcmp(stun->local_service, "-") == 0) {
+        return;                                  /* 不指定端口：每会话随机口 */
+    }
+    snprintf(buf, sizeof(buf), "%s", stun->local_service);
+    for (tok = strtok_r(buf, ",", &save); tok != NULL;
+         tok = strtok_r(NULL, ",", &save)) {
+        char *dash = strchr(tok, '-');
+        int lo, hi, p;
+
+        if (dash != NULL) {                      /* 范围 "a-b"（含端点） */
+            lo = atoi(tok);
+            hi = atoi(dash + 1);
+            if (lo <= 0 || hi < lo || hi > 65535) {
+                dbg_str(DBG_WARN, "%s port pool: ignore bad range '%s'", stun->stun_id, tok);
+                continue;
+            }
+            for (p = lo; p <= hi && n < STUN_SERVICE_POOL_MAX; p++) {
+                stun->pool_ports[n++] = p;
+            }
+        } else {                                 /* 单端口 */
+            p = atoi(tok);
+            if (p <= 0 || p > 65535) {
+                dbg_str(DBG_WARN, "%s port pool: ignore bad item '%s'", stun->stun_id, tok);
+                continue;
+            }
+            if (n < STUN_SERVICE_POOL_MAX) {
+                stun->pool_ports[n++] = p;
+            }
+        }
+    }
+    stun->pool_num = n;
+    dbg_str(DBG_INFO, "%s local port pool '%s' -> %d port(s), max %d fixed-port links",
+            stun->stun_id, stun->local_service, n, STUN_SERVICE_POOL_MAX);
+}
+
+/* 取一个空闲端口并标记占用（同时写入 out_port）；返回端口号，0=池未配/已耗尽。 */
+static int __alloc_port(Stun *stun, int *out_port)
+{
+    int i;
+
+    if (out_port != NULL) {
+        *out_port = 0;
+    }
+    if (stun == NULL) {
+        return 0;
+    }
+    if (!stun->pool_parsed) {
+        __parse_ports(stun);
+    }
+    for (i = 0; i < stun->pool_num; i++) {
+        if (!stun->pool_used[i]) {
+            stun->pool_used[i] = 1;
+            if (out_port != NULL) {
+                *out_port = stun->pool_ports[i];
+            }
+            return stun->pool_ports[i];
+        }
+    }
+    return 0;
+}
+
+/* 归还端口（会话销毁时调用）。 */
+static void __free_port(Stun *stun, int port)
+{
+    int i;
+
+    if (stun == NULL || port <= 0) {
+        return;
+    }
+    for (i = 0; i < stun->pool_num; i++) {
+        if (stun->pool_ports[i] == port) {
+            stun->pool_used[i] = 0;
+            dbg_str(DBG_INFO, "%s return local port %d to port pool", stun->stun_id, port);
+            return;
+        }
+    }
+}
+
 /* 释放会话内部资源（不删表项/不 free 结构体本身）。 */
 static void __destroy_session(stun_session_t *s)
 {
@@ -104,6 +204,10 @@ static void __destroy_session(stun_session_t *s)
     if (s->peer_client != NULL) {
         client_destroy(s->peer_client);
         s->peer_client = NULL;
+    }
+    if (s->local_port > 0 && s->stun != NULL) {
+        __free_port(s->stun, s->local_port);   /* 端口归还池，供后来对端复用 */
+        s->local_port = 0;
     }
     if (s->req != NULL) {
         object_destroy(s->req);
@@ -136,7 +240,7 @@ static void __clear_sessions(Stun *stun)
  * 建/复用一条会话并发起采址（合并原 call 与 create_session）：
  *  - role：0=caller 主叫，1=callee 被叫；
  *  - 分配会话(独立 data socket + req/response)入表；已存在同 remote 会话则复用；
- *  - 随后发起采址，own 就绪由回调按 role 调 call_session/accept_session；
+ *  - 随后发起采址，own 就绪由回调按 role 调 call_session/reply_invite；
  *  - out 非空回传会话指针。返回 0=成功；-1=失败。
  */
 static int __create_session(Stun *stun, char *remote_id, int role,
@@ -146,6 +250,8 @@ static int __create_session(Stun *stun, char *remote_id, int role,
     stun_session_t *s = NULL;
     int created = 0, added = 0;
     char *localhost;
+    char service[16];
+    int port = 0;
     int ret = 0;
 
     TRY {
@@ -171,10 +277,24 @@ static int __create_session(Stun *stun, char *remote_id, int role,
             s->send_punch = 1;
             s->keepalive_interval_ms = stun->keepalive_interval_ms;
 
-            /* peer/data socket：默认随机口；设置 local_service 则用固定口 */
-            s->peer_client = client(allocator, CLIENT_TYPE_INET_UDP, localhost,
-                                    (stun->local_service != NULL)
-                                        ? stun->local_service : (char *)"0");
+            /* peer/data socket：从**本地端口池**取一个端口（local_service 写列表/范围
+             * = 支持的链路数，如 "12346,12347" 或 "12346-12350"）；池未配/耗尽用随机口。
+             * 取到的端口记在 s->local_port，会话销毁时归还。 */
+            /* 端口池：配了端口就每会话占一个固定口；**池已满则建会话失败**（被叫据此
+             * 回 INVITE_REPLY reject）；未配端口池（pool_num=0）才用随机口。 */
+            port = __alloc_port(stun, &s->local_port);
+            if (port <= 0 && stun->pool_num > 0) {
+                dbg_str(DBG_WARN, "%s local port pool '%s' exhausted (%d), reject session",
+                        stun->stun_id, stun->local_service, stun->pool_num);
+                THROW(-1);
+            }
+            snprintf(service, sizeof(service), "%d", port);
+            if (s->local_port > 0) {
+                dbg_str(DBG_INFO, "%s session->%s local port %d (pool '%s')",
+                        stun->stun_id, s->remote_id, s->local_port,
+                        (stun->local_service != NULL) ? stun->local_service : "-");
+            }
+            s->peer_client = client(allocator, CLIENT_TYPE_INET_UDP, localhost, service);
             THROW_IF(s->peer_client == NULL, -1);
             client_trustee(s->peer_client, NULL, __on_session_recv, s);
 
@@ -186,7 +306,7 @@ static int __create_session(Stun *stun, char *remote_id, int role,
             added = 1;
         }
 
-        /* 发起采址(异步)：own 就绪后回调按 role 调 call/accept_session */
+        /* 发起采址(异步)：own 就绪后回调按 role 调 call/reply_invite */
         EXEC(stun->probe_session_addr(stun, remote_id));
         if (out != NULL) {
             *out = s;
@@ -255,7 +375,7 @@ static void __stun_log_target(Stun *stun, const char *tag,
             stun->stun_id, tag, host, service, ip);
 }
 
-/* 发起采址(STUN Binding，异步)：own 就绪后回调按角色 call_session/accept_session。 */
+/* 发起采址(STUN Binding，异步)：own 就绪后回调按角色 call_session/reply_invite。 */
 static int __probe_session_addr(Stun *stun, char *remote_stun_id)
 {
     stun_session_t *s;
@@ -287,7 +407,7 @@ static int __probe_session_addr(Stun *stun, char *remote_stun_id)
     return 0;
 }
 
-/* 主叫采址完成(own 就绪)：发 CALL <my> <callee> <own_host> <own_port> <nat>。 */
+/* 主叫采址完成(own 就绪)：发 INVITE <my> <callee> <own_host> <own_port> <nat>。 */
 static int __call_session(Stun *stun, char *remote_stun_id)
 {
     stun_session_t *s;
@@ -302,36 +422,51 @@ static int __call_session(Stun *stun, char *remote_stun_id)
         return -1;
     }
     snprintf(service, sizeof(service), "%d", s->own_port);
-    snprintf(line, sizeof(line), "CALL %s %s %s %s %d",
+    snprintf(line, sizeof(line), "INVITE %s %s %s %s %d",
              stun->stun_id, s->remote_id, s->own_host, service, s->nat_type);
     client_connect(stun->server_client, stun->signal_host, stun->signal_service);
     client_send(stun->server_client, line, (int)strlen(line), 0);
-    dbg_str(DBG_INFO, "%s sent CALL to %s (own %s:%d nat=%d)",
+    dbg_str(DBG_INFO, "%s sent INVITE to %s (own %s:%d nat=%d)",
             stun->stun_id, s->remote_id, s->own_host, s->own_port, s->nat_type);
     return 0;
 }
 
-/* 被叫采址完成(own 就绪)：发 ACCEPT <my> <caller> <own_host> <own_port> <nat>。 */
-static int __accept_session(Stun *stun, char *remote_stun_id)
+/* 被叫对 INVITE 的应答（accept/reject 二合一，用一个原因码参数区分两种语义）：
+ *   reason == STUN_REJECT_NONE(0) -> 接受：INVITE_REPLY <my> <caller> accept <own_host>
+ *                                     <own_port> <nat>（把本会话地址交给主叫，随后打洞）
+ *   reason != 0                   -> 拒绝：INVITE_REPLY <my> <caller> reject <reason>
+ *                                     （如 STUN_REJECT_NO_PORT：本地端口池已满，主叫立刻失败）
+ * 服务器按 caller|callee 找到 pending，把这条 reply 原样转投给主叫。 */
+static int __reply_invite(Stun *stun, char *remote_stun_id, int reason)
 {
-    stun_session_t *s;
+    stun_session_t *s = NULL;
     char line[192];
     char service[16];
 
-    if (stun == NULL || remote_stun_id == NULL || stun->stun_id[0] == 0) {
+    if (stun == NULL || remote_stun_id == NULL ||
+        stun->server_client == NULL || stun->stun_id[0] == 0) {
         return -1;
     }
-    s = __get_session(stun, remote_stun_id);
-    if (s == NULL || !s->own_ready) {
-        return -1;
+    if (reason == STUN_REJECT_NONE) {
+        /* 接受：带上本会话(打洞)地址 */
+        s = __get_session(stun, remote_stun_id);
+        if (s == NULL || !s->own_ready) {
+            return -1;               /* 还没采址完成：等 own 就绪时再调一次 */
+        }
+        snprintf(service, sizeof(service), "%d", s->own_port);
+        snprintf(line, sizeof(line), "INVITE_REPLY %s %s accept %s %s %d",
+                 stun->stun_id, s->remote_id, s->own_host, service, s->nat_type);
+        dbg_str(DBG_INFO, "%s sent INVITE_REPLY(accept) to %s (own %s:%d nat=%d)",
+                stun->stun_id, s->remote_id, s->own_host, s->own_port, s->nat_type);
+    } else {
+        /* 拒绝：只带原因码（如 STUN_REJECT_NO_PORT） */
+        snprintf(line, sizeof(line), "INVITE_REPLY %s %s reject %d",
+                 stun->stun_id, remote_stun_id, reason);
+        dbg_str(DBG_ERROR, "%s sent INVITE_REPLY(reject %d) to %s", stun->stun_id,
+                reason, remote_stun_id);
     }
-    snprintf(service, sizeof(service), "%d", s->own_port);
-    snprintf(line, sizeof(line), "ACCEPT %s %s %s %s %d",
-             stun->stun_id, s->remote_id, s->own_host, service, s->nat_type);
     client_connect(stun->server_client, stun->signal_host, stun->signal_service);
     client_send(stun->server_client, line, (int)strlen(line), 0);
-    dbg_str(DBG_INFO, "%s sent ACCEPT to %s (own %s:%d nat=%d)",
-            stun->stun_id, s->remote_id, s->own_host, s->own_port, s->nat_type);
     return 0;
 }
 
@@ -515,7 +650,7 @@ static int __on_session_recv(void *task)
                 if (s->role == 0) {
                     s->stun->call_session(s->stun, s->remote_id);
                 } else {
-                    s->stun->accept_session(s->stun, s->remote_id);
+                    s->stun->reply_invite(s->stun, s->remote_id, STUN_REJECT_NONE);
                 }
             } else {
                 s->own_ready = 1;
@@ -531,7 +666,7 @@ static int __on_session_recv(void *task)
                 } else if (s->role == 0) {
                     s->stun->call_session(s->stun, s->remote_id);
                 } else {
-                    s->stun->accept_session(s->stun, s->remote_id);
+                    s->stun->reply_invite(s->stun, s->remote_id, STUN_REJECT_NONE);
                 }
             }
         }
@@ -673,15 +808,137 @@ static int __set_recv_callback(Stun *stun,
     return 0;
 }
 
-/* ---------------- 信令回调（节点级，经 server_client） ---------------- */
+/* ---------------- 信令处理：表驱动分派（客户端侧，节点级） ----------------
+ * 每个信令一个处理函数，签名统一 (stun, line)：返回 0=已处理 / -1=坏包。
+ * 新增信令只需加一个处理函数 + 在 g_stun_cli_sig_table 加一行。分派要求关键字是
+ * "整词"（后跟空格或行尾），所以 INVITE 不会误吃 INVITE_REPLY。 */
+typedef int (*stun_cli_sig_handler_t)(Stun *stun, char *line);
+
+typedef struct stun_cli_sig_entry_s {
+    const char            *key;      /* 文本关键字 */
+    const char            *name;     /* 名称，仅用于日志/排障 */
+    stun_cli_sig_handler_t handle;   /* 处理函数 */
+} stun_cli_sig_entry_t;
+
+
+/* SIGNIN_REPLY <stun_id>：登记被服务器确认（signin 同步等待它）。 */
+static int __sig_signin_reply(Stun *stun, char *line)
+{
+    (void)line;
+    stun->register_done = 1;
+    return 0;
+}
+
+/* INVITE <caller> <host> <port> [nat]（被叫）：建会话并打洞。
+ * 建不起来（如本地数据口端口池已满）就回 INVITE_REPLY reject，让主叫立刻失败，
+ * 而不是干等到超时。 */
+static int __sig_invite(Stun *stun, char *line)
+{
+    stun_session_t *ns = NULL;
+    char from[32] = {0}, host[64] = {0};
+    int port = 0, nat = STUN_NAT_TYPE_UNKNOWN;
+
+    if (sscanf(line, "INVITE %31s %63s %d %d", from, host, &port, &nat) < 3) {
+        return -1;
+    }
+    dbg_str(DBG_INFO, "%s received INVITE from %s (%s:%d nat=%d)", stun->stun_id,
+            from, host, port, nat);
+    if (stun->create_session(stun, from, 1, &ns) == 0 && ns != NULL) {
+        ns->peer_nat_type = nat;
+        stun->punch_session(stun, from, host, port);
+    } else {
+        stun->reply_invite(stun, from, STUN_REJECT_NO_PORT);
+    }
+    return 0;
+}
+
+/* INVITE_REPLY <callee> <caller> <accept|reject> ...（主叫）：被叫对本次 INVITE 的应答
+ * （一问一答，双 id 无歧义）：
+ *   accept -> 记对端 nat，按对端会话地址打洞；
+ *   reject -> 区分原因码（STUN_REJECT_*），标记本端该会话失败。 */
+static int __sig_invite_reply(Stun *stun, char *line)
+{
+    char callee[32] = {0}, rcaller[32] = {0}, action[16] = {0}, host[64] = {0};
+    int port = 0, nat = STUN_NAT_TYPE_UNKNOWN;
+    stun_session_t *ss = NULL;
+
+    if (sscanf(line, "INVITE_REPLY %31s %31s %15s", callee, rcaller, action) != 3) {
+        return -1;
+    }
+    if (strcmp(action, "accept") == 0) {
+        if (sscanf(line, "INVITE_REPLY %31s %31s %15s %63s %d %d", callee, rcaller,
+                   action, host, &port, &nat) < 5) {
+            return -1;
+        }
+        dbg_str(DBG_INFO, "%s INVITE_REPLY(accept) from %s (%s:%d nat=%d)",
+                stun->stun_id, callee, host, port, nat);
+        ss = __get_session(stun, callee);
+        if (ss != NULL) {
+            ss->peer_nat_type = nat;
+            stun->punch_session(stun, callee, host, port);
+        }
+        return 0;
+    }
+
+    {
+        int reason = STUN_REJECT_NONE;
+
+        sscanf(line, "INVITE_REPLY %31s %31s %15s %d", callee, rcaller, action, &reason);
+        dbg_str(DBG_ERROR, "%s INVITE rejected by %s (reason=%d)", stun->stun_id,
+                callee, reason);
+        if (stun->stun_id[0] != 0 && strcmp(rcaller, stun->stun_id) != 0) {
+            dbg_str(DBG_WARN, "%s INVITE_REPLY not for us (caller=%s), ignored",
+                    stun->stun_id, rcaller);
+            return 0;
+        }
+        /* 只标记失败，不在这里释放：会话生命周期归上层(p2p_session_close) */
+        ss = __get_session(stun, callee);
+        if (ss != NULL) {
+            ss->state = STUN_SESSION_CLOSED;
+            ss->active = 0;
+            ss->connected = 0;
+        }
+    }
+    return 0;
+}
+
+/* CONNECTED <peer>：服务器确认双方打洞成功 -> 置会话 connected（此后可发业务数据）。 */
+static int __sig_connected(Stun *stun, char *line)
+{
+    stun_session_t *ss = NULL;
+    char peer[32] = {0};
+
+    if (sscanf(line, "CONNECTED %31s", peer) != 1) {
+        return -1;
+    }
+    dbg_str(DBG_INFO, "%s CONNECTED to %s, link up", stun->stun_id, peer);
+    ss = __get_session(stun, peer);
+    if (ss != NULL) {
+        /* state 为设计上的权威状态，connected 是其等价缓存，两者同步置位
+         * （此前只置 connected，导致按 state 判断的地方全部失效）。 */
+        ss->state = STUN_SESSION_CONNECTED;
+        ss->connected = 1;
+        ss->send_punch = 0;
+    }
+    return 0;
+}
+
+static const stun_cli_sig_entry_t g_stun_cli_sig_table[] = {
+    { "SIGNIN_REPLY", "SIGNIN_REPLY", __sig_signin_reply },
+    { "INVITE",       "INVITE",       __sig_invite },
+    { "INVITE_REPLY", "INVITE_REPLY", __sig_invite_reply },
+    { "CONNECTED",    "CONNECTED",    __sig_connected },
+};
+#define STUN_CLI_SIG_TABLE_NUM \
+    (sizeof(g_stun_cli_sig_table) / sizeof(g_stun_cli_sig_table[0]))
+
+/* 信令回调（节点级，经 server_client）：裁掉行尾换行 -> 按关键字查表分派。 */
 static int __stun_signal_callback(void *task)
 {
     work_task_t *t = (work_task_t *)task;
     Stun *stun = (Stun *)t->opaque;
-    stun_session_t *ss;
     char *s;
-    char from[32], host[64], line[96], peer[32];
-    int port = 0;
+    size_t i;
 
     if (stun == NULL || t->buf_len <= 0) {
         return 0;
@@ -692,56 +949,21 @@ static int __stun_signal_callback(void *task)
            (s[t->buf_len - 1] == '\n' || s[t->buf_len - 1] == '\r')) {
         s[--t->buf_len] = 0;
     }
+    for (i = 0; i < STUN_CLI_SIG_TABLE_NUM; i++) {
+        size_t klen = strlen(g_stun_cli_sig_table[i].key);
 
-    if (strncmp(s, "OK", 2) == 0) {
-        stun->register_done = 1;
-    } else if (strncmp(s, "NOPEER", 6) == 0) {
-        /* 对端不在线：关闭本端对应 caller 会话 */
-        if (sscanf(s, "NOPEER %31s", peer) == 1) {
-            __close_session(stun, peer);
-            dbg_str(DBG_ERROR, "%s call to %s failed (NOPEER)", stun->stun_id, peer);
+        if (strncmp(s, g_stun_cli_sig_table[i].key, klen) != 0 ||
+            (s[klen] != ' ' && s[klen] != '\0')) {
+            continue;
         }
-    } else if (strncmp(s, "INVITE", 6) == 0) {
-        /* 被叫：服务器把主叫 id + 主叫本会话地址 + 主叫 nat 投过来 */
-        stun_session_t *ns = NULL;
-        int nat = STUN_NAT_TYPE_UNKNOWN;
-        if (sscanf(s, "INVITE %31s %63s %d %d", from, host, &port, &nat) >= 3) {
-            dbg_str(DBG_INFO, "%s received INVITE from %s (%s:%d nat=%d)",
-                    stun->stun_id, from, host, port, nat);
-            /* 建被叫会话(内部已发起采址)；主叫地址已知，随即打洞 */
-            if (stun->create_session(stun, from, 1, &ns) == 0 && ns != NULL) {
-                ns->peer_nat_type = nat;
-                stun->punch_session(stun, from, host, port);
-            }
-        }
-    } else if (strncmp(s, "MATCH", 5) == 0) {
-        /* 主叫：撮合回执带被叫 id + 被叫本会话地址 + 被叫 nat，据此打洞 */
-        int nat = STUN_NAT_TYPE_UNKNOWN;
-        if (sscanf(s, "MATCH %31s %63s %d %d", peer, host, &port, &nat) >= 3) {
-            dbg_str(DBG_INFO, "%s received MATCH from %s (%s:%d nat=%d)",
-                    stun->stun_id, peer, host, port, nat);
-            ss = __get_session(stun, peer);
-            if (ss) {
-                ss->peer_nat_type = nat;
-                stun->punch_session(stun, peer, host, port);
-            }
-        }
-    } else if (strncmp(s, "CONNECTED", 9) == 0) {
-        if (sscanf(s, "CONNECTED %31s", peer) == 1) {
-            dbg_str(DBG_INFO, "%s CONNECTED to %s, link up", stun->stun_id, peer);
-            ss = __get_session(stun, peer);
-            if (ss != NULL) {
-                /* state 为设计上的权威状态，connected 是其等价缓存，两者同步置位
-                 * （此前只置 connected，导致按 state 判断的地方全部失效）。 */
-                ss->state = STUN_SESSION_CONNECTED;
-                ss->connected = 1;
-                ss->send_punch = 0;
-            }
-        }
+        dbg_str(DBG_DETAIL, "%s handle signal %s", stun->stun_id,
+                g_stun_cli_sig_table[i].name);
+        return g_stun_cli_sig_table[i].handle(stun, s);
     }
-    (void)line;
+    dbg_str(DBG_WARN, "%s ignore unknown signal: %.32s", stun->stun_id, s);
     return 0;
 }
+
 
 static int __construct(Stun *stun, char *init_str)
 {
@@ -805,7 +1027,7 @@ static class_info_entry_t stun_class_info[] = {
     Init_Vfunc_Entry(12, Stun, get_session, __get_session),
     Init_Vfunc_Entry(13, Stun, probe_session_addr, __probe_session_addr),
     Init_Vfunc_Entry(14, Stun, call_session, __call_session),
-    Init_Vfunc_Entry(15, Stun, accept_session, __accept_session),
+    Init_Vfunc_Entry(15, Stun, reply_invite, __reply_invite),
     Init_Vfunc_Entry(16, Stun, punch_session, __punch_session),
     Init_End___Entry(17, Stun),
 };

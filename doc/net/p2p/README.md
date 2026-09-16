@@ -14,7 +14,7 @@ stun id 的链路**，每条会话独立 UDP data socket，打洞地址经信令
 | 文件 | 作用 |
 | --- | --- |
 | [`src/include/libobject/net/p2p/p2p.h`](../../src/include/libobject/net/p2p/p2p.h) / [`src/net/p2p/p2p.c`](../../src/net/p2p/p2p.c) | **对外接口**（薄层）：`p2p_node_*`（节点生命周期）+ `p2p_session_*`（一条链路）+ `p2p_server_run` |
-| [`src/net/p2p/P2p_Server.c`](../../src/net/p2p/P2p_Server.c) | 中心服务器：`SIGNIN/SIGNOUT` 登记 + `CALL/INVITE/ACCEPT/MATCH/PUNCHOK/CONNECTED` 撮合 + STUN 回显（预留 TURN） |
+| [`src/net/p2p/P2p_Server.c`](../../src/net/p2p/P2p_Server.c) | 中心服务器：`SIGNIN/SIGNOUT` 登记 + `INVITE/INVITE_REPLY(accept\|reject)` 撮合 + `PUNCHOK/CONNECTED` + STUN 回显（预留 TURN） |
 | [`src/net/p2p/stun/Stun.c`](../../src/net/p2p/stun/Stun.c) / [`Stun.h`](../../src/net/p2p/stun/Stun.h) | STUN 打洞客户端（内部）：节点 + 多会话管理，采址/打洞/保活/收发 |
 | [`src/net/p2p/stun/Request.c`](../../src/net/p2p/stun/Request.c) / `Response.c` | STUN 请求/响应编解码（TLV、XOR-MAPPED-ADDRESS） |
 | [`tests/net/test_p2p.c`](../../tests/net/test_p2p.c) | 测试命令：`test_p2p_server` / `test_p2p_peer`，用例 `test_p2p_loopback` / `test_p2p_multi` |
@@ -23,11 +23,12 @@ stun id 的链路**，每条会话独立 UDP data socket，打洞地址经信令
 ### 工作原理（简述）
 
 1. 节点 `SIGNIN <stun_id>`：服务器记下它的**信令源地址**（后续 `INVITE`/`CONNECTED` 据此投递）。
-2. 每条会话用**自己的 UDP socket**（绑 `local_host` + `local_service`/随机口）向公共 STUN 发
+2. 每条会话用**自己的 UDP socket**（绑 `local_host` + 从 `local_service` 端口池取的端口/随机口）向公共 STUN 发
    Binding，取得**本会话的公网映射地址**（own）；配置了第二 STUN 则再采一次，比较外部端口
    判断是否对称（写 `nat_type`）。
-3. 采址就绪后按角色把**本会话地址**带进信令：主叫 `CALL`，被叫 `ACCEPT`；服务器撮合回执
-   `INVITE`/`MATCH` 把对方会话地址（含 `nat`）带回来。
+3. 采址就绪后按角色把**本会话地址**带进信令：主叫 `INVITE`，被叫回 `INVITE_REPLY accept`
+   （本地资源不足则 `INVITE_REPLY reject <reason>`）；服务器把 `INVITE`/`INVITE_REPLY`
+   原样转给对方，从而把对方会话地址（含 `nat`）带回来。
 4. 双方互发 `KEEPALIVE` 打洞（在各自 NAT 上为对方地址放行），收到对端任一 P2P 包即
    `PUNCHOK` 上报；服务器收齐双方上报才回 `CONNECTED`，此后 `is_connected` 为 0、可发业务数据。
 5. 链路期周期 `KEEPALIVE` 维持 NAT 映射；**收到对端包时以真实源地址更新打洞目标**
@@ -116,10 +117,12 @@ test_p2p_peer <stun_id> <local_service> <signal_host> <signal_port>
 ```
 
 - `<stun_id>`：本节点标识（自定义字符串；需与对方的 `<peer_id>` 互相指认）；
-- `<local_service>`：本端**会话(data)口**固定端口，`-` = 随机（多会话/防冲突用）；
-  指定固定口便于云主机安全组放行与验证，**多会话并发时应随机**；
+- `<local_service>`：本端**会话(data)口****端口池**，`-` = 随机（多会话/防冲突用）；
+  指定固定口便于云主机安全组放行与验证；**多条链路都要固定口**就写成列表/范围
+  （`12346,12347` 或 `12346-12350`），每会话自动取一个空闲口，容量=可并发链路数；
+  写 `-`/`0`/`auto` 或省略 = 每会话随机口；
 - `<signal_host> <signal_port>`：信令服务器地址（必填）；
-- `<peer_id>`：**带 = 主叫**（主动 `CALL`）；**不带 = 被叫**（常驻等被叫）；
+- `<peer_id>`：**带 = 主叫**（主动 `INVITE`）；**不带 = 被叫**（常驻等被叫）；
 - `<stun_host> <stun_port>`：可选，覆盖主 STUN（缺省 `stun.cloudflare.com:3478`）；
   留空/同机环境可用信令服务器自身做采址；
 - `<stun2_host> <stun2_port>`：可选，第二 STUN（对称探测，缺省 `stun.l.google.com:19302`）；
@@ -129,10 +132,10 @@ test_p2p_peer <stun_id> <local_service> <signal_host> <signal_port>
 
 ## 日志与成功判定
 
-- 服务端：`server SIGNIN: <id> registered (src ...)`、`server CALL/ACCEPT: ... sess=...:... nat=N`、
+- 服务端：`server SIGNIN: <id> registered (src ...)`、`server INVITE/INVITE_REPLY: ... address=...:... nat=N`、
   `server CONNECTED: both punched ok A<->B`、`server SIGNOUT: <id> offline`；
-- 客户端信令：`<id> signal recv: MATCH <peer> <host> <port> <nat>`、
-  `<id> received MATCH from <peer> (<host>:<port> nat=N)`、`<id> CONNECTED to <peer>, link up`；
+- 客户端信令：`<id> received INVITE_REPLY(accept) from <peer> (<host>:<port> nat=N)`、
+  `<id> INVITE rejected by <peer> (reason=N)`、`<id> CONNECTED to <peer>, link up`；
 - NAT 探测：`stun1 target <host>:<port> -> <ip>`、`<id> nat_type=<CONE|SYMMETRIC|OPEN|UNKNOWN> (...)`
   （括号内打印判断依据：两个 STUN 的目标地址与各自回包映射）；
 - 打洞/收包：`<id> received KEEPALIVE from <peer> (<src_host>:<src_port>), sent PUNCHOK`；

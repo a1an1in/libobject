@@ -14,7 +14,7 @@
     Stun、桥接业务收包、转发 node/session 调用；**不持有会话表、不分配会话内存**。
   - 会话句柄即 Stun 内 `stun_session`，生命周期与并发多路由 Stun 统一管理。
 - 连接“真正成功”以服务器为准：双方各自打洞成功后上报 `PUNCHOK`，服务器收齐两边才回
-  `CONNECTED`。**`ACCEPT` 只表示“愿意配合打洞”，不等于连接成功。**
+  `CONNECTED`。**`INVITE_REPLY(accept)` 只表示“愿意配合打洞”，不等于连接成功。**
 
 ## 2. 概念与命名
 
@@ -23,9 +23,9 @@
 | stun id | 一个节点的唯一身份（构造时给定）。节点 = 一个 Stun 对象。 |
 | signal 服务器 | 中心服务器：登记 `stun id -> 信令源地址`、撮合、STUN 回显。 |
 | session | 一条到某节点的链路。会话表 key = **目标 stun id**。 |
-| 会话 data socket | 该会话**独立的本地 UDP socket**（绑 `local_host` + `local_service`/随机口），有自己的公网映射。 |
+| 会话 data socket | 该会话**独立的本地 UDP socket**（绑 `local_host` + 从 `local_service` **端口池**取的端口/随机口），有自己的公网映射。 |
 | own / peer 地址 | own = 本会话经 NAT 后的公网映射（本 socket 采址）；peer = 对端本会话地址（信令交换所得，打洞目标）。 |
-| peer_id | **已废弃**，不再出现在字段/接口中；发起 `CALL` 的参数是**目标 stun id**。 |
+| peer_id | **已废弃**，不再出现在字段/接口中；发起 `INVITE` 的参数是**目标 stun id**。 |
 
 ## 3. 数据结构
 
@@ -37,16 +37,17 @@ struct Stun_s {
 
     /* 节点身份 / 信令 */
     char   stun_id[32];              /* 本节点 stun id（SIGNIN 记录） */
-    Client *server_client;           /* 与信令服务器的常驻会话(信令口)：收 INVITE/MATCH/CONNECTED 文本 */
+    Client *server_client;           /* 与信令服务器的常驻会话(信令口)：收 INVITE_REPLY/CONNECTED 文本 */
     Map    *sessions;                /* 会话表：remote stun id -> stun_session_t* */
 
     /* 地址配置 */
-    char *local_host, *local_service;    /* 会话 data socket 绑定 host/端口(NULL=随机) */
+    char *local_host, *local_service;    /* 会话 data socket 绑 host/端口池(NULL=随机；
+                                          * 支持 "12346"、"12346,12347"、"12346-12350") */
     char *signal_host, *signal_service;  /* 信令服务器 */
     char *stun_host, *stun_service;      /* 主 STUN（采址）；缺省用信令服务器 */
     char *stun2_host, *stun2_service;    /* 第二 STUN（对称探测）；NULL=不探测 */
 
-    int  register_done;              /* SIGNIN 同步等 OK */
+    int  register_done;              /* SIGNIN 同步等 SIGNIN_REPLY */
     int (*recv_callback)(Stun *, stun_session_t *, uint8_t *, int); /* DATA 上抛 */
     void *opaque;
     int  keepalive_interval_ms;      /* 默认保活周期（会话建时继承） */
@@ -107,11 +108,12 @@ sequenceDiagram
     Note over A,S: A SIGNIN a -> S 记 a 信令地址
     Note over B,S: B SIGNIN b -> S 记 b 信令地址
     A->>A: create_session(role=caller)：建会话 data socket + 采址(own)
-    A->>S: CALL a b <A_sess_host> <A_sess_port> <A_nat>
+    A->>S: INVITE a b <A_sess_host> <A_sess_port> <A_nat>
     S->>B: INVITE a <A_sess_host> <A_sess_port> <A_nat>
     B->>B: 自动建会话(role=callee)：data socket + 采址
-    B->>S: ACCEPT b a <B_sess_host> <B_sess_port> <B_nat>
-    S->>A: MATCH b <B_sess_host> <B_sess_port> <B_nat>
+    B->>S: INVITE_REPLY b a accept <B_sess_host> <B_sess_port> <B_nat>
+    S->>A: INVITE_REPLY b a accept <B_sess_host> <B_sess_port> <B_nat>
+    Note over B,S: 若本地资源不足(如端口池已满)：B->>S: INVITE_REPLY b a reject 1（主叫直接失败）
     A->>B: KEEPALIVE(打洞，双向)
     A->>S: PUNCHOK a b
     B->>S: PUNCHOK b a
@@ -122,8 +124,9 @@ sequenceDiagram
 
 要点：
 
-- 采址就绪由回调按 role 分发：主叫 `call_session`（发 `CALL`）/ 被叫 `accept_session`
-  （发 `ACCEPT`），把本会话地址带给对端；避免在回调里阻塞；
+- 采址就绪由回调按 role 分发：主叫 `call_session`（发 `INVITE`）/ 被叫 `reply_invite`
+  （用一个原因码参数区分：`0`=accept，发 `INVITE_REPLY accept` 并带本会话地址；非 0=reject，
+  发 `INVITE_REPLY reject <reason>`，如本地端口池已满=`1`）；都在回调里不阻塞；
 - 任一端成功收到对端 P2P 包 → 上报一次 `PUNCHOK`；只收到一方上报不判成功（等超时）；
 - 服务器对同一次呼叫收齐双方 `PUNCHOK` → 回双方 `CONNECTED`，此时 `is_connected` 变 0。
 
@@ -131,15 +134,17 @@ sequenceDiagram
 
 | 方向 | 报文 | 说明 |
 | --- | --- | --- |
-| peer→S | `SIGNIN <stun_id>` | 上线登记；S 记其**信令源地址**；回 `OK` |
+| peer→S | `SIGNIN <stun_id>` | 上线登记；S 记其**信令源地址**；回 `SIGNIN_REPLY <stun_id>` |
 | peer→S | `SIGNOUT <stun_id>` | 下线，S 删在线表项 |
-| caller→S | `CALL <caller> <callee> <host> <port> [<nat>]` | 带本会话地址；S 转 `INVITE` 给被叫；被叫不在线回 `NOPEER <callee>` |
+| caller→S | `INVITE <caller> <callee> <host> <port> [<nat>]` | 带本会话地址；S 原样转 `INVITE` 给被叫；被叫不在线则回 `INVITE_REPLY ... reject 3(offline)` |
 | S→callee | `INVITE <caller> <host> <port> <nat>` | 被叫据此建会话并采址 |
-| callee→S | `ACCEPT <callee> <caller> <host> <port> [<nat>]` | 带本会话地址；S 转 `MATCH` 给主叫 |
-| S→caller | `MATCH <callee_id> <host> <port> <nat>` | 服务器撮合回执（带被叫 id + 会话地址 + nat） |
+| callee→S | `INVITE_REPLY <callee> <caller> accept <host> <port> [<nat>]` | 接受：带本会话地址；S 转给主叫 |
+| callee→S | `INVITE_REPLY <callee> <caller> reject <reason>` | 拒绝（如本地端口池已满=1）；S 转给主叫并清 pending |
+| S→caller | `INVITE_REPLY <callee> <caller> accept <host> <port> <nat>` | 撮合回执（带被叫 id + 会话地址 + nat） |
+| S→caller | `INVITE_REPLY <callee> <caller> reject <reason>` | 拒绝回执（原因码见 `STUN_REJECT_*`） |
 | peer→S | `PUNCHOK <id> <peer_id>` | “id 已成功打洞到 peer_id” |
 | S→双方 | `CONNECTED <peer_id>` | 双方都上报成功 |
-| S→peer | `OK` / `NOPEER <id>` | 登记成功 / 对端不在线 |
+| S→peer | `SIGNIN_REPLY <stun_id>` | 登记成功 |
 
 - `nat` 为可选的 NAT 类型；旧对端不带时按 0(UNKNOWN) 处理（服务器解析 `n_arg` 兼容）；
 - 信令关键字与 Stun vfunc 同名对齐：`SIGNIN`↔[`signin`](../../src/net/p2p/stun/Stun.c:605)、
@@ -153,7 +158,7 @@ sequenceDiagram
   - 两次映射 host/port 相同 → `CONE`（非对称，可打洞）；
   - 不同 → `SYMMETRIC`（每新目的地换端口，需 TURN）；
   - 只配一个 STUN → `UNKNOWN`（默认仍尝试打洞）；无 NAT 直连公网为 `OPEN`。
-- 传递链：本端 `nat_type` 随 `CALL`/`ACCEPT` 上报 → 服务器 `INVITE`/`MATCH` 透传
+- 传递链：本端 `nat_type` 随 `INVITE`/`INVITE_REPLY(accept)` 上报 → 服务器原样透传
   （`P2p_Server.c` 的 `from_nat`/`to_nat`）→ 对端填 `peer_nat_type`。
 - 日志会打印判断依据，便于核对（STUN 目标域名解析出的 IP 与各自回包来源映射）。
 
@@ -193,7 +198,7 @@ int p2p_node_is_alive(p2p_node_t *node);
 
 /* ===== 会话 ===== */
 int p2p_session_create(p2p_node_t *node, const char *remote_stun_id,
-                       p2p_session_t **out);               /* 异步 CALL，不阻塞 */
+                       p2p_session_t **out);               /* 异步 INVITE，不阻塞 */
 int p2p_session_send(p2p_session_t *s, const uint8_t *data, int len);
 int p2p_session_is_connected(p2p_session_t *s);            /* 0=可 send */
 int p2p_session_close(p2p_session_t *s);                   /* 幂等 */
@@ -202,13 +207,15 @@ int p2p_session_close(p2p_session_t *s);                   /* 幂等 */
 int p2p_server_run(const char *host, const char *service); /* 阻塞至 Ctrl+C */
 ```
 
-`p2p_cfg_t` 关键字段：`stun_id`（必填）、`local_host`/`local_service`（会话 socket 绑定）、
+`p2p_cfg_t` 关键字段：`stun_id`（必填）、`local_host`/`local_service`（会话 socket 绑定；
+`local_service` 是该 socket 的**端口池**——单端口/逗号列表/范围，每会话取一个空闲口，
+容量即"能用固定口并发多少条链路"，省略则每会话随机口）、
 `signal_host`/`signal_service`（必填）、`stun_host`/`stun_service`（缺省用信令服务器）、
 `stun2_host`/`stun2_service`（可空=不探测对称）、`interval_ms`、`turn_*`（预留）。
 
 ## 9. 回调分层与消息分流（同一 UDP 端口，按来源/阶段区分）
 
-- **服务器信令**（`OK`/`INVITE`/`MATCH`/`NOPEER`/`CONNECTED`）：内置处理，**不上抛**；
+- **服务器信令**（`SIGNIN_REPLY`/`INVITE`/`INVITE_REPLY`/`CONNECTED`）：内置处理，**不上抛**；
 - **对端预打洞/保活**（`KEEPALIVE` 等 P2P 报文，链路建立前）：内置处理，**不上抛**；
 - **业务数据**（`DATA`）：链路打通后经 `recv_callback(stun, session, buf, len)` 上抛，
   p2p 桥接为 `p2p_recv_fn(opaque, session, data, len)` —— 用户可见的只有它。
@@ -216,9 +223,9 @@ int p2p_server_run(const char *host, const char *service); /* 阻塞至 Ctrl+C *
 ## 10. 会话状态机
 
 ```
-IDLE ──主叫 create_session ──▶ MAKING ──(MATCH)──▶ PUNCHING ──(CONNECTED)──▶ CONNECTED
-  └────被叫 INVITE ──────────▶ RINGING ──(MATCH/对端包)──┘
-任意状态 ──close/NOPEER/超时──▶ CLOSED
+IDLE ──主叫 create_session ──▶ MAKING ──(INVITE_REPLY accept)──▶ PUNCHING ──(CONNECTED)──▶ CONNECTED
+  └────被叫 INVITE ──────────▶ RINGING ──(对端包)──┘
+任意状态 ──close/reject/超时──▶ CLOSED
 ```
 
 `state` 为权威，`connected` 是其等价缓存；`send_punch` 保证 `PUNCHOK` 只上报一次。
@@ -234,10 +241,18 @@ IDLE ──主叫 create_session ──▶ MAKING ──(MATCH)──▶ PUNCHIN
 ## 12. 中心服务器职责（[`P2p_Server.c`](../../src/net/p2p/P2p_Server.c)）
 
 1. 地址簿：`SIGNIN` 记 `stun_id -> 信令源地址`（`INVITE`/`CONNECTED` 据此投递）；`SIGNOUT` 删除；
-2. 撮合：`CALL`→`INVITE`；`ACCEPT`→`MATCH`；pending 支持同一主叫/被叫多路
-   （key = `caller|callee`），`MATCH`/`CONNECTED` 带对端 stun id；
+2. 撮合：主叫 `INVITE` 原样转发被叫；被叫 `INVITE_REPLY(accept|reject)` 转投主叫；pending
+   支持同一主叫/被叫多路（key = `caller|callee`），`INVITE_REPLY`/`CONNECTED` 带对端 stun id；
 3. 打洞判定：按 pending 收集双方 `PUNCHOK`，双 ok 才回双方 `CONNECTED`；
 4. STUN 回显（RFC 5389 Binding）；预留 TURN 中继（同进程）。
+
+信令处理是**表驱动**的：
+- 服务器：`__stun_server_callback` 先判 STUN Binding（二进制报，不能过文本格式化），
+  再做文本信令的"关键字 -> 处理函数"分派（`g_stun_sig_table`）；
+- 客户端：`__stun_signal_callback` 裁掉行尾换行后同样查表分派（`g_stun_cli_sig_table`）。
+
+两张表都要求关键字是**整词**（后跟空格或行尾），故 `INVITE` 不会误吃 `INVITE_REPLY`；
+新增信令只需加一个处理函数 + 一行表项。
 
 ## 13. VPN 集成（常驻会话）
 
@@ -252,7 +267,7 @@ p2p_node_t *node = NULL;
 p2p_node_create(&node, vpn_recv, &cfg, tun); /* 上线，可被叫 */
 
 p2p_session_t *s = NULL;
-p2p_session_create(node, remote_stun_id, &s); /* 异步 CALL（若本端为主动方） */
+p2p_session_create(node, remote_stun_id, &s); /* 异步 INVITE（若本端为主动方） */
 while (p2p_session_is_connected(s) != 0) { /* 等待打通（或由上层轮询/超时） */ }
 
 for (;;) {                                   /* 出站转发；入站走回调，无需额外线程 */

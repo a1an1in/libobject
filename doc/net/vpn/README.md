@@ -97,7 +97,7 @@ sudo ./sysroot/linux/x86_64/bin/xtools vpn \
 | `--local-net <本端网段>` | | 空=不通告 | **只填自己的内网网段**（如 `172.16.10.0/23`）；链路建立后自动交换，对端自动加路由 |
 | `--stun <host[:port]>` | | `stun.cloudflare.com:3478` | 采址用 STUN；`none`/`off`/`0`=禁用（回退到**用信令服采址**，同机回环常用） |
 | `--stun2 <host[:port]>` | | `stun.l.google.com:19302` | 第二个 STUN（判断 NAT 是否对称）；`none`/`off`/`0`=禁用 |
-| `-l, --local-service <port>` | | 空=随机 | 本端数据口(UDP)；**防火墙只放行特定端口时必须固定它** |
+| `-l, --local-service <ports>` | | 空=随机 | 本端数据口(UDP)**端口池**：单端口/逗号列表/范围（`12346`、`12346,12347`、`12346-12350`）；每个对端取一个空闲口，**容量=可并发对端数**，防火墙只放行固定端口时要配够 |
 | `-t, --tun <name>` | | 空=自动 | tun 设备名（自动时内核分配 `tunN`） |
 | `--interval <ms>` | | `200` | 打洞/保活周期 |
 
@@ -238,7 +238,7 @@ ss -lunp | grep 12345        # 确认 UDP 在听；Ctrl+C 停止
 
 ```bash
 sudo ./sysroot/linux/x86_64/bin/xtools --log-type=0 --log-level=0x16 vpn \
-     -i vpnB -l 12346 -s 10.10.10.115:12345 \
+     -i vpnB -l 12346-12347 -s 10.10.10.115:12345 \
      --tunnel-ip 10.0.2.1/24 \
      --local-net 10.10.10.0/24
 ```
@@ -403,7 +403,8 @@ test_vpn_peer <stun_id> <local_service> <signal_host> <signal_port>
 ```
 
 - `<stun_id>`：本节点标识（需与对方的 `<peer_id>` 互相指认）；
-- `<local_service>`：会话(data)口端口；建议固定（如 `12346`/`19001`，便于安全组放行）；`auto`/`0`=随机；
+- `<local_service>`：会话(data)口**端口池**（单端口/逗号列表/范围，如 `12346` 或 `12346-12348`）；
+  每个对端取一个空闲口 = 可并发的对端数；建议固定便于安全组放行；`auto`/`0`=随机；
 - `<signal_host> <signal_port>`：信令服务器地址（必填）；
 - `<tunnel_ip>`：**本端隧道地址**；**被动方必填**（建议 `x.x.x.254/24`，它同时是地址池）；
   `auto`/`0` = 不填，**由对端分配**（仅主动方可用）；
