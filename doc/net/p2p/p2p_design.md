@@ -124,7 +124,7 @@ sequenceDiagram
 
 要点：
 
-- 采址就绪由回调按 role 分发：主叫 `call_session`（发 `INVITE`）/ 被叫 `reply_invite`
+- 采址就绪由回调按 role 分发：主叫 `request_session`（发 `INVITE`）/ 被叫 `reply_session_request`（回 `INVITE_REPLY`）
   （用一个原因码参数区分：`0`=accept，发 `INVITE_REPLY accept` 并带本会话地址；非 0=reject，
   发 `INVITE_REPLY reject <reason>`，如本地端口池已满=`1`）；都在回调里不阻塞；
 - 任一端成功收到对端 P2P 包 → 上报一次 `PUNCHOK`；只收到一方上报不判成功（等超时）；

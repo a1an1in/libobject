@@ -240,7 +240,7 @@ static void __clear_sessions(Stun *stun)
  * 建/复用一条会话并发起采址（合并原 call 与 create_session）：
  *  - role：0=caller 主叫，1=callee 被叫；
  *  - 分配会话(独立 data socket + req/response)入表；已存在同 remote 会话则复用；
- *  - 随后发起采址，own 就绪由回调按 role 调 call_session/reply_invite；
+ *  - 随后发起采址，own 就绪由回调按 role 调 request_session/reply_session_request；
  *  - out 非空回传会话指针。返回 0=成功；-1=失败。
  */
 static int __create_session(Stun *stun, char *remote_id, int role,
@@ -306,7 +306,7 @@ static int __create_session(Stun *stun, char *remote_id, int role,
             added = 1;
         }
 
-        /* 发起采址(异步)：own 就绪后回调按 role 调 call/reply_invite */
+        /* 发起采址(异步)：own 就绪后回调按 role 调 request_session/reply_session_request */
         EXEC(stun->probe_session_addr(stun, remote_id));
         if (out != NULL) {
             *out = s;
@@ -348,6 +348,7 @@ static int __close_session(Stun *stun, char *remote_id)
     __destroy_session(s);
     stun->sessions->remove(stun->sessions, (void *)remote_id, &elem);
     allocator_mem_free(stun->parent.allocator, s);
+
     return 0;
 }
 
@@ -375,7 +376,7 @@ static void __stun_log_target(Stun *stun, const char *tag,
             stun->stun_id, tag, host, service, ip);
 }
 
-/* 发起采址(STUN Binding，异步)：own 就绪后回调按角色 call_session/reply_invite。 */
+/* 发起采址(STUN Binding，异步)：own 就绪后回调按角色 request_session/reply_session_request。 */
 static int __probe_session_addr(Stun *stun, char *remote_stun_id)
 {
     stun_session_t *s;
@@ -404,11 +405,12 @@ static int __probe_session_addr(Stun *stun, char *remote_stun_id)
         return -1;
     }
     __stun_log_target(stun, "stun1", host, service);
+
     return 0;
 }
 
 /* 主叫采址完成(own 就绪)：发 INVITE <my> <callee> <own_host> <own_port> <nat>。 */
-static int __call_session(Stun *stun, char *remote_stun_id)
+static int __request_session(Stun *stun, char *remote_stun_id)
 {
     stun_session_t *s;
     char line[192];
@@ -428,6 +430,7 @@ static int __call_session(Stun *stun, char *remote_stun_id)
     client_send(stun->server_client, line, (int)strlen(line), 0);
     dbg_str(DBG_INFO, "%s sent INVITE to %s (own %s:%d nat=%d)",
             stun->stun_id, s->remote_id, s->own_host, s->own_port, s->nat_type);
+
     return 0;
 }
 
@@ -437,7 +440,7 @@ static int __call_session(Stun *stun, char *remote_stun_id)
  *   reason != 0                   -> 拒绝：INVITE_REPLY <my> <caller> reject <reason>
  *                                     （如 STUN_REJECT_NO_PORT：本地端口池已满，主叫立刻失败）
  * 服务器按 caller|callee 找到 pending，把这条 reply 原样转投给主叫。 */
-static int __reply_invite(Stun *stun, char *remote_stun_id, int reason)
+static int __reply_session_request(Stun *stun, char *remote_stun_id, int reason)
 {
     stun_session_t *s = NULL;
     char line[192];
@@ -648,9 +651,9 @@ static int __on_session_recv(void *task)
                 snprintf(s->own_host, sizeof(s->own_host), "%s", prev_host);
                 s->own_port = prev_port;
                 if (s->role == 0) {
-                    s->stun->call_session(s->stun, s->remote_id);
+                    s->stun->request_session(s->stun, s->remote_id);
                 } else {
-                    s->stun->reply_invite(s->stun, s->remote_id, STUN_REJECT_NONE);
+                    s->stun->reply_session_request(s->stun, s->remote_id, STUN_REJECT_NONE);
                 }
             } else {
                 s->own_ready = 1;
@@ -664,9 +667,9 @@ static int __on_session_recv(void *task)
                     s->stun->stun2_service != NULL) {
                     __probe_nat2(s);   /* 向第二 STUN 采址，回包后再 call/accept */
                 } else if (s->role == 0) {
-                    s->stun->call_session(s->stun, s->remote_id);
+                    s->stun->request_session(s->stun, s->remote_id);
                 } else {
-                    s->stun->reply_invite(s->stun, s->remote_id, STUN_REJECT_NONE);
+                    s->stun->reply_session_request(s->stun, s->remote_id, STUN_REJECT_NONE);
                 }
             }
         }
@@ -808,6 +811,136 @@ static int __set_recv_callback(Stun *stun,
     return 0;
 }
 
+static int __construct(Stun *stun, char *init_str)
+{
+    allocator_t *allocator = stun->parent.allocator;
+    int ret = 0, trustee_flag = 1;
+    int value_type = VALUE_TYPE_STRUCT_POINTER;
+
+    TRY {
+        stun->server_client = NULL;
+        stun->sessions = NULL;
+        stun->stun_id[0] = 0;
+        stun->register_done = 0;
+        stun->recv_callback = NULL;
+        stun->local_host = NULL;
+        stun->signal_host = NULL;
+        stun->signal_service = NULL;
+        stun->stun_host = NULL;
+        stun->stun_service = NULL;
+        stun->stun2_host = NULL;
+        stun->stun2_service = NULL;
+        stun->keepalive_interval_ms = 0;
+
+        stun->sessions = object_new(allocator, "RBTree_Map", NULL);
+        THROW_IF(stun->sessions == NULL, -1);
+        stun->sessions->set_cmp_func(stun->sessions, string_key_cmp_func);
+        stun->sessions->set(stun->sessions, "/Map/trustee_flag", &trustee_flag);
+        stun->sessions->set(stun->sessions, "/Map/value_type", &value_type);
+    } CATCH (ret) {
+    }
+    return ret;
+}
+
+static int __deconstruct(Stun *stun)
+{
+    if (stun->server_client != NULL) {
+        client_destroy(stun->server_client);
+        stun->server_client = NULL;
+    }
+    if (stun->sessions != NULL) {
+        /* 先手动销毁各会话内部 io 并移出释放，再销毁 Map */
+        __clear_sessions(stun);
+        object_destroy(stun->sessions);
+        stun->sessions = NULL;
+    }
+    return 0;
+}
+
+static class_info_entry_t stun_class_info[] = {
+    Init_Obj___Entry(0, Obj, parent),
+    Init_Nfunc_Entry(1, Stun, construct, __construct),
+    Init_Nfunc_Entry(2, Stun, deconstruct, __deconstruct),
+    /* ---- 节点级（非会话） ---- */
+    Init_Vfunc_Entry(3, Stun, connect, __connect),
+    Init_Vfunc_Entry(4, Stun, signin, __signin),
+    Init_Vfunc_Entry(5, Stun, signout, __signout),
+    Init_Vfunc_Entry(6, Stun, set_stun_server, __set_stun_server),
+    Init_Vfunc_Entry(7, Stun, set_recv_callback, __set_recv_callback),
+    /* ---- 会话级：名字含 session 的接口集中在此（顺序与 Stun.h 一致） ---- */
+    Init_Vfunc_Entry(8, Stun, create_session, __create_session),
+    Init_Vfunc_Entry(9, Stun, close_session, __close_session),
+    Init_Vfunc_Entry(10, Stun, get_session, __get_session),
+    Init_Vfunc_Entry(11, Stun, send_session_data, __send_session_data),
+    Init_Vfunc_Entry(12, Stun, probe_session_addr, __probe_session_addr),
+    Init_Vfunc_Entry(13, Stun, request_session, __request_session),
+    Init_Vfunc_Entry(14, Stun, reply_session_request, __reply_session_request),
+    Init_Vfunc_Entry(15, Stun, punch_session, __punch_session),
+    /* 会话状态查询（名字不含 session，紧跟会话组） */
+    Init_Vfunc_Entry(16, Stun, is_connected, __is_connected),
+    Init_End___Entry(17, Stun),
+};
+REGISTER_CLASS(Stun, stun_class_info);
+
+static int __parse_attrib_mapped_addr(stun_attrib_t *raw, stun_attrib_t *out)
+{
+    int ret;
+    int i, len, family;
+    uint8_t *p, *host;
+
+    TRY {
+        family = raw->u.mapped_address.family;
+        SET_CATCH_INT_PARS(family, 0);
+        THROW_IF(family != 0x1 && family != 2, -1);
+        snprintf(out->u.mapped_address.service, 8, "%d", ntohs(raw->u.mapped_address.port));
+        len = family == 0x1 ? 4 : 8;
+        p = raw->u.mapped_address.ip;
+        host = out->u.mapped_address.host;
+        host[0] = 0;   /* 先清空，避免复用缓冲区时把上次地址追加进来 */
+        for (i = 0; i < len - 1; i++) {
+            snprintf(host + strlen(host), 32 - strlen(host), "%d.", *(p + i));
+        }
+        snprintf(host + strlen(host), 32 - strlen(host), "%d", *(p + i));
+    } CATCH (ret) {
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
+    }
+    return ret;
+}
+
+static int __parse_attrib_changed_addr(stun_attrib_t *raw, stun_attrib_t *out)
+{
+    int ret;
+    int i, len, family;
+    uint8_t *p, *host;
+
+    TRY {
+        family = raw->u.changed_address.family;
+        SET_CATCH_INT_PARS(family, 0);
+        THROW_IF(family != 0x1 && family != 2, -1);
+        snprintf(out->u.changed_address.service, 8, "%d", ntohs(raw->u.changed_address.port));
+        len = family == 0x1 ? 4 : 8;
+        p = raw->u.changed_address.ip;
+        host = out->u.changed_address.host;
+        host[0] = 0;   /* 先清空，避免复用缓冲区时把上次地址追加进来 */
+        for (i = 0; i < len - 1; i++) {
+            snprintf(host + strlen(host), 32 - strlen(host), "%d.", *(p + i));
+        }
+        snprintf(host + strlen(host), 32 - strlen(host), "%d", *(p + i));
+    } CATCH (ret) {
+        CATCH_SHOW_INT_PARS(DBG_ERROR);
+    }
+    return ret;
+}
+
+attrib_parse_policy_t g_stun_parse_attr_policies[] = {
+    {STUN_ATR_TYPE_MAPPED_ADDR,       __parse_attrib_mapped_addr},
+    {STUN_ATR_TYPE_XOR_MAPPED_ADDR,   __parse_attrib_mapped_addr},
+    {STUN_ATR_TYPE_CHANGED_ADDRESS,   __parse_attrib_changed_addr},
+};
+int g_stun_parse_attr_policies_count =
+    sizeof(g_stun_parse_attr_policies) / sizeof(g_stun_parse_attr_policies[0]);
+
+
 /* ---------------- 信令处理：表驱动分派（客户端侧，节点级） ----------------
  * 每个信令一个处理函数，签名统一 (stun, line)：返回 0=已处理 / -1=坏包。
  * 新增信令只需加一个处理函数 + 在 g_stun_cli_sig_table 加一行。分派要求关键字是
@@ -832,7 +965,7 @@ static int __sig_signin_reply(Stun *stun, char *line)
 /* INVITE <caller> <host> <port> [nat]（被叫）：建会话并打洞。
  * 建不起来（如本地数据口端口池已满）就回 INVITE_REPLY reject，让主叫立刻失败，
  * 而不是干等到超时。 */
-static int __sig_invite(Stun *stun, char *line)
+static int __sig_request_session(Stun *stun, char *line)
 {
     stun_session_t *ns = NULL;
     char from[32] = {0}, host[64] = {0};
@@ -847,7 +980,7 @@ static int __sig_invite(Stun *stun, char *line)
         ns->peer_nat_type = nat;
         stun->punch_session(stun, from, host, port);
     } else {
-        stun->reply_invite(stun, from, STUN_REJECT_NO_PORT);
+        stun->reply_session_request(stun, from, STUN_REJECT_NO_PORT);
     }
     return 0;
 }
@@ -856,7 +989,7 @@ static int __sig_invite(Stun *stun, char *line)
  * （一问一答，双 id 无歧义）：
  *   accept -> 记对端 nat，按对端会话地址打洞；
  *   reject -> 区分原因码（STUN_REJECT_*），标记本端该会话失败。 */
-static int __sig_invite_reply(Stun *stun, char *line)
+static int __sig_reply_session_request(Stun *stun, char *line)
 {
     char callee[32] = {0}, rcaller[32] = {0}, action[16] = {0}, host[64] = {0};
     int port = 0, nat = STUN_NAT_TYPE_UNKNOWN;
@@ -925,8 +1058,8 @@ static int __sig_connected(Stun *stun, char *line)
 
 static const stun_cli_sig_entry_t g_stun_cli_sig_table[] = {
     { "SIGNIN_REPLY", "SIGNIN_REPLY", __sig_signin_reply },
-    { "INVITE",       "INVITE",       __sig_invite },
-    { "INVITE_REPLY", "INVITE_REPLY", __sig_invite_reply },
+    { "INVITE",       "INVITE",       __sig_request_session },
+    { "INVITE_REPLY", "INVITE_REPLY", __sig_reply_session_request },
     { "CONNECTED",    "CONNECTED",    __sig_connected },
 };
 #define STUN_CLI_SIG_TABLE_NUM \
@@ -963,130 +1096,3 @@ static int __stun_signal_callback(void *task)
     dbg_str(DBG_WARN, "%s ignore unknown signal: %.32s", stun->stun_id, s);
     return 0;
 }
-
-
-static int __construct(Stun *stun, char *init_str)
-{
-    allocator_t *allocator = stun->parent.allocator;
-    int ret = 0, trustee_flag = 1;
-    int value_type = VALUE_TYPE_STRUCT_POINTER;
-
-    TRY {
-        stun->server_client = NULL;
-        stun->sessions = NULL;
-        stun->stun_id[0] = 0;
-        stun->register_done = 0;
-        stun->recv_callback = NULL;
-        stun->local_host = NULL;
-        stun->signal_host = NULL;
-        stun->signal_service = NULL;
-        stun->stun_host = NULL;
-        stun->stun_service = NULL;
-        stun->stun2_host = NULL;
-        stun->stun2_service = NULL;
-        stun->keepalive_interval_ms = 0;
-
-        stun->sessions = object_new(allocator, "RBTree_Map", NULL);
-        THROW_IF(stun->sessions == NULL, -1);
-        stun->sessions->set_cmp_func(stun->sessions, string_key_cmp_func);
-        stun->sessions->set(stun->sessions, "/Map/trustee_flag", &trustee_flag);
-        stun->sessions->set(stun->sessions, "/Map/value_type", &value_type);
-    } CATCH (ret) {
-    }
-    return ret;
-}
-
-static int __deconstruct(Stun *stun)
-{
-    if (stun->server_client != NULL) {
-        client_destroy(stun->server_client);
-        stun->server_client = NULL;
-    }
-    if (stun->sessions != NULL) {
-        /* 先手动销毁各会话内部 io 并移出释放，再销毁 Map */
-        __clear_sessions(stun);
-        object_destroy(stun->sessions);
-        stun->sessions = NULL;
-    }
-    return 0;
-}
-
-static class_info_entry_t stun_class_info[] = {
-    Init_Obj___Entry(0, Obj, parent),
-    Init_Nfunc_Entry(1, Stun, construct, __construct),
-    Init_Nfunc_Entry(2, Stun, deconstruct, __deconstruct),
-    Init_Vfunc_Entry(3, Stun, connect, __connect),
-    Init_Vfunc_Entry(4, Stun, signin, __signin),
-    Init_Vfunc_Entry(5, Stun, set_stun_server, __set_stun_server),
-    Init_Vfunc_Entry(6, Stun, create_session, __create_session),
-    Init_Vfunc_Entry(7, Stun, send_session_data, __send_session_data),
-    Init_Vfunc_Entry(8, Stun, is_connected, __is_connected),
-    Init_Vfunc_Entry(9, Stun, close_session, __close_session),
-    Init_Vfunc_Entry(10, Stun, signout, __signout),
-    Init_Vfunc_Entry(11, Stun, set_recv_callback, __set_recv_callback),
-    Init_Vfunc_Entry(12, Stun, get_session, __get_session),
-    Init_Vfunc_Entry(13, Stun, probe_session_addr, __probe_session_addr),
-    Init_Vfunc_Entry(14, Stun, call_session, __call_session),
-    Init_Vfunc_Entry(15, Stun, reply_invite, __reply_invite),
-    Init_Vfunc_Entry(16, Stun, punch_session, __punch_session),
-    Init_End___Entry(17, Stun),
-};
-REGISTER_CLASS(Stun, stun_class_info);
-
-static int __parse_attrib_mapped_addr(stun_attrib_t *raw, stun_attrib_t *out)
-{
-    int ret;
-    int i, len, family;
-    uint8_t *p, *host;
-
-    TRY {
-        family = raw->u.mapped_address.family;
-        SET_CATCH_INT_PARS(family, 0);
-        THROW_IF(family != 0x1 && family != 2, -1);
-        snprintf(out->u.mapped_address.service, 8, "%d", ntohs(raw->u.mapped_address.port));
-        len = family == 0x1 ? 4 : 8;
-        p = raw->u.mapped_address.ip;
-        host = out->u.mapped_address.host;
-        host[0] = 0;   /* 先清空，避免复用缓冲区时把上次地址追加进来 */
-        for (i = 0; i < len - 1; i++) {
-            snprintf(host + strlen(host), 32 - strlen(host), "%d.", *(p + i));
-        }
-        snprintf(host + strlen(host), 32 - strlen(host), "%d", *(p + i));
-    } CATCH (ret) {
-        CATCH_SHOW_INT_PARS(DBG_ERROR);
-    }
-    return ret;
-}
-
-static int __parse_attrib_changed_addr(stun_attrib_t *raw, stun_attrib_t *out)
-{
-    int ret;
-    int i, len, family;
-    uint8_t *p, *host;
-
-    TRY {
-        family = raw->u.changed_address.family;
-        SET_CATCH_INT_PARS(family, 0);
-        THROW_IF(family != 0x1 && family != 2, -1);
-        snprintf(out->u.changed_address.service, 8, "%d", ntohs(raw->u.changed_address.port));
-        len = family == 0x1 ? 4 : 8;
-        p = raw->u.changed_address.ip;
-        host = out->u.changed_address.host;
-        host[0] = 0;   /* 先清空，避免复用缓冲区时把上次地址追加进来 */
-        for (i = 0; i < len - 1; i++) {
-            snprintf(host + strlen(host), 32 - strlen(host), "%d.", *(p + i));
-        }
-        snprintf(host + strlen(host), 32 - strlen(host), "%d", *(p + i));
-    } CATCH (ret) {
-        CATCH_SHOW_INT_PARS(DBG_ERROR);
-    }
-    return ret;
-}
-
-attrib_parse_policy_t g_stun_parse_attr_policies[] = {
-    {STUN_ATR_TYPE_MAPPED_ADDR,       __parse_attrib_mapped_addr},
-    {STUN_ATR_TYPE_XOR_MAPPED_ADDR,   __parse_attrib_mapped_addr},
-    {STUN_ATR_TYPE_CHANGED_ADDRESS,   __parse_attrib_changed_addr},
-};
-int g_stun_parse_attr_policies_count =
-    sizeof(g_stun_parse_attr_policies) / sizeof(g_stun_parse_attr_policies[0]);

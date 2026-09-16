@@ -94,7 +94,7 @@ struct stun_session_s {
 
 /* INVITE_REPLY 里 reject 的原因码（被叫/服务器带回，主叫据此区分失败原因）：
  *   INVITE_REPLY <callee> <caller> reject <reason>  —— 全链透传（被叫->服务器->主叫） */
-#define STUN_REJECT_NONE      0   /* 未说明原因；作为 reply_invite 的参数时 = 接受 */
+#define STUN_REJECT_NONE      0   /* 未说明原因；作为 reply_session_request 的参数时 = 接受 */
 #define STUN_REJECT_NO_PORT   1   /* 本地数据口端口池已满（local_service 容量不够） */
 #define STUN_REJECT_INTERNAL  2   /* 其他内部原因（建会话失败等） */
 #define STUN_REJECT_OFFLINE   3   /* 对端不在线（服务器生成） */
@@ -149,42 +149,45 @@ struct Stun_s{
      * 不设置则回退到信令服务器自身（loopback/同机）。
      */
     int (*set_stun_server)(Stun *stun, char *host, char *service);
-    /*
-     * 建/复用一条会话并发起采址（合并原 call/create）：
-     *  - role：0=caller 主叫，1=callee 被叫；
-     *  - 分配会话(独立 data socket + req/response)入表；已存在同 remote 会话则复用；
-     *  - 随后发起采址，own 就绪由回调按 role 调 call_session/reply_invite；
-     *  - out 非空回传会话指针(免调用者再 get)。返回 0=成功；-1=失败。
-     */
-    int (*create_session)(Stun *stun, char *remote_stun_id, int role,
-                          stun_session_t **out);
-    /* 向 remote stun id 会话发业务数据（DATA，走会话 data socket）。返回 0=成功；-1=失败。 */
-    int (*send_session_data)(Stun *stun, char *remote_stun_id, void *buf, int len);
-    /* 查询会话是否已打通：0=连通；-1=未通/无会话。 */
-    int (*is_connected)(Stun *stun, char *remote_stun_id);
-    /* 关闭某会话：停保活、关 data socket、从会话表移除。返回 0=成功。 */
-    int (*close_session)(Stun *stun, char *remote_stun_id);
     /* 下线(SIGNOUT)并停全部会话；节点句柄仍可用但已离线。返回 0=成功。 */
     int (*signout)(Stun *stun);
     /* 注册业务收包回调（DATA 到达任意会话时调用，session 标识对端）。 */
     int (*set_recv_callback)(Stun *stun,
                              int (*func)(Stun *stun, stun_session_t *session,
                                          uint8_t *buf, int len));
+
+    /* ---- 会话级：名字含 session 的接口集中在这里（remote id 定位会话） ---- */
+    /*
+     * 建/复用一条会话并发起采址（合并原 call/create）：
+     *  - role：0=caller 主叫，1=callee 被叫；
+     *  - 分配会话(独立 data socket + req/response)入表；已存在同 remote 会话则复用；
+     *  - 随后发起采址，own 就绪由回调按 role 调 request_session/reply_session_request；
+     *  - out 非空回传会话指针(免调用者再 get)。返回 0=成功；-1=失败。
+     */
+    int (*create_session)(Stun *stun, char *remote_stun_id, int role,
+                          stun_session_t **out);
+    /* 关闭某会话：停保活、关 data socket、从会话表移除。返回 0=成功。 */
+    int (*close_session)(Stun *stun, char *remote_stun_id);
     /* 按 remote stun id 查会话（无则返回 NULL）。 */
     stun_session_t *(*get_session)(Stun *stun, char *remote_stun_id);
-    /* ---- 会话级动作（remote id 定位会话；stun_session_t 不出接口） ---- */
-    /* 发起采址(STUN Binding，异步)；own 就绪后回调按角色 call/reply_invite。 */
+    /* 向 remote stun id 会话发业务数据（DATA，走会话 data socket）。返回 0=成功；-1=失败。 */
+    int (*send_session_data)(Stun *stun, char *remote_stun_id, void *buf, int len);
+    /* 发起采址(STUN Binding，异步)；own 就绪后回调按角色 request_session/reply_session_request。 */
     int (*probe_session_addr)(Stun *stun, char *remote_stun_id);
-    /* 主叫采址完成(own 就绪)：发 INVITE <my> <callee> <own_host> <own_port> <nat>。 */
-    int (*call_session)(Stun *stun, char *remote_stun_id);
-    /* 被叫采址完成(own 就绪)：发 INVITE_REPLY <my> <caller> accept <own_host> <own_port> <nat>。 */
-    /* 对收到的 INVITE 应答（accept/reject 二合一，用一个原因码参数区分）：
-     *   reason == STUN_REJECT_NONE(0) -> 接受，带本会话地址；
-     *   reason != 0                   -> 拒绝，只带原因码（如 STUN_REJECT_NO_PORT）。 */
-    int (*reply_invite)(Stun *stun, char *remote_stun_id, int reason);
+    /* 会话请求（主叫）：采址就绪后发 INVITE <my> <callee> <own_host> <own_port> <nat>。 */
+    int (*request_session)(Stun *stun, char *remote_stun_id);
+    /* 会话应答（被叫）：对收到的 INVITE 回 INVITE_REPLY（accept/reject 二合一，
+     * 用一个原因码区分）：
+     *   reason == STUN_REJECT_NONE(0) -> 接受(accept)，带本会话地址；
+     *   reason != 0                   -> 拒绝(reject)，只带原因码（如 STUN_REJECT_NO_PORT）。
+     * 与 request_session 成对：一个发 INVITE 请求，一个回 INVITE_REPLY 应答。 */
+    int (*reply_session_request)(Stun *stun, char *remote_stun_id, int reason);
     /* 开始打洞：设定对端会话地址并周期互发 KEEPALIVE。 */
     int (*punch_session)(Stun *stun, char *remote_stun_id,
                          char *peer_host, int peer_port);
+
+    /* 查询会话是否已打通：0=连通；-1=未通/无会话（名字不含 session，故紧跟会话组）。 */
+    int (*is_connected)(Stun *stun, char *remote_stun_id);
 
     /* 本地绑定地址（peer/data socket 绑 host；字符串由调用方持有） */
     char *local_host;
