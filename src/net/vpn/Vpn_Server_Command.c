@@ -40,28 +40,30 @@ static int __split_host_port(const char *in, char *host, int hlen,
 {
     const char *colon;
     int n;
+    int ret = 0;
 
-    if (in == NULL || host == NULL || hlen <= 0) {
-        return -1;
-    }
-    colon = strrchr(in, ':');
-    if (colon == NULL) {
-        snprintf(host, hlen, "%s", in);
-        if (port != NULL && plen > 0) {
-            port[0] = '\0';
+    TRY {
+        THROW_IF(in == NULL || host == NULL || hlen <= 0, -1);
+        colon = strrchr(in, ':');
+        if (colon == NULL) {
+            snprintf(host, hlen, "%s", in);
+            if (port != NULL && plen > 0) {
+                port[0] = '\0';
+            }
+            THROW(1);      /* 无 ':'：host=整体，port 留空（调用方判错） */
         }
-        return 0;
-    }
-    n = (int)(colon - in);
-    if (n == 0) {
-        snprintf(host, hlen, "%s", "0.0.0.0");
-    } else {
-        snprintf(host, hlen, "%.*s", n, in);
-    }
-    if (port != NULL && plen > 0) {
-        snprintf(port, plen, "%s", colon + 1);
-    }
-    return 0;
+        n = (int)(colon - in);
+        if (n == 0) {
+            snprintf(host, hlen, "%s", "0.0.0.0");
+        } else {
+            snprintf(host, hlen, "%.*s", n, in);
+        }
+        if (port != NULL && plen > 0) {
+            snprintf(port, plen, "%s", colon + 1);
+        }
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 static int __construct(Vpn_Server_Command *command, char *init_str)
@@ -92,17 +94,23 @@ static int __run_command(Vpn_Server_Command *command)
     char host[128] = {0}, port[32] = {0};
     const char *listen = (command->listen != NULL && command->listen[0] != '\0')
                        ? command->listen : VPN_SERVER_DEFAULT_LISTEN;
+    int ret = 0;
 
-    if (__split_host_port(listen, host, sizeof(host), port, sizeof(port)) < 0 ||
-        port[0] == '\0') {
-        dbg_str(DBG_ERROR, "vpnserver: --listen must be host:port, e.g. 0.0.0.0:12345");
-        return -1;
-    }
+    TRY {
+        if (__split_host_port(listen, host, sizeof(host), port, sizeof(port)) < 0 ||
+            port[0] == '\0') {
+            dbg_str(DBG_ERROR, "vpnserver: --listen must be host:port, e.g."
+                    " 0.0.0.0:12345");
+            THROW(-1);
+        }
 
-    dbg_str(DBG_VIP, "vpnserver: listening on %s:%s (udp), Ctrl+C to stop",
-            host, port);
+        dbg_str(DBG_VIP, "vpnserver: listening on %s:%s (udp), Ctrl+C to stop",
+                host, port);
 
-    return p2p_server_run(host, port);   /* 阻塞至 Ctrl+C */
+        EXEC(ret = p2p_server_run(host, port));   /* 阻塞至 Ctrl+C */
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 static class_info_entry_t vpn_server_command_class_info[] = {

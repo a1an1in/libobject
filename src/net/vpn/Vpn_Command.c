@@ -67,27 +67,27 @@ static int __split_host_port(const char *in, char *host, int hlen,
 {
     const char *colon;
     int n;
+    int ret = 0;
 
-    if (in == NULL || host == NULL || hlen <= 0) {
-        return -1;
-    }
-    colon = strrchr(in, ':');
-    if (colon == NULL) {
-        snprintf(host, hlen, "%s", in);
-        if (port != NULL && plen > 0) {
-            snprintf(port, plen, "%s", (def_port != NULL) ? def_port : "");
+    TRY {
+        THROW_IF(in == NULL || host == NULL || hlen <= 0, -1);
+        colon = strrchr(in, ':');
+        if (colon == NULL) {
+            snprintf(host, hlen, "%s", in);
+            if (port != NULL && plen > 0) {
+                snprintf(port, plen, "%s", (def_port != NULL) ? def_port : "");
+            }
+            THROW(1);      /* 无 ':'：host=整体，port=默认端口 */
         }
-        return 0;
-    }
-    n = (int)(colon - in);
-    if (n <= 0 || n >= hlen) {
-        return -1;
-    }
-    snprintf(host, hlen, "%.*s", n, in);
-    if (port != NULL && plen > 0) {
-        snprintf(port, plen, "%s", colon + 1);
-    }
-    return 0;
+        n = (int)(colon - in);
+        THROW_IF(n <= 0 || n >= hlen, -1);
+        snprintf(host, hlen, "%.*s", n, in);
+        if (port != NULL && plen > 0) {
+            snprintf(port, plen, "%s", colon + 1);
+        }
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 空串一律当"未设置"，返回 NULL —— 便于直接塞进 vpn_cfg_t。 */
@@ -172,78 +172,88 @@ static int __run_command(Vpn_Command *command)
     char signal_host[128] = {0}, signal_port[32] = {0};
     char stun_host[128]   = {0}, stun_port[32]   = {0};
     char stun2_host[128]  = {0}, stun2_port[32]  = {0};
+    int ret = 0;
 
-    if (__or_null(command->stun_id) == NULL) {
-        dbg_str(DBG_ERROR, "vpn: --id required (-i <stun_id>); see --help");
-        return -1;
-    }
-    /* 被动方（被叫）是地址分配者：必须有自己的地址（也是分配池）；
-     * 主动方（主叫）可以省——地址由对端在应答里分配。 */
-    if (__or_null(command->tunnel_ip) == NULL && __or_null(command->peer_id) == NULL) {
-        dbg_str(DBG_ERROR, "vpn: callee must set --tunnel-ip (own ip + assign pool,"
-                " e.g. x.x.x.254/24); caller may omit it (assigned by peer)");
-        return -1;
-    }
-    if (__or_null(command->signal) == NULL) {
-        dbg_str(DBG_ERROR, "vpn: --signal required (signaling server host:port)");
-        return -1;
-    }
-    if (__split_host_port(command->signal, signal_host, sizeof(signal_host),
-                          signal_port, sizeof(signal_port), NULL) < 0 ||
-        signal_port[0] == '\0') {
-        dbg_str(DBG_ERROR, "vpn: --signal must be host:port, e.g. 119.4.206.14:12345");
-        return -1;
-    }
-    /* --stun/--stun2：none/off/0 表示禁用（此时回退为"用信令服采址"） */
-    if (__or_null(command->stun) != NULL && !__is_off(command->stun)) {
-        if (__split_host_port(command->stun, stun_host, sizeof(stun_host),
-                              stun_port, sizeof(stun_port), VPN_DEFAULT_STUN_PORT) < 0) {
-            dbg_str(DBG_ERROR, "vpn: bad --stun format (expect host[:port])");
-            return -1;
+    TRY {
+        if (__or_null(command->stun_id) == NULL) {
+            dbg_str(DBG_ERROR, "vpn: --id required (-i <stun_id>); see --help");
+            THROW(-1);
         }
-    }
-    if (__or_null(command->stun2) != NULL && !__is_off(command->stun2)) {
-        if (__split_host_port(command->stun2, stun2_host, sizeof(stun2_host),
-                              stun2_port, sizeof(stun2_port), VPN_DEFAULT_STUN2_PORT) < 0) {
-            dbg_str(DBG_ERROR, "vpn: bad --stun2 format (expect host[:port])");
-            return -1;
+        /* 被动方（被叫）是地址分配者：必须有自己的地址（也是分配池）；
+         * 主动方（主叫）可以省——地址由对端在应答里分配。 */
+        if (__or_null(command->tunnel_ip) == NULL &&
+            __or_null(command->peer_id) == NULL) {
+            dbg_str(DBG_ERROR, "vpn: callee must set --tunnel-ip (own ip + assign pool,"
+                    " e.g. x.x.x.254/24); caller may omit it (assigned by peer)");
+            THROW(-1);
         }
-    }
+        if (__or_null(command->signal) == NULL) {
+            dbg_str(DBG_ERROR, "vpn: --signal required (signaling server host:port)");
+            THROW(-1);
+        }
+        if (__split_host_port(command->signal, signal_host, sizeof(signal_host),
+                              signal_port, sizeof(signal_port), NULL) < 0 ||
+            signal_port[0] == '\0') {
+            dbg_str(DBG_ERROR, "vpn: --signal must be host:port, e.g."
+                    " 119.4.206.14:12345");
+            THROW(-1);
+        }
+        /* --stun/--stun2：none/off/0 表示禁用（此时回退为"用信令服采址"） */
+        if (__or_null(command->stun) != NULL && !__is_off(command->stun)) {
+            if (__split_host_port(command->stun, stun_host, sizeof(stun_host),
+                                  stun_port, sizeof(stun_port),
+                                  VPN_DEFAULT_STUN_PORT) < 0) {
+                dbg_str(DBG_ERROR, "vpn: bad --stun format (expect host[:port])");
+                THROW(-1);
+            }
+        }
+        if (__or_null(command->stun2) != NULL && !__is_off(command->stun2)) {
+            if (__split_host_port(command->stun2, stun2_host, sizeof(stun2_host),
+                                  stun2_port, sizeof(stun2_port),
+                                  VPN_DEFAULT_STUN2_PORT) < 0) {
+                dbg_str(DBG_ERROR, "vpn: bad --stun2 format (expect host[:port])");
+                THROW(-1);
+            }
+        }
 
-    memset(&cfg, 0, sizeof(cfg));
-    cfg.id             = command->stun_id;
-    cfg.peer_id        = __or_null(command->peer_id);        /* NULL=被叫 */
-    cfg.local_service  = __or_null(command->local_service);
-    cfg.signal_host    = signal_host;
-    cfg.signal_service = signal_port;
-    cfg.stun_host      = __or_null(stun_host);               /* NULL=用信令服 */
-    cfg.stun_service   = __or_null(stun_port);
-    cfg.stun2_host     = __or_null(stun2_host);
-    cfg.stun2_service  = __or_null(stun2_port);
-    cfg.interval_ms    = command->interval_ms;
-    cfg.tun_name       = __or_null(command->tun_name);       /* NULL=自动 */
-    cfg.tunnel_ip      = command->tunnel_ip;                 /* 前缀写在 --tunnel-ip 的 /len 里 */
-    cfg.local_net      = __or_null(command->local_net);
+        memset(&cfg, 0, sizeof(cfg));
+        cfg.id             = command->stun_id;
+        cfg.peer_id        = __or_null(command->peer_id);   /* NULL=被叫 */
+        cfg.local_service  = __or_null(command->local_service);
+        cfg.signal_host    = signal_host;
+        cfg.signal_service = signal_port;
+        cfg.stun_host      = __or_null(stun_host);          /* NULL=用信令服 */
+        cfg.stun_service   = __or_null(stun_port);
+        cfg.stun2_host     = __or_null(stun2_host);
+        cfg.stun2_service  = __or_null(stun2_port);
+        cfg.interval_ms    = command->interval_ms;
+        cfg.tun_name       = __or_null(command->tun_name);  /* NULL=自动 */
+        cfg.tunnel_ip      = command->tunnel_ip;            /* 前缀写在 /len 里 */
+        cfg.local_net      = __or_null(command->local_net);
 
-    dbg_str(DBG_VIP, "vpn: id=%s peer=%s signal=%s:%s service=%s stun=%s:%s stun2=%s:%s "
-            "tunnel-ip=%s local-net=%s tun=%s interval=%d",
-            cfg.id, cfg.peer_id ? cfg.peer_id : "(callee)",
-            cfg.signal_host, cfg.signal_service,
-            cfg.local_service ? cfg.local_service : "(random)",
-            cfg.stun_host ? cfg.stun_host : "(signal)",
-            cfg.stun_service ? cfg.stun_service : "-",
-            cfg.stun2_host ? cfg.stun2_host : "-",
-            cfg.stun2_service ? cfg.stun2_service : "-",
-            cfg.tunnel_ip ? cfg.tunnel_ip : "(assigned by peer)",
-            cfg.local_net ? cfg.local_net : "-",
-            cfg.tun_name ? cfg.tun_name : "(auto)", cfg.interval_ms);
+        dbg_str(DBG_VIP, "vpn: id=%s peer=%s signal=%s:%s service=%s stun=%s:%s"
+                " stun2=%s:%s tunnel-ip=%s local-net=%s tun=%s interval=%d",
+                cfg.id, cfg.peer_id ? cfg.peer_id : "(callee)",
+                cfg.signal_host, cfg.signal_service,
+                cfg.local_service ? cfg.local_service : "(random)",
+                cfg.stun_host ? cfg.stun_host : "(signal)",
+                cfg.stun_service ? cfg.stun_service : "-",
+                cfg.stun2_host ? cfg.stun2_host : "-",
+                cfg.stun2_service ? cfg.stun2_service : "-",
+                cfg.tunnel_ip ? cfg.tunnel_ip : "(assigned by peer)",
+                cfg.local_net ? cfg.local_net : "-",
+                cfg.tun_name ? cfg.tun_name : "(auto)", cfg.interval_ms);
 
-    if (cfg.local_net == NULL) {
-        dbg_str(DBG_WARN, "vpn: --local-net not set: local net will not be advertised,"
-                " so peer will not add routes (ignore if only testing tunnel)");
-    }
+        if (cfg.local_net == NULL) {
+            dbg_str(DBG_WARN, "vpn: --local-net not set: local net will not be"
+                    " advertised, so peer will not add routes (ignore if only"
+                    " testing tunnel)");
+        }
 
-    return vpn_run(&cfg);   /* 阻塞至 Ctrl+C */
+        EXEC(ret = vpn_run(&cfg));      /* 阻塞至 Ctrl+C */
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 static class_info_entry_t vpn_command_class_info[] = {

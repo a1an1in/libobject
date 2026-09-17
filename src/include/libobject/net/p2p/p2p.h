@@ -72,7 +72,7 @@ typedef struct p2p_cfg_s {
  * @param recv   节点默认业务收包回调(被叫自动会话 / 未 config 的会话都走它；session 定位对端)
  * @param cfg    配置（stun_id 必填；stun_host 为空则用信令服务器采址）
  * @param opaque 传给 recv 的上下文
- * 返回：0=在线；-1=失败。
+ * 返回：>=0=在线（TRY 落底为 1）；负值=失败。
  */
 int p2p_node_create(p2p_node_t **out, p2p_recv_fn recv,
                     const p2p_cfg_t *cfg, void *opaque);
@@ -92,12 +92,12 @@ int p2p_node_is_alive(p2p_node_t *node);
  * @param node 已上线节点
  * @param remote_stun_id 目标节点 stun id
  * @param out  [out] 会话句柄(用 p2p_session_close 关闭；节点关闭时会一并关闭)
- * 返回：0=已发起；-1=失败。
+ * 返回：>=0=已发起（TRY 落底为 1）；负值=失败。
  */
 int p2p_session_create(p2p_node_t *node, const char *remote_stun_id,
                        p2p_session_t **out);
 
-/* 向该会话对端发业务包。返回 0 成功；负值失败(未通/已关闭/参数错)。 */
+/* 向该会话对端发业务包。返回 >=0 成功（TRY 落底为 1）；负值失败(未通/已关闭/参数错)。 */
 int p2p_session_send(p2p_session_t *s, const uint8_t *data, int len);
 
 /* 查询该会话是否打通：0=可 send；-1=未建立/已关闭。 */
@@ -112,7 +112,7 @@ int p2p_session_close(p2p_session_t *s);
  * 运行中心服务器（P2p_Server），阻塞直到 Ctrl+C(SIGINT)。
  * @param host    监听地址，如 "0.0.0.0"
  * @param service 监听端口（UDP）
- * 返回：0=正常停止；-1=失败。
+ * 返回：>=0=正常停止（TRY 落底为 1）；负值=失败。
  */
 int p2p_server_run(const char *host, const char *service);
 

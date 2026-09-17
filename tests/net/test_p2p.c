@@ -156,7 +156,7 @@ static int test_p2p_peer(TEST_ENTRY *entry, int argc, char **argv)
     snprintf(ctx.id, sizeof(ctx.id), "%s", id);
     ctx.is_callee = dial ? 0 : 1;   /* 无 peer_id=被叫 */
 
-    if (p2p_node_create(&node, p2p_on_recv, &cfg, &ctx) != 0) {
+    if (p2p_node_create(&node, p2p_on_recv, &cfg, &ctx) < 0) {
         dbg_str(DBG_ERROR, "%s node create failed", id);
         return -1;
     }
@@ -242,7 +242,7 @@ static int p2p_loop_node(const char *id, const char *peer_id, const char *servic
     cfg.stun_service   = service;
     cfg.interval_ms    = 200;
 
-    if (p2p_node_create(&node, p2p_on_recv, &cfg, &ctx) != 0) {
+    if (p2p_node_create(&node, p2p_on_recv, &cfg, &ctx) < 0) {
         dbg_str(DBG_ERROR, "%s node create failed", id);
         return -1;
     }
@@ -302,7 +302,7 @@ static void *p2p_thread_callback(void *arg)
     cfg.stun_host      = (char *)"127.0.0.1";
     cfg.stun_service   = a->service;
     cfg.interval_ms    = 200;
-    if (p2p_node_create(&node, p2p_on_recv, &cfg, &a->ctx) != 0) {
+    if (p2p_node_create(&node, p2p_on_recv, &cfg, &a->ctx) < 0) {
         dbg_str(DBG_ERROR, "%s resident create failed", a->id);
         return NULL;
     }
@@ -398,7 +398,7 @@ static int test_p2p_multi(TEST_ENTRY *entry)
         cfg.stun_host      = (char *)"127.0.0.1";
         cfg.stun_service   = service;
         cfg.interval_ms    = 200;
-        THROW_IF(p2p_node_create(&node, p2p_on_recv, &cfg, &actx) != 0, -1);
+        EXEC(p2p_node_create(&node, p2p_on_recv, &cfg, &actx));
 
         THROW_IF(p2p_session_create(node, "peerB", &sb) < 0, -1);
         THROW_IF(p2p_session_create(node, "peerC", &sc) < 0, -1);

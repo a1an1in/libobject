@@ -41,6 +41,7 @@ static int __p2p_recv(Stun *stun, stun_session_t *session,
     if (node == NULL || node->recv == NULL || buf == NULL || len < 0) {
         return 0;
     }
+
     return node->recv(node->opaque, (p2p_session_t *)session, buf, len);
 }
 
@@ -50,81 +51,79 @@ int p2p_node_create(p2p_node_t **out, p2p_recv_fn recv,
     allocator_t *allocator = allocator_get_default_instance();
     p2p_node_t *node = NULL;
     Stun *stun = NULL;
+    int ret = 0;
 
-    if (out == NULL || cfg == NULL || cfg->stun_id == NULL ||
-        cfg->signal_host == NULL || cfg->signal_service == NULL) {
-        return -1;
+    TRY {
+        THROW_IF(out == NULL || cfg == NULL || cfg->stun_id == NULL ||
+                 cfg->signal_host == NULL || cfg->signal_service == NULL, -1);
+
+        node = (p2p_node_t *)calloc(1, sizeof(*node));
+        THROW_IF(node == NULL, -1);
+        node->recv = recv;
+        node->opaque = opaque;
+        snprintf(node->stun_id, sizeof(node->stun_id), "%s", cfg->stun_id);
+
+        stun = object_new(allocator, "Stun", NULL);
+        THROW_IF(stun == NULL, -1);
+        node->stun = stun;
+        stun->opaque = node;
+        if (cfg->local_host != NULL)    stun->local_host    = (char *)cfg->local_host;
+        if (cfg->local_service != NULL) stun->local_service = (char *)cfg->local_service;
+        if (cfg->interval_ms > 0)       stun->keepalive_interval_ms = cfg->interval_ms;
+
+        EXEC(stun->connect(stun, (char *)cfg->signal_host,
+                           (char *)cfg->signal_service));
+        if (cfg->stun_host != NULL && cfg->stun_service != NULL) {
+            stun->set_stun_server(stun, (char *)cfg->stun_host,
+                                  (char *)cfg->stun_service);
+        }
+        if (cfg->stun2_host != NULL && cfg->stun2_service != NULL) {
+            stun->stun2_host    = (char *)cfg->stun2_host;
+            stun->stun2_service = (char *)cfg->stun2_service;
+        }
+        EXEC(stun->set_recv_callback(stun, __p2p_recv));
+        EXEC(stun->signin(stun, (char *)cfg->stun_id));
+
+        node->alive = 1;
+        *out = node;
+        dbg_str(DBG_VIP, "%s node online", node->stun_id);
+    } CATCH (ret) {
+        if (ret < 0) {          /* 失败：销毁已建的 Stun 并释放外壳 */
+            if (stun != NULL) {
+                object_destroy(stun);
+            }
+            if (node != NULL) {
+                node->stun = NULL;
+                free(node);
+            }
+        }
     }
 
-    node = (p2p_node_t *)calloc(1, sizeof(*node));
-    if (node == NULL) {
-        return -1;
-    }
-    node->recv = recv;
-    node->opaque = opaque;
-    snprintf(node->stun_id, sizeof(node->stun_id), "%s", cfg->stun_id);
-
-    stun = object_new(allocator, "Stun", NULL);
-    if (stun == NULL) {
-        free(node);
-        return -1;
-    }
-    node->stun = stun;
-    stun->opaque = node;
-    if (cfg->local_host != NULL)    stun->local_host    = (char *)cfg->local_host;
-    if (cfg->local_service != NULL) stun->local_service = (char *)cfg->local_service;
-    if (cfg->interval_ms > 0)       stun->keepalive_interval_ms = cfg->interval_ms;
-
-    if (stun->connect(stun, (char *)cfg->signal_host,
-                      (char *)cfg->signal_service) < 0) {
-        goto fail;
-    }
-    if (cfg->stun_host != NULL && cfg->stun_service != NULL) {
-        stun->set_stun_server(stun, (char *)cfg->stun_host,
-                              (char *)cfg->stun_service);
-    }
-    if (cfg->stun2_host != NULL && cfg->stun2_service != NULL) {
-        stun->stun2_host    = (char *)cfg->stun2_host;
-        stun->stun2_service = (char *)cfg->stun2_service;
-    }
-    if (stun->set_recv_callback(stun, __p2p_recv) < 0) {
-        goto fail;
-    }
-    if (stun->signin(stun, (char *)cfg->stun_id) < 0) {
-        goto fail;
-    }
-
-    node->alive = 1;
-    *out = node;
-    dbg_str(DBG_VIP, "%s node online", node->stun_id);
-    return 0;
-
-fail:
-    object_destroy(stun);
-    node->stun = NULL;
-    free(node);
-    return -1;
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 int p2p_node_close(p2p_node_t *node)
 {
-    if (node == NULL) {
-        return -1;
-    }
-    if (!node->alive) {
-        free(node);
-        return 0;
-    }
-    node->alive = 0;
-    if (node->stun != NULL) {
-        if (node->stun->signout != NULL) {
-            node->stun->signout(node->stun);
+    int ret = 0;
+
+    TRY {
+        THROW_IF(node == NULL, -1);
+        if (!node->alive) {
+            free(node);
+            THROW(1);      /* 未上线：只释放外壳 */
         }
-        object_destroy(node->stun);   /* 析构：清空全部会话 + 关信令口 */
-        node->stun = NULL;
-    }
-    free(node);
-    return 0;
+        node->alive = 0;
+        if (node->stun != NULL) {
+            if (node->stun->signout != NULL) {
+                node->stun->signout(node->stun);
+            }
+            object_destroy(node->stun);   /* 析构：清空全部会话 + 关信令口 */
+            node->stun = NULL;
+        }
+        free(node);
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 int p2p_node_is_alive(p2p_node_t *node)
@@ -136,20 +135,22 @@ int p2p_session_create(p2p_node_t *node, const char *remote_stun_id,
                        p2p_session_t **out)
 {
     stun_session_t *ss = NULL;
+    int ret = 0;
 
-    if (node == NULL || node->stun == NULL || !node->alive ||
-        remote_stun_id == NULL || out == NULL) {
-        dbg_str(DBG_ERROR, "p2p_session_create: bad state");
-        return -1;
+    TRY {
+        THROW_IF(node == NULL || node->stun == NULL || !node->alive ||
+                 remote_stun_id == NULL || out == NULL, -1);
+        THROW_IF(node->stun->create_session(node->stun, (char *)remote_stun_id, 0,
+                                            &ss) < 0 || ss == NULL, -1);
+        *out = (p2p_session_t *)ss;
+        dbg_str(DBG_INFO, "%s created session to %s",
+                node->stun_id, remote_stun_id);
+    } CATCH (ret) {
+        dbg_str(DBG_ERROR, "p2p_session_create to %s failed, ret=%d",
+                (remote_stun_id != NULL) ? remote_stun_id : "-", ret);
     }
-    if (node->stun->create_session(node->stun, (char *)remote_stun_id, 0,
-                                   &ss) < 0 || ss == NULL) {
-        return -1;
-    }
-    *out = (p2p_session_t *)ss;
-    dbg_str(DBG_INFO, "%s created session to %s",
-            node->stun_id, remote_stun_id);
-    return 0;
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 int p2p_session_send(p2p_session_t *s, const uint8_t *data, int len)
@@ -159,6 +160,7 @@ int p2p_session_send(p2p_session_t *s, const uint8_t *data, int len)
     if (ss == NULL || ss->stun == NULL || data == NULL || len < 0) {
         return -1;
     }
+
     return ss->stun->send_session_data(ss->stun, ss->remote_id, (void *)data, len);
 }
 
@@ -169,6 +171,7 @@ int p2p_session_is_connected(p2p_session_t *s)
     if (ss == NULL || ss->stun == NULL) {
         return -1;
     }
+
     return ss->stun->is_connected(ss->stun, ss->remote_id);
 }
 
@@ -179,6 +182,7 @@ int p2p_session_close(p2p_session_t *s)
     if (ss == NULL || ss->stun == NULL) {
         return -1;
     }
+
     return ss->stun->close_session(ss->stun, ss->remote_id);
 }
 
@@ -191,31 +195,32 @@ int p2p_server_run(const char *host, const char *service)
     allocator_t *allocator = allocator_get_default_instance();
     P2p_Server *server = NULL;
     struct event_base *event_base;
-    int ret = -1;
+    int ret = 0;
 
-    if (host == NULL || service == NULL) {
-        return -1;
+    TRY {
+        THROW_IF(host == NULL || service == NULL, -1);
+        server = object_new(allocator, "P2p_Server", NULL);
+        THROW_IF(server == NULL, -1);
+
+        EXEC(ret = server->start(server, (char *)host, (char *)service));
+        /* >=0 即成功（P2p_Server.__start 用 TRY/CATCH，成功返回 1） */
+        dbg_str(DBG_INFO, "p2p server start ret=%d", ret);
+        dbg_str(DBG_INFO, "p2p server running on %s:%s, Ctrl+C to stop", host,
+                service);
+
+        event_base = event_base_get_default_instance();
+        while (event_base != NULL && event_base->eb->break_flag == 0) {
+            sleep(1);
+        }
+        dbg_str(DBG_INFO, "p2p server stopped by Ctrl+C");
+    } CATCH (ret) {
+        if (ret < 0) {
+            dbg_str(DBG_ERROR, "p2p server start failed on %s:%s", host, service);
+        }
+        if (server != NULL) {      /* 成功退出(Ctrl+C)与失败都在此收尾 */
+            object_destroy(server);
+        }
     }
 
-    server = object_new(allocator, "P2p_Server", NULL);
-    if (server == NULL) {
-        return -1;
-    }
-    ret = server->start(server, (char *)host, (char *)service);
-    dbg_str(DBG_INFO, "p2p server start ret=%d", ret);
-    if (ret < 0) {   /* >=0 即成功（P2p_Server.__start 用 TRY/CATCH，成功返回 1） */
-        dbg_str(DBG_ERROR, "p2p server start failed on %s:%s", host, service);
-        object_destroy(server);
-        return -1;
-    }
-    dbg_str(DBG_INFO, "p2p server running on %s:%s, Ctrl+C to stop", host, service);
-
-    event_base = event_base_get_default_instance();
-    while (event_base != NULL && event_base->eb->break_flag == 0) {
-        sleep(1);
-    }
-    dbg_str(DBG_INFO, "p2p server stopped by Ctrl+C");
-
-    object_destroy(server);
-    return 0;
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }

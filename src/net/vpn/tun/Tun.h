@@ -30,7 +30,7 @@ struct Tun_s {
     char name[16];           /* 实际设备名（open 后由内核回填，应与 IFNAMSIZ 一致） */
     int  mtu;                /* 建议 MTU（默认与 p2p 单包上限对齐，见 TUN_MTU_DEFAULT） */
 
-    /* 打开设备：name 为空则自动分配；返回 0 成功，负值失败。 */
+    /* 打开设备：name 为空则自动分配；返回 >=0 成功（TRY 落底为 1），负值失败。 */
     int (*open)(Tun *tun, const char *name);
     /* 配置地址（调外部 ip 命令：`ip addr replace <ip/netmask> dev <tun>` + 置 up）。
      * netmask 支持点分("255.255.255.0")或前缀("24")，为空按 24；ip 可自带 "/len"。

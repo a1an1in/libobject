@@ -51,106 +51,107 @@ static int __netmask_to_prefix(const char *netmask)
 {
     struct in_addr addr;
     uint32_t m;
-    int prefix = 0;
+    int prefix = 24;                 /* 空/非法：统一按 24 */
 
-    if (netmask == NULL || netmask[0] == '\0') {
-        return 24;
+    if (netmask != NULL && netmask[0] != '\0') {
+        if (strchr(netmask, '.') == NULL) {     /* 已是前缀数字 */
+            int n = atoi(netmask);
+            prefix = (n > 0 && n <= 32) ? n : 24;
+        } else if (inet_aton(netmask, &addr) != 0) {
+            m = ntohl(addr.s_addr);
+            for (prefix = 0; m & 0x80000000u; m <<= 1) {
+                prefix++;            /* 点分：数左侧连续 1 的个数 */
+            }
+        }
     }
-    if (strchr(netmask, '.') == NULL) {         /* 已是前缀数字 */
-        int n = atoi(netmask);
-        return (n > 0 && n <= 32) ? n : 24;
-    }
-    if (inet_aton(netmask, &addr) == 0) {
-        return 24;
-    }
-    m = ntohl(addr.s_addr);
-    while (m & 0x80000000u) {
-        prefix++;
-        m <<= 1;
-    }
-    return prefix;
+    return prefix;                   /* 单一出口 */
 }
 
 static int __tun_open(Tun *tun, const char *name)
 {
     struct ifreq ifr;
     int fd;
+    int ret = 0;
 
-    if (tun == NULL || tun->fd >= 0) {
-        return -1;
-    }
-    fd = open(TUN_DEV_PATH, O_RDWR);
-    if (fd < 0) {
-        dbg_str(DBG_ERROR, "tun: open %s failed: %s",
-                TUN_DEV_PATH, strerror(errno));
-        return -1;
-    }
-    memset(&ifr, 0, sizeof(ifr));
-    ifr.ifr_flags = IFF_TUN | IFF_NO_PI;        /* L3 + 无 4 字节包头 */
-    if (name != NULL && name[0] != '\0') {
-        strncpy(ifr.ifr_name, name, IFNAMSIZ - 1);
-    }
-    if (ioctl(fd, TUNSETIFF, &ifr) < 0) {
-        dbg_str(DBG_ERROR, "tun: TUNSETIFF on %s failed: %s",
-                (name != NULL && name[0] != '\0') ? name : "(auto)",
-                strerror(errno));
-        close(fd);
-        return -1;
-    }
-    tun->fd = fd;
-    snprintf(tun->name, sizeof(tun->name), "%s", ifr.ifr_name);
-    dbg_str(DBG_INFO, "tun: opened %s fd=%d", tun->name, tun->fd);
-    return 0;
+    TRY {
+        THROW_IF(tun == NULL || tun->fd >= 0, -1);
+        fd = open(TUN_DEV_PATH, O_RDWR);
+        if (fd < 0) {
+            dbg_str(DBG_ERROR, "tun: open %s failed: %s",
+                    TUN_DEV_PATH, strerror(errno));
+            THROW(-1);
+        }
+        memset(&ifr, 0, sizeof(ifr));
+        ifr.ifr_flags = IFF_TUN | IFF_NO_PI;    /* L3 + 无 4 字节包头 */
+        if (name != NULL && name[0] != '\0') {
+            strncpy(ifr.ifr_name, name, IFNAMSIZ - 1);
+        }
+        if (ioctl(fd, TUNSETIFF, &ifr) < 0) {
+            dbg_str(DBG_ERROR, "tun: TUNSETIFF on %s failed: %s",
+                    (name != NULL && name[0] != '\0') ? name : "(auto)",
+                    strerror(errno));
+            close(fd);
+            THROW(-1);
+        }
+        tun->fd = fd;
+        snprintf(tun->name, sizeof(tun->name), "%s", ifr.ifr_name);
+        dbg_str(DBG_INFO, "tun: opened %s fd=%d", tun->name, tun->fd);
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 加/改一条到 cidr 的路由（ip route replace <cidr> dev <tun>）；失败告警返回负值。 */
 static int __tun_route_add(Tun *tun, const char *cidr)
 {
     char cmd[256];
+    int ret = 0;
 
-    if (tun == NULL || tun->fd < 0 || cidr == NULL || cidr[0] == '\0') {
-        return -1;
-    }
-    snprintf(cmd, sizeof(cmd), "ip route replace %s dev %s", cidr, tun->name);
-    if (__run_cmd(cmd) < 0) {
-        dbg_str(DBG_INFO, "tun: route %s dev %s not added (may be covered by"
-                " connected route)", cidr, tun->name);
-        return -1;
-    }
-    dbg_str(DBG_INFO, "tun: route %s dev %s added", cidr, tun->name);
-    return 0;
+    TRY {
+        THROW_IF(tun == NULL || tun->fd < 0 || cidr == NULL || cidr[0] == '\0', -1);
+        snprintf(cmd, sizeof(cmd), "ip route replace %s dev %s", cidr, tun->name);
+        if (__run_cmd(cmd) < 0) {
+            dbg_str(DBG_INFO, "tun: route %s dev %s not added (may be covered by"
+                    " connected route)", cidr, tun->name);
+            THROW(-1);
+        }
+        dbg_str(DBG_INFO, "tun: route %s dev %s added", cidr, tun->name);
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 static int __tun_configure(Tun *tun, const char *ip, const char *netmask)
 {
     char cmd[256], ipstr[80];
     int prefix;
+    int ret = 0;
 
-    if (tun == NULL || tun->fd < 0 || ip == NULL || ip[0] == '\0') {
-        return -1;
-    }
-    /* 两种写法都支持：
-     *   ip 自带前缀("10.0.0.1/24") -> 直接用，忽略 netmask（否则会拼成 10.0.0.1/24/24）；
-     *   ip 不带前缀("10.0.0.1")    -> 用 netmask 换算前缀（点分或 24 均可，空=24）。 */
-    if (strchr(ip, '/') != NULL) {
-        snprintf(ipstr, sizeof(ipstr), "%s", ip);
-    } else {
-        prefix = __netmask_to_prefix(netmask);
-        snprintf(ipstr, sizeof(ipstr), "%s/%d", ip, prefix);
-    }
+    TRY {
+        THROW_IF(tun == NULL || tun->fd < 0 || ip == NULL || ip[0] == '\0', -1);
+        /* 两种写法都支持：
+         *   ip 自带前缀("10.0.0.1/24") -> 直接用，忽略 netmask（否则会拼成
+         *                                10.0.0.1/24/24）；
+         *   ip 不带前缀("10.0.0.1")    -> 用 netmask 换算前缀（点分或 24 均可，
+         *                                空=24）。 */
+        if (strchr(ip, '/') != NULL) {
+            snprintf(ipstr, sizeof(ipstr), "%s", ip);
+        } else {
+            prefix = __netmask_to_prefix(netmask);
+            snprintf(ipstr, sizeof(ipstr), "%s/%d", ip, prefix);
+        }
 
-    /* 用 replace 使配置幂等（重复启动/已存在地址不报错）。 */
-    snprintf(cmd, sizeof(cmd), "ip addr replace %s dev %s", ipstr, tun->name);
-    if (__run_cmd(cmd) < 0) {
-        return -1;
-    }
-    snprintf(cmd, sizeof(cmd), "ip link set dev %s up", tun->name);
-    if (__run_cmd(cmd) < 0) {
-        return -1;
-    }
-    /* 只管地址：路由由调用方（vpn 层）按运行时交换到的对端网段用 route_add() 逐条加。 */
-    dbg_str(DBG_INFO, "tun: %s configured ip=%s", tun->name, ipstr);
-    return 0;
+        /* 用 replace 使配置幂等（重复启动/已存在地址不报错）。 */
+        snprintf(cmd, sizeof(cmd), "ip addr replace %s dev %s", ipstr, tun->name);
+        EXEC(__run_cmd(cmd));
+        snprintf(cmd, sizeof(cmd), "ip link set dev %s up", tun->name);
+        EXEC(__run_cmd(cmd));
+        /* 只管地址：路由由调用方（vpn 层）按运行时交换到的对端网段用
+         * route_add() 逐条加。 */
+        dbg_str(DBG_INFO, "tun: %s configured ip=%s", tun->name, ipstr);
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 static int __tun_read(Tun *tun, uint8_t *buf, int len)
@@ -183,28 +184,30 @@ static int __tun_set_mtu(Tun *tun, int mtu)
 {
     struct ifreq ifr;
     int s;
+    int ret = 0;
 
-    if (tun == NULL || tun->fd < 0 || mtu <= 0) {
-        return -1;
-    }
-    s = socket(AF_INET, SOCK_DGRAM, 0);
-    if (s < 0) {
-        dbg_str(DBG_ERROR, "tun: socket for set_mtu failed: %s", strerror(errno));
-        return -1;
-    }
-    memset(&ifr, 0, sizeof(ifr));
-    strncpy(ifr.ifr_name, tun->name, IFNAMSIZ - 1);
-    ifr.ifr_mtu = mtu;
-    if (ioctl(s, SIOCSIFMTU, &ifr) < 0) {
-        dbg_str(DBG_ERROR, "tun: SIOCSIFMTU %d on %s failed: %s",
-                mtu, tun->name, strerror(errno));
+    TRY {
+        THROW_IF(tun == NULL || tun->fd < 0 || mtu <= 0, -1);
+        s = socket(AF_INET, SOCK_DGRAM, 0);
+        if (s < 0) {
+            dbg_str(DBG_ERROR, "tun: socket for set_mtu failed: %s", strerror(errno));
+            THROW(-1);
+        }
+        memset(&ifr, 0, sizeof(ifr));
+        strncpy(ifr.ifr_name, tun->name, IFNAMSIZ - 1);
+        ifr.ifr_mtu = mtu;
+        if (ioctl(s, SIOCSIFMTU, &ifr) < 0) {
+            dbg_str(DBG_ERROR, "tun: SIOCSIFMTU %d on %s failed: %s",
+                    mtu, tun->name, strerror(errno));
+            close(s);
+            THROW(-1);
+        }
         close(s);
-        return -1;
-    }
-    close(s);
-    tun->mtu = mtu;
-    dbg_str(DBG_INFO, "tun: %s mtu=%d", tun->name, mtu);
-    return 0;
+        tun->mtu = mtu;
+        dbg_str(DBG_INFO, "tun: %s mtu=%d", tun->name, mtu);
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 static int __tun_close(Tun *tun)

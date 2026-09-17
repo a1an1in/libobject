@@ -25,8 +25,7 @@ static int __construct(Turn_Udp_Client *turn, char *init_str)
         EXEC(client_trustee(turn->c, NULL, __turn_client_resp_callback, turn));
 
         turn->set_read_post_callback(turn, turn_read_post_callback);
-    } CATCH (ret) {
-    }
+    } CATCH (ret) { }
 
     return ret;
 }
@@ -65,8 +64,7 @@ static int __send(Turn_Udp_Client *turn)
         req->len = buffer->get_len(buffer);
         client_send(turn->c, buffer->addr + buffer->r_offset, req->len, 0);
         dbg_str(DBG_DETAIL, "turn send: atttrib count:%d, len%d", vector->count(vector), req->len);
-    } CATCH (ret) {
-    }
+    } CATCH (ret) { }
 
     return ret;
 }
@@ -231,16 +229,14 @@ static int __turn_client_resp_callback(void *task)
                         t->buf_len, ret, len);
             }
 
-            ret = resp->read(resp);
-            THROW_IF(ret < 0, -1);
+            EXEC(ret = resp->read(resp));
             if (ret == 1) {
                 resp->read_post_callback(resp, turn);
                 memset(&resp->attribs, 0, sizeof(turn_attribs_t));
                 break;
             }
         } 
-    } CATCH (ret) {
-    }
+    } CATCH (ret) { }
 
     return ret;
 }
@@ -285,8 +281,7 @@ static int test_turn_udp(TEST_ENTRY *entry, void *argc, void *argv)
         EXEC(turn->send_indication(turn, &arg, "hello world", 12));
 
         sleep(10);
-    } CATCH (ret) {
-    }
+    } CATCH (ret) { }
     object_destroy(turn);
 }
 REGISTER_TEST_CMD(test_turn_udp);

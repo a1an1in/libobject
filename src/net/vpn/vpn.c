@@ -53,19 +53,17 @@ static int __ipv4_parse(const char *s, uint32_t *out)
     unsigned a, b, c, d;
     char tail;
     int got;
+    int ret = 0;
 
-    if (s == NULL || out == NULL) {
-        return -1;
-    }
-    got = sscanf(s, "%u.%u.%u.%u%c", &a, &b, &c, &d, &tail);
-    if (got != 4 && !(got == 5 && tail == '/')) {
-        return -1;
-    }
-    if (a > 255 || b > 255 || c > 255 || d > 255) {
-        return -1;
-    }
-    *out = (a << 24) | (b << 16) | (c << 8) | d;
-    return 0;
+    TRY {
+        THROW_IF(s == NULL || out == NULL, -1);
+        got = sscanf(s, "%u.%u.%u.%u%c", &a, &b, &c, &d, &tail);
+        THROW_IF(got != 4 && !(got == 5 && tail == '/'), -1);
+        THROW_IF(a > 255 || b > 255 || c > 255 || d > 255, -1);
+        *out = (a << 24) | (b << 16) | (c << 8) | d;
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 取 IPv4 报文的目的地址（主机序）；非 IPv4/长度不够返回 0。 */
@@ -74,6 +72,7 @@ static uint32_t __ipv4_dst(const uint8_t *p, int len)
     if (p == NULL || len < 20 || (p[0] >> 4) != 4) {
         return 0;
     }
+
     return ((uint32_t)p[16] << 24) | ((uint32_t)p[17] << 16) |
            ((uint32_t)p[18] << 8) | (uint32_t)p[19];
 }
@@ -84,27 +83,22 @@ static int __net_parse(const char *s, vpn_net_t *out)
 {
     unsigned a, b, c, d, len;
     char tail;
+    int ret = 0;
 
-    if (s == NULL || out == NULL || s[0] == '\0' ||
-        strlen(s) >= VPN_CTRL_CIDR_MAX) {
-        return -1;
-    }
-    if (sscanf(s, "%u.%u.%u.%u/%u%c", &a, &b, &c, &d, &len, &tail) != 5) {
-        return -1;
-    }
-    if (a > 255 || b > 255 || c > 255 || d > 255) {
-        return -1;
-    }
-    if (len < 1 || len > 32) {
-        return -1;
-    }
-    out->prefix = (int)len;
-    out->mask   = (len == 32) ? 0xFFFFFFFFu : (0xFFFFFFFFu << (32 - len));
-    out->net    = ((a << 24) | (b << 16) | (c << 8) | d) & out->mask;
-    if (out->net == 0) {
-        return -1;                       /* 0.0.0.0/x */
-    }
-    return 0;
+    TRY {
+        THROW_IF(s == NULL || out == NULL || s[0] == '\0' ||
+                 strlen(s) >= VPN_CTRL_CIDR_MAX, -1);
+        THROW_IF(sscanf(s, "%u.%u.%u.%u/%u%c", &a, &b, &c, &d, &len, &tail) != 5,
+                 -1);
+        THROW_IF(a > 255 || b > 255 || c > 255 || d > 255, -1);
+        THROW_IF(len < 1 || len > 32, -1);
+        out->prefix = (int)len;
+        out->mask   = (len == 32) ? 0xFFFFFFFFu : (0xFFFFFFFFu << (32 - len));
+        out->net    = ((a << 24) | (b << 16) | (c << 8) | d) & out->mask;
+        THROW_IF(out->net == 0, -1);         /* 0.0.0.0/x */
+    } CATCH (ret) {}
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* ip 是否落在 net 内。 */
@@ -139,24 +133,22 @@ static int __netmask_len(const char *netmask)
 {
     unsigned a, b, c, d;
     uint32_t m;
-    int n, prefix = 0;
+    int n, prefix = 24;          /* 空/非法：统一按 24 */
 
-    if (netmask == NULL || netmask[0] == '\0') {
-        return 24;
+    if (netmask != NULL && netmask[0] != '\0') {
+        if (strchr(netmask, '.') == NULL) {
+            n = atoi(netmask);   /* 数字：本身就是长度 */
+            prefix = (n > 0 && n <= 32) ? n : 24;
+        } else if (sscanf(netmask, "%u.%u.%u.%u", &a, &b, &c, &d) == 4 &&
+                   a <= 255 && b <= 255 && c <= 255 && d <= 255) {
+            m = (a << 24) | (b << 16) | (c << 8) | d;
+            for (prefix = 0; m & 0x80000000u; m <<= 1) {
+                prefix++;        /* 点分：数左侧连续 1 的个数 */
+            }
+        }
     }
-    if (strchr(netmask, '.') == NULL) {
-        n = atoi(netmask);
-        return (n > 0 && n <= 32) ? n : 24;
-    }
-    if (sscanf(netmask, "%u.%u.%u.%u", &a, &b, &c, &d) != 4 ||
-        a > 255 || b > 255 || c > 255 || d > 255) {
-        return 24;
-    }
-    m = (a << 24) | (b << 16) | (c << 8) | d;
-    for (prefix = 0; m & 0x80000000u; m <<= 1) {
-        prefix++;
-    }
-    return prefix;
+
+    return prefix;               /* 单一出口 */
 }
 
 /* 取/建某会话对应的 link：
@@ -190,6 +182,7 @@ static vpn_link_t *vpn_link_get(vpn_ctx_t *ctx, p2p_session_t *session,
     ctx->n_links++;
     dbg_str(DBG_VIP, "vpn: new peer link slot=%d (online=%d, %s)",
             slot, ctx->n_links, is_dialer ? "dialer" : "callee");
+
     return &ctx->links[slot];
 }
 
@@ -202,34 +195,34 @@ static vpn_link_t *vpn_link_pick(vpn_ctx_t *ctx, uint32_t dst)
 {
     vpn_link_t *best = NULL, *only = NULL;
     int i, n_online = 0, best_prefix = -1;
+    int ret = 0;
 
-    if (dst == 0) {
-        return NULL;
-    }
-    for (i = 0; i < VPN_MAX_LINKS; i++) {
-        vpn_link_t *l = &ctx->links[i];
+    TRY {
+        THROW_IF(dst == 0, -1);          /* 无目的地址：丢弃而不猜 */
+        for (i = 0; i < VPN_MAX_LINKS; i++) {
+            vpn_link_t *l = &ctx->links[i];
 
-        if (l->session == NULL) {
-            continue;                    /* 空槽（已回收）：跳过 */
+            if (l->session == NULL) {
+                continue;                /* 空槽（已回收）：跳过 */
+            }
+            n_online++;
+            only = l;
+            if (l->peer_tun_ip != 0 && l->peer_tun_ip == dst) {
+                best = l;                /* 1) 对端隧道地址精确命中：最优，直接结束 */
+                THROW(1);
+            }
+            if (l->peer_net_ok && __net_contains(&l->peer_net, dst) &&
+                l->peer_net.prefix > best_prefix) {
+                best = l;                /* 2) 对端内网网段：最长前缀匹配 */
+                best_prefix = l->peer_net.prefix;
+            }
         }
-        n_online++;
-        only = l;
-        if (l->peer_tun_ip != 0 && l->peer_tun_ip == dst) {
-            return l;
+        if (best == NULL && n_online == 1) {
+            best = only;                 /* 3) 只有一条链路：退化为直发（兼容） */
         }
-        if (l->peer_net_ok && __net_contains(&l->peer_net, dst) &&
-            l->peer_net.prefix > best_prefix) {
-            best = l;
-            best_prefix = l->peer_net.prefix;
-        }
-    }
-    if (best != NULL) {
-        return best;
-    }
-    if (n_online == 1) {
-        return only;                     /* 只有一条链路：退化为直发（兼容） */
-    }
-    return NULL;
+    } CATCH (ret) { }
+
+    return (ret < 0) ? NULL : best;      /* 单一出口：4) 多 link 不命中即 NULL */
 }
 
 /* 发一个控制帧（可能运行在 p2p 事件线程里，所以不阻塞、不 sleep）：
@@ -241,22 +234,23 @@ static int vpn_send_ctrl(vpn_link_t *link, uint8_t type,
 {
     vpn_ctrl_t f;
     int n = VPN_CTRL_HDR_LEN;
+    int ret = 0;
 
-    if (link == NULL || link->session == NULL) {
-        return -1;
-    }
-    if (payload_len < 0 || payload_len >= VPN_CTRL_CIDR_MAX) {
-        return -1;
-    }
-    memset(&f, 0, sizeof(f));
-    memcpy(f.magic, VPN_CTRL_MAGIC, VPN_CTRL_MAGIC_LEN);
-    f.type = type;
-    if (payload != NULL && payload_len > 0) {
-        f.len = (uint16_t)payload_len;
-        memcpy(f.payload, payload, payload_len);
-        n += payload_len;
-    }
-    return p2p_session_send(link->session, (const uint8_t *)&f, n);
+    TRY {
+        THROW_IF(link == NULL || link->session == NULL, -1);
+        THROW_IF(payload_len < 0 || payload_len >= VPN_CTRL_CIDR_MAX, -1);
+        memset(&f, 0, sizeof(f));
+        memcpy(f.magic, VPN_CTRL_MAGIC, VPN_CTRL_MAGIC_LEN);
+        f.type = type;
+        if (payload != NULL && payload_len > 0) {
+            f.len = (uint16_t)payload_len;
+            memcpy(f.payload, payload, payload_len);
+            n += payload_len;
+        }
+        EXEC(ret = p2p_session_send(link->session, (const uint8_t *)&f, n));
+    } CATCH (ret) { }
+    
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 控制帧分派类型（vpn_ctrl_handler_t / vpn_ctrl_entry_t）见 Vpn_Internal.h；
@@ -272,33 +266,34 @@ static int vpn_link_set_peer_info(vpn_ctx_t *ctx, vpn_link_t *link,
                                     const char *ip, const char *net)
 {
     vpn_net_t pnet;
+    uint32_t tun_ip = 0;
+    int code = VPN_NOTIFY_OK;            /* 单一出口：返回结果码（VPN_NOTIFY_*） */
 
     (void)ctx;
     if (ip != NULL && ip[0] != '\0') {
-        uint32_t tun_ip;
-
         if (__ipv4_parse(ip, &tun_ip) < 0) {
-            return VPN_NOTIFY_EBADIP;
-        }
-        if (link->peer_tun_ip != tun_ip) {
+            code = VPN_NOTIFY_EBADIP;    /* 对端隧道地址非法：不再看网段 */
+        } else if (link->peer_tun_ip != tun_ip) {
             link->peer_tun_ip = tun_ip;
             dbg_str(DBG_VIP, "vpn: peer tunnel ip = %s", ip);
         }
     }
-    if (net == NULL || net[0] == '\0') {
-        return VPN_NOTIFY_OK;            /* 对端没配内网网段：只记隧道地址 */
+    /* net 为空 = 对端没配内网网段：只记隧道地址 */
+    if (code == VPN_NOTIFY_OK && net != NULL && net[0] != '\0') {
+        if (__net_parse(net, &pnet) < 0) {
+            code = VPN_NOTIFY_EBADNET;
+        } else if (link->peer_net_text[0] != '\0' &&
+                   strcmp(link->peer_net_text, net) == 0) {
+            /* 同一网段：去重（保留已有记录） */
+        } else {
+            snprintf(link->peer_net_text, sizeof(link->peer_net_text), "%s", net);
+            link->peer_net    = pnet;
+            link->peer_net_ok = 1;
+            link->route_done  = 0;       /* 交给"装路由"的时机去装 */
+        }
     }
-    if (__net_parse(net, &pnet) < 0) {
-        return VPN_NOTIFY_EBADNET;
-    }
-    if (link->peer_net_text[0] != '\0' && strcmp(link->peer_net_text, net) == 0) {
-        return VPN_NOTIFY_OK;            /* 同一网段：去重 */
-    }
-    snprintf(link->peer_net_text, sizeof(link->peer_net_text), "%s", net);
-    link->peer_net    = pnet;
-    link->peer_net_ok = 1;
-    link->route_done  = 0;               /* 交给"装路由"的时机去装 */
-    return VPN_NOTIFY_OK;
+
+    return code;                         /* 单一出口 */
 }
 
 /* 地址池初始化（**被动方 = 分配者**）：网段取自 --tunnel-ip（本端地址也就是它）。
@@ -357,6 +352,7 @@ static uint32_t vpn_pool_alloc(vpn_ctx_t *ctx)
         return ip;
     }
     dbg_str(DBG_ERROR, "vpn: address pool full (max %d peers)", VPN_MAX_LINKS);
+
     return 0;
 }
 
@@ -490,7 +486,7 @@ static int vpn_reply_notify(vpn_ctx_t *ctx, vpn_link_t *link, uint8_t code)
 
         snprintf(codec, sizeof(codec), "%u", (unsigned)code);
         if (ctx->cfg->local_net != NULL &&
-            __net_parse(ctx->cfg->local_net, &pnet) == 0) {
+            __net_parse(ctx->cfg->local_net, &pnet) >= 0) {
             __net_str(&pnet, net, sizeof(net));
             snprintf(payload, sizeof(payload), "%s %s %s %s", codec, given, mine,
                      net);
@@ -534,6 +530,7 @@ static int vpn_link_handle_notify(vpn_ctx_t *ctx, vpn_link_t *link,
 
 reply:
     vpn_reply_notify(ctx, link, code);   /* 接受/拒绝都回，只是码不同 */
+
     return (code == VPN_NOTIFY_OK) ? 0 : -1;
 }
 
@@ -549,49 +546,46 @@ static int vpn_ctrl_on_notify_ack(vpn_ctx_t *ctx, vpn_link_t *link,
     unsigned code = VPN_NOTIFY_OK;
     int n = f->len;
     int got;
+    int ret = 0;
 
-    if (link->notify_acked) {
-        return 0;                        /* 幂等：只处理第一次 */
-    }
-    if (n <= 0 || n >= (int)sizeof(payload) ||
-        (int)VPN_CTRL_HDR_LEN + n > len) {
-        return -1;
-    }
-    memcpy(payload, f->payload, n);
-    payload[n] = '\0';
+    TRY {
+        THROW_IF(link->notify_acked, 1);      /* 幂等：只处理第一次 */
+        THROW_IF(n <= 0 || n >= (int)sizeof(payload) ||
+                 (int)VPN_CTRL_HDR_LEN + n > len, -1);
+        memcpy(payload, f->payload, n);
+        payload[n] = '\0';
 
-    got = sscanf(payload, "%u %31s %31s %63s", &code, mine, peer, net);
-    if (got < 1) {
-        code = VPN_NOTIFY_EBADPAYLOAD;
-    }
-    if (code != VPN_NOTIFY_OK) {
+        got = sscanf(payload, "%u %31s %31s %63s", &code, mine, peer, net);
+        if (got < 1) {
+            code = VPN_NOTIFY_EBADPAYLOAD;
+        }
+        if (code != VPN_NOTIFY_OK) {
+            link->notify_acked = 1;
+            dbg_str(DBG_ERROR, "vpn: peer rejected our notify (code %u): local tunnel ip"
+                    " will not be configured (see VPN_NOTIFY_*)", code);
+            THROW(1);                         /* 对端已明确拒绝：按成功结束 */
+        }
+        THROW_IF(got < 2, -1);
         link->notify_acked = 1;
-        dbg_str(DBG_ERROR, "vpn: peer rejected our notify (code %u): local tunnel ip"
-                " will not be configured (see VPN_NOTIFY_*)", code);
-        return 0;
-    }
-    if (got < 2) {
-        dbg_str(DBG_ERROR, "vpn: no local tunnel ip assigned in reply ('%s')", payload);
-        return -1;
-    }
-    link->notify_acked = 1;
 
-    /* 1) 本端隧道地址：稍后 configure tun 直接用 my_tun_ip_text */
-    snprintf(ctx->my_tun_ip_text, sizeof(ctx->my_tun_ip_text), "%s", mine);
-    if (__ipv4_parse(mine, &ctx->my_tun_ip) < 0) {
-        ctx->my_tun_ip = 0;
-    }
-    ctx->addr_ready = 1;
-    dbg_str(DBG_VIP, "vpn: peer accepted our notify, local tunnel ip = %s", mine);
+        /* 1) 本端隧道地址：稍后 configure tun 直接用 my_tun_ip_text */
+        snprintf(ctx->my_tun_ip_text, sizeof(ctx->my_tun_ip_text), "%s", mine);
+        if (__ipv4_parse(mine, &ctx->my_tun_ip) < 0) {
+            ctx->my_tun_ip = 0;
+        }
+        ctx->addr_ready = 1;
+        dbg_str(DBG_VIP, "vpn: peer accepted our notify, local tunnel ip = %s", mine);
 
-    /* 2) 对端隧道地址 [+ 对端内网网段]：选路用 */
-    if (got >= 3 &&
-        vpn_link_set_peer_info(ctx, link, peer,
-                                 (got >= 4) ? net : NULL) != VPN_NOTIFY_OK) {
-        dbg_str(DBG_ERROR, "vpn: invalid peer ip/net in reply ('%s'/'%s'), ignored",
-                peer, net);
-    }
-    return 0;
+        /* 2) 对端隧道地址 [+ 对端内网网段]：选路用 */
+        if (got >= 3 &&
+            vpn_link_set_peer_info(ctx, link, peer,
+                                     (got >= 4) ? net : NULL) != VPN_NOTIFY_OK) {
+            dbg_str(DBG_ERROR, "vpn: invalid peer ip/net in reply ('%s'/'%s'), ignored",
+                    peer, net);
+        }
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 static const vpn_ctrl_entry_t g_vpn_ctrl_table[] = {
@@ -608,19 +602,22 @@ static int vpn_handle_ctrl(vpn_ctx_t *ctx, vpn_link_t *link,
 {
     const vpn_ctrl_t *f = (const vpn_ctrl_t *)data;
     size_t i;
+    int ret = 0;
 
-    if (len < VPN_CTRL_HDR_LEN) {
-        return -1;
-    }
-    for (i = 0; i < VPN_CTRL_TABLE_NUM; i++) {
-        if (g_vpn_ctrl_table[i].type != f->type) {
-            continue;
+    TRY {
+        THROW_IF(len < VPN_CTRL_HDR_LEN, -1);
+        for (i = 0; i < VPN_CTRL_TABLE_NUM; i++) {
+            if (g_vpn_ctrl_table[i].type != f->type) {
+                continue;
+            }
+            dbg_str(DBG_DETAIL, "vpn: got control frame %s", g_vpn_ctrl_table[i].name);
+            THROW(g_vpn_ctrl_table[i].handle(ctx, link, f, len));   /* 透传结果 */
         }
-        dbg_str(DBG_DETAIL, "vpn: got control frame %s", g_vpn_ctrl_table[i].name);
-        return g_vpn_ctrl_table[i].handle(ctx, link, f, len);
+        dbg_str(DBG_DETAIL, "vpn: ignore unknown control frame type=%u",
+                (unsigned)f->type);
+    } CATCH (ret) {
     }
-    dbg_str(DBG_DETAIL, "vpn: ignore unknown control frame type=%u", (unsigned)f->type);
-    return 0;
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 入站：控制帧在 VPN 层消化；业务 IP 包注入本机 Tun。
@@ -630,25 +627,25 @@ static int vpn_p2p_recv_callback(void *opaque, p2p_session_t *session,
                                    const uint8_t *data, int len)
 {
     vpn_ctx_t *ctx = (vpn_ctx_t *)opaque;
-    vpn_link_t *link;
+    vpn_link_t *link = NULL;
+    int ret = 0;
 
-    if (ctx == NULL || data == NULL || len <= 0) {
-        return -1;
+    TRY {
+        THROW_IF(ctx == NULL || data == NULL || len <= 0, -1);
+        link = vpn_link_get(ctx, session, 0);  /* 0=被动链路：本端只应答、不发通告 */
+        THROW_IF(link == NULL, -1);            /* 已达对端上限：不再接受新对端 */
+        /* 控制帧判别：首字节 0xFF 不可能是合法 IP 包（IPv4/IPv6 版本号是 4/6）。
+         * 控制帧（通告/应答）必须能收下——**地址交换发生在建 tun 之前**，
+         * 那时 tun 还不存在。 */
+        if (len >= VPN_CTRL_HDR_LEN && (uint8_t)data[0] == 0xFF &&
+            memcmp(data, VPN_CTRL_MAGIC, VPN_CTRL_MAGIC_LEN) == 0) {
+            THROW(vpn_handle_ctrl(ctx, link, data, len));
+        }
+        THROW_IF(ctx->tun == NULL, -1);        /* 还在地址交换阶段：业务包先丢 */
+        EXEC(ctx->tun->write(ctx->tun, data, len));
+    } CATCH (ret) {
     }
-    link = vpn_link_get(ctx, session, 0);   /* 0=被动链路：本端只应答、不发通告 */
-    if (link == NULL) {
-        return -1;                       /* 已达对端上限：不再接受新对端 */
-    }
-    /* 控制帧判别：首字节 0xFF 不可能是合法 IP 包（IPv4/IPv6 版本号是 4/6）。
-     * 控制帧（通告/应答）必须能收下——**地址交换发生在建 tun 之前**，那时 tun 还不存在。 */
-    if (len >= VPN_CTRL_HDR_LEN && (uint8_t)data[0] == 0xFF &&
-        memcmp(data, VPN_CTRL_MAGIC, VPN_CTRL_MAGIC_LEN) == 0) {
-        return vpn_handle_ctrl(ctx, link, data, len);
-    }
-    if (ctx->tun == NULL) {
-        return -1;                       /* 还在地址交换阶段：业务包先丢 */
-    }
-    return ctx->tun->write(ctx->tun, data, len);
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 出站转发：tun fd 可读时被 io_worker 异步调用（运行在默认 producer 的事件线程，
@@ -727,73 +724,74 @@ static int vpn_open_tun(vpn_ctx_t *ctx)
     struct timeval tv;
     Tun *tun = NULL;
     void *tun_worker = NULL, *tick_worker = NULL;
+    int ret = 0;
 
-    if (ctx->tun != NULL) {
-        return 0;                        /* 幂等：已经打开并配好了 */
-    }
-    if (ip == NULL || ip[0] == '\0') {
-        dbg_str(DBG_ERROR, "vpn: no local tunnel ip (peer did not assign, and"
-                " --tunnel-ip not set)");
-        return -1;
-    }
-    if (producer == NULL) {
-        dbg_str(DBG_ERROR, "vpn: default producer not initialized, cannot enroll"
-                " forwarding workers (start via Application)");
-        return -1;
+    TRY {
+        THROW_IF(ctx->tun != NULL, 1);   /* 幂等：已经打开并配好了 */
+        if (ip == NULL || ip[0] == '\0') {
+            dbg_str(DBG_ERROR, "vpn: no local tunnel ip (peer did not assign, and"
+                    " --tunnel-ip not set)");
+            THROW(-1);
+        }
+        if (producer == NULL) {
+            dbg_str(DBG_ERROR, "vpn: default producer not initialized, cannot enroll"
+                    " forwarding workers (start via Application)");
+            THROW(-1);
+        }
+
+        tun = tun_create();
+        if (tun == NULL) {
+            dbg_str(DBG_ERROR, "vpn: tun_create failed");
+            THROW(-1);
+        }
+        if (tun->open(tun, cfg->tun_name) < 0) {
+            dbg_str(DBG_ERROR, "vpn: tun open failed (need root/CAP_NET_ADMIN?)");
+            THROW(-1);
+        }
+        tun->set_mtu(tun, tun->mtu);
+        if (tun->configure(tun, ip, cfg->netmask) < 0) {
+            dbg_str(DBG_ERROR, "vpn: tun configure failed (need root/CAP_NET_ADMIN?)");
+            THROW(-1);
+        }
+
+        /* ev_tv 传 NULL：纯 IO 事件，不参与定时器（Timer 对 0 超时会直接忽略） */
+        tun_worker = io_worker(allocator, tun->fd, EV_READ | EV_PERSIST,
+                               NULL, producer, vpn_tun_recv_cb, NULL, ctx);
+        if (tun_worker == NULL) {
+            dbg_str(DBG_ERROR, "vpn: create tun forwarding worker failed");
+            THROW(-1);
+        }
+        tv.tv_sec  = VPN_FORWARD_TICK_MS / 1000;
+        tv.tv_usec = (VPN_FORWARD_TICK_MS % 1000) * 1000;
+        tick_worker = timer_worker(allocator, EV_READ | EV_PERSIST, &tv,
+                                   vpn_timer_cb, ctx);
+        if (tick_worker == NULL) {
+            dbg_str(DBG_ERROR, "vpn: create forwarding tick worker failed");
+            THROW(-1);
+        }
+
+        /* 发布到 ctx：地址已配好、worker 已就绪，事件线程此刻起可以安全转发 */
+        ctx->tun         = tun;
+        ctx->tun_worker  = tun_worker;
+        ctx->tick_worker = tick_worker;
+        vpn_install_link_routes(ctx);  /* 对端内网网段路由（全部来自 notify 交换） */
+        dbg_str(DBG_VIP, "vpn: tun %s opened, tunnel-ip=%s mtu=%d, forwarding attached"
+                " to event thread (fd=%d, tick=%dms)", tun->name, ip, tun->mtu, tun->fd,
+                VPN_FORWARD_TICK_MS);
+    } CATCH (ret) {
+        /* 还没发布给事件线程，就地回滚（worker 先撤，tun 后销毁） */
+        if (tick_worker != NULL) {
+            worker_destroy((Worker *)tick_worker);
+        }
+        if (tun_worker != NULL) {
+            worker_destroy((Worker *)tun_worker);
+        }
+        if (tun != NULL) {
+            tun_destroy(tun);
+        }
     }
 
-    if ((tun = tun_create()) == NULL) {
-        dbg_str(DBG_ERROR, "vpn: tun_create failed");
-        return -1;
-    }
-    if (tun->open(tun, cfg->tun_name) < 0) {
-        dbg_str(DBG_ERROR, "vpn: tun open failed (need root/CAP_NET_ADMIN?)");
-        goto fail;
-    }
-    tun->set_mtu(tun, tun->mtu);
-    if (tun->configure(tun, ip, cfg->netmask) < 0) {
-        dbg_str(DBG_ERROR, "vpn: tun configure failed (need root/CAP_NET_ADMIN?)");
-        goto fail;
-    }
-
-    /* ev_tv 传 NULL：纯 IO 事件，不参与定时器（Timer 对 0 超时会直接忽略） */
-    tun_worker = io_worker(allocator, tun->fd, EV_READ | EV_PERSIST,
-                           NULL, producer, vpn_tun_recv_cb, NULL, ctx);
-    if (tun_worker == NULL) {
-        dbg_str(DBG_ERROR, "vpn: create tun forwarding worker failed");
-        goto fail;
-    }
-    tv.tv_sec  = VPN_FORWARD_TICK_MS / 1000;
-    tv.tv_usec = (VPN_FORWARD_TICK_MS % 1000) * 1000;
-    tick_worker = timer_worker(allocator, EV_READ | EV_PERSIST, &tv,
-                               vpn_timer_cb, ctx);
-    if (tick_worker == NULL) {
-        dbg_str(DBG_ERROR, "vpn: create forwarding tick worker failed");
-        goto fail;
-    }
-
-    /* 发布到 ctx：地址已配好、worker 已就绪，事件线程此刻起可以安全转发 */
-    ctx->tun         = tun;
-    ctx->tun_worker  = tun_worker;
-    ctx->tick_worker = tick_worker;
-    vpn_install_link_routes(ctx);      /* 对端内网网段路由（全部来自 notify 交换） */
-    dbg_str(DBG_VIP, "vpn: tun %s opened, tunnel-ip=%s mtu=%d, forwarding attached to"
-            " event thread (fd=%d, tick=%dms)", tun->name, ip, tun->mtu, tun->fd,
-            VPN_FORWARD_TICK_MS);
-    return 0;
-
-fail:
-    /* 还没发布给事件线程，就地回滚（worker 先撤，tun 后销毁） */
-    if (tick_worker != NULL) {
-        worker_destroy((Worker *)tick_worker);
-    }
-    if (tun_worker != NULL) {
-        worker_destroy((Worker *)tun_worker);
-    }
-    if (tun != NULL) {
-        tun_destroy(tun);
-    }
-    return -1;
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 关闭 tun：**与 vpn_open_tun 成对**——先撤掉两个转发 worker（保证事件线程
@@ -818,39 +816,42 @@ static int vpn_open_p2p(vpn_ctx_t *ctx)
 {
     const vpn_cfg_t *cfg = ctx->cfg;
     p2p_cfg_t p2p_cfg;
+    p2p_session_t *session = NULL;
+    int ret = 0;
 
-    memset(&p2p_cfg, 0, sizeof(p2p_cfg));
-    p2p_cfg.stun_id        = cfg->id;
-    p2p_cfg.local_service  = cfg->local_service;
-    p2p_cfg.signal_host    = cfg->signal_host;
-    p2p_cfg.signal_service = cfg->signal_service;
-    p2p_cfg.stun_host      = cfg->stun_host;
-    p2p_cfg.stun_service   = cfg->stun_service;
-    p2p_cfg.stun2_host     = cfg->stun2_host;
-    p2p_cfg.stun2_service  = cfg->stun2_service;
-    p2p_cfg.interval_ms    = (cfg->interval_ms > 0) ? cfg->interval_ms : 200;
+    TRY {
+        memset(&p2p_cfg, 0, sizeof(p2p_cfg));
+        p2p_cfg.stun_id        = cfg->id;
+        p2p_cfg.local_service  = cfg->local_service;
+        p2p_cfg.signal_host    = cfg->signal_host;
+        p2p_cfg.signal_service = cfg->signal_service;
+        p2p_cfg.stun_host      = cfg->stun_host;
+        p2p_cfg.stun_service   = cfg->stun_service;
+        p2p_cfg.stun2_host     = cfg->stun2_host;
+        p2p_cfg.stun2_service  = cfg->stun2_service;
+        p2p_cfg.interval_ms    = (cfg->interval_ms > 0) ? cfg->interval_ms : 200;
 
-    if (p2p_node_create(&ctx->node, vpn_p2p_recv_callback, &p2p_cfg, ctx) != 0) {
-        dbg_str(DBG_ERROR, "vpn: %s p2p node online failed", cfg->id);
-        return -1;
-    }
-    dbg_str(DBG_INFO, "vpn: %s online%s", cfg->id,
-            ctx->dial ? ", calling peer" : ", waiting to be called");
-
-    if (ctx->dial) {
-        p2p_session_t *session = NULL;
-
-        if (p2p_session_create(ctx->node, cfg->peer_id, &session) < 0) {
-            dbg_str(DBG_ERROR, "vpn: %s create session to %s failed",
-                    cfg->id, cfg->peer_id);
-            return -1;
+        if (p2p_node_create(&ctx->node, vpn_p2p_recv_callback, &p2p_cfg, ctx) < 0) {
+            dbg_str(DBG_ERROR, "vpn: %s p2p node online failed", cfg->id);
+            THROW(-1);
         }
-        if (vpn_link_get(ctx, session, 1) == NULL) {   /* 1=主动链路：由本端发通告 */
-            p2p_session_close(session);
-            return -1;
+        dbg_str(DBG_INFO, "vpn: %s online%s", cfg->id,
+                ctx->dial ? ", calling peer" : ", waiting to be called");
+
+        if (ctx->dial) {
+            if (p2p_session_create(ctx->node, cfg->peer_id, &session) < 0) {
+                dbg_str(DBG_ERROR, "vpn: %s create session to %s failed",
+                        cfg->id, cfg->peer_id);
+                THROW(-1);
+            }
+            if (vpn_link_get(ctx, session, 1) == NULL) {  /* 1=主动链路：由本端发通告 */
+                p2p_session_close(session);
+                THROW(-1);
+            }
         }
-    }
-    return 0;
+    } CATCH (ret) {}
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 等第一条链路可用：主叫等自己的会话 CONNECTED（超时失败）；
@@ -859,33 +860,36 @@ static int vpn_wait_link(vpn_ctx_t *ctx)
 {
     struct event_base *eb = event_base_get_default_instance();
     int i;
+    int ret = 0;
 
-    for (i = 0; ; i++) {
-        if (eb != NULL && eb->eb != NULL && eb->eb->break_flag) {
-            return -1;   /* Ctrl+C */
-        }
-        if (ctx->dial) {
-            vpn_link_t *l = vpn_link_dialer(ctx);
+    TRY {
+        for (i = 0; ; i++) {
+            THROW_IF(eb != NULL && eb->eb != NULL && eb->eb->break_flag, -1);
+            if (ctx->dial) {
+                vpn_link_t *l = vpn_link_dialer(ctx);
 
-            if (l != NULL && p2p_session_is_connected(l->session) == 0) {
-                dbg_str(DBG_VIP, "vpn: %s <-> %s connected (server-confirmed)",
-                        ctx->cfg->id, ctx->cfg->peer_id);
-                return 0;
+                if (l != NULL && p2p_session_is_connected(l->session) == 0) {
+                    dbg_str(DBG_VIP, "vpn: %s <-> %s connected (server-confirmed)",
+                            ctx->cfg->id, ctx->cfg->peer_id);
+                    THROW(1);        /* 链路已通：单一出口 */
+                }
+                if (i >= VPN_WAIT_ROUNDS) {
+                    dbg_str(DBG_ERROR, "vpn: connect timeout (%ds)",
+                            VPN_WAIT_ROUNDS / 5);
+                    THROW(-1);
+                }
+            } else {
+                if (ctx->n_links > 0) {
+                    dbg_str(DBG_VIP, "vpn: %s got peer session (callee), links=%d",
+                            ctx->cfg->id, ctx->n_links);
+                    THROW(1);        /* 被叫拿到会话：单一出口 */
+                }
             }
-            if (i >= VPN_WAIT_ROUNDS) {
-                dbg_str(DBG_ERROR, "vpn: connect timeout (%ds)",
-                        VPN_WAIT_ROUNDS / 5);
-                return -1;
-            }
-        } else {
-            if (ctx->n_links > 0) {
-                dbg_str(DBG_VIP, "vpn: %s got peer session (callee), links=%d",
-                        ctx->cfg->id, ctx->n_links);
-                return 0;
-            }
+            usleep(200000);
         }
-        usleep(200000);
-    }
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 地址交换（**发生在配 tun 之前**）：只有**主动建链方**需要等待——
@@ -897,35 +901,29 @@ static int vpn_exchange_addr(vpn_ctx_t *ctx)
 {
     struct event_base *eb = event_base_get_default_instance();
     int i, rounds = 0;
+    int ret = 0;
 
-    if (!ctx->dial) {
-        return 0;                        /* 被动方：地址就是 --tunnel-ip，无需等待 */
-    }
-    for (;;) {
-        if (eb != NULL && eb->eb != NULL && eb->eb->break_flag) {
-            return -1;                   /* Ctrl+C */
-        }
-        if (ctx->addr_ready) {
-            return 0;                    /* 已拿到对端分配的本端隧道地址 */
-        }
-        for (i = 0; i < VPN_MAX_LINKS; i++) {
-            vpn_link_t *l = &ctx->links[i];
-
-            if (!l->is_dialer || l->notify_acked ||
-                l->notify_retries >= VPN_NET_NOTIFY_MAX_RETRY) {
-                continue;                /* 被动链路不发 / 已应答 / 次数用完 */
-            }
-            if (p2p_session_is_connected(l->session) != 0) {
-                continue;                /* 还没打通 */
-            }
-            if (l->notify_retries > 0 && (rounds % 5) != 0) {
-                continue;                /* 已发过：约 1s 才重发一次 */
-            }
-            {
+    TRY {
+        THROW_IF(!ctx->dial, 1);         /* 被动方：地址就是 --tunnel-ip，无需等待 */
+        for (;;) {
+            THROW_IF(eb != NULL && eb->eb != NULL && eb->eb->break_flag, -1);
+            THROW_IF(ctx->addr_ready, 1);  /* 已拿到对端分配的本端隧道地址 */
+            for (i = 0; i < VPN_MAX_LINKS; i++) {
+                vpn_link_t *l = &ctx->links[i];
                 char payload[VPN_CTRL_CIDR_MAX];
                 const char *net = ctx->cfg->local_net;
                 vpn_net_t pnet;
 
+                if (!l->is_dialer || l->notify_acked ||
+                    l->notify_retries >= VPN_NET_NOTIFY_MAX_RETRY) {
+                    continue;            /* 被动链路不发 / 已应答 / 次数用完 */
+                }
+                if (p2p_session_is_connected(l->session) != 0) {
+                    continue;            /* 还没打通 */
+                }
+                if (l->notify_retries > 0 && (rounds % 5) != 0) {
+                    continue;            /* 已发过：约 1s 才重发一次 */
+                }
                 /* 通告只带**本端内网网段**（自己的隧道地址由对端在应答里分配，
                  * 所以不用带）；没配或非法就发空 payload，等于只说"我来了"。
                  * 这里用 __net_parse 校验并**规范化**（如 10.0.0.5/24 -> 10.0.0.0/24），
@@ -941,22 +939,24 @@ static int vpn_exchange_addr(vpn_ctx_t *ctx)
                 }
                 l->notify_retries++;
                 if (l->notify_retries == 1) {
-                    dbg_str(DBG_VIP, "vpn: notified peer of local net%s%s, waiting for it"
-                            " to assign ip", (payload[0] != '\0') ? " " : "",
+                    dbg_str(DBG_VIP, "vpn: notified peer of local net%s%s, waiting for"
+                            " it to assign ip", (payload[0] != '\0') ? " " : "",
                             (payload[0] != '\0') ? payload : "(no --local-net)");
                 }
                 vpn_send_ctrl(l, VPN_CTRL_NET_NOTIFY, payload,
                                 (int)strlen(payload));
             }
+            if (rounds >= VPN_WAIT_ROUNDS) {
+                dbg_str(DBG_ERROR, "vpn: timeout waiting for peer to assign tunnel ip"
+                        " (%ds)", VPN_WAIT_ROUNDS / 5);
+                THROW(-1);
+            }
+            usleep(200000);
+            rounds++;
         }
-        if (rounds >= VPN_WAIT_ROUNDS) {
-            dbg_str(DBG_ERROR, "vpn: timeout waiting for peer to assign tunnel ip (%ds)",
-                    VPN_WAIT_ROUNDS / 5);
-            return -1;
-        }
-        usleep(200000);
-        rounds++;
-    }
+    } CATCH (ret) {}
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 int vpn_run(const vpn_cfg_t *cfg)

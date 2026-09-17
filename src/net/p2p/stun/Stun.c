@@ -93,6 +93,7 @@ static stun_session_t *__get_session(Stun *stun, char *remote_id)
         return NULL;
     }
     stun->sessions->search(stun->sessions, (void *)remote_id, (void **)&s);
+
     return s;
 }
 
@@ -324,8 +325,8 @@ static int __create_session(Stun *stun, char *remote_id, int role,
                 (remote_id != NULL) ? remote_id : "?", ret);
     } FINALLY { }
 
-    /* 非 JMP 的 TRY/CATCH：成功会令 ret=1，这里归一化为 0(≥0 即成功) */
-    return (ret < 0) ? ret : 0;
+    /* 非 JMP 的 TRY/CATCH：成功落底时 ret=1；抛错时 ret=错误码(<0 即失败) */
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 关闭并删除会话：停保活、关 socket、移出会话表并释放。 */
@@ -333,20 +334,19 @@ static int __close_session(Stun *stun, char *remote_id)
 {
     stun_session_t *s = NULL;
     void *elem = NULL;
+    int ret = 0;
 
-    if (stun == NULL || stun->sessions == NULL || remote_id == NULL) {
-        return -1;
-    }
-    s = __get_session(stun, remote_id);
-    if (s == NULL) {
-        return 0;   /* 无此会话，幂等 */
-    }
-    s->active = 0;
-    __destroy_session(s);
-    stun->sessions->remove(stun->sessions, (void *)remote_id, &elem);
-    allocator_mem_free(stun->parent.allocator, s);
+    TRY {
+        THROW_IF(stun == NULL || stun->sessions == NULL || remote_id == NULL, -1);
+        s = __get_session(stun, remote_id);
+        THROW_IF(s == NULL, 0);         /* 无此会话：幂等，按成功提前结束（ret=0） */
+        s->active = 0;
+        __destroy_session(s);
+        stun->sessions->remove(stun->sessions, (void *)remote_id, &elem);
+        allocator_mem_free(stun->parent.allocator, s);
+    } CATCH (ret) { }
 
-    return 0;
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* ---------------- 采址 / 打洞 ---------------- */
@@ -376,59 +376,55 @@ static void __stun_log_target(Stun *stun, const char *tag,
 /* 发起采址(STUN Binding，异步)：own 就绪后回调按角色 request_session/reply_session_request。 */
 static int __probe_session_addr(Stun *stun, char *remote_stun_id)
 {
-    stun_session_t *s;
-    char *host, *service;
-    Request *req;
+    stun_session_t *s = NULL;
+    char *host = NULL, *service = NULL;
+    Request *req = NULL;
+    int ret = 0;
 
-    if (stun == NULL || remote_stun_id == NULL) {
-        return -1;
-    }
-    s = __get_session(stun, remote_stun_id);
-    if (s == NULL || s->peer_client == NULL || s->peer_client->socket == NULL) {
-        return -1;
-    }
-    req = s->req;
-    host = (stun->stun_host != NULL) ? stun->stun_host : stun->signal_host;
-    service = (stun->stun_service != NULL) ? stun->stun_service : stun->signal_service;
-    if (req == NULL || host == NULL || service == NULL) {
-        return -1;
-    }
-    s->own_host[0] = 0;
-    s->own_port = 0;
-    s->own_ready = 0;
-    req->set_head(req, STUN_BINDREQ, 0, STUN_MAGIC_COOKIE);
-    if (s->peer_client->socket->sendto(s->peer_client->socket, req->header,
-                                       req->get_len(req), 0, host, service) < 0) {
-        return -1;
-    }
-    __stun_log_target(stun, "stun1", host, service);
+    TRY {
+        THROW_IF(stun == NULL || remote_stun_id == NULL, -1);
+        s = __get_session(stun, remote_stun_id);
+        THROW_IF(s == NULL || s->peer_client == NULL ||
+                 s->peer_client->socket == NULL, -1);
+        req = s->req;
+        host = (stun->stun_host != NULL) ? stun->stun_host : stun->signal_host;
+        service = (stun->stun_service != NULL) ? stun->stun_service
+                                              : stun->signal_service;
+        THROW_IF(req == NULL || host == NULL || service == NULL, -1);
+        s->own_host[0] = 0;
+        s->own_port = 0;
+        s->own_ready = 0;
+        req->set_head(req, STUN_BINDREQ, 0, STUN_MAGIC_COOKIE);
+        EXEC(s->peer_client->socket->sendto(s->peer_client->socket, req->header,
+                                           req->get_len(req), 0, host, service));
+        __stun_log_target(stun, "stun1", host, service);
+    } CATCH (ret) { }
 
-    return 0;
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 主叫采址完成(own 就绪)：发 INVITE <my> <callee> <own_host> <own_port> <nat>。 */
 static int __request_session(Stun *stun, char *remote_stun_id)
 {
-    stun_session_t *s;
+    stun_session_t *s = NULL;
     char line[192];
     char service[16];
+    int ret = 0;
 
-    if (stun == NULL || remote_stun_id == NULL || stun->stun_id[0] == 0) {
-        return -1;
-    }
-    s = __get_session(stun, remote_stun_id);
-    if (s == NULL || !s->own_ready) {
-        return -1;
-    }
-    snprintf(service, sizeof(service), "%d", s->own_port);
-    snprintf(line, sizeof(line), "INVITE %s %s %s %s %d",
-             stun->stun_id, s->remote_id, s->own_host, service, s->nat_type);
-    client_connect(stun->server_client, stun->signal_host, stun->signal_service);
-    client_send(stun->server_client, line, (int)strlen(line), 0);
-    dbg_str(DBG_INFO, "%s sent INVITE to %s (own %s:%d nat=%d)",
-            stun->stun_id, s->remote_id, s->own_host, s->own_port, s->nat_type);
+    TRY {
+        THROW_IF(stun == NULL || remote_stun_id == NULL || stun->stun_id[0] == 0, -1);
+        s = __get_session(stun, remote_stun_id);
+        THROW_IF(s == NULL || !s->own_ready, -1);
+        snprintf(service, sizeof(service), "%d", s->own_port);
+        snprintf(line, sizeof(line), "INVITE %s %s %s %s %d",
+                 stun->stun_id, s->remote_id, s->own_host, service, s->nat_type);
+        client_connect(stun->server_client, stun->signal_host, stun->signal_service);
+        client_send(stun->server_client, line, (int)strlen(line), 0);
+        dbg_str(DBG_INFO, "%s sent INVITE to %s (own %s:%d nat=%d)",
+                stun->stun_id, s->remote_id, s->own_host, s->own_port, s->nat_type);
+    } CATCH (ret) { }
 
-    return 0;
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 被叫对 INVITE 的应答（accept/reject 二合一，用一个原因码参数区分两种语义）：
@@ -442,84 +438,84 @@ static int __reply_session_request(Stun *stun, char *remote_stun_id, int reason)
     stun_session_t *s = NULL;
     char line[192];
     char service[16];
+    int ret = 0;
 
-    if (stun == NULL || remote_stun_id == NULL ||
-        stun->server_client == NULL || stun->stun_id[0] == 0) {
-        return -1;
-    }
-    if (reason == STUN_REJECT_NONE) {
-        /* 接受：带上本会话(打洞)地址 */
-        s = __get_session(stun, remote_stun_id);
-        if (s == NULL || !s->own_ready) {
-            return -1;               /* 还没采址完成：等 own 就绪时再调一次 */
+    TRY {
+        THROW_IF(stun == NULL || remote_stun_id == NULL ||
+                 stun->server_client == NULL || stun->stun_id[0] == 0, -1);
+        if (reason == STUN_REJECT_NONE) {
+            /* 接受：带上本会话(打洞)地址 */
+            s = __get_session(stun, remote_stun_id);
+            THROW_IF(s == NULL || !s->own_ready, -1);  /* 未采址完成：等 own 就绪再调 */
+            snprintf(service, sizeof(service), "%d", s->own_port);
+            snprintf(line, sizeof(line), "INVITE_REPLY %s %s accept %s %s %d",
+                     stun->stun_id, s->remote_id, s->own_host, service, s->nat_type);
+            dbg_str(DBG_INFO, "%s sent INVITE_REPLY(accept) to %s (own %s:%d nat=%d)",
+                    stun->stun_id, s->remote_id, s->own_host, s->own_port, s->nat_type);
+        } else {
+            /* 拒绝：只带原因码（如 STUN_REJECT_NO_PORT） */
+            snprintf(line, sizeof(line), "INVITE_REPLY %s %s reject %d",
+                     stun->stun_id, remote_stun_id, reason);
+            dbg_str(DBG_ERROR, "%s sent INVITE_REPLY(reject %d) to %s", stun->stun_id,
+                    reason, remote_stun_id);
         }
-        snprintf(service, sizeof(service), "%d", s->own_port);
-        snprintf(line, sizeof(line), "INVITE_REPLY %s %s accept %s %s %d",
-                 stun->stun_id, s->remote_id, s->own_host, service, s->nat_type);
-        dbg_str(DBG_INFO, "%s sent INVITE_REPLY(accept) to %s (own %s:%d nat=%d)",
-                stun->stun_id, s->remote_id, s->own_host, s->own_port, s->nat_type);
-    } else {
-        /* 拒绝：只带原因码（如 STUN_REJECT_NO_PORT） */
-        snprintf(line, sizeof(line), "INVITE_REPLY %s %s reject %d",
-                 stun->stun_id, remote_stun_id, reason);
-        dbg_str(DBG_ERROR, "%s sent INVITE_REPLY(reject %d) to %s", stun->stun_id,
-                reason, remote_stun_id);
-    }
-    client_connect(stun->server_client, stun->signal_host, stun->signal_service);
-    client_send(stun->server_client, line, (int)strlen(line), 0);
-    return 0;
+        client_connect(stun->server_client, stun->signal_host, stun->signal_service);
+        client_send(stun->server_client, line, (int)strlen(line), 0);
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* 开始打洞：设定对端会话地址并周期互发 KEEPALIVE（建链首包立即发一个）。 */
 static int __punch_session(Stun *stun, char *remote_stun_id,
                            char *peer_host, int peer_port)
 {
-    stun_session_t *s;
-    stun_p2p_msg_t *msg;
+    stun_session_t *s = NULL;
+    stun_p2p_msg_t *msg = NULL;
     char buf[sizeof(stun_p2p_msg_t)];
     char service[16];
-    Socket *sock;
+    Socket *sock = NULL;
+    int ret = 0;
 
-    if (stun == NULL || remote_stun_id == NULL || peer_host == NULL) {
-        return -1;
-    }
-    s = __get_session(stun, remote_stun_id);
-    if (s == NULL || s->peer_client == NULL) {
-        return -1;
-    }
-    snprintf(s->peer_host, sizeof(s->peer_host), "%s", peer_host);
-    s->peer_port = peer_port;
-    s->send_punch = 1;   /* 一旦收到对端包上报 PUNCHOK */
+    TRY {
+        THROW_IF(stun == NULL || remote_stun_id == NULL || peer_host == NULL, -1);
+        s = __get_session(stun, remote_stun_id);
+        THROW_IF(s == NULL || s->peer_client == NULL, -1);
+        snprintf(s->peer_host, sizeof(s->peer_host), "%s", peer_host);
+        s->peer_port = peer_port;
+        s->send_punch = 1;   /* 一旦收到对端包上报 PUNCHOK */
 
-    sock = s->peer_client->socket;
-    msg = (stun_p2p_msg_t *)buf;
-    msg->magic = htonl(STUN_P2P_MAGIC);
-    msg->type = STUN_P2P_MSG_KEEPALIVE;   /* 首包也打洞/保活统一 */
-    msg->len = 0;
-    snprintf(service, sizeof(service), "%d", peer_port);
-    if (sock != NULL && sock->sendto != NULL) {
-        sock->sendto(sock, buf, sizeof(buf), 0, peer_host, service);
-    }
-
-    /* 启动本会话保活定时器（首次打洞时；best-effort，失败不致命） */
-    if (s->stun != NULL && s->keepalive_worker == NULL) {
-        Worker *w = NULL;
-        struct timeval tv;
-        int interval = (s->keepalive_interval_ms > 0)
-                           ? s->keepalive_interval_ms : 1000;
-
-        s->keepalive_interval_ms = interval;
-        tv.tv_sec = interval / 1000;
-        tv.tv_usec = (interval % 1000) * 1000;
-        w = timer_worker(s->stun->parent.allocator, EV_READ | EV_PERSIST,
-                         &tv, __session_keepalive_timer_callback, s);
-        if (w != NULL) {
-            s->keepalive_worker = (void *)w;
+        sock = s->peer_client->socket;
+        msg = (stun_p2p_msg_t *)buf;
+        msg->magic = htonl(STUN_P2P_MAGIC);
+        msg->type = STUN_P2P_MSG_KEEPALIVE;   /* 首包也打洞/保活统一 */
+        msg->len = 0;
+        snprintf(service, sizeof(service), "%d", peer_port);
+        if (sock != NULL && sock->sendto != NULL) {
+            sock->sendto(sock, buf, sizeof(buf), 0, peer_host, service);
         }
-    }
-    dbg_str(DBG_INFO, "%s punched %s at %s:%d",
-            s->stun->stun_id, s->remote_id, peer_host, peer_port);
-    return 0;
+
+        /* 启动本会话保活定时器（首次打洞时；best-effort，失败不致命） */
+        if (s->stun != NULL && s->keepalive_worker == NULL) {
+            Worker *w = NULL;
+            struct timeval tv;
+            int interval = (s->keepalive_interval_ms > 0)
+                               ? s->keepalive_interval_ms : 1000;
+
+            s->keepalive_interval_ms = interval;
+            tv.tv_sec = interval / 1000;
+            tv.tv_usec = (interval % 1000) * 1000;
+            w = timer_worker(s->stun->parent.allocator, EV_READ | EV_PERSIST,
+                             &tv, __session_keepalive_timer_callback, s);
+            if (w != NULL) {
+                s->keepalive_worker = (void *)w;
+            }
+        }
+        dbg_str(DBG_INFO, "%s punched %s at %s:%d",
+                s->stun->stun_id, s->remote_id, peer_host, peer_port);
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 static int __send_session_data(Stun *stun, char *remote_stun_id, void *buf, int len)
@@ -529,7 +525,7 @@ static int __send_session_data(Stun *stun, char *remote_stun_id, void *buf, int 
     char pkt[sizeof(stun_p2p_msg_t) + STUN_P2P_MAX_PAYLOAD];
     char service[16];
     Socket *sock;
-    int ret = -1;
+    int ret = 0;
 
     TRY {
         THROW_IF(stun == NULL || remote_stun_id == NULL || buf == NULL, -1);
@@ -545,10 +541,10 @@ static int __send_session_data(Stun *stun, char *remote_stun_id, void *buf, int 
         msg->len = htons(len);
         memcpy(msg->data, buf, len);
         snprintf(service, sizeof(service), "%d", s->peer_port);
-        EXEC((ret = (sock->sendto(sock, pkt, (int)(sizeof(stun_p2p_msg_t) + len),
-                                  0, s->peer_host, service) >= 0) ? 0 : -1));
-    } CATCH (ret) {
-    }
+        EXEC(sock->sendto(sock, pkt, (int)(sizeof(stun_p2p_msg_t) + len),
+                          0, s->peer_host, service));
+    } CATCH (ret) { }
+
     return ret;
 }
 
@@ -745,6 +741,7 @@ static int __connect(Stun *stun, char *host, char *service)
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "stun connect failed, ret=%d", ret);
     }
+
     return ret;
 }
 
@@ -752,6 +749,7 @@ static int __set_stun_server(Stun *stun, char *host, char *service)
 {
     stun->stun_host = host;
     stun->stun_service = service;
+
     return 0;
 }
 
@@ -783,6 +781,7 @@ static int __signin(Stun *stun, char *stun_id)
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "stun signin failed, ret=%d", ret);
     }
+
     return ret;
 }
 
@@ -796,6 +795,7 @@ static int __signout(Stun *stun)
         client_send(stun->server_client, buf, (int)strlen(buf), 0);
         dbg_str(DBG_INFO, "%s sent SIGNOUT, offline", stun->stun_id);
     }
+
     return 0;
 }
 
@@ -804,6 +804,7 @@ static int __set_recv_callback(Stun *stun,
                                            uint8_t *buf, int len))
 {
     stun->recv_callback = func;
+
     return 0;
 }
 
@@ -833,8 +834,8 @@ static int __construct(Stun *stun, char *init_str)
         stun->sessions->set_cmp_func(stun->sessions, string_key_cmp_func);
         stun->sessions->set(stun->sessions, "/Map/trustee_flag", &trustee_flag);
         stun->sessions->set(stun->sessions, "/Map/value_type", &value_type);
-    } CATCH (ret) {
-    }
+    } CATCH (ret) { }
+
     return ret;
 }
 
@@ -850,6 +851,7 @@ static int __deconstruct(Stun *stun)
         object_destroy(stun->sessions);
         stun->sessions = NULL;
     }
+
     return 0;
 }
 
@@ -900,6 +902,7 @@ static int __parse_attrib_mapped_addr(stun_attrib_t *raw, stun_attrib_t *out)
     } CATCH (ret) {
         CATCH_SHOW_INT_PARS(DBG_ERROR);
     }
+
     return ret;
 }
 
@@ -925,6 +928,7 @@ static int __parse_attrib_changed_addr(stun_attrib_t *raw, stun_attrib_t *out)
     } CATCH (ret) {
         CATCH_SHOW_INT_PARS(DBG_ERROR);
     }
+
     return ret;
 }
 
@@ -955,6 +959,7 @@ static int __sig_signin_reply(Stun *stun, char *line)
 {
     (void)line;
     stun->register_done = 1;
+
     return 0;
 }
 
@@ -972,12 +977,13 @@ static int __sig_request_session(Stun *stun, char *line)
     }
     dbg_str(DBG_INFO, "%s received INVITE from %s (%s:%d nat=%d)", stun->stun_id,
             from, host, port, nat);
-    if (stun->create_session(stun, from, 1, &ns) == 0 && ns != NULL) {
+    if (stun->create_session(stun, from, 1, &ns) < 0 || ns == NULL) {
+        stun->reply_session_request(stun, from, STUN_REJECT_NO_PORT);
+    } else {
         ns->peer_nat_type = nat;
         stun->punch_session(stun, from, host, port);
-    } else {
-        stun->reply_session_request(stun, from, STUN_REJECT_NO_PORT);
     }
+
     return 0;
 }
 
@@ -988,47 +994,44 @@ static int __sig_request_session(Stun *stun, char *line)
 static int __sig_reply_session_request(Stun *stun, char *line)
 {
     char callee[32] = {0}, rcaller[32] = {0}, action[16] = {0}, host[64] = {0};
-    int port = 0, nat = STUN_NAT_TYPE_UNKNOWN;
+    int port = 0, nat = STUN_NAT_TYPE_UNKNOWN, reason = STUN_REJECT_NONE;
     stun_session_t *ss = NULL;
+    int ret = 0;
 
-    if (sscanf(line, "INVITE_REPLY %31s %31s %15s", callee, rcaller, action) != 3) {
-        return -1;
-    }
-    if (strcmp(action, "accept") == 0) {
-        if (sscanf(line, "INVITE_REPLY %31s %31s %15s %63s %d %d", callee, rcaller,
-                   action, host, &port, &nat) < 5) {
-            return -1;
+    TRY {
+        THROW_IF(sscanf(line, "INVITE_REPLY %31s %31s %15s", callee, rcaller,
+                        action) != 3, -1);
+        if (strcmp(action, "accept") == 0) {
+            THROW_IF(sscanf(line, "INVITE_REPLY %31s %31s %15s %63s %d %d", callee,
+                            rcaller, action, host, &port, &nat) < 5, -1);
+            dbg_str(DBG_INFO, "%s INVITE_REPLY(accept) from %s (%s:%d nat=%d)",
+                    stun->stun_id, callee, host, port, nat);
+            ss = __get_session(stun, callee);
+            if (ss != NULL) {
+                ss->peer_nat_type = nat;
+                stun->punch_session(stun, callee, host, port);
+            }
+        } else {
+            sscanf(line, "INVITE_REPLY %31s %31s %15s %d", callee, rcaller, action,
+                   &reason);
+            dbg_str(DBG_ERROR, "%s INVITE rejected by %s (reason=%d)", stun->stun_id,
+                    callee, reason);
+            if (stun->stun_id[0] != 0 && strcmp(rcaller, stun->stun_id) != 0) {
+                dbg_str(DBG_WARN, "%s INVITE_REPLY not for us (caller=%s), ignored",
+                        stun->stun_id, rcaller);
+            } else {
+                /* 只标记失败，不在这里释放：会话生命周期归上层(p2p_session_close) */
+                ss = __get_session(stun, callee);
+                if (ss != NULL) {
+                    ss->state = STUN_SESSION_CLOSED;
+                    ss->active = 0;
+                    ss->connected = 0;
+                }
+            }
         }
-        dbg_str(DBG_INFO, "%s INVITE_REPLY(accept) from %s (%s:%d nat=%d)",
-                stun->stun_id, callee, host, port, nat);
-        ss = __get_session(stun, callee);
-        if (ss != NULL) {
-            ss->peer_nat_type = nat;
-            stun->punch_session(stun, callee, host, port);
-        }
-        return 0;
-    }
+    } CATCH (ret) { }
 
-    {
-        int reason = STUN_REJECT_NONE;
-
-        sscanf(line, "INVITE_REPLY %31s %31s %15s %d", callee, rcaller, action, &reason);
-        dbg_str(DBG_ERROR, "%s INVITE rejected by %s (reason=%d)", stun->stun_id,
-                callee, reason);
-        if (stun->stun_id[0] != 0 && strcmp(rcaller, stun->stun_id) != 0) {
-            dbg_str(DBG_WARN, "%s INVITE_REPLY not for us (caller=%s), ignored",
-                    stun->stun_id, rcaller);
-            return 0;
-        }
-        /* 只标记失败，不在这里释放：会话生命周期归上层(p2p_session_close) */
-        ss = __get_session(stun, callee);
-        if (ss != NULL) {
-            ss->state = STUN_SESSION_CLOSED;
-            ss->active = 0;
-            ss->connected = 0;
-        }
-    }
-    return 0;
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
 
 /* CONNECTED <peer>：服务器确认双方打洞成功 -> 置会话 connected（此后可发业务数据）。 */
@@ -1049,6 +1052,7 @@ static int __sig_connected(Stun *stun, char *line)
         ss->connected = 1;
         ss->send_punch = 0;
     }
+
     return 0;
 }
 
@@ -1066,29 +1070,31 @@ static int __stun_signal_callback(void *task)
 {
     work_task_t *t = (work_task_t *)task;
     Stun *stun = (Stun *)t->opaque;
-    char *s;
+    char *s = NULL;
     size_t i;
+    int ret = 0;
 
-    if (stun == NULL || t->buf_len <= 0) {
-        return 0;
-    }
-    s = (char *)t->buf;
-    /* 协议文本以 \n 结尾：裁掉行尾换行/回车，仅影响日志显示(解析本就不受影响) */
-    while (t->buf_len > 0 &&
-           (s[t->buf_len - 1] == '\n' || s[t->buf_len - 1] == '\r')) {
-        s[--t->buf_len] = 0;
-    }
-    for (i = 0; i < STUN_CLI_SIG_TABLE_NUM; i++) {
-        size_t klen = strlen(g_stun_cli_sig_table[i].key);
-
-        if (strncmp(s, g_stun_cli_sig_table[i].key, klen) != 0 ||
-            (s[klen] != ' ' && s[klen] != '\0')) {
-            continue;
+    TRY {
+        THROW_IF(stun == NULL || t->buf_len <= 0, 1);   /* 空包：忽略，按成功结束 */
+        s = (char *)t->buf;
+        /* 协议文本以 \n 结尾：裁掉行尾换行/回车，仅影响日志显示(解析本就不受影响) */
+        while (t->buf_len > 0 &&
+               (s[t->buf_len - 1] == '\n' || s[t->buf_len - 1] == '\r')) {
+            s[--t->buf_len] = 0;
         }
-        dbg_str(DBG_DETAIL, "%s handle signal %s", stun->stun_id,
-                g_stun_cli_sig_table[i].name);
-        return g_stun_cli_sig_table[i].handle(stun, s);
-    }
-    dbg_str(DBG_WARN, "%s ignore unknown signal: %.32s", stun->stun_id, s);
-    return 0;
+        for (i = 0; i < STUN_CLI_SIG_TABLE_NUM; i++) {
+            size_t klen = strlen(g_stun_cli_sig_table[i].key);
+
+            if (strncmp(s, g_stun_cli_sig_table[i].key, klen) != 0 ||
+                (s[klen] != ' ' && s[klen] != '\0')) {
+                continue;
+            }
+            dbg_str(DBG_DETAIL, "%s handle signal %s", stun->stun_id,
+                    g_stun_cli_sig_table[i].name);
+            THROW(g_stun_cli_sig_table[i].handle(stun, s));   /* 透传 handler 结果 */
+        }
+        dbg_str(DBG_WARN, "%s ignore unknown signal: %.32s", stun->stun_id, s);
+    } CATCH (ret) { }
+
+    return ret;    /* 单一出口：落底 1(成功) / 抛错 <0 */
 }
