@@ -151,30 +151,37 @@ static void __parse_ports(Stun *stun)
             stun->stun_id, stun->local_service, n, STUN_SERVICE_POOL_MAX);
 }
 
-/* 取一个空闲端口并标记占用（同时写入 out_port）；返回端口号，0=池未配/已耗尽。 */
+/* 取一个空闲池端口并标记占用（端口号写入 out_port）。
+ * 返回 **1 = 成功**，包含"端口池未配置"这一**正常**情况（此时 *out_port = 0，
+ * 调用方拿它作 service 就是 "0"，由内核随机分配临时端口）；
+ * 返回 **-1 = 失败**，只有"端口池已耗尽"（或参数为空）。
+ * 调用方用 EXEC 接：负值才会被抛成错误 -> 建会话失败（被叫回 INVITE_REPLY reject）。 */
 static int __alloc_port(Stun *stun, int *out_port)
 {
-    int i;
+    int i, ret = 1;
 
-    if (out_port != NULL) {
-        *out_port = 0;
-    }
-    if (stun == NULL) {
-        return 0;
-    }
-    if (!stun->pool_parsed) {
-        __parse_ports(stun);
-    }
-    for (i = 0; i < stun->pool_num; i++) {
-        if (!stun->pool_used[i]) {
-            stun->pool_used[i] = 1;
-            if (out_port != NULL) {
-                *out_port = stun->pool_ports[i];
-            }
-            return stun->pool_ports[i];
+    TRY {
+        THROW_IF(stun == NULL || out_port == NULL, -1);
+        if (!stun->pool_parsed) {
+            __parse_ports(stun);                              /* 惰性解析一次 */
         }
-    }
-    return 0;
+        if (stun->pool_num <= 0) {
+            *out_port = 0;   /* 未配置端口池：用随机口（不是错误） */
+            THROW(1);
+        }
+        for (i = 0; i < stun->pool_num; i++) {
+            if (!stun->pool_used[i]) {                        /* 取到空闲端口 */
+                stun->pool_used[i] = 1;
+                if (out_port != NULL) {
+                    *out_port = stun->pool_ports[i];
+                }
+                THROW(1);
+            }
+        }
+        THROW(-1);                              /* 配了池却全占用：错误 */
+    } CATCH (ret) {}
+
+    return ret;
 }
 
 /* 归还端口（会话销毁时调用）。 */
@@ -182,8 +189,8 @@ static void __free_port(Stun *stun, int port)
 {
     int i;
 
-    if (stun == NULL || port <= 0) {
-        return;
+    if (stun == NULL || port == 0 || port < 0) {
+        return;                                /* 随机口(未占池)无需归还 */
     }
     for (i = 0; i < stun->pool_num; i++) {
         if (stun->pool_ports[i] == port) {
@@ -205,7 +212,7 @@ static void __destroy_session(stun_session_t *s)
         client_destroy(s->peer_client);
         s->peer_client = NULL;
     }
-    if (s->local_port > 0 && s->stun != NULL) {
+    if (s->local_port != 0 && s->stun != NULL) {
         __free_port(s->stun, s->local_port);   /* 端口归还池，供后来对端复用 */
         s->local_port = 0;
     }
@@ -251,7 +258,6 @@ static int __create_session(Stun *stun, char *remote_id, int role,
     int created = 0, added = 0;
     char *localhost;
     char service[16];
-    int port = 0;
     int ret = 0;
 
     TRY {
@@ -277,23 +283,15 @@ static int __create_session(Stun *stun, char *remote_id, int role,
             s->send_punch = 1;
             s->keepalive_interval_ms = stun->keepalive_interval_ms;
 
-            /* peer/data socket：从**本地端口池**取一个端口（local_service 写列表/范围
-             * = 支持的链路数，如 "12346,12347" 或 "12346-12350"）；池未配/耗尽用随机口。
-             * 取到的端口记在 s->local_port，会话销毁时归还。 */
-            /* 端口池：配了端口就每会话占一个固定口；**池已满则建会话失败**（被叫据此
-             * 回 INVITE_REPLY reject）；未配端口池（pool_num=0）才用随机口。 */
-            port = __alloc_port(stun, &s->local_port);
-            if (port <= 0 && stun->pool_num > 0) {
-                dbg_str(DBG_WARN, "%s local port pool '%s' exhausted (%d), reject session",
-                        stun->stun_id, stun->local_service, stun->pool_num);
-                THROW(-1);
-            }
-            snprintf(service, sizeof(service), "%d", port);
-            if (s->local_port > 0) {
-                dbg_str(DBG_INFO, "%s session->%s local port %d (pool '%s')",
-                        stun->stun_id, s->remote_id, s->local_port,
-                        (stun->local_service != NULL) ? stun->local_service : "-");
-            }
+            /* 未配端口池 -> local_port = 0 -> service = "0"（内核随机口）；
+             * 池已满 -> __alloc_port 返回 -1，EXEC 抛错 -> 建会话失败（被叫回 reject 1）。 */
+            EXEC(__alloc_port(stun, &s->local_port));
+            snprintf(service, sizeof(service), "%d", s->local_port);
+            dbg_str(DBG_INFO, "%s session->%s local port %s (pool '%s')", stun->stun_id,
+                    s->remote_id,
+                    (s->local_port == 0) ? "random (kernel picked)"
+                                                        : service,
+                    (stun->local_service != NULL) ? stun->local_service : "-");
             s->peer_client = client(allocator, CLIENT_TYPE_INET_UDP, localhost, service);
             THROW_IF(s->peer_client == NULL, -1);
             client_trustee(s->peer_client, NULL, __on_session_recv, s);
@@ -324,8 +322,7 @@ static int __create_session(Stun *stun, char *remote_id, int role,
         }
         dbg_str(DBG_ERROR, "stun create_session %s failed, ret=%d",
                 (remote_id != NULL) ? remote_id : "?", ret);
-    } FINALLY {
-    }
+    } FINALLY { }
 
     /* 非 JMP 的 TRY/CATCH：成功会令 ret=1，这里归一化为 0(≥0 即成功) */
     return (ret < 0) ? ret : 0;
@@ -727,7 +724,6 @@ static int __on_session_recv(void *task)
 }
 
 /* ---------------- 节点级接口 ---------------- */
-
 static int __connect(Stun *stun, char *host, char *service)
 {
     allocator_t *allocator = stun->parent.allocator;
@@ -858,18 +854,18 @@ static int __deconstruct(Stun *stun)
 }
 
 static class_info_entry_t stun_class_info[] = {
-    Init_Obj___Entry(0, Obj, parent),
-    Init_Nfunc_Entry(1, Stun, construct, __construct),
-    Init_Nfunc_Entry(2, Stun, deconstruct, __deconstruct),
+    Init_Obj___Entry( 0, Obj, parent),
+    Init_Nfunc_Entry( 1, Stun, construct, __construct),
+    Init_Nfunc_Entry( 2, Stun, deconstruct, __deconstruct),
     /* ---- 节点级（非会话） ---- */
-    Init_Vfunc_Entry(3, Stun, connect, __connect),
-    Init_Vfunc_Entry(4, Stun, signin, __signin),
-    Init_Vfunc_Entry(5, Stun, signout, __signout),
-    Init_Vfunc_Entry(6, Stun, set_stun_server, __set_stun_server),
-    Init_Vfunc_Entry(7, Stun, set_recv_callback, __set_recv_callback),
+    Init_Vfunc_Entry( 3, Stun, connect, __connect),
+    Init_Vfunc_Entry( 4, Stun, signin, __signin),
+    Init_Vfunc_Entry( 5, Stun, signout, __signout),
+    Init_Vfunc_Entry( 6, Stun, set_stun_server, __set_stun_server),
+    Init_Vfunc_Entry( 7, Stun, set_recv_callback, __set_recv_callback),
     /* ---- 会话级：名字含 session 的接口集中在此（顺序与 Stun.h 一致） ---- */
-    Init_Vfunc_Entry(8, Stun, create_session, __create_session),
-    Init_Vfunc_Entry(9, Stun, close_session, __close_session),
+    Init_Vfunc_Entry( 8, Stun, create_session, __create_session),
+    Init_Vfunc_Entry( 9, Stun, close_session, __close_session),
     Init_Vfunc_Entry(10, Stun, get_session, __get_session),
     Init_Vfunc_Entry(11, Stun, send_session_data, __send_session_data),
     Init_Vfunc_Entry(12, Stun, probe_session_addr, __probe_session_addr),

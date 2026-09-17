@@ -46,8 +46,8 @@ struct stun_session_s {
 
     /* 本会话数据面：独立 UDP socket（不 connect、sendto；原节点级 peer_client 迁入） */
     Client *peer_client;
-    int   local_port;                   /* 本会话占用的本地端口（0=随机口/未用池）；
-                                         * 非 0 时来自节点端口池，__destroy_session 归还 */
+    int   local_port;                   /* 本会话占用的池端口；0 = 随机口
+                                         * （未占池，销毁时无需归还） */
     char  own_host[64]; int own_port;   /* 本会话公网地址（本 socket 采址结果） */
     char  peer_host[64]; int peer_port; /* 对端本会话地址（信令交换所得，打洞目标） */
     int   peer_nat_type;                /* 对端 NAT（撮合回执带回，可暂不填） */
