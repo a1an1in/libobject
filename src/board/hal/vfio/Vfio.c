@@ -528,7 +528,8 @@ static int __register_irq(Vfio *vfio, int irq_index, int sub_index,
         irq_pack.set.index = (__u32)irq_index;
         irq_pack.set.start = (__u32)sub_index;
         irq_pack.set.count = 1;
-        irq_pack.data = efd;
+        //实际写的是vfio_irq_set.data, VFIO_IRQ_SET_DATA_EVENTFD这个约定了data里面存放的是fd。
+        irq_pack.data = efd; 
         EXEC(ioctl(vfio->device_fd, VFIO_DEVICE_SET_IRQS, irq_set));
 
         /* 3. 填充该向量 ctx，并挂到 worker->opaque（回调按 ctx 定位/分发） */

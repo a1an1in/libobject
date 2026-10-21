@@ -1,8 +1,23 @@
 # UIO FPGA 应用层驱动开发
 
-> 本文从 [`Ubuntu 环境里搭建qemu开发环境.md`](<Ubuntu 环境里搭建qemu开发环境.md>) 的「4. 开发UIO 应用层驱动」一节
-> 独立成文，专门介绍如何开发 **UIO FPGA 驱动**：从 QEMU 里造一个会触发中断的虚拟 FPGA，
-> 到内核启用 UIO，再到 libobject 里用 `Uio_Fpga` / `Uio_Pcie_Fpga` 类做用户态驱动并测试。
+> **快速回忆实现思路（5 步）**：
+>
+> ① 找设备：按 `/sys/class/uio/uioX/name` 匹配 → 打开 `/dev/uioX`
+>
+> ② 取地址信息：读 `/sys/class/uio/uioX/maps/mapN/{addr,size}`（**要有 `maps/` 才存在**）
+>
+> ③ mmap：size 取 `mapN/size`（页对齐后映射），**offset = map_index × PAGE_SIZE（不是物理地址！map0 → offset 0）**
+>
+> ④ 中断：**直接 `read("/dev/uioX")`** 阻塞到中断到来、返回值就是中断计数（丢中断也能看出来）；本项目用 io_worker 异步收
+>
+> ⑤ 寄存器读写：`*(volatile uint32_t *)(base + offset)`（类里封装成 `read_register` / `write_register`，默认 32 位宽）
+>
+> **铁律**：UIO 只给"**内存区索引**"，不给物理地址；mmap 的 offset 是**页号索引**，与 BAR 物理地址无关
+>
+> **中断使能**：`uio_pdrv_genirq` 要先 `write(fd, &1, 4)` 使能(unmask)，`write(fd, &0, 4)` 关闭
+>
+> **排错口诀**：没有 `/maps` → 驱动没注册 `info.mem[]`（如 `uio_pci_generic`，需改读 PCI `resource`）；mmap `EINVAL` → offset 不是 `N×PAGE_SIZE`；收不到中断 → 忘了先 write 1 使能
+>
 
 ## 1. 概述：为什么 FPGA 用 UIO
 

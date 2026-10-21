@@ -1,5 +1,21 @@
 # PCIe 用户态驱动设计文档
 
+> **快速回忆实现思路（5 步）**：
+>
+> ① 找设备：扫 `/sys/bus/pci/devices` 按 vendor/device 匹配 BDF；配置空间直接读 `.../config`（不需要 UIO）
+>
+> ② 取 BAR 地址信息：**不从 UIO 取**（`uio_pci_generic` 不注册 `info.mem[]`，`/sys/class/uio/uioX/maps/` 不存在）→ 读 `/sys/bus/pci/devices/<BDF>/resource`（每行 start/size/flags）
+>
+> ③ 映射：**不用 `Uio::mmap`**，而是 `mmap("/dev/mem", 页对齐的 BAR 物理地址, align_up(size+页内偏移))`；访问基址 = 映射指针 + 页内偏移；I/O BAR 直接拒绝
+>
+> ④ 中断：**与 UIO 完全一样**——设备绑 `uio_pci_generic` 后打开 `/dev/uioX`，复用 `Uio::register_irq`（io_worker + `read(fd,&count,4)`），用前先 `write(fd,&1,4)` 使能(unmask)
+>
+> ⑤ 寄存器访问：多 BAR 各自独立映射（互不覆盖），访问地址编码 `(bar << bar_shift) | offset`
+>
+> **与 UIO FPGA 的唯一区别**：映射来源不同——FPGA 走 `maps/mapN`（offset=`map_index × PAGE_SIZE`），PCIe 走 **BAR 物理地址 + `/dev/mem`**
+>
+> **代价**：`/dev/mem` 需要 root + `CONFIG_DEVMEM` + 关 `STRICT_DEVMEM`，且**无 IOMMU 隔离**（要隔离就得换 VFIO）
+
 ## 1. 概述
 
 基于 Linux **UIO（uio_pci_generic）** 实现用户态 PCIe 设备驱动（`Uio_Pcie` 类），

@@ -1,5 +1,47 @@
 # SPI 驱动设计文档
 
+## 0. 物理连线与实现速记
+
+### 0.1 物理连线（先认线，再看代码）
+
+```
+主(SoC)                                从(设备)
+  SCLK ──────── 时钟（主产生）────────► SCLK
+  MOSI ──────── 数据 主→从 ──────────► MOSI / DI / SI
+  MISO ◄─────── 数据 从→主 ─────────── MISO / DO / SO
+   CS  ──────── 低有效选中该从机 ─────► CS / SS / NSS
+  GND  ──────── 必须共地 ───────────── GND
+```
+
+| 线 | 全称 | 方向 | 要点 |
+|---|---|---|---|
+| **SCLK** | Serial Clock | 主 → 从 | 主机产生；**CPOL/CPHA 决定空闲电平与采样沿**（即 MODE_0~3） |
+| **MOSI** | Master Out Slave In | 主 → 从 | 主机发、从机收（从机侧常标 DI/SI） |
+| **MISO** | Master In Slave Out | 从 → 主 | 从机发、主机收（从机侧常标 DO/SO） |
+| **CS / NSS** | Chip Select | 主 → 从 | **低有效**，一从机一根；`/dev/spidevB.C` 里的 **C 就是 CS 号** |
+| GND | 地 | — | 必须共地，否则电平判错/时序不稳 |
+
+- **全双工**：MOSI/MISO 同时收发（两端移位寄存器互换）；只想读就发 dummy（`0xFF`/`0x00`）。
+- **多从机**：各自独立 CS，共用 SCLK/MOSI/MISO（CS 必须保证同一时刻只有一个有效）。
+- **CS 时序最易踩坑**：多数器件要求"命令 + 数据"在一次 CS 拉低期间连续完成 —— 这就是 `write_then_read` 用 2 个 transfer 一次提交的原因。
+- **QSPI（可选）**：高速 Flash 把 IO0~IO3 复用成 MOSI/MISO/WP/HOLD，四线并行收发。
+
+### 0.2 实现速记
+
+> **快速回忆实现思路（4 步）**：
+>
+> ① 打开设备：`open("/dev/spidev<bus>.<cs>", O_RDWR)`（`X.Y` 两个数字就是 bus 和 cs）
+>
+> ② 配置默认参数（open 时显式写一遍）：`default_config = { 500000 Hz, SPI_MODE_0, 8 bit }`，用 `SPI_IOC_WR_MODE` / `WR_MAX_SPEED_HZ` / `WR_BITS_PER_WORD` / `WR_LSB_FIRST` 四个 ioctl 下发
+>
+> ③ 传输：`struct spi_ioc_transfer` 描述每次传输（tx_buf / rx_buf / len / speed_hz / bits_per_word / cs_change / delay_usecs），再 `ioctl(fd, SPI_IOC_MESSAGE(n), trs)` 一次提交 n 个 transfer（**全双工**，收发同一批时钟）
+>
+> ④ 三个封装：`write` = 1 个 tr；`read` = 1 个 tr；`write_then_read` = **2 个 tr 一次提交**（关键：保证中间不抬 CS，否则很多器件命令会失效）
+>
+> **选型铁律**：设备**有内核驱动**（如 SPI NOR Flash）→ 用 `Mtd` 类走 `/dev/mtdN`；**无内核驱动**（FPGA/自研外设）→ 用 `Spi` 类走 `/dev/spidevX.Y`
+>
+> **注意点**：`SPI_IOC_MESSAGE(n)` 的 n 必须是**编译期常量**（非 `spidev.h` 的 `_IOW` 宏限制）；每次传输可在 tr 里覆盖 speed/bits；片选由 spidev 按 cs 号自动管理
+
 ## 1. 概述
 
 基于 Linux spidev 子系统实现用户空间 SPI 驱动（Spi 类），提供通用的 SPI 总线访问接口。

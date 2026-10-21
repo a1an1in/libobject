@@ -1,14 +1,24 @@
 # VFIO 用户态设备访问接口设计
 
 > **快速回忆实现思路（8 步）**：
-> ① 扫 `/sys/bus/pci/devices` 发现设备 → `readlink .../iommu_group` 拿 **group ID**
-> ② 绑定 vfio-pci
-> ③ 打开 **容器 → 组 → 设备** 三层 fd
-> ④ mmap BAR 读寄存器
-> ⑤ eventfd 绑中断
-> ⑥ dma_map 映射 IOVA
-> ⑦ 设备级 `dma_run` 搬运
+>
+> ① 扫 `/sys/bus/pci/devices` 发现设备，`readlink .../iommu_group` 拿 **group ID**
+>
+> ② 绑定 **`vfio-pci`** 驱动；**整个 group 独占**（组里有别的驱动占用 → 打不开）
+>
+> ③ 三层 fd：container=`/dev/vfio/vfio`、group=`/dev/vfio/N` → `GROUP_SET_CONTAINER` → `SET_IOMMU` → `GET_DEVICE_FD`
+>
+> ④ `map_region`：device fd 的 `GET_REGION_INFO` → mmap 寄存器（替代 /dev/mem）
+>
+> ⑤ 中断：device fd 的 `SET_IRQS{DATA_EVENTFD|ACTION_TRIGGER}`，efd 塞进 `data[]`；内核 signal → `read(efd)` 清计数
+>
+> ⑥ `dma_map`：**container fd** 的 `IOMMU_MAP_DMA{vaddr, iova, size, R|W}` = pin 用户内存 + 建 **IOVA→PA** 页表
+>
+> ⑦ `dma_run`：**自己把 iova 写进设备 DMA 寄存器** → 设备发 DMA 用 IOVA → **IOMMU 透明翻译**成 PA → 读写内存
+>
 > ⑧ 逆序析构（设备 → 组 → 容器）
+>
+> **铁律**：容器管地址空间 / 组管设备归属 / 设备管自己
 >
 > 详细流水线见下节 **2. 实现思路总览**。
 
