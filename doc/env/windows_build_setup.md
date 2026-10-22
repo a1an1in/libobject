@@ -2,6 +2,13 @@
 
 > 适用版本：libobject 2.15.2.x
 > 工具链：MSYS2 + MinGW-w64 (GCC) + CMake + Ninja
+>
+> **分支说明**：Windows 移植的改动都在 `windows-port` 分支上，上游 `master` 保持干净
+> （Linux 优先）。要用 Windows 移植就 checkout `windows-port`：
+>
+> ```bash
+> git checkout windows-port
+> ```
 
 ## 1. 安装工具链
 
@@ -97,6 +104,34 @@ cp /usr/lib/p7zip/7za.exe /usr/lib/p7zip/7z.exe /usr/bin/   # 让 cmd.exe 也能
 
 并把 `C:\msys64\usr\bin`、`C:\msys64\usr\lib\p7zip` 加到 **Windows 的 PATH**
 （测试用例里是 `system()`/`popen()` 调用，走的是 cmd.exe）。
+
+### 当前结果（windows-port 分支）
+
+```text
+压缩相关用例: 65/65 全部通过
+  (7z 4, zip 16, tbz2 3, squashfs 4, deflate 3, gz 2, bz2 2, lzma 2, z 17,
+   tar 4, tgz 2, archive_cli 6)
+全量用例: 204 通过 / 11 失败
+```
+
+11 个失败都是**非压缩类**的已知问题：`test_bn_div_case3`、`test_bn_mul_case1`（大数）、
+`test_fs_tree`、`test_fs_tree_with_depth`（目录树）、`test_fshell_load`、
+`test_fshell_load_and_get_func_addr`（动态库加载）、`test_http_upload`、
+`test_http_upload_to_path`（http 上传）。
+
+Windows 上被排除的用例（见 `tests/CMakeLists.txt`）：
+
+| 用例 | 原因 |
+| --- | --- |
+| `tests/stub/*` | 运行时打桩的 hook 是 32 位相对跳转，跨 DLL 跳不过去 |
+| `test_p2p` / `test_vpn` | 事件循环的 udp 处理没适配；vpn 需要 TUN 设备（Windows 只有 TAP） |
+| `test_bus` | client 销毁时事件线程和主线程会同时改 producer 的 worker 链路，有竞态 |
+| `tests/concurrent/*` | 事件/worker 的时序和 linux 不一样，偶发崩溃 |
+| `test_node` | node 服务在 windows 上跑不起来，退出时会把 worker 链表搞坏，连带整个测试进程崩 |
+
+> 测试资源（`tests/**/res/**`）在仓库里是 LF，`.gitattributes` 里强制 `eol=lf`：
+> 压缩/解压的用例是拿解出来的内容跟参考文件**逐字节**比对的，CRLF 会让它们失败。
+> 切分支后如果资源变成了 CRLF，删掉工作区的文件再 `git checkout-index -a -f` 重新签出。
 
 ## 5. Windows 上暂不支持的功能
 
