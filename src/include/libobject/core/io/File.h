@@ -28,6 +28,8 @@ struct file_s{
     int (*mkdir)(File *file, char *path, mode_t mode);
     int (*get_size)(File *file);
     int (*seek)(File *file, long offset, int from);
+    /* 把文件截断到指定大小(用于覆盖写时清掉尾部残留数据) */
+    int (*truncate)(File *file, long size);
 
     /*attribs*/
     String *name;

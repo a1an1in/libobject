@@ -7,6 +7,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/mockery/mockery.h>
 #include <libobject/archive/Archive.h>
+#include "../test_compat.h"
 
 /*
  * Tbz2 (tar.bz2 wrapper) roundtrip: compress a file to .bz2 then uncompress
@@ -77,7 +78,7 @@ static int test_tbz2_our_compress_bzip2_decompress(TEST_ENTRY *entry, int argc, 
         THROW_IF(bz2_owned == NULL || fs_is_exist(bz2_owned) != 1, -1);
 
         /* decompress with the system tool and compare */
-        snprintf(cmd, sizeof(cmd), "bzip2 -dc %s > %s 2>/dev/null", bz2_owned, out);
+        snprintf(cmd, sizeof(cmd), "bzip2 -dc %s > %s" TEST_REDIR_ERR, bz2_owned, out);
         status = system(cmd);
         if (status != -1 && status != (127 << 8)) {
             THROW_IF(status != 0, -1);
@@ -114,7 +115,7 @@ static int test_tbz2_bzip2_compress_our_decompress(TEST_ENTRY *entry, int argc, 
         fs_mkdir("./tests/archive/output/bz2", 0777);
 
         /* the system tool compresses the file */
-        snprintf(cmd, sizeof(cmd), "bzip2 -c %s > %s 2>/dev/null", src, bz2);
+        snprintf(cmd, sizeof(cmd), "bzip2 -c %s > %s" TEST_REDIR_ERR, src, bz2);
         status = system(cmd);
         if (status != -1 && status != (127 << 8)) {
             THROW_IF(status != 0, -1);

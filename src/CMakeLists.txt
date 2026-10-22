@@ -16,6 +16,10 @@ file(GLOB MOUDLE_SRC
 add_executable(${PROJECT_NAME} ${MOUDLE_SRC})
 if ("${PLATFORM}" STREQUAL "windows")
     target_link_libraries(${PROJECT_NAME} ${ExternalLibs})
+    # the regex import library has to exist before the final link
+    if (TARGET regex_import_lib)
+        add_dependencies(${PROJECT_NAME} regex_import_lib)
+    endif()
 elseif("${PLATFORM}" STREQUAL "mac")
     target_link_libraries(${PROJECT_NAME} ${ExternalLibs})
 elseif("${PLATFORM}" STREQUAL "android")

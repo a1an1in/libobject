@@ -8,6 +8,72 @@
 
 #include <libobject/archive/Archive.h>
 
+/* ================= 格式识别(对外可用, 供 CLI/插件复用) ================= */
+
+/* 依据文件头缓冲(前 512 字节)识别格式 */
+archive_format_e archive_detect_format_by_buffer(const uint8_t *b, size_t len)
+{
+    if (b == NULL) {
+        return ARCHIVE_FORMAT_UNKNOWN;
+    }
+    if (len >= 4 && memcmp(b, "PK\x03\x04", 4) == 0) return ARCHIVE_FORMAT_ZIP;
+    if (len >= 4 && memcmp(b, "PK\x05\x06", 4) == 0) return ARCHIVE_FORMAT_ZIP;
+    if (len >= 6 && memcmp(b, "7z\xbc\xaf\x27\x1c", 6) == 0) return ARCHIVE_FORMAT_7Z;
+    if (len >= 4 && memcmp(b, "hsqs", 4) == 0) return ARCHIVE_FORMAT_SQUASHFS;
+    if (len >= 4 && memcmp(b, "sqsh", 4) == 0) return ARCHIVE_FORMAT_SQUASHFS;
+    if (len >= 7 && memcmp(b, "Rar!\x1a\x07", 7) == 0) return ARCHIVE_FORMAT_RAR;
+    if (len >= 8 && memcmp(b, "!<arch>\n", 8) == 0) return ARCHIVE_FORMAT_AR;
+    if (len >= 3 && memcmp(b, "BZh", 3) == 0) return ARCHIVE_FORMAT_BZIP2;
+    if (len >= 2 && memcmp(b, "\x1f\x8b", 2) == 0) return ARCHIVE_FORMAT_GZIP;
+    if (len >= 6 && memcmp(b, "\xfd7zXZ\x00", 6) == 0) return ARCHIVE_FORMAT_XZ;
+    if (len >= 4 && memcmp(b, "\x28\xb5\x2f\xfd", 4) == 0) return ARCHIVE_FORMAT_ZSTD;
+    if (len >= 4 && memcmp(b, "\x04\x22\x4d\x18", 4) == 0) return ARCHIVE_FORMAT_LZ4;
+    if (len >= 262 && memcmp(b + 257, "ustar", 5) == 0) return ARCHIVE_FORMAT_TAR;
+
+    return ARCHIVE_FORMAT_UNKNOWN;
+}
+
+/* 依据文件内容识别格式 */
+archive_format_e archive_detect_format(char *path)
+{
+    allocator_t *allocator = allocator_get_default_instance();
+    File *file = NULL;
+    uint8_t buf[512] = {0};
+    int len = 0;
+    archive_format_e fmt = ARCHIVE_FORMAT_UNKNOWN;
+
+    if (path == NULL) {
+        return ARCHIVE_FORMAT_UNKNOWN;
+    }
+
+    file = object_new(allocator, "File", NULL);
+    if (file == NULL) {
+        return ARCHIVE_FORMAT_UNKNOWN;
+    }
+    if (file->open(file, path, "rb") >= 0) {
+        len = file->read(file, buf, sizeof(buf));
+        file->close(file);
+        fmt = archive_detect_format_by_buffer(buf, len);
+    }
+    object_destroy(file);
+
+    return fmt;
+}
+
+/* 格式 -> Archive 子类名(NULL 表示该格式不支持) */
+const char *archive_format_class_name(archive_format_e fmt)
+{
+    switch (fmt) {
+    case ARCHIVE_FORMAT_TAR:      return "Tar";
+    case ARCHIVE_FORMAT_TGZ:      return "Tgz";
+    case ARCHIVE_FORMAT_TBZ2:     return "Tbz2";
+    case ARCHIVE_FORMAT_ZIP:      return "Zip";
+    case ARCHIVE_FORMAT_7Z:       return "SevenZip";
+    case ARCHIVE_FORMAT_SQUASHFS: return "Squashfs";
+    default:                      return NULL;
+    }
+}
+
 static int __free_file_info_callback(allocator_t *allocator, archive_file_info_t *info)
 {
     allocator_mem_free(allocator, info->file_name);
@@ -62,20 +128,58 @@ static int __deconstruct(Archive *archive)
     return 0;
 }
 
+/*
+ * 归档文件里是二进制内容(压缩流/魔数), 必须以二进制模式打开,
+ * 否则在 windows 上文本模式会做 CRLF 转换, 把数据改坏。
+ * 调用方传什么模式都无所谓, 这里统一加上 'b'。
+ */
+static char *__binary_mode(char *mode)
+{
+    static char binary_mode[8];
+    int i, len;
+
+    if (mode == NULL) {
+        return mode;
+    }
+
+    len = strlen(mode);
+    if (len >= (int)sizeof(binary_mode) - 1) {
+        len = sizeof(binary_mode) - 2;
+    }
+    memcpy(binary_mode, mode, len);
+    binary_mode[len] = '\0';
+
+    for (i = 0; i < len; i++) {
+        if (binary_mode[i] == 'r' || binary_mode[i] == 'w' ||
+            binary_mode[i] == 'a') {
+            if (i + 1 < len && binary_mode[i + 1] == 'b') {
+                break;  /* 已经是二进制模式了 */
+            }
+            memmove(&binary_mode[i + 2], &binary_mode[i + 1], len - i - 1);
+            binary_mode[i + 1] = 'b';
+            binary_mode[len + 1] = '\0';
+            break;
+        }
+    }
+
+    return binary_mode;
+}
+
 static int __open(Archive *archive, char *archive_name, char *mode)
 {
     File *file = archive->file;
     int (*func)(Archive *archive, char *archive_name, char *mode);
     int ret;
+    char *bin_mode = __binary_mode(mode);
 
     TRY {
         dbg_str(DBG_INFO, "Archive open file %s", archive_name);
-        EXEC(file->open(file, archive_name, mode));
+        EXEC(file->open(file, archive_name, bin_mode));
         
         /* 这里去调用子类的方法 */
         func = object_get_progeny_class_first_private_func(((Obj *)archive)->target_name, "Archive", "open");
         if (func != NULL) {
-            EXEC(func(archive, archive_name, mode));
+            EXEC(func(archive, archive_name, bin_mode));
         }
     } CATCH (ret) {}
 

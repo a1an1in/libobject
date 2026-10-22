@@ -640,7 +640,7 @@ static int __extract_file(Squashfs *sq, archive_file_info_t *info)
         THROW_IF(ino.type != SQFS_INODE_FILE && ino.type != SQFS_INODE_EXT_FILE, -1);
 
         EXEC(fs_mkfile(out_name, 0777));
-        EXEC(out->open(out, out_name, "w+"));
+        EXEC(out->open(out, out_name, "wb+"));
 
         block = allocator_mem_alloc(allocator, sq->super.block_size);
         THROW_IF(block == NULL, -1);
@@ -765,7 +765,7 @@ static int __add_file(Squashfs *sq, archive_file_info_t *info)
     TRY {
         THROW_IF(info == NULL || info->file_name == NULL, -1);
 
-        EXEC(file->open(file, info->file_name, "r+"));
+        EXEC(file->open(file, info->file_name, "rb+"));
         data_size = fs_get_size(info->file_name);
         data = allocator_mem_alloc(allocator, data_size ? data_size : 1);
         THROW_IF(data == NULL, -1);

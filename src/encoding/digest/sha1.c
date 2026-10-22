@@ -195,7 +195,7 @@ digest_sha1_update(digest_sha1_t *ctx, const void *data, unsigned int size)
 
         if (size < free) {
             memcpy(&ctx->buffer[used], data, size);
-            return;
+            return 1;
         }
 
         memcpy(&ctx->buffer[used], data, free);

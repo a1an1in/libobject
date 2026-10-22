@@ -1,0 +1,26 @@
+# ---------------------------------------------------------------------------
+# Line ending handling.
+#
+# shell 脚本必须是 LF, 否则在 Windows 上(MSYS2/WSL)bash 会因为 CRLF 报
+# "bad interpreter: /usr/bin/env bash^M"。
+#
+# The test resources are compared byte by byte with the content stored in the
+# prebuilt archives(tar/zip/tgz/...), those archives were generated on Linux
+# with LF line endings. With core.autocrlf=true the text files would be
+# checked out with CRLF on Windows and the comparison would fail, so force
+# LF for the test resources and keep the archives binary.
+# ---------------------------------------------------------------------------
+*.sh  text eol=lf
+tests/archive/res/** text eol=lf
+tests/node/res/** text eol=lf
+tests/compress/res/** text eol=lf
+
+*.tar  -text
+*.zip  -text
+*.7z   -text
+*.sqfs -text
+*.gz   -text
+*.tgz  -text
+*.tbz2 -text
+*.bz2  -text
+*.xz   -text

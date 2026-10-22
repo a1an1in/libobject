@@ -103,4 +103,15 @@ typedef enum archive_format_e {
     MAX_ARCHIVE_FORMAT,
 } archive_format_e;
 
+/* ------------------------------------------------------------------ */
+/* 归档格式识别(对外接口, CLI 和 http 插件复用)                          */
+/* ------------------------------------------------------------------ */
+
+/* 依据文件头缓冲(前 512 字节)识别格式 */
+archive_format_e archive_detect_format_by_buffer(const uint8_t *b, size_t len);
+/* 依据文件内容识别格式 */
+archive_format_e archive_detect_format(char *path);
+/* 格式 -> Archive 子类名(NULL 表示该格式不支持) */
+const char *archive_format_class_name(archive_format_e fmt);
+
 #endif

@@ -10,6 +10,7 @@ SET(CMAKE_CXX_COMPILER /usr/bin/g++)
 LINK_DIRECTORIES(
     /usr/lib/x86_64-linux-gnu
     /usr/local/lib
+    ${PROJECT_SOURCE_DIR}/sysroot/linux/x86_64/lib
 )
 
 # 指定头文件路径

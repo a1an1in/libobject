@@ -25,6 +25,17 @@ if (NOT LIBLZMA_FOUND)
         "  macOS         : brew install xz")
 endif ()
 
+# zlib is required by ZCompress (deflate/gzip).
+find_package(ZLIB)
+if (NOT ZLIB_FOUND)
+    message(FATAL_ERROR
+        "zlib development files were not found.\n"
+        "ZCompress/Deflate/GZ need zlib to compile and link.\n"
+        "  Debian/Ubuntu : sudo apt-get install zlib1g-dev\n"
+        "  RHEL/Fedora   : sudo dnf install zlib-devel\n"
+        "  macOS         : zlib is usually shipped with the OS (brew install zlib if missing)")
+endif ()
+
 file(GLOB_RECURSE MOUDLE_HEADERS
     "*.h"
 )
@@ -39,3 +50,5 @@ file(GLOB MOUDLE_SRC
 )
 
 add_library(${PROJECT_NAME} STATIC ${MOUDLE_SRC})
+
+target_link_libraries(${PROJECT_NAME} ${BZIP2_LIBRARIES} ${LIBLZMA_LIBRARIES} ${ZLIB_LIBRARIES})

@@ -371,18 +371,21 @@ debugger_t *debugger_creator(char *ini_file_name, uint8_t lock_type)
 int debugger_constructor()
 {
     char file_name[128];
-    const char *home = getenv("HOME");
+    char home[128] = {0};
+    const char *home_env = getenv("HOME");
 
     ATTRIB_PRINT("REGISTRY_CTOR_PRIORITY=%d, construct debugger\n", 
                  REGISTRY_CTOR_PRIORITY_DEBUGGER);
 #if (defined(UNIX_USER_MODE) || defined(LINUX_USER_MODE) || defined(IOS_USER_MODE) || defined(MAC_USER_MODE))
-    snprintf(file_name, sizeof(file_name), "%s/%s", home, ".xtools");
+    snprintf(file_name, sizeof(file_name), "%s/%s", home_env, ".xtools");
     mkdir(file_name, 0777);
 #elif defined(ANDROID_USER_MODE)
     snprintf(file_name, sizeof(file_name), "/data/local/tmp/.xtools");
     mkdir(file_name, 0777);
 #else
-    snprintf(file_name, sizeof(file_name), "%s/%s", home, ".xtools");
+    /* Windows: HOME 默认不存在, 用 USERPROFILE(取不到再退回 HOME) */
+    fs_gethome(home, sizeof(home));
+    snprintf(file_name, sizeof(file_name), "%s/.xtools", home);
     mkdir(file_name);
 #endif
 

@@ -92,7 +92,9 @@ int file_compute_crc32(char *file_name, uint32_t *crc)
 
     TRY {
         file = OBJECT_NEW(allocator, File, NULL);
-        EXEC(file->open(file, file_name, "r"));
+        /* NOTE: must be binary mode, the crc32 must be computed on the
+         * original bytes(文本模式会在 windows 上做 CRLF 转换) */
+        EXEC(file->open(file, file_name, "rb"));
         size = fs_get_size(file_name);
         THROW_IF(size < 0, -1);
 

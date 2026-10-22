@@ -139,8 +139,9 @@ int assert_file_equal(const char *file1, const char *file2)
         // THROW_IF(!fs_is_exist(file1), -1);
         // THROW_IF(!fs_is_exist(file2), -1);
 
-        fp1 = fopen(file1, "r");
-        fp2 = fopen(file2, "r");
+        fp1 = fopen(file1, "rb");
+        fp2 = fopen(file2, "rb");
+        THROW_IF(fp1 == NULL || fp2 == NULL, -1);
         word1 = getc(fp1);
         word2 = getc(fp2);
 
@@ -150,8 +151,8 @@ int assert_file_equal(const char *file1, const char *file2)
             word2 = getc(fp2);
         }
     } CATCH(ret) {} FINALLY {
-        fclose(fp1);
-        fclose(fp2);
+        if (fp1) fclose(fp1);
+        if (fp2) fclose(fp2);
     }
    
     return (word1 == word2);

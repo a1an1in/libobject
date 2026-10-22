@@ -38,44 +38,65 @@
 #include <sys/time.h>
 #include "Windows_File_System.h"
 
+/*
+ * 递归创建目录。
+ * windows 的路径分隔符有 '/' 和 '\\' 两种, 这里逐级截断路径来创建,
+ * 盘符("C:")和 UNC 前缀("\\\\server\\share")不处理。
+ */
 static int __mkdir(Windows_File_System *fs, char *path, mode_t mode)
 {
-    String *string;
     allocator_t *allocator = fs->parent.obj.allocator;
-    char *p, *tmp;
-    int path_len;
-    int ret, cnt, i;
+    char *tmp;
+    char home[512] = {0};
+    int path_len, i, ret = 0;
 
     TRY {
-        string = object_new(allocator, "String", NULL);
-        string->assign(string, path);  
         path_len = strlen(path);
-        tmp = allocator_mem_alloc(allocator, path_len * 2);
+        /* NOTE: must be zeroed, it is used with strcat()/strcpy() below */
+        tmp = allocator_mem_zalloc(allocator, path_len + 1024);
 
-        cnt = string->split(string, "/", -1);
+        if (path[0] == '~') {
+            /* "~" 展开成用户目录 */
+            fs_gethome(home, sizeof(home));
+            strcat(tmp, home);
+            strcat(tmp, path + 1);
+        } else {
+            strcpy(tmp, path);
+        }
+        path_len = strlen(tmp);
 
-        for (i = 0; i < cnt; i++) {
-            p = string->get_splited_cstr(string, i);
-            THROW_IF(p == NULL, -1);
-            if (i == 0 && strncmp(p, ".", strlen(p)) == 0) {
-                strcpy(tmp, p);
-            } else if (i == 0 && strncmp(p, "~", strlen(p)) == 0) {
-                fs_gethome(tmp, path_len);
-            } else {
-                strcat(tmp, "/");
-                strcat(tmp, p);
-            }
-            
-            if (fs_is_exist(tmp)) {
+        for (i = 1; i < path_len; i++) {
+            if (tmp[i] != '/' && tmp[i] != '\\') {
                 continue;
             }
-            dbg_str(DBG_VIP, "mkdir %d:%s", i, tmp);
+            /* 盘符("C:\\xxx")的盘符后面那个分隔符跳过 */
+            if (i == 2 && tmp[1] == ':') {
+                continue;
+            }
+            /* UNC 前缀("\\\\server\\share")跳过 */
+            if (i == 1 && tmp[1] == '\\') {
+                continue;
+            }
+            /* 连续的分隔符跳过 */
+            if (tmp[i - 1] == '/' || tmp[i - 1] == '\\') {
+                continue;
+            }
+
+            tmp[i] = '\0';
+            if (fs_is_exist(tmp) == 0) {
+                dbg_str(DBG_VIP, "mkdir %s", tmp);
+                EXEC(mkdir(tmp));
+            }
+            tmp[i] = '/';
+        }
+
+        if (fs_is_exist(tmp) == 0) {
+            dbg_str(DBG_VIP, "mkdir %s", tmp);
             EXEC(mkdir(tmp));
         }
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "mkdir %s", path);
     } FINALLY {
-        object_destroy(string);
         allocator_mem_free(allocator, tmp);
     }
 

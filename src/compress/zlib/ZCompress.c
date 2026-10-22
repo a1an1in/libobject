@@ -48,7 +48,7 @@
       in_file = object_new(allocator, "File", NULL);
       out_file = object_new(allocator, "File", NULL);
 
-      in_file->open(in_file, file_name_in, "r+");
+      in_file->open(in_file, file_name_in, "rb+");
       in_size = in_file->get_size(in_file);
       dbg_str(DBG_VIP, "uncompress_file, file size:%d", in_size);
 
@@ -58,7 +58,7 @@
       in_file->read(in_file, in_buffer, in_size);
       c->uncompress_buf(c, in_buffer, in_size, out_buffer, &out_size);
       
-      out_file->open(out_file, file_name_out, "w+");
+      out_file->open(out_file, file_name_out, "wb+");
       out_file->write(out_file, out_buffer, out_size);
     } CATCH (ret) {} FINALLY {
       allocator_mem_free(allocator, in_buffer);

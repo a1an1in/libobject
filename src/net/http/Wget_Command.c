@@ -40,7 +40,7 @@ static int __wget_request_callback(Response *resp, void *arg)
     printf("status code =%d, output file =%s\n", resp->status_code, STR2A(output_document));
 
     file = object_new(allocator, "File", NULL);
-    file->open(file, path->get_cstr(path), "w+");   
+    file->open(file, path->get_cstr(path), "wb+");   
     file->write(file, resp->get_body(resp), resp->body->get_len(resp->body)); 
     file->close(file);
 

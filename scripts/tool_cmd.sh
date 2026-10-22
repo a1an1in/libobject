@@ -210,18 +210,26 @@ function do_build_windows {
     if [[ "$(uname -s)" == "Linux" ]]; then
         # 运行 CMake，加载工具链文件
         cmake ../../../ -DPLATFORM=windows -DMODULE_UI=off -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} -DCMAKE_INSTALL_PREFIX=$SYSROOT_DIR || { echo "CMake configuration failed."; exit 1; }
+        BUILD_CMD="make"
+        INSTALL_CMD="make install"
     elif [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* || "$(uname -s)" == "MSYS"* ]]; then
         echo "build windows locally."
-        cmake ../../.. -G "Unix Makefiles" -DPLATFORM=windows -DMODULE_UI=off -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} -DCMAKE_INSTALL_PREFIX=$SYSROOT_DIR
+        # 原生 Windows 构建用 Ninja + 原生(MinGW) cmake/ninja/gcc,
+        # 这样所有路径都在 Windows 路径空间里。
+        # (不要用 "Unix Makefiles" + MSYS 的 cmake: 它的路径空间和原生 gcc 不一致,
+        #  会生成损坏的依赖文件, 报 "多个目标匹配")
+        cmake ../../.. -G "Ninja" -DPLATFORM=windows -DMODULE_UI=off -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} -DCMAKE_INSTALL_PREFIX=$SYSROOT_DIR || { echo "CMake configuration failed."; exit 1; }
+        BUILD_CMD="cmake --build ."
+        INSTALL_CMD="cmake --build . --target install"
     else
         echo "Unsupported host platform: $(uname -s)"
         exit 1
     fi
 
-    make || { echo "Make failed."; exit 1; }
+    ${BUILD_CMD} || { echo "Make failed."; exit 1; }
 
     if [[ $OPTION_INSTALL == "true" ]]; then
-        make install || { echo "Make install failed."; exit 1; }
+        ${INSTALL_CMD} || { echo "Make install failed."; exit 1; }
         exit 0
     fi
 
@@ -247,6 +255,24 @@ function do_build_windows {
     chmod +x ${SYSROOT_DIR}/bin/node_cli.sh
     cp -r ../../../src/include/* ${SYSROOT_DIR}/include/
     echo "include has been copied to ${SYSROOT_DIR}/include"
+
+    # Windows 按 exe 所在目录查找依赖 DLL，把运行时 DLL 都复制到 bin 目录，
+    # 这样 sysroot/windows/<arch>/bin 目录可以整体拷贝到目标机器直接运行。
+    cp -f ${SYSROOT_DIR}/lib/*.dll ${SYSROOT_DIR}/bin/ 2>/dev/null
+    gcc_bin_dir=$(dirname $(command -v gcc))
+    if [ -d "${gcc_bin_dir}" ]; then
+        # 按 exe 和各 dll 的导入表收集 MinGW 运行库
+        # (libwinpthread-1.dll / zlib1.dll / liblzma-5.dll / libbz2-1.dll ...)
+        for f in ${SYSROOT_DIR}/bin/xtools.exe ${SYSROOT_DIR}/bin/*.dll; do
+            [ -f "$f" ] || continue
+            for dll in $(objdump -p "$f" 2>/dev/null | grep "DLL Name" | sed 's/.*DLL Name: //'); do
+                if [ -f "${gcc_bin_dir}/${dll}" ]; then
+                    cp -f "${gcc_bin_dir}/${dll}" ${SYSROOT_DIR}/bin/ 2>/dev/null
+                fi
+            done
+        done
+    fi
+    echo "runtime dlls have been copied to ${SYSROOT_DIR}/bin"
 }
 
 function do_build {

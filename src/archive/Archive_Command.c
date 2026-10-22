@@ -32,15 +32,7 @@
 
 static const char *__format_class_name(archive_format_e fmt)
 {
-    switch (fmt) {
-    case ARCHIVE_FORMAT_TAR:      return "Tar";
-    case ARCHIVE_FORMAT_TGZ:      return "Tgz";
-    case ARCHIVE_FORMAT_TBZ2:     return "Tbz2";
-    case ARCHIVE_FORMAT_ZIP:      return "Zip";
-    case ARCHIVE_FORMAT_7Z:       return "SevenZip";
-    case ARCHIVE_FORMAT_SQUASHFS: return "Squashfs";
-    default:                      return NULL;
-    }
+    return archive_format_class_name(fmt);
 }
 
 /* 依据文件头缓冲(前 512 字节)识别格式 */
@@ -74,7 +66,7 @@ static archive_format_e __detect_format(const char *path)
 
     file = object_new(allocator, "File", NULL);
     if (file == NULL) return ARCHIVE_FORMAT_UNKNOWN;
-    if (file->open(file, (char *)path, "r") >= 0) {
+    if (file->open(file, (char *)path, "rb") >= 0) {
         len = file->read(file, buf, sizeof(buf));
         file->close(file);
         fmt = __detect_format_buf(buf, len);
@@ -169,7 +161,7 @@ static Archive *__open_tar_compressed(allocator_t *allocator, const char *path,
 
         a = (Archive *)object_new(allocator, "Tar", NULL);
         THROW_IF(a == NULL, -1);
-        EXEC(a->open(a, tar_path, "r"));
+        EXEC(a->open(a, tar_path, "rb"));
     } CATCH (ret) {
         if (c) object_destroy(c);
         if (a) { object_destroy(a); a = NULL; }
@@ -296,7 +288,7 @@ static int __cmd_list(Archive_Command *command)
     archive_file_info_t *info;
     int ret, count, i;
 
-    if (a == NULL) a = __open(allocator, command->arg1, "r");
+    if (a == NULL) a = __open(allocator, command->arg1, "rb");
     if (a == NULL) return -1;
 
     TRY {
@@ -324,7 +316,7 @@ static int __cmd_extract(Archive_Command *command)
     Vector *infos = NULL, *sel = NULL;
     int ret;
 
-    if (a == NULL) a = __open(allocator, command->arg1, "r");
+    if (a == NULL) a = __open(allocator, command->arg1, "rb");
     if (a == NULL) return -1;
 
     TRY {
@@ -374,7 +366,7 @@ static int __cmd_create(Archive_Command *command)
             snprintf(tmp_tar, sizeof(tmp_tar), "%s.tmp.tar", out);
             a = (Archive *)object_new(allocator, "Tar", NULL);
             THROW_IF(a == NULL, -1);
-            EXEC(a->open(a, tmp_tar, "w+"));
+            EXEC(a->open(a, tmp_tar, "wb+"));
             EXEC(a->set_adding_path(a, add_path));
             EXEC(a->add(a));
             EXEC(a->close(a));
@@ -385,7 +377,7 @@ static int __cmd_create(Archive_Command *command)
             object_destroy(c);
             fs_rmfile(tmp_tar);
         } else {
-            a = __open(allocator, out, "w+");
+            a = __open(allocator, out, "wb+");
             THROW_IF(a == NULL, -1);
             EXEC(a->set_adding_path(a, add_path));
             EXEC(a->add(a));
@@ -410,7 +402,7 @@ static int __cmd_add(Archive_Command *command)
     }
 
     TRY {
-        a = __open(allocator, command->arg1, "r+");
+        a = __open(allocator, command->arg1, "rb+");
         THROW_IF(a == NULL, -1);
         memset(&info, 0, sizeof(info));
         info.file_name = command->arg2;

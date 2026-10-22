@@ -110,6 +110,8 @@ static inline struct page * rb_insert_page_cache(struct inode * inode,
 #ifndef	_LINUX_RBTREE_H
 #define	_LINUX_RBTREE_H
 
+#include <stdint.h>
+
 /*
  *#if defined(container_of)
  *  #undef container_of
@@ -139,12 +141,17 @@ static inline struct page * rb_insert_page_cache(struct inode * inode,
 
 struct rb_node_s
 {
-	unsigned long  rb_parent_color;
+	/*
+	 * NOTE: must be uintptr_t (not unsigned long): on Windows(LLP64)
+	 * "unsigned long" is only 32 bit, so the parent pointer would be
+	 * truncated and the tree would be corrupted.
+	 */
+	uintptr_t  rb_parent_color;
 #define	RB_RED		0
 #define	RB_BLACK	1
 	struct rb_node_s *rb_right;
 	struct rb_node_s *rb_left;
-} __attribute__((aligned(sizeof(long))));
+} __attribute__((aligned(sizeof(uintptr_t))));
     /* The alignment might seem pointless, but allegedly CRIS needs it */
 
 struct rb_root_s
@@ -162,7 +169,7 @@ struct rb_root_s
 
 static inline void rb_set_parent(struct rb_node_s *rb, struct rb_node_s *p)
 {
-	rb->rb_parent_color = (rb->rb_parent_color & 3) | (unsigned long)p;
+	rb->rb_parent_color = (rb->rb_parent_color & 3) | (uintptr_t)p;
 }
 static inline void rb_set_color(struct rb_node_s *rb, int color)
 {
@@ -208,7 +215,7 @@ extern void rb_replace_node(struct rb_node_s *victim, struct rb_node_s *new,
 static inline void rb_link_node(struct rb_node_s * node, struct rb_node_s * parent,
 				struct rb_node_s ** rb_link)
 {
-	node->rb_parent_color = (unsigned long )parent;
+	node->rb_parent_color = (uintptr_t)parent;
 	node->rb_left = node->rb_right = NULL;
 
 	*rb_link = node;

@@ -14,7 +14,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#if (defined(WINDOWS_USER_MODE))
+#include <process.h>
+#else
 #include <sys/wait.h>
+#endif
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/io/file_system_api.h>
 #include <libobject/mockery/mockery.h>
@@ -45,7 +49,9 @@ static const char *__xt_bin(void)
 #elif defined(MAC_USER_MODE)
     return "./sysroot/mac/bin/xtools";
 #elif defined(WINDOWS_USER_MODE)
-    return "./sysroot/windows/bin/xtools.exe";
+    /* NOTE: windows 的 popen/system 走 cmd.exe，路径要用反斜杠，
+     * cmd.exe 不认 "./xxx" 这种写法 */
+    return ".\\sysroot\\windows\\x86_64\\bin\\xtools.exe";
 #endif
 
     /* Linux 兜底按架构 */
@@ -71,7 +77,12 @@ static int __cli_run(const char *cmd, char *out, int out_size)
         out[n] = '\0';
     }
     rc = pclose(fp);
+#if (defined(WINDOWS_USER_MODE))
+    /* the MSVCRT pclose() returns the exit code of the child directly */
+    return rc;
+#else
     return WIFEXITED(rc) ? WEXITSTATUS(rc) : -1;
+#endif
 }
 
 /* 断言命令退出码为 0 且 stdout 含 expect(可为 NULL); 不符则打日志并返回 0 */

@@ -38,7 +38,9 @@
 #include <time.h>
 
 // Linux交叉编译Windows找不到localtime_r替代实现
-#if defined(CROSS_COMPILE)
+// 原生 Windows(MinGW) 构建同样没有 localtime_r，只有定义了
+// _POSIX_THREAD_SAFE_FUNCTIONS 时 mingw-w64 才会提供其内联实现。
+#if (defined(WINDOWS_USER_MODE) && !defined(_POSIX_THREAD_SAFE_FUNCTIONS))
 static struct tm *localtime_r(const time_t *timep, struct tm *result) {
     if (localtime_s(result, timep) != 0) {
         return NULL;

@@ -155,6 +155,8 @@ static int __read_central_directory_headers(Zip *zip)
         dbg_str(DBG_INFO, "dir num %d", end_header->central_directory_total_number);
         for (i = 0; i < end_header->central_directory_total_number; i++) {
             header = allocator_mem_zalloc(allocator, sizeof(zip_central_directory_header_t));
+            /* set opaque for for each func(写中央目录时要用) */
+            header->opaque = zip;
             a->seek(a, end_header->central_directory_start_offset + read_size, SEEK_SET);
             a->read(a, (uint8_t *)header, ZIP_CENTROL_DIR_HEADER_SIZE);
 
@@ -212,6 +214,12 @@ static int __open(Zip *zip, char *archive_name, char *mode)
 
         EXEC(__search_central_directory_end_header_position(zip, &zip->central_dir_end_header_position));
         EXEC(__read_central_directory_end_header(zip));
+        /*
+         * 中央目录的起始位置就是数据区的结束位置,
+         * 往已有包里追加条目时要从这里接着写, 否则会覆盖掉原来的内容。
+         */
+        zip->central_dir_position =
+            zip->central_directory_end_header.central_directory_start_offset;
         EXEC(__read_central_directory_headers(zip));
     } CATCH (ret) {}
 
@@ -470,7 +478,7 @@ static int __write_file(Zip *zip, char *file_name, zip_file_header_t *header)
 
     TRY {
         /* prepare */
-        EXEC(file->open(file, file_name, "r"));
+        EXEC(file->open(file, file_name, "rb"));
         header->uncompressed_size = fs_get_size(file_name);
 
         /* compute crc32 */
@@ -731,6 +739,17 @@ static int __save(Zip *zip)
     if (zip->add_flag == 1) {
         TRY_EXEC(__write_central_directory_headers(zip));
         TRY_EXEC(__write_central_directory_end_header(zip));
+        /*
+         * 往已有包里追加条目时, 旧的中央目录/EOCD 还留在文件尾部,
+         * 新的 EOCD 搜索会命中旧的那个, 所以要把文件截断到新的 EOCD 末尾。
+         */
+        {
+            Archive *archive = (Archive *)&zip->parent;
+            File *a = archive->file;
+
+            a->truncate(a, zip->central_dir_end_header_position
+                        + ZIP_CENTROL_DIR_END_HEADER_SIZE);
+        }
     }
 
     zip->add_flag = 0;

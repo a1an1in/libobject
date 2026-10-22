@@ -33,9 +33,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#if (defined(WINDOWS_USER_MODE))
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>      /* sockaddr_in */
 #include <arpa/inet.h>
 #include <netdb.h>
+#endif
 #include <libobject/core/io/Socket.h>
 #include <libobject/concurrent/net/Client.h>
 #include <libobject/concurrent/work_task.h>

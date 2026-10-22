@@ -35,6 +35,12 @@
 #include <libobject/core/io/File.h>
 #include <libobject/core/io/file_system_api.h>
 #include <errno.h>
+#if (defined(WINDOWS_USER_MODE))
+#include <io.h>
+#include <unistd.h>
+#else
+#include <unistd.h>
+#endif
 
 static int __construct(File *file,char *init_str)
 {
@@ -154,6 +160,29 @@ int __seek(File *file, long offset, int from)
     return fseek(file->f, offset, from);
 }
 
+/*
+ * 把文件截断到 size 字节。
+ * 往已有文件里覆盖写(比如往 zip 包里追加条目)时, 如果新内容比旧内容短,
+ * 旧数据会残留在文件尾部, 需要截断掉。
+ */
+static int __truncate(File *file, long size)
+{
+    int ret = -1;
+
+    TRY {
+        THROW_IF(file->f == NULL, -1);
+        fflush(file->f);
+#if (defined(WINDOWS_USER_MODE))
+        THROW_IF(_chsize_s(_fileno(file->f), size) != 0, -1);
+#else
+        THROW_IF(ftruncate(fileno(file->f), size) != 0, -1);
+#endif
+        ret = 0;
+    } CATCH (ret) {}
+
+    return ret;
+}
+
 static class_info_entry_t file_class_info[] = {
     Init_Obj___Entry(0 , Obj, obj),
     Init_Nfunc_Entry(1 , File, construct, __construct),
@@ -169,6 +198,7 @@ static class_info_entry_t file_class_info[] = {
     Init_Vfunc_Entry(11, File, close, __close),
     Init_Vfunc_Entry(12, File, get_size, __get_size),
     Init_Vfunc_Entry(13, File, seek, __seek),
-    Init_End___Entry(14, File),
+    Init_Vfunc_Entry(14, File, truncate, __truncate),
+    Init_End___Entry(15, File),
 };
 REGISTER_CLASS(File, file_class_info);
