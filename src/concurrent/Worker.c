@@ -112,8 +112,16 @@ static int __resign(Worker *worker)
         return 0; //has resigned
     }
 
-    p->del_worker(p, worker);
+    /*
+     * 先置位再摘除: worker 可能被多个线程同时销毁
+     * (比如 server 的析构函数和 worker 自己的析构函数),
+     * 不先置位的话同一个 worker 会被从 producer 的链表里删两次,
+     * 链表节点被释放两次 -> 分配器里的内存被重复回收并复用 ->
+     * 后面遍历这个链表就会读到野指针崩溃。
+     */
     worker->flags |= 1;
+
+    p->del_worker(p, worker);
 
     return 1;
 }

@@ -36,6 +36,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Linked_List.h>
+#include <libobject/core/utils/sync_lock.h>
 #include <libobject/concurrent/Producer.h>
 #include <libobject/concurrent/worker_api.h>
 
@@ -48,6 +49,15 @@ static int __construct(Producer *producer, char *init_str)
 
     dbg_str(CONCURRENT_DETAIL, "producer construct, producer addr:%p", producer);
     producer->workers = OBJECT_NEW(allocator, Linked_List, NULL);
+    /*
+     * worker 链表会被多个线程访问: 主线程增删 worker,
+     * 事件线程销毁 worker 时也会从这里摘掉, 所以要加锁
+     * (链表默认的 lock_type 是 0, 等于没加锁)
+     */
+    {
+        int lock_type = PTHREAD_MUTEX_LOCK;
+        producer->workers->set(producer->workers, "lock_type", &lock_type);
+    }
 
     return 0;
 }

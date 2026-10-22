@@ -71,6 +71,9 @@ int llist_set(llist_t *llist, char *attrib, void *value)
 {
     if (!strcmp(attrib, "lock_type")) {
         llist->lock_type = *((int *)value);
+        /* 锁是在 llist_init 里按 lock_type 初始化的, 这里换了类型要重新初始化,
+         * 不然还是原来那个(默认是空操作, 相当于没加锁) */
+        sync_lock_init(&llist->list_lock, llist->lock_type);
         dbg_str(LINKLIST_DETAIL, "lock_type=%d", llist->lock_type);
     } else {
         dbg_str(LINKLIST_WARN, "not support attrib %s setting, please check", attrib);
@@ -145,7 +148,8 @@ int llist_add_back(llist_t *llist, void *data)
     return 1;
 }
 
-int llist_delete(llist_t *llist, list_pos_t *pos)
+/* 内部版本: 调用者必须已经持有 list_lock */
+static int __llist_delete(llist_t *llist, list_pos_t *pos)
 {
     list_t *p;
 
@@ -156,8 +160,6 @@ int llist_delete(llist_t *llist, list_pos_t *pos)
 
     p = container_of(pos->list_head_p, list_t, list_head);
 
-    sync_lock(&llist->list_lock, NULL);
-
     if (llist_pos_equal(pos, &llist->begin)) {
         llist_pos_init(&llist->begin, pos->list_head_p->next, llist);
     }
@@ -165,11 +167,20 @@ int llist_delete(llist_t *llist, list_pos_t *pos)
     llist->list_count--;
     dbg_str(LINKLIST_DETAIL, "delete llist, listcount=%d", llist->list_count);
 
-    sync_unlock(&llist->list_lock);
-
     allocator_mem_free(llist->allocator, p);
 
     return 1;
+}
+
+int llist_delete(llist_t *llist, list_pos_t *pos)
+{
+    int ret;
+
+    sync_lock(&llist->list_lock, NULL);
+    ret = __llist_delete(llist, pos);
+    sync_unlock(&llist->list_lock);
+
+    return ret;
 }
 
 int llist_delete_back(llist_t *llist)
@@ -292,7 +303,17 @@ int llist_remove_element(llist_t *llist, void *data)
     void *element;
     int ret = 0;
 
-	for (llist_begin(llist, &pos), llist_pos_next(&pos, &next);
+    /*
+     * 查找和删除必须放在同一个锁里:
+     * 这个链表可能同时被多个线程改(比如 producer 的 worker 链表,
+     * 主线程增删 worker, 事件线程销毁 worker 时也会摘),
+     * 不加锁的话会遍历到已经被别的线程释放掉的节点,
+     * 链表被搞坏(节点被重复释放, 分配器里的内存被复用成别的数据),
+     * 后面再遍历这个链表就会崩。
+     */
+    sync_lock(&llist->list_lock, NULL);
+
+    for (llist_begin(llist, &pos), llist_pos_next(&pos, &next);
 		 !llist_pos_equal(&pos, &llist->head);
 		 pos = next, llist_pos_next(&pos, &next)) {
         element = llist_pos_get_pointer(&pos);
@@ -303,8 +324,10 @@ int llist_remove_element(llist_t *llist, void *data)
 	}
 
     if (ret == 1) {
-        ret = llist_delete(llist, &pos);
+        ret = __llist_delete(llist, &pos);
     }
+
+    sync_unlock(&llist->list_lock);
 
     return ret;
 }
