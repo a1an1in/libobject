@@ -35,23 +35,6 @@ macro (build_windows_dl)
     endif()
 endmacro()
 
-macro (build_mysql)
-    if ("${PLATFORM}" STREQUAL "linux")
-        if(EXISTS ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c)
-            message("rebuild mysql")
-            ExternalProject_Add(mysql-connector-c
-                SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c
-                CMAKE_ARGS ${BUILD_EXTERNAL_ARGS})
-        else ()
-            message("git clone and build mysql")
-            ExternalProject_Add(mysql-connector-c
-                SOURCE_DIR ${PROJECT_SOURCE_DIR}/3rd/mysql-connector-c
-                GIT_REPOSITORY https://github.com/a1an1in/mysql-connector-c.git
-                CMAKE_ARGS ${BUILD_EXTERNAL_ARGS})
-        endif()
-    endif()
-endmacro()
-
 # file(GLOB_RECURSE LIBOBJECT ${CMAKE_INSTALL_PREFIX}/lib/libobject.*)
 # if ("${LIBOBJECT}" STREQUAL "")
 #     build_libobject()
@@ -85,4 +68,3 @@ endmacro()
 
 #build_windows_dl()
 #build_openssl()
-#build_mysql()
