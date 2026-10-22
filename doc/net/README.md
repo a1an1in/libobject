@@ -9,7 +9,7 @@ The net module provides networking capabilities, including:
 
 ### generate docker image
 ```
-sudo ./devops.sh docker --build=fruit-httpd --dockerfile=dockerfile.httpd --package-path=./packages/xtools_linux_x86_64_v2.15.0.241.tar.gz
+sudo python3 devops.py docker --build=fruit-httpd --dockerfile=dockerfile.httpd --package-path=./packages/xtools_linux_x86_64_v2.15.0.241.tar.gz
 sudo docker run -d --name fruit-httpd -p 12345:12345 fruit-httpd 
 ```
 

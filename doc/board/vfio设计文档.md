@@ -617,10 +617,10 @@ int (*dma_run)(Vfio *vfio);   /* 读 Vfio_Pcie.dma_* 入参块，触发并等待
 > `-virtfs` 直接共享 host 的 `sysroot/linux/aarch64`。因此**每次改完代码都要用 aarch64 目标
 > 重新编译**，否则 guest 里跑的还是旧 `xtools`（表现为日志内容/行号不更新）：
 > ```sh
-> ./devops.sh build --platform=linux --arch=aarch64
+> python3 devops.py build --platform=linux --arch=aarch64
 > ```
 > - 产物：`sysroot/linux/aarch64/bin/xtools`（guest 经 9p 直接使用，**无需再拷贝**）；
-> - **默认 `./devops.sh build --platform=linux` 是 x86_64**，不能用于本 guest；
+> - **默认 `python3 devops.py build --platform=linux` 是 x86_64**，不能用于本 guest；
 > - ARM 构建会自动排除 `src/archive`、`object-stub` 等模块（见 [`mk/linux.cmake`](../mk/linux.cmake)）；
 > - 改完可先自检：`strings -a sysroot/linux/aarch64/bin/xtools | grep "edu DMA done"`。
 

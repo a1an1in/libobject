@@ -1,6 +1,6 @@
 macro (set_cmake_evironment_variable)
     if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local")
-        set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/linux)
+        set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/linux/${CMAKE_SYSTEM_PROCESSOR})
     endif ()
 
     # 根据平台动态设置库变量

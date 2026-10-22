@@ -40,7 +40,7 @@ stun id 的链路**，每条会话独立 UDP data socket，打洞地址经信令
 ## 构建
 
 ```bash
-./devops.sh build --platform=linux
+python3 devops.py build --platform=linux
 # 或增量
 make -C build/linux/x86_64 -j$(nproc)
 ```

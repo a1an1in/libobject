@@ -36,7 +36,6 @@ macro (set_cmake_evironment_variable)
             object-tests
             object-mockery
             object-node
-            object-archive
             ${COMPRESS_LIB} # 动态控制是否链接 object-compress
             object-scripts
             ${ATTACHER_LIB} # 动态控制是否链接 object-attacher
@@ -76,13 +75,14 @@ macro (add_module_lists)
     list(APPEND module_lists "src/net")
     list(APPEND module_lists "src/node")
 
-    list(APPEND module_lists "src/compress")
     list(APPEND module_lists "src/crypto")
     #list(APPEND module_lists "src/attacher")
     list(APPEND module_lists "src/scripts")
-    list(APPEND module_lists "src/archive")
+    # Android NDK 不提供 libbz2/liblzma，暂不编译 compress 和 archive
+    #list(APPEND module_lists "src/compress")
+    #list(APPEND module_lists "src/archive")
 
-    list(APPEND module_lists "3rd/test_process")
+    #list(APPEND module_lists "3rd/test_process")
     list(APPEND module_lists "3rd/attacher-builtin")
     list(APPEND module_lists "3rd/testlib")
     

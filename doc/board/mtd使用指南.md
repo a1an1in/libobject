@@ -185,7 +185,7 @@ grep -E "CONFIG_MTD_CFI=|CONFIG_MTD_PHYSMAP=|CONFIG_MTD_BLOCK=" .config
 ## 5. 编译 libobject（aarch64）
 
 ```bash
-./devops.sh build --platform=linux --arch=aarch64
+python3 devops.py build --platform=linux --arch=aarch64
 ```
 
 编译产物位于 `sysroot/linux/aarch64/bin/xtools`，动态库位于 `sysroot/linux/aarch64/lib/`。

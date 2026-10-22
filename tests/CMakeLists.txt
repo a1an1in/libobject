@@ -30,6 +30,14 @@ if(NOT PLATFORM STREQUAL "linux")
     list(FILTER MOUDLE_SOURCES EXCLUDE REGEX ".*/board/.*")
 endif()
 
+# Android 暂不支持 compress/archive/vpn，排除对应测试
+if(PLATFORM STREQUAL "android")
+    message(STATUS "Android platform detected. Skipping tests/compress, tests/archive and tests/net/test_vpn.")
+    list(FILTER MOUDLE_SOURCES EXCLUDE REGEX ".*/compress/.*")
+    list(FILTER MOUDLE_SOURCES EXCLUDE REGEX ".*/archive/.*")
+    list(FILTER MOUDLE_SOURCES EXCLUDE REGEX ".*/net/test_vpn\\.c")
+endif()
+
 # 将头文件和源文件合并
 file(GLOB MOUDLE_SRC
     ${MOUDLE_HEADERS}

@@ -1,0 +1,49 @@
+# Development image for building libobject on Linux (x86_64/arm/aarch64)
+# and Android (arm64-v8a/armeabi-v7a/x86/x86_64).
+#
+# Build:
+#   docker build -f docker/dockerfile.dev -t libobject-dev .
+#
+# Use (source mounted at /work):
+#   docker run -it --rm -v $(pwd):/work libobject-dev
+#   ./devops.py build --platform=linux --arch=x86_64
+#   ./devops.py build --platform=android --arch=arm64-v8a
+
+FROM docker.1ms.run/library/ubuntu:24.04
+
+ARG ANDROID_NDK_VERSION=r27c
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Dependencies for both the Linux build and the Android cross build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        make \
+        git \
+        pkg-config \
+        ca-certificates \
+        curl \
+        wget \
+        unzip \
+        python3 \
+        libmysqlclient-dev \
+        zlib1g-dev \
+        libbz2-dev \
+        liblzma-dev \
+        libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Android NDK
+RUN curl -fsSL -o /tmp/android-ndk.zip \
+        https://dl.google.com/android/repository/android-ndk-${ANDROID_NDK_VERSION}-linux.zip \
+    && unzip -q /tmp/android-ndk.zip -d /opt \
+    && mv /opt/android-ndk-${ANDROID_NDK_VERSION} /opt/android-ndk \
+    && rm -f /tmp/android-ndk.zip
+
+ENV NDK_ROOT=/opt/android-ndk \
+    ANDROID_NDK_HOME=/opt/android-ndk \
+    PATH=/opt/android-ndk:$PATH \
+    LANG=C.UTF-8
+
+WORKDIR /work
+CMD ["/bin/bash"]

@@ -8,6 +8,12 @@ file(GLOB_RECURSE MOUDLE_SOURCES
     "*.c"
 )
 
+# Android 暂不支持 VPN（TUN 实现依赖 Linux 接口）
+if(PLATFORM STREQUAL "android")
+    message(STATUS "Android platform detected. Skipping vpn sources.")
+    list(FILTER MOUDLE_SOURCES EXCLUDE REGEX ".*/vpn/.*")
+endif()
+
 file(GLOB MOUDLE_SRC
     ${MOUDLE_HEADERS}
     ${MOUDLE_SOURCES}

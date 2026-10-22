@@ -300,7 +300,7 @@ fpga->disable_irq(fpga);
 在 libobject 仓库根目录执行：
 
 ```bash
-./devops.sh build --platform=linux --arch=aarch64
+python3 devops.py build --platform=linux --arch=aarch64
 ```
 
 编译产物位于 `sysroot/linux/aarch64/bin/xtools`，动态库位于 `sysroot/linux/aarch64/lib/`。

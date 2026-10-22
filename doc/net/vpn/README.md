@@ -48,7 +48,7 @@ vpn: tun open failed (need root/CAP_NET_ADMIN?)
 ## 构建
 
 ```bash
-./devops.sh build --platform=linux
+python3 devops.py build --platform=linux
 # 或增量（新增 .c 文件后需先重跑一次 cmake 以刷新 GLOB；只加 .h 不需要）
 cmake -S . -B build/linux/x86_64 -DPLATFORM=linux && make -C build/linux/x86_64 -j$(nproc)
 ```

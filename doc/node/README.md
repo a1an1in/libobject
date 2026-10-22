@@ -41,9 +41,9 @@ The node module manages distributed nodes and their communication.
 ### 1.1 Deploying on Linux
 To deploy the Node Service on a Linux system, use the following commands:
 ```bash
-./devops.sh build --platform=linux
-./devops.sh release -p=linux
-./devops.sh deploy -p=linux --host=119.4.206.14 --package-path=./packages/xtools_linux_x86_64_v2.15.0.187.tar.gz
+python3 devops.py build --platform=linux
+python3 devops.py release -p=linux
+python3 devops.py deploy -p=linux --host=119.4.206.14 --package-path=./packages/xtools_linux_x86_64_v2.15.0.187.tar.gz
 ./sysroot/linux/x86_64/bin/xtools --log-type=0 mockery --log-level=0x14 -f test_node
 ./sysroot/linux/x86_64/bin/xtools --log-type=0 node --log-level=0x30016 --host=0.0.0.0 --service=12346 --deamon=t
 ./sysroot/linux/x86_64/bin/xtools --log-type=0 node_cli --host="119.4.206.14" --service="12346" lookup all
@@ -55,9 +55,9 @@ To deploy the Node Service on a Linux system, use the following commands:
 ### 1.2 Deploying on Android
 To deploy the Node Service on an Android device, use the following commands:
 ```bash
-./devops.sh build --platform=android --arch=arm64-v8a
-./devops.sh release --platform=android --arch=arm64-v8a
-./devops.sh deploy -p=android --package-path=./packages/xtools_android_arm64-v8a_v2.15.0.188.tar.gz
+python3 devops.py build --platform=android --arch=arm64-v8a
+python3 devops.py release --platform=android --arch=arm64-v8a
+python3 devops.py deploy -p=android --package-path=./packages/xtools_android_arm64-v8a_v2.15.0.188.tar.gz
 adb shell 
 cd  /data/local/tmp/.xtools/
 export LD_LIBRARY_PATH=/data/local/tmp/.xtools/sysroot/lib:$LD_LIBRARY_PATH

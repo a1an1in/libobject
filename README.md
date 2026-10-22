@@ -29,18 +29,34 @@ This library is designed for object-oriented programming using the C language. I
 
 ### Build Instructions
 
+构建入口为 `devops.py`（纯 Python 标准库实现，需 Python 3.8+，跨 Linux/macOS/Windows），命令格式：`python3 devops.py <command> [options]`。
+
+**Docker 构建**：`build`/`release` 支持 `--docker` 选项，在开发容器（`docker/dockerfile.dev` 构建的 `libobject-dev` 镜像，含 Linux/Android 全套工具链，镜像不存在时会自动构建）内执行编译，宿主机无需安装依赖：
+
+```bash
+python3 devops.py build --platform=linux --arch=x86_64 --docker
+python3 devops.py build --platform=android --arch=arm64-v8a --docker
+python3 devops.py release --platform=linux --arch=x86_64 --docker
+```
+
+也可以直接进入开发容器的交互 shell（源码挂载在 `/work`，容器内可手动执行任意构建命令）：
+
+```bash
+python3 devops.py shell
+```
+
 #### Linux
 
 To build the project on Linux, you can specify the architecture or use the default (x86_64):
 
 ```bash
 # Default architecture (x86_64)
-./devops.sh build --platform=linux
+python3 devops.py build --platform=linux
 
 # Specify architecture (x86_64, arm or aarch64)
-./devops.sh build --platform=linux --arch=x86_64
-./devops.sh build --platform=linux --arch=arm
-./devops.sh build --platform=linux --arch=aarch64
+python3 devops.py build --platform=linux --arch=x86_64
+python3 devops.py build --platform=linux --arch=arm
+python3 devops.py build --platform=linux --arch=aarch64
 ```
 
 The build output will be placed in the `sysroot/linux/<architecture>` directory, where `<architecture>` is one of `x86_64`, `arm` (32-bit) or `aarch64` (64-bit).
@@ -58,13 +74,13 @@ To build the project on Windows, you can use either **native Windows compilation
 - **Native Windows Compilation**:
   Run the following command on a Windows host:
   ```bash
-  ./devops.sh build --platform=windows --arch=x86_64
+  python3 devops.py build --platform=windows --arch=x86_64
   ```
 
 - **Linux Cross-Compilation for Windows**:
   Set up the cross-compilation environment on a Linux host and run:
   ```bash
-  ./devops.sh build --platform=windows --arch=x86_64
+  python3 devops.py build --platform=windows --arch=x86_64
   ```
   For details on setting up the Linux cross-compilation environment, refer to the [Linux Cross-Compilation Setup Guide](./doc/env/linux_cross_compile_windows_setup.md).
 
@@ -73,7 +89,7 @@ To build the project on Windows, you can use either **native Windows compilation
 To build the project for Android, use the following command:
 
 ```bash
-./devops.sh build --platform=android --arch=arm64-v8a
+python3 devops.py build --platform=android --arch=arm64-v8a
 ```
 
 Before building for Android, ensure that the Android NDK is installed. Follow the [Installing Android NDK on Ubuntu](./doc/env/install_android_ndk.md) guide for detailed instructions.
@@ -83,7 +99,7 @@ Before building for Android, ensure that the Android NDK is installed. Follow th
 To build the project on macOS, use the following command:
 
 ```bash
-./devops.sh build --platform=mac
+python3 devops.py build --platform=mac
 ```
 
 ### Release Instructions
@@ -95,19 +111,19 @@ To create a release package for Linux, you can specify the architecture or use t
 
 ```bash
 # Default architecture (x86_64)
-./devops.sh release --platform=linux
+python3 devops.py release --platform=linux
 
 # Specify architecture (x86_64, arm or aarch64)
-./devops.sh release --platform=linux --arch=x86_64
-./devops.sh release --platform=linux --arch=arm
-./devops.sh release --platform=linux --arch=aarch64
+python3 devops.py release --platform=linux --arch=x86_64
+python3 devops.py release --platform=linux --arch=arm
+python3 devops.py release --platform=linux --arch=aarch64
 ```
 
 The release package will be created in the `packages` directory with a name like `xtools_linux_<architecture>_v<version>.tar.gz`.
 
 **Release docker image**
 ```
-sudo ./devops.sh docker --build=fruit-noded --dockerfile=dockerfile.noded --package-path=./packages/xtools_linux_x86_64_v2.15.0.241.tar.gz
+sudo python3 devops.py docker --build=fruit-noded --dockerfile=dockerfile.noded --package-path=./packages/xtools_linux_x86_64_v2.15.0.241.tar.gz
 sudo docker run -d --name fruit-noded -p 12345:12345 fruit-noded
 ./sysroot/linux/x86_64/bin/xtools node_cli --host=0.0.0.0 --service=12345 lookup all 
 ```
@@ -118,10 +134,10 @@ To create a release package for Windows, you can specify the architecture (defau
 
 ```bash
 # Default architecture (x86_64)
-./devops.sh release --platform=windows
+python3 devops.py release --platform=windows
 
 # Specify architecture (x86_64)
-./devops.sh release --platform=windows --arch=x86_64
+python3 devops.py release --platform=windows --arch=x86_64
 ```
 
 The release package will be created in the `packages` directory with a name like `xtools_windows_<architecture>_v<version>.zip`.
@@ -132,10 +148,10 @@ To create a release package for Android, specify the architecture (default is `a
 
 ```bash
 # Default architecture (arm64-v8a)
-./devops.sh release --platform=android
+python3 devops.py release --platform=android
 
 # Specify architecture (e.g., arm64-v8a)
-./devops.sh release --platform=android --arch=arm64-v8a
+python3 devops.py release --platform=android --arch=arm64-v8a
 ```
 
 The release package will be created in the `packages` directory with a name like `xtools_android_<architecture>_v<version>.zip`.
@@ -146,7 +162,7 @@ To create a release package for other platforms, use the following command:
 
 ```bash
 # Replace <platform> with mac or android
-./devops.sh release --platform=<platform>
+python3 devops.py release --platform=<platform>
 ```
 
 ### Deployment Instructions
@@ -157,7 +173,7 @@ To deploy the project, use the `develop.sh` script. This script simplifies the d
 To deploy the project to a Linux server, use the following command:
 
 ```bash
-./devops.sh deploy -p=linux --host=<server_ip> --package-path=<path_to_package>
+python3 devops.py deploy -p=linux --host=<server_ip> --package-path=<path_to_package>
 ```
 This command connects to the deployed service on the specified host (`139.159.231.27`) and service port (`12345`) to perform a lookup operation for all available nodes.
 - `<server_ip>`: Replace with the IP address of the target Linux server (e.g., `139.159.231.27`).
@@ -166,7 +182,7 @@ This command connects to the deployed service on the specified host (`139.159.23
 ##### Example
 
 ```bash
-./devops.sh deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_x86_64_v2.15.0.153.tar.gz
+python3 devops.py deploy -p=linux --host=139.159.231.27 --package-path=./packages/xtools_linux_x86_64_v2.15.0.153.tar.gz
 ```
 
 This command will deploy the specified package to the Linux server at `139.159.231.27`.
@@ -191,7 +207,7 @@ The `xtools` binary also supports log-related options to control log output. The
 To deploy the project to an Android device, use the following command:
 
 ```bash
-./devops.sh deploy -p=android --package-path=<path_to_package>
+python3 devops.py deploy -p=android --package-path=<path_to_package>
 ```
 
 - `<path_to_package>`: Replace with the path to the release package (e.g., `./packages/xtools_android_arm64-v8a_v2.14.0.125.zip`).
@@ -199,7 +215,7 @@ To deploy the project to an Android device, use the following command:
 ##### Example
 
 ```bash
-./devops.sh deploy -p=android --package-path=./packages/xtools_android_arm64-v8a_v2.15.0.128.tar.gz
+python3 devops.py deploy -p=android --package-path=./packages/xtools_android_arm64-v8a_v2.15.0.128.tar.gz
 ```
 
 This command will deploy the specified package to the connected Android device.
