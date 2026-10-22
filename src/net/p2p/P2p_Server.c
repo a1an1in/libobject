@@ -25,9 +25,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdarg.h>          /* __server_reply 的可变参数 */
+#if (defined(WINDOWS_USER_MODE))
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#endif
 #include <libobject/concurrent/work_task.h>
 #include "stun/Stun.h"      /* STUN_REJECT_*（原因码）/ STUN_NAT_TYPE_* */
 #include "P2p_Server.h"

@@ -145,7 +145,7 @@ static int __extract_file(Tar *tar, archive_file_info_t *info)
         }
 
         /* 5.保存文件内容 */
-        EXEC(file->open(file, name->get_cstr(name), "w+"));
+        EXEC(file->open(file, name->get_cstr(name), "wb+"));
         while (len) {
             read_len = min(512, len);
             EXEC(a->read(a, buf, read_len));
@@ -226,7 +226,7 @@ static int __add_file(Tar *tar, archive_file_info_t *info)
         }
 
         /* write file */
-        EXEC(file->open(file, file_name, "r+"));
+        EXEC(file->open(file, file_name, "rb+"));
         while (size > 0) {
             memset(buffer, 0, 512);
             read_size = size >= 512 ? 512 : size;

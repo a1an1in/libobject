@@ -321,12 +321,30 @@ int fs_tree(char *path, Vector *vector, int depth)
 
 int fs_gethome(char *path, int max_len)
 {
-    const char *home = getenv("HOME");
+    const char *home = NULL;
     int len;
 
+#if (defined(WINDOWS_USER_MODE))
+    /* Windows 默认没有 HOME 环境变量, 用 USERPROFILE */
+    home = getenv("USERPROFILE");
+    if (home == NULL || home[0] == '\0') {
+        home = getenv("HOME");
+    }
+#else
+    home = getenv("HOME");
+#endif
+
+    if (home == NULL || home[0] == '\0') {
+        path[0] = '\0';
+        return 0;
+    }
+
     len = strlen(home);
-    max_len = max_len > len ? len : max_len;
+    if (len > max_len - 1) {
+        len = max_len - 1;
+    }
     strncpy(path, home, len);
+    path[len] = '\0';
 
     return 1;
 }

@@ -10,6 +10,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/mockery/mockery.h>
 #include <libobject/archive/Archive.h>
+#include "../test_compat.h"
 
 /*
  * zip compression method values (mirror src/archive/zip/Zip.h, which is not
@@ -647,7 +648,7 @@ static int test_zip_validate_with_unzip(TEST_ENTRY *entry, int argc, void **argv
 
         /* run `unzip -t`; if unzip is missing the shell reports 127 and we
          * treat the check as skipped */
-        snprintf(cmd, sizeof(cmd), "unzip -t %s > /dev/null 2>&1", tar_name);
+        snprintf(cmd, sizeof(cmd), "unzip -t %s" TEST_REDIR_NULL, tar_name);
         status = system(cmd);
         if (status != -1 && status != (127 << 8)) {
             THROW_IF(status != 0, -1);

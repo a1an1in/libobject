@@ -59,8 +59,8 @@ static int __compress_file(Bz2Compress *c, char *file_in, char *file_out)
         in_file = object_new(allocator, "File", NULL);
         out_file = object_new(allocator, "File", NULL);
         /* File::open returns 1 on success and -1 on failure */
-        THROW_IF(in_file->open(in_file, file_in, "r+") < 0, -1);
-        THROW_IF(out_file->open(out_file, file_out, "w+") < 0, -1);
+        THROW_IF(in_file->open(in_file, file_in, "rb+") < 0, -1);
+        THROW_IF(out_file->open(out_file, file_out, "wb+") < 0, -1);
 
         memset(&strm, 0, sizeof(strm));
         THROW_IF(BZ2_bzCompressInit(&strm, 9, 0, 0) != BZ_OK, -1);
@@ -115,8 +115,8 @@ static int __uncompress_file(Bz2Compress *c, char *file_in, char *file_out)
         in_file = object_new(allocator, "File", NULL);
         out_file = object_new(allocator, "File", NULL);
         /* File::open returns 1 on success and -1 on failure */
-        THROW_IF(in_file->open(in_file, file_in, "r+") < 0, -1);
-        THROW_IF(out_file->open(out_file, file_out, "w+") < 0, -1);
+        THROW_IF(in_file->open(in_file, file_in, "rb+") < 0, -1);
+        THROW_IF(out_file->open(out_file, file_out, "wb+") < 0, -1);
 
         memset(&strm, 0, sizeof(strm));
         THROW_IF(BZ2_bzDecompressInit(&strm, 0, 0) != BZ_OK, -1);

@@ -1026,7 +1026,7 @@ static int __extract_file(SevenZip *sz, archive_file_info_t *info)
 
         /* create the file (and its parent directories) before writing */
         EXEC(fs_mkfile(out_name, 0777));
-        EXEC(out->open(out, out_name, "w+"));
+        EXEC(out->open(out, out_name, "wb+"));
         EXEC(out->write(out, buf + off, len));
 
         if (sz->files[fi].crc != 0xFFFFFFFF) {
@@ -1104,7 +1104,7 @@ static int __add_file(SevenZip *sz, archive_file_info_t *info)
         THROW_IF(store_name == NULL || store_name[0] == '\0', -1);
 
         /* read the source file */
-        EXEC(file->open(file, info->file_name, "r+"));
+        EXEC(file->open(file, info->file_name, "rb+"));
         data_size = fs_get_size(info->file_name);
         data = allocator_mem_alloc(allocator, data_size ? data_size : 1);
         THROW_IF(data == NULL, -1);

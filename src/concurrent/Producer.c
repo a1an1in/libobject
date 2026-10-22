@@ -36,6 +36,7 @@
 #include <libobject/core/utils/timeval/timeval.h>
 #include <libobject/core/utils/registry/registry.h>
 #include <libobject/core/Linked_List.h>
+#include <libobject/core/utils/sync_lock.h>
 #include <libobject/concurrent/Producer.h>
 #include <libobject/concurrent/worker_api.h>
 
@@ -48,6 +49,15 @@ static int __construct(Producer *producer, char *init_str)
 
     dbg_str(CONCURRENT_DETAIL, "producer construct, producer addr:%p", producer);
     producer->workers = OBJECT_NEW(allocator, Linked_List, NULL);
+    /*
+     * worker 链表会被多个线程访问: 主线程增删 worker,
+     * 事件线程销毁 worker 时也会从这里摘掉, 所以要加锁
+     * (链表默认的 lock_type 是 0, 等于没加锁)
+     */
+    {
+        int lock_type = PTHREAD_MUTEX_LOCK;
+        producer->workers->set(producer->workers, "lock_type", &lock_type);
+    }
 
     return 0;
 }
@@ -60,15 +70,35 @@ static int __deconstrcut(Producer *producer)
     return 0;
 }
 
+/*
+ * 等待 event 线程进入 RUNNING 状态。
+ * server 启动失败时(比如端口被占用)事件线程不会起来, 这里必须超时返回,
+ * 否则会一直死等下去。
+ */
+static int __wait_producer_ready(Producer *producer)
+{
+    int i;
+
+    for (i = 0; i < 50; i++) {
+        if (producer->parent.flags >= EVTHREAD_STATE_RUNNING) {
+            return 0;
+        }
+        dbg_str(DBG_VIP, "default_producer not ready, waiting...");
+        usleep(100);
+    }
+
+    dbg_str(EV_WARN, "default_producer not ready, timeout");
+    return -1;
+}
+
 static int __add_worker(Producer *producer, void *worker)
 {
     Worker *w            = (Worker *)worker;
     Event_Thread *thread = &producer->parent;
     List *workers_list   = producer->workers;
 
-    while (producer->parent.flags < EVTHREAD_STATE_RUNNING){
-        dbg_str(DBG_VIP, "default_producer not ready, waiting...");
-        usleep(100);
+    if (__wait_producer_ready(producer) < 0) {
+        return -1;
     }
 
     dbg_str(CONCURRENT_VIP, "producer %p add worker, worker:%p, fd:%d",
@@ -87,9 +117,14 @@ static int __del_worker(Producer *producer, void *worker)
     Event_Thread *thread = &producer->parent;
     List *workers_list   = producer->workers;
 
-    while (producer->parent.flags < EVTHREAD_STATE_RUNNING){
-        dbg_str(DBG_VIP, "default_producer not ready, waiting...");
-        usleep(100);
+    if (__wait_producer_ready(producer) < 0) {
+        /*
+         * 事件线程没起来, 不能动事件列表;
+         * 但 worker 列表一定要摘干净, 否则 worker 被释放后链表里还留着野指针,
+         * 后面遍历这个链表时会崩。
+         */
+        workers_list->remove_element(workers_list, worker);
+        return -1;
     }
 
     dbg_str(CONCURRENT_DETAIL, "producer %p del worker, worker:%p, fd:%d",

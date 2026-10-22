@@ -14,13 +14,15 @@ static int test_http_builtin_api()
     Command *command, *curl;
     Http_Client *client;
     Response *resp;
-    char *argv[2] = {"httpd", "--no-loop"};
+    /* NOTE: 每个用例用不同的端口: 同一个进程里前一个 httpd 还在跑,
+     * 端口被占着的话后一个 httpd bind 失败, 会留下半初始化的 worker */
+    char *argv[4] = {"httpd", "--no-loop", "--service", "8081"};
     char *curl_argv[4] = {"curl", "-X", "GET", "http://127.0.0.1:8081/api/hello_world"};
     int ret, count = 0;
     
     TRY {
         command = object_new(allocator, "Httpd_Command", NULL);
-        command->set_args(command, 2, (char **)argv);
+        command->set_args(command, 4, (char **)argv);
         command->parse_args(command);
         EXEC(command->run_option_actions(command));
         EXEC(command->run_command(command)); 
@@ -34,6 +36,9 @@ static int test_http_builtin_api()
         sleep(1);
         client = ((Curl_Command *)curl)->client;
         resp = client->get_response(client);
+        /* the response is filled in by the async callback, it may not have
+         * arrived yet -> do not dereference a NULL pointer */
+        THROW_IF(resp == NULL, -1);
         THROW_IF(resp->status_code != 200, -1);
     } CATCH (ret) {} FINALLY {
         object_destroy(curl);
@@ -51,8 +56,8 @@ static int test_http_plugin_test_api()
     Command *command, *curl;
     Http_Client *client;
     Response *resp;
-    char *argv[2] = {"httpd", "--no-loop"};
-    char *curl_argv[4] = {"curl", "-X", "GET", "http://127.0.0.1:8081/api/http_plugin_test"};
+    char *argv[4] = {"httpd", "--no-loop", "--service", "8082"};
+    char *curl_argv[4] = {"curl", "-X", "GET", "http://127.0.0.1:8082/api/http_plugin_test"};
     int ret, count = 0;
     char path[128] = {0};
     
@@ -62,7 +67,7 @@ static int test_http_plugin_test_api()
             system("cp ./doc/net/http/http_plugin.json ~/.xtools/httpd/plugins/http_plugin.json");
         }
         command = object_new(allocator, "Httpd_Command", NULL);
-        command->set_args(command, 2, (char **)argv);
+        command->set_args(command, 4, (char **)argv);
         command->parse_args(command);
         EXEC(command->run_option_actions(command));
         EXEC(command->run_command(command)); 
@@ -76,6 +81,9 @@ static int test_http_plugin_test_api()
         sleep(1);
         client = ((Curl_Command *)curl)->client;
         resp = client->get_response(client);
+        /* the response is filled in by the async callback, it may not have
+         * arrived yet -> do not dereference a NULL pointer */
+        THROW_IF(resp == NULL, -1);
         THROW_IF(resp->status_code != 200, -1);
     } CATCH (ret) {} FINALLY {
         object_destroy(curl);
@@ -107,6 +115,7 @@ static int test_http_wget()
 
         wget_command = (Wget_Command *)command;
         client = wget_command->client;
+        THROW_IF(client->resp == NULL, -1);
         THROW_IF(client->resp->status_code != 200, -1);
     } CATCH (ret) {} FINALLY {
         object_destroy(command);
@@ -128,14 +137,17 @@ static int test_http_range_request()
     char http_code[10] = {0};
     char range_http_code[10] = {0};
     char content_range[128] = {0};
-    char *httpd_argv[2] = {"httpd", "--no-loop"};
+    char *httpd_argv[4] = {"httpd", "--no-loop", "--service", "8083"};
     FILE *test_file = NULL, *fp = NULL;
     
     TRY {
         //确保webroot目录存在
-        snprintf(webroot_path, sizeof(webroot_path), "%s/.xtools/httpd/webroot", getenv("HOME"));
+        char home[256] = {0};
+
+        fs_gethome(home, sizeof(home));
+        snprintf(webroot_path, sizeof(webroot_path), "%s/.xtools/httpd/webroot", home);
         dbg_str(DBG_VIP, "2webroot path:%s", webroot_path);
-        system("mkdir -p ~/.xtools/httpd/webroot 2>/dev/null");
+        fs_mkdir(webroot_path, 0777);
         
         // 直接在webroot目录创建测试MP4文件
         snprintf(path, sizeof(path), "%s/test_range.mp4", webroot_path);
@@ -159,7 +171,7 @@ static int test_http_range_request()
         
         // 启动HTTP服务器
         httpd = object_new(allocator, "Httpd_Command", NULL);
-        httpd->set_args(httpd, 2, (char **)httpd_argv);
+        httpd->set_args(httpd, 4, (char **)httpd_argv);
         httpd->parse_args(httpd);
         EXEC(httpd->run_option_actions(httpd));
         EXEC(httpd->run_command(httpd));
@@ -169,7 +181,7 @@ static int test_http_range_request()
         // 使用系统curl测试Range请求
         dbg_str(DBG_VIP, "Testing Range request...");
         // 使用-i选项获取响应头，使用-w获取状态码
-        snprintf(cmd, sizeof(cmd), "curl -s -i -H 'Range: bytes=0-499' -o /dev/null -w '%%{http_code}' http://127.0.0.1:8081/test_range.mp4");
+        snprintf(cmd, sizeof(cmd), "curl -s -i -H 'Range: bytes=0-499' -o /dev/null -w '%%{http_code}' http://127.0.0.1:8083/test_range.mp4");
         fp = popen(cmd, "r");
         THROW_IF(fp == NULL, -1);
         
@@ -192,7 +204,7 @@ static int test_http_range_request()
             dbg_str(DBG_VIP, "MP4 Range request handled correctly (206 Partial Content)");
             
             // 可选：验证Content-Range头
-            snprintf(cmd, sizeof(cmd), "curl -s -I -H 'Range: bytes=0-499' http://127.0.0.1:8081/test_range.mp4 | grep -i 'Content-Range:'");
+            snprintf(cmd, sizeof(cmd), "curl -s -I -H 'Range: bytes=0-499' http://127.0.0.1:8083/test_range.mp4 | grep -i 'Content-Range:'");
             fp = popen(cmd, "r");
             if (fp != NULL) {
                 if (fgets(content_range, sizeof(content_range), fp) != NULL) {
@@ -235,7 +247,7 @@ static int test_http_upload()
     char uploaded_md5[33] = {0};
     char uploaded_path[256] = {0};
     FILE *fp = NULL;
-    char *argv[2] = {"httpd", "--no-loop"};
+    char *argv[4] = {"httpd", "--no-loop", "--service", "8084"};
     
     TRY {
         // 启动HTTP服务器
@@ -249,7 +261,7 @@ static int test_http_upload()
         
         // 使用系统curl测试上传
         // 使用-F进行multipart/form-data上传，-k忽略SSL（虽然不需要），-w获取状态码
-        snprintf(cmd, sizeof(cmd), "curl -s -F \"filename=@./res/lamp.jpg\" -X POST -o /dev/null -w '%%{http_code}' http://127.0.0.1:8081/api/upload");
+        snprintf(cmd, sizeof(cmd), "curl -s -F \"filename=@./res/lamp.jpg\" -X POST -o /dev/null -w '%%{http_code}' http://127.0.0.1:8084/api/upload");
         fp = popen(cmd, "r");
         THROW_IF(fp == NULL, -1);
         
@@ -324,7 +336,7 @@ static int test_http_upload_to_path()
     char uploaded_md5[33] = {0};
     char uploaded_path[256] = {0};
     FILE *fp = NULL;
-    char *argv[2] = {"httpd", "--no-loop"};
+    char *argv[4] = {"httpd", "--no-loop", "--service", "8085"};
     
     TRY {
         // 启动HTTP服务器
@@ -338,7 +350,7 @@ static int test_http_upload_to_path()
         
         // 使用系统curl测试上传到指定路径
         // 使用-F进行multipart/form-data上传，-w获取状态码
-        snprintf(cmd, sizeof(cmd), "curl -s -F \"file=@./res/lamp.jpg\" -X POST -o /dev/null -w '%%{http_code}' http://127.0.0.1:8081/api/upload/alan/res/");
+        snprintf(cmd, sizeof(cmd), "curl -s -F \"file=@./res/lamp.jpg\" -X POST -o /dev/null -w '%%{http_code}' http://127.0.0.1:8085/api/upload/alan/res/");
         fp = popen(cmd, "r");
         THROW_IF(fp == NULL, -1);
         

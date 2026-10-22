@@ -130,7 +130,7 @@ static int __read_form_data(Request *request)
                 len = buffer->get_needle_offset(buffer, delimiter, delimiter_len);
                 snprintf(path + strlen(path), MAX_FILE_NAME_LEN, "/%s", filename);
                 dbg_str(NET_SUC, "write file len:%d, path:%s", len, path);
-                EXEC(file->open(file, path, "w+"));
+                EXEC(file->open(file, path, "wb+"));
                 file->write(file, buffer->addr + buffer->r_offset, len);
                 file->close(file);
                 buffer->r_offset += (len + delimiter_len);
@@ -250,7 +250,7 @@ static int __read_form_data_to_path(Request *request, char *upload_path)
                 len = buffer->get_needle_offset(buffer, delimiter, delimiter_len);
                 snprintf(path, MAX_FILE_NAME_LEN, "%s/%s", upload_path, filename);
                 dbg_str(NET_SUC, "write file len:%d, path:%s", len, path);
-                EXEC(file->open(file, path, "w+"));
+                EXEC(file->open(file, path, "wb+"));
                 file->write(file, buffer->addr + buffer->r_offset, len);
                 file->close(file);
                 buffer->r_offset += (len + delimiter_len);

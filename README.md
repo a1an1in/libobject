@@ -72,10 +72,11 @@ The build output will be placed in the `sysroot/linux/<architecture>` directory,
 To build the project on Windows, you can use either **native Windows compilation** or **Linux cross-compilation**.
 
 - **Native Windows Compilation**:
-  Run the following command on a Windows host:
+  Run the following command on a Windows host (MSYS2 + MinGW-w64 toolchain):
   ```bash
   python3 devops.py build --platform=windows --arch=x86_64
   ```
+  For details on setting up the Windows toolchain, refer to the [Windows Build Setup Guide](./doc/env/windows_build_setup.md).
 
 - **Linux Cross-Compilation for Windows**:
   Set up the cross-compilation environment on a Linux host and run:

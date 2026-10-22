@@ -8,7 +8,8 @@ macro (set_cmake_evironment_variable)
             object-mockery
             object-upgrader
             object-node 
-            # object-compress 
+            object-archive
+            object-compress
             object-scripts 
             object-stub 
             # object-db 
@@ -33,7 +34,9 @@ macro (set_cmake_evironment_variable)
         pthread 
         # m 
         # msvcrt
-        # z
+        z
+        bz2
+        lzma
         )
 endmacro()
 
@@ -58,6 +61,8 @@ macro (add_module_lists)
     list(APPEND module_lists "src/net")
     list(APPEND module_lists "src/node")
     list(APPEND module_lists "src/upgrader")
+    list(APPEND module_lists "src/archive")
+    list(APPEND module_lists "src/compress")
     list(APPEND module_lists "tests")
     list(APPEND module_lists "src/.")
     list(APPEND module_lists "3rd/attacher-builtin")

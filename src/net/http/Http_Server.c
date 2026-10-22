@@ -304,7 +304,7 @@ static int __process_static_request(Http_Server *server, Request *r, Response *r
             }
         }
 
-        file = fopen(filename, "r");
+        file = fopen(filename, "rb");
         THROW_IF(file == NULL, -1);
         resp->file = file;
         resp->content_len = st.st_size;

@@ -114,8 +114,8 @@ static int __compress_file(LzmaCompress *c, char *file_in, char *file_out)
         in_file = object_new(allocator, "File", NULL);
         out_file = object_new(allocator, "File", NULL);
         /* File::open returns 1 on success and -1 on failure */
-        THROW_IF(in_file->open(in_file, file_in, "r+") < 0, -1);
-        THROW_IF(out_file->open(out_file, file_out, "w+") < 0, -1);
+        THROW_IF(in_file->open(in_file, file_in, "rb+") < 0, -1);
+        THROW_IF(out_file->open(out_file, file_out, "wb+") < 0, -1);
 
         __set_filters(filters, 1);
         THROW_IF(lzma_raw_encoder(&strm, filters) != LZMA_OK, -1);
@@ -161,8 +161,8 @@ static int __uncompress_file(LzmaCompress *c, char *file_in, char *file_out)
         in_file = object_new(allocator, "File", NULL);
         out_file = object_new(allocator, "File", NULL);
         /* File::open returns 1 on success and -1 on failure */
-        THROW_IF(in_file->open(in_file, file_in, "r+") < 0, -1);
-        THROW_IF(out_file->open(out_file, file_out, "w+") < 0, -1);
+        THROW_IF(in_file->open(in_file, file_in, "rb+") < 0, -1);
+        THROW_IF(out_file->open(out_file, file_out, "wb+") < 0, -1);
 
         __set_filters(filters, 0);
         THROW_IF(lzma_raw_decoder(&strm, filters) != LZMA_OK, -1);

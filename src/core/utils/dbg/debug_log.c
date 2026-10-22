@@ -52,9 +52,30 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/dbg/debug_log.h>
 #include <libobject/core/utils/registry/registry.h>
+#include <libobject/core/io/file_system_api.h>
 
 #define DEFAULT_LOG_FILE_NAME       "/home/alan/.xtools/logs"
 #define LOG_FILE_NAME_BUF_SIZE      256
+
+/*
+ * Create a directory.
+ * On Windows(MinGW/MSVC CRT) mkdir() only takes one argument, while on
+ * POSIX systems it takes (path, mode).
+ */
+static int log_mkdir(const char *path)
+{
+    int ret = 0;
+
+    TRY {
+#if (defined(WINDOWS_USER_MODE))
+        EXEC(mkdir(path));
+#else
+        EXEC(mkdir(path, 0755));
+#endif
+    } CATCH (ret) {}
+
+    return ret;
+}
 
 /*
  * Build the daily log file path.
@@ -138,11 +159,15 @@ static void log_check_date_rotation(debug_log_prive_t *log_priv)
              log_priv->log_file_base);
     snprintf(link_target, sizeof(link_target), "log-%04d-%02d-%02d",
              year, mon, mday);
+#if (!defined(WINDOWS_USER_MODE))
     unlink(link_path);
     symlink(link_target, link_path);
 
     printf("log rotated to: %s (symlink %s -> %s)\n",
            log_priv->log_file_name, link_path, link_target);
+#else
+    printf("log rotated to: %s\n", log_priv->log_file_name);
+#endif
 }
 
 /*init log file*/
@@ -172,8 +197,17 @@ void log_print_init(debugger_t *debugger)
             snprintf(log_priv->log_file_base, sizeof(log_priv->log_file_base),
                      "%s", file_name);
         } else {
+#if (defined(WINDOWS_USER_MODE))
+            /* Windows: 日志默认放在用户目录下(.xtools/logs) */
+            char home[512] = {0};
+
+            fs_gethome(home, sizeof(home));
+            snprintf(log_priv->log_file_base, sizeof(log_priv->log_file_base),
+                     "%s/.xtools/logs", home);
+#else
             snprintf(log_priv->log_file_base, sizeof(log_priv->log_file_base),
                      "%s", DEFAULT_LOG_FILE_NAME);
+#endif
             iniparser_setstr(d, (char *)"Log", NULL);
             iniparser_setstr(d, (char *)"Log:log_dir",
                              log_priv->log_file_base);
@@ -190,11 +224,11 @@ void log_print_init(debugger_t *debugger)
     for (p = log_dir + 1; *p; p++) {
         if (*p == '/') {
             *p = '\0';
-            mkdir(log_dir, 0755);
+            log_mkdir(log_dir);
             *p = '/';
         }
     }
-    mkdir(log_dir, 0755);
+    log_mkdir(log_dir);
 
     /* --- read daily rotation config --- */
     rotate_on_date = iniparser_getint(d, (char *)"log:rotate_on_date", 1);
@@ -242,8 +276,10 @@ void log_print_init(debugger_t *debugger)
                  log_priv->current_year,
                  log_priv->current_mon,
                  log_priv->current_mday);
+#if (!defined(WINDOWS_USER_MODE))
         unlink(link_path);
         symlink(link_target, link_path);
+#endif
     }
 
     sync_lock_init(&log_priv->log_file_lock, debugger->lock_type);

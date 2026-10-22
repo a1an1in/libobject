@@ -49,11 +49,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#if (defined(WINDOWS_USER_MODE))
+#include <winsock2.h>
+#include <ws2tcpip.h>
+/* Windows has no poll(), use the winsock equivalent */
+typedef WSAPOLLFD pollfd_t;
+#define poll       WSAPoll
+#else
 #include <poll.h>
 #include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+typedef struct pollfd pollfd_t;
+#endif
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/mockery/mockery.h>
 #include <libobject/argument/Command.h>   /* Command vfunc: set_args/parse_args/run_command */
@@ -187,7 +196,7 @@ static int test_vpn_tun(TEST_ENTRY *entry, int argc, char **argv)
 
     /* 发包 3 次 + 读 tun（200ms * 10），校验目的地址与协议 */
     for (i = 0; i < 10 && got == 0; i++) {
-        struct pollfd pfd;
+        pollfd_t pfd;
 
         if (i < 3) {
             n = sendto(fd, payload, sizeof(payload), 0,

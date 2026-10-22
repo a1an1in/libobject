@@ -7,6 +7,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/mockery/mockery.h>
 #include <libobject/archive/Archive.h>
+#include "../test_compat.h"
 
 /* add -> save -> reopen -> list -> extract -> compare, using a checked-in
  * resource file as the source (the entry name is the full source path, so the
@@ -142,7 +143,7 @@ static int test_7z_our_archive_other_tool_extract(TEST_ENTRY *entry, int argc, v
         archive = NULL;
 
         /* 标准工具校验打开我们的 7z; 工具不可用(127)视为跳过 */
-        snprintf(cmd, sizeof(cmd), "7za t %s > /dev/null 2>&1 || 7z t %s > /dev/null 2>&1", tar_name, tar_name);
+        snprintf(cmd, sizeof(cmd), "7za t %s" TEST_REDIR_NULL " || 7z t %s" TEST_REDIR_NULL, tar_name, tar_name);
         status = system(cmd);
         if (status != -1 && status != (127 << 8)) {
             THROW_IF(status != 0, -1);
@@ -180,7 +181,7 @@ static int test_7z_other_tool_archive_our_extract(TEST_ENTRY *entry, int argc, v
 
         /* 用标准 7z 工具打包 */
         snprintf(cmd, sizeof(cmd),
-                 "7za a -t7z %s %s > /dev/null 2>&1 || 7z a -t7z %s %s > /dev/null 2>&1",
+                 "7za a -t7z %s %s" TEST_REDIR_NULL " || 7z a -t7z %s %s" TEST_REDIR_NULL,
                  tar_name, src, tar_name, src);
         status = system(cmd);
         if (status != -1 && status != (127 << 8)) {
@@ -207,7 +208,7 @@ static int test_7z_other_tool_archive_our_extract(TEST_ENTRY *entry, int argc, v
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
         fs_rmfile(tar_name);
-        system("rm -rf ./tests/archive/output/7z/std");
+        fs_rmdir("./tests/archive/output/7z/std");
         fs_rmdir("./tests/archive/output/7z/");
     }
 

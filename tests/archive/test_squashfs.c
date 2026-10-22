@@ -7,6 +7,7 @@
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/mockery/mockery.h>
 #include <libobject/archive/Archive.h>
+#include "../test_compat.h"
 
 /* add -> save -> reopen -> list -> extract -> compare.
  * SquashFS 目录项只存裸文件名(如 test.txt), 不支持含 '/' 的路径,
@@ -142,7 +143,7 @@ static int test_squashfs_our_image_unsquashfs_extract(TEST_ENTRY *entry, int arg
         object_destroy(archive);
         archive = NULL;
 
-        snprintf(cmd, sizeof(cmd), "unsquashfs -d %s %s > /dev/null 2>&1", dir, img);
+        snprintf(cmd, sizeof(cmd), "unsquashfs -d %s %s" TEST_REDIR_NULL, dir, img);
         status = system(cmd);
         if (status != -1 && status != (127 << 8)) {
             THROW_IF(status != 0, -1);
@@ -157,7 +158,7 @@ static int test_squashfs_our_image_unsquashfs_extract(TEST_ENTRY *entry, int arg
     } CATCH (ret) { } FINALLY {
         object_destroy(archive);
         fs_rmfile(img);
-        system("rm -rf ./tests/archive/output/squashfs/interop_dir");
+        fs_rmdir("./tests/archive/output/squashfs/interop_dir");
         fs_rmdir("./tests/archive/output/squashfs/");
     }
 
@@ -186,7 +187,7 @@ static int test_squashfs_mksquashfs_image_our_extract(TEST_ENTRY *entry, int arg
         fs_mkdir(out_dir, 0777);
 
         /* 用 mksquashfs 生成镜像(关闭 fragment/xattr/export, 与我们的写入端一致) */
-        snprintf(cmd, sizeof(cmd), "mksquashfs %s %s -noappend -no-fragments -no-xattrs -no-exports > /dev/null 2>&1",
+        snprintf(cmd, sizeof(cmd), "mksquashfs %s %s -noappend -no-fragments -no-xattrs -no-exports" TEST_REDIR_NULL,
                 src, img);
         status = system(cmd);
         if (status != -1 && status != (127 << 8)) {

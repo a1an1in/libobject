@@ -104,8 +104,8 @@ static int __uncompress_buf(GZCompress *c, char *in, int in_len, char *out, int 
     TRY {
       in_file = object_new(allocator, "File", NULL);
       out_file = object_new(allocator, "File", NULL);
-      in_file->open(in_file, file_in, "r+");
-      out_file->open(out_file, file_out, "w+");
+      in_file->open(in_file, file_in, "rb+");
+      out_file->open(out_file, file_out, "wb+");
 
       EXEC(gz_compress(in_file->f, out_file->f));
     } CATCH (ret) {} FINALLY {
@@ -125,8 +125,8 @@ static int __uncompress_buf(GZCompress *c, char *in, int in_len, char *out, int 
     TRY {
       in_file = object_new(allocator, "File", NULL);
       out_file = object_new(allocator, "File", NULL);
-      in_file->open(in_file, file_in, "r+");
-      out_file->open(out_file, file_out, "w+");
+      in_file->open(in_file, file_in, "rb+");
+      out_file->open(out_file, file_out, "wb+");
     
       EXEC(gz_uncompress(in_file->f, out_file->f));
     } CATCH (ret) {} FINALLY {
