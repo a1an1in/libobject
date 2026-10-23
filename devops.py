@@ -46,6 +46,9 @@ class Options:
         self.run = False
         self.ip = ""
         self.arch = ""
+        self.filter = "all"
+        self.log_type = "0"
+        self.log_level = "0x16"
         self.dockerfile = ""
         self.docker = False
         self.forward_args = []
@@ -773,8 +776,107 @@ def do_build_docker_image():
     return 0
 
 
+def resolve_test_platforms():
+    """把 --platform 解析成待测平台列表；`all`/空 表示 linux + windows"""
+    p = (OPTION.platform or "all").strip().lower()
+    if p in ("", "all"):
+        return ["linux", "windows"]
+    if p in ("linux", "windows"):
+        return [p]
+    print("Error: unsupported platform for test: %s (supported: linux, windows, all)"
+          % OPTION.platform)
+    sys.exit(1)
+
+
+def test_arch_for(platform_name):
+    """linux 测试支持 x86_64/arm/aarch64；windows 只有 x86_64"""
+    arch = OPTION.arch or "x86_64"
+    if platform_name == "linux":
+        if arch == "arm64":
+            arch = "aarch64"
+        if arch not in ("x86_64", "arm", "aarch64"):
+            print("Error: unsupported linux arch for test: %s "
+                  "(supported: x86_64, arm, aarch64)" % arch)
+            sys.exit(1)
+        return arch
+    # windows 仅有 x86_64
+    return "x86_64"
+
+
+def test_xtools_path(platform_name, arch):
+    exe = "xtools.exe" if platform_name == "windows" else "xtools"
+    return os.path.join(PROJECT_ROOT, "sysroot", platform_name, arch, "bin", exe)
+
+
+def _mockery_cmd(xtools, filter_name):
+    return [xtools,
+            "--log-type=%s" % OPTION.log_type,
+            "--log-level=%s" % OPTION.log_level,
+            "mockery", "-f", filter_name]
+
+
+def run_mockery_native(platform_name, arch):
+    host = platform.system()
+    xtools = test_xtools_path(platform_name, arch)
+    if not os.path.isfile(xtools):
+        print("Error: %s not found. Build first with:" % xtools)
+        print("  python devops.py build --platform=%s --arch=%s" % (platform_name, arch))
+        return 1
+    print("run tests natively on %s: %s" % (host, xtools))
+    ret = run(_mockery_cmd(xtools, OPTION.filter), cwd=PROJECT_ROOT)
+    return ret.returncode
+
+
+def run_mockery_linux_in_docker(arch):
+    ensure_dev_image()
+    # Windows 上 docker -v 的盘符冒号可能被误解析，统一转正斜杠
+    host_dir = PROJECT_ROOT.replace(os.sep, "/")
+    inner = ("cd /work && ./sysroot/linux/%s/bin/xtools "
+             "--log-type=%s --log-level=%s mockery -f %s"
+             % (arch, OPTION.log_type, OPTION.log_level, OPTION.filter))
+    cmd = ["docker", "run", "--rm",
+           "-v", "%s:/work" % host_dir,
+           DOCKER_DEV_IMAGE, "bash", "-lc", inner]
+    print("run linux tests inside docker container %s (host=%s)"
+          % (DOCKER_DEV_IMAGE, platform.system()))
+    ret = run(cmd, cwd=PROJECT_ROOT)
+    return ret.returncode
+
+
+def do_test_platform(platform_name):
+    """跑一个平台的测试；返回退出码，None 表示该平台在当前 host 上无法测试被跳过"""
+    host = platform.system()
+    arch = test_arch_for(platform_name)
+
+    can_run_native = (host == "Linux") if platform_name == "linux" else (host == "Windows")
+    if can_run_native:
+        return run_mockery_native(platform_name, arch)
+
+    # 非本机平台：目前只有 linux 能通过 docker 在非 Linux host 上测
+    if platform_name == "linux":
+        return run_mockery_linux_in_docker(arch)
+
+    print("Skip %s: cannot run %s tests on host %s "
+          "(no supported test backend)" % (platform_name, platform_name, host))
+    return None
+
+
 def do_test():
     print("do_test")
+    platforms = resolve_test_platforms()
+    failed = []
+    for p in platforms:
+        print("=" * 70)
+        rc = do_test_platform(p)
+        if rc is None:
+            continue
+        if rc != 0:
+            failed.append(p)
+    print("=" * 70)
+    if failed:
+        print("test FAILED for: %s" % ", ".join(failed))
+        sys.exit(1)
+    print("all requested tests passed.")
 
 
 def do_help():
@@ -809,7 +911,13 @@ def do_help():
         --build            build docker.
         --dockerfile       Required. specify Dockerfile name (e.g., --dockerfile=dockerfile.noded uses docker/dockerfile.noded)
 
-    test                   do some test at this command
+    test                   run mockery tests in the built binaries.
+        -p, --platform:    linux, windows or all (default all). On a Windows host,
+                           linux tests run inside the dev container via docker.
+        --arch:            linux arch: x86_64 (default), arm, aarch64. windows is always x86_64.
+        -f, --filter:      mockery -f <name> (prefix match), default all.
+        --log-level:       xtools log level, default 0x16.
+        --log-type:        xtools log output type: 0=console, 1=file, 2=network, default 0.
 
     help                   Print this help message.
 
@@ -818,6 +926,11 @@ def do_help():
     python devops.py build --platform=linux --docker        #build inside dev container
     python devops.py release --platform=linux --docker      #release inside dev container
     python devops.py shell                                  #enter dev container shell
+    python devops.py test --platform=linux                  #linux tests (docker on Windows host)
+    python devops.py test --platform=windows                #windows tests (native)
+    python devops.py test                                   #linux + windows
+    python devops.py test -p linux -f test_archive_         #only a subset of tests
+    python devops.py test -p linux --log-level=0x1ffff      #verbose logs
     python devops.py build --platform=windows
     python devops.py docker --install --platform=linux    #install docker at linux platform
     python devops.py release -p=linux
@@ -834,6 +947,9 @@ def parse_args(argv):
     parser.add_argument("-p", "--platform", dest="platform", default="")
     parser.add_argument("-i", "--install", action="store_true", default=False)
     parser.add_argument("--arch", default="")
+    parser.add_argument("-f", "--filter", dest="filter", default="all")
+    parser.add_argument("--log-type", dest="log_type", default="0")
+    parser.add_argument("--log-level", dest="log_level", default="0x16")
     parser.add_argument("--build", dest="build_image", default="")
     parser.add_argument("--remove", dest="remove_name", default="")
     parser.add_argument("--run", dest="run_name", default="")
@@ -859,6 +975,9 @@ def parse_args(argv):
     OPTION.platform = args.platform
     OPTION.install = args.install
     OPTION.arch = args.arch
+    OPTION.filter = args.filter
+    OPTION.log_type = args.log_type
+    OPTION.log_level = args.log_level
     OPTION.args = args.args
     OPTION.ip = args.host
     OPTION.package_path = args.package_path
