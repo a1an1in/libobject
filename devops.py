@@ -284,8 +284,56 @@ def do_build_android():
     print("Build android completed.")
 
 
+def ensure_windows_build_env():
+    """普通 PowerShell 直接运行本脚本时补齐 MinGW / make 的 PATH。
+
+    CMake 会用绝对路径找到 C:\\mingw64\\bin\\gcc.exe，但 gcc 启动时还要
+    从 PATH 找 cc1.exe 和 MinGW 运行时 DLL；普通 PowerShell 的 PATH 里
+    没有 C:\\mingw64\\bin，于是编译器测试会失败，且 gcc 往往不打印错误。
+    """
+    if platform.system() != "Windows":
+        return
+
+    # libobject 仍声明 cmake_minimum_required(VERSION 3.0)，新版 CMake
+    # 会拒绝或警告；直接运行本脚本时也补上。
+    os.environ.setdefault("CMAKE_POLICY_VERSION_MINIMUM", "3.5")
+
+    candidates = [
+        os.environ.get("MINGW_ROOT", ""),
+        r"C:\mingw64",
+        r"C:\msys64\mingw64",
+        r"C:\msys64\ucrt64",
+        r"C:\msys64\mingw32",
+    ]
+    mingw_bin = ""
+    for root in candidates:
+        if not root:
+            continue
+        bin_dir = os.path.join(root, "bin")
+        if os.path.isfile(os.path.join(bin_dir, "gcc.exe")):
+            mingw_bin = bin_dir
+            break
+
+    path_parts = [p for p in os.environ.get("PATH", "").split(os.pathsep) if p]
+    normalized = [os.path.normcase(p) for p in path_parts]
+
+    if mingw_bin and os.path.normcase(mingw_bin) not in normalized:
+        os.environ["PATH"] = mingw_bin + os.pathsep + os.environ.get("PATH", "")
+        print("Added to PATH: %s" % mingw_bin)
+
+    # devops.py 里用 make 构建；普通 PowerShell 也没有 MSYS2 的 make。
+    # 追加而不是前插，避免把 VS 自带的 cmake 换成 MSYS2 的 cmake。
+    msys_bin = r"C:\msys64\usr\bin"
+    if os.path.isfile(os.path.join(msys_bin, "make.exe")):
+        path_parts = [p for p in os.environ.get("PATH", "").split(os.pathsep) if p]
+        if os.path.normcase(msys_bin) not in [os.path.normcase(p) for p in path_parts]:
+            os.environ["PATH"] = os.environ.get("PATH", "") + os.pathsep + msys_bin
+            print("Added to PATH: %s" % msys_bin)
+
+
 def do_build_windows():
     print("Building for Windows...")
+    ensure_windows_build_env()
     increase_version_tweak_number()
 
     # 如果未指定架构，默认使用 x86_64
