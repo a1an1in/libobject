@@ -49,6 +49,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <libgen.h>
+#include <errno.h>
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/core/utils/dbg/debug_log.h>
 #include <libobject/core/utils/registry/registry.h>
@@ -61,18 +62,24 @@
  * Create a directory.
  * On Windows(MinGW/MSVC CRT) mkdir() only takes one argument, while on
  * POSIX systems it takes (path, mode).
+ *
+ * EEXIST is treated as success: log_print_init() walks each component of
+ * the log path (e.g. /home, /home/alan, ...), and those usually already
+ * exist. Using TRY/EXEC here would enter the CATCH error path, which logs
+ * via dbg_str() before log_priv->fp has been opened, crashing fprintf(NULL).
  */
 static int log_mkdir(const char *path)
 {
     int ret = 0;
 
-    TRY {
 #if (defined(WINDOWS_USER_MODE))
-        EXEC(mkdir(path));
+    ret = mkdir(path);
 #else
-        EXEC(mkdir(path, 0755));
+    ret = mkdir(path, 0755);
 #endif
-    } CATCH (ret) {}
+    if (ret < 0 && errno == EEXIST) {
+        ret = 0;
+    }
 
     return ret;
 }
@@ -288,6 +295,10 @@ void log_print_init(debugger_t *debugger)
 uint32_t log_print_write_log(FILE *fp, char *str)
 {
     uint32_t ret;
+
+    if (fp == NULL) {
+        return 0;
+    }
 
     ret = fprintf(fp, "%s\n", str);
     fflush(fp);
