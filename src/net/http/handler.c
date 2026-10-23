@@ -174,7 +174,6 @@ static int __handler_upload(Request *req, Response *res, void *opaque)
     Object_Chain *chain = res->chain;
     Http_Server *server = (Http_Server *)req->server;
     int ret = 1, i, num, start = 0, len = 0;
-    char regex[1024] = {0};
     char body[1024] = {0};
     File *file;
     String *str;
@@ -183,11 +182,17 @@ static int __handler_upload(Request *req, Response *res, void *opaque)
         THROW_IF(__is_body_multipart_form_data(req) == 0, -1); //如果没有form_data, 直接结束read_body
         EXEC(__read_form_data(req)); /* 如果有form_data需要解析 */
 
-        snprintf(regex, 1024, "%s(.*)+", STR2A(server->root));
         str = chain->new(chain, "String", NULL);
         str->assign(str, STR2A(req->file->name));
-        str->get_substring(str, regex, 0, &start, &len);
+        /* server->root 在 Windows 下含反斜杠, 拼进 POSIX 正则会被当成转义
+         * 序列导致匹配失败; 而保存路径本来就是以 root 为前缀拼出来的,
+         * 这里改用字符串前缀比较求相对路径 */
+        len = strlen(STR2A(server->root));
         THROW_IF(len == 0, -1);
+        THROW_IF(strncmp(STR2A(str), STR2A(server->root), len) != 0, -1);
+        THROW_IF(str->get_len(str) <= len, -1);
+        start = len;
+        len = str->get_len(str) - len;
         snprintf(body, 1024, "{\"retCode\":%d, \"url\":\"%s\"}", 1, str->value + start);
         res->set_body(res, body, strlen(body));
         res->set_status_code(res, 200);

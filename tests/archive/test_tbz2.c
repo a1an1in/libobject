@@ -80,7 +80,7 @@ static int test_tbz2_our_compress_bzip2_decompress(TEST_ENTRY *entry, int argc, 
         /* decompress with the system tool and compare */
         snprintf(cmd, sizeof(cmd), "bzip2 -dc %s > %s" TEST_REDIR_ERR, bz2_owned, out);
         status = system(cmd);
-        if (status != -1 && status != (127 << 8)) {
+        if (test_tool_exists("bzip2")) {
             THROW_IF(status != 0, -1);
             THROW_IF(fs_is_exist(out) != 1, -1);
             ret = assert_file_equal(src, out);
@@ -117,7 +117,7 @@ static int test_tbz2_bzip2_compress_our_decompress(TEST_ENTRY *entry, int argc, 
         /* the system tool compresses the file */
         snprintf(cmd, sizeof(cmd), "bzip2 -c %s > %s" TEST_REDIR_ERR, src, bz2);
         status = system(cmd);
-        if (status != -1 && status != (127 << 8)) {
+        if (test_tool_exists("bzip2")) {
             THROW_IF(status != 0, -1);
             THROW_IF(fs_is_exist(bz2) != 1, -1);
 

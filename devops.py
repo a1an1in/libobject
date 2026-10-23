@@ -7,6 +7,7 @@ devops 跨平台构建脚本（Python 版）。
 """
 
 import argparse
+import glob
 import os
 import platform
 import re
@@ -389,6 +390,14 @@ def do_build_windows():
             cwd=build_dir, check=True, err_msg="CMake configuration failed.")
 
     run(["make"], cwd=build_dir, check=True, err_msg="Make failed.")
+
+    # Windows 加载器查找 DLL 时, exe 所在目录 (bin) 优先于 lib;
+    # make 把 DLL 链到 lib/, 这里同步到 bin, 避免运行时用到旧库
+    lib_dir = os.path.join(sysroot_dir, "lib")
+    exe_bin = os.path.join(sysroot_dir, "bin")
+    if os.path.isdir(lib_dir) and os.path.isdir(exe_bin):
+        for dll in glob.glob(os.path.join(lib_dir, "*.dll")):
+            shutil.copy2(dll, exe_bin)
 
     if OPTION.install:
         run(["make", "install"], cwd=build_dir, check=True,

@@ -28,7 +28,7 @@ int bn_cmp(uint8_t *n1, int n1_len, uint8_t *n2, int n2_len, int *out)
             return 1;
         }
 
-        for (i = n1_len; i >= 0; i--) {
+        for (i = n1_len; i > 0; i--) {
             if (n1[i - 1] > n2[i - 1]) {
                 *out = 1;
                 return 1;
@@ -173,14 +173,14 @@ int bn_mul_u32(uint32_t *dest, int dest_len, uint32_t *a, int a_size, uint32_t w
 {
     int count, ret;
     uint32_t result, t1, t2, carry = 0;
-    uint8_t *p1, *p2;
+    uint8_t *base = (uint8_t *)dest, *p1, *p2;
 
     TRY {
         count = (a_size + sizeof(int) - 1) / sizeof(int);
-        
+
         while (count) {
-            p1 = dest;
-            p2 = a;
+            p1 = (uint8_t *)dest;
+            p2 = (uint8_t *)a;
             t1 = p1[3] << 24 | p1[2] << 16 | p1[1] << 8 | p1[0];
 
             if (a_size >= 4) {
@@ -197,7 +197,17 @@ int bn_mul_u32(uint32_t *dest, int dest_len, uint32_t *a, int a_size, uint32_t w
             
             // dbg_str(DBG_DETAIL, "bn_mul_u32, t1:%x t2:%x, word:%x, carry:%x", t1, t2, word, carry);
             BN_MUL_U32(t1, t2, word, carry);
-            dest[0] = t1;
+            /* dest_len 是字节数; carry/dword 直接整 4 字节写会越界写出
+             * dest_len 后的闲置字节 (如 result[11]), 踩到相邻栈变量
+             * (Linux 靠 padding 掩盖了这个问题, Windows 上必现). 按字节
+             * 限界写入, 越界部分丢弃 */
+            {
+                int off = (int)((uint8_t *)dest - base);
+                int j;
+                for (j = 0; j < 4 && off + j < dest_len; j++) {
+                    ((uint8_t *)dest)[j] = (uint8_t)(t1 >> (8 * j));
+                }
+            }
             dest++;
             a++;
             count--;
@@ -205,7 +215,11 @@ int bn_mul_u32(uint32_t *dest, int dest_len, uint32_t *a, int a_size, uint32_t w
         }
 
         if (carry > 0) {
-            dest[0] = carry;
+            int off = (int)((uint8_t *)dest - base);
+            int j;
+            for (j = 0; j < 4 && off + j < dest_len; j++) {
+                ((uint8_t *)dest)[j] = (uint8_t)(carry >> (8 * j));
+            }
         }
     } CATCH (ret) {
         dbg_str(DBG_ERROR, "a_size:%x, word:%x, carry:%x, count:%x", 

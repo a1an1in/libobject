@@ -366,7 +366,7 @@ static int __process_dynamic_request(Http_Server *server, Request *r, Response *
 
     TRY {
         dbg_str(NET_VIP, "process_dynamic_request, method:%s, uri:%s", r->method, r->uri);
-        if (strcmp(r->method, "GET") == 0) {
+        if (strcmp(r->method, "GET") == 0 || strcmp(r->method, "HEAD") == 0) {
             map = server->get_handlers;
         } else if (strcmp(r->method, "POST") == 0) {
             map = server->post_handlers;
@@ -442,6 +442,10 @@ static int __process_request(Http_Server *server, Request *r)
         }
         
         resp->socket = r->socket;
+        /* HEAD: 只发头不发体, Response 据此跳过 body/文件实体输出 */
+        if (strcmp(r->method, "HEAD") == 0) {
+            resp->is_head = 1;
+        }
         EXEC(__process_request_cookie(server, r, resp));
 
         type = r->get_request_type(r);
@@ -492,7 +496,10 @@ static int __register_handler(Http_Server *server,
     /* 先查询是否已注册过该路径，有则更新，无则新建 */
     map->search(map, path, (void **)&h);
     if (h == NULL) {
-        h = allocator_mem_alloc(server->obj.allocator, sizeof(handler_t));
+        /* 必须清零初始化: method/path/callback 等字段是按需赋值的,
+         * 复用内存里的残留垃圾值会让没传 pre/post_callback 的注册路径
+         * 在处理请求时跳到不可执行内存, 直接 SIGSEGV */
+        h = allocator_mem_zalloc(server->obj.allocator, sizeof(handler_t));
         h->method = method;
         h->path = path;
         map->add(map, path, h);

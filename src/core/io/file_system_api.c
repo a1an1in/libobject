@@ -143,6 +143,16 @@ int fs_get_stat(char *path, struct stat *stat)
 
 int fs_mkdir(char *path, mode_t mode)
 {
+    /*
+     * 目录已存在时视作成功(mkdir -p 语义):
+     * 不然像 fs_mkfile(内部先 mkdir 父目录)和测试里反复构造
+     * ~/.xtools/httpd/webroot 这类运行时目录的路径, 每次都会因为
+     * 目录已存在而失败。
+     */
+    if (fs_is_exist(path) && fs_is_directory(path) == 1) {
+        return 0;
+    }
+
     return TRY_EXEC(globle_file_system->mkdir(globle_file_system, path, mode));
 }
 

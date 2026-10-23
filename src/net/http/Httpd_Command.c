@@ -110,6 +110,9 @@ static int __run_command(Httpd_Command *command)
         app = get_global_application();
         snprintf(path, 128, "%s/%s", STR2A(app->root), "httpd/webroot");
         server->set(server, "/Http_Server/root", path);
+        /* webroot 也要建好: 处理 POST 上传时 handler 要在其下建 images 等子目录,
+         * 中间目录不存在的话建子目录就会失败 */
+        fs_mkdir(path, 0777);
         snprintf(path, 128, "%s/%s", STR2A(app->root), "httpd/plugins");
         dbg_str(DBG_VIP,"httpd root:%s", path);
         fs_mkdir(path, 0777);

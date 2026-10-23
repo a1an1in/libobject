@@ -121,7 +121,8 @@ static int __bind(Inet_Tcp_Socket *socket, char *host, char *service)
     } while ((addr = addr->ai_next) != NULL);
 
     if (addr == NULL) {
-        dbg_str(NET_WARN, "bind error for %s %s", host, service);
+        dbg_str(NET_WARN, "bind error for %s %s, err:%d", host, service,
+                WSAGetLastError());
     }
 
     freeaddrinfo(addrsave);

@@ -145,7 +145,7 @@ static int test_squashfs_our_image_unsquashfs_extract(TEST_ENTRY *entry, int arg
 
         snprintf(cmd, sizeof(cmd), "unsquashfs -d %s %s" TEST_REDIR_NULL, dir, img);
         status = system(cmd);
-        if (status != -1 && status != (127 << 8)) {
+        if (test_tool_exists("unsquashfs")) {
             THROW_IF(status != 0, -1);
         }
         /* 工具可用且解压成功时, 校验内容与源一致; 否则视为跳过 */
@@ -190,7 +190,7 @@ static int test_squashfs_mksquashfs_image_our_extract(TEST_ENTRY *entry, int arg
         snprintf(cmd, sizeof(cmd), "mksquashfs %s %s -noappend -no-fragments -no-xattrs -no-exports" TEST_REDIR_NULL,
                 src, img);
         status = system(cmd);
-        if (status != -1 && status != (127 << 8)) {
+        if (test_tool_exists("mksquashfs")) {
             THROW_IF(status != 0, -1);
         }
         if (status != 0) THROW(1);   /* 工具不可用, 跳过 */

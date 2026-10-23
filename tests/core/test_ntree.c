@@ -67,7 +67,7 @@ static int test_ntree_insert_order_and_count(TEST_ENTRY *entry)
 {
     NTree *tree;
     allocator_t *allocator = allocator_get_default_instance();
-    ntree_node_t *root, *b, *a;
+    ntree_node_t *root, *b, *a, *c, *dup;
     int ret = 0;
 
     TRY {
@@ -82,17 +82,25 @@ static int test_ntree_insert_order_and_count(TEST_ENTRY *entry)
         /* 乱序插入, 期望子节点最终按名升序 */
         b = tree->node_new(tree, "b", NULL);
         a = tree->node_new(tree, "a", NULL);
+        c = tree->node_new(tree, "c", NULL);
+        THROW_IF(c == NULL, -1);
+        THROW_IF(tree->node_insert(tree, root, c) != 0, -1);
         THROW_IF(tree->node_insert(tree, root, b) != 0, -1);
         THROW_IF(tree->node_insert(tree, root, a) != 0, -1);
-        THROW_IF(tree->node_insert(tree, root, tree->node_new(tree, "c", NULL)) != 0, -1);
 
         THROW_IF(root->nchild != 3, -1);
         THROW_IF(__children_sorted(root) != 1, -1);
         THROW_IF(tree->count(tree) != 4, -1);
         THROW_IF(tree->node_depth(tree, a) != 2, -1);
 
+        /* reject a same-name dup insert; the refused node is orphaned
+         * outside the tree, so it must be freed manually here */
+        dup = tree->node_new(tree, "a", NULL);
+        THROW_IF(dup == NULL, -1);
+        THROW_IF(tree->node_insert(tree, root, dup) != -1, -1);
+        THROW_IF(tree->node_free(tree, dup) != 0, -1);
+
         /* 同父同名插入应被拒绝 */
-        THROW_IF(tree->node_insert(tree, root, tree->node_new(tree, "a", NULL)) != -1, -1);
 
         /* find */
         THROW_IF(tree->node_find(tree, root, "b") == NULL, -1);
@@ -101,6 +109,7 @@ static int test_ntree_insert_order_and_count(TEST_ENTRY *entry)
         /* 摘除 b */
         THROW_IF(tree->node_detach(tree, b) != 0, -1);
         THROW_IF(tree->node_count != 3, -1);
+        THROW_IF(tree->node_free(tree, b) != 0, -1);
     } CATCH (ret) {} FINALLY {
         object_destroy(tree);
     }

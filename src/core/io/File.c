@@ -73,6 +73,12 @@ static int __open(File *file, char *path, char *mode)
         } else {
             strncpy(tmp, path, 1024);
         }
+        /* 重复 open 会把上一次的 FILE* 覆盖掉, 旧句柄泄漏: 在 windows 上
+         * 句柄未释放的文件 remove 掉会失败 (残留临时文件), 先关掉再开 */
+        if (file->f != NULL) {
+            fclose(file->f);
+            file->f = NULL;
+        }
         file->f = fopen(tmp, mode);
         THROW_IF(file->f == NULL, -1);
 

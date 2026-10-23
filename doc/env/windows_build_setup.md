@@ -3,12 +3,8 @@
 > 适用版本：libobject 2.15.2.x
 > 工具链：MSYS2 + MinGW-w64 (GCC) + CMake + Ninja
 >
-> **分支说明**：Windows 移植的改动都在 `windows-port` 分支上，上游 `master` 保持干净
-> （Linux 优先）。要用 Windows 移植就 checkout `windows-port`：
->
-> ```bash
-> git checkout windows-port
-> ```
+> **分支说明**：Windows 移植的内容已 fast-forward 进 `master`（原 `windows-port`
+> 分支保留），直接在 `master` 上构建和测试即可。
 
 ## 1. 安装工具链
 
@@ -66,8 +62,16 @@ pacman -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-
 
 ```bash
 cd /c/path/to/libobject
+python devops.py build --platform=windows
+```
+
+`devops.py` 会自己探测并补齐 MinGW/make 的 PATH（也可手动：
+
+```bash
+export PATH=/c/mingw64/bin:/c/msys64/usr/bin:$PATH
 ./devops.sh build --platform=windows --arch=x86_64
 ```
+）。
 
 产物：
 
@@ -78,8 +82,10 @@ sysroot/windows/x86_64/
 └── include/      头文件
 ```
 
-`bin` 目录里的 DLL 是按 exe 的导入表自动收集的（`scripts/tool_cmd.sh`），
-所以直接拷贝 `bin` 目录到别的机器也能跑。
+`bin` 目录里的 DLL 来源于两处：构建后按 exe 的导入表自动收集
+（`scripts/tool_cmd.sh`），以及 `devops.py build` 在 make 之后把 `lib/*.dll`
+同步到 `bin/`（Windows 加载器从 exe 所在目录优先找依赖 DLL，否则容易用上
+`bin/` 里的旧库）。所以直接拷贝 `bin` 目录到别的机器也能跑。
 
 CMake 4.x 需要 `CMAKE_POLICY_VERSION_MINIMUM=3.5`（旧工程里的 `cmake_minimum_required(VERSION 3.0)`
 在 CMake 4 会被拒绝）：
@@ -90,8 +96,20 @@ export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
 ## 4. 跑测试
 
+推荐用 devops 命令（会自动以 `mockery -f` 前缀过滤、透传日志选项、失败时返回真实退出码）：
+
 ```bash
-./sysroot/windows/x86_64/bin/xtools.exe --log-type=0 --log-level=0x16 mockery -f all
+python devops.py build --platform=windows
+python devops.py test -p windows --log-level=0x14 --log-type=0 -f test
+
+# 只跑一个子集
+python devops.py test -p windows -f test_bn_
+```
+
+手动调用等价于：
+
+```bash
+./sysroot/windows/x86_64/bin/xtools.exe --log-type=0 --log-level=0x14 mockery -f test
 ```
 
 测试用到的外部工具（`7za` / `unzip` / `bzip2` / `mksquashfs`）装在 MSYS2 的
@@ -103,21 +121,23 @@ cp /usr/lib/p7zip/7za.exe /usr/lib/p7zip/7z.exe /usr/bin/   # 让 cmd.exe 也能
 ```
 
 并把 `C:\msys64\usr\bin`、`C:\msys64\usr\lib\p7zip` 加到 **Windows 的 PATH**
-（测试用例里是 `system()`/`popen()` 调用，走的是 cmd.exe）。
+（测试用例里是 `system()`/`popen()` 调用，走的是 cmd.exe）。没装的工具不影响
+互操作用例——`tests/test_compat.h` 里的 `test_tool_exists()` 会用 `where` 探测，
+未安装时对应互操作用例自动跳过（MinGW 的 `system()` 对不存在的命令返回 1，
+没法从返回码区分"命令不存在"和"真跑失败"，必须前置探测）。
 
-### 当前结果（windows-port 分支）
+### 当前结果（master 分支，含跨平台修复）
 
 ```text
-压缩相关用例: 65/65 全部通过
-  (7z 4, zip 16, tbz2 3, squashfs 4, deflate 3, gz 2, bz2 2, lzma 2, z 17,
-   tar 4, tgz 2, archive_cli 6)
-全量用例: 204 通过 / 11 失败
+全量用例: 201 通过 / 0 失败, 退出码 0
 ```
 
-11 个失败都是**非压缩类**的已知问题：`test_bn_div_case3`、`test_bn_mul_case1`（大数）、
-`test_fs_tree`、`test_fs_tree_with_depth`（目录树）、`test_fshell_load`、
-`test_fshell_load_and_get_func_addr`（动态库加载）、`test_http_upload`、
-`test_http_upload_to_path`（http 上传）。
+早期 windows-port 记录的 11 个失败（`test_bn_div_case3`、`test_bn_mul_case1`、
+`test_fs_tree`、`test_fs_tree_with_depth`、`test_fshell_load`、
+`test_fshell_load_and_get_func_addr`、`test_http_upload`、`test_http_upload_to_path`
+等）已全部修复：大数越界（`bn_cmp` 越界读/`bn_mul_u32` 越界写）、http 空响应
+`Content-Length` 缺失与 upload 反斜杠路径、fshell 动态库实名
+（`libattacher-builtin.dll`）。
 
 Windows 上被排除的用例（见 `tests/CMakeLists.txt`）：
 

@@ -1,5 +1,21 @@
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
+#include <libobject/core/io/file_system_api.h>
+
+/* windows native env has no HOME variable, use libobject fs_gethome
+ * (reads USERPROFILE on windows, HOME on linux) */
+static char *__test_home(void)
+{
+    static char home[256] = {0};
+
+    if (home[0] == 0) {
+        fs_gethome(home, sizeof(home));
+    }
+
+    return home;
+}
+
 #include <libobject/core/utils/dbg/debug.h>
 #include <libobject/net/http/Server.h>
 #include <libobject/mockery/mockery.h>
@@ -7,6 +23,78 @@
 #include <libobject/net/http/Client.h>
 #include <libobject/net/http/Curl_Command.h>
 #include <libobject/net/http/Wget_Command.h>
+
+/*
+ * md5|cut"|>" on Windows: cmd.exe has no md5sum/cut; use certutil. Both platforms
+ * take the first whitespace-separated token, which must be a 32-character hex string.
+ */
+static int __test_get_file_md5(char *path, char *md5_out, int md5_size)
+{
+    char cmd[512];
+    FILE *fp;
+    char line[512];
+    char *p;
+    int i, ok;
+
+#if (defined(WINDOWS_USER_MODE))
+    snprintf(cmd, sizeof(cmd), "certutil -hashfile \"%s\" MD5", path);
+#else
+    snprintf(cmd, sizeof(cmd), "md5sum %s | cut -d' ' -f1", path);
+#endif
+    fp = popen(cmd, "r");
+    if (fp == NULL) {
+        return -1;
+    }
+    md5_out[0] = 0;
+    while (fgets(line, sizeof(line), fp) != NULL) {
+        p = strtok(line, " \t\r\n");
+        if (p == NULL) {
+            continue;
+        }
+        if (strlen(p) != 32) {
+            continue;
+        }
+        ok = 1;
+        for (i = 0; i < 32; i++) {
+            if (!isxdigit((unsigned char)p[i])) {
+                ok = 0;
+                break;
+            }
+        }
+        if (ok) {
+            snprintf(md5_out, md5_size, "%s", p);
+            break;
+        }
+    }
+    pclose(fp);
+
+    return (md5_out[0] == 0) ? -1 : 0;
+}
+
+/* popen 在 windows 走 cmd.exe, linux 走 sh; `-o /dev/null` 与 `'%{http_code}'`
+ * 的单引号写法在 cmd.exe 下不适用, 按平台拼装输出参数.
+ * curl_args: curl 的其余参数(URL, 方法, -F 等), 放在输出参数之后 */
+static int __test_curl_status_code(char *curl_args, char *code_out, int code_size)
+{
+    char cmd[512];
+    FILE *fp;
+
+#if (defined(WINDOWS_USER_MODE))
+    snprintf(cmd, sizeof(cmd), "curl -s -o NUL -w %%{http_code} %s", curl_args);
+#else
+    snprintf(cmd, sizeof(cmd), "curl -s -o /dev/null -w '%%{http_code}' %s", curl_args);
+#endif
+    fp = popen(cmd, "r");
+    if (fp == NULL) {
+        return -1;
+    }
+    if (fgets(code_out, code_size, fp) == NULL) {
+        code_out[0] = 0;
+    }
+    pclose(fp);
+
+    return 0;
+}
 
 static int test_http_builtin_api()
 {
@@ -16,8 +104,11 @@ static int test_http_builtin_api()
     Response *resp;
     /* NOTE: 每个用例用不同的端口: 同一个进程里前一个 httpd 还在跑,
      * 端口被占着的话后一个 httpd bind 失败, 会留下半初始化的 worker */
-    char *argv[4] = {"httpd", "--no-loop", "--service", "8081"};
-    char *curl_argv[4] = {"curl", "-X", "GET", "http://127.0.0.1:8081/api/hello_world"};
+    /* builtin_api 用 7081: 8081 被 WSL2 里的常驻 httpd(tangerine.service)
+     * 经 localhost 转发占用, bind 会报 WSAEACCES, 而 curl 会被转发到那里,
+     * 测试会假绿; 所有 http 测试端口统一用 708x 段 */
+    char *argv[4] = {"httpd", "--no-loop", "--service", "7081"};
+    char *curl_argv[4] = {"curl", "-X", "GET", "http://127.0.0.1:7081/api/hello_world"};
     int ret, count = 0;
     
     TRY {
@@ -56,8 +147,8 @@ static int test_http_plugin_test_api()
     Command *command, *curl;
     Http_Client *client;
     Response *resp;
-    char *argv[4] = {"httpd", "--no-loop", "--service", "8082"};
-    char *curl_argv[4] = {"curl", "-X", "GET", "http://127.0.0.1:8082/api/http_plugin_test"};
+    char *argv[4] = {"httpd", "--no-loop", "--service", "7082"};
+    char *curl_argv[4] = {"curl", "-X", "GET", "http://127.0.0.1:7082/api/http_plugin_test"};
     int ret, count = 0;
     char path[128] = {0};
     
@@ -137,7 +228,7 @@ static int test_http_range_request()
     char http_code[10] = {0};
     char range_http_code[10] = {0};
     char content_range[128] = {0};
-    char *httpd_argv[4] = {"httpd", "--no-loop", "--service", "8083"};
+    char *httpd_argv[4] = {"httpd", "--no-loop", "--service", "7083"};
     FILE *test_file = NULL, *fp = NULL;
     
     TRY {
@@ -181,7 +272,7 @@ static int test_http_range_request()
         // 使用系统curl测试Range请求
         dbg_str(DBG_VIP, "Testing Range request...");
         // 使用-i选项获取响应头，使用-w获取状态码
-        snprintf(cmd, sizeof(cmd), "curl -s -i -H 'Range: bytes=0-499' -o /dev/null -w '%%{http_code}' http://127.0.0.1:8083/test_range.mp4");
+        snprintf(cmd, sizeof(cmd), "curl -s -i -H 'Range: bytes=0-499' -o /dev/null -w '%%{http_code}' http://127.0.0.1:7083/test_range.mp4");
         fp = popen(cmd, "r");
         THROW_IF(fp == NULL, -1);
         
@@ -204,7 +295,7 @@ static int test_http_range_request()
             dbg_str(DBG_VIP, "MP4 Range request handled correctly (206 Partial Content)");
             
             // 可选：验证Content-Range头
-            snprintf(cmd, sizeof(cmd), "curl -s -I -H 'Range: bytes=0-499' http://127.0.0.1:8083/test_range.mp4 | grep -i 'Content-Range:'");
+            snprintf(cmd, sizeof(cmd), "curl -s -I -H 'Range: bytes=0-499' http://127.0.0.1:7083/test_range.mp4 | grep -i 'Content-Range:'");
             fp = popen(cmd, "r");
             if (fp != NULL) {
                 if (fgets(content_range, sizeof(content_range), fp) != NULL) {
@@ -247,12 +338,12 @@ static int test_http_upload()
     char uploaded_md5[33] = {0};
     char uploaded_path[256] = {0};
     FILE *fp = NULL;
-    char *argv[4] = {"httpd", "--no-loop", "--service", "8084"};
+    char *argv[4] = {"httpd", "--no-loop", "--service", "7084"};
     
     TRY {
         // 启动HTTP服务器
         command = object_new(allocator, "Httpd_Command", NULL);
-        command->set_args(command, 2, (char **)argv);
+        command->set_args(command, 4, (char **)argv);
         command->parse_args(command);
         EXEC(command->run_option_actions(command));
         EXEC(command->run_command(command));
@@ -261,32 +352,20 @@ static int test_http_upload()
         
         // 使用系统curl测试上传
         // 使用-F进行multipart/form-data上传，-k忽略SSL（虽然不需要），-w获取状态码
-        snprintf(cmd, sizeof(cmd), "curl -s -F \"filename=@./res/lamp.jpg\" -X POST -o /dev/null -w '%%{http_code}' http://127.0.0.1:8084/api/upload");
-        fp = popen(cmd, "r");
-        THROW_IF(fp == NULL, -1);
-        
-        // 读取状态码
-        fgets(http_code, sizeof(http_code), fp);
-        pclose(fp);
-        fp = NULL;
+        EXEC(__test_curl_status_code("-F \"filename=@./res/lamp.jpg\" -X POST http://127.0.0.1:7084/api/upload", http_code, sizeof(http_code)));
         
         dbg_str(DBG_INFO, "Upload HTTP status code: %s", http_code);
         THROW_IF(atoi(http_code) != 200, -1);
         
         // 计算原始文件的MD5
         dbg_str(DBG_INFO, "Calculating original file MD5...");
-        snprintf(cmd, sizeof(cmd), "md5sum ./res/lamp.jpg | cut -d' ' -f1");
-        fp = popen(cmd, "r");
-        THROW_IF(fp == NULL, -1);
-        fgets(original_md5, sizeof(original_md5), fp);
-        pclose(fp);
-        fp = NULL;
+        EXEC(__test_get_file_md5("./res/lamp.jpg", original_md5, sizeof(original_md5)));
         // 去除换行符
         original_md5[strcspn(original_md5, "\n")] = 0;
         dbg_str(DBG_INFO, "Original MD5: %s", original_md5);
         
         // 确定上传文件的路径（根据handler_builtin.c，文件保存在webroot/image/下）
-        snprintf(uploaded_path, sizeof(uploaded_path), "%s/.xtools/httpd/webroot/images/lamp.jpg", getenv("HOME"));
+        snprintf(uploaded_path, sizeof(uploaded_path), "%s/.xtools/httpd/webroot/images/lamp.jpg", __test_home());
         dbg_str(DBG_INFO, "Expected uploaded file path: %s", uploaded_path);
         
         // 检查文件是否存在
@@ -297,12 +376,7 @@ static int test_http_upload()
         
         // 计算上传文件的MD5
         dbg_str(DBG_INFO, "Calculating uploaded file MD5...");
-        snprintf(cmd, sizeof(cmd), "md5sum %s | cut -d' ' -f1", uploaded_path);
-        fp = popen(cmd, "r");
-        THROW_IF(fp == NULL, -1);
-        fgets(uploaded_md5, sizeof(uploaded_md5), fp);
-        pclose(fp);
-        fp = NULL;
+        EXEC(__test_get_file_md5(uploaded_path, uploaded_md5, sizeof(uploaded_md5)));
         uploaded_md5[strcspn(uploaded_md5, "\n")] = 0;
         dbg_str(DBG_INFO, "Uploaded MD5: %s", uploaded_md5);
         
@@ -336,12 +410,12 @@ static int test_http_upload_to_path()
     char uploaded_md5[33] = {0};
     char uploaded_path[256] = {0};
     FILE *fp = NULL;
-    char *argv[4] = {"httpd", "--no-loop", "--service", "8085"};
+    char *argv[4] = {"httpd", "--no-loop", "--service", "7085"};
     
     TRY {
         // 启动HTTP服务器
         command = object_new(allocator, "Httpd_Command", NULL);
-        command->set_args(command, 2, (char **)argv);
+        command->set_args(command, 4, (char **)argv);
         command->parse_args(command);
         EXEC(command->run_option_actions(command));
         EXEC(command->run_command(command));
@@ -350,32 +424,20 @@ static int test_http_upload_to_path()
         
         // 使用系统curl测试上传到指定路径
         // 使用-F进行multipart/form-data上传，-w获取状态码
-        snprintf(cmd, sizeof(cmd), "curl -s -F \"file=@./res/lamp.jpg\" -X POST -o /dev/null -w '%%{http_code}' http://127.0.0.1:8085/api/upload/alan/res/");
-        fp = popen(cmd, "r");
-        THROW_IF(fp == NULL, -1);
-        
-        // 读取状态码
-        fgets(http_code, sizeof(http_code), fp);
-        pclose(fp);
-        fp = NULL;
+        EXEC(__test_curl_status_code("-F \"file=@./res/lamp.jpg\" -X POST http://127.0.0.1:7085/api/upload/alan/res/", http_code, sizeof(http_code)));
         
         dbg_str(DBG_INFO, "Upload to path HTTP status code: %s", http_code);
         THROW_IF(atoi(http_code) != 200, -1);
         
         // 计算原始文件的MD5
         dbg_str(DBG_INFO, "Calculating original file MD5...");
-        snprintf(cmd, sizeof(cmd), "md5sum ./res/lamp.jpg | cut -d' ' -f1");
-        fp = popen(cmd, "r");
-        THROW_IF(fp == NULL, -1);
-        fgets(original_md5, sizeof(original_md5), fp);
-        pclose(fp);
-        fp = NULL;
+        EXEC(__test_get_file_md5("./res/lamp.jpg", original_md5, sizeof(original_md5)));
         // 去除换行符
         original_md5[strcspn(original_md5, "\n")] = 0;
         dbg_str(DBG_INFO, "Original MD5: %s", original_md5);
         
         // 确定上传文件的路径（根据__handler_upload_to_path，文件保存在webroot/alan/res/下）
-        snprintf(uploaded_path, sizeof(uploaded_path), "%s/.xtools/httpd/webroot/alan/res/lamp.jpg", getenv("HOME"));
+        snprintf(uploaded_path, sizeof(uploaded_path), "%s/.xtools/httpd/webroot/alan/res/lamp.jpg", __test_home());
         dbg_str(DBG_INFO, "Expected uploaded file path: %s", uploaded_path);
         
         // 检查文件是否存在
@@ -386,12 +448,7 @@ static int test_http_upload_to_path()
         
         // 计算上传文件的MD5
         dbg_str(DBG_INFO, "Calculating uploaded file MD5...");
-        snprintf(cmd, sizeof(cmd), "md5sum %s | cut -d' ' -f1", uploaded_path);
-        fp = popen(cmd, "r");
-        THROW_IF(fp == NULL, -1);
-        fgets(uploaded_md5, sizeof(uploaded_md5), fp);
-        pclose(fp);
-        fp = NULL;
+        EXEC(__test_get_file_md5(uploaded_path, uploaded_md5, sizeof(uploaded_md5)));
         uploaded_md5[strcspn(uploaded_md5, "\n")] = 0;
         dbg_str(DBG_INFO, "Uploaded MD5: %s", uploaded_md5);
         
@@ -408,9 +465,9 @@ static int test_http_upload_to_path()
         if (uploaded_path[0] != 0) {
             remove(uploaded_path);
             // 尝试清理空目录
-            snprintf(cmd, sizeof(cmd), "rmdir %s/.xtools/httpd/webroot/alan/res 2>/dev/null", getenv("HOME"));
+            snprintf(cmd, sizeof(cmd), "rmdir %s/.xtools/httpd/webroot/alan/res 2>/dev/null", __test_home());
             system(cmd);
-            snprintf(cmd, sizeof(cmd), "rmdir %s/.xtools/httpd/webroot/alan 2>/dev/null", getenv("HOME"));
+            snprintf(cmd, sizeof(cmd), "rmdir %s/.xtools/httpd/webroot/alan 2>/dev/null", __test_home());
             system(cmd);
         }
     }

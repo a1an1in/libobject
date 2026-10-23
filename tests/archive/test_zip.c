@@ -650,7 +650,7 @@ static int test_zip_validate_with_unzip(TEST_ENTRY *entry, int argc, void **argv
          * treat the check as skipped */
         snprintf(cmd, sizeof(cmd), "unzip -t %s" TEST_REDIR_NULL, tar_name);
         status = system(cmd);
-        if (status != -1 && status != (127 << 8)) {
+        if (test_tool_exists("unzip")) {
             THROW_IF(status != 0, -1);
         }
     } CATCH (ret) { } FINALLY {

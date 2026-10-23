@@ -363,7 +363,7 @@ static int test_datetime_now(TEST_ENTRY *entry)
     Date_Time *date;
     allocator_t *allocator = allocator_get_default_instance();
     char *str, time1[1024];
-    int sec, day;
+    int sec, day, sec_diff;
 
     TRY {
         date = object_new(allocator, "Date_Time", NULL);
@@ -375,7 +375,12 @@ static int test_datetime_now(TEST_ENTRY *entry)
         sleep(1);
         str = date->now(date)->to_format_string(date, (char *)"%F %T");
         dbg_str(DBG_DETAIL, "test_datetime_now time2:%s", str);
-        THROW_IF((date->tm.tm_sec - sec + 60) % 60 != 1, -1);
+
+        /* sleep(1) 只保证时刻前进至少 1s; 在系统负载下(如全量回归并行
+         * 构建)进程可能被调度延迟越过秒边界, 实际间隔变为 2s,
+         * 断言放宽为 1~2s, 避免 test_datetime_now 随机失败 */
+        sec_diff = (date->tm.tm_sec - sec + 60) % 60;
+        THROW_IF(sec_diff != 1 && sec_diff != 2, -1);
         THROW_IF(day != date->tm.tm_mday, -1);
 
         SET_CATCH_STR_PARS(time1, str);

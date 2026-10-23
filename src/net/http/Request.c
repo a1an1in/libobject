@@ -163,7 +163,8 @@ static int __get_request_type(Request *request)
      * 非 GET 请求（POST、PUT、DELETE 等）直接视为动态请求
      * 避免 form 上传等 API 请求因文件系统路径存在而被误判为静态请求
      */
-    if (strcmp(request->method, "GET") != 0) {
+    if (strcmp(request->method, "GET") != 0 &&
+        strcmp(request->method, "HEAD") != 0) {
         return REQUEST_TYPE_DYNAMIC;
     }
 

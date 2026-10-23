@@ -75,8 +75,14 @@ static void signal_handler(int sig)
     if (sig == SIGSEGV) {
 #if (!defined(WINDOWS_USER_MODE) && !defined(ANDROID_USER_MODE))
         print_backtrace();
-        exit(0);
-#endif 
+        /*
+         * 原来这里是 exit(0), 会把段错误伪装成"正常退出":
+         * mockery 等基于退出码判断成败的测试框架就发现不了崩溃了。
+         * 恢复默认处理并重发信号, 让进程以真实的崩溃状态结束。
+         */
+        signal(sig, SIG_DFL);
+        raise(sig);
+#endif
     }
 
     return ;

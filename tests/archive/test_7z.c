@@ -145,7 +145,7 @@ static int test_7z_our_archive_other_tool_extract(TEST_ENTRY *entry, int argc, v
         /* 标准工具校验打开我们的 7z; 工具不可用(127)视为跳过 */
         snprintf(cmd, sizeof(cmd), "7za t %s" TEST_REDIR_NULL " || 7z t %s" TEST_REDIR_NULL, tar_name, tar_name);
         status = system(cmd);
-        if (status != -1 && status != (127 << 8)) {
+        if (test_tool_exists("7za") || test_tool_exists("7z")) {
             THROW_IF(status != 0, -1);
         }
     } CATCH (ret) { } FINALLY {
@@ -184,7 +184,7 @@ static int test_7z_other_tool_archive_our_extract(TEST_ENTRY *entry, int argc, v
                  "7za a -t7z %s %s" TEST_REDIR_NULL " || 7z a -t7z %s %s" TEST_REDIR_NULL,
                  tar_name, src, tar_name, src);
         status = system(cmd);
-        if (status != -1 && status != (127 << 8)) {
+        if (test_tool_exists("7za") || test_tool_exists("7z")) {
             THROW_IF(status != 0, -1);
         }
         if (status != 0) THROW(1);   /* 工具不可用, 跳过 */

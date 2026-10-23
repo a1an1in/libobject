@@ -225,8 +225,40 @@ This command will deploy the specified package to the connected Android device.
 
 Unit tests live in `tests/<module>/test_*.c` and are registered with `REGISTER_TEST_FUNC(test_xxx)` /
 `REGISTER_TEST_CMD(...)`, compiled into `object-tests`, and linked into the `xtools` binary.
-Run them through the `mockery` subcommand **from the project root** (tests use relative paths
-like `./tests/...`).
+
+### Recommended: the `devops.py test` command
+
+Build first, then run tests with the devops front-end — it resolves the right test backend for
+your host, propagates `--log-level` / `--log-type` to `xtools`, and returns a non-zero exit code
+when any test fails (exit code is real; the whole run aborts with status 1 on test failure):
+
+```bash
+# linux tests: native on a Linux host, inside the dev container via docker otherwise
+python devops.py test -p linux --log-level=0x14 --log-type=0 -f test
+python devops.py test -p linux --log-level=0x14 
+python devops.py test -p linux -f test_archive_
+
+# windows tests: native (host is Windows)
+python devops.py test -p windows --log-level=0x14 --log-type=0 -f test
+python devops.py test -p windows  --log-level=0x14 
+
+# run everything (linux + windows), only a prefix subset, or with verbose logs
+python devops.py test
+```
+
+Notes:
+
+- `-p` accepts `linux`, `windows`, or `all` (default: `all`). On a non-Linux host the linux
+  suite runs inside the dev container (`docker/dockerfile.dev`, image `libobject-dev`, built
+  automatically if missing); windows tests always run natively on a Windows host.
+- `-f <name>` matches registered test **functions** by prefix (`strncmp`): `-f test_archive_`
+  runs every `test_archive_*` function, `-f test` runs all of them.
+- Tests must run **from the project root** (they use relative paths like `./tests/...`);
+  `devops.py test` does that for you.
+
+### Manual: calling mockery directly
+
+For debugging a single test it can be faster to invoke `xtools` yourself (same options):
 
 ```bash
 # Run a single test function (or prefix-match all test_xxx* functions)
@@ -237,17 +269,14 @@ like `./tests/...`).
 
 # Run all registered test functions
 ./sysroot/linux/x86_64/bin/xtools mockery -f all
+
+# Without -f, mockery <name> runs registered test commands (REGISTER_TEST_CMD)
+./sysroot/linux/x86_64/bin/xtools mockery test_bus_server
 ```
 
-Notes:
-
-- `-f <name>` matches registered test **functions** by prefix (`strncmp`): `-f test_uio_fpga`
-  runs exactly that test, and `-f test_archive_` runs every `test_archive_*` function.
-- Without `-f`, `mockery <name>` runs registered test **commands** (`REGISTER_TEST_CMD`), e.g.
-  `./sysroot/linux/x86_64/bin/xtools mockery test_bus_server`.
-- `--log-type=0` prints logs to the console (0 = console/shell, 1 = log file, 2 = network).
-- `--log-level=0x16` sets the debug level / business mask (e.g. `0x6` opens all businesses at level 6).
-- More examples: [`doc/test_cmds.md`](doc/test_cmds.md).
+Log options are shared with the devops command: `--log-type` (0 = console, 1 = log file,
+2 = network) and `--log-level` (debug level / business mask, e.g. `0x6` opens all businesses
+at level 6). More examples: [`doc/test_cmds.md`](doc/test_cmds.md).
 
 ## User Guide
 

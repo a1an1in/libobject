@@ -33,6 +33,8 @@ static int mockery_result_struct_custom_free(allocator_t *allocator, init_func_e
 
 /**
  * 这个函数会运行所有的mockery test functions.
+ *
+ * 返回: 1 = 全部通过; -1 = 有用例失败。
  */
 int execute_test_funcs(Mockery_Command *command) 
 {
@@ -66,20 +68,28 @@ int execute_test_funcs(Mockery_Command *command)
 
     reg_heap_destroy(reg_heap);
 
-    return 0;
+    if (failed->count(failed) > 0) {
+        return -1;
+    }
+
+    return 1;
 }
 
 /**
  * 这个函数只会运行匹配的mockery test functions.
+ *
+ * 返回: 1 = 匹配到的用例全部通过; -1 = 有用例失败或没匹配到任何用例。
  */
 int execute_designated_func(Mockery_Command *command, char *func_name, int arg1, char **arg2) 
 {
     int i, size = 0, ret;
     init_func_entry_t *element;
+    Vector *failed;
     reg_heap_t * reg_heap = get_global_testfunc_reg_heap();
-    int flag = 0;
+    int flag = 0, fail_count = 0;
 
     size = reg_heap_size(reg_heap);
+    failed = command->failed_cases;
     for (i = 0; i < size; i++) {
         reg_heap_remove(reg_heap, (void **)&element);
 
@@ -103,11 +113,13 @@ int execute_designated_func(Mockery_Command *command, char *func_name, int arg1,
         if (ret <= 0) {
             dbg_str(DBG_ERROR, "command failed, func_name = %s,  file = %s, line = %d", 
                     element->func_name, element->file, element->line);
+            failed->add(failed, element);
+            fail_count++;
         } else {
             dbg_str(DBG_WIP, "command suc, func_name = %s,  file = %s, line = %d", 
                     element->func_name, element->file, element->line);
+            free(element);
         }
-        free(element);
     }
 
     if (flag == 0) {
@@ -116,20 +128,29 @@ int execute_designated_func(Mockery_Command *command, char *func_name, int arg1,
 
     reg_heap_destroy(reg_heap);
 
-    return 0;
+    if (flag == 0 || fail_count > 0) {
+        dbg_str(DBG_ERROR, "test failed, failed cases: %s", failed->to_json(failed));
+        return -1;
+    }
+
+    return 1;
 }
 
 /**
  * 这个函数只会运行匹配的mockery test command.
+ *
+ * 返回: 1 = 匹配到的命令全部执行成功; -1 = 有失败或没匹配到任何命令。
  */
 int execute_designated_cmd(Mockery_Command *command, char *func_name, int arg1, char **arg2) 
 {
     int i, size = 0, ret;
     init_func_entry_t *element;
+    Vector *failed;
     reg_heap_t * reg_heap = get_global_testfunc_reg_heap();
-    int flag = 0;
+    int flag = 0, fail_count = 0;
 
     size = reg_heap_size(reg_heap);
+    failed = command->failed_cases;
     for (i = 0; i < size; i++) {
         reg_heap_remove(reg_heap, (void **)&element);
 
@@ -153,11 +174,13 @@ int execute_designated_cmd(Mockery_Command *command, char *func_name, int arg1, 
         if (ret <= 0) {
             dbg_str(DBG_ERROR, "command failed, func_name = %s,  file = %s, line = %d", 
                     element->func_name, element->file, element->line);
+            failed->add(failed, element);
+            fail_count++;
         } else {
             dbg_str(DBG_VIP, "command suc, func_name = %s,  file = %s, line = %d", 
                     element->func_name, element->file, element->line);
+            free(element);
         }
-        free(element);
     }
 
     if (flag == 0) {
@@ -166,7 +189,12 @@ int execute_designated_cmd(Mockery_Command *command, char *func_name, int arg1, 
 
     reg_heap_destroy(reg_heap);
 
-    return 0;
+    if (flag == 0 || fail_count > 0) {
+        dbg_str(DBG_ERROR, "test failed, failed cases: %s", failed->to_json(failed));
+        return -1;
+    }
+
+    return 1;
 }
 
 static int __option_load_callback(Option *option, void *opaque)
@@ -180,6 +208,7 @@ static int __run_command(Mockery_Command *command)
 {
     Vector *failed = command->failed_cases;
     void *lib_handle = NULL;
+    int ret = 1;
 
     dbg_str(DBG_VIP, "mockery %s start", command->func_name);
 
@@ -190,21 +219,21 @@ static int __run_command(Mockery_Command *command)
         if (lib_handle == NULL) {
             dbg_str(DBG_ERROR, "mockery failed to load test lib: %s, dlerror: %s",
                     command->load_lib_path, dlerror());
-            return 0;
+            return -1;
         }
         dbg_str(DBG_VIP, "mockery loaded test lib: %s", command->load_lib_path);
     }
 
     /* -f和arg为all， 则运行所有test */
     if (command->func_name != NULL && strcmp(command->func_name, "all") == 0 && command->function_flag == 1) {
-        execute_test_funcs(command);
+        ret = execute_test_funcs(command);
         dbg_str(DBG_VIP, "mockery test failed results:%s", failed->to_json(failed));
     /* -f和arg为test函数名， 则运行匹配的mockery test */
     } else if (command->argument_flag == 1 && command->function_flag == 1) {
-        execute_designated_func(command, command->func_name, command->argc, command->argv);
+        ret = execute_designated_func(command, command->func_name, command->argc, command->argv);
     /* 只指定arg， 则运行匹配的mockery cmd */
     } else if (command->argument_flag == 1 && command->function_flag != 1) {
-        execute_designated_cmd(command, command->func_name, command->argc, command->argv);
+        ret = execute_designated_cmd(command, command->func_name, command->argc, command->argv);
     }
 
     if (lib_handle != NULL) {
@@ -214,7 +243,9 @@ static int __run_command(Mockery_Command *command)
     dbg_str(DBG_WIP, "mockery %s end", command->func_name);
     debugger_set_all_businesses_level(debugger_gp, 1, 4);
 
-    return 1;
+    /* 把用例成败带回上层(Application 的 EXEC 只在 <0 时抛异常),
+     * 这样 main 的退出码才能如实反映测试结果 */
+    return ret;
 }
 
 static int __option_mockery_function_callback(Option *option, void *opaque)

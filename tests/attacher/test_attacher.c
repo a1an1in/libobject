@@ -246,6 +246,52 @@ static int test_attacher_call_stub(Attacher *attacher, pid_t pid)
     return ret;
 }
 
+/* 等待子进程完成 exec + 动态链接: exec 后立刻 attach 可能撞在 ld.so
+ * 还没把 libc.so.6/libattacher-builtin.so 映射进子进程的中途,
+ * /proc/<pid>/maps 查不到模块, 远端符号解析随机会失败
+ * (docker 全量跑时偶发, 单跑难复现).
+ * 注意 fork 出的子进程在 execv 之前, maps 是父进程地址空间的写拷贝,
+ * libc/libattacher-builtin 子串也在其中, 会造成"已就绪"的假象, 因此
+ * 还要确认 exe 本体(test-process)已映射才算就绪. 轮询至多 timeout_ms
+ * 毫秒: 就绪返回 0, 超时/子进程消失返回 -1. */
+static int __wait_remote_process_started(pid_t pid, int timeout_ms)
+{
+    char maps[64];
+    char line[512];
+    int polls;
+
+    snprintf(maps, sizeof(maps), "/proc/%d/maps", pid);
+
+    for (polls = 0; polls < timeout_ms / 10; polls++) {
+        FILE *fp;
+        int have_libc = 0, have_builtin = 0, have_exe = 0;
+
+        fp = fopen(maps, "r");
+        if (fp == NULL) {
+            return -1;
+        }
+        while (fgets(line, sizeof(line), fp)) {
+            if (strstr(line, "libc.so.6")) {
+                have_libc = 1;
+            }
+            if (strstr(line, "libattacher-builtin.so")) {
+                have_builtin = 1;
+            }
+            if (strstr(line, "test-process")) {
+                have_exe = 1;
+            }
+        }
+        fclose(fp);
+
+        if (have_libc && have_builtin && have_exe) {
+            return 0;
+        }
+        usleep(10000);
+    }
+
+    return -1;
+}
+
 static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
 {
     Application *app = get_global_application();
@@ -262,7 +308,7 @@ static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
     char *path = "./sysroot/linux/x86_64/bin/test-process";
 #   endif
     char *arg_vector[2] = {"test-process", NULL};
-    Attacher *attacher;
+    Attacher *attacher = NULL;
     int ret;
 
     TRY {
@@ -270,7 +316,9 @@ static int test_attacher(TEST_ENTRY *entry, int argc, void **argv)
         EXEC((pid = process_execv(path, arg_vector)));
         dbg_str(DBG_VIP, "test_attacher pid:%d", pid);
 
-        usleep(10000);
+        /* execv 后先等子进程完成 exec + 动态链接再 attach(见函数注释) */
+        EXEC(__wait_remote_process_started(pid, 2000));
+
         attacher = object_new(allocator, "UnixAttacher", NULL);
         EXEC(attacher->attach(attacher, pid));
         EXEC(attacher->init(attacher));

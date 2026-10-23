@@ -71,6 +71,7 @@ static int __construct(Response *response, char *init_str)
     map->set_cmp_func(map, string_key_cmp_func);
     response->writable_flag = 1;
     response->file_bytes_written = 0;
+    response->is_head = 0;
 
     return 0;
 }
@@ -440,12 +441,11 @@ static int __write_headers(Response *response)
         b->printf(b, "%s: %s\r\n", key, value);
     }
 
-    if (response->content_len != 0 || response->file != NULL) {
-        b->printf(b, "Content-Length: %d\r\n", response->content_len);
-        b->printf(b, "\r\n");
-    } else {
-        b->printf(b, "\r\n");
-    }
+    /* 总是发 Content-Length(包括 0): 空响应若缺少该头, 客户端只能靠
+     * 连接关闭判断 end of body, 而 Windows 上不会被主动 close, curl/popen
+     * 会一直等到超时 */
+    b->printf(b, "Content-Length: %d\r\n", response->content_len);
+    b->printf(b, "\r\n");
 
     len = b->get_len(b);
     b->read(b, buffer, len);
@@ -462,7 +462,14 @@ static int __write(Response *response)
     TRY {
         EXEC(__write_headers(response));
 
-        if (response->file != NULL) {
+        if (response->is_head) {
+            /* HEAD: 只发实体元数据头(Content-Length 照常), 不发送任何实体;
+             * 文件响应也不进入异步写流程, 关掉句柄以复用普通释放路径 */
+            if (response->file != NULL) {
+                fclose(response->file);
+                response->file = NULL;
+            }
+        } else if (response->file != NULL) {
             /* For file writing, we only write headers here.
              * The actual file content will be written asynchronously
              * in __http_work_for_write_callback.
