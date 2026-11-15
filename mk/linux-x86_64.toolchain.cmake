@@ -1,3 +1,10 @@
+# 输出根目录：docker 构建环境使用独立目录（linux-docker），与本地构建隔离。
+if ("$ENV{LIBOBJECT_BUILD_ENV}" STREQUAL "docker")
+    SET(LINUX_SYSROOT ${PROJECT_SOURCE_DIR}/sysroot/linux-docker/x86_64)
+else()
+    SET(LINUX_SYSROOT ${PROJECT_SOURCE_DIR}/sysroot/linux/x86_64)
+endif()
+
 # 设置目标系统名称和处理器架构
 SET(CMAKE_SYSTEM_NAME Linux)
 SET(CMAKE_SYSTEM_PROCESSOR x86_64)
@@ -10,7 +17,7 @@ SET(CMAKE_CXX_COMPILER /usr/bin/g++)
 LINK_DIRECTORIES(
     /usr/lib/x86_64-linux-gnu
     /usr/local/lib
-    ${PROJECT_SOURCE_DIR}/sysroot/linux/x86_64/lib
+    ${LINUX_SYSROOT}/lib
 )
 
 # 指定头文件路径
@@ -23,6 +30,6 @@ INCLUDE_DIRECTORIES(
 )
 
 # 设置 x86_64 平台的输出路径
-SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/linux/x86_64)
+SET(CMAKE_INSTALL_PREFIX ${LINUX_SYSROOT})
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)

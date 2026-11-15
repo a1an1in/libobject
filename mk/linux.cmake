@@ -1,6 +1,10 @@
 macro (set_cmake_evironment_variable)
     if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local")
-        set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/linux/${CMAKE_SYSTEM_PROCESSOR})
+        if ("$ENV{LIBOBJECT_BUILD_ENV}" STREQUAL "docker")
+            set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/linux-docker/${CMAKE_SYSTEM_PROCESSOR})
+        else()
+            set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/linux/${CMAKE_SYSTEM_PROCESSOR})
+        endif()
     endif ()
 
     # 根据平台动态设置库变量

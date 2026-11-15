@@ -19,6 +19,16 @@ import tarfile
 # 工程根目录（脚本所在目录），bash 版默认从工程根目录执行
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
+
+def is_docker_env():
+    """是否运行在 dev 容器内（由 run_in_docker 注入环境变量标记）"""
+    return os.environ.get("LIBOBJECT_BUILD_ENV", "") == "docker"
+
+
+def linux_ns():
+    """linux 构建的目录命名空间：docker 环境用 linux-docker，与本地构建隔离"""
+    return "linux-docker" if is_docker_env() else "linux"
+
 # docker 镜像版本号（与 bash 版保持一致的硬编码）
 DOCKER_IMAGE_VERSION = "2.15.0.229"
 
@@ -173,22 +183,25 @@ def do_build_linux():
         print("No architecture specified. Defaulting to x86_64.")
         OPTION.arch = "x86_64"
 
-    # 根据架构动态设置构建目录、工具链文件和安装目录
+    # 根据架构动态设置构建目录、工具链文件和安装目录。
+    # docker 构建环境使用独立的目录命名空间（linux-docker），与本地构建隔离，
+    # 避免 CMakeCache 中绝对路径（/work vs 宿主机路径）冲突，无需 clean。
+    ns = linux_ns()
     if OPTION.arch == "x86_64":
         print("Building for x86_64 architecture")
-        build_dir = "build/linux/x86_64"
+        build_dir = "build/%s/x86_64" % ns
         toolchain_file = "../../../mk/linux-x86_64.toolchain.cmake"
-        sysroot_dir = "../../../sysroot/linux/x86_64"
+        sysroot_dir = "../../../sysroot/%s/x86_64" % ns
     elif OPTION.arch == "arm":
         print("Building for 32-bit ARM architecture")
-        build_dir = "build/linux/arm"
+        build_dir = "build/%s/arm" % ns
         toolchain_file = "../../../mk/linux-arm.toolchain.cmake"
-        sysroot_dir = "../../../sysroot/linux/arm"
+        sysroot_dir = "../../../sysroot/%s/arm" % ns
     elif OPTION.arch in ("aarch64", "arm64"):
         print("Building for 64-bit ARM (aarch64) architecture")
-        build_dir = "build/linux/aarch64"
+        build_dir = "build/%s/aarch64" % ns
         toolchain_file = "../../../mk/linux-aarch64.toolchain.cmake"
-        sysroot_dir = "../../../sysroot/linux/aarch64"
+        sysroot_dir = "../../../sysroot/%s/aarch64" % ns
     else:
         print("Error: Unsupported architecture: %s" % OPTION.arch)
         sys.exit(1)
@@ -495,13 +508,14 @@ def do_release_linux():
         print("No architecture specified. Defaulting to x86_64.")
         OPTION.arch = "x86_64"
 
-    # 根据架构设置 SYSROOT_DIR
+    # 根据架构设置 SYSROOT_DIR（docker 环境与本地构建使用不同目录命名空间）
+    ns = linux_ns()
     if OPTION.arch == "arm":
-        sysroot_dir = "sysroot/linux/arm"
+        sysroot_dir = "sysroot/%s/arm" % ns
     elif OPTION.arch in ("aarch64", "arm64"):
-        sysroot_dir = "sysroot/linux/aarch64"
+        sysroot_dir = "sysroot/%s/aarch64" % ns
     else:
-        sysroot_dir = "sysroot/linux/x86_64"
+        sysroot_dir = "sysroot/%s/x86_64" % ns
 
     make_release_package(os.path.join(PROJECT_ROOT, sysroot_dir),
                          "xtools_linux_%s" % OPTION.arch)
@@ -826,7 +840,8 @@ def test_arch_for(platform_name):
 
 def test_xtools_path(platform_name, arch):
     exe = "xtools.exe" if platform_name == "windows" else "xtools"
-    return os.path.join(PROJECT_ROOT, "sysroot", platform_name, arch, "bin", exe)
+    ns = linux_ns() if platform_name == "linux" else platform_name
+    return os.path.join(PROJECT_ROOT, "sysroot", ns, arch, "bin", exe)
 
 
 def _mockery_cmd(xtools, filter_name):
@@ -1039,6 +1054,7 @@ def run_in_docker():
 
     # 工程根目录挂载到容器 /work，透传原始参数（已去掉 --docker）
     cmd = ["docker", "run", "--rm",
+           "-e", "LIBOBJECT_BUILD_ENV=docker",
            "-v", "%s:/work" % PROJECT_ROOT,
            DOCKER_DEV_IMAGE, "python3", "devops.py"] + OPTION.forward_args
     ret = run(cmd)

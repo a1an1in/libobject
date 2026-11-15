@@ -20,8 +20,12 @@ SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 SET(CMAKE_C_FLAGS "-march=armv7-a -mfpu=neon -mfloat-abi=hard")
 SET(CMAKE_CXX_FLAGS "-march=armv7-a -mfpu=neon -mfloat-abi=hard")
 
-# 设置 32 位 ARM 平台的输出路径
-SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/linux/arm)
+# 设置 32 位 ARM 平台的输出路径（docker 环境使用独立目录，与本地构建隔离）
+if ("$ENV{LIBOBJECT_BUILD_ENV}" STREQUAL "docker")
+    SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/linux-docker/arm)
+else()
+    SET(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/sysroot/linux/arm)
+endif()
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib)
 
