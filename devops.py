@@ -156,6 +156,16 @@ def copy_scripts_and_includes(build_dir, sysroot_dir):
 
 
 def do_build_linux():
+    # Windows 主机上不能本地编译 Linux 目标（缺 Linux 头文件/系统库），且不指定
+    # 生成器时 CMake 会默认选择 Visual Studio 生成器，从而误报 "Could NOT find
+    # BZip2" 之类的错误（依赖其实已随 MSYS2 装好）。这里明确引导改用 --docker。
+    if platform.system() == "Windows":
+        print("Error: native Linux build is not supported on Windows.")
+        print("       Build Linux inside the dev container instead:")
+        print("       python devops.py build --platform=linux --arch=%s --docker"
+              % (OPTION.arch or "x86_64"))
+        sys.exit(1)
+
     increase_version_tweak_number()
 
     # 如果未指定架构，默认使用 x86_64
@@ -197,8 +207,10 @@ def do_build_linux():
         print("Error: CMakeLists.txt not found in the source directory.")
         sys.exit(1)
 
-    # 运行 CMake，加载工具链文件
-    run(["cmake", "../../../", "-DPLATFORM=linux", "-DMODULE_UI=off",
+    # 运行 CMake，加载工具链文件（显式指定 Unix Makefiles，避免在 Windows 等其他
+    # 主机上被默认生成器误选为 Visual Studio）。
+    run(["cmake", "../../../", "-G", "Unix Makefiles", "-DPLATFORM=linux",
+         "-DMODULE_UI=off",
          "-DCMAKE_TOOLCHAIN_FILE=%s" % toolchain_file],
         cwd=build_dir, check=True, err_msg="CMake configuration failed.")
 
