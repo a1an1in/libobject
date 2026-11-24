@@ -24,6 +24,7 @@ struct Table_s{
     int (*peek_at_model)(Table *table, int index, void **model);
     int (*count_model)(Table *table);
     int (*add_field)(Table *table, void *value);
+    int (*add_index)(Table *table, void *value);
     Field *(*get_field)(Table *table, char *field_name);
     char *(*get_table_name)(Table *table);
     int (*set_table_name)(Table *table, char *table_name);
@@ -43,6 +44,7 @@ struct Table_s{
 
     /*attribs*/
     Vector *meta_info;
+    Vector *indexes;
     Vector *models;
     String *table_name;
     String *model_name;
@@ -59,6 +61,25 @@ struct Table_s{
     field->set(field, "type", sql_field_type);\
     field->set(field, "constraint", sql_constraint);\
     t->add_field(t, field);\
+})
+
+/*
+ * Add a table level index definition, rendered after all fields:
+ *   Add_Index(table, "INDEX", "idx_user", "userId");
+ *   Add_Index(table, "UNIQUE KEY", "uk_user_client", "userId, clientId");
+ * generates: INDEX idx_user (userId), UNIQUE KEY uk_user_client (userId, clientId)
+ */
+#define Add_Index(table, sql_index_type, sql_index_name, sql_columns) \
+({\
+    Table *t = (Table *)table;\
+    allocator_t *allocator = t->parent.allocator;\
+    Field *field;\
+    \
+    field = object_new(allocator, "Field", NULL);\
+    field->set(field, "name", sql_index_name);\
+    field->set(field, "type", sql_index_type);\
+    field->set(field, "constraint", sql_columns);\
+    t->add_index(t, field);\
 })
 
 #endif

@@ -533,7 +533,8 @@ static int __create_table(Orm_Conn *conn, char *table_class_name)
     Table *table = NULL;
     allocator_t *allocator = conn->parent.allocator;
     Vector *meta_info;
-    int meta_count, i, len;
+    Vector *indexes;
+    int meta_count, index_count, i, len, first = 1;
     Field *field;
     String *sql_statement = NULL;
     char *table_name;
@@ -555,14 +556,30 @@ static int __create_table(Orm_Conn *conn, char *table_class_name)
             meta_info->peek_at(meta_info, i, (void **)&field);
             CONTINUE_IF(field == NULL);
 
-            if (i == meta_count - 1) {
-                sql_statement->format(sql_statement, 1024, "%s %s %s)",
-                        STR2A(field->name), STR2A(field->type), STR2A(field->constraint));
-            } else {
-                sql_statement->format(sql_statement, 1024, "%s %s %s, ",
-                        STR2A(field->name), STR2A(field->type), STR2A(field->constraint));
-            }
+            if (!first)
+                sql_statement->format(sql_statement, 1024, ", ");
+            first = 0;
+
+            sql_statement->format(sql_statement, 1024, "%s %s %s",
+                    STR2A(field->name), STR2A(field->type), STR2A(field->constraint));
         }
+
+        /* 索引/唯一键等表级定义，见 Table.h 的 Add_Index */
+        indexes = table->indexes;
+        index_count = indexes->count(indexes);
+        for (i = 0; i < index_count; i++) {
+            indexes->peek_at(indexes, i, (void **)&field);
+            CONTINUE_IF(field == NULL);
+
+            if (!first)
+                sql_statement->format(sql_statement, 1024, ", ");
+            first = 0;
+
+            sql_statement->format(sql_statement, 1024, "%s %s (%s)",
+                    STR2A(field->type), STR2A(field->name), STR2A(field->constraint));
+        }
+
+        sql_statement->format(sql_statement, 1024, ")");
 
         dbg_str(DB_SUC, "create_table sql:%s", STR2A(sql_statement));
         EXEC(conn->sql->create_table(conn->sql, STR2A(sql_statement)));

@@ -14,6 +14,7 @@ static int __construct(Table *table, char *init_str)
 {
     Vector *models;
     Vector *meta_info;
+    Vector *indexes;
     uint8_t trustee_flag = 1;
     int value_type = VALUE_TYPE_OBJ_POINTER;
 
@@ -28,8 +29,13 @@ static int __construct(Table *table, char *init_str)
     meta_info->set(meta_info, "/Vector/trustee_flag", &trustee_flag);
     meta_info->set(meta_info, "/Vector/value_type", &value_type);
 
+    indexes = object_new(table->parent.allocator, "Vector", NULL);
+    indexes->set(indexes, "/Vector/trustee_flag", &trustee_flag);
+    indexes->set(indexes, "/Vector/value_type", &value_type);
+
     table->models = models;
     table->meta_info = meta_info;
+    table->indexes = indexes;
 
     return 0;
 }
@@ -48,6 +54,10 @@ static int __deconstruct(Table *table)
 
     if (table->meta_info) {
         object_destroy(table->meta_info);
+    }
+
+    if (table->indexes) {
+        object_destroy(table->indexes);
     }
 
     return 0;
@@ -84,6 +94,15 @@ static int __add_field(Table *table,  void *value)
     meta_info = table->meta_info;
 
     return meta_info->add(meta_info, value);
+}
+
+static int __add_index(Table *table,  void *value)
+{
+    Vector *indexes;
+
+    indexes = table->indexes;
+
+    return indexes->add(indexes, value);
 }
 
 static Field *__get_field(Table *table, char *field_name)
@@ -289,7 +308,8 @@ static class_info_entry_t table_class_info[] = {
     Init_Vfunc_Entry(22, Table, add_table, __add_table),
     Init_Vfunc_Entry(23, Table, copy_table, __copy_table),
     Init_Vfunc_Entry(24, Table, search, __search),
-    Init_End___Entry(25, Table),
+    Init_Vfunc_Entry(25, Table, add_index, __add_index),
+    Init_End___Entry(26, Table),
 };
 REGISTER_CLASS(Table, table_class_info);
 
